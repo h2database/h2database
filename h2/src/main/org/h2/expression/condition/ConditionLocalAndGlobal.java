@@ -60,12 +60,8 @@ public class ConditionLocalAndGlobal extends Condition {
         if (local == null) {
             return global.getValue(session);
         }
-        Value l = local.getValue(session);
-        if (l != ValueNull.INSTANCE && !l.getBoolean()) {
-            return ValueBoolean.FALSE;
-        }
-        Value r = global.getValue(session);
-        if (r != ValueNull.INSTANCE && !r.getBoolean()) {
+        Value l = local.getValue(session), r;
+        if (l.isFalse() || (r = global.getValue(session)).isFalse()) {
             return ValueBoolean.FALSE;
         }
         if (l == ValueNull.INSTANCE || r == ValueNull.INSTANCE) {

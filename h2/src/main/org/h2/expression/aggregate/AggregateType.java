@@ -106,6 +106,66 @@ public enum AggregateType {
     HISTOGRAM,
 
     /**
+     * The aggregate type for COVAR_POP binary set function.
+     */
+    COVAR_POP,
+
+    /**
+     * The aggregate type for COVAR_SAMP binary set function.
+     */
+    COVAR_SAMP,
+
+    /**
+     * The aggregate type for CORR binary set function.
+     */
+    CORR,
+
+    /**
+     * The aggregate type for REGR_SLOPE binary set function.
+     */
+    REGR_SLOPE,
+
+    /**
+     * The aggregate type for REGR_INTERCEPT binary set function.
+     */
+    REGR_INTERCEPT,
+
+    /**
+     * The aggregate type for REGR_COUNT binary set function.
+     */
+    REGR_COUNT,
+
+    /**
+     * The aggregate type for REGR_R2 binary set function.
+     */
+    REGR_R2,
+
+    /**
+     * The aggregate type for REGR_AVGX binary set function.
+     */
+    REGR_AVGX,
+
+    /**
+     * The aggregate type for REGR_AVGY binary set function.
+     */
+    REGR_AVGY,
+
+    /**
+     * The aggregate type for REGR_SXX binary set function.
+     */
+    REGR_SXX,
+
+    /**
+     * The aggregate type for REGR_SYY binary set function.
+     */
+    REGR_SYY,
+
+    /**
+     * The aggregate type for REGR_SXY binary set function.
+     */
+    REGR_SXY,
+
+    /**
      * The type for RANK() hypothetical set function.
      */
     RANK,

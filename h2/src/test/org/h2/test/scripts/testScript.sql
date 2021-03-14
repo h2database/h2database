@@ -119,10 +119,7 @@ select * from (select * from test order by name limit 1) where id < 10;
 drop table test;
 > ok
 
-create table test (id int not null, pid int);
-> ok
-
-create index idx_test_pid on test (pid);
+create table test (id int primary key, pid int);
 > ok
 
 alter table test add constraint fk_test foreign key (pid)
@@ -285,12 +282,7 @@ insert into test values(1), (2), (4);
 > update count: 3
 
 select * from test order by id limit -1;
-> ID
-> --
-> 1
-> 2
-> 4
-> rows (ordered): 3
+> exception INVALID_VALUE_2
 
 select * from test order by id limit 0;
 > ID
@@ -311,12 +303,7 @@ select * from test order by id limit 1+1;
 > rows (ordered): 2
 
 select * from test order by id limit null;
-> ID
-> --
-> 1
-> 2
-> 4
-> rows (ordered): 3
+> exception INVALID_VALUE_2
 
 delete from test limit 0;
 > ok
@@ -325,7 +312,7 @@ delete from test limit 1;
 > update count: 1
 
 delete from test limit -1;
-> update count: 2
+> exception INVALID_VALUE_2
 
 drop table test;
 > ok
@@ -390,7 +377,7 @@ select 3 from (select * from dual) union all select 2 from dual;
 create table a(x int, y int);
 > ok
 
-create unique index a_xy on a(x, y);
+alter table a add constraint a_xy unique(x, y);
 > ok
 
 create table b(x int, y int, foreign key(x, y) references a(x, y));
@@ -546,7 +533,7 @@ select * from(select 1 from system_range(1, 2) group by sin(x) order by sin(x));
 > 1
 > rows: 2
 
-create table parent as select 1 id, 2 x;
+create table parent(id int primary key, x int) as select 1 id, 2 x;
 > ok
 
 create table child(id int references parent(id)) as select 1;
@@ -1318,7 +1305,7 @@ DROP TABLE A;
 set autocommit true;
 > ok
 
-CREATE TABLE PARENT(ID INT);
+CREATE TABLE PARENT(ID INT PRIMARY KEY);
 > ok
 
 CREATE TABLE CHILD(PID INT);
@@ -3258,7 +3245,7 @@ drop sequence seq1;
 create table test(a int primary key, b int, c int);
 > ok
 
-create unique index idx_ba on test(b, a);
+alter table test add constraint unique_ba unique(b, a);
 > ok
 
 alter table test add constraint abc foreign key(c, a) references test(b, a);
@@ -3273,7 +3260,7 @@ drop table test;
 create table ADDRESS (ADDRESS_ID int primary key, ADDRESS_TYPE int not null, SERVER_ID int not null);
 > ok
 
-create unique index idx_a on address(ADDRESS_TYPE, SERVER_ID);
+alter table address add constraint unique_a unique(ADDRESS_TYPE, SERVER_ID);
 > ok
 
 create table SERVER (SERVER_ID int primary key, SERVER_TYPE int not null, ADDRESS_TYPE int);
@@ -3509,7 +3496,7 @@ drop table account;
 > ok
 
 --- constraints and alter table add column ---------------------------------------------------------------------------------------------
-CREATE TABLE TEST(ID INT, PARENTID INT, FOREIGN KEY(PARENTID) REFERENCES(ID));
+CREATE TABLE TEST(ID INT PRIMARY KEY, PARENTID INT, FOREIGN KEY(PARENTID) REFERENCES(ID));
 > ok
 
 INSERT INTO TEST VALUES(0, 0);
@@ -3539,13 +3526,13 @@ SELECT * FROM TEST;
 DROP TABLE TEST;
 > ok
 
-CREATE MEMORY TABLE A(X INT);
+CREATE MEMORY TABLE A(X INT PRIMARY KEY);
 > ok
 
 CREATE MEMORY TABLE B(XX INT, CONSTRAINT B2A FOREIGN KEY(XX) REFERENCES A(X));
 > ok
 
-CREATE MEMORY TABLE C(X_MASTER INT);
+CREATE MEMORY TABLE C(X_MASTER INT PRIMARY KEY);
 > ok
 
 ALTER TABLE A ADD CONSTRAINT A2C FOREIGN KEY(X) REFERENCES C(X_MASTER);
@@ -3595,7 +3582,7 @@ SELECT "ROWNUM", ROWNUM, "SELECT" "AS", "PRIMARY" AS "X", "KEY", "NEXTVAL", "IND
 DROP TABLE "CREATE";
 > ok
 
-CREATE TABLE PARENT(ID INT, NAME VARCHAR);
+CREATE TABLE PARENT(ID INT PRIMARY KEY, NAME VARCHAR);
 > ok
 
 CREATE TABLE CHILD(ID INT, PARENTID INT, FOREIGN KEY(PARENTID) REFERENCES PARENT(ID));
@@ -4102,7 +4089,7 @@ create schema ClientServer_Schema AUTHORIZATION SA;
 
 CREATE TABLE ClientServer_Schema.PrimaryKey_Seq (
 sequence_name VARCHAR(100) NOT NULL,
-seq_number BIGINT NOT NULL,
+seq_number BIGINT NOT NULL UNIQUE,
 CONSTRAINT X_PKPrimaryKey_Seq
 PRIMARY KEY (sequence_name)
 );
@@ -6259,7 +6246,7 @@ DROP TABLE PARENT, CHILD;
 drop table if exists test;
 > ok
 
-create table test(id int primary key, parent int, foreign key(id) references test(parent));
+create table test(id int primary key, parent int unique, foreign key(id) references test(parent));
 > ok
 
 insert into test values(1, 1);
@@ -6346,7 +6333,7 @@ INSERT INTO TEST VALUES(4, 'Joe', 3);
 DROP TABLE TEST;
 > ok
 
-CREATE MEMORY TABLE TEST(A_INT INT NOT NULL, B_INT INT NOT NULL, PRIMARY KEY(A_INT, B_INT));
+CREATE MEMORY TABLE TEST(A_INT INT NOT NULL, B_INT INT NOT NULL, PRIMARY KEY(A_INT, B_INT), CONSTRAINT U_B UNIQUE(B_INT));
 > ok
 
 ALTER TABLE TEST ADD CONSTRAINT A_UNIQUE UNIQUE(A_INT);
@@ -6370,7 +6357,7 @@ SCRIPT NOPASSWORDS NOSETTINGS NOVERSION;
 > CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
 > CREATE MEMORY TABLE "PUBLIC"."TEST"( "A_INT" INTEGER NOT NULL, "B_INT" INTEGER NOT NULL );
 > -- 0 +/- SELECT COUNT(*) FROM PUBLIC.TEST;
-> ALTER TABLE "PUBLIC"."TEST" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_2" UNIQUE("B_INT");
+> ALTER TABLE "PUBLIC"."TEST" ADD CONSTRAINT "PUBLIC"."U_B" UNIQUE("B_INT");
 > ALTER TABLE "PUBLIC"."TEST" ADD CONSTRAINT "PUBLIC"."C1" FOREIGN KEY("A_INT") REFERENCES "PUBLIC"."TEST"("B_INT") NOCHECK;
 > rows (ordered): 5
 
@@ -6531,13 +6518,13 @@ SCRIPT NOPASSWORDS NOSETTINGS NOVERSION;
 DROP TABLE A_TEST, B_TEST;
 > ok
 
-CREATE MEMORY TABLE FAMILY(ID INT, NAME VARCHAR(20));
+CREATE MEMORY TABLE FAMILY(ID INT PRIMARY KEY, NAME VARCHAR(20));
 > ok
 
 CREATE INDEX FAMILY_ID_NAME ON FAMILY(ID, NAME);
 > ok
 
-CREATE MEMORY TABLE PARENT(ID INT, FAMILY_ID INT, NAME VARCHAR(20));
+CREATE MEMORY TABLE PARENT(ID INT, FAMILY_ID INT, NAME VARCHAR(20), UNIQUE(ID, FAMILY_ID));
 > ok
 
 ALTER TABLE PARENT ADD CONSTRAINT PARENT_FAMILY FOREIGN KEY(FAMILY_ID)
@@ -6611,7 +6598,8 @@ SCRIPT SIMPLE NOPASSWORDS NOSETTINGS NOVERSION;
 > SCRIPT
 > ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 > CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
-> CREATE MEMORY TABLE "PUBLIC"."FAMILY"( "ID" INTEGER, "NAME" CHARACTER VARYING(20) );
+> CREATE MEMORY TABLE "PUBLIC"."FAMILY"( "ID" INTEGER NOT NULL, "NAME" CHARACTER VARYING(20) );
+> ALTER TABLE "PUBLIC"."FAMILY" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_7" PRIMARY KEY("ID");
 > -- 1 +/- SELECT COUNT(*) FROM PUBLIC.FAMILY;
 > INSERT INTO "PUBLIC"."FAMILY" VALUES(1, 'Capone');
 > CREATE INDEX "PUBLIC"."FAMILY_ID_NAME" ON "PUBLIC"."FAMILY"("ID" NULLS FIRST, "NAME" NULLS FIRST);
@@ -6625,7 +6613,6 @@ SCRIPT SIMPLE NOPASSWORDS NOSETTINGS NOVERSION;
 > INSERT INTO "PUBLIC"."CHILD" VALUES(200, NULL, NULL, 'Jim');
 > INSERT INTO "PUBLIC"."CHILD" VALUES(201, NULL, NULL, 'Johann');
 > ALTER TABLE "PUBLIC"."CHILD" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_3" UNIQUE("ID", "PARENTID");
-> ALTER TABLE "PUBLIC"."FAMILY" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_7" UNIQUE("ID");
 > ALTER TABLE "PUBLIC"."PARENT" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_8" UNIQUE("ID", "FAMILY_ID");
 > ALTER TABLE "PUBLIC"."CHILD" ADD CONSTRAINT "PUBLIC"."PARENT_CHILD" FOREIGN KEY("PARENTID", "FAMILY_ID") REFERENCES "PUBLIC"."PARENT"("ID", "FAMILY_ID") ON DELETE SET NULL ON UPDATE CASCADE NOCHECK;
 > ALTER TABLE "PUBLIC"."PARENT" ADD CONSTRAINT "PUBLIC"."PARENT_FAMILY" FOREIGN KEY("FAMILY_ID") REFERENCES "PUBLIC"."FAMILY"("ID") NOCHECK;
@@ -6638,7 +6625,8 @@ SCRIPT SIMPLE NOPASSWORDS NOSETTINGS NOVERSION;
 > SCRIPT
 > ------------------------------------------------------------------------------------------------------------------------------------------
 > CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
-> CREATE MEMORY TABLE "PUBLIC"."FAMILY"( "ID" INTEGER, "NAME" CHARACTER VARYING(20) );
+> CREATE MEMORY TABLE "PUBLIC"."FAMILY"( "ID" INTEGER NOT NULL, "NAME" CHARACTER VARYING(20) );
+> ALTER TABLE "PUBLIC"."FAMILY" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_7" PRIMARY KEY("ID");
 > -- 1 +/- SELECT COUNT(*) FROM PUBLIC.FAMILY;
 > INSERT INTO "PUBLIC"."FAMILY" VALUES(1, 'Capone');
 > CREATE INDEX "PUBLIC"."FAMILY_ID_NAME" ON "PUBLIC"."FAMILY"("ID" NULLS FIRST, "NAME" NULLS FIRST);
@@ -6652,7 +6640,6 @@ SCRIPT SIMPLE NOPASSWORDS NOSETTINGS NOVERSION;
 > INSERT INTO "PUBLIC"."CHILD" VALUES(200, NULL, NULL, 'Jim');
 > INSERT INTO "PUBLIC"."CHILD" VALUES(201, NULL, NULL, 'Johann');
 > ALTER TABLE "PUBLIC"."CHILD" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_3" UNIQUE("ID", "PARENTID");
-> ALTER TABLE "PUBLIC"."FAMILY" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_7" UNIQUE("ID");
 > ALTER TABLE "PUBLIC"."PARENT" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_8" UNIQUE("ID", "FAMILY_ID");
 > ALTER TABLE "PUBLIC"."PARENT" ADD CONSTRAINT "PUBLIC"."PARENT_FAMILY" FOREIGN KEY("FAMILY_ID") REFERENCES "PUBLIC"."FAMILY"("ID") NOCHECK;
 > rows (ordered): 18
@@ -6712,17 +6699,17 @@ SELECT * FROM INVOICE_LINE;
 DROP TABLE INVOICE, INVOICE_LINE;
 > ok
 
-CREATE MEMORY TABLE TEST(A INT, B INT, FOREIGN KEY (B) REFERENCES(A) ON UPDATE RESTRICT ON DELETE NO ACTION);
+CREATE MEMORY TABLE TEST(A INT PRIMARY KEY, B INT, FOREIGN KEY (B) REFERENCES(A) ON UPDATE RESTRICT ON DELETE NO ACTION);
 > ok
 
 SCRIPT NOPASSWORDS NOSETTINGS NOVERSION;
 > SCRIPT
-> ----------------------------------------------------------------------------------------------------------------------------
+> -----------------------------------------------------------------------------------------------------------------------------
 > CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
-> CREATE MEMORY TABLE "PUBLIC"."TEST"( "A" INTEGER, "B" INTEGER );
+> CREATE MEMORY TABLE "PUBLIC"."TEST"( "A" INTEGER NOT NULL, "B" INTEGER );
+> ALTER TABLE "PUBLIC"."TEST" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_2" PRIMARY KEY("A");
 > -- 0 +/- SELECT COUNT(*) FROM PUBLIC.TEST;
-> ALTER TABLE "PUBLIC"."TEST" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_27" UNIQUE("A");
-> ALTER TABLE "PUBLIC"."TEST" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_2" FOREIGN KEY("B") REFERENCES "PUBLIC"."TEST"("A") NOCHECK;
+> ALTER TABLE "PUBLIC"."TEST" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_27" FOREIGN KEY("B") REFERENCES "PUBLIC"."TEST"("A") NOCHECK;
 > rows (ordered): 5
 
 DROP TABLE TEST;

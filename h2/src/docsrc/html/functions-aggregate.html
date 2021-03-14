@@ -47,6 +47,34 @@ syntax-end -->
 </table>
 <!-- railroad-end -->
 
+<h3>Binary Set Functions</h3>
+<!-- syntax-start
+<p class="notranslate">
+<c:forEach var="item" items="aggregateFunctionsBinarySet">
+    <a href="#${item.link}" >${item.topic}</a><br />
+</c:forEach>
+</p>
+syntax-end -->
+<!-- railroad-start -->
+<table class="notranslate index">
+    <tr>
+        <td class="index">
+            <c:forEach var="item" items="aggregateFunctionsBinarySet-0">
+                <a href="#${item.link}" >${item.topic}</a><br />
+            </c:forEach>
+        </td><td class="index">
+            <c:forEach var="item" items="aggregateFunctionsBinarySet-1">
+                <a href="#${item.link}" >${item.topic}</a><br />
+            </c:forEach>
+        </td><td class="index">
+            <c:forEach var="item" items="aggregateFunctionsBinarySet-2">
+                <a href="#${item.link}" >${item.topic}</a><br />
+            </c:forEach>
+        </td>
+    </tr>
+</table>
+<!-- railroad-end -->
+
 <h3>Ordered Aggregate Functions</h3>
 <!-- syntax-start
 <p class="notranslate">
@@ -168,6 +196,27 @@ don't use it unless you need it for compatibility with other databases or old ve
 
 <h2>General Aggregate Functions</h2>
 <c:forEach var="item" items="aggregateFunctionsGeneral">
+<h3 id="${item.link}" class="notranslate" onclick="switchBnf(this)">${item.topic}</h3>
+<!-- railroad-start -->
+<pre name="bnf" style="display: none">
+${item.syntax}
+</pre>
+<div name="railroad">
+${item.railroad}
+</div>
+<!-- railroad-end -->
+<!-- syntax-start
+<pre>
+${item.syntax}
+</pre>
+syntax-end -->
+<p>${item.text}</p>
+<p>Example:</p>
+<p class="notranslate">${item.example}</p>
+</c:forEach>
+
+<h2>Binary Set Functions</h2>
+<c:forEach var="item" items="aggregateFunctionsBinarySet">
 <h3 id="${item.link}" class="notranslate" onclick="switchBnf(this)">${item.topic}</h3>
 <!-- railroad-start -->
 <pre name="bnf" style="display: none">

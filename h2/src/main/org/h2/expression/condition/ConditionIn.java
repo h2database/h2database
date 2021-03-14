@@ -56,7 +56,7 @@ public final class ConditionIn extends Condition {
         if (!whenOperand) {
             return super.getWhenValue(session, left);
         }
-        return getValue(session, left).getBoolean();
+        return getValue(session, left).isTrue();
     }
 
     private Value getValue(SessionLocal session, Value left) {

@@ -355,7 +355,7 @@ public class Select extends Query {
     }
 
     private boolean isHavingNullOrFalse(Value[] row) {
-        return havingIndex >= 0 && !row[havingIndex].getBoolean();
+        return havingIndex >= 0 && !row[havingIndex].isTrue();
     }
 
     private Index getGroupSortedIndex() {
@@ -548,7 +548,7 @@ public class Select extends Query {
             if (withHaving && isHavingNullOrFalse(row)) {
                 continue;
             }
-            if (qualifyIndex >= 0 && !row[qualifyIndex].getBoolean()) {
+            if (qualifyIndex >= 0 && !row[qualifyIndex].isTrue()) {
                 continue;
             }
             if (quickOffset && offset > 0) {

@@ -97,9 +97,6 @@ public class RangeTable extends VirtualTable {
 
     @Override
     public Index getScanIndex(SessionLocal session) {
-        if (getStep(session) == 0) {
-            throw DbException.get(ErrorCode.STEP_SIZE_MUST_NOT_BE_ZERO);
-        }
         return index;
     }
 

@@ -102,6 +102,8 @@ public class GenerateDoc {
 
         map("aggregateFunctionsGeneral",
                 help + "= 'Aggregate Functions (General)' ORDER BY ID", true, false);
+        map("aggregateFunctionsBinarySet",
+                help + "= 'Aggregate Functions (Binary Set)' ORDER BY ID", true, false);
         map("aggregateFunctionsOrdered",
                 help + "= 'Aggregate Functions (Ordered)' ORDER BY ID", true, false);
         map("aggregateFunctionsHypothetical",

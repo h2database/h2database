@@ -89,27 +89,27 @@ public final class ValueNull extends Value {
 
     @Override
     public boolean getBoolean() {
-        return false;
+        throw DbException.getInternalError();
     }
 
     @Override
     public byte getByte() {
-        return 0;
+        throw DbException.getInternalError();
     }
 
     @Override
     public short getShort() {
-        return 0;
+        throw DbException.getInternalError();
     }
 
     @Override
     public int getInt() {
-        return 0;
+        throw DbException.getInternalError();
     }
 
     @Override
     public long getLong() {
-        return 0;
+        throw DbException.getInternalError();
     }
 
     @Override
@@ -119,12 +119,12 @@ public final class ValueNull extends Value {
 
     @Override
     public float getFloat() {
-        return 0.0F;
+        throw DbException.getInternalError();
     }
 
     @Override
     public double getDouble() {
-        return 0.0;
+        throw DbException.getInternalError();
     }
 
     @Override

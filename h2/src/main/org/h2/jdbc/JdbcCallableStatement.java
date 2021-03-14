@@ -35,7 +35,26 @@ import org.h2.value.ValueNull;
 
 /**
  * Represents a callable statement.
- *
+ * <p>
+ * Thread safety: the callable statement is not thread-safe. If the same
+ * callable statement is used by multiple threads access to it must be
+ * synchronized. The single synchronized block must include assignment of
+ * parameters, execution of the command and all operations with its result.
+ * </p>
+ * <pre>
+ * synchronized (call) {
+ *     call.setInt(1, 10);
+ *     try (ResultSet rs = call.executeQuery()) {
+ *         while (rs.next) {
+ *             // Do something
+ *         }
+ *     }
+ * }
+ * synchronized (call) {
+ *     call.setInt(1, 15);
+ *     updateCount = call.executeUpdate();
+ * }
+ * </pre>
  * @author Sergi Vladykin
  * @author Thomas Mueller
  */
@@ -351,11 +370,16 @@ public final class JdbcCallableStatement extends JdbcPreparedStatement implement
 
     /**
      * Returns the value of the specified column as a java.sql.Date.
+     * <p>
+     * Usage of this method is discouraged. Use
+     * {@code getObject(columnIndex, LocalDate.class)} instead.
+     * </p>
      *
      * @param parameterIndex the parameter index (1, 2, ...)
      * @return the value
      * @throws SQLException if the column is not found or if this object is
      *             closed
+     * @see #getObject(int, Class)
      */
     @Override
     public Date getDate(int parameterIndex) throws SQLException {
@@ -365,11 +389,16 @@ public final class JdbcCallableStatement extends JdbcPreparedStatement implement
 
     /**
      * Returns the value of the specified column as a java.sql.Time.
+     * <p>
+     * Usage of this method is discouraged. Use
+     * {@code getObject(columnIndex, LocalTime.class)} instead.
+     * </p>
      *
      * @param parameterIndex the parameter index (1, 2, ...)
      * @return the value
      * @throws SQLException if the column is not found or if this object is
      *             closed
+     * @see #getObject(int, Class)
      */
     @Override
     public Time getTime(int parameterIndex) throws SQLException {
@@ -379,11 +408,16 @@ public final class JdbcCallableStatement extends JdbcPreparedStatement implement
 
     /**
      * Returns the value of the specified column as a java.sql.Timestamp.
+     * <p>
+     * Usage of this method is discouraged. Use
+     * {@code getObject(columnIndex, LocalDateTime.class)} instead.
+     * </p>
      *
      * @param parameterIndex the parameter index (1, 2, ...)
      * @return the value
      * @throws SQLException if the column is not found or if this object is
      *             closed
+     * @see #getObject(int, Class)
      */
     @Override
     public Timestamp getTimestamp(int parameterIndex) throws SQLException {
@@ -483,12 +517,17 @@ public final class JdbcCallableStatement extends JdbcPreparedStatement implement
     /**
      * Returns the value of the specified column as a java.sql.Date using a
      * specified time zone.
+     * <p>
+     * Usage of this method is discouraged. Use
+     * {@code getObject(columnIndex, LocalDate.class)} instead.
+     * </p>
      *
      * @param parameterIndex the parameter index (1, 2, ...)
      * @param cal the calendar
      * @return the value
      * @throws SQLException if the column is not found or if this object is
      *             closed
+     * @see #getObject(int, Class)
      */
     @Override
     public Date getDate(int parameterIndex, Calendar cal) throws SQLException {
@@ -499,12 +538,17 @@ public final class JdbcCallableStatement extends JdbcPreparedStatement implement
     /**
      * Returns the value of the specified column as a java.sql.Time using a
      * specified time zone.
+     * <p>
+     * Usage of this method is discouraged. Use
+     * {@code getObject(columnIndex, LocalTime.class)} instead.
+     * </p>
      *
      * @param parameterIndex the parameter index (1, 2, ...)
      * @param cal the calendar
      * @return the value
      * @throws SQLException if the column is not found or if this object is
      *             closed
+     * @see #getObject(int, Class)
      */
     @Override
     public Time getTime(int parameterIndex, Calendar cal) throws SQLException {
@@ -515,16 +559,20 @@ public final class JdbcCallableStatement extends JdbcPreparedStatement implement
     /**
      * Returns the value of the specified column as a java.sql.Timestamp using a
      * specified time zone.
+     * <p>
+     * Usage of this method is discouraged. Use
+     * {@code getObject(columnIndex, LocalDateTime.class)} instead.
+     * </p>
      *
      * @param parameterIndex the parameter index (1, 2, ...)
      * @param cal the calendar
      * @return the value
      * @throws SQLException if the column is not found or if this object is
      *             closed
+     * @see #getObject(int, Class)
      */
     @Override
-    public Timestamp getTimestamp(int parameterIndex, Calendar cal)
-            throws SQLException {
+    public Timestamp getTimestamp(int parameterIndex, Calendar cal) throws SQLException {
         checkRegistered(parameterIndex);
         return getOpenResultSet().getTimestamp(parameterIndex, cal);
     }
@@ -540,28 +588,37 @@ public final class JdbcCallableStatement extends JdbcPreparedStatement implement
     /**
      * Returns the value of the specified column as a java.sql.Timestamp using a
      * specified time zone.
+     * <p>
+     * Usage of this method is discouraged. Use
+     * {@code getObject(parameterName, LocalDateTime.class)} instead.
+     * </p>
      *
      * @param parameterName the parameter name
      * @param cal the calendar
      * @return the value
      * @throws SQLException if the column is not found or if this object is
      *             closed
+     * @see #getObject(String, Class)
      */
     @Override
-    public Timestamp getTimestamp(String parameterName, Calendar cal)
-            throws SQLException {
+    public Timestamp getTimestamp(String parameterName, Calendar cal) throws SQLException {
         return getTimestamp(getIndexForName(parameterName), cal);
     }
 
     /**
      * Returns the value of the specified column as a java.sql.Time using a
      * specified time zone.
+     * <p>
+     * Usage of this method is discouraged. Use
+     * {@code getObject(parameterName, LocalTime.class)} instead.
+     * </p>
      *
      * @param parameterName the parameter name
      * @param cal the calendar
      * @return the value
      * @throws SQLException if the column is not found or if this object is
      *             closed
+     * @see #getObject(String, Class)
      */
     @Override
     public Time getTime(String parameterName, Calendar cal) throws SQLException {
@@ -571,12 +628,17 @@ public final class JdbcCallableStatement extends JdbcPreparedStatement implement
     /**
      * Returns the value of the specified column as a java.sql.Date using a
      * specified time zone.
+     * <p>
+     * Usage of this method is discouraged. Use
+     * {@code getObject(parameterName, LocalDate.class)} instead.
+     * </p>
      *
      * @param parameterName the parameter name
      * @param cal the calendar
      * @return the value
      * @throws SQLException if the column is not found or if this object is
      *             closed
+     * @see #getObject(String, Class)
      */
     @Override
     public Date getDate(String parameterName, Calendar cal) throws SQLException {
@@ -669,11 +731,16 @@ public final class JdbcCallableStatement extends JdbcPreparedStatement implement
 
     /**
      * Returns the value of the specified column as a java.sql.Timestamp.
+     * <p>
+     * Usage of this method is discouraged. Use
+     * {@code getObject(parameterName, LocalDateTime.class)} instead.
+     * </p>
      *
      * @param parameterName the parameter name
      * @return the value
      * @throws SQLException if the column is not found or if this object is
      *             closed
+     * @see #getObject(String, Class)
      */
     @Override
     public Timestamp getTimestamp(String parameterName) throws SQLException {
@@ -682,11 +749,16 @@ public final class JdbcCallableStatement extends JdbcPreparedStatement implement
 
     /**
      * Returns the value of the specified column as a java.sql.Time.
+     * <p>
+     * Usage of this method is discouraged. Use
+     * {@code getObject(parameterName, LocalTime.class)} instead.
+     * </p>
      *
      * @param parameterName the parameter name
      * @return the value
      * @throws SQLException if the column is not found or if this object is
      *             closed
+     * @see #getObject(String, Class)
      */
     @Override
     public Time getTime(String parameterName) throws SQLException {
@@ -695,11 +767,16 @@ public final class JdbcCallableStatement extends JdbcPreparedStatement implement
 
     /**
      * Returns the value of the specified column as a java.sql.Date.
+     * <p>
+     * Usage of this method is discouraged. Use
+     * {@code getObject(parameterName, LocalDate.class)} instead.
+     * </p>
      *
      * @param parameterName the parameter name
      * @return the value
      * @throws SQLException if the column is not found or if this object is
      *             closed
+     * @see #getObject(String, Class)
      */
     @Override
     public Date getDate(String parameterName) throws SQLException {
@@ -1013,45 +1090,60 @@ public final class JdbcCallableStatement extends JdbcPreparedStatement implement
     /**
      * Sets the timestamp using a specified time zone. The value will be
      * converted to the local time zone.
+     * <p>
+     * Usage of this method is discouraged. Use
+     * {@code setObject(parameterName, value)} with
+     * {@link java.time.LocalDateTime} parameter instead.
+     * </p>
      *
      * @param parameterName the parameter name
      * @param x the value
      * @param cal the calendar
      * @throws SQLException if this object is closed
+     * @see #setObject(String, Object)
      */
     @Override
-    public void setTimestamp(String parameterName, Timestamp x, Calendar cal)
-            throws SQLException {
+    public void setTimestamp(String parameterName, Timestamp x, Calendar cal) throws SQLException {
         setTimestamp(getIndexForName(parameterName), x, cal);
     }
 
     /**
      * Sets the time using a specified time zone. The value will be converted to
      * the local time zone.
+     * <p>
+     * Usage of this method is discouraged. Use
+     * {@code setObject(parameterName, value)} with {@link java.time.LocalTime}
+     * parameter instead.
+     * </p>
      *
      * @param parameterName the parameter name
      * @param x the value
      * @param cal the calendar
      * @throws SQLException if this object is closed
+     * @see #setObject(String, Object)
      */
     @Override
-    public void setTime(String parameterName, Time x, Calendar cal)
-            throws SQLException {
+    public void setTime(String parameterName, Time x, Calendar cal) throws SQLException {
         setTime(getIndexForName(parameterName), x, cal);
     }
 
     /**
      * Sets the date using a specified time zone. The value will be converted to
      * the local time zone.
+     * <p>
+     * Usage of this method is discouraged. Use
+     * {@code setObject(parameterName, value)} with {@link java.time.LocalDate}
+     * parameter instead.
+     * </p>
      *
      * @param parameterName the parameter name
      * @param x the value
      * @param cal the calendar
      * @throws SQLException if this object is closed
+     * @see #setObject(String, Object)
      */
     @Override
-    public void setDate(String parameterName, Date x, Calendar cal)
-            throws SQLException {
+    public void setDate(String parameterName, Date x, Calendar cal) throws SQLException {
         setDate(getIndexForName(parameterName), x, cal);
     }
 
@@ -1183,23 +1275,34 @@ public final class JdbcCallableStatement extends JdbcPreparedStatement implement
 
     /**
      * Sets the value of a parameter.
+     * <p>
+     * Usage of this method is discouraged. Use
+     * {@code setObject(parameterName, value)} with
+     * {@link java.time.LocalDateTime} parameter instead.
+     * </p>
      *
      * @param parameterName the parameter name
      * @param x the value
      * @throws SQLException if this object is closed
+     * @see #setObject(String, Object)
      */
     @Override
-    public void setTimestamp(String parameterName, Timestamp x)
-            throws SQLException {
+    public void setTimestamp(String parameterName, Timestamp x) throws SQLException {
         setTimestamp(getIndexForName(parameterName), x);
     }
 
     /**
      * Sets the time using a specified time zone.
+     * <p>
+     * Usage of this method is discouraged. Use
+     * {@code setObject(parameterName, value)} with {@link java.time.LocalTime}
+     * parameter instead.
+     * </p>
      *
      * @param parameterName the parameter name
      * @param x the value
      * @throws SQLException if this object is closed
+     * @see #setObject(String, Object)
      */
     @Override
     public void setTime(String parameterName, Time x) throws SQLException {
@@ -1208,10 +1311,16 @@ public final class JdbcCallableStatement extends JdbcPreparedStatement implement
 
     /**
      * Sets the value of a parameter.
+     * <p>
+     * Usage of this method is discouraged. Use
+     * {@code setObject(parameterName, value)} with {@link java.time.LocalDate}
+     * parameter instead.
+     * </p>
      *
      * @param parameterName the parameter name
      * @param x the value
      * @throws SQLException if this object is closed
+     * @see #setObject(String, Object)
      */
     @Override
     public void setDate(String parameterName, Date x) throws SQLException {
@@ -1637,10 +1746,14 @@ public final class JdbcCallableStatement extends JdbcPreparedStatement implement
     }
 
     /**
-     * [Not supported]
+     * Returns the value of the specified column as a Java object of the
+     * specified type.
      *
      * @param parameterIndex the parameter index (1, 2, ...)
      * @param type the class of the returned value
+     * @return the value
+     * @throws SQLException if the column is not found or if this object is
+     *             closed
      */
     @Override
     public <T> T getObject(int parameterIndex, Class<T> type) throws SQLException {
@@ -1648,10 +1761,14 @@ public final class JdbcCallableStatement extends JdbcPreparedStatement implement
     }
 
     /**
-     * [Not supported]
+     * Returns the value of the specified column as a Java object of the
+     * specified type.
      *
      * @param parameterName the parameter name
      * @param type the class of the returned value
+     * @return the value
+     * @throws SQLException if the column is not found or if this object is
+     *             closed
      */
     @Override
     public <T> T getObject(String parameterName, Class<T> type) throws SQLException {

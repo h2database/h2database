@@ -91,11 +91,13 @@ public final class RandFunction extends Function0_1 {
         case RAND:
             type = TypeInfo.TYPE_DOUBLE;
             break;
-        case SECURE_RAND:
-            type = arg.isConstant()
-                    ? TypeInfo.getTypeInfo(Value.VARBINARY, Math.max(arg.getValue(session).getInt(), 1), 0, null)
+        case SECURE_RAND: {
+            Value v;
+            type = arg.isConstant() && (v = arg.getValue(session)) != ValueNull.INSTANCE
+                    ? TypeInfo.getTypeInfo(Value.VARBINARY, Math.max(v.getInt(), 1), 0, null)
                     : TypeInfo.TYPE_VARBINARY;
             break;
+        }
         case RANDOM_UUID:
             type = TypeInfo.TYPE_UUID;
             break;

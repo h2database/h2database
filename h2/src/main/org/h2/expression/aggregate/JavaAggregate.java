@@ -212,7 +212,7 @@ public class JavaAggregate extends AbstractAggregate {
 
     @Override
     protected void updateFromExpressions(SessionLocal session, Object aggregateData, Value[] array) {
-        if (filterCondition == null || array[getNumExpressions() - 1].getBoolean()) {
+        if (filterCondition == null || array[getNumExpressions() - 1].isTrue()) {
             updateData(session, aggregateData, array);
         }
     }

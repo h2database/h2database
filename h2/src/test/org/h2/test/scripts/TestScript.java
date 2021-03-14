@@ -150,7 +150,9 @@ public class TestScript extends TestDb {
             testScript("datatypes/" + s + ".sql");
         }
         for (String s : new String[] { "alterDomain", "alterTableAdd", "alterTableAlterColumn", "alterTableDropColumn",
-                "alterTableRename", "analyze", "commentOn", "createAlias", "createConstant", "createDomain",
+                "alterTableDropConstraint",
+                "alterTableRename", "alterTableRenameConstraint",
+                "analyze", "commentOn", "createAlias", "createConstant", "createDomain",
                 "createIndex", "createSchema", "createSequence", "createSynonym",
                 "createTable", "createTrigger", "createView", "dropAllObjects", "dropDomain", "dropIndex",
                 "dropSchema", "dropTable", "grant", "truncateTable" }) {
@@ -160,10 +162,15 @@ public class TestScript extends TestDb {
                 "merge", "mergeUsing", "replace", "script", "show", "update", "with" }) {
             testScript("dml/" + s + ".sql");
         }
-        for (String s : new String[] { "any", "array_agg", "avg", "bit_and_agg", "bit_or_agg", "bit_xor_agg", "count",
+        for (String s : new String[] { "any", "array_agg", "avg", "bit_and_agg", "bit_or_agg", "bit_xor_agg",
+                "corr",
+                "count",
+                "covar_pop", "covar_samp",
                 "envelope", "every", "histogram",
                 "json_arrayagg", "json_objectagg",
                 "listagg", "max", "min", "mode", "percentile", "rank",
+                "regr_avgx", "regr_avgy", "regr_count", "regr_intercept", "regr_r2", "regr_slope",
+                "regr_sxx", "regr_sxy", "regr_syy",
                 "stddev_pop", "stddev_samp", "sum", "var_pop", "var_samp" }) {
             testScript("functions/aggregate/" + s + ".sql");
         }

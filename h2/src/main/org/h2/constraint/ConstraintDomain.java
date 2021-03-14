@@ -128,7 +128,7 @@ public class ConstraintDomain extends Constraint {
             v = expr.getValue(session);
         }
         // Both TRUE and NULL are OK
-        if (v != ValueNull.INSTANCE && !v.getBoolean()) {
+        if (v.isFalse()) {
             throw DbException.get(ErrorCode.CHECK_CONSTRAINT_VIOLATED_1, expr.getTraceSQL());
         }
     }

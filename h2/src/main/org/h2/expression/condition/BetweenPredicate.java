@@ -117,7 +117,7 @@ public final class BetweenPredicate extends Condition {
         if (left == ValueNull.INSTANCE) {
             return false;
         }
-        return getValue(session, left, a.getValue(session), b.getValue(session)).getBoolean();
+        return getValue(session, left, a.getValue(session), b.getValue(session)).isTrue();
     }
 
     private Value getValue(SessionLocal session, Value value, Value aValue, Value bValue) {

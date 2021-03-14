@@ -286,8 +286,8 @@ public final class WindowFrame {
 
     private static int getIntOffset(WindowFrameBound bound, Value[] values, SessionLocal session) {
         Value v = bound.isVariable() ? values[bound.getExpressionIndex()] : bound.getValue().getValue(session);
-        int value = v.getInt();
-        if (v == ValueNull.INSTANCE || value < 0) {
+        int value;
+        if (v == ValueNull.INSTANCE || (value = v.getInt()) < 0) {
             throw DbException.get(ErrorCode.INVALID_PRECEDING_OR_FOLLOWING_1, v.getTraceSQL());
         }
         return value;

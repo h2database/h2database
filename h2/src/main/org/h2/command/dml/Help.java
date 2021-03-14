@@ -24,7 +24,6 @@ import org.h2.table.Column;
 import org.h2.tools.Csv;
 import org.h2.util.Utils;
 import org.h2.value.TypeInfo;
-import org.h2.value.ValueInteger;
 import org.h2.value.ValueVarchar;
 
 /**
@@ -41,7 +40,6 @@ public class Help extends Prepared {
         this.conditions = conditions;
         Database db = session.getDatabase();
         expressions = new Expression[] { //
-                new ExpressionColumn(db, new Column("ID", TypeInfo.TYPE_INTEGER)), //
                 new ExpressionColumn(db, new Column("SECTION", TypeInfo.TYPE_VARCHAR)), //
                 new ExpressionColumn(db, new Column("TOPIC", TypeInfo.TYPE_VARCHAR)), //
                 new ExpressionColumn(db, new Column("SYNTAX", TypeInfo.TYPE_VARCHAR)), //
@@ -51,17 +49,17 @@ public class Help extends Prepared {
 
     @Override
     public ResultInterface queryMeta() {
-        LocalResult result = new LocalResult(session, expressions, 5, 5);
+        LocalResult result = new LocalResult(session, expressions, 4, 4);
         result.done();
         return result;
     }
 
     @Override
     public ResultInterface query(long maxrows) {
-        LocalResult result = new LocalResult(session, expressions, 5, 5);
+        LocalResult result = new LocalResult(session, expressions, 4, 4);
         try {
             ResultSet rs = getTable();
-            loop: for (int i = 0; rs.next(); i++) {
+            loop: while (rs.next()) {
                 String topic = rs.getString(2).trim();
                 for (String condition : conditions) {
                     if (!topic.contains(condition)) {
@@ -69,8 +67,6 @@ public class Help extends Prepared {
                     }
                 }
                 result.addRow(
-                        // ID
-                        ValueInteger.get(i),
                         // SECTION
                         ValueVarchar.get(rs.getString(1).trim(), session),
                         // TOPIC

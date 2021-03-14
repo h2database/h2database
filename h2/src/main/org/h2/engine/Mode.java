@@ -22,7 +22,7 @@ import org.h2.value.Value;
 public class Mode {
 
     public enum ModeEnum {
-        REGULAR, DB2, Derby, MSSQLServer, HSQLDB, MySQL, Oracle, PostgreSQL
+        REGULAR, DB2, Derby, MariaDB, MSSQLServer, HSQLDB, MySQL, Oracle, PostgreSQL
     }
 
     /**
@@ -367,12 +367,6 @@ public class Mode {
     public boolean identityColumnsHaveDefaultOnNull;
 
     /**
-     * If {@code true}, case specification may have an optional CASE keyword
-     * after END.
-     */
-    public boolean allowEndCase;
-
-    /**
      * If {@code true}, merge when matched clause may have WHERE clause.
      */
     public boolean mergeWhere;
@@ -381,6 +375,13 @@ public class Mode {
      * If {@code true}, allow using from clause in update statement.
      */
     public boolean allowUsingFromClauseInUpdateStatement;
+
+    /**
+     * If {@code true}, referential constraints will create a unique constraint
+     * on referenced columns if it doesn't exist instead of throwing an
+     * exception.
+     */
+    public boolean createUniqueConstraintForReferencedColumns;
 
     /**
      * How column names are generated for expressions.
@@ -485,9 +486,30 @@ public class Mode {
         mode.viewExpressionNames = ViewExpressionNames.EXCEPTION;
         add(mode);
 
+        mode = new Mode(ModeEnum.MariaDB);
+        mode.indexDefinitionInCreateTable = true;
+        mode.regexpReplaceBackslashReferences = true;
+        mode.onDuplicateKeyUpdate = true;
+        mode.replaceInto = true;
+        mode.charPadding = CharPadding.NEVER;
+        mode.supportedClientInfoPropertiesRegEx = Pattern.compile(".*");
+        mode.zeroExLiteralsAreBinaryStrings = true;
+        mode.allowUnrelatedOrderByExpressionsInDistinctQueries = true;
+        mode.alterTableExtensionsMySQL = true;
+        mode.alterTableModifyColumn = true;
+        mode.truncateTableRestartIdentity = true;
+        mode.allNumericTypesHavePrecision = true;
+        mode.nextValueReturnsDifferentValues = true;
+        mode.updateSequenceOnManualIdentityInsertion = true;
+        mode.takeInsertedIdentity = true;
+        mode.identityColumnsHaveDefaultOnNull = true;
+        mode.expressionNames = ExpressionNames.ORIGINAL_SQL;
+        mode.viewExpressionNames = ViewExpressionNames.MYSQL_STYLE;
+        mode.typeByNameMap.put("YEAR", DataType.getDataType(Value.SMALLINT));
+        add(mode);
+
         mode = new Mode(ModeEnum.MySQL);
         mode.indexDefinitionInCreateTable = true;
-        // Next one is for MariaDB
         mode.regexpReplaceBackslashReferences = true;
         mode.onDuplicateKeyUpdate = true;
         mode.replaceInto = true;
@@ -502,12 +524,10 @@ public class Mode {
         mode.alterTableModifyColumn = true;
         mode.truncateTableRestartIdentity = true;
         mode.allNumericTypesHavePrecision = true;
-        // Next one is for MariaDB
-        mode.nextValueReturnsDifferentValues = true;
         mode.updateSequenceOnManualIdentityInsertion = true;
         mode.takeInsertedIdentity = true;
         mode.identityColumnsHaveDefaultOnNull = true;
-        mode.allowEndCase = true;
+        mode.createUniqueConstraintForReferencedColumns = true;
         mode.expressionNames = ExpressionNames.ORIGINAL_SQL;
         mode.viewExpressionNames = ViewExpressionNames.MYSQL_STYLE;
         mode.typeByNameMap.put("YEAR", DataType.getDataType(Value.SMALLINT));

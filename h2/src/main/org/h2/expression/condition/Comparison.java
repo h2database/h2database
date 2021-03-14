@@ -211,7 +211,7 @@ public final class Comparison extends Condition {
         if (left == ValueNull.INSTANCE && (compareType & ~1) != EQUAL_NULL_SAFE) {
             return false;
         }
-        return compare(session, left, right.getValue(session), compareType).getBoolean();
+        return compare(session, left, right.getValue(session), compareType).isTrue();
     }
 
     /**

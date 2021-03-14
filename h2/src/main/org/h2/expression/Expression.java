@@ -331,7 +331,7 @@ public abstract class Expression implements HasSQL, Typed {
      * @return the result
      */
     public boolean getBooleanValue(SessionLocal session) {
-        return getValue(session).getBoolean();
+        return getValue(session).isTrue();
     }
 
     /**

@@ -75,7 +75,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
      */
     private static final int ADDITIONAL_AVG_SCALE = 10;
 
-    private static final HashMap<String, AggregateType> AGGREGATES = new HashMap<>(64);
+    private static final HashMap<String, AggregateType> AGGREGATES = new HashMap<>(128);
 
     private final AggregateType aggregateType;
 
@@ -145,6 +145,19 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
         addAggregate("BIT_NAND_AGG", AggregateType.BIT_NAND_AGG);
         addAggregate("BIT_NOR_AGG", AggregateType.BIT_NOR_AGG);
         addAggregate("BIT_XNOR_AGG", AggregateType.BIT_XNOR_AGG);
+
+        addAggregate("COVAR_POP", AggregateType.COVAR_POP);
+        addAggregate("COVAR_SAMP", AggregateType.COVAR_SAMP);
+        addAggregate("CORR", AggregateType.CORR);
+        addAggregate("REGR_SLOPE", AggregateType.REGR_SLOPE);
+        addAggregate("REGR_INTERCEPT", AggregateType.REGR_INTERCEPT);
+        addAggregate("REGR_COUNT", AggregateType.REGR_COUNT);
+        addAggregate("REGR_R2", AggregateType.REGR_R2);
+        addAggregate("REGR_AVGX", AggregateType.REGR_AVGX);
+        addAggregate("REGR_AVGY", AggregateType.REGR_AVGY);
+        addAggregate("REGR_SXX", AggregateType.REGR_SXX);
+        addAggregate("REGR_SYY", AggregateType.REGR_SYY);
+        addAggregate("REGR_SXY", AggregateType.REGR_SXY);
 
         addAggregate("RANK", AggregateType.RANK);
         addAggregate("DENSE_RANK", AggregateType.DENSE_RANK);
@@ -246,6 +259,33 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
 
     private void updateData(SessionLocal session, AggregateData data, Value v, Value[] remembered) {
         switch (aggregateType) {
+        case COVAR_POP:
+        case COVAR_SAMP:
+        case CORR:
+        case REGR_SLOPE:
+        case REGR_INTERCEPT:
+        case REGR_R2:
+        case REGR_SXY: {
+            Value x;
+            if (v == ValueNull.INSTANCE || (x = getSecondValue(session, remembered)) == ValueNull.INSTANCE) {
+                return;
+            }
+            ((AggregateDataBinarySet) data).add(session, v, x);
+            return;
+        }
+        case REGR_COUNT:
+        case REGR_AVGY:
+        case REGR_SYY:
+            if (v == ValueNull.INSTANCE || getSecondValue(session, remembered) == ValueNull.INSTANCE) {
+                return;
+            }
+            break;
+        case REGR_AVGX:
+        case REGR_SXX:
+            if (v == ValueNull.INSTANCE || (v = getSecondValue(session, remembered)) == ValueNull.INSTANCE) {
+                return;
+            }
+            break;
         case LISTAGG:
             if (v == ValueNull.INSTANCE) {
                 return;
@@ -285,7 +325,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             break;
         case JSON_OBJECTAGG: {
             Value key = v;
-            Value value = remembered != null ? remembered[1] : args[1].getValue(session);
+            Value value = getSecondValue(session, remembered);
             if (key == ValueNull.INSTANCE) {
                 throw DbException.getInvalidValueException("JSON_OBJECTAGG key", "NULL");
             }
@@ -296,6 +336,10 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             // Use argument as is
         }
         data.add(session, v);
+    }
+
+    private Value getSecondValue(SessionLocal session, Value[] remembered) {
+        return remembered != null ? remembered[1] : args[1].getValue(session);
     }
 
     @Override
@@ -359,7 +403,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
 
     @Override
     protected void updateFromExpressions(SessionLocal session, Object aggregateData, Value[] array) {
-        if (filterCondition == null || array[getNumExpressions() - 1].getBoolean()) {
+        if (filterCondition == null || array[getNumExpressions() - 1].isTrue()) {
             AggregateData data = (AggregateData) aggregateData;
             Value v = args.length == 0 ? null : array[0];
             updateData(session, data, v, array);
@@ -370,6 +414,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
     protected Object createAggregateData() {
         switch (aggregateType) {
         case COUNT_ALL:
+        case REGR_COUNT:
             return new AggregateDataCount(true);
         case COUNT:
             if (!distinct) {
@@ -384,6 +429,13 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
         case PERCENTILE_DISC:
         case MEDIAN:
             break;
+        case SUM:
+        case BIT_XOR_AGG:
+        case BIT_XNOR_AGG:
+            if (distinct) {
+                break;
+            }
+            //$FALL-THROUGH$
         case MIN:
         case MAX:
         case BIT_AND_AGG:
@@ -393,31 +445,37 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
         case ANY:
         case EVERY:
             return new AggregateDataDefault(aggregateType, type);
-        case SUM:
-        case BIT_XOR_AGG:
-        case BIT_XNOR_AGG:
-            if (!distinct) {
-                return new AggregateDataDefault(aggregateType, type);
-            }
-            break;
         case AVG:
-            if (!distinct) {
-                return new AggregateDataAvg(type);
+            if (distinct) {
+                break;
             }
-            break;
+            //$FALL-THROUGH$
+        case REGR_AVGX:
+        case REGR_AVGY:
+            return new AggregateDataAvg(type);
         case STDDEV_POP:
         case STDDEV_SAMP:
         case VAR_POP:
         case VAR_SAMP:
-            if (!distinct) {
-                return new AggregateDataStdVar(aggregateType);
+            if (distinct) {
+                break;
             }
-            break;
+            //$FALL-THROUGH$
+        case REGR_SXX:
+        case REGR_SYY:
+            return new AggregateDataStdVar(aggregateType);
         case HISTOGRAM:
             return new AggregateDataDistinctWithCounts(false, Constants.SELECTIVITY_DISTINCT_COUNT);
-        case LISTAGG:
-            // NULL values are excluded by Aggregate
-            return new AggregateDataCollecting(distinct, orderByList != null, NullCollectionMode.USED_OR_IMPOSSIBLE);
+        case COVAR_POP:
+        case COVAR_SAMP:
+        case REGR_SXY:
+            return new AggregateDataCovar(aggregateType);
+        case CORR:
+        case REGR_SLOPE:
+        case REGR_INTERCEPT:
+        case REGR_R2:
+            return new AggregateDataCorr(aggregateType);
+        case LISTAGG: // NULL values are excluded by Aggregate
         case ARRAY_AGG:
             return new AggregateDataCollecting(distinct, orderByList != null, NullCollectionMode.USED_OR_IMPOSSIBLE);
         case MODE:
@@ -905,6 +963,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             }
             //$FALL-THROUGH$
         case COUNT_ALL:
+        case REGR_COUNT:
             type = TypeInfo.TYPE_BIGINT;
             break;
         case HISTOGRAM: {
@@ -927,6 +986,31 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             break;
         case MIN:
         case MAX:
+            break;
+        case STDDEV_POP:
+        case STDDEV_SAMP:
+        case VAR_POP:
+        case VAR_SAMP:
+        case COVAR_POP:
+        case COVAR_SAMP:
+        case CORR:
+        case REGR_SLOPE:
+        case REGR_INTERCEPT:
+        case REGR_R2:
+        case REGR_SXX:
+        case REGR_SYY:
+        case REGR_SXY:
+            type = TypeInfo.TYPE_DOUBLE;
+            break;
+        case REGR_AVGX:
+            if ((type = getAvgType(args[1].getType())) == null) {
+                throw DbException.get(ErrorCode.SUM_OR_AVG_ON_WRONG_DATATYPE_1, getTraceSQL());
+            }
+            break;
+        case REGR_AVGY:
+            if ((type = getAvgType(args[0].getType())) == null) {
+                throw DbException.get(ErrorCode.SUM_OR_AVG_ON_WRONG_DATATYPE_1, getTraceSQL());
+            }
             break;
         case RANK:
         case DENSE_RANK:
@@ -956,12 +1040,6 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
         case PERCENTILE_DISC:
         case MODE:
             type = orderByList.get(0).expression.getType();
-            break;
-        case STDDEV_POP:
-        case STDDEV_SAMP:
-        case VAR_POP:
-        case VAR_SAMP:
-            type = TypeInfo.TYPE_DOUBLE;
             break;
         case EVERY:
         case ANY:
@@ -1081,103 +1159,20 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
 
     @Override
     public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
-        String text;
         switch (aggregateType) {
         case COUNT_ALL:
             return appendTailConditions(builder.append("COUNT(*)"), sqlFlags, false);
-        case COUNT:
-            text = "COUNT";
-            break;
-        case HISTOGRAM:
-            text = "HISTOGRAM";
-            break;
-        case SUM:
-            text = "SUM";
-            break;
-        case MIN:
-            text = "MIN";
-            break;
-        case MAX:
-            text = "MAX";
-            break;
-        case AVG:
-            text = "AVG";
-            break;
-        case STDDEV_POP:
-            text = "STDDEV_POP";
-            break;
-        case STDDEV_SAMP:
-            text = "STDDEV_SAMP";
-            break;
-        case VAR_POP:
-            text = "VAR_POP";
-            break;
-        case VAR_SAMP:
-            text = "VAR_SAMP";
-            break;
-        case EVERY:
-            text = "EVERY";
-            break;
-        case ANY:
-            text = "ANY";
-            break;
-        case BIT_AND_AGG:
-            text = "BIT_AND_AGG";
-            break;
-        case BIT_OR_AGG:
-            text = "BIT_OR_AGG";
-            break;
-        case BIT_XOR_AGG:
-            text = "BIT_XOR_AGG";
-            break;
-        case BIT_NAND_AGG:
-            text = "BIT_NAND_AGG";
-            break;
-        case BIT_NOR_AGG:
-            text = "BIT_NOR_AGG";
-            break;
-        case BIT_XNOR_AGG:
-            text = "BIT_XNOR_AGG";
-            break;
-        case RANK:
-            text = "RANK";
-            break;
-        case DENSE_RANK:
-            text = "DENSE_RANK";
-            break;
-        case PERCENT_RANK:
-            text = "PERCENT_RANK";
-            break;
-        case CUME_DIST:
-            text = "CUME_DIST";
-            break;
-        case PERCENTILE_CONT:
-            text = "PERCENTILE_CONT";
-            break;
-        case PERCENTILE_DISC:
-            text = "PERCENTILE_DISC";
-            break;
-        case MEDIAN:
-            text = "MEDIAN";
-            break;
         case LISTAGG:
             return getSQLListagg(builder, sqlFlags);
         case ARRAY_AGG:
             return getSQLArrayAggregate(builder, sqlFlags);
-        case MODE:
-            text = "MODE";
-            break;
-        case ENVELOPE:
-            text = "ENVELOPE";
-            break;
         case JSON_OBJECTAGG:
             return getSQLJsonObjectAggregate(builder, sqlFlags);
         case JSON_ARRAYAGG:
             return getSQLJsonArrayAggregate(builder, sqlFlags);
         default:
-            throw DbException.getInternalError("type=" + aggregateType);
         }
-        builder.append(text);
+        builder.append(aggregateType.name());
         if (distinct) {
             builder.append("(DISTINCT ");
         } else {

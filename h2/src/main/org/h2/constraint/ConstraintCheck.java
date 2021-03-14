@@ -20,7 +20,6 @@ import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.util.StringUtils;
 import org.h2.value.Value;
-import org.h2.value.ValueNull;
 
 /**
  * A check constraint.
@@ -103,14 +102,12 @@ public class ConstraintCheck extends Constraint {
                 v = expr.getValue(session);
             }
             // Both TRUE and NULL are ok
-            b = v == ValueNull.INSTANCE || v.getBoolean();
+            b = v.isFalse();
         } catch (DbException ex) {
-            throw DbException.get(ErrorCode.CHECK_CONSTRAINT_INVALID, ex,
-                    getShortDescription());
+            throw DbException.get(ErrorCode.CHECK_CONSTRAINT_INVALID, ex, getShortDescription());
         }
-        if (!b) {
-            throw DbException.get(ErrorCode.CHECK_CONSTRAINT_VIOLATED_1,
-                    getShortDescription());
+        if (b) {
+            throw DbException.get(ErrorCode.CHECK_CONSTRAINT_VIOLATED_1, getShortDescription());
         }
     }
 

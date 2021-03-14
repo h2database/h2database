@@ -9,7 +9,6 @@ import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.engine.Database;
 import org.h2.engine.SessionLocal;
-import org.h2.expression.Expression;
 import org.h2.message.DbException;
 import org.h2.schema.Schema;
 import org.h2.table.TableLink;

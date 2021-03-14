@@ -214,13 +214,6 @@ public class TestCompatibility extends TestDb {
         stat.execute("CALL TODAY");
 
         stat.execute("DROP TABLE TEST IF EXISTS");
-        stat.execute("CREATE TABLE TEST(ID INT)");
-        stat.execute("INSERT INTO TEST VALUES(1)");
-        PreparedStatement prep = conn.prepareStatement(
-                "SELECT LIMIT ? 1 ID FROM TEST");
-        prep.setInt(1, 2);
-        prep.executeQuery();
-        stat.execute("DROP TABLE TEST IF EXISTS");
     }
 
     private void testLog(double expected, Statement stat) throws SQLException {

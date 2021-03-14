@@ -1498,7 +1498,7 @@ public class Parser {
         Update command = new Update(session);
         currentPrepared = command;
         Expression fetch = null;
-        if (database.getMode().getEnum() == ModeEnum.MSSQLServer && readIf("TOP")) {
+        if (database.getMode().topInDML && readIf("TOP")) {
             read(OPEN_PAREN);
             fetch = readTerm().optimize(session);
             read(CLOSE_PAREN);
@@ -1551,7 +1551,7 @@ public class Parser {
     private Delete parseDelete(int start) {
         Delete command = new Delete(session);
         Expression fetch = null;
-        if (readIf("TOP")) {
+        if (database.getMode().topInDML && readIf("TOP")) {
             fetch = readTerm().optimize(session);
         }
         currentPrepared = command;
@@ -1586,7 +1586,7 @@ public class Parser {
                 }
             }
             read("ONLY");
-        } else if (readIf(LIMIT)) {
+        } else if (database.getMode().limit && readIf(LIMIT)) {
             fetch = readTerm().optimize(session);
         }
         return fetch;
@@ -3015,7 +3015,7 @@ public class Parser {
                 }
             }
             // MySQL-style LIMIT / OFFSET
-            if (!hasOffsetOrFetch && readIf(LIMIT)) {
+            if (!hasOffsetOrFetch && database.getMode().limit && readIf(LIMIT)) {
                 Expression limit = readExpression().optimize(session);
                 if (readIf(OFFSET)) {
                     command.setOffset(readExpression().optimize(session));
@@ -3145,7 +3145,7 @@ public class Parser {
         Select temp = currentSelect;
         // make sure aggregate functions will not work in TOP and LIMIT
         currentSelect = null;
-        if (readIf("TOP")) {
+        if (database.getMode().topInSelect && readIf("TOP")) {
             // can't read more complex expressions here because
             // SELECT TOP 1 +? A FROM TEST could mean
             // SELECT TOP (1+?) A FROM TEST or
@@ -3158,9 +3158,6 @@ public class Parser {
                 read("TIES");
                 command.setWithTies(true);
             }
-        } else if (readIf(LIMIT)) {
-            command.setOffset(readTerm().optimize(session));
-            command.setFetch(readTerm().optimize(session));
         }
         currentSelect = temp;
         if (readIf(DISTINCT)) {

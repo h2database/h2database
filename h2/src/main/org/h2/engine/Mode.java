@@ -384,6 +384,21 @@ public class Mode {
     public ViewExpressionNames viewExpressionNames = ViewExpressionNames.AS_IS;
 
     /**
+     * Whether TOP clause in SELECT queries is supported.
+     */
+    public boolean topInSelect;
+
+    /**
+     * Whether TOP clause in DML commands is supported.
+     */
+    public boolean topInDML;
+
+    /**
+     * Whether LIMIT / OFFSET clauses are supported.
+     */
+    public boolean limit;
+
+    /**
      * Whether IDENTITY pseudo data type is supported.
      */
     public boolean identityDataType;
@@ -423,6 +438,8 @@ public class Mode {
         Mode mode = new Mode(ModeEnum.REGULAR);
         mode.allowEmptyInPredicate = true;
         mode.dateTimeValueWithinTransaction = true;
+        mode.topInSelect = true;
+        mode.limit = true;
         mode.identityDataType = true;
         mode.autoIncrementClause = true;
         add(mode);
@@ -442,6 +459,7 @@ public class Mode {
         mode.takeInsertedIdentity = true;
         mode.expressionNames = ExpressionNames.NUMBER;
         mode.viewExpressionNames = ViewExpressionNames.EXCEPTION;
+        mode.limit = true;
         add(mode);
 
         mode = new Mode(ModeEnum.Derby);
@@ -464,6 +482,8 @@ public class Mode {
         // http://hsqldb.org/doc/apidocs/org/hsqldb/jdbc/JDBCConnection.html#setClientInfo-java.lang.String-java.lang.String-
         mode.supportedClientInfoPropertiesRegEx = null;
         mode.expressionNames = ExpressionNames.C_NUMBER;
+        mode.topInSelect = true;
+        mode.limit = true;
         add(mode);
 
         mode = new Mode(ModeEnum.MSSQLServer);
@@ -495,6 +515,8 @@ public class Mode {
         mode.allowEmptySchemaValuesAsDefaultSchema = true;
         mode.expressionNames = ExpressionNames.EMPTY;
         mode.viewExpressionNames = ViewExpressionNames.EXCEPTION;
+        mode.topInSelect = true;
+        mode.topInDML = true;
         mode.identityClause = true;
         add(mode);
 
@@ -517,6 +539,7 @@ public class Mode {
         mode.identityColumnsHaveDefaultOnNull = true;
         mode.expressionNames = ExpressionNames.ORIGINAL_SQL;
         mode.viewExpressionNames = ViewExpressionNames.MYSQL_STYLE;
+        mode.limit = true;
         mode.autoIncrementClause = true;
         mode.typeByNameMap.put("YEAR", DataType.getDataType(Value.SMALLINT));
         add(mode);
@@ -543,6 +566,7 @@ public class Mode {
         mode.createUniqueConstraintForReferencedColumns = true;
         mode.expressionNames = ExpressionNames.ORIGINAL_SQL;
         mode.viewExpressionNames = ViewExpressionNames.MYSQL_STYLE;
+        mode.limit = true;
         mode.autoIncrementClause = true;
         mode.typeByNameMap.put("YEAR", DataType.getDataType(Value.SMALLINT));
         add(mode);
@@ -590,6 +614,7 @@ public class Mode {
         mode.takeGeneratedSequenceValue = true;
         mode.expressionNames = ExpressionNames.POSTGRESQL_STYLE;
         mode.allowUsingFromClauseInUpdateStatement = true;
+        mode.limit = true;
         mode.serialDataTypes = true;
         // Enumerate all H2 types NOT supported by PostgreSQL:
         Set<String> disallowedTypes = new java.util.HashSet<>();

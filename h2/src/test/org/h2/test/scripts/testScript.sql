@@ -2,6 +2,36 @@
 -- and the EPL 1.0 (https://h2database.com/html/license.html).
 -- Initial Developer: H2 Group
 --
+CREATE TABLE TEST(A INT, B INT) AS VALUES (1, 2), (3, 4), (5, 6);
+> ok
+
+UPDATE TOP (1) TEST SET B = 10;
+> exception TABLE_OR_VIEW_NOT_FOUND_1
+
+SET MODE MSSQLServer;
+> ok
+
+UPDATE TOP (1) TEST SET B = 10;
+> update count: 1
+
+SELECT COUNT(*) FILTER (WHERE B = 10) N, COUNT(*) FILTER (WHERE B <> 10) O FROM TEST;
+> N O
+> - -
+> 1 2
+> rows: 1
+
+UPDATE TEST SET B = 10 WHERE B <> 10;
+> update count: 2
+
+UPDATE TOP (1) TEST SET B = 10 LIMIT 1;
+> exception SYNTAX_ERROR_1
+
+SET MODE Regular;
+> ok
+
+DROP TABLE TEST;
+> ok
+
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
 select 0 as x from system_range(1, 2) d group by d.x;
 > X
@@ -4347,23 +4377,6 @@ SELECT TOP 2 * FROM TEST ORDER BY ID;
 > 1  Hello
 > 2  World
 > rows (ordered): 2
-
-SELECT LIMIT (0+0) (2+0) * FROM TEST ORDER BY ID;
-> ID NAME
-> -- -----
-> 1  Hello
-> 2  World
-> rows (ordered): 2
-
-SELECT LIMIT (1+0) (2+0) NAME, -ID, ID _ID_ FROM TEST ORDER BY _ID_;
-> NAME  - ID _ID_
-> ----- ---- ----
-> World -2   2
-> with  -3   3
-> rows (ordered): 2
-
-EXPLAIN SELECT LIMIT (1+0) (2+0) * FROM TEST ORDER BY ID;
->> SELECT "PUBLIC"."TEST"."ID", "PUBLIC"."TEST"."NAME" FROM "PUBLIC"."TEST" /* PUBLIC.PRIMARY_KEY_2 */ ORDER BY 1 OFFSET 1 ROW FETCH NEXT 2 ROWS ONLY /* index sorted */
 
 SELECT * FROM TEST ORDER BY ID LIMIT 2+0 OFFSET 1+0;
 > ID NAME

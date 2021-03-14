@@ -7006,7 +7006,7 @@ public class Parser {
                 column.setOnUpdateExpression(session, readExpression());
             }
             nullConstraint = parseNotNullConstraint(nullConstraint);
-            if (readIf("AUTO_INCREMENT") || readIf("BIGSERIAL") || readIf("SERIAL")) {
+            if (readIf("AUTO_INCREMENT")) {
                 parseCompatibilityIdentityOptions(column);
                 nullConstraint = parseNotNullConstraint(nullConstraint);
             } else if (readIf("IDENTITY")) {

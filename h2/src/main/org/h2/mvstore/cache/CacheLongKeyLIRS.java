@@ -6,6 +6,8 @@
 package org.h2.mvstore.cache;
 
 import java.lang.ref.WeakReference;
+import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -58,6 +60,11 @@ public class CacheLongKeyLIRS<V> {
     private final int stackMoveDistance;
     private final int nonResidentQueueSize;
     private final int nonResidentQueueSizeHigh;
+
+    /*
+     * Used as null value for ConcurrentSkipListSet
+     */
+    private static final Entry<V> ENTRY_NULL = new Entry<>();
 
     /**
      * Create a new cache with the given memory size.
@@ -602,6 +609,16 @@ public class CacheLongKeyLIRS<V> {
          */
         private int stackMoveCounter;
 
+        /*
+         * Holds entries that were concurrently get()
+         */
+        private final ConcurrentSkipListSet<Entry<V>> concAccess;
+
+        /*
+         * Serialize access to this segments
+         */
+        private final ReentrantLock l;
+
         /**
          * Create a new cache segment.
          *  @param maxMemory the maximum memory to use
@@ -632,6 +649,9 @@ public class CacheLongKeyLIRS<V> {
             @SuppressWarnings("unchecked")
             Entry<V>[] e = new Entry[len];
             entries = e;
+
+            concAccess = new ConcurrentSkipListSet<>();
+            l = new ReentrantLock();
         }
 
         /**
@@ -710,17 +730,41 @@ public class CacheLongKeyLIRS<V> {
          * @param e the entry
          * @return the value, or null if there is no resident entry
          */
-        synchronized V get(Entry<V> e) {
+        V get(Entry<V> e) {
             V value = e == null ? null : e.getValue();
-            if (value == null) {
-                // the entry was not found
-                // or it was a non-resident entry
-                misses++;
-            } else {
-                access(e);
-                hits++;
+            if (!l.tryLock()) {
+                concAccess.add(value == null ? ENTRY_NULL : e);
+                return value;
             }
-            return value;
+            try {
+                if (value == null) {
+                    // the entry was not found
+                    // or it was a non-resident entry
+                    misses++;
+                } else {
+                    access(e);
+                    hits++;
+                }
+
+                // process entries that were accessed concurrently
+                while (true) {
+                    Entry<V> p = concAccess.pollFirst();
+                    if (p == null) {
+                        break;
+                    }
+                    if (p == ENTRY_NULL) {
+                        misses++;
+                    } else {
+                        access(p);
+                        hits++;
+                    }
+                }
+
+                return value;
+            }
+            finally {
+                l.unlock();
+            }
         }
 
         /**
@@ -749,9 +793,8 @@ public class CacheLongKeyLIRS<V> {
                 V v = e.getValue();
                 if (v != null) {
                     removeFromQueue(e);
-                    if (e.reference != null) {
+                    if (e.value == null) {
                         e.value = v;
-                        e.reference = null;
                         usedMemory += e.memory;
                     }
                     if (e.stackNext != null) {
@@ -787,7 +830,17 @@ public class CacheLongKeyLIRS<V> {
          * @param memory the memory used for the given entry
          * @return the old value, or null if there was no resident entry
          */
-        synchronized V put(long key, int hash, V value, int memory) {
+        V put(long key, int hash, V value, int memory) {
+            l.lock();
+            try {
+                return putUnlocked(key, hash, value, memory);
+            }
+            finally {
+                l.unlock();
+            }
+        }
+
+        private V putUnlocked(long key, int hash, V value, int memory) {
             Entry<V> e = find(key, hash);
             boolean existed = e != null;
             V old = null;
@@ -832,7 +885,17 @@ public class CacheLongKeyLIRS<V> {
          * @param hash the hash
          * @return the old value, or null if there was no resident entry
          */
-        synchronized V remove(long key, int hash) {
+        V remove(long key, int hash) {
+            l.lock();
+            try {
+                return removeUnlocked(key, hash);
+            }
+            finally {
+                l.unlock();
+            }
+        }
+
+        private V removeUnlocked(long key, int hash) {
             int index = hash & mask;
             Entry<V> e = entries[index];
             if (e == null) {
@@ -897,7 +960,6 @@ public class CacheLongKeyLIRS<V> {
                 Entry<V> e = queue.queuePrev;
                 usedMemory -= e.memory;
                 removeFromQueue(e);
-                e.reference = new WeakReference<>(e.value);
                 e.value = null;
                 addToQueue(queue2, e);
                 // the size of the non-resident-cold entries needs to be limited
@@ -1031,7 +1093,17 @@ public class CacheLongKeyLIRS<V> {
          * @param nonResident true for non-resident entries
          * @return the key list
          */
-        synchronized List<Long> keys(boolean cold, boolean nonResident) {
+        List<Long> keys(boolean cold, boolean nonResident) {
+            l.lock();
+            try {
+                return keysUnlocked(cold, nonResident);
+            }
+            finally {
+                l.unlock();
+            }
+        }
+
+        private List<Long> keysUnlocked(boolean cold, boolean nonResident) {
             ArrayList<Long> keys = new ArrayList<>();
             if (cold) {
                 Entry<V> start = nonResident ? queue2 : queue;
@@ -1053,7 +1125,17 @@ public class CacheLongKeyLIRS<V> {
          *
          * @return the set of keys
          */
-        synchronized Set<Long> keySet() {
+        Set<Long> keySet() {
+            l.lock();
+            try {
+                return keySetUnlocked();
+            }
+            finally {
+                l.unlock();
+            }
+        }
+
+        private Set<Long> keySetUnlocked() {
             HashSet<Long> set = new HashSet<>();
             for (Entry<V> e = stack.stackNext; e != stack; e = e.stackNext) {
                 set.add(e.key);
@@ -1086,7 +1168,7 @@ public class CacheLongKeyLIRS<V> {
      *
      * @param <V> the value type
      */
-    static class Entry<V> {
+    static class Entry<V> implements Comparable<Entry<V>> {
 
         /**
          * The key.
@@ -1148,10 +1230,15 @@ public class CacheLongKeyLIRS<V> {
             this.key = key;
             this.memory = memory;
             this.value = value;
+            if (value != null) {
+                this.reference = new WeakReference<>(value);
+            }
         }
 
         Entry(Entry<V> old) {
-            this(old.key, old.value, old.memory);
+            this.key = old.key;
+            this.memory = old.memory;
+            this.value = old.value;
             this.reference = old.reference;
             this.topMove = old.topMove;
         }
@@ -1166,11 +1253,16 @@ public class CacheLongKeyLIRS<V> {
         }
 
         V getValue() {
-            return value == null ? reference.get() : value;
+            final V v = value;
+            return v == null ? reference.get() : v;
         }
 
         int getMemory() {
             return value == null ? 0 : memory;
+        }
+
+        public int compareTo(Entry<V> tgt) {
+            return key == tgt.key ? 0 : key < tgt.key ? -1 : 1;
         }
     }
 

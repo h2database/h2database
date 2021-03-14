@@ -733,7 +733,8 @@ public class CacheLongKeyLIRS<V> {
         V get(Entry<V> e) {
             V value = e == null ? null : e.getValue();
             if (!l.tryLock()) {
-                concAccess.add(value == null ? ENTRY_NULL : e);
+                Entry<V> e2 = value == null ? ENTRY_NULL : e;
+                concAccess.add(e2);
                 return value;
             }
             try {

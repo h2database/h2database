@@ -61,11 +61,6 @@ public class CacheLongKeyLIRS<V> {
     private final int nonResidentQueueSize;
     private final int nonResidentQueueSizeHigh;
 
-    /*
-     * Used as null value for ConcurrentSkipListSet
-     */
-    private final Entry<V> ENTRY_NULL = new Entry<>();
-
     /**
      * Create a new cache with the given memory size.
      *
@@ -618,6 +613,11 @@ public class CacheLongKeyLIRS<V> {
          * Serialize access to this segments
          */
         private final ReentrantLock l;
+
+        /*
+         * Used as null value for ConcurrentSkipListSet
+         */
+        private final Entry<V> ENTRY_NULL = new Entry<>();
 
         /**
          * Create a new cache segment.

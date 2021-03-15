@@ -391,7 +391,7 @@ public class CacheLongKeyLIRS<V> {
     public long getMisses() {
         int x = 0;
         for (Segment<V> s : segments) {
-            x += s.misses;
+            x += s.misses.get();
         }
         return x;
     }
@@ -529,7 +529,7 @@ public class CacheLongKeyLIRS<V> {
         /**
          * The number of cache misses.
          */
-        long misses;
+        final AtomicLong misses;
 
         /**
          * The map array. The size is always a power of 2.
@@ -614,11 +614,6 @@ public class CacheLongKeyLIRS<V> {
          */
         private final ReentrantLock l;
 
-        /*
-         * Used as null value for ConcurrentSkipListSet
-         */
-        private final Entry<V> ENTRY_NULL = new Entry<>();
-
         /**
          * Create a new cache segment.
          *  @param maxMemory the maximum memory to use
@@ -650,6 +645,7 @@ public class CacheLongKeyLIRS<V> {
             Entry<V>[] e = new Entry[len];
             entries = e;
 
+            misses = new AtomicLong();
             concAccess = new ConcurrentSkipListSet<>();
             l = new ReentrantLock();
         }
@@ -666,7 +662,7 @@ public class CacheLongKeyLIRS<V> {
             this(old.maxMemory, old.stackMoveDistance, len,
                     old.nonResidentQueueSize, old.nonResidentQueueSizeHigh);
             hits = old.hits;
-            misses = old.misses;
+            misses.set(old.misses);
             Entry<V> s = old.stack.stackPrev;
             while (s != old.stack) {
                 Entry<V> e = new Entry<>(s);
@@ -733,15 +729,18 @@ public class CacheLongKeyLIRS<V> {
         V get(Entry<V> e) {
             V value = e == null ? null : e.getValue();
             if (!l.tryLock()) {
-                Entry<V> e2 = value == null ? ENTRY_NULL : e;
-                concAccess.add(e2);
+                if (value == null) {
+                    misses.incrementAndGet();
+                } else {
+                    concAccess.add(e);
+                }
                 return value;
             }
             try {
                 if (value == null) {
                     // the entry was not found
                     // or it was a non-resident entry
-                    misses++;
+                    misses.incrementAndGet();
                 } else {
                     access(e);
                     hits++;
@@ -753,12 +752,8 @@ public class CacheLongKeyLIRS<V> {
                     if (p == null) {
                         break;
                     }
-                    if (p == ENTRY_NULL) {
-                        misses++;
-                    } else {
-                        access(p);
-                        hits++;
-                    }
+                    access(p);
+                    hits++;
                 }
 
                 return value;
@@ -1262,8 +1257,9 @@ public class CacheLongKeyLIRS<V> {
             return value == null ? 0 : memory;
         }
 
+        @Override
         public int compareTo(Entry<V> tgt) {
-            return key == tgt.key ? 0 : key < tgt.key ? -1 : 1;
+            return Long.compare(this.key, tgt.key);
         }
     }
 

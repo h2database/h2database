@@ -166,7 +166,7 @@ public class CacheLongKeyLIRS<V> {
         return s.withLock(() -> {
             s = resizeIfNeeded(s, segmentIndex);
             return s.put(key, hash, value, memory);
-        })
+        });
     }
 
     private Segment<V> resizeIfNeeded(Segment<V> s, int segmentIndex) {
@@ -213,7 +213,7 @@ public class CacheLongKeyLIRS<V> {
         return s.withLock(() -> {
             s = resizeIfNeeded(s, segmentIndex);
             return s.remove(key, hash);
-        })
+        });
     }
 
     /**
@@ -495,7 +495,7 @@ public class CacheLongKeyLIRS<V> {
         for (Segment<V> s : segments) {
             s.withLock(() -> {
                 s.trimNonResidentQueue();
-            })
+            });
         }
     }
 

@@ -496,7 +496,7 @@ public class CacheLongKeyLIRS<V> {
     public void trimNonResidentQueue() {
         for (Segment<V> s : segments) {
             s.withLock(() -> {
-                s.trimNonResidentQueue();
+                return s.trimNonResidentQueue();
             });
         }
     }
@@ -664,7 +664,7 @@ public class CacheLongKeyLIRS<V> {
             this(old.maxMemory, old.stackMoveDistance, len,
                     old.nonResidentQueueSize, old.nonResidentQueueSizeHigh);
             hits = old.hits;
-            misses.set(old.misses);
+            misses.set(old.misses.get());
             Entry<V> s = old.stack.stackPrev;
             while (s != old.stack) {
                 Entry<V> e = new Entry<>(s);

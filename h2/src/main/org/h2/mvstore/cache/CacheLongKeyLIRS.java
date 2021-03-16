@@ -6,10 +6,10 @@
 package org.h2.mvstore.cache;
 
 import java.lang.ref.WeakReference;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Supplier;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -166,8 +166,7 @@ public class CacheLongKeyLIRS<V> {
         // concurrent resizes (concurrent reads read
         // from the old segment)
         return s.withLock(() -> {
-            s = resizeIfNeeded(s, segmentIndex);
-            return s.put(key, hash, value, memory);
+            return resizeIfNeeded(s, segmentIndex).put(key, hash, value, memory);
         });
     }
 
@@ -213,8 +212,7 @@ public class CacheLongKeyLIRS<V> {
         // concurrent resizes (concurrent reads read
         // from the old segment)
         return s.withLock(() -> {
-            s = resizeIfNeeded(s, segmentIndex);
-            return s.remove(key, hash);
+            return resizeIfNeeded(s, segmentIndex).remove(key, hash);
         });
     }
 
@@ -1141,10 +1139,10 @@ public class CacheLongKeyLIRS<V> {
         }
         
         
-        <T> T withLock(Callable<T> c) {
+        <T> T withLock(Supplier<T> c) {
             l.lock();
             try {
-                return c.call();
+                return c.get();
             }
             finally {
                 l.unlock();

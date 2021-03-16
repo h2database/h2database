@@ -6,6 +6,7 @@
 package org.h2.mvstore.cache;
 
 import java.lang.ref.WeakReference;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.atomic.AtomicLong;

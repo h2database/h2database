@@ -1140,7 +1140,7 @@ public class CacheLongKeyLIRS<V> {
         }
         
         
-        T withLock(Callable<T> c) {
+        <T> T withLock(Callable<T> c) {
             l.lock();
             try {
                 return c.call();

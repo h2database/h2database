@@ -496,7 +496,8 @@ public class CacheLongKeyLIRS<V> {
     public void trimNonResidentQueue() {
         for (Segment<V> s : segments) {
             s.withLock(() -> {
-                return s.trimNonResidentQueue();
+                s.trimNonResidentQueue();
+                return null;
             });
         }
     }

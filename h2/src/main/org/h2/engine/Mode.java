@@ -430,6 +430,11 @@ public class Mode {
      */
     public HashMap<String, DataType> typeByNameMap = new HashMap<>();
 
+    /**
+     * Allow to use GROUP BY n, where n is column index in the SELECT list, similar to ORDER BY
+     */
+    public boolean groupByColumnIndex;
+
     private final String name;
 
     private final ModeEnum modeEnum;
@@ -542,6 +547,7 @@ public class Mode {
         mode.limit = true;
         mode.autoIncrementClause = true;
         mode.typeByNameMap.put("YEAR", DataType.getDataType(Value.SMALLINT));
+        mode.groupByColumnIndex = true;
         add(mode);
 
         mode = new Mode(ModeEnum.MySQL);
@@ -569,6 +575,7 @@ public class Mode {
         mode.limit = true;
         mode.autoIncrementClause = true;
         mode.typeByNameMap.put("YEAR", DataType.getDataType(Value.SMALLINT));
+        mode.groupByColumnIndex = true;
         add(mode);
 
         mode = new Mode(ModeEnum.Oracle);
@@ -634,6 +641,7 @@ public class Mode {
         dt = DataType.getDataType(Value.INTEGER);
         mode.typeByNameMap.put("OID", dt);
         mode.dateTimeValueWithinTransaction = true;
+        mode.groupByColumnIndex = true;
         add(mode);
     }
 

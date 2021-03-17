@@ -3238,7 +3238,27 @@ public class Parser {
                         } while (readIfMore());
                     }
                 } else {
-                    list.add(readExpression());
+                    Expression expr = readExpression();
+                    if (database.getMode().groupByColumnIndex && expr instanceof ValueExpression &&
+                            expr.getType().getValueType() == Value.INTEGER) {
+                        boolean wildcard = false;
+                        for (Expression e : command.getExpressions()) {
+                            wildcard = wildcard || e instanceof Wildcard;
+                        }
+                        if (wildcard) {
+                            throw DbException.get(ErrorCode.SYNTAX_ERROR_1);
+                        } else {
+                            int idx = expr.getValue(null).getInt() - 1;
+                            if (idx < 0 || idx >= command.getExpressions().size()) {
+                                throw DbException.get(ErrorCode.GROUP_BY_NOT_IN_THE_RESULT, Integer.toString(idx + 1),
+                                        Integer.toString(command.getExpressions().size()));
+                            }
+                            Expression col = command.getExpressions().get(idx);
+                            list.add(col);
+                        }
+                    }
+                    else
+                        list.add(expr);
                 }
             } while (readIf(COMMA));
             if (!list.isEmpty()) {

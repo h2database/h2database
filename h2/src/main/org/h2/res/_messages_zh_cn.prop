@@ -194,6 +194,7 @@
 90154=#Generated column {0} cannot be assigned
 90155=#Generated column {0} cannot be updatable by a referential constraint with {1} clause
 90156=#Column alias is not specified for expression {0}
+90157=#Column index {0} in GROUP BY clause is outside valid range 1 - {1}
 HY000=常规错误: {0}
 HY004=位置数据类型: {0}
 HYC00=不支持的特性: {0}

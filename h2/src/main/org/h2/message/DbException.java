@@ -628,6 +628,7 @@ public class DbException extends RuntimeException {
         case GENERATED_COLUMN_CANNOT_BE_ASSIGNED_1:
         case GENERATED_COLUMN_CANNOT_BE_UPDATABLE_BY_CONSTRAINT_2:
         case COLUMN_ALIAS_IS_NOT_SPECIFIED_1:
+        case GROUP_BY_NOT_IN_THE_RESULT:
             return new JdbcSQLSyntaxErrorException(message, sql, state, errorCode, cause, stackTrace);
         case HEX_STRING_ODD_1:
         case HEX_STRING_WRONG_1:

@@ -3241,24 +3241,21 @@ public class Parser {
                     Expression expr = readExpression();
                     if (database.getMode().groupByColumnIndex && expr instanceof ValueExpression &&
                             expr.getType().getValueType() == Value.INTEGER) {
-                        boolean wildcard = false;
-                        for (Expression e : command.getExpressions()) {
-                            wildcard = wildcard || e instanceof Wildcard;
-                        }
-                        if (wildcard) {
-                            throw DbException.get(ErrorCode.SYNTAX_ERROR_1);
-                        } else {
-                            int idx = expr.getValue(null).getInt() - 1;
-                            if (idx < 0 || idx >= command.getExpressions().size()) {
-                                throw DbException.get(ErrorCode.GROUP_BY_NOT_IN_THE_RESULT, Integer.toString(idx + 1),
-                                        Integer.toString(command.getExpressions().size()));
+                        ArrayList<Expression> expressions = command.getExpressions();
+                        for (Expression e : expressions) {
+                            if (e instanceof Wildcard) {
+                                throw getSyntaxError();
                             }
-                            Expression col = command.getExpressions().get(idx);
-                            list.add(col);
                         }
-                    }
-                    else
+                        int idx = expr.getValue(session).getInt();
+                        if (idx < 1 || idx > expressions.size()) {
+                            throw DbException.get(ErrorCode.GROUP_BY_NOT_IN_THE_RESULT, Integer.toString(idx),
+                                    Integer.toString(expressions.size()));
+                        }
+                        list.add(expressions.get(idx-1));
+                    } else {
                         list.add(expr);
+                    }
                 }
             } while (readIf(COMMA));
             if (!list.isEmpty()) {

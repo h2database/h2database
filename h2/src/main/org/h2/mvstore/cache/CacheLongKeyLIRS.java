@@ -729,33 +729,29 @@ public class CacheLongKeyLIRS<V> {
          */
         V get(Entry<V> e) {
             V value = e == null ? null : e.getValue();
+            if (value == null) {
+                // the entry was not found
+                // or it was a non-resident entry
+                misses.incrementAndGet();
+                return null;
+            }
             if (!l.tryLock()) {
-                if (value == null) {
-                    misses.incrementAndGet();
-                } else {
-                    concAccess.add(e);
-                }
+                //concAccess.add(e);
                 return value;
             }
             try {
-                if (value == null) {
-                    // the entry was not found
-                    // or it was a non-resident entry
-                    misses.incrementAndGet();
-                } else {
-                    access(e);
-                    hits++;
-                }
+                access(e);
+                hits++;
 
                 // process entries that were accessed concurrently
-                while (true) {
-                    Entry<V> p = concAccess.pollFirst();
-                    if (p == null) {
-                        break;
-                    }
-                    access(p);
-                    hits++;
-                }
+//                while (true) {
+//                    Entry<V> p = concAccess.pollFirst();
+//                    if (p == null) {
+//                        break;
+//                    }
+//                    access(p);
+//                    hits++;
+//                }
 
                 return value;
             }
@@ -1140,6 +1136,9 @@ public class CacheLongKeyLIRS<V> {
         
         
         <T> T withLock(Supplier<T> c) {
+            if (l.isHeldByCurrentThread()) {
+                return c.get();
+            }
             l.lock();
             try {
                 return c.get();

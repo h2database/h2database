@@ -165,9 +165,14 @@ public class CacheLongKeyLIRS<V> {
         // check whether resize is required: synchronize on s, to avoid
         // concurrent resizes (concurrent reads read
         // from the old segment)
-        return s.withLock(() -> {
-            return resizeIfNeeded(s, segmentIndex).put(key, hash, value, memory);
-        });
+        s.l.lock();
+        try {
+            s = resizeIfNeeded(s, segmentIndex)
+            return s.put(key, hash, value, memory);
+        }
+        finally {
+            s.l.unlock();
+        }
     }
 
     private Segment<V> resizeIfNeeded(Segment<V> s, int segmentIndex) {
@@ -211,9 +216,14 @@ public class CacheLongKeyLIRS<V> {
         // check whether resize is required: synchronize on s, to avoid
         // concurrent resizes (concurrent reads read
         // from the old segment)
-        return s.withLock(() -> {
-            return resizeIfNeeded(s, segmentIndex).remove(key, hash);
-        });
+        s.l.lock();
+        try {
+            s = resizeIfNeeded(s, segmentIndex)
+            return s.remove(key, hash);
+        }
+        finally {
+            s.l.unlock();
+        }
     }
 
     /**
@@ -493,10 +503,13 @@ public class CacheLongKeyLIRS<V> {
      */
     public void trimNonResidentQueue() {
         for (Segment<V> s : segments) {
-            s.withLock(() -> {
+            s.l.lock();
+            try {
                 s.trimNonResidentQueue();
-                return null;
-            });
+            }
+            finally {
+                s.l.unlock();
+            }
         }
     }
 
@@ -824,9 +837,13 @@ public class CacheLongKeyLIRS<V> {
          * @return the old value, or null if there was no resident entry
          */
         V put(long key, int hash, V value, int memory) {
-            return withLock(() -> {
+            l.lock();
+            try {
                 return putUnlocked(key, hash, value, memory);
-            });
+            }
+            finally {
+                l.unlock();
+            }
         }
 
         private V putUnlocked(long key, int hash, V value, int memory) {
@@ -875,9 +892,13 @@ public class CacheLongKeyLIRS<V> {
          * @return the old value, or null if there was no resident entry
          */
         V remove(long key, int hash) {
-            return withLock(() -> {
+            l.lock();
+            try {
                 return removeUnlocked(key, hash);
-            });
+            }
+            finally {
+                l.unlock();
+            }
         }
 
         private V removeUnlocked(long key, int hash) {
@@ -1079,9 +1100,13 @@ public class CacheLongKeyLIRS<V> {
          * @return the key list
          */
         List<Long> keys(boolean cold, boolean nonResident) {
-            return withLock(() -> {
+            l.lock();
+            try {
                 return keysUnlocked(cold, nonResident);
-            });
+            }
+            finally {
+                l.unlock();
+            }
         }
 
         private List<Long> keysUnlocked(boolean cold, boolean nonResident) {
@@ -1107,9 +1132,13 @@ public class CacheLongKeyLIRS<V> {
          * @return the set of keys
          */
         Set<Long> keySet() {
-            return withLock(() -> {
+            l.lock();
+            try {
                 return keySetUnlocked();
-            });
+            }
+            finally {
+                l.unlock();
+            }
         }
 
         private Set<Long> keySetUnlocked() {
@@ -1132,20 +1161,6 @@ public class CacheLongKeyLIRS<V> {
          */
         void setMaxMemory(long maxMemory) {
             this.maxMemory = maxMemory;
-        }
-        
-        
-        <T> T withLock(Supplier<T> c) {
-            if (l.isHeldByCurrentThread()) {
-                return c.get();
-            }
-            l.lock();
-            try {
-                return c.get();
-            }
-            finally {
-                l.unlock();
-            }
         }
     }
 

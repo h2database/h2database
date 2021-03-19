@@ -661,17 +661,16 @@ public class Recover extends Tool implements DataHandler {
         }
         MVMap<Long, byte[]> lobData = mv.openMap("lobData");
         StreamStore streamStore = new StreamStore(lobData);
-        MVMap<Long, Object[]> lobMap = mv.openMap("lobMap");
+        MVMap<Long, byte[]> lobMap = mv.openMap("lobMap");
         writer.println("-- LOB");
         writer.println("CREATE TABLE IF NOT EXISTS " +
                 "INFORMATION_SCHEMA.LOB_BLOCKS(" +
                 "LOB_ID BIGINT, SEQ INT, DATA VARBINARY, " +
                 "PRIMARY KEY(LOB_ID, SEQ));");
         boolean hasErrors = false;
-        for (Entry<Long, Object[]> e : lobMap.entrySet()) {
+        for (Entry<Long, byte[]> e : lobMap.entrySet()) {
             long lobId = e.getKey();
-            Object[] value = e.getValue();
-            byte[] streamStoreId = (byte[]) value[0];
+            byte[] streamStoreId = e.getValue();
             InputStream in = streamStore.get(streamStoreId);
             int len = 8 * 1024;
             byte[] block = new byte[len];
@@ -699,8 +698,7 @@ public class Recover extends Tool implements DataHandler {
         if (hasErrors) {
             writer.println("-- lobMap");
             for (Long k : lobMap.keyList()) {
-                Object[] value = lobMap.get(k);
-                byte[] streamStoreId = (byte[]) value[0];
+                byte[] streamStoreId = lobMap.get(k);
                 writer.println("--     " + k + " " + StreamStore.toString(streamStoreId));
             }
             writer.println("-- lobData");

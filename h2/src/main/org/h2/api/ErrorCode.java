@@ -2234,7 +2234,13 @@ public class ErrorCode {
      */
     public static final int COLUMN_ALIAS_IS_NOT_SPECIFIED_1 = 90156;
 
-    // next is 90157
+    /**
+     * The error with code <code>90157</code> is thrown when the integer
+     * index that is used in the GROUP BY is not in the SELECT list
+     */
+    public static final int GROUP_BY_NOT_IN_THE_RESULT = 90157;
+
+    // next is 90158
 
     private ErrorCode() {
         // utility class

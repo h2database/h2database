@@ -52,7 +52,7 @@ public final class LobStorageMap implements LobStorageInterface
      * We encode the tableId into the top 16-bits of the lob id, and use the
      * remaining 48 bits for a unique id.
      * <p>
-     * Key: (tableId << 48) | lobId (long)
+     * Key: (tableId << 48) | unique-id (long)
      * Value: streamStoreId (byte[]).
      */
     private final MVMap<Long, byte[]> lobMap;
@@ -101,7 +101,7 @@ public final class LobStorageMap implements LobStorageInterface
                 long maxLobId = 0;
                 for (Entry<Long, byte[]> e : lobMap.entrySet()) {
                     long tableIdAndlobId = e.getKey();
-                    long lobId = tableIdAndlobId >> 16 << 16; // remove the tableId in the top 16-bits
+                    long lobId = (tableIdAndlobId << 16) >>> 16; // remove the tableId in the top 16-bits
                     byte[] streamStoreId = e.getValue();
                     long max = streamStore.getMaxBlockKey(streamStoreId);
                     // a lob may not have a referenced blocks if data is kept inline
@@ -219,22 +219,21 @@ public final class LobStorageMap implements LobStorageInterface
         } catch (Exception e) {
             throw DataUtils.convertToIOException(e);
         }
-        long lobId = generateLobId();
+        final int tableId = LobStorageFrontend.TABLE_TEMP;
+        final long lobAndTableId = (LobStorageFrontend.TABLE_TEMP << 48) | generateLobUniqueId();
         long length = streamStore.length(streamStoreId);
-        int tableId = LobStorageFrontend.TABLE_TEMP;
-        long lobAndTableId = (LobStorageFrontend.TABLE_TEMP << 48) | lobId;
         lobMap.put(lobAndTableId, streamStoreId);
-        Object[] key = { streamStoreId, lobId };
+        Object[] key = { streamStoreId, lobAndTableId };
         refMap.put(key, Boolean.TRUE);
         ValueLobDatabase lob = ValueLobDatabase.create(
-                type, database, tableId, lobId, length);
+                type, database, tableId, lobAndTableId, length);
         if (TRACE) {
-            trace("create " + tableId + "/" + lobId);
+            trace("create " + tableId + "/" + lobAndTableId);
         }
         return lob;
     }
 
-    private long generateLobId() {
+    private long generateLobUniqueId() {
         return nextLobId.getAndIncrement();
     }
 
@@ -255,15 +254,15 @@ public final class LobStorageMap implements LobStorageInterface
                 throw DbException.getInternalError("Length is different");
             }
             byte[] streamStoreId = lobMap.get(oldLobId);
-            long lobId = generateLobId();
-            lobMap.put(lobId, streamStoreId);
-            Object[] key = {streamStoreId, lobId};
+            long tableAndlobId = (tableId << 48) | generateLobUniqueId();
+            lobMap.put(tableAndlobId, streamStoreId);
+            Object[] key = {streamStoreId, tableAndlobId};
             refMap.put(key, Boolean.TRUE);
             ValueLob lob = ValueLobDatabase.create(
-                    type, database, tableId, lobId, length);
+                    type, database, tableId, tableAndlobId, length);
             if (TRACE) {
                 trace("copy " + old.getTableId() + "/" + old.getLobId() +
-                        " > " + tableId + "/" + lobId);
+                        " > " + tableId + "/" + tableAndlobId);
             }
             return lob;
         } finally {

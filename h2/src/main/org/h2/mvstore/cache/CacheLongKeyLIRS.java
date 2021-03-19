@@ -167,7 +167,7 @@ public class CacheLongKeyLIRS<V> {
         // from the old segment)
         s.l.lock();
         try {
-            Segment<V> s2 = s = resizeIfNeeded(s, segmentIndex);
+            Segment<V> s2 = resizeIfNeeded(s, segmentIndex);
             return s2.put(key, hash, value, memory);
         }
         finally {

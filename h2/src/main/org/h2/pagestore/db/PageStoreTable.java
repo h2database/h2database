@@ -123,16 +123,6 @@ public class PageStoreTable extends RegularTable {
     }
 
     @Override
-    public Index getUniqueIndex() {
-        for (Index idx : indexes) {
-            if (idx.getIndexType().isUnique()) {
-                return idx;
-            }
-        }
-        return null;
-    }
-
-    @Override
     public ArrayList<Index> getIndexes() {
         return indexes;
     }

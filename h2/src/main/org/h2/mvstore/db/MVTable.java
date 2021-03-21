@@ -552,11 +552,6 @@ public class MVTable extends RegularTable {
     }
 
     @Override
-    public Index getUniqueIndex() {
-        return primaryIndex;
-    }
-
-    @Override
     public ArrayList<Index> getIndexes() {
         return indexes;
     }

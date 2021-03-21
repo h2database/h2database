@@ -465,11 +465,6 @@ public class TableView extends Table {
         return maxDataModificationId;
     }
 
-    @Override
-    public Index getUniqueIndex() {
-        return null;
-    }
-
     private void removeCurrentViewFromOtherTables() {
         if (tables != null) {
             for (Table t : tables) {

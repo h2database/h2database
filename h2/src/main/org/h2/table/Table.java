@@ -288,13 +288,6 @@ public abstract class Table extends SchemaObject {
     }
 
     /**
-     * Get any unique index for this table if one exists.
-     *
-     * @return a unique index
-     */
-    public abstract Index getUniqueIndex();
-
-    /**
      * Get all indexes for this table.
      *
      * @return the list of indexes

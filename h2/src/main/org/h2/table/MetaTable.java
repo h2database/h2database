@@ -261,11 +261,6 @@ public abstract class MetaTable extends Table {
     }
 
     @Override
-    public final Index getUniqueIndex() {
-        return null;
-    }
-
-    @Override
     public long getRowCountApproximation(SessionLocal session) {
         return ROW_COUNT_APPROXIMATION;
     }

@@ -66,11 +66,6 @@ public abstract class VirtualTable extends Table {
     }
 
     @Override
-    public Index getUniqueIndex() {
-        return null;
-    }
-
-    @Override
     public ArrayList<Index> getIndexes() {
         return null;
     }

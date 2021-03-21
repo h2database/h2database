@@ -606,16 +606,6 @@ public class TableLink extends Table {
     }
 
     @Override
-    public Index getUniqueIndex() {
-        for (Index idx : indexes) {
-            if (idx.getIndexType().isUnique()) {
-                return idx;
-            }
-        }
-        return null;
-    }
-
-    @Override
     public void updateRows(Prepared prepared, SessionLocal session, RowList rows) {
         checkReadOnly();
         if (emitUpdates) {

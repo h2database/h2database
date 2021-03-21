@@ -661,11 +661,6 @@ public class TestTableEngines extends TestDb {
             }
 
             @Override
-            public Index getUniqueIndex() {
-                return null;
-            }
-
-            @Override
             public boolean isDeterministic() {
                 return false;
             }
@@ -842,11 +837,6 @@ public class TestTableEngines extends TestDb {
         @Override
         public boolean isDeterministic() {
             return false;
-        }
-
-        @Override
-        public Index getUniqueIndex() {
-            return null;
         }
 
         @Override

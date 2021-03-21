@@ -7864,19 +7864,38 @@ public class Parser {
             command.setIfNotExists(ifNotExists);
             command.setPrimaryKey(primaryKey);
             command.setTableName(tableName);
-            command.setUnique(unique);
             command.setHash(hash);
             command.setSpatial(spatial);
             command.setIndexName(indexName);
             command.setComment(comment);
             IndexColumn[] columns;
+            int uniqueColumnCount = 0;
             if (spatial) {
                 columns = new IndexColumn[] { new IndexColumn(readIdentifier()) };
+                if (unique) {
+                    uniqueColumnCount = 1;
+                }
                 read(CLOSE_PAREN);
             } else {
                 columns = parseIndexColumnList();
+                if (unique) {
+                    uniqueColumnCount = columns.length;
+                    if (readIf("INCLUDE")) {
+                        if (!database.isMVStore()) {
+                            throw DbException.getUnsupportedException("PageStore && UNIQUE INDEX INCLUDE");
+                        }
+                        read(OPEN_PAREN);
+                        IndexColumn[] columnsToInclude = parseIndexColumnList();
+                        int nonUniqueCount = columnsToInclude.length;
+                        columns = Arrays.copyOf(columns, uniqueColumnCount + nonUniqueCount);
+                        System.arraycopy(columnsToInclude, 0, columns, uniqueColumnCount, nonUniqueCount);
+                    }
+                } else if (primaryKey) {
+                    uniqueColumnCount = columns.length;
+                }
             }
             command.setIndexColumns(columns);
+            command.setUniqueColumnCount(uniqueColumnCount);
             return command;
         }
     }

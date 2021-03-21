@@ -17,7 +17,7 @@ import org.h2.table.VirtualTable;
 public abstract class VirtualTableIndex extends Index {
 
     protected VirtualTableIndex(VirtualTable table, String name, IndexColumn[] columns) {
-        super(table, 0, name, columns, IndexType.createNonUnique(true));
+        super(table, 0, name, columns, 0, IndexType.createNonUnique(true));
     }
 
     @Override

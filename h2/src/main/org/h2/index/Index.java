@@ -6,6 +6,7 @@
 package org.h2.index;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import org.h2.api.ErrorCode;
 import org.h2.command.query.AllColumnsForPlan;
@@ -24,6 +25,7 @@ import org.h2.table.IndexColumn;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.util.StringUtils;
+import org.h2.value.CompareMode;
 import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
@@ -62,6 +64,12 @@ public abstract class Index extends SchemaObject {
     protected int[] columnIds;
 
     /**
+     * Count of unique columns. Unique columns, if any, are always first columns
+     * in the lists.
+     */
+    protected final int uniqueColumnColumn;
+
+    /**
      * The table.
      */
     protected final Table table;
@@ -73,6 +81,8 @@ public abstract class Index extends SchemaObject {
 
     private final RowFactory rowFactory;
 
+    private final RowFactory uniqueRowFactory;
+
     /**
      * Initialize the index.
      *
@@ -81,10 +91,13 @@ public abstract class Index extends SchemaObject {
      * @param name the index name
      * @param newIndexColumns the columns that are indexed or null if this is
      *            not yet known
+     * @param uniqueColumnCount count of unique columns
      * @param newIndexType the index type
      */
-    protected Index(Table newTable, int id, String name, IndexColumn[] newIndexColumns, IndexType newIndexType) {
+    protected Index(Table newTable, int id, String name, IndexColumn[] newIndexColumns, int uniqueColumnCount,
+            IndexType newIndexType) {
         super(newTable.getSchema(), id, name, Trace.INDEX);
+        this.uniqueColumnColumn = uniqueColumnCount;
         this.indexType = newIndexType;
         this.table = newTable;
         if (newIndexColumns != null) {
@@ -98,8 +111,23 @@ public abstract class Index extends SchemaObject {
                 columnIds[i] = col.getColumnId();
             }
         }
-        rowFactory = database.getRowFactory().createRowFactory(database, database.getCompareMode(), database,
-                table.getColumns(), newIndexType.isScan() ? null : newIndexColumns, true);
+        RowFactory databaseRowFactory = database.getRowFactory();
+        CompareMode compareMode = database.getCompareMode();
+        Column[] tableColumns = table.getColumns();
+        rowFactory = databaseRowFactory.createRowFactory(database, compareMode, database, tableColumns,
+                newIndexType.isScan() ? null : newIndexColumns, true);
+        RowFactory uniqueRowFactory;
+        if (uniqueColumnCount > 0) {
+            if (newIndexColumns == null || uniqueColumnCount == newIndexColumns.length) {
+                uniqueRowFactory = rowFactory;
+            } else {
+                uniqueRowFactory = databaseRowFactory.createRowFactory(database, compareMode, database, tableColumns,
+                        Arrays.copyOf(newIndexColumns, uniqueColumnCount), true);
+            }
+        } else {
+            uniqueRowFactory = null;
+        }
+        this.uniqueRowFactory = uniqueRowFactory;
     }
 
     @Override
@@ -121,21 +149,20 @@ public abstract class Index extends SchemaObject {
 
     @Override
     public String getCreateSQLForCopy(Table targetTable, String quotedName) {
-        StringBuilder buff = new StringBuilder("CREATE ");
-        buff.append(indexType.getSQL());
-        buff.append(' ');
+        StringBuilder builder = new StringBuilder("CREATE ");
+        builder.append(indexType.getSQL());
+        builder.append(' ');
         if (table.isHidden()) {
-            buff.append("IF NOT EXISTS ");
+            builder.append("IF NOT EXISTS ");
         }
-        buff.append(quotedName);
-        buff.append(" ON ");
-        targetTable.getSQL(buff, DEFAULT_SQL_FLAGS);
+        builder.append(quotedName);
+        builder.append(" ON ");
+        targetTable.getSQL(builder, DEFAULT_SQL_FLAGS);
         if (comment != null) {
-            buff.append(" COMMENT ");
-            StringUtils.quoteStringSQL(buff, comment);
+            builder.append(" COMMENT ");
+            StringUtils.quoteStringSQL(builder, comment);
         }
-        buff.append('(').append(getColumnListSQL(DEFAULT_SQL_FLAGS)).append(')');
-        return buff.toString();
+        return getColumnListSQL(builder, DEFAULT_SQL_FLAGS).toString();
     }
 
     /**
@@ -144,8 +171,16 @@ public abstract class Index extends SchemaObject {
      * @param sqlFlags formatting flags
      * @return the list of columns
      */
-    private String getColumnListSQL(int sqlFlags) {
-        return IndexColumn.writeColumns(new StringBuilder(), indexColumns, sqlFlags).toString();
+    private StringBuilder getColumnListSQL(StringBuilder builder, int sqlFlags) {
+        builder.append('(');
+        int length = indexColumns.length;
+        if (uniqueColumnColumn > 0 && uniqueColumnColumn < length) {
+            IndexColumn.writeColumns(builder, indexColumns, 0, uniqueColumnColumn, sqlFlags).append(") INCLUDE(");
+            IndexColumn.writeColumns(builder, indexColumns, uniqueColumnColumn, length, sqlFlags);
+        } else {
+            IndexColumn.writeColumns(builder, indexColumns, 0, length, sqlFlags);
+        }
+        return builder.append(')');
     }
 
     @Override
@@ -415,6 +450,17 @@ public abstract class Index extends SchemaObject {
     }
 
     /**
+     * Returns count of unique columns. Unique columns, if any, are always first
+     * columns in the lists. Unique indexes may have additional indexed
+     * non-unique columns.
+     *
+     * @return count of unique columns, or 0 if index isn't unique
+     */
+    public final int getUniqueColumnCount() {
+        return uniqueColumnColumn;
+    }
+
+    /**
      * Get the index type.
      *
      * @return the index type
@@ -482,9 +528,8 @@ public abstract class Index extends SchemaObject {
     public DbException getDuplicateKeyException(String key) {
         StringBuilder builder = new StringBuilder();
         getSQL(builder, TRACE_SQL_FLAGS).append(" ON ");
-        table.getSQL(builder, TRACE_SQL_FLAGS).append('(');
-        builder.append(getColumnListSQL(TRACE_SQL_FLAGS));
-        builder.append(')');
+        table.getSQL(builder, TRACE_SQL_FLAGS);
+        getColumnListSQL(builder, TRACE_SQL_FLAGS);
         if (key != null) {
             builder.append(" VALUES ").append(key);
         }
@@ -537,7 +582,7 @@ public abstract class Index extends SchemaObject {
                 int index = column.getColumnId();
                 int mask = masks[index];
                 if ((mask & IndexCondition.EQUALITY) == IndexCondition.EQUALITY) {
-                    if (i == len && getIndexType().isUnique()) {
+                    if (i > 0 && i == uniqueColumnColumn) {
                         rowsCost = 3;
                         break;
                     }
@@ -678,14 +723,16 @@ public abstract class Index extends SchemaObject {
     public final boolean mayHaveNullDuplicates(SearchRow searchRow) {
         switch (database.getMode().uniqueIndexNullsHandling) {
         case ALLOW_DUPLICATES_WITH_ANY_NULL:
-            for (int index : columnIds) {
+            for (int i = 0; i < uniqueColumnColumn; i++) {
+                int index = columnIds[i];
                 if (searchRow.getValue(index) == ValueNull.INSTANCE) {
                     return true;
                 }
             }
             return false;
         case ALLOW_DUPLICATES_WITH_ALL_NULLS:
-            for (int index : columnIds) {
+            for (int i = 0; i < uniqueColumnColumn; i++) {
+                int index = columnIds[i];
                 if (searchRow.getValue(index) != ValueNull.INSTANCE) {
                     return false;
                 }
@@ -698,6 +745,10 @@ public abstract class Index extends SchemaObject {
 
     public RowFactory getRowFactory() {
         return rowFactory;
+    }
+
+    public RowFactory getUniqueRowFactory() {
+        return uniqueRowFactory;
     }
 
 }

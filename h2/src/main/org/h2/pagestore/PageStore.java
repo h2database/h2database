@@ -1704,17 +1704,20 @@ public class PageStore implements CacheWriter {
                 ic.sortType = sortType;
                 cols[i] = ic;
             }
+            int uniqueColumnCount;
             IndexType indexType;
             if (options[3].equals("d")) {
+                uniqueColumnCount = len;
                 indexType = IndexType.createPrimaryKey(true, false);
                 Column[] tableColumns = table.getColumns();
                 for (IndexColumn indexColumn : cols) {
                     tableColumns[indexColumn.column.getColumnId()].setNullable(false);
                 }
             } else {
+                uniqueColumnCount = 0;
                 indexType = IndexType.createNonUnique(true);
             }
-            meta = table.addIndex(session, "I" + id, id, cols, indexType, false, null);
+            meta = table.addIndex(session, "I" + id, id, cols, uniqueColumnCount, indexType, false, null);
         }
         metaObjects.put(id, (PageIndex) meta);
     }

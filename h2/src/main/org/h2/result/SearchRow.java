@@ -98,7 +98,7 @@ public abstract class SearchRow extends Value {
 
     /**
      * Copy all relevant values from the source to this row.
-     * @param source of column values
+     * @param source source of column values
      */
     public abstract void copyFrom(SearchRow source);
 

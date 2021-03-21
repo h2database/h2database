@@ -307,8 +307,8 @@ public class MVTable extends RegularTable {
     }
 
     @Override
-    public Index addIndex(SessionLocal session, String indexName, int indexId, IndexColumn[] cols, IndexType indexType,
-            boolean create, String indexComment) {
+    public Index addIndex(SessionLocal session, String indexName, int indexId, IndexColumn[] cols,
+            int uniqueColumnCount, IndexType indexType, boolean create, String indexComment) {
         cols = prepareColumns(database, cols, indexType);
         boolean isSessionTemporary = isTemporary() && !isGlobalTemporary();
         if (!isSessionTemporary) {
@@ -333,10 +333,10 @@ public class MVTable extends RegularTable {
                     indexType);
         } else if (indexType.isSpatial()) {
             index = new MVSpatialIndex(session.getDatabase(), this, indexId,
-                    indexName, cols, indexType);
+                    indexName, cols, uniqueColumnCount, indexType);
         } else {
             index = new MVSecondaryIndex(session.getDatabase(), this, indexId,
-                    indexName, cols, indexType);
+                    indexName, cols, uniqueColumnCount, indexType);
         }
         if (index.needRebuild()) {
             rebuildIndex(session, index, indexName);

@@ -332,9 +332,8 @@ public class TableView extends Table {
     }
 
     @Override
-    public Index addIndex(SessionLocal session, String indexName, int indexId,
-            IndexColumn[] cols, IndexType indexType, boolean create,
-            String indexComment) {
+    public Index addIndex(SessionLocal session, String indexName, int indexId, IndexColumn[] cols,
+            int uniqueColumnCount, IndexType indexType, boolean create, String indexComment) {
         throw DbException.getUnsupportedException("VIEW");
     }
 

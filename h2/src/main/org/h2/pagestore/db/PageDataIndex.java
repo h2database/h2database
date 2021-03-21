@@ -46,9 +46,9 @@ public class PageDataIndex extends PageIndex {
     private int memoryPerPage;
     private int memoryCount;
 
-    public PageDataIndex(PageStoreTable table, int id, IndexColumn[] columns,
-            IndexType indexType, boolean create, SessionLocal session) {
-        super(table, id, table.getName() + "_DATA", columns, indexType);
+    public PageDataIndex(PageStoreTable table, int id, IndexColumn[] columns, IndexType indexType, boolean create,
+            SessionLocal session) {
+        super(table, id, table.getName() + "_DATA", columns, 0, indexType);
 
         // trace = database.getTrace(Trace.PAGE_STORE + "_di");
         // trace.setLevel(TraceSystem.DEBUG);

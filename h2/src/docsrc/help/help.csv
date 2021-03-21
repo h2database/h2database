@@ -829,18 +829,16 @@ CREATE DOMAIN EMAIL AS VARCHAR(255) CHECK (POSITION('@', VALUE) > 1)
 "
 
 "Commands (DDL)","CREATE INDEX","
-@h2@ CREATE { [ UNIQUE ] [ HASH ] | SPATIAL } INDEX
+@h2@ CREATE [ UNIQUE | SPATIAL ] INDEX
 @h2@ [ [ IF NOT EXISTS ] [schemaName.]indexName ]
 @h2@ ON [schemaName.]tableName ( indexColumn [,...] )
+@h2@ [ INCLUDE ( indexColumn [,...] ) ]
 ","
 Creates a new index.
 This command commits an open transaction in this connection.
 
-Hash indexes are meant for in-memory databases and memory tables (CREATE MEMORY TABLE) when PageStore engine is used.
-For other tables, or if the index contains multiple columns, the HASH keyword is ignored.
-Hash indexes can only test for equality, do not support range queries (similar to a hash table), use more memory,
-but can perform lookups faster.
-Non-unique keys are supported.
+INCLUDE clause may only be specified for UNIQUE indexes and only with default MVStore engine.
+With this clause additional columns are included into index, but aren't used in unique checks.
 
 Spatial indexes are supported only on GEOMETRY columns and only by default MVStore engine.
 They may contain only one column and are used by the

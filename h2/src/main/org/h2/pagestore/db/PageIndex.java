@@ -30,10 +30,12 @@ public abstract class PageIndex extends Index {
      * @param name the index name
      * @param newIndexColumns the columns that are indexed or null if this is
      *            not yet known
+     * @param uniqueColumnCount count of unique columns
      * @param newIndexType the index type
      */
-    protected PageIndex(Table newTable, int id, String name, IndexColumn[] newIndexColumns, IndexType newIndexType) {
-        super(newTable, id, name, newIndexColumns, newIndexType);
+    protected PageIndex(Table newTable, int id, String name, IndexColumn[] newIndexColumns, int uniqueColumnCount,
+            IndexType newIndexType) {
+        super(newTable, id, name, newIndexColumns, uniqueColumnCount, newIndexType);
     }
 
     /**

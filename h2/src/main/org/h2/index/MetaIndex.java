@@ -27,7 +27,7 @@ public class MetaIndex extends Index {
     private final boolean scan;
 
     public MetaIndex(MetaTable meta, IndexColumn[] columns, boolean scan) {
-        super(meta, 0, null, columns, IndexType.createNonUnique(true));
+        super(meta, 0, null, columns, 0, IndexType.createNonUnique(true));
         this.meta = meta;
         this.scan = scan;
     }

@@ -381,8 +381,8 @@ public final class Database implements DataHandler, CastDataProvider {
             meta = mainSchema.createTable(data);
             handleUpgradeIssues();
             IndexColumn[] pkCols = IndexColumn.wrap(new Column[] { data.columns.get(0) });
-            metaIdIndex = meta.addIndex(systemSession, "SYS_ID", 0, pkCols, IndexType.createPrimaryKey(false, false),
-                    true, null);
+            metaIdIndex = meta.addIndex(systemSession, "SYS_ID", 0, pkCols, 1,
+                    IndexType.createPrimaryKey(false, false), true, null);
             systemSession.commit(true);
             objectIds.set(0);
             executeMeta();

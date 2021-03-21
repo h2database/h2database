@@ -518,7 +518,7 @@ public class TestTableEngines extends TestDb {
 
                 Scan(Table table) {
                     super(table, table.getId(), table.getName() + "_SCAN",
-                            IndexColumn.wrap(table.getColumns()), IndexType.createScan(false));
+                            IndexColumn.wrap(table.getColumns()), 0, IndexType.createScan(false));
                 }
 
                 @Override
@@ -599,9 +599,8 @@ public class TestTableEngines extends TestDb {
             }
 
             @Override
-            public Index addIndex(SessionLocal session, String indexName,
-                    int indexId, IndexColumn[] cols, IndexType indexType,
-                    boolean create, String indexComment) {
+            public Index addIndex(SessionLocal session, String indexName, int indexId, IndexColumn[] cols,
+                    int uniqueColumnCount, IndexType indexType, boolean create, String indexComment) {
                 return null;
             }
 
@@ -818,7 +817,7 @@ public class TestTableEngines extends TestDb {
 
         @Override
         public Index addIndex(SessionLocal session, String indexName, int indexId, IndexColumn[] cols,
-                IndexType indexType, boolean create, String indexComment) {
+                int uniqueColumnCount, IndexType indexType, boolean create, String indexComment) {
             if (indexes == null) {
                 indexes = new ArrayList<>(2);
                 // Scan must be always at 0.
@@ -898,7 +897,7 @@ public class TestTableEngines extends TestDb {
         final TreeSet<SearchRow> set = new TreeSet<>(this);
 
         TreeSetIndex(Table t, String name, IndexColumn[] cols, IndexType type) {
-            super(t, 0, name, cols, type);
+            super(t, 0, name, cols, 0, type);
         }
 
         @Override

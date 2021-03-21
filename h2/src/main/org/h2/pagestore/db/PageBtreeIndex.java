@@ -40,10 +40,9 @@ public class PageBtreeIndex extends PageIndex {
     private int memoryPerPage;
     private int memoryCount;
 
-    public PageBtreeIndex(PageStoreTable table, int id, String indexName,
-            IndexColumn[] columns,
+    public PageBtreeIndex(PageStoreTable table, int id, String indexName, IndexColumn[] columns, int uniqueColumnCount,
             IndexType indexType, boolean create, SessionLocal session) {
-        super(table, id, indexName, columns, indexType);
+        super(table, id, indexName, columns, uniqueColumnCount, indexType);
         if (!database.isStarting() && create) {
             checkIndexColumnTypes(columns);
         }

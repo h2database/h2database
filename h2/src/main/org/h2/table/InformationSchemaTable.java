@@ -735,6 +735,7 @@ public final class InformationSchemaTable extends MetaTable {
                     column("ORDINAL_POSITION", TypeInfo.TYPE_INTEGER), //
                     column("ORDERING_SPECIFICATION"), //
                     column("NULL_ORDERING"), //
+                    column("IS_UNIQUE", TypeInfo.TYPE_BOOLEAN), //
             };
             indexColumnName = "TABLE_NAME";
             break;
@@ -2646,6 +2647,7 @@ public final class InformationSchemaTable extends MetaTable {
     private void indexColumns(SessionLocal session, ArrayList<Row> rows, String catalog, Table table,
             String tableName, Index index) {
         IndexColumn[] cols = index.getIndexColumns();
+        int uniqueColumnCount = index.getUniqueColumnCount();
         for (int i = 0, l = cols.length; i < l;) {
             IndexColumn idxCol = cols[i];
             int sortType = idxCol.sortType;
@@ -2670,7 +2672,9 @@ public final class InformationSchemaTable extends MetaTable {
                     (sortType & SortOrder.DESCENDING) == 0 ? "ASC" : "DESC",
                     // NULL_ORDERING
                     (sortType & SortOrder.NULLS_FIRST) != 0 ? "FIRST"
-                            : (sortType & SortOrder.NULLS_LAST) != 0 ? "LAST" : null
+                            : (sortType & SortOrder.NULLS_LAST) != 0 ? "LAST" : null,
+                    // IS_UNIQUE
+                    ValueBoolean.get(i <= uniqueColumnCount)
                 );
         }
     }

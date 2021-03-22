@@ -46,9 +46,9 @@ public class TreeIndex extends Index {
     private long rowCount;
     private boolean closed;
 
-    public TreeIndex(PageStoreTable table, int id, String indexName,
-            IndexColumn[] columns, IndexType indexType) {
-        super(table, id, indexName, columns, indexType);
+    public TreeIndex(PageStoreTable table, int id, String indexName, IndexColumn[] columns, int uniqueColumnCount,
+            IndexType indexType) {
+        super(table, id, indexName, columns, uniqueColumnCount, indexType);
         tableData = table;
         if (!database.isStarting()) {
             checkIndexColumnTypes(columns);
@@ -82,7 +82,7 @@ public class TreeIndex extends Index {
             Row r = n.row;
             int compare = compareRows(row, r);
             if (compare == 0) {
-                if (indexType.isUnique()) {
+                if (uniqueColumnColumn > 0) {
                     if (!mayHaveNullDuplicates(row)) {
                         throw getDuplicateKeyException(row.toString());
                     }

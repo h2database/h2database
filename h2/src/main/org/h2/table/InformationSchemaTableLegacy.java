@@ -968,6 +968,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                         }
                     }
                     IndexColumn[] cols = index.getIndexColumns();
+                    int uniqueColumnCount = index.getUniqueColumnCount();
                     String indexClass = index.getClass().getName();
                     for (int k = 0; k < cols.length; k++) {
                         IndexColumn idxCol = cols[k];
@@ -981,7 +982,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                                 // TABLE_NAME
                                 tableName,
                                 // NON_UNIQUE
-                                ValueBoolean.get(!index.getIndexType().isUnique()),
+                                ValueBoolean.get(k >= uniqueColumnCount),
                                 // INDEX_NAME
                                 index.getName(),
                                 // ORDINAL_POSITION

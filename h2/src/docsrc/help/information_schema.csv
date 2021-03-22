@@ -539,6 +539,10 @@ The Java class name of index implementation.
 'FIRST', 'LAST', or NULL.
 "
 
+"INDEX_COLUMNS","IS_UNIQUE","
+Whether this column is a part of unique column list of a unique index (TRUE or FALSE).
+"
+
 "INFORMATION_SCHEMA_CATALOG_NAME","CATALOG_NAME","
 The catalog (database name).
 "

@@ -236,6 +236,7 @@ public class TestScript extends TestDb {
         }
         if (config.mvStore) {
             testScript("other/two_phase_commit.sql");
+            testScript("other/unique_include.sql");
         }
 
         deleteDb("script");

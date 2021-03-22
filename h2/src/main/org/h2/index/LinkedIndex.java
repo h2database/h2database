@@ -37,9 +37,8 @@ public class LinkedIndex extends Index {
 
     private final int sqlFlags = QUOTE_ONLY_WHEN_REQUIRED;
 
-    public LinkedIndex(TableLink table, int id, IndexColumn[] columns,
-            IndexType indexType) {
-        super(table, id, null, columns, indexType);
+    public LinkedIndex(TableLink table, int id, IndexColumn[] columns, int uniqueColumnCount, IndexType indexType) {
+        super(table, id, null, columns, uniqueColumnCount, indexType);
         link = table;
         targetTableName = link.getQualifiedTable();
     }

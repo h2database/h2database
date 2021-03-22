@@ -28,7 +28,6 @@ import org.h2.engine.SessionLocal;
 import org.h2.engine.User;
 import org.h2.expression.condition.CompareLike;
 import org.h2.index.Index;
-import org.h2.index.IndexType;
 import org.h2.message.DbException;
 import org.h2.mode.DefaultNullOrdering;
 import org.h2.result.ResultInterface;
@@ -1265,26 +1264,28 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
             if (index.getCreateSQL() == null) {
                 continue;
             }
-            IndexType indexType = index.getIndexType();
-            boolean isUnique = indexType.isUnique();
-            if (unique && !isUnique) {
+            int uniqueColumnCount = index.getUniqueColumnCount();
+            if (unique && uniqueColumnCount == 0) {
                 continue;
             }
             Value tableValue = getString(table.getName());
             Value indexValue = getString(index.getName());
-            ValueBoolean nonUnique = ValueBoolean.get(!isUnique);
             IndexColumn[] cols = index.getIndexColumns();
             ValueSmallint type = TABLE_INDEX_STATISTIC;
-            type: if (isUnique) {
+            type: if (uniqueColumnCount == cols.length) {
                 for (IndexColumn c : cols) {
                     if (c.column.isNullable()) {
                         break type;
                     }
                 }
-                type = indexType.isHash() ? TABLE_INDEX_HASHED : TABLE_INDEX_OTHER;
+                type = index.getIndexType().isHash() ? TABLE_INDEX_HASHED : TABLE_INDEX_OTHER;
             }
             for (int i = 0, l = cols.length; i < l; i++) {
                 IndexColumn c = cols[i];
+                boolean nonUnique = i >= uniqueColumnCount;
+                if (unique && nonUnique) {
+                    break;
+                }
                 result.addRow(
                         // TABLE_CAT
                         catalogValue,
@@ -1293,7 +1294,7 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
                         // TABLE_NAME
                         tableValue,
                         // NON_UNIQUE
-                        nonUnique,
+                        ValueBoolean.get(nonUnique),
                         // INDEX_QUALIFIER
                         catalogValue,
                         // INDEX_NAME

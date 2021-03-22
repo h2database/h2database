@@ -61,17 +61,6 @@ public class UndoLogRecord {
     }
 
     /**
-     * Check if this undo log record can be store. Only record can be stored if
-     * the table has a unique index.
-     *
-     * @return if it can be stored
-     */
-    boolean canStore() {
-        // if large transactions are enabled, this method is not called
-        return table.getUniqueIndex() != null;
-    }
-
-    /**
      * Un-do the operation. If the row was inserted before, it is deleted now,
      * and vice versa.
      *

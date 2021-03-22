@@ -25,12 +25,10 @@ public class PageDelegateIndex extends PageIndex {
 
     private final PageDataIndex mainIndex;
 
-    public PageDelegateIndex(PageStoreTable table, int id, String name,
-            IndexType indexType, PageDataIndex mainIndex, boolean create,
-            SessionLocal session) {
-        super(table, id, name,
-                IndexColumn.wrap(new Column[] { table.getColumn(mainIndex.getMainIndexColumn()) }),
-                indexType);
+    public PageDelegateIndex(PageStoreTable table, int id, String name, IndexType indexType, PageDataIndex mainIndex,
+            boolean create, SessionLocal session) {
+        super(table, id, name, IndexColumn.wrap(new Column[] { table.getColumn(mainIndex.getMainIndexColumn()) }),
+                1, indexType);
         this.mainIndex = mainIndex;
         if (!database.isPersistent() || id < 0) {
             throw DbException.getInternalError(name);

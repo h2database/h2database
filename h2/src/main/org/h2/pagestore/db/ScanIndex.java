@@ -35,9 +35,8 @@ public class ScanIndex extends Index {
     private final PageStoreTable tableData;
     private long rowCount;
 
-    public ScanIndex(PageStoreTable table, int id, IndexColumn[] columns,
-            IndexType indexType) {
-        super(table, id, table.getName() + "_DATA", columns, indexType);
+    public ScanIndex(PageStoreTable table, int id, IndexColumn[] columns, IndexType indexType) {
+        super(table, id, table.getName() + "_DATA", columns, 0, indexType);
         tableData = table;
     }
 

@@ -43,9 +43,9 @@ public class NonUniqueHashIndex extends Index {
     private final PageStoreTable tableData;
     private long rowCount;
 
-    public NonUniqueHashIndex(PageStoreTable table, int id, String indexName,
-            IndexColumn[] columns, IndexType indexType) {
-        super(table, id, indexName, columns, indexType);
+    public NonUniqueHashIndex(PageStoreTable table, int id, String indexName, IndexColumn[] columns,
+            IndexType indexType) {
+        super(table, id, indexName, columns, 0, indexType);
         Column column = columns[0].column;
         indexColumn = column.getColumnId();
         totalOrdering = DataType.hasTotalOrdering(column.getType().getValueType());

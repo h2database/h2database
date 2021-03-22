@@ -123,23 +123,13 @@ public class PageStoreTable extends RegularTable {
     }
 
     @Override
-    public Index getUniqueIndex() {
-        for (Index idx : indexes) {
-            if (idx.getIndexType().isUnique()) {
-                return idx;
-            }
-        }
-        return null;
-    }
-
-    @Override
     public ArrayList<Index> getIndexes() {
         return indexes;
     }
 
     @Override
-    public Index addIndex(SessionLocal session, String indexName, int indexId, IndexColumn[] cols, IndexType indexType,
-            boolean create, String indexComment) {
+    public Index addIndex(SessionLocal session, String indexName, int indexId, IndexColumn[] cols,
+            int uniqueColumnCount, IndexType indexType, boolean create, String indexComment) {
         if (indexType.isSpatial()) {
             if (session.isQuirksMode()) {
                 return null;
@@ -168,24 +158,21 @@ public class PageStoreTable extends RegularTable {
                 index = new PageDelegateIndex(this, indexId, indexName,
                         indexType, mainIndex, create, session);
             } else {
-                index = new PageBtreeIndex(this, indexId, indexName, cols,
-                        indexType, create, session);
+                index = new PageBtreeIndex(this, indexId, indexName, cols, uniqueColumnCount, indexType, create,
+                        session);
             }
         } else {
             if (indexType.isHash()) {
                 if (cols.length != 1) {
-                    throw DbException.getUnsupportedException(
-                            "hash indexes may index only one column");
+                    throw DbException.getUnsupportedException("hash indexes may index only one column");
                 }
-                if (indexType.isUnique()) {
-                    index = new HashIndex(this, indexId, indexName, cols,
-                            indexType);
+                if (uniqueColumnCount > 0) {
+                    index = new HashIndex(this, indexId, indexName, cols, indexType);
                 } else {
-                    index = new NonUniqueHashIndex(this, indexId, indexName,
-                            cols, indexType);
+                    index = new NonUniqueHashIndex(this, indexId, indexName, cols, indexType);
                 }
             } else {
-                index = new TreeIndex(this, indexId, indexName, cols, indexType);
+                index = new TreeIndex(this, indexId, indexName, cols, uniqueColumnCount, indexType);
             }
         }
         if (index.needRebuild() && rowCount > 0) {

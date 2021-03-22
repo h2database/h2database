@@ -377,14 +377,17 @@ public class AlterTableAddConstraint extends AlterTable {
 
     private static Index getIndex(Table t, IndexColumn[] cols, boolean unique) {
         ArrayList<Index> indexes = t.getIndexes();
+        Index index = null;
         if (indexes != null) {
             for (Index idx : indexes) {
                 if (canUseIndex(idx, t, cols, unique)) {
-                    return idx;
+                    if (index == null || idx.getIndexColumns().length < index.getIndexColumns().length) {
+                        index = idx;
+                    }
                 }
             }
         }
-        return null;
+        return index;
     }
 
     private static boolean canUseIndex(Index index, Table table, IndexColumn[] cols, boolean unique) {

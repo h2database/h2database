@@ -43,7 +43,7 @@ public final class LobStorageMap implements LobStorageInterface
 
     private final Database database;
     final MVStore mvStore;
-    private final AtomicLong nextLobId = new AtomicLong(0);
+    private final AtomicLong nextLobUniqueId = new AtomicLong(0);
 
     /**
      * The lob metadata map. It contains the mapping from the lob id (which is a
@@ -98,22 +98,22 @@ public final class LobStorageMap implements LobStorageInterface
                 // but the latest lob could be a copy of another one, and
                 // we don't know that, so we iterate over all lobs)
                 long lastUsedKey = -1;
-                long maxLobId = 0;
+                long maxLobUniqueId = 0;
                 for (Entry<Long, byte[]> e : lobMap.entrySet()) {
                     long tableIdAndlobId = e.getKey();
-                    long lobId = (tableIdAndlobId << 16) >>> 16; // remove the tableId in the top 16-bits
                     byte[] streamStoreId = e.getValue();
                     long max = streamStore.getMaxBlockKey(streamStoreId);
                     // a lob may not have a referenced blocks if data is kept inline
                     if (max != -1 && max > lastUsedKey) {
                         lastUsedKey = max;
                         if (TRACE) {
-                            trace("lob " + lobId + " lastUsedKey=" + lastUsedKey);
+                            trace("lob " + tableIdAndlobId + " lastUsedKey=" + lastUsedKey);
                         }
                     }
-                    maxLobId = Math.max(lobId, maxLobId);
+                    long lobId = Math.abs(maxLobUniqueId & 0xffffffffffffL); // remove the tableId in the top 16-bits
+                    maxLobUniqueId = Math.max(lobId, maxLobUniqueId);
                 }
-                nextLobId.set(maxLobId + 1);
+                nextLobUniqueId.set(maxLobUniqueId + 1);
                 if (TRACE) {
                     trace("lastUsedKey=" + lastUsedKey);
                 }
@@ -220,7 +220,7 @@ public final class LobStorageMap implements LobStorageInterface
             throw DataUtils.convertToIOException(e);
         }
         final int tableId = LobStorageFrontend.TABLE_TEMP;
-        final long lobAndTableId = (LobStorageFrontend.TABLE_TEMP << 48) | generateLobUniqueId();
+        final long lobAndTableId = (((long)LobStorageFrontend.TABLE_TEMP) << 48) | generateLobUniqueId();
         long length = streamStore.length(streamStoreId);
         lobMap.put(lobAndTableId, streamStoreId);
         Object[] key = { streamStoreId, lobAndTableId };
@@ -234,7 +234,7 @@ public final class LobStorageMap implements LobStorageInterface
     }
 
     private long generateLobUniqueId() {
-        return nextLobId.getAndIncrement();
+        return nextLobUniqueId.getAndIncrement();
     }
 
     @Override
@@ -254,7 +254,7 @@ public final class LobStorageMap implements LobStorageInterface
                 throw DbException.getInternalError("Length is different");
             }
             byte[] streamStoreId = lobMap.get(oldLobId);
-            long tableAndlobId = (tableId << 48) | generateLobUniqueId();
+            long tableAndlobId = (((long)tableId) << 48) | generateLobUniqueId();
             lobMap.put(tableAndlobId, streamStoreId);
             Object[] key = {streamStoreId, tableAndlobId};
             refMap.put(key, Boolean.TRUE);
@@ -358,7 +358,7 @@ public final class LobStorageMap implements LobStorageInterface
         Object[] key = {streamStoreId, lobId };
         refMap.remove(key);
         // check if there are more entries for this streamStoreId
-        key = new Object[] {streamStoreId, 0L };
+        key = new Object[] {streamStoreId, Long.MIN_VALUE };
         Object[] value = refMap.ceilingKey(key);
         boolean hasMoreEntries = false;
         if (value != null) {

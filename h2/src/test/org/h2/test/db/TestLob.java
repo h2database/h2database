@@ -61,9 +61,8 @@ public class TestLob extends TestDb {
      */
     public static void main(String... a) throws Exception {
         TestBase test = TestBase.createCaller().init();
-//        test.config.big = true;
-        test.config.mvStore = true;
-        test.config.memory = false;
+        test.config.big = true;
+        test.config.mvStore = false;
         test.testFromMain();
     }
 

@@ -110,7 +110,7 @@ public final class LobStorageMap implements LobStorageInterface
                             trace("lob " + tableIdAndlobId + " lastUsedKey=" + lastUsedKey);
                         }
                     }
-                    long lobId = Math.abs(maxLobUniqueId & 0xffffffffffffL); // remove the tableId in the top 16-bits
+                    long lobId = Math.abs(tableIdAndlobId & 0xffffffffffffL); // remove the tableId in the top 16-bits
                     maxLobUniqueId = Math.max(lobId, maxLobUniqueId);
                 }
                 nextLobUniqueId.set(maxLobUniqueId + 1);

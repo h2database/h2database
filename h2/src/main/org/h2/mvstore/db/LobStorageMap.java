@@ -12,6 +12,7 @@ import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicLong;
 import org.h2.api.ErrorCode;
@@ -91,43 +92,16 @@ public final class LobStorageMap implements LobStorageInterface
              */
             MVMap<Long, byte[]> dataMap = mvStore.openMap("lobData");
             streamStore = new StreamStore(dataMap);
-            // garbage collection of the last blocks
             if (!database.isReadOnly()) {
-                // search for the last block
-                // (in theory, only the latest lob can have unreferenced blocks,
-                // but the latest lob could be a copy of another one, and
-                // we don't know that, so we iterate over all lobs)
-                long lastUsedKey = -1;
                 long maxLobUniqueId = 0;
-                for (Entry<Long, byte[]> e : lobMap.entrySet()) {
-                    long tableIdAndlobId = e.getKey();
-                    byte[] streamStoreId = e.getValue();
-                    long max = streamStore.getMaxBlockKey(streamStoreId);
-                    // a lob may not have a referenced blocks if data is kept inline
-                    if (max != -1 && max > lastUsedKey) {
-                        lastUsedKey = max;
-                        if (TRACE) {
-                            trace("lob " + tableIdAndlobId + " lastUsedKey=" + lastUsedKey);
-                        }
-                    }
+                Iterator<Long> iter = lobMap.keyIterator(0L);
+                while (iter.hasNext()) {
+                    long tableIdAndlobId = iter.next();
                     long lobId = Math.abs(tableIdAndlobId & 0xffffffffffffL); // remove the tableId in the top 16-bits
                     maxLobUniqueId = Math.max(lobId, maxLobUniqueId);
                 }
                 nextLobUniqueId.set(maxLobUniqueId + 1);
-                if (TRACE) {
-                    trace("lastUsedKey=" + lastUsedKey);
-                }
-                // delete all blocks that are newer
-                while (true) {
-                    Long last = dataMap.lastKey();
-                    if (last == null || last <= lastUsedKey) {
-                        break;
-                    }
-                    if (TRACE) {
-                        trace("gc " + last);
-                    }
-                    dataMap.remove(last);
-                }
+
                 // don't re-use block ids, except at the very end
                 Long last = dataMap.lastKey();
                 if (last != null) {

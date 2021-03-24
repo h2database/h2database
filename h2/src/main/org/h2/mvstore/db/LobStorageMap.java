@@ -314,8 +314,8 @@ public final class LobStorageMap implements LobStorageInterface
         MVStore.TxCounter txCounter = mvStore.registerVersionUsage();
         try {
             ArrayList<Long> list = new ArrayList<>();
-            Long startKey = Long.valueOf(tableId << 48);
-            Long endKey = Long.valueOf((tableId + 1) << 48);
+            long startKey = ((long)tableId) << 48;
+            long endKey = ((long)(tableId + 1)) << 48;
             final Cursor<Long, byte[]> cursor = lobMap.cursor(startKey, endKey, false);
             while (cursor.hasNext()) {
                 Long lobId = cursor.next();

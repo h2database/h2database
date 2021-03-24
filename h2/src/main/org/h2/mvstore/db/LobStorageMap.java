@@ -234,7 +234,11 @@ public final class LobStorageMap implements LobStorageInterface
     }
 
     private long generateLobUniqueId() {
-        return nextLobUniqueId.getAndIncrement();
+        long next = nextLobUniqueId.getAndIncrement();
+        if (next >= (1L << 48 - 1)) {
+            throw DbException.getInternalError("too many lobs, only support 2^48");
+        }
+        return next;
     }
 
     @Override
@@ -244,6 +248,9 @@ public final class LobStorageMap implements LobStorageInterface
 
     @Override
     public ValueLob copyLob(ValueLob old_, int tableId, long length) {
+        if (tableId >= Short.MAX_VALUE || tableId <= Short.MIN_VALUE) {
+            throw DbException.getInternalError("tableId out of range " + tableId);
+        }
         MVStore.TxCounter txCounter = mvStore.registerVersionUsage();
         try {
             ValueLobDatabase old = (ValueLobDatabase) old_;
@@ -311,7 +318,10 @@ public final class LobStorageMap implements LobStorageInterface
         if (mvStore.isClosed()) {
             return;
         }
-        MVStore.TxCounter txCounter = mvStore.registerVersionUsage();
+        if (tableId >= Short.MAX_VALUE || tableId <= Short.MIN_VALUE) {
+            throw DbException.getInternalError("tableId out of range " + tableId);
+        }
+         MVStore.TxCounter txCounter = mvStore.registerVersionUsage();
         try {
             ArrayList<Long> list = new ArrayList<>();
             long startKey = ((long)tableId) << 48;

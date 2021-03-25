@@ -126,6 +126,7 @@ public final class Store {
 
             builder.cacheConcurrency(db.getSettings().cacheConcurrency);
             builder.autoCommitBufferSize(db.getSettings().autoCommitBufferSize);
+            builder.cacheSize(db.getCacheSize());
         }
         this.encrypted = encrypted;
         try {

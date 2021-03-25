@@ -90,38 +90,6 @@ public final class LobStorageMap implements LobStorageInterface
             streamStore = new StreamStore(dataMap);
             // garbage collection of the last blocks
             if (!database.isReadOnly()) {
-                // search for the last block
-                // (in theory, only the latest lob can have unreferenced blocks,
-                // but the latest lob could be a copy of another one, and
-                // we don't know that, so we iterate over all lobs)
-                long lastUsedKey = -1;
-                for (Entry<Long, Object[]> e : lobMap.entrySet()) {
-                    long lobId = e.getKey();
-                    Object[] v = e.getValue();
-                    byte[] id = (byte[]) v[0];
-                    long max = streamStore.getMaxBlockKey(id);
-                    // a lob may not have a referenced blocks if data is kept inline
-                    if (max != -1 && max > lastUsedKey) {
-                        lastUsedKey = max;
-                        if (TRACE) {
-                            trace("lob " + lobId + " lastUsedKey=" + lastUsedKey);
-                        }
-                    }
-                }
-                if (TRACE) {
-                    trace("lastUsedKey=" + lastUsedKey);
-                }
-                // delete all blocks that are newer
-                while (true) {
-                    Long last = dataMap.lastKey();
-                    if (last == null || last <= lastUsedKey) {
-                        break;
-                    }
-                    if (TRACE) {
-                        trace("gc " + last);
-                    }
-                    dataMap.remove(last);
-                }
                 // don't re-use block ids, except at the very end
                 Long last = dataMap.lastKey();
                 if (last != null) {

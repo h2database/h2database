@@ -54,6 +54,17 @@ public interface LobStorageInterface {
             throws IOException;
 
     /**
+     * Get the input stream for the given lob
+     *
+     * @param lobId the lob id
+     * @param tableId the able id
+     * @param byteCount the number of bytes to read, or -1 if not known
+     * @return the stream
+     */
+    InputStream getInputStream(long lobId, int tableId, long byteCount)
+            throws IOException;
+    
+    /**
      * Delete a LOB (from the database, if it is stored there).
      *
      * @param lob the lob

@@ -13,7 +13,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map.Entry;
-
+import java.util.concurrent.atomic.AtomicLong;
 import org.h2.api.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.message.DbException;
@@ -42,8 +42,7 @@ public final class LobStorageMap implements LobStorageInterface
 
     private final Database database;
     final MVStore mvStore;
-    private final Object nextLobIdSync = new Object();
-    private long nextLobId;
+    private final AtomicLong nextLobId = new AtomicLong(0);
 
     /**
      * The lob metadata map. It contains the mapping from the lob id
@@ -90,7 +89,7 @@ public final class LobStorageMap implements LobStorageInterface
             MVMap<Long, byte[]> dataMap = mvStore.openMap("lobData");
             streamStore = new StreamStore(dataMap);
             // garbage collection of the last blocks
-            if (!database.isReadOnly() && !dataMap.isEmpty()) {
+            if (!database.isReadOnly()) {
                 // search for the last block
                 // (in theory, only the latest lob can have unreferenced blocks,
                 // but the latest lob could be a copy of another one, and
@@ -128,6 +127,9 @@ public final class LobStorageMap implements LobStorageInterface
                 if (last != null) {
                     streamStore.setNextKey(last + 1);
                 }
+                // find the latest lob ID
+                Long id = lobMap.lastKey();
+                nextLobId.set( id == null ? 1 : id + 1);
             }
         } finally {
             mvStore.deregisterVersionUsage(txCounter);
@@ -230,13 +232,7 @@ public final class LobStorageMap implements LobStorageInterface
     }
 
     private long generateLobId() {
-        synchronized (nextLobIdSync) {
-            if (nextLobId == 0) {
-                Long id = lobMap.lastKey();
-                nextLobId = id == null ? 1 : id + 1;
-            }
-            return nextLobId++;
-        }
+        return nextLobId.getAndIncrement();
     }
 
     @Override

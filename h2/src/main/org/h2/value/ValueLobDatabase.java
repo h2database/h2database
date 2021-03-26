@@ -121,7 +121,7 @@ public final class ValueLobDatabase extends ValueLob {
     public InputStream getInputStream() {
         long byteCount = (valueType == Value.BLOB) ? precision : -1;
         try {
-            return handler.getLobStorage().getInputStream(lobId, byteCount);
+            return handler.getLobStorage().getInputStream(lobId, tableId, byteCount);
         } catch (IOException e) {
             throw DbException.convertIOException(e, toString());
         }
@@ -132,7 +132,7 @@ public final class ValueLobDatabase extends ValueLob {
         final InputStream inputStream;
         final long byteCount = (valueType == Value.BLOB) ? precision : -1;
         try {
-            inputStream = handler.getLobStorage().getInputStream(lobId, byteCount);
+            inputStream = handler.getLobStorage().getInputStream(lobId, tableId, byteCount);
         } catch (IOException e) {
             throw DbException.convertIOException(e, toString());
         }

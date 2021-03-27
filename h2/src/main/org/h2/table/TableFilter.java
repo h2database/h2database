@@ -820,7 +820,7 @@ public class TableFilter implements ColumnResolver {
         // the indexConditions list may be modified here
         for (int i = 0; i < indexConditions.size(); i++) {
             IndexCondition cond = indexConditions.get(i);
-            if (!cond.isEvaluatable()) {
+            if (cond.getMask(indexConditions) == 0 || !cond.isEvaluatable()) {
                 indexConditions.remove(i--);
             }
         }

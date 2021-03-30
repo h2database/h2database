@@ -20,8 +20,9 @@ import org.h2.value.VersionedValue;
  */
 public abstract class MVIndex<K,V> extends Index {
 
-    protected MVIndex(Table newTable, int id, String name, IndexColumn[] newIndexColumns, IndexType newIndexType) {
-        super(newTable, id, name, newIndexColumns, newIndexType);
+    protected MVIndex(Table newTable, int id, String name, IndexColumn[] newIndexColumns, int uniqueColumnCount,
+            IndexType newIndexType) {
+        super(newTable, id, name, newIndexColumns, uniqueColumnCount, newIndexType);
     }
 
     /**

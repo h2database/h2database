@@ -327,6 +327,11 @@ public class LobStorageBackend implements LobStorageInterface {
     }
 
     @Override
+    public InputStream getInputStream(long lobId, int tableId, long byteCount) throws IOException {
+        return getInputStream(lobId, byteCount);        
+    }
+
+    @Override
     public InputStream getInputStream(long lobId, long byteCount) throws IOException {
         try {
             assertNotHolds(conn.getSession());

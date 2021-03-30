@@ -323,20 +323,6 @@ public class IOUtils {
     }
 
     /**
-     * Create a buffered reader to read from an input stream using the UTF-8
-     * format. If the input stream is null, this method returns null. The
-     * InputStreamReader that is used here is not exact, that means it may read
-     * some additional bytes when buffering.
-     *
-     * @param in the input stream or null
-     * @return the reader
-     */
-    public static Reader getBufferedReader(InputStream in) {
-        return in == null ? null : new BufferedReader(
-                new InputStreamReader(in, StandardCharsets.UTF_8));
-    }
-
-    /**
      * Create a reader to read from an input stream using the UTF-8 format. If
      * the input stream is null, this method returns null. The InputStreamReader
      * that is used here is not exact, that means it may read some additional

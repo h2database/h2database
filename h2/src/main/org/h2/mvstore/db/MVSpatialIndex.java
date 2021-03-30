@@ -66,12 +66,12 @@ public class MVSpatialIndex extends MVIndex<Spatial, Value> implements SpatialIn
      * @param id the index id
      * @param indexName the index name
      * @param columns the indexed columns (only one geometry column allowed)
+     * @param uniqueColumnCount count of unique columns (0 or 1)
      * @param indexType the index type (only spatial index)
      */
-    public MVSpatialIndex(
-            Database db, MVTable table, int id, String indexName,
-            IndexColumn[] columns, IndexType indexType) {
-        super(table, id, indexName, columns, indexType);
+    public MVSpatialIndex(Database db, MVTable table, int id, String indexName, IndexColumn[] columns,
+            int uniqueColumnCount, IndexType indexType) {
+        super(table, id, indexName, columns, uniqueColumnCount, indexType);
         if (columns.length != 1) {
             throw DbException.getUnsupportedException(
                     "Can only index one column");
@@ -134,7 +134,7 @@ public class MVSpatialIndex extends MVIndex<Spatial, Value> implements SpatialIn
             return;
         }
 
-        if (indexType.isUnique()) {
+        if (uniqueColumnColumn > 0) {
             // this will detect committed entries only
             RTreeCursor<VersionedValue<Value>> cursor = spatialMap.findContainedKeys(key);
             Iterator<Spatial> it = new SpatialKeyIterator(map, cursor, false);
@@ -150,7 +150,7 @@ public class MVSpatialIndex extends MVIndex<Spatial, Value> implements SpatialIn
         } catch (MVStoreException e) {
             throw mvTable.convertException(e);
         }
-        if (indexType.isUnique()) {
+        if (uniqueColumnColumn > 0) {
             // check if there is another (uncommitted) entry
             RTreeCursor<VersionedValue<Value>> cursor = spatialMap.findContainedKeys(key);
             Iterator<Spatial> it = new SpatialKeyIterator(map, cursor, true);

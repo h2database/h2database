@@ -144,8 +144,8 @@ public class AlterTableAddConstraint extends AlterTable {
                         session, table, Constants.PREFIX_PRIMARY_KEY);
                 int indexId = session.getDatabase().allocateObjectId();
                 try {
-                    index = table.addIndex(session, indexName, indexId,
-                            indexColumns, indexType, true, null);
+                    index = table.addIndex(session, indexName, indexId, indexColumns, indexColumns.length, indexType,
+                            true, null);
                 } finally {
                     getSchema().freeUniqueName(indexName);
                 }
@@ -341,8 +341,8 @@ public class AlterTableAddConstraint extends AlterTable {
         String indexName = t.getSchema().getUniqueIndexName(session, t,
                 prefix + "_INDEX_");
         try {
-            Index index = t.addIndex(session, indexName, indexId, cols,
-                    indexType, true, null);
+            Index index = t.addIndex(session, indexName, indexId, cols, unique ? cols.length : 0, indexType, true,
+                    null);
             createdIndexes.add(index);
             return index;
         } finally {
@@ -377,25 +377,38 @@ public class AlterTableAddConstraint extends AlterTable {
 
     private static Index getIndex(Table t, IndexColumn[] cols, boolean unique) {
         ArrayList<Index> indexes = t.getIndexes();
+        Index index = null;
         if (indexes != null) {
             for (Index idx : indexes) {
                 if (canUseIndex(idx, t, cols, unique)) {
-                    return idx;
+                    if (index == null || idx.getIndexColumns().length < index.getIndexColumns().length) {
+                        index = idx;
+                    }
                 }
             }
         }
-        return null;
+        return index;
     }
 
     private static boolean canUseIndex(Index index, Table table, IndexColumn[] cols, boolean unique) {
-        if (index.getTable() != table //
-                || (unique ? !index.getIndexType().isUnique() : index.getCreateSQL() == null) //
-                || index.getColumns().length != cols.length) {
+        if (index.getTable() != table) {
             return false;
+        }
+        int allowedColumns;
+        if (unique) {
+            allowedColumns = index.getUniqueColumnCount();
+            if (allowedColumns != cols.length) {
+                return false;
+            }
+        } else {
+            if (index.getCreateSQL() == null || (allowedColumns = index.getColumns().length) != cols.length) {
+                return false;
+            }
         }
         for (IndexColumn col : cols) {
             // all columns of the list must be part of the index
-            if (index.getColumnIndex(col.column) < 0) {
+            int i = index.getColumnIndex(col.column);
+            if (i < 0 || i >= allowedColumns) {
                 return false;
             }
         }

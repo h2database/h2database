@@ -139,7 +139,7 @@ public class TestScript extends TestDb {
         testScript("altertable-fk.sql");
         testScript("default-and-on_update.sql");
 
-        for (String s : new String[] { "add_months", "compatibility" }) {
+        for (String s : new String[] { "add_months", "compatibility", "group_by"}) {
             testScript("compatibility/" + s + ".sql");
         }
         for (String s : new String[] { "array", "bigint", "binary", "blob",
@@ -236,6 +236,7 @@ public class TestScript extends TestDb {
         }
         if (config.mvStore) {
             testScript("other/two_phase_commit.sql");
+            testScript("other/unique_include.sql");
         }
 
         deleteDb("script");

@@ -152,14 +152,14 @@ public abstract class Table extends SchemaObject {
      * @param indexName the name of the index
      * @param indexId the id
      * @param cols the index columns
+     * @param uniqueColumnCount the count of unique columns
      * @param indexType the index type
      * @param create whether this is a new index
      * @param indexComment the comment
      * @return the index
      */
-    public abstract Index addIndex(SessionLocal session, String indexName,
-            int indexId, IndexColumn[] cols, IndexType indexType,
-            boolean create, String indexComment);
+    public abstract Index addIndex(SessionLocal session, String indexName, int indexId, IndexColumn[] cols,
+            int uniqueColumnCount, IndexType indexType, boolean create, String indexComment);
 
     /**
      * Get the given row.
@@ -286,13 +286,6 @@ public abstract class Table extends SchemaObject {
             AllColumnsForPlan allColumnsSet) {
         return getScanIndex(session);
     }
-
-    /**
-     * Get any unique index for this table if one exists.
-     *
-     * @return a unique index
-     */
-    public abstract Index getUniqueIndex();
 
     /**
      * Get all indexes for this table.

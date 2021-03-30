@@ -45,7 +45,7 @@ public class MVPrimaryIndex extends MVIndex<Long, SearchRow> {
     private int mainIndexColumn = SearchRow.ROWID_INDEX;
 
     public MVPrimaryIndex(Database db, MVTable table, int id, IndexColumn[] columns, IndexType indexType) {
-        super(table, id, table.getName() + "_DATA", columns, indexType);
+        super(table, id, table.getName() + "_DATA", columns, 0, indexType);
         this.mvTable = table;
         RowDataType valueType = table.getRowFactory().getRowDataType();
         mapName = "table." + getId();

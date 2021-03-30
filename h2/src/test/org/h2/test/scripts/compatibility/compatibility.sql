@@ -660,3 +660,25 @@ DROP TABLE TEST;
 
 SET MODE Regular;
 > ok
+
+SET MODE MSSQLServer;
+> ok
+
+CREATE TABLE TEST(ID BIGINT NOT NULL IDENTITY(10, 5), NAME VARCHAR);
+> ok
+
+INSERT INTO TEST(NAME) VALUES('Hello'), ('World');
+> update count: 2
+
+SELECT * FROM TEST;
+> ID NAME
+> -- -----
+> 10 Hello
+> 15 World
+> rows: 2
+
+DROP TABLE TEST;
+> ok
+
+SET MODE Regular;
+> ok

@@ -86,8 +86,7 @@ public class TableLink extends Table {
             }
             Column[] cols = { };
             setColumns(cols);
-            linkedIndex = new LinkedIndex(this, id, IndexColumn.wrap(cols),
-                    IndexType.createNonUnique(false));
+            linkedIndex = new LinkedIndex(this, id, IndexColumn.wrap(cols), 0, IndexType.createNonUnique(false));
             indexes.add(linkedIndex);
         }
     }
@@ -201,8 +200,7 @@ public class TableLink extends Table {
         Column[] cols = columnList.toArray(new Column[0]);
         setColumns(cols);
         int id = getId();
-        linkedIndex = new LinkedIndex(this, id, IndexColumn.wrap(cols),
-                IndexType.createNonUnique(false));
+        linkedIndex = new LinkedIndex(this, id, IndexColumn.wrap(cols), 0, IndexType.createNonUnique(false));
         indexes.add(linkedIndex);
         if (!isQuery) {
             readIndexes(meta, columnMap);
@@ -250,13 +248,14 @@ public class TableLink extends Table {
                 list.set(idx - 1, column);
             }
         } while (rs.next());
-        addIndex(list, IndexType.createPrimaryKey(false, false));
+        addIndex(list, list.size(), IndexType.createPrimaryKey(false, false));
         return pkName;
     }
 
     private void readIndexes(ResultSet rs, HashMap<String, Column> columnMap, String pkName) throws SQLException {
         String indexName = null;
         ArrayList<Column> list = Utils.newSmallArrayList();
+        int uniqueColumnCount = 0;
         IndexType indexType = null;
         while (rs.next()) {
             if (rs.getShort("TYPE") == DatabaseMetaData.tableIndexStatistic) {
@@ -268,15 +267,18 @@ public class TableLink extends Table {
                 continue;
             }
             if (indexName != null && !indexName.equals(newIndex)) {
-                addIndex(list, indexType);
+                addIndex(list, uniqueColumnCount, indexType);
+                uniqueColumnCount = 0;
                 indexName = null;
             }
             if (indexName == null) {
                 indexName = newIndex;
                 list.clear();
             }
-            boolean unique = !rs.getBoolean("NON_UNIQUE");
-            indexType = unique ? IndexType.createUnique(false, false) :
+            if (!rs.getBoolean("NON_UNIQUE")) {
+                uniqueColumnCount++;
+            }
+            indexType = uniqueColumnCount > 0 ? IndexType.createUnique(false, false) :
                     IndexType.createNonUnique(false);
             String col = rs.getString("COLUMN_NAME");
             col = convertColumnName(col);
@@ -284,7 +286,7 @@ public class TableLink extends Table {
             list.add(column);
         }
         if (indexName != null) {
-            addIndex(list, indexType);
+            addIndex(list, uniqueColumnCount, indexType);
         }
     }
 
@@ -343,7 +345,7 @@ public class TableLink extends Table {
         return columnName;
     }
 
-    private void addIndex(List<Column> list, IndexType indexType) {
+    private void addIndex(List<Column> list, int uniqueColumnCount, IndexType indexType) {
         // bind the index to the leading recognized columns in the index
         // (null columns might come from a function-based index)
         int firstNull = list.indexOf(null);
@@ -357,7 +359,7 @@ public class TableLink extends Table {
             list = list.subList(0, firstNull);
         }
         Column[] cols = list.toArray(new Column[0]);
-        Index index = new LinkedIndex(this, 0, IndexColumn.wrap(cols), indexType);
+        Index index = new LinkedIndex(this, 0, IndexColumn.wrap(cols), uniqueColumnCount, indexType);
         indexes.add(index);
     }
 
@@ -404,9 +406,8 @@ public class TableLink extends Table {
     }
 
     @Override
-    public Index addIndex(SessionLocal session, String indexName, int indexId,
-            IndexColumn[] cols, IndexType indexType, boolean create,
-            String indexComment) {
+    public Index addIndex(SessionLocal session, String indexName, int indexId, IndexColumn[] cols,
+            int uniqueColumnCount, IndexType indexType, boolean create, String indexComment) {
         throw DbException.getUnsupportedException("LINK");
     }
 
@@ -603,16 +604,6 @@ public class TableLink extends Table {
     public long getMaxDataModificationId() {
         // data may have been modified externally
         return Long.MAX_VALUE;
-    }
-
-    @Override
-    public Index getUniqueIndex() {
-        for (Index idx : indexes) {
-            if (idx.getIndexType().isUnique()) {
-                return idx;
-            }
-        }
-        return null;
     }
 
     @Override

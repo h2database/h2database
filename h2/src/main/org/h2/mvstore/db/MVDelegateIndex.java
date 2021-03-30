@@ -29,12 +29,9 @@ public class MVDelegateIndex extends MVIndex<Long, SearchRow> {
 
     private final MVPrimaryIndex mainIndex;
 
-    public MVDelegateIndex(MVTable table, int id, String name,
-            MVPrimaryIndex mainIndex,
-            IndexType indexType) {
-        super(table, id, name,
-                IndexColumn.wrap(new Column[] { table.getColumn(mainIndex.getMainIndexColumn()) }),
-                indexType);
+    public MVDelegateIndex(MVTable table, int id, String name, MVPrimaryIndex mainIndex, IndexType indexType) {
+        super(table, id, name, IndexColumn.wrap(new Column[] { table.getColumn(mainIndex.getMainIndexColumn()) }),
+                1, indexType);
         this.mainIndex = mainIndex;
         if (id < 0) {
             throw DbException.getInternalError(name);

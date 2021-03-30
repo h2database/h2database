@@ -1498,7 +1498,7 @@ public class Parser {
         Update command = new Update(session);
         currentPrepared = command;
         Expression fetch = null;
-        if (database.getMode().getEnum() == ModeEnum.MSSQLServer && readIf("TOP")) {
+        if (database.getMode().topInDML && readIf("TOP")) {
             read(OPEN_PAREN);
             fetch = readTerm().optimize(session);
             read(CLOSE_PAREN);
@@ -1551,7 +1551,7 @@ public class Parser {
     private Delete parseDelete(int start) {
         Delete command = new Delete(session);
         Expression fetch = null;
-        if (readIf("TOP")) {
+        if (database.getMode().topInDML && readIf("TOP")) {
             fetch = readTerm().optimize(session);
         }
         currentPrepared = command;
@@ -1586,7 +1586,7 @@ public class Parser {
                 }
             }
             read("ONLY");
-        } else if (readIf(LIMIT)) {
+        } else if (database.getMode().limit && readIf(LIMIT)) {
             fetch = readTerm().optimize(session);
         }
         return fetch;
@@ -3015,7 +3015,7 @@ public class Parser {
                 }
             }
             // MySQL-style LIMIT / OFFSET
-            if (!hasOffsetOrFetch && readIf(LIMIT)) {
+            if (!hasOffsetOrFetch && database.getMode().limit && readIf(LIMIT)) {
                 Expression limit = readExpression().optimize(session);
                 if (readIf(OFFSET)) {
                     command.setOffset(readExpression().optimize(session));
@@ -3145,7 +3145,7 @@ public class Parser {
         Select temp = currentSelect;
         // make sure aggregate functions will not work in TOP and LIMIT
         currentSelect = null;
-        if (readIf("TOP")) {
+        if (database.getMode().topInSelect && readIf("TOP")) {
             // can't read more complex expressions here because
             // SELECT TOP 1 +? A FROM TEST could mean
             // SELECT TOP (1+?) A FROM TEST or
@@ -3158,9 +3158,6 @@ public class Parser {
                 read("TIES");
                 command.setWithTies(true);
             }
-        } else if (readIf(LIMIT)) {
-            command.setOffset(readTerm().optimize(session));
-            command.setFetch(readTerm().optimize(session));
         }
         currentSelect = temp;
         if (readIf(DISTINCT)) {
@@ -3241,7 +3238,24 @@ public class Parser {
                         } while (readIfMore());
                     }
                 } else {
-                    list.add(readExpression());
+                    Expression expr = readExpression();
+                    if (database.getMode().groupByColumnIndex && expr instanceof ValueExpression &&
+                            expr.getType().getValueType() == Value.INTEGER) {
+                        ArrayList<Expression> expressions = command.getExpressions();
+                        for (Expression e : expressions) {
+                            if (e instanceof Wildcard) {
+                                throw getSyntaxError();
+                            }
+                        }
+                        int idx = expr.getValue(session).getInt();
+                        if (idx < 1 || idx > expressions.size()) {
+                            throw DbException.get(ErrorCode.GROUP_BY_NOT_IN_THE_RESULT, Integer.toString(idx),
+                                    Integer.toString(expressions.size()));
+                        }
+                        list.add(expressions.get(idx-1));
+                    } else {
+                        list.add(expr);
+                    }
                 }
             } while (readIf(COMMA));
             if (!list.isEmpty()) {
@@ -6939,27 +6953,17 @@ public class Parser {
 
     private Column parseColumnForTable(String columnName, boolean defaultNullable) {
         Column column;
-        boolean isIdentity = readIf("IDENTITY");
-        if (isIdentity || readIf("BIGSERIAL")) {
-            // Check if any of them are disallowed in the current Mode
-            if (isIdentity && database.getMode().
-                    disallowedTypes.contains("IDENTITY")) {
-                throw DbException.get(ErrorCode.UNKNOWN_DATA_TYPE_1,
-                        currentToken);
-            }
+        Mode mode = database.getMode();
+        if (mode.identityDataType && readIf("IDENTITY")) {
             column = new Column(columnName, TypeInfo.TYPE_BIGINT);
             parseCompatibilityIdentityOptions(column);
-            // PostgreSQL compatibility
-            if (!database.getMode().serialColumnIsNotPK) {
-                column.setPrimaryKey(true);
-            }
-        } else if (readIf("SERIAL")) {
+            column.setPrimaryKey(true);
+        } else if (mode.serialDataTypes && readIf("BIGSERIAL")) {
+            column = new Column(columnName, TypeInfo.TYPE_BIGINT);
+            column.setIdentityOptions(new SequenceOptions(), false);
+        } else if (mode.serialDataTypes && readIf("SERIAL")) {
             column = new Column(columnName, TypeInfo.TYPE_INTEGER);
-            parseCompatibilityIdentityOptions(column);
-            // PostgreSQL compatibility
-            if (!database.getMode().serialColumnIsNotPK) {
-                column.setPrimaryKey(true);
-            }
+            column.setIdentityOptions(new SequenceOptions(), false);
         } else {
             column = parseColumnWithType(columnName);
         }
@@ -7006,12 +7010,7 @@ public class Parser {
                 column.setOnUpdateExpression(session, readExpression());
             }
             nullConstraint = parseNotNullConstraint(nullConstraint);
-            if (readIf("AUTO_INCREMENT") || readIf("BIGSERIAL") || readIf("SERIAL")) {
-                parseCompatibilityIdentityOptions(column);
-                nullConstraint = parseNotNullConstraint(nullConstraint);
-            } else if (readIf("IDENTITY")) {
-                parseCompatibilityIdentityOptions(column);
-                column.setPrimaryKey(true);
+            if (parseCompatibilityIdentity(column, mode)) {
                 nullConstraint = parseNotNullConstraint(nullConstraint);
             }
         }
@@ -7054,7 +7053,7 @@ public class Parser {
         if (readIf("SELECTIVITY")) {
             column.setSelectivity(readNonNegativeInt());
         }
-        if (database.getMode().getEnum() == ModeEnum.MySQL) {
+        if (mode.getEnum() == ModeEnum.MySQL) {
             if (readIf("CHARACTER")) {
                 readIf(SET);
                 readMySQLCharset();
@@ -7865,19 +7864,38 @@ public class Parser {
             command.setIfNotExists(ifNotExists);
             command.setPrimaryKey(primaryKey);
             command.setTableName(tableName);
-            command.setUnique(unique);
             command.setHash(hash);
             command.setSpatial(spatial);
             command.setIndexName(indexName);
             command.setComment(comment);
             IndexColumn[] columns;
+            int uniqueColumnCount = 0;
             if (spatial) {
                 columns = new IndexColumn[] { new IndexColumn(readIdentifier()) };
+                if (unique) {
+                    uniqueColumnCount = 1;
+                }
                 read(CLOSE_PAREN);
             } else {
                 columns = parseIndexColumnList();
+                if (unique) {
+                    uniqueColumnCount = columns.length;
+                    if (readIf("INCLUDE")) {
+                        if (!database.isMVStore()) {
+                            throw DbException.getUnsupportedException("PageStore && UNIQUE INDEX INCLUDE");
+                        }
+                        read(OPEN_PAREN);
+                        IndexColumn[] columnsToInclude = parseIndexColumnList();
+                        int nonUniqueCount = columnsToInclude.length;
+                        columns = Arrays.copyOf(columns, uniqueColumnCount + nonUniqueCount);
+                        System.arraycopy(columnsToInclude, 0, columns, uniqueColumnCount, nonUniqueCount);
+                    }
+                } else if (primaryKey) {
+                    uniqueColumnCount = columns.length;
+                }
             }
             command.setIndexColumns(columns);
+            command.setUniqueColumnCount(uniqueColumnCount);
             return command;
         }
     }
@@ -10401,6 +10419,7 @@ public class Parser {
         String comment = column.getComment();
         boolean hasPrimaryKey = false, hasNotNull = false;
         NullConstraintType nullType;
+        Mode mode = database.getMode();
         for (;;) {
             String constraintName;
             if (readIf(CONSTRAINT)) {
@@ -10423,18 +10442,6 @@ public class Parser {
                 pk.setTableName(tableName);
                 pk.setIndexColumns(new IndexColumn[] { new IndexColumn(column.getName()) });
                 command.addConstraintCommand(pk);
-                if (readIf("AUTO_INCREMENT")) {
-                    parseCompatibilityIdentityOptions(column);
-                }
-                if (database.getMode().identityInPrimaryKey) {
-                    if (readIf(NOT)) {
-                        read(NULL);
-                        column.setNullable(false);
-                    }
-                    if (readIf("IDENTITY")) {
-                        parseCompatibilityIdentityOptions(column);
-                    }
-                }
             } else if (readIf(UNIQUE)) {
                 AlterTableAddConstraint unique = new AlterTableAddConstraint(session, schema,
                         CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_UNIQUE, false);
@@ -10469,11 +10476,25 @@ public class Parser {
                 parseReferences(ref, schema, tableName);
                 command.addConstraintCommand(ref);
             } else if (constraintName == null) {
-                return;
+                if (column.getIdentityOptions() != null || !parseCompatibilityIdentity(column, mode)) {
+                    return;
+                }
             } else {
                 throw getSyntaxError();
             }
         }
+    }
+
+    private boolean parseCompatibilityIdentity(Column column, Mode mode) {
+        if (mode.autoIncrementClause && readIf("AUTO_INCREMENT")) {
+            parseCompatibilityIdentityOptions(column);
+            return true;
+        }
+        if (mode.identityClause && readIf("IDENTITY")) {
+            parseCompatibilityIdentityOptions(column);
+            return true;
+        }
+        return false;
     }
 
     private void parseCreateTableMySQLTableOptions(CreateTable command) {

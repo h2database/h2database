@@ -8,6 +8,9 @@ package org.h2.engine;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+
+import javax.management.monitor.Monitor;
+
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.command.dml.SetTypes;
@@ -367,7 +370,8 @@ public final class Engine {
                     // an attacker can't know how long it will be
                     delay = MathUtils.secureRandomInt((int) delay);
                     try {
-                        Thread.sleep(delay);
+//                        Thread.sleep(delay);
+                    	Engine.class.wait(delay);
                     } catch (InterruptedException e) {
                         // ignore
                     }
@@ -391,7 +395,8 @@ public final class Engine {
                     // a bit more to protect against timing attacks
                     delay += Math.abs(MathUtils.secureRandomLong() % 100);
                     try {
-                        Thread.sleep(delay);
+//                        Thread.sleep(delay);
+                        Engine.class.wait(delay);
                     } catch (InterruptedException e) {
                         // ignore
                     }

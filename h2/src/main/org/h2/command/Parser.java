@@ -3109,7 +3109,7 @@ public class Parser {
             if (join == null) {
                 break;
             }
-            isOuter = isOuter | join.isJoinOuter();
+            isOuter = isOuter || join.isJoinOuter();
             if (isOuter) {
                 command.addTableFilter(join, false);
             } else {
@@ -6248,7 +6248,7 @@ public class Parser {
                 readHexNumber(i + 1, start + 2, chars, types);
                 return;
             }
-            long number = c - '0';
+            long number = (long) c - '0';
             loop: for (;; i++) {
                 c = chars[i];
                 if (c < '0' || c > '9') {
@@ -6361,7 +6361,7 @@ public class Parser {
         int i = parseIndex;
         char[] chars = sqlCommandChars;
         char c = chars[i++];
-        long number = c - '0';
+        long number = (long) c - '0';
         for (; (c = chars[i]) >= '0' && c <= '9'; i++) {
             number = number * 10 + (c - '0');
             if (number > Integer.MAX_VALUE) {

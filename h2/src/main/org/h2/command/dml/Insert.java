@@ -169,7 +169,7 @@ public final class Insert extends CommandWithValues implements ResultTarget {
             for (int x = 0; x < listSize; x++) {
                 Row newRow = table.getTemplateRow();
                 Expression[] expr = valuesExpressionList.get(x);
-                setCurrentRowNumber(x + 1);
+                setCurrentRowNumber((long) x + 1);
                 for (int i = 0; i < columnLen; i++) {
                     Column c = columns[i];
                     int index = c.getColumnId();

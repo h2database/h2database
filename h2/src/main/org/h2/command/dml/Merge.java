@@ -92,7 +92,7 @@ public final class Merge extends CommandWithValues {
         if (!valuesExpressionList.isEmpty()) {
             // process values in list
             for (int x = 0, size = valuesExpressionList.size(); x < size; x++) {
-                setCurrentRowNumber(x + 1);
+                setCurrentRowNumber((long) x + 1);
                 Expression[] expr = valuesExpressionList.get(x);
                 Row newRow = table.getTemplateRow();
                 for (int i = 0, len = columns.length; i < len; i++) {

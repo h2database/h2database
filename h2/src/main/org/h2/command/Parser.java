@@ -9926,8 +9926,8 @@ public class Parser {
                 command.setOldColumnName(columnName);
                 command.setNewColumnName(newColumnName);
                 return command;
-            } else if (readIf("CONVERT") && database.getMode().getEnum() == ModeEnum.MySQL) {
-                readIf("TO");
+            } else if (readIf("CONVERT")) {
+                readIf(TO);
                 readIf("CHARACTER");
                 readIf(SET);
                 readMySQLCharset();

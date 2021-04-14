@@ -158,7 +158,7 @@ public class VersionedValueType<T,D> extends BasicDataType<VersionedValue<T>> im
         @Override
         public DataType<?> create(ByteBuffer buff, MetaType<D> metaType, D database) {
             DataType<VersionedValue<?>> valueType = (DataType<VersionedValue<?>>)metaType.read(buff);
-            return new VersionedValueType<VersionedValue<?>,D>(valueType);
+            return new VersionedValueType<>(valueType);
         }
     }
 }

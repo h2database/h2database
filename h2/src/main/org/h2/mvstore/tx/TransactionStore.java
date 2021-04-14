@@ -881,7 +881,7 @@ public class TransactionStore {
                 registerDataType(getKeyType());
             }
             if (getValueType() == null) {
-                setValueType((DataType<? super V>) new VersionedValueType<V,Object>(defaultDataType));
+                setValueType((DataType<? super V>) new VersionedValueType<>(defaultDataType));
                 registerDataType(getValueType());
             }
 

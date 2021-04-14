@@ -410,7 +410,7 @@ public class MinimalPerfectHash<K> {
         do {
             lists = new ArrayList<>(split);
             for (int i = 0; i < split; i++) {
-                lists.add(new ArrayList<K>(size / split));
+                lists.add(new ArrayList<>(size / split));
             }
             for (int i = 0; i < size; i++) {
                 K x = list.get(i);

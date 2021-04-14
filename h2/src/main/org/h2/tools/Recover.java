@@ -548,8 +548,7 @@ public class Recover extends Tool implements DataHandler {
                 writeError(writer, e);
             }
 
-            // extract the metadata so we can dump the settings
-            ValueDataType type = new ValueDataType();
+            // extract the metadata so we can dump the settings            
             for (String mapName : mv.getMapNames()) {
                 if (!mapName.startsWith("table.")) {
                     continue;

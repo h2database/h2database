@@ -9926,6 +9926,17 @@ public class Parser {
                 command.setOldColumnName(columnName);
                 command.setNewColumnName(newColumnName);
                 return command;
+            } else if (readIf("CONVERT")) {
+                readIf(TO);
+                readIf("CHARACTER");
+                readIf(SET);
+                readMySQLCharset();
+
+                if (readIf("COLLATE")) {
+                    readMySQLCharset();
+                }
+
+                return new NoOperation(session);
             }
         }
         if (mode.alterTableModifyColumn && readIf("MODIFY")) {

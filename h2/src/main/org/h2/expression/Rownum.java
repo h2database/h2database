@@ -48,8 +48,8 @@ public final class Rownum extends Operation0 {
         case ExpressionVisitor.OPTIMIZABLE_AGGREGATE:
         case ExpressionVisitor.DETERMINISTIC:
         case ExpressionVisitor.INDEPENDENT:
-            return false;
         case ExpressionVisitor.EVALUATABLE:
+            return false;
         case ExpressionVisitor.READONLY:
         case ExpressionVisitor.NOT_FROM_RESOLVER:
         case ExpressionVisitor.GET_DEPENDENCIES:

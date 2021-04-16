@@ -308,10 +308,9 @@ public final class LobStorageMap implements LobStorageInterface
             mvStore.deregisterVersionUsage(txCounter);
         }
     }
-    
-    
+
     private final class LobInputStream extends FilterInputStream {
-        
+
         public LobInputStream(InputStream in) {
             super(in);
         }
@@ -426,7 +425,7 @@ public final class LobStorageMap implements LobStorageInterface
             streamStore.remove(streamStoreId);
         }
     }
-    
+
     private static boolean isTemporaryLob(int tableId) {
         return tableId == LobStorageFrontend.TABLE_ID_SESSION_VARIABLE || tableId == LobStorageFrontend.TABLE_TEMP
                 || tableId == LobStorageFrontend.TABLE_RESULT;

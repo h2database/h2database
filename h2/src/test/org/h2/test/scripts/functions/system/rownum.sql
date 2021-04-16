@@ -15,3 +15,9 @@ select rownum() as rnum, str from test where str = 'A';
 
 drop table test;
 > ok
+
+SELECT * FROM (VALUES 1, 2) AS T1(X), (VALUES 1, 2) AS T2(X) WHERE ROWNUM = 1;
+> X X
+> - -
+> 1 1
+> rows: 1

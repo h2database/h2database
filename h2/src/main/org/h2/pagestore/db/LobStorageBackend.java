@@ -328,7 +328,7 @@ public class LobStorageBackend implements LobStorageInterface {
 
     @Override
     public InputStream getInputStream(long lobId, int tableId, long byteCount) throws IOException {
-        return getInputStream(lobId, byteCount);        
+        return getInputStream(lobId, byteCount);
     }
 
     @Override

@@ -50,7 +50,7 @@ public class LobStorageFrontend implements LobStorageInterface {
         // this method is only implemented on the server side of a TCP connection
         throw new IllegalStateException();
     }
-    
+
     @Override
     public InputStream getInputStream(long lobId, int tableId, long byteCount) throws IOException {
         // this method is only implemented on the server side of a TCP

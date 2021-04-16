@@ -63,7 +63,7 @@ public interface LobStorageInterface {
      */
     InputStream getInputStream(long lobId, int tableId, long byteCount)
             throws IOException;
-    
+
     /**
      * Delete a LOB (from the database, if it is stored there).
      *

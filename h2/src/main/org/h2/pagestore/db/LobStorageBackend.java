@@ -31,9 +31,10 @@ import org.h2.util.IOUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.Utils;
 import org.h2.value.Value;
+import org.h2.value.ValueBlob;
+import org.h2.value.ValueClob;
 import org.h2.value.ValueLob;
-import org.h2.value.ValueLobDatabase;
-import org.h2.value.ValueLobInMemory;
+import org.h2.value.lob.LobDataDatabase;
 
 /**
  * This class stores LOB objects in the database, in tables. This is the
@@ -276,7 +277,7 @@ public class LobStorageBackend implements LobStorageInterface {
 
     @Override
     public void removeLob(ValueLob lob) {
-        removeLob(((ValueLobDatabase)lob).getLobId());
+        removeLob(((LobDataDatabase)lob.getLobData()).getLobId());
     }
 
     private void removeLob(long lobId) {
@@ -395,11 +396,8 @@ public class LobStorageBackend implements LobStorageInterface {
                     small = new byte[0];
                 }
                 if (small != null) {
-                    // For a BLOB, precision is length in bytes.
-                    // For a CLOB, precision is length in chars
-                    long precision = countingReaderForClob == null ?
-                            small.length : countingReaderForClob.getLength();
-                    return ValueLobInMemory.createSmallLob(type, small, precision);
+                    return type == Value.BLOB ? ValueBlob.createSmall(small)
+                            : ValueClob.createSmall(small, countingReaderForClob.getLength());
                 }
                 // For a BLOB, precision is length in bytes.
                 // For a CLOB, precision is length in chars
@@ -432,8 +430,8 @@ public class LobStorageBackend implements LobStorageInterface {
                 prep.setInt(3, tableId);
                 prep.execute();
                 reuse(sql, prep);
-                return ValueLobDatabase.create(type,
-                        database, tableId, lobId, precision);
+                LobDataDatabase lobData = new LobDataDatabase(database, tableId, lobId);
+                return type == Value.BLOB ? new ValueBlob(precision, lobData) : new ValueClob(precision, lobData);
             }
         }
     }
@@ -444,17 +442,17 @@ public class LobStorageBackend implements LobStorageInterface {
     }
 
     @Override
-    public ValueLob copyLob(ValueLob old_, int tableId, long length) {
-        ValueLobDatabase old = (ValueLobDatabase) old_;
+    public ValueLob copyLob(ValueLob old, int tableId, long length) {
+        LobDataDatabase lobData = (LobDataDatabase) old.getLobData();
         int type = old.getValueType();
-        long oldLobId = old.getLobId();
+        long oldLobId = lobData.getLobId();
         assertNotHolds(conn.getSession());
         // see locking discussion at the top
         synchronized (database) {
             synchronized (conn.getSession()) {
                 try {
-                    ValueLob v;
-                    if (!old.isRecoveryReference()) {
+                    LobDataDatabase newLobData;
+                    if (!lobData.isRecoveryReference()) {
                         long lobId = getNextLobId();
                         String sql = "INSERT INTO " + LOB_MAP +
                                 "(LOB, SEQ, POS, HASH, BLOCK) " +
@@ -477,13 +475,13 @@ public class LobStorageBackend implements LobStorageInterface {
                         prep.executeUpdate();
                         reuse(sql, prep);
 
-                        v = ValueLobDatabase.create(type, database, tableId, lobId, length);
+                        newLobData = new LobDataDatabase(database, tableId, lobId);
                     } else {
                         // Recovery process, no need to copy LOB using normal
                         // infrastructure
-                        v = ValueLobDatabase.create(type, database, tableId, oldLobId, length);
+                        newLobData = new LobDataDatabase(database, tableId, oldLobId);
                     }
-                    return v;
+                    return type == Value.BLOB ? new ValueBlob(length, newLobData) : new ValueClob(length, newLobData);
                 } catch (SQLException e) {
                     throw DbException.convert(e);
                 }
@@ -578,15 +576,15 @@ public class LobStorageBackend implements LobStorageInterface {
     }
 
     @Override
-    public ValueLob createBlob(InputStream in, long maxLength) {
-        return addLob(in, maxLength, Value.BLOB, null);
+    public ValueBlob createBlob(InputStream in, long maxLength) {
+        return (ValueBlob) addLob(in, maxLength, Value.BLOB, null);
     }
 
     @Override
-    public ValueLob createClob(Reader reader, long maxLength) {
+    public ValueClob createClob(Reader reader, long maxLength) {
         long max = maxLength == -1 ? Long.MAX_VALUE : maxLength;
         CountingReaderInputStream in = new CountingReaderInputStream(reader, max);
-        return addLob(in, Long.MAX_VALUE, Value.CLOB, in);
+        return (ValueClob) addLob(in, Long.MAX_VALUE, Value.CLOB, in);
     }
 
     private static void assertNotHolds(Object lock) {

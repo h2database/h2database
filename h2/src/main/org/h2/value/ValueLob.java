@@ -10,7 +10,6 @@ import java.io.InputStream;
 import java.io.Reader;
 import org.h2.engine.CastDataProvider;
 import org.h2.engine.Constants;
-import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.store.DataHandler;
 import org.h2.store.RangeInputStream;
@@ -25,7 +24,7 @@ import org.h2.util.Utils;
  * types. Small objects are kept in memory and stored in the record. Large
  * objects are either stored in the database, or in temporary files.
  */
-public abstract class ValueLob extends Value {
+public final class ValueLob extends Value {
 
     private static final int BLOCK_COMPARISON_SIZE = 512;
 
@@ -178,10 +177,13 @@ public abstract class ValueLob extends Value {
      * Cache the hashCode because it can be expensive to compute.
      */
     private int hash;
+    
+    final ValueLobStrategy fetchStrategy;
 
-    protected ValueLob(int type, long precision) {
+    protected ValueLob(int type, long precision, ValueLobStrategy fetchStrategy) {
         this.valueType = type;
         this.precision = precision;
+        this.fetchStrategy = fetchStrategy;
     }
 
     /**
@@ -191,14 +193,16 @@ public abstract class ValueLob extends Value {
      * @return true if it is
      */
     public boolean isLinkedToTable() {
-        return false;
+        return fetchStrategy.isLinkedToTable();
     }
 
     /**
      * Remove the underlying resource, if any. For values that are kept fully in
      * memory this method has no effect.
      */
-    public void remove() {}
+    public void remove() {
+        fetchStrategy.remove(this);
+    }
 
     /**
      * Copy a large value, to be used in the given table. For values that are
@@ -209,7 +213,7 @@ public abstract class ValueLob extends Value {
      * @return the new value or itself
      */
     public ValueLob copy(DataHandler database, int tableId) {
-        throw new UnsupportedOperationException();
+        return fetchStrategy.copy(this, database, tableId);
     }
 
     @Override
@@ -228,36 +232,14 @@ public abstract class ValueLob extends Value {
 
     @Override
     public String getString() {
-        if (valueType == CLOB) {
-            if (precision > Constants.MAX_STRING_LENGTH) {
-                throw getStringTooLong(precision);
-            }
-            return readString((int) precision);
-        }
-        long p = otherPrecision;
-        if (p >= 0L) {
-            if (p > Constants.MAX_STRING_LENGTH) {
-                throw getStringTooLong(p);
-            }
-            return readString((int) p);
-        }
-        // 1 Java character may be encoded with up to 3 bytes
-        if (precision > Constants.MAX_STRING_LENGTH * 3) {
-            throw getStringTooLong(charLength());
-        }
-        String s = readString(Integer.MAX_VALUE);
-        otherPrecision = p = s.length();
-        if (p > Constants.MAX_STRING_LENGTH) {
-            throw getStringTooLong(p);
-        }
-        return s;
+        return fetchStrategy.getString(this);
     }
-
-    private DbException getStringTooLong(long precision) {
+    
+    DbException getStringTooLong(long precision) {
         return DbException.getValueTooLongException("CHARACTER VARYING", readString(81), precision);
     }
 
-    private String readString(int len) {
+    String readString(int len) {
         try {
             return IOUtils.readStringAndClose(getReader(), len);
         } catch (IOException e) {
@@ -277,7 +259,11 @@ public abstract class ValueLob extends Value {
 
     @Override
     public byte[] getBytes() {
-        if (valueType == BLOB) {
+        byte[] b = fetchStrategy.getBytes();
+        if (b != null) {
+            return b;
+        }
+        if (valueType == ValueLob.BLOB) {
             if (precision > Constants.MAX_STRING_LENGTH) {
                 throw getBinaryTooLong(precision);
             }
@@ -293,7 +279,7 @@ public abstract class ValueLob extends Value {
         if (precision > Constants.MAX_STRING_LENGTH) {
             throw getBinaryTooLong(octetLength());
         }
-        byte[] b = readBytes(Integer.MAX_VALUE);
+        b = readBytes(Integer.MAX_VALUE);
         otherPrecision = p = b.length;
         if (p > Constants.MAX_STRING_LENGTH) {
             throw getBinaryTooLong(p);
@@ -301,12 +287,21 @@ public abstract class ValueLob extends Value {
         return b;
     }
 
-    private DbException getBinaryTooLong(long precision) {
+    @Override
+    public byte[] getBytesNoCopy() {
+        byte[] b = fetchStrategy.getBytesNoCopy();
+        if (b != null) {
+            return b;
+        }
+        return super.getBytesNoCopy();
+    }
+
+    DbException getBinaryTooLong(long precision) {
         return DbException.getValueTooLongException("BINARY VARYING", StringUtils.convertBytesToHex(readBytes(41)),
                 precision);
     }
 
-    private byte[] readBytes(int len) {
+    byte[] readBytes(int len) {
         try {
             return IOUtils.readBytesAndClose(getInputStream(), len);
         } catch (IOException e) {
@@ -315,10 +310,15 @@ public abstract class ValueLob extends Value {
     }
 
     @Override
-    public abstract InputStream getInputStream();
+    public InputStream getInputStream() {
+        return fetchStrategy.getInputStream(this);
+    }
 
     @Override
-    public abstract InputStream getInputStream(long oneBasedOffset, long length);
+    public InputStream getInputStream(long oneBasedOffset, long length) {
+        return fetchStrategy.getInputStream(this, oneBasedOffset, length);
+    }
+    
 
     @Override
     public int hashCode() {
@@ -335,45 +335,12 @@ public abstract class ValueLob extends Value {
 
     @Override
     public int compareTypeSafe(Value v, CompareMode mode, CastDataProvider provider) {
-        if (v == this) {
-            return 0;
-        }
-        ValueLob v2 = (ValueLob) v;
-        return compare(this, v2);
+        return fetchStrategy.compareTypeSafe(this, v, mode, provider);
     }
 
     @Override
     public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
-        if ((sqlFlags & REPLACE_LOBS_FOR_TRACE) != 0
-                && (!(this instanceof ValueLobInMemory) || precision > SysProperties.MAX_TRACE_DATA_LENGTH)) {
-            if (valueType == Value.CLOB) {
-                builder.append("SPACE(").append(precision);
-            } else {
-                builder.append("CAST(REPEAT(CHAR(0), ").append(precision).append(") AS BINARY VARYING");
-            }
-            ValueLobDatabase lobDb = (ValueLobDatabase) this;
-            builder.append(" /* table: ").append(lobDb.getTableId()).append(" id: ").append(lobDb.getLobId())
-                    .append(" */)");
-        } else {
-            if (valueType == Value.CLOB) {
-                if ((sqlFlags & (REPLACE_LOBS_FOR_TRACE | NO_CASTS)) == 0) {
-                    StringUtils.quoteStringSQL(builder.append("CAST("), getString())
-                            .append(" AS CHARACTER LARGE OBJECT(").append(precision).append("))");
-                } else {
-                    StringUtils.quoteStringSQL(builder, getString());
-                }
-            } else {
-                if ((sqlFlags & (REPLACE_LOBS_FOR_TRACE | NO_CASTS)) == 0) {
-                    builder.append("CAST(X'");
-                    StringUtils.convertBytesToHex(builder, getBytesNoCopy()).append("' AS BINARY LARGE OBJECT(")
-                            .append(precision).append("))");
-                } else {
-                    builder.append("X'");
-                    StringUtils.convertBytesToHex(builder, getBytesNoCopy()).append('\'');
-                }
-            }
-        }
-        return builder;
+        return fetchStrategy.getSQL(this, builder, sqlFlags);
     }
 
     /**
@@ -397,7 +364,7 @@ public abstract class ValueLob extends Value {
 
     @Override
     public int getMemory() {
-        return 140;
+        return fetchStrategy.getMemory();
     }
 
     /**
@@ -406,7 +373,7 @@ public abstract class ValueLob extends Value {
      * @return the data handler, or {@code null}
      */
     public DataHandler getDataHandler() {
-        return null;
+        return fetchStrategy.getDataHandler();
     }
 
     /**
@@ -425,7 +392,7 @@ public abstract class ValueLob extends Value {
      * @return the value (this for small objects)
      */
     public ValueLob copyToResult() {
-        return this;
+        return fetchStrategy.copyToResult(this);
     }
 
     /**
@@ -435,55 +402,26 @@ public abstract class ValueLob extends Value {
      * @return the truncated or this value
      */
     ValueLob convertPrecision(long precision) {
-        throw new UnsupportedOperationException();
+        return fetchStrategy.convertPrecision(this, precision);
     }
 
     @Override
     public long charLength() {
-        if (valueType == CLOB) {
-            return precision;
-        }
-        long p = otherPrecision;
-        if (p < 0L) {
-            try (Reader r = getReader()) {
-                p = 0L;
-                for (;;) {
-                    p += r.skip(Long.MAX_VALUE);
-                    if (r.read() < 0) {
-                        break;
-                    }
-                    p++;
-                }
-            } catch (IOException e) {
-                throw DbException.convertIOException(e, null);
-            }
-            otherPrecision = p;
-        }
-        return p;
+        return fetchStrategy.charLength(this);
     }
 
     @Override
     public long octetLength() {
-        if (valueType == BLOB) {
-            return precision;
-        }
-        long p = otherPrecision;
-        if (p < 0L) {
-            try (InputStream is = getInputStream()) {
-                p = 0L;
-                for (;;) {
-                    p += is.skip(Long.MAX_VALUE);
-                    if (is.read() < 0) {
-                        break;
-                    }
-                    p++;
-                }
-            } catch (IOException e) {
-                throw DbException.convertIOException(e, null);
-            }
-            otherPrecision = p;
-        }
-        return p;
+        return fetchStrategy.octetLength(this);
+    }
+    
+    @Override
+    public String toString() {
+        return fetchStrategy.toString();
+    }
+    
+    public ValueLobStrategy getFetchStrategy() {
+        return fetchStrategy;
     }
 
 }

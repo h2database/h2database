@@ -18,7 +18,7 @@ import org.h2.store.LobStorageInterface;
  * memory and stored in the record. Large objects are either stored in the
  * database, or in temporary files.
  */
-public final class ValueLobDatabase extends ValueLob {
+public final class ValueLobStrategyDatabase extends ValueLobStrategy {
 
     private DataHandler handler;
     /**
@@ -32,8 +32,7 @@ public final class ValueLobDatabase extends ValueLob {
      */
     private boolean isRecoveryReference;
 
-    private ValueLobDatabase(int type, DataHandler handler, int tableId, long lobId, long precision) {
-        super(type, precision);
+    private ValueLobStrategyDatabase(DataHandler handler, int tableId, long lobId) {
         this.handler = handler;
         this.tableId = tableId;
         this.lobId = lobId;
@@ -49,19 +48,26 @@ public final class ValueLobDatabase extends ValueLob {
      * @param precision the precision (number of bytes / characters)
      * @return the value
      */
-    public static ValueLobDatabase create(int type, DataHandler handler, int tableId, long id,
+    public static ValueLob create(int type, DataHandler handler, int tableId, long id,
             long precision) {
-        return new ValueLobDatabase(type, handler, tableId, id, precision);
+        return new ValueLob(type, precision, new ValueLobStrategyDatabase(handler, tableId, id));
     }
 
+    public static ValueLob createRecoveryRef(int type, DataHandler handler, int tableId, long id,
+            long precision) {
+        ValueLobStrategyDatabase vldb = new ValueLobStrategyDatabase(handler, tableId, id);
+        vldb.setRecoveryReference(true);
+        return new ValueLob(type, precision, vldb);
+    }
+    
     /**
      * Remove the underlying resource, if any. For values that are kept fully in
      * memory this method has no effect.
      */
     @Override
-    public void remove() {
+    public void remove(ValueLob lob) {
         if (handler != null) {
-            handler.getLobStorage().removeLob(this);
+            handler.getLobStorage().removeLob(lob);
         }
     }
 
@@ -74,8 +80,8 @@ public final class ValueLobDatabase extends ValueLob {
      * @return the new value or itself
      */
     @Override
-    public ValueLob copy(DataHandler database, int tableId) {
-        return handler.getLobStorage().copyLob(this, tableId, precision);
+    public ValueLob copy(ValueLob lob, DataHandler database, int tableId) {
+        return handler.getLobStorage().copyLob(lob, tableId, lob.precision);
     }
 
     /**
@@ -103,23 +109,27 @@ public final class ValueLobDatabase extends ValueLob {
     }
 
     @Override
-    public int compareTypeSafe(Value v, CompareMode mode, CastDataProvider provider) {
-        if (v == this) {
+    public int compareTypeSafe(ValueLob lob, Value v, CompareMode mode, CastDataProvider provider) {
+        if (v == lob) {
             return 0;
         }
-        if (!(v instanceof ValueLobDatabase)) {
-            return super.compareTypeSafe(v, mode, provider);
+        if (!(v instanceof ValueLob)) {
+            return super.compareTypeSafe(lob, v, mode, provider);
         }
-        ValueLobDatabase v2 = (ValueLobDatabase) v;
+        ValueLob otherLob = (ValueLob) v;
+        if (!(otherLob.fetchStrategy instanceof ValueLobStrategyDatabase)) {
+            return super.compareTypeSafe(lob, v, mode, provider);
+        }
+        ValueLobStrategyDatabase v2 = (ValueLobStrategyDatabase) otherLob.fetchStrategy;
         if (lobId == v2.lobId) {
             return 0;
         }
-        return compare(this, v2);
+        return ValueLob.compare(lob, otherLob);
     }
 
     @Override
-    public InputStream getInputStream() {
-        long byteCount = (valueType == Value.BLOB) ? precision : -1;
+    public InputStream getInputStream(ValueLob lob) {
+        long byteCount = (lob.valueType == Value.BLOB) ? lob.precision : -1;
         try {
             return handler.getLobStorage().getInputStream(lobId, tableId, byteCount);
         } catch (IOException e) {
@@ -128,15 +138,15 @@ public final class ValueLobDatabase extends ValueLob {
     }
 
     @Override
-    public InputStream getInputStream(long oneBasedOffset, long length) {
+    public InputStream getInputStream(ValueLob lob, long oneBasedOffset, long length) {
         final InputStream inputStream;
-        final long byteCount = (valueType == Value.BLOB) ? precision : -1;
+        final long byteCount = (lob.valueType == Value.BLOB) ? lob.precision : -1;
         try {
             inputStream = handler.getLobStorage().getInputStream(lobId, tableId, byteCount);
         } catch (IOException e) {
             throw DbException.convertIOException(e, toString());
         }
-        return rangeInputStream(inputStream, oneBasedOffset, length, byteCount);
+        return ValueLob.rangeInputStream(inputStream, oneBasedOffset, length, byteCount);
     }
 
     @Override
@@ -150,12 +160,12 @@ public final class ValueLobDatabase extends ValueLob {
      * @return the value (this for small objects)
      */
     @Override
-    public ValueLob copyToResult() {
+    public ValueLob copyToResult(ValueLob lob) {
         LobStorageInterface s = handler.getLobStorage();
         if (s.isReadOnly()) {
-            return this;
+            return lob;
         }
-        return s.copyLob(this, LobStorageFrontend.TABLE_RESULT, precision);
+        return s.copyLob(lob, LobStorageFrontend.TABLE_RESULT, lob.precision);
     }
 
     /**
@@ -165,17 +175,17 @@ public final class ValueLobDatabase extends ValueLob {
      * @return the truncated or this value
      */
     @Override
-    ValueLob convertPrecision(long precision) {
-        if (this.precision <= precision) {
-            return this;
+    ValueLob convertPrecision(ValueLob oldLob, long precision) {
+        if (oldLob.precision <= precision) {
+            return oldLob;
         }
-        ValueLob lob;
-        if (valueType == CLOB) {
-            lob = ValueLobFile.createTempClob(getReader(), precision, handler);
+        ValueLob newLob;
+        if (oldLob.valueType == ValueLob.CLOB) {
+            newLob = ValueLobStrategyFile.createTempClob(oldLob.getReader(), precision, handler);
         } else {
-            lob = ValueLobFile.createTempBlob(getInputStream(), precision, handler);
+            newLob = ValueLobStrategyFile.createTempBlob(oldLob.getInputStream(), precision, handler);
         }
-        return lob;
+        return newLob;
     }
 
     @Override

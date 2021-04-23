@@ -16,7 +16,6 @@ import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Map.Entry;
-
 import org.h2.api.ErrorCode;
 import org.h2.api.IntervalQualifier;
 import org.h2.engine.Constants;
@@ -44,8 +43,8 @@ import org.h2.value.ValueInterval;
 import org.h2.value.ValueJavaObject;
 import org.h2.value.ValueJson;
 import org.h2.value.ValueLob;
-import org.h2.value.ValueLobDatabase;
-import org.h2.value.ValueLobInMemory;
+import org.h2.value.ValueLobStrategyDatabase;
+import org.h2.value.ValueLobStrategyInMemory;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueNumeric;
 import org.h2.value.ValueReal;
@@ -658,14 +657,14 @@ public class Data {
         case Value.CLOB: {
             writeByte(type == Value.BLOB ? BLOB : CLOB);
             ValueLob lob = (ValueLob) v;
-            if (lob instanceof ValueLobDatabase) {
-                ValueLobDatabase lobDb = (ValueLobDatabase) lob;
+            if (lob.getFetchStrategy() instanceof ValueLobStrategyDatabase) {
+                ValueLobStrategyDatabase lobDb = (ValueLobStrategyDatabase) lob.getFetchStrategy();
                 writeVarInt(-3);
                 writeVarInt(lobDb.getTableId());
                 writeVarLong(lobDb.getLobId());
                 writeVarLong(lob.getType().getPrecision());
             } else {
-                byte[] small = ((ValueLobInMemory)lob).getSmall();
+                byte[] small = ((ValueLobStrategyInMemory)lob.getFetchStrategy()).getSmall();
                 writeVarInt(small.length);
                 write(small, 0, small.length);
             }
@@ -864,12 +863,12 @@ public class Data {
             if (smallLen >= 0) {
                 byte[] small = Utils.newBytes(smallLen);
                 read(small, 0, smallLen);
-                return ValueLobInMemory.createSmallLob(type == BLOB ? Value.BLOB : Value.CLOB, small);
+                return ValueLobStrategyInMemory.createSmallLob(type == BLOB ? Value.BLOB : Value.CLOB, small);
             } else if (smallLen == -3) {
                 int tableId = readVarInt();
                 long lobId = readVarLong();
                 long precision = readVarLong();
-                return ValueLobDatabase.create(type == BLOB ? Value.BLOB : Value.CLOB, handler, tableId,
+                return ValueLobStrategyDatabase.create(type == BLOB ? Value.BLOB : Value.CLOB, handler, tableId,
                         lobId, precision);
             } else {
                 throw getOldLobException(smallLen);
@@ -1112,14 +1111,14 @@ public class Data {
         case Value.CLOB: {
             int len = 1;
             ValueLob lob = (ValueLob) v;
-            if (lob instanceof ValueLobDatabase) {
-                ValueLobDatabase lobDb = (ValueLobDatabase) lob;
+            if (lob.getFetchStrategy() instanceof ValueLobStrategyDatabase) {
+                ValueLobStrategyDatabase lobDb = (ValueLobStrategyDatabase) lob.getFetchStrategy();
                 len += getVarIntLen(-3);
                 len += getVarIntLen(lobDb.getTableId());
                 len += getVarLongLen(lobDb.getLobId());
                 len += getVarLongLen(lob.getType().getPrecision());
             } else {
-                byte[] small = ((ValueLobInMemory)lob).getSmall();
+                byte[] small = ((ValueLobStrategyInMemory)lob.getFetchStrategy()).getSmall();
                 len += getVarIntLen(small.length);
                 len += small.length;
             }

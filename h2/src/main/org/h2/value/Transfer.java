@@ -870,8 +870,8 @@ public final class Transfer {
         case Value.BLOB: {
             writeInt(BLOB);
             ValueLob lob = (ValueLob) v;
-            if (lob instanceof ValueLobDatabase) {
-                ValueLobDatabase lobDb = (ValueLobDatabase) lob;
+            if (lob.getFetchStrategy() instanceof ValueLobStrategyDatabase) {
+                ValueLobStrategyDatabase lobDb = (ValueLobStrategyDatabase) lob.getFetchStrategy();
                 writeLong(-1);
                 writeInt(lobDb.getTableId());
                 writeLong(lobDb.getLobId());
@@ -896,8 +896,8 @@ public final class Transfer {
         case Value.CLOB: {
             writeInt(CLOB);
             ValueLob lob = (ValueLob) v;
-            if (lob instanceof ValueLobDatabase) {
-                ValueLobDatabase lobDb = (ValueLobDatabase) lob;
+            if (lob.getFetchStrategy() instanceof ValueLobStrategyDatabase) {
+                ValueLobStrategyDatabase lobDb = (ValueLobStrategyDatabase) lob.getFetchStrategy();
                 writeLong(-1);
                 writeInt(lobDb.getTableId());
                 writeLong(lobDb.getLobId());
@@ -1076,7 +1076,7 @@ public final class Transfer {
                 long id = readLong();
                 byte[] hmac = readBytes();
                 long precision = readLong();
-                return ValueLobFetchOnDemand.create(Value.BLOB, session.getDataHandler(), tableId, id, hmac, //
+                return ValueLobStrategyFetchOnDemand.create(Value.BLOB, session.getDataHandler(), tableId, id, hmac, //
                         precision);
             }
             Value v = session.getDataHandler().getLobStorage().createBlob(in, length);
@@ -1095,7 +1095,7 @@ public final class Transfer {
                 long id = readLong();
                 byte[] hmac = readBytes();
                 long precision = readLong();
-                return ValueLobFetchOnDemand.create(Value.CLOB, session.getDataHandler(), tableId, id, hmac, //
+                return ValueLobStrategyFetchOnDemand.create(Value.CLOB, session.getDataHandler(), tableId, id, hmac, //
                         precision);
             }
             if (length < 0) {

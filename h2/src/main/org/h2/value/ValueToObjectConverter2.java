@@ -169,7 +169,7 @@ public final class ValueToObjectConverter2 extends TraceObject {
             if (session == null) {
                 String s = rs.getString(columnIndex);
                 v = s == null ? ValueNull.INSTANCE
-                        : ValueLobInMemory.createSmallLob(Value.CLOB, s.getBytes(StandardCharsets.UTF_8));
+                        : ValueLobStrategyInMemory.createSmallLob(Value.CLOB, s.getBytes(StandardCharsets.UTF_8));
             } else {
                 Reader in = rs.getCharacterStream(columnIndex);
                 v = in == null ? ValueNull.INSTANCE
@@ -196,7 +196,7 @@ public final class ValueToObjectConverter2 extends TraceObject {
         case Value.BLOB: {
             if (session == null) {
                 byte[] buff = rs.getBytes(columnIndex);
-                v = buff == null ? ValueNull.INSTANCE : ValueLobInMemory.createSmallLob(Value.BLOB, buff);
+                v = buff == null ? ValueNull.INSTANCE : ValueLobStrategyInMemory.createSmallLob(Value.BLOB, buff);
             } else {
                 InputStream in = rs.getBinaryStream(columnIndex);
                 v = in == null ? ValueNull.INSTANCE

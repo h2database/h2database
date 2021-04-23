@@ -25,19 +25,51 @@ import org.h2.util.Utils;
  * memory and stored in the record. Large objects are either stored in the
  * database, or in temporary files.
  */
-public final class ValueLobInMemory extends ValueLob {
+public final class ValueLobStrategyInMemory extends ValueLobStrategy {
 
     /**
      * If the LOB is below the inline size, we just store/load it directly here.
      */
     private final byte[] small;
 
-    private ValueLobInMemory(int type, byte[] small, long precision) {
-        super(type, precision);
+    private ValueLobStrategyInMemory(byte[] small) {
         if (small == null) {
             throw new IllegalStateException();
         }
         this.small = small;
+    }
+    
+    static ValueLob create(int type, byte[] small, long precision) {
+        return new ValueLob(type, precision, new ValueLobStrategyInMemory(small));
+    }
+
+    /**
+     * Create a LOB object that fits in memory.
+     *
+     * @param type the type (Value.BLOB or CLOB)
+     * @param small the byte array
+     * @return the LOB
+     */
+    public static ValueLob createSmallLob(int type, byte[] small) {
+        int precision;
+        if (type == Value.CLOB) {
+            precision = new String(small, StandardCharsets.UTF_8).length();
+        } else {
+            precision = small.length;
+        }
+        return createSmallLob(type, small, precision);
+    }
+
+    /**
+     * Create a LOB object that fits in memory.
+     *
+     * @param type the type (Value.BLOB or CLOB)
+     * @param small the byte array
+     * @param precision the precision
+     * @return the LOB
+     */
+    public static ValueLob createSmallLob(int type, byte[] small, long precision) {
+        return new ValueLob(type, precision, new ValueLobStrategyInMemory(small));
     }
 
     /**
@@ -49,37 +81,37 @@ public final class ValueLobInMemory extends ValueLob {
      * @return the new value or itself
      */
     @Override
-    public ValueLob copy(DataHandler database, int tableId) {
+    public ValueLob copy(ValueLob lob, DataHandler database, int tableId) {
         if (small.length > database.getMaxLengthInplaceLob()) {
             LobStorageInterface s = database.getLobStorage();
             ValueLob v;
-            if (valueType == Value.BLOB) {
-                v = s.createBlob(getInputStream(), precision);
+            if (lob.valueType == Value.BLOB) {
+                v = s.createBlob(lob.getInputStream(), lob.precision);
             } else {
-                v = s.createClob(getReader(), precision);
+                v = s.createClob(lob.getReader(), lob.precision);
             }
             ValueLob v2 = v.copy(database, tableId);
             v.remove();
             return v2;
         }
-        return this;
+        return lob;
     }
 
     @Override
-    public String getString() {
-        if (valueType == CLOB) {
-            if (precision > Constants.MAX_STRING_LENGTH) {
+    public String getString(ValueLob lob) {
+        if (lob.valueType == ValueLob.CLOB) {
+            if (lob.precision > Constants.MAX_STRING_LENGTH) {
                 throw DbException.getValueTooLongException("CHARACTER VARYING",
-                        new String(small, 0, 81 * 3, StandardCharsets.UTF_8), precision);
+                        new String(small, 0, 81 * 3, StandardCharsets.UTF_8), lob.precision);
             }
         } else {
-            long p = otherPrecision;
+            long p = lob.otherPrecision;
             if (p > Constants.MAX_STRING_LENGTH) {
                 throw DbException.getValueTooLongException("CHARACTER VARYING",
                         new String(small, 0, 81 * 3, StandardCharsets.UTF_8), p);
             } else if (p < 0L) {
                 String s = new String(small, StandardCharsets.UTF_8);
-                otherPrecision = p = s.length();
+                lob.otherPrecision = p = s.length();
                 if (p > Constants.MAX_STRING_LENGTH) {
                     throw DbException.getValueTooLongException("CHARACTER VARYING", s, p);
                 }
@@ -104,30 +136,31 @@ public final class ValueLobInMemory extends ValueLob {
     }
 
     @Override
-    public int compareTypeSafe(Value v, CompareMode mode, CastDataProvider provider) {
-        if (v == this) {
+    public int compareTypeSafe(ValueLob lob, Value v, CompareMode mode, CastDataProvider provider) {
+        if (v == lob) {
             return 0;
         }
-        ValueLobInMemory v2 = (ValueLobInMemory) v;
+        ValueLob lob2 = (ValueLob) v;
+        ValueLobStrategyInMemory v2 = (ValueLobStrategyInMemory) lob.fetchStrategy;
         if (v2 != null) {
-            if (valueType == Value.BLOB) {
+            if (lob.valueType == Value.BLOB) {
                 return Bits.compareNotNullUnsigned(small, v2.small);
             } else {
-                return Integer.signum(getString().compareTo(v2.getString()));
+                return Integer.signum(lob.getString().compareTo(lob2.getString()));
             }
         }
-        return compare(this, v2);
+        return ValueLob.compare(lob, lob2);
     }
 
     @Override
-    public InputStream getInputStream() {
+    public InputStream getInputStream(ValueLob lob) {
         return new ByteArrayInputStream(small);
     }
 
     @Override
-    public InputStream getInputStream(long oneBasedOffset, long length) {
-        final long byteCount = (valueType == Value.BLOB) ? precision : -1;
-        return rangeInputStream(getInputStream(), oneBasedOffset, length, byteCount);
+    public InputStream getInputStream(ValueLob lob, long oneBasedOffset, long length) {
+        final long byteCount = (lob.valueType == Value.BLOB) ? lob.precision : -1;
+        return ValueLob.rangeInputStream(getInputStream(lob), oneBasedOffset, length, byteCount);
     }
 
     /**
@@ -155,76 +188,47 @@ public final class ValueLobInMemory extends ValueLob {
      * @return the truncated or this value
      */
     @Override
-    ValueLob convertPrecision(long precision) {
-        if (this.precision <= precision) {
-            return this;
+    ValueLob convertPrecision(ValueLob oldLob, long precision) {
+        if (oldLob.precision <= precision) {
+            return oldLob;
         }
-        ValueLob lob;
-        if (valueType == CLOB) {
+        ValueLob newLob;
+        if (oldLob.valueType == ValueLob.CLOB) {
             try {
                 int p = MathUtils.convertLongToInt(precision);
-                String s = IOUtils.readStringAndClose(getReader(), p);
+                String s = IOUtils.readStringAndClose(oldLob.getReader(), p);
                 byte[] data = s.getBytes(StandardCharsets.UTF_8);
-                lob = createSmallLob(valueType, data, s.length());
+                newLob = createSmallLob(oldLob.valueType, data, s.length());
             } catch (IOException e) {
                 throw DbException.convertIOException(e, null);
             }
         } else {
             try {
                 int p = MathUtils.convertLongToInt(precision);
-                byte[] data = IOUtils.readBytesAndClose(getInputStream(), p);
-                lob = createSmallLob(valueType, data, data.length);
+                byte[] data = IOUtils.readBytesAndClose(oldLob.getInputStream(), p);
+                newLob = createSmallLob(oldLob.valueType, data, data.length);
             } catch (IOException e) {
                 throw DbException.convertIOException(e, null);
             }
         }
-        return lob;
-    }
-
-    /**
-     * Create a LOB object that fits in memory.
-     *
-     * @param type the type (Value.BLOB or CLOB)
-     * @param small the byte array
-     * @return the LOB
-     */
-    public static ValueLobInMemory createSmallLob(int type, byte[] small) {
-        int precision;
-        if (type == Value.CLOB) {
-            precision = new String(small, StandardCharsets.UTF_8).length();
-        } else {
-            precision = small.length;
-        }
-        return createSmallLob(type, small, precision);
-    }
-
-    /**
-     * Create a LOB object that fits in memory.
-     *
-     * @param type the type (Value.BLOB or CLOB)
-     * @param small the byte array
-     * @param precision the precision
-     * @return the LOB
-     */
-    public static ValueLobInMemory createSmallLob(int type, byte[] small, long precision) {
-        return new ValueLobInMemory(type, small, precision);
+        return newLob;
     }
 
     @Override
-    public long charLength() {
-        if (valueType == CHAR) {
-            return precision;
+    public long charLength(ValueLob lob) {
+        if (lob.valueType == ValueLob.CHAR) {
+            return lob.precision;
         } else {
-            long p = otherPrecision;
+            long p = lob.otherPrecision;
             if (p < 0L) {
-                otherPrecision = p = getString().length();
+                lob.otherPrecision = p = lob.getString().length();
             }
             return p;
         }
     }
 
     @Override
-    public long octetLength() {
+    public long octetLength(ValueLob lob) {
         return small.length;
     }
 

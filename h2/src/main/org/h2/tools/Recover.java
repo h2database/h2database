@@ -79,7 +79,7 @@ import org.h2.value.Value;
 import org.h2.value.ValueBigint;
 import org.h2.value.ValueCollectionBase;
 import org.h2.value.ValueLob;
-import org.h2.value.ValueLobDatabase;
+import org.h2.value.ValueLobStrategyDatabase;
 
 /**
  * Helps recovering a corrupted database.
@@ -205,9 +205,8 @@ public class Recover extends Tool implements DataHandler {
             long precision) {
         DataHandler h = ((JdbcConnection) conn).getSession().getDataHandler();
         verifyPageStore(h);
-        ValueLobDatabase lob = ValueLobDatabase.create(Value.BLOB, h, LobStorageFrontend.TABLE_TEMP,
+        ValueLob lob = ValueLobStrategyDatabase.createRecoveryRef(Value.BLOB, h, LobStorageFrontend.TABLE_TEMP,
                 lobId, precision);
-        lob.setRecoveryReference(true);
         return lob;
     }
 
@@ -226,9 +225,8 @@ public class Recover extends Tool implements DataHandler {
             long precision) {
         DataHandler h = ((JdbcConnection) conn).getSession().getDataHandler();
         verifyPageStore(h);
-        ValueLobDatabase lob =  ValueLobDatabase.create(Value.CLOB, h, LobStorageFrontend.TABLE_TEMP,
+        ValueLob lob =  ValueLobStrategyDatabase.createRecoveryRef(Value.CLOB, h, LobStorageFrontend.TABLE_TEMP,
                 lobId, precision);
-        lob.setRecoveryReference(true);
         return lob;
     }
 
@@ -374,27 +372,30 @@ public class Recover extends Tool implements DataHandler {
     }
 
     private void getSQL(StringBuilder builder, String column, Value v) {
-        if (v instanceof ValueLobDatabase) {
-            ValueLobDatabase lob = (ValueLobDatabase) v;
-            int type = lob.getValueType();
-            long id = lob.getLobId();
-            long precision = lob.getType().getPrecision();
-            String columnType;
-            if (type == Value.BLOB) {
-                columnType = "BLOB";
-                builder.append("READ_BLOB");
-            } else {
-                columnType = "CLOB";
-                builder.append("READ_CLOB");
+        if (v instanceof ValueLob) {
+            ValueLob vl = (ValueLob) v;
+            if (vl.getFetchStrategy() instanceof ValueLobStrategyDatabase) {
+                ValueLobStrategyDatabase lob = (ValueLobStrategyDatabase) vl.getFetchStrategy();
+                int type = vl.getValueType();
+                long id = lob.getLobId();
+                long precision = vl.getType().getPrecision();
+                String columnType;
+                if (type == Value.BLOB) {
+                    columnType = "BLOB";
+                    builder.append("READ_BLOB");
+                } else {
+                    columnType = "CLOB";
+                    builder.append("READ_CLOB");
+                }
+                if (lobMaps) {
+                    builder.append("_MAP");
+                } else {
+                    builder.append("_DB");
+                }
+                columnTypeMap.put(column, columnType);
+                builder.append('(').append(id).append(", ").append(precision).append(')');
+                return;
             }
-            if (lobMaps) {
-                builder.append("_MAP");
-            } else {
-                builder.append("_DB");
-            }
-            columnTypeMap.put(column, columnType);
-            builder.append('(').append(id).append(", ").append(precision).append(')');
-            return;
         }
         v.getSQL(builder, HasSQL.NO_CASTS);
     }

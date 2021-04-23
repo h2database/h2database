@@ -29,7 +29,7 @@ import org.h2.util.Utils;
  * memory and stored in the record. Large objects are either stored in the
  * database, or in temporary files.
  */
-public final class ValueLobFile extends ValueLob {
+public final class ValueLobStrategyFile extends ValueLobStrategy {
 
     private DataHandler handler;
     /**
@@ -39,17 +39,21 @@ public final class ValueLobFile extends ValueLob {
     private final String fileName;
     private final FileStore tempFile;
 
+    ValueLobStrategyFile(DataHandler handler, String fileName, FileStore tempFile) throws IOException {
+        this.handler = handler;
+        this.fileName = fileName;
+        this.tempFile = tempFile;
+    }
+
     /**
      * Create a CLOB in a temporary file.
      */
-    ValueLobFile(DataHandler handler, Reader in, long remaining) throws IOException {
-        super(Value.CLOB, 0);
-        this.handler = handler;
-        this.fileName = createTempLobFileName(handler);
-        this.tempFile = handler.openFile(fileName, "rw", false);
-        this.tempFile.autoDelete();
+    static ValueLob createTempFileClob(DataHandler handler, Reader in, long remaining) throws IOException {
+        final String fileName = createTempLobFileName(handler);
+        final FileStore tempFile = handler.openFile(fileName, "rw", false);
+        tempFile.autoDelete();
 
-        long tmpPrecision = 0;
+        long precision = 0;
         try (FileStoreOutputStream out = new FileStoreOutputStream(tempFile, null, null)) {
             char[] buff = new char[Constants.IO_BUFFER_SIZE];
             while (true) {
@@ -60,26 +64,24 @@ public final class ValueLobFile extends ValueLob {
                 }
                 byte[] data = new String(buff, 0, len).getBytes(StandardCharsets.UTF_8);
                 out.write(data);
-                tmpPrecision += len;
+                precision += len;
             }
         }
-        this.precision = tmpPrecision;
+        return new ValueLob(Value.CLOB, precision, new ValueLobStrategyFile(handler, fileName, tempFile));
     }
-
+    
     /**
      * Create a BLOB in a temporary file.
      */
-    ValueLobFile(DataHandler handler, byte[] buff, int len, InputStream in, long remaining) throws IOException {
-        super(Value.BLOB, 0);
-        this.handler = handler;
-        this.fileName = createTempLobFileName(handler);
-        this.tempFile = handler.openFile(fileName, "rw", false);
-        this.tempFile.autoDelete();
-        long tmpPrecision = 0;
+    static ValueLob createTempFileBlob(DataHandler handler, byte[] buff, int len, InputStream in, long remaining) throws IOException {
+        final String fileName = createTempLobFileName(handler);
+        final FileStore tempFile = handler.openFile(fileName, "rw", false);
+        tempFile.autoDelete();
+        long precision = 0;
         boolean compress = handler.getLobCompressionAlgorithm(Value.BLOB) != null;
         try (FileStoreOutputStream out = new FileStoreOutputStream(tempFile, null, null)) {
             while (true) {
-                tmpPrecision += len;
+                precision += len;
                 out.write(buff, 0, len);
                 remaining -= len;
                 if (remaining <= 0) {
@@ -92,7 +94,7 @@ public final class ValueLobFile extends ValueLob {
                 }
             }
         }
-        this.precision = tmpPrecision;
+        return new ValueLob(Value.BLOB, precision, new ValueLobStrategyFile(handler, fileName, tempFile));
     }
 
     private static String createTempLobFileName(DataHandler handler) throws IOException {
@@ -108,7 +110,7 @@ public final class ValueLobFile extends ValueLob {
      * memory this method has no effect.
      */
     @Override
-    public void remove() {
+    public void remove(ValueLob lob) {
         if (fileName != null) {
             if (tempFile != null) {
                 tempFile.stopAutoDelete();
@@ -122,7 +124,7 @@ public final class ValueLobFile extends ValueLob {
     }
 
     @Override
-    public InputStream getInputStream() {
+    public InputStream getInputStream(ValueLob lob) {
         FileStore store = handler.openFile(fileName, "r", true);
         boolean alwaysClose = SysProperties.lobCloseBetweenReads;
         return new BufferedInputStream(new FileStoreInputStream(store, handler, false, alwaysClose),
@@ -130,13 +132,13 @@ public final class ValueLobFile extends ValueLob {
     }
 
     @Override
-    public InputStream getInputStream(long oneBasedOffset, long length) {
+    public InputStream getInputStream(ValueLob lob, long oneBasedOffset, long length) {
         final FileStore store = handler.openFile(fileName, "r", true);
         final boolean alwaysClose = SysProperties.lobCloseBetweenReads;
         final long byteCount = store.length();
         final InputStream inputStream = new BufferedInputStream(
                 new FileStoreInputStream(store, handler, false, alwaysClose), Constants.IO_BUFFER_SIZE);
-        return rangeInputStream(inputStream, oneBasedOffset, length, byteCount);
+        return ValueLob.rangeInputStream(inputStream, oneBasedOffset, length, byteCount);
     }
 
     @Override
@@ -193,10 +195,10 @@ public final class ValueLobFile extends ValueLob {
             }
             if (len <= handler.getMaxLengthInplaceLob()) {
                 byte[] small = new String(buff, 0, len).getBytes(StandardCharsets.UTF_8);
-                return ValueLobInMemory.createSmallLob(Value.CLOB, small, len);
+                return ValueLobStrategyInMemory.createSmallLob(Value.CLOB, small, len);
             }
             reader.reset();
-            return new ValueLobFile(handler, reader, remaining);
+            return ValueLobStrategyFile.createTempFileClob(handler, reader, remaining);
         } catch (IOException e) {
             throw DbException.convertIOException(e, null);
         }
@@ -228,9 +230,9 @@ public final class ValueLobFile extends ValueLob {
             }
             if (len <= handler.getMaxLengthInplaceLob()) {
                 byte[] small = Utils.copyBytes(buff, len);
-                return ValueLobInMemory.createSmallLob(Value.BLOB, small, small.length);
+                return ValueLobStrategyInMemory.createSmallLob(Value.BLOB, small, small.length);
             }
-            return new ValueLobFile(handler, buff, len, in, remaining);
+            return ValueLobStrategyFile.createTempFileBlob(handler, buff, len, in, remaining);
         } catch (IOException e) {
             throw DbException.convertIOException(e, null);
         }

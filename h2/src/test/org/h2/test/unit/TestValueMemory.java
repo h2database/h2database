@@ -42,7 +42,7 @@ import org.h2.value.ValueInterval;
 import org.h2.value.ValueJavaObject;
 import org.h2.value.ValueJson;
 import org.h2.value.ValueLob;
-import org.h2.value.ValueLobFile;
+import org.h2.value.ValueLobStrategyFile;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueNumeric;
 import org.h2.value.ValueReal;
@@ -408,7 +408,7 @@ public class TestValueMemory extends TestBase implements DataHandler {
             // need to use a temp file, because the input stream could come from
             // the same database, which would create a weird situation (trying
             // to read a block while writing something)
-            return ValueLobFile.createTempBlob(in, maxLength, TestValueMemory.this);
+            return ValueLobStrategyFile.createTempBlob(in, maxLength, TestValueMemory.this);
         }
 
         /**
@@ -423,7 +423,7 @@ public class TestValueMemory extends TestBase implements DataHandler {
             // need to use a temp file, because the input stream could come from
             // the same database, which would create a weird situation (trying
             // to read a block while writing something)
-            return ValueLobFile.createTempClob(reader, maxLength, TestValueMemory.this);
+            return ValueLobStrategyFile.createTempClob(reader, maxLength, TestValueMemory.this);
         }
     }
 }

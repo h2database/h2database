@@ -42,7 +42,8 @@ import org.h2.util.JdbcUtils;
 import org.h2.util.StringUtils;
 import org.h2.util.Task;
 import org.h2.value.Value;
-import org.h2.value.ValueLobInMemory;
+import org.h2.value.ValueLob;
+import org.h2.value.ValueLobStrategyInMemory;
 
 /**
  * Tests LOB and CLOB data types.
@@ -1800,10 +1801,10 @@ public class TestLob extends TestDb {
             assertFalse(rs.next());
         }
         conn.close();
-        testLimitsSmall(b, s, ValueLobInMemory.createSmallLob(Value.BLOB, b, Constants.MAX_STRING_LENGTH));
-        testLimitsSmall(b, s, ValueLobInMemory.createSmallLob(Value.CLOB, b, Constants.MAX_STRING_LENGTH));
-        testLimitsLarge(b2, s2, ValueLobInMemory.createSmallLob(Value.BLOB, b2, Constants.MAX_STRING_LENGTH + 1));
-        testLimitsLarge(b2, s2, ValueLobInMemory.createSmallLob(Value.CLOB, b2, Constants.MAX_STRING_LENGTH + 1));
+        testLimitsSmall(b, s, ValueLobStrategyInMemory.createSmallLob(Value.BLOB, b, Constants.MAX_STRING_LENGTH));
+        testLimitsSmall(b, s, ValueLobStrategyInMemory.createSmallLob(Value.CLOB, b, Constants.MAX_STRING_LENGTH));
+        testLimitsLarge(b2, s2, ValueLobStrategyInMemory.createSmallLob(Value.BLOB, b2, Constants.MAX_STRING_LENGTH + 1));
+        testLimitsLarge(b2, s2, ValueLobStrategyInMemory.createSmallLob(Value.CLOB, b2, Constants.MAX_STRING_LENGTH + 1));
     }
 
     private void testLimitsSmall(byte[] b, String s, ResultSet rs, int index) throws SQLException {
@@ -1818,13 +1819,13 @@ public class TestLob extends TestDb {
         assertEquals(s, IOUtils.readStringAndClose(rs.getClob(index).getCharacterStream(), -1));
     }
 
-    private void testLimitsSmall(byte[] b, String s, ValueLobInMemory v) {
+    private void testLimitsSmall(byte[] b, String s, ValueLob v) {
         assertEquals(b, v.getBytesNoCopy());
         assertEquals(s, v.getString());
         assertEquals(s, v.getString());
     }
 
-    private void testLimitsLarge(byte[] b, String s, ValueLobInMemory v) throws IOException {
+    private void testLimitsLarge(byte[] b, String s, ValueLob v) throws IOException {
         try {
             assertEquals(b, v.getBytesNoCopy());
             throw new AssertionError();

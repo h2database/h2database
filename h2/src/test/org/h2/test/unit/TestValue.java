@@ -42,7 +42,7 @@ import org.h2.value.ValueArray;
 import org.h2.value.ValueDouble;
 import org.h2.value.ValueInterval;
 import org.h2.value.ValueJavaObject;
-import org.h2.value.ValueLobInMemory;
+import org.h2.value.ValueLobStrategyInMemory;
 import org.h2.value.ValueNumeric;
 import org.h2.value.ValueReal;
 import org.h2.value.ValueTimestamp;
@@ -132,7 +132,7 @@ public class TestValue extends TestDb {
         assertEquals(32, v.castTo(typeInfo, null).getBytes()[9]);
         assertEquals(10, v.castTo(typeInfo, null).getType().getPrecision());
 
-        v = ValueLobInMemory.createSmallLob(Value.CLOB, spaces.getBytes(), 100);
+        v = ValueLobStrategyInMemory.createSmallLob(Value.CLOB, spaces.getBytes(), 100);
         typeInfo = TypeInfo.getTypeInfo(Value.CLOB, 10L, 0, null);
         assertEquals(100, v.getType().getPrecision());
         assertEquals(10, v.castTo(typeInfo, null).getType().getPrecision());
@@ -140,7 +140,7 @@ public class TestValue extends TestDb {
         assertEquals("          ", v.castTo(typeInfo, null).getString());
         assertEquals(10, v.castTo(typeInfo, null).getType().getPrecision());
 
-        v = ValueLobInMemory.createSmallLob(Value.BLOB, spaces.getBytes(), 100);
+        v = ValueLobStrategyInMemory.createSmallLob(Value.BLOB, spaces.getBytes(), 100);
         typeInfo = TypeInfo.getTypeInfo(Value.BLOB, 10L, 0, null);
         assertEquals(100, v.getType().getPrecision());
         assertEquals(10, v.castTo(typeInfo, null).getType().getPrecision());
@@ -361,7 +361,7 @@ public class TestValue extends TestDb {
 
     private static Value createLob(DataHandler dh, int type, byte[] bytes) {
         if (dh == null) {
-            return ValueLobInMemory.createSmallLob(type, bytes);
+            return ValueLobStrategyInMemory.createSmallLob(type, bytes);
         }
         ByteArrayInputStream in = new ByteArrayInputStream(bytes);
         if (type == Value.BLOB) {

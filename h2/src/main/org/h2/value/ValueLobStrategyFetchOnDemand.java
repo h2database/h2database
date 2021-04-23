@@ -17,7 +17,7 @@ import org.h2.store.LobStorageRemoteInputStream;
  * A implementation of the BLOB and CLOB data types used on the client side of a
  * remote H2 connection. Fetches the underlying on data from the server.
  */
-public final class ValueLobFetchOnDemand extends ValueLob {
+final class ValueLobStrategyFetchOnDemand extends ValueLobStrategy {
 
     private SessionRemote handler;
     /**
@@ -33,10 +33,7 @@ public final class ValueLobFetchOnDemand extends ValueLob {
      */
     protected final byte[] hmac;
 
-    private ValueLobFetchOnDemand(int type, DataHandler handler, int tableId, long lobId, byte[] hmac,
-            long precision) {
-        super(type, precision);
-        assert (type == BLOB || type == CLOB);
+    private ValueLobStrategyFetchOnDemand(DataHandler handler, int tableId, long lobId, byte[] hmac) {
         this.hmac = hmac;
         this.handler = (SessionRemote) handler;
         this.tableId = tableId;
@@ -54,9 +51,10 @@ public final class ValueLobFetchOnDemand extends ValueLob {
      * @param precision the precision (number of bytes / characters)
      * @return the value
      */
-    public static ValueLobFetchOnDemand create(int type, DataHandler handler, int tableId, long id, byte[] hmac,
+    public static ValueLob create(int type, DataHandler handler, int tableId, long id, byte[] hmac,
             long precision) {
-        return new ValueLobFetchOnDemand(type, handler, tableId, id, hmac, precision);
+        assert (type == ValueLob.BLOB || type == ValueLob.CLOB);
+        return new ValueLob(type, precision, new ValueLobStrategyFetchOnDemand(handler, tableId, id, hmac));
     }
 
     /**
@@ -64,8 +62,8 @@ public final class ValueLobFetchOnDemand extends ValueLob {
      * memory this method has no effect.
      */
     @Override
-    public void remove() {
-        handler.getLobStorage().removeLob(this);
+    public void remove(ValueLob lob) {
+        handler.getLobStorage().removeLob(lob);
     }
 
     /**
@@ -77,8 +75,8 @@ public final class ValueLobFetchOnDemand extends ValueLob {
      * @return the new value or itself
      */
     @Override
-    public ValueLob copy(DataHandler database, int tableId) {
-        return handler.getLobStorage().copyLob(this, tableId, precision);
+    public ValueLob copy(ValueLob lob, DataHandler database, int tableId) {
+        return handler.getLobStorage().copyLob(lob, tableId, lob.precision);
     }
 
     /**
@@ -106,31 +104,31 @@ public final class ValueLobFetchOnDemand extends ValueLob {
     }
 
     @Override
-    public int compareTypeSafe(Value v, CompareMode mode, CastDataProvider provider) {
-        if (v == this) {
+    public int compareTypeSafe(ValueLob lob, Value v, CompareMode mode, CastDataProvider provider) {
+        if (v == lob) {
             return 0;
         }
-        ValueLobFetchOnDemand v2 = (ValueLobFetchOnDemand) v;
+        ValueLobStrategyFetchOnDemand v2 = (ValueLobStrategyFetchOnDemand) ((ValueLob) v).getFetchStrategy();
         if (v2 != null && lobId == v2.lobId) {
             return 0;
         }
-        return compare(this, v2);
+        return ValueLob.compare(lob, (ValueLob) v);
     }
 
     @Override
-    public InputStream getInputStream() {
+    public InputStream getInputStream(ValueLob lob) {
         return new BufferedInputStream(new LobStorageRemoteInputStream(handler, lobId, hmac));
     }
 
     @Override
-    public InputStream getInputStream(long oneBasedOffset, long length) {
-        if (this.valueType == CLOB) {
+    public InputStream getInputStream(ValueLob lob, long oneBasedOffset, long length) {
+        if (lob.valueType == ValueLob.CLOB) {
             // Cannot usefully into index into a unicode based stream with a byte offset
             throw DbException.getInternalError();
         }
         final InputStream inputStream = new BufferedInputStream(
                 new LobStorageRemoteInputStream(handler, lobId, hmac));
-        return rangeInputStream(inputStream, oneBasedOffset, length, precision);
+        return ValueLob.rangeInputStream(inputStream, oneBasedOffset, length, lob.precision);
     }
 
     @Override
@@ -145,17 +143,17 @@ public final class ValueLobFetchOnDemand extends ValueLob {
      * @return the truncated or this value
      */
     @Override
-    ValueLob convertPrecision(long precision) {
-        if (this.precision <= precision) {
-            return this;
+    ValueLob convertPrecision(ValueLob oldLob, long precision) {
+        if (oldLob.precision <= precision) {
+            return oldLob;
         }
-        ValueLob lob;
-        if (valueType == CLOB) {
-            lob = ValueLobFile.createTempClob(getReader(), precision, handler);
+        ValueLob newLob;
+        if (oldLob.valueType == ValueLob.CLOB) {
+            newLob = ValueLobStrategyFile.createTempClob(oldLob.getReader(), precision, handler);
         } else {
-            lob = ValueLobFile.createTempBlob(getInputStream(), precision, handler);
+            newLob = ValueLobStrategyFile.createTempBlob(oldLob.getInputStream(), precision, handler);
         }
-        return lob;
+        return newLob;
     }
 
     @Override

@@ -15,8 +15,9 @@ import org.h2.table.Column;
 import org.h2.table.Table;
 import org.h2.util.Utils;
 import org.h2.value.Value;
-import org.h2.value.ValueLobDatabase;
-import org.h2.value.ValueLobFile;
+import org.h2.value.ValueLob;
+import org.h2.value.ValueLobStrategyDatabase;
+import org.h2.value.ValueLobStrategyFile;
 
 /**
  * A list of rows. If the list grows too large, it is buffered to disk
@@ -32,7 +33,7 @@ public class RowList implements AutoCloseable {
     private int listIndex;
     private FileStore file;
     private Data rowBuff;
-    private ArrayList<ValueLobFile> lobs;
+    private ArrayList<ValueLobStrategyFile> lobs;
     private final int maxMemory;
     private int memory;
     private boolean written;
@@ -67,13 +68,16 @@ public class RowList implements AutoCloseable {
                 buff.writeByte((byte) 0);
             } else {
                 buff.writeByte((byte) 1);
-                if (v instanceof ValueLobFile) {
-                    // need to keep a reference to temporary lobs,
-                    // otherwise the temp file is deleted
-                    if (lobs == null) {
-                        lobs = Utils.newSmallArrayList();
+                if (v instanceof ValueLob) {
+                    ValueLob vl = (ValueLob) v;
+                    if (vl.getFetchStrategy() instanceof ValueLobStrategyFile) {
+                        // need to keep a reference to temporary lobs,
+                        // otherwise the temp file is deleted
+                        if (lobs == null) {
+                            lobs = Utils.newSmallArrayList();
+                        }
+                        lobs.add((ValueLobStrategyFile)vl.getFetchStrategy());
                     }
-                    lobs.add((ValueLobFile)v);
                 }
                 buff.checkCapacity(Data.getValueLen(v));
                 buff.writeValue(v);
@@ -173,12 +177,15 @@ public class RowList implements AutoCloseable {
                 v = null;
             } else {
                 v = buff.readValue(columns[i].getType());
-                if (v instanceof ValueLobDatabase) {
-                    ValueLobDatabase lob = (ValueLobDatabase) v;
-                    // the table id is 0 if it was linked when writing
-                    // a temporary entry
-                    if (lob.getTableId() == 0) {
-                        session.removeAtCommit(lob);
+                if (v instanceof ValueLob) {
+                    ValueLob vl = (ValueLob) v;
+                    if (vl.getFetchStrategy() instanceof ValueLobStrategyDatabase) {
+                        ValueLobStrategyDatabase lob = (ValueLobStrategyDatabase) vl.getFetchStrategy();
+                        // the table id is 0 if it was linked when writing
+                        // a temporary entry
+                        if (lob.getTableId() == 0) {
+                            session.removeAtCommit(vl);
+                        }
                     }
                 }
             }

@@ -1273,22 +1273,23 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         case BLOB: {
             v = (ValueLob) this;
             // Try to reuse the array, if possible
-            if (v instanceof ValueLobInMemory) {
-                byte[] small = ((ValueLobInMemory)v).getSmall();
+            if (v.getFetchStrategy() instanceof ValueLobStrategyInMemory) {
+                byte[] small = ((ValueLobStrategyInMemory)v.getFetchStrategy()).getSmall();
                 byte[] bytes = new String(small, StandardCharsets.UTF_8).getBytes(StandardCharsets.UTF_8);
                 if (Arrays.equals(bytes, small)) {
                     bytes = small;
                 }
-                v = ValueLobInMemory.createSmallLob(CLOB, bytes);
+                v = ValueLobStrategyInMemory.createSmallLob(CLOB, bytes);
                 break;
-            } else if (v instanceof ValueLobDatabase) {
-                v = ((ValueLobDatabase) v).getDataHandler().getLobStorage().createClob(v.getReader(), -1);
+            } else if (v.getFetchStrategy() instanceof ValueLobStrategyDatabase) {
+                v = ((ValueLobStrategyDatabase) v.getFetchStrategy()).getDataHandler().getLobStorage().createClob(v.getReader(),
+                        -1);
                 break;
             }
         }
         //$FALL-THROUGH$
         default:
-            v = ValueLobInMemory.createSmallLob(CLOB, getString().getBytes(StandardCharsets.UTF_8));
+            v = ValueLobStrategyInMemory.createSmallLob(CLOB, getString().getBytes(StandardCharsets.UTF_8));
         }
         if (conversionMode != CONVERT_TO) {
             if (conversionMode == CAST_TO) {
@@ -1385,7 +1386,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
             //$FALL-THROUGH$
         default:
             try {
-                v = ValueLobInMemory.createSmallLob(BLOB, getBytesNoCopy());
+                v = ValueLobStrategyInMemory.createSmallLob(BLOB, getBytesNoCopy());
             } catch (DbException e) {
                 if (e.getErrorCode() == ErrorCode.DATA_CONVERSION_ERROR_1) {
                     throw getDataConversionError(BLOB);

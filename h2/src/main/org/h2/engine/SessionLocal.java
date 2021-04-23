@@ -60,8 +60,8 @@ import org.h2.util.Utils;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueLob;
-import org.h2.value.ValueLobDatabase;
-import org.h2.value.ValueLobInMemory;
+import org.h2.value.ValueLobStrategyDatabase;
+import org.h2.value.ValueLobStrategyInMemory;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueTimestampTimeZone;
 import org.h2.value.ValueVarchar;
@@ -1826,10 +1826,10 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
 
     @Override
     public ValueLob addTemporaryLob(ValueLob v) {
-        if (v instanceof ValueLobInMemory) {
+        if (v.getFetchStrategy() instanceof ValueLobStrategyInMemory) {
             return v;
         }
-        int tableId = ((ValueLobDatabase) v).getTableId();
+        int tableId = ((ValueLobStrategyDatabase) v.getFetchStrategy()).getTableId();
         if (tableId == LobStorageFrontend.TABLE_RESULT || tableId == LobStorageFrontend.TABLE_TEMP) {
             if (temporaryResultLobs == null) {
                 temporaryResultLobs = new LinkedList<>();

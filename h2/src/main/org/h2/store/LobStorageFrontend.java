@@ -10,7 +10,7 @@ import java.io.InputStream;
 import java.io.Reader;
 import org.h2.engine.SessionRemote;
 import org.h2.value.ValueLob;
-import org.h2.value.ValueLobFile;
+import org.h2.value.ValueLobStrategyFile;
 
 /**
  * This factory creates in-memory objects and temporary files. It is used on the
@@ -78,7 +78,7 @@ public class LobStorageFrontend implements LobStorageInterface {
         // need to use a temp file, because the input stream could come from
         // the same database, which would create a weird situation (trying
         // to read a block while writing something)
-        return ValueLobFile.createTempBlob(in, maxLength, sessionRemote);
+        return ValueLobStrategyFile.createTempBlob(in, maxLength, sessionRemote);
     }
 
     /**
@@ -93,6 +93,6 @@ public class LobStorageFrontend implements LobStorageInterface {
         // need to use a temp file, because the input stream could come from
         // the same database, which would create a weird situation (trying
         // to read a block while writing something)
-        return ValueLobFile.createTempClob(reader, maxLength, sessionRemote);
+        return ValueLobStrategyFile.createTempClob(reader, maxLength, sessionRemote);
     }
 }

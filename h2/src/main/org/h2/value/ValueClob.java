@@ -35,18 +35,55 @@ import org.h2.value.lob.LobDataInMemory;
  */
 public final class ValueClob extends ValueLob {
 
+    /**
+     * Creates a reference to the CLOB data persisted in the database.
+     *
+     * @param precision
+     *            the precision (count of characters)
+     * @param handler
+     *            the data handler
+     * @param tableId
+     *            the table identifier
+     * @param lobId
+     *            the LOB identifier
+     * @return the CLOB
+     */
     public static ValueClob create(long precision, DataHandler handler, int tableId, long lobId) {
         return new ValueClob(precision, new LobDataDatabase(handler, tableId, lobId));
     }
 
+    /**
+     * Creates a small CLOB value that can be stored in the row directly.
+     *
+     * @param data
+     *            the data in UTF-8 encoding
+     * @return the CLOB
+     */
     public static ValueClob createSmall(byte[] data) {
         return new ValueClob(new String(data, StandardCharsets.UTF_8).length(), new LobDataInMemory(data));
     }
 
+    /**
+     * Creates a small CLOB value that can be stored in the row directly.
+     *
+     * @param data
+     *            the data in UTF-8 encoding
+     * @param precision
+     *            the count of characters, must be exactly the same as count of
+     *            characters in the data
+     * @return the CLOB
+     */
     public static ValueClob createSmall(byte[] data, long precision) {
         return new ValueClob(precision, new LobDataInMemory(data));
     }
 
+    /**
+     * Creates a small CLOB value that can be stored in the row directly.
+     *
+     * @param string
+     *            the string with value
+     * @return the CLOB
+     */
     public static ValueClob createSmall(String string) {
         return new ValueClob(string.length(), new LobDataInMemory(string.getBytes(StandardCharsets.UTF_8)));
     }
@@ -109,7 +146,7 @@ public final class ValueClob extends ValueLob {
     /**
      * Create a CLOB in a temporary file.
      */
-    public static ValueClob createTemporary(DataHandler handler, Reader in, long remaining) throws IOException {
+    private static ValueClob createTemporary(DataHandler handler, Reader in, long remaining) throws IOException {
         String fileName = LobDataFile.createTempLobFileName(handler);
         FileStore tempFile = handler.openFile(fileName, "rw", false);
         tempFile.autoDelete();
@@ -210,15 +247,15 @@ public final class ValueClob extends ValueLob {
     }
 
     /**
-     * Compares LOBs of the same type.
+     * Compares two CLOB values directly.
      *
      * @param v1
-     *            first LOB value
+     *            first CLOB value
      * @param v2
-     *            second LOB value
+     *            second CLOB value
      * @return result of comparison
      */
-    protected static int compare(ValueClob v1, ValueClob v2) {
+    private static int compare(ValueClob v1, ValueClob v2) {
         long minPrec = Math.min(v1.precision, v2.precision);
         try (Reader reader1 = v1.getReader(); Reader reader2 = v2.getReader()) {
             char[] buf1 = new char[BLOCK_COMPARISON_SIZE];

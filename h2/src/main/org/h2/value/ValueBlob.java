@@ -34,10 +34,30 @@ import org.h2.value.lob.LobDataInMemory;
  */
 public final class ValueBlob extends ValueLob {
 
+    /**
+     * Creates a reference to the BLOB data persisted in the database.
+     *
+     * @param precision
+     *            the precision (count of bytes)
+     * @param handler
+     *            the data handler
+     * @param tableId
+     *            the table identifier
+     * @param lobId
+     *            the LOB identifier
+     * @return the BLOB
+     */
     public static ValueBlob create(long precision, DataHandler handler, int tableId, long lobId) {
         return new ValueBlob(precision, new LobDataDatabase(handler, tableId, lobId));
     }
 
+    /**
+     * Creates a small BLOB value that can be stored in the row directly.
+     *
+     * @param data
+     *            the data
+     * @return the BLOB
+     */
     public static ValueBlob createSmall(byte[] data) {
         return new ValueBlob(data.length, new LobDataInMemory(data));
     }
@@ -81,7 +101,7 @@ public final class ValueBlob extends ValueLob {
     /**
      * Create a BLOB in a temporary file.
      */
-    public static ValueBlob createTemporary(DataHandler handler, byte[] buff, int len, InputStream in, long remaining)
+    private static ValueBlob createTemporary(DataHandler handler, byte[] buff, int len, InputStream in, long remaining)
             throws IOException {
         String fileName = LobDataFile.createTempLobFileName(handler);
         FileStore tempFile = handler.openFile(fileName, "rw", false);
@@ -190,12 +210,12 @@ public final class ValueBlob extends ValueLob {
     }
 
     /**
-     * Compares LOBs of the same type.
+     * Compares two BLOB values directly.
      *
      * @param v1
-     *            first LOB value
+     *            first BLOB value
      * @param v2
-     *            second LOB value
+     *            second BLOB value
      * @return result of comparison
      */
     private static int compare(ValueBlob v1, ValueBlob v2) {

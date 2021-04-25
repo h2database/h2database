@@ -9,8 +9,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import org.h2.engine.SessionRemote;
+import org.h2.value.ValueBlob;
+import org.h2.value.ValueClob;
 import org.h2.value.ValueLob;
-import org.h2.value.ValueLobFile;
 
 /**
  * This factory creates in-memory objects and temporary files. It is used on the
@@ -74,11 +75,11 @@ public class LobStorageFrontend implements LobStorageInterface {
     }
 
     @Override
-    public ValueLob createBlob(InputStream in, long maxLength) {
+    public ValueBlob createBlob(InputStream in, long maxLength) {
         // need to use a temp file, because the input stream could come from
         // the same database, which would create a weird situation (trying
         // to read a block while writing something)
-        return ValueLobFile.createTempBlob(in, maxLength, sessionRemote);
+        return ValueBlob.createTempBlob(in, maxLength, sessionRemote);
     }
 
     /**
@@ -89,10 +90,10 @@ public class LobStorageFrontend implements LobStorageInterface {
      * @return the LOB
      */
     @Override
-    public ValueLob createClob(Reader reader, long maxLength) {
+    public ValueClob createClob(Reader reader, long maxLength) {
         // need to use a temp file, because the input stream could come from
         // the same database, which would create a weird situation (trying
         // to read a block while writing something)
-        return ValueLobFile.createTempClob(reader, maxLength, sessionRemote);
+        return ValueClob.createTempClob(reader, maxLength, sessionRemote);
     }
 }

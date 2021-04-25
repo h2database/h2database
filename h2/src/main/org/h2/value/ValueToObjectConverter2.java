@@ -11,7 +11,6 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.Reader;
 import java.math.BigDecimal;
-import java.nio.charset.StandardCharsets;
 import java.sql.Array;
 import java.sql.Blob;
 import java.sql.Clob;
@@ -168,8 +167,7 @@ public final class ValueToObjectConverter2 extends TraceObject {
         case Value.CLOB: {
             if (session == null) {
                 String s = rs.getString(columnIndex);
-                v = s == null ? ValueNull.INSTANCE
-                        : ValueLobInMemory.createSmallLob(Value.CLOB, s.getBytes(StandardCharsets.UTF_8));
+                v = s == null ? ValueNull.INSTANCE : ValueClob.createSmall(s);
             } else {
                 Reader in = rs.getCharacterStream(columnIndex);
                 v = in == null ? ValueNull.INSTANCE
@@ -196,7 +194,7 @@ public final class ValueToObjectConverter2 extends TraceObject {
         case Value.BLOB: {
             if (session == null) {
                 byte[] buff = rs.getBytes(columnIndex);
-                v = buff == null ? ValueNull.INSTANCE : ValueLobInMemory.createSmallLob(Value.BLOB, buff);
+                v = buff == null ? ValueNull.INSTANCE : ValueBlob.createSmall(buff);
             } else {
                 InputStream in = rs.getBinaryStream(columnIndex);
                 v = in == null ? ValueNull.INSTANCE

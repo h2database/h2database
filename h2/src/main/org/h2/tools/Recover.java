@@ -77,9 +77,12 @@ import org.h2.value.CompareMode;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueBigint;
+import org.h2.value.ValueBlob;
+import org.h2.value.ValueClob;
 import org.h2.value.ValueCollectionBase;
 import org.h2.value.ValueLob;
-import org.h2.value.ValueLobDatabase;
+import org.h2.value.lob.LobData;
+import org.h2.value.lob.LobDataDatabase;
 
 /**
  * Helps recovering a corrupted database.
@@ -201,14 +204,12 @@ public class Recover extends Tool implements DataHandler {
     /**
      * INTERNAL
      */
-    public static ValueLob readBlobDb(Connection conn, long lobId,
-            long precision) {
+    public static ValueBlob readBlobDb(Connection conn, long lobId, long precision) {
         DataHandler h = ((JdbcConnection) conn).getSession().getDataHandler();
         verifyPageStore(h);
-        ValueLobDatabase lob = ValueLobDatabase.create(Value.BLOB, h, LobStorageFrontend.TABLE_TEMP,
-                lobId, precision);
-        lob.setRecoveryReference(true);
-        return lob;
+        LobDataDatabase lobData = new LobDataDatabase(h, LobStorageFrontend.TABLE_TEMP, lobId);
+        lobData.setRecoveryReference(true);
+        return new ValueBlob(precision, lobData);
     }
 
     private static void verifyPageStore(DataHandler h) {
@@ -222,14 +223,12 @@ public class Recover extends Tool implements DataHandler {
     /**
      * INTERNAL
      */
-    public static ValueLob readClobDb(Connection conn, long lobId,
-            long precision) {
+    public static ValueClob readClobDb(Connection conn, long lobId, long precision) {
         DataHandler h = ((JdbcConnection) conn).getSession().getDataHandler();
         verifyPageStore(h);
-        ValueLobDatabase lob =  ValueLobDatabase.create(Value.CLOB, h, LobStorageFrontend.TABLE_TEMP,
-                lobId, precision);
-        lob.setRecoveryReference(true);
-        return lob;
+        LobDataDatabase lobData = new LobDataDatabase(h, LobStorageFrontend.TABLE_TEMP, lobId);
+        lobData.setRecoveryReference(true);
+        return new ValueClob(precision, lobData);
     }
 
     /**
@@ -374,27 +373,31 @@ public class Recover extends Tool implements DataHandler {
     }
 
     private void getSQL(StringBuilder builder, String column, Value v) {
-        if (v instanceof ValueLobDatabase) {
-            ValueLobDatabase lob = (ValueLobDatabase) v;
-            int type = lob.getValueType();
-            long id = lob.getLobId();
-            long precision = lob.getType().getPrecision();
-            String columnType;
-            if (type == Value.BLOB) {
-                columnType = "BLOB";
-                builder.append("READ_BLOB");
-            } else {
-                columnType = "CLOB";
-                builder.append("READ_CLOB");
+        if (v instanceof ValueLob) {
+            ValueLob lob = (ValueLob) v;
+            LobData lobData = lob.getLobData();
+            if (lobData instanceof LobDataDatabase) {
+                LobDataDatabase lobDataDatabase = (LobDataDatabase) lobData;
+                int type = v.getValueType();
+                long id = lobDataDatabase.getLobId();
+                long precision = lob.getPrecision();
+                String columnType;
+                if (type == Value.BLOB) {
+                    columnType = "BLOB";
+                    builder.append("READ_BLOB");
+                } else {
+                    columnType = "CLOB";
+                    builder.append("READ_CLOB");
+                }
+                if (lobMaps) {
+                    builder.append("_MAP");
+                } else {
+                    builder.append("_DB");
+                }
+                columnTypeMap.put(column, columnType);
+                builder.append('(').append(id).append(", ").append(precision).append(')');
+                return;
             }
-            if (lobMaps) {
-                builder.append("_MAP");
-            } else {
-                builder.append("_DB");
-            }
-            columnTypeMap.put(column, columnType);
-            builder.append('(').append(id).append(", ").append(precision).append(')');
-            return;
         }
         v.getSQL(builder, HasSQL.NO_CASTS);
     }

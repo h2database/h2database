@@ -26,6 +26,7 @@ import org.h2.api.ErrorCode;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
+import org.h2.test.utils.RandomDataUtils;
 import org.h2.util.IOUtils;
 
 /**
@@ -124,9 +125,7 @@ public class TestLobApi extends TestDb {
         Random r = new Random(1);
 
         char[] charsSmall = new char[20];
-        for (int i = 0; i < charsSmall.length; i++) {
-            charsSmall[i] = (char) r.nextInt(10000);
-        }
+        RandomDataUtils.randomChars(r, charsSmall);
         String dSmall = new String(charsSmall);
         prep.setCharacterStream(1, new StringReader(dSmall), -1);
         byte[] bytesSmall = new byte[20];
@@ -135,9 +134,7 @@ public class TestLobApi extends TestDb {
         prep.execute();
 
         char[] chars = new char[100000];
-        for (int i = 0; i < chars.length; i++) {
-            chars[i] = (char) r.nextInt(10000);
-        }
+        RandomDataUtils.randomChars(r, chars);
         String d = new String(chars);
         prep.setCharacterStream(1, new StringReader(d), -1);
         byte[] bytes = new byte[100000];

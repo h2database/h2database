@@ -8,6 +8,9 @@ package org.h2.store;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
+
+import org.h2.value.ValueBlob;
+import org.h2.value.ValueClob;
 import org.h2.value.ValueLob;
 
 /**
@@ -22,7 +25,7 @@ public interface LobStorageInterface {
      * @param maxLength the maximum length (-1 if not known)
      * @return the LOB
      */
-    ValueLob createClob(Reader reader, long maxLength);
+    ValueClob createClob(Reader reader, long maxLength);
 
     /**
      * Create a BLOB object.
@@ -31,7 +34,7 @@ public interface LobStorageInterface {
      * @param maxLength the maximum length (-1 if not known)
      * @return the LOB
      */
-    ValueLob createBlob(InputStream in, long maxLength);
+    ValueBlob createBlob(InputStream in, long maxLength);
 
     /**
      * Copy a lob.

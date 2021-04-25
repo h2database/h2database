@@ -60,12 +60,13 @@ import org.h2.util.Utils;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueLob;
-import org.h2.value.ValueLobDatabase;
-import org.h2.value.ValueLobInMemory;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueTimestampTimeZone;
 import org.h2.value.ValueVarchar;
 import org.h2.value.VersionedValue;
+import org.h2.value.lob.LobData;
+import org.h2.value.lob.LobDataDatabase;
+import org.h2.value.lob.LobDataInMemory;
 
 /**
  * A session represents an embedded database connection. When using the server
@@ -1826,10 +1827,11 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
 
     @Override
     public ValueLob addTemporaryLob(ValueLob v) {
-        if (v instanceof ValueLobInMemory) {
+        LobData lobData = v.getLobData();
+        if (lobData instanceof LobDataInMemory) {
             return v;
         }
-        int tableId = ((ValueLobDatabase) v).getTableId();
+        int tableId = ((LobDataDatabase) lobData).getTableId();
         if (tableId == LobStorageFrontend.TABLE_RESULT || tableId == LobStorageFrontend.TABLE_TEMP) {
             if (temporaryResultLobs == null) {
                 temporaryResultLobs = new LinkedList<>();

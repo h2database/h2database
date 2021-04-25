@@ -41,8 +41,10 @@ import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueBigint;
 import org.h2.value.ValueBinary;
+import org.h2.value.ValueBlob;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueChar;
+import org.h2.value.ValueClob;
 import org.h2.value.ValueCollectionBase;
 import org.h2.value.ValueDate;
 import org.h2.value.ValueDecfloat;
@@ -53,8 +55,6 @@ import org.h2.value.ValueInterval;
 import org.h2.value.ValueJavaObject;
 import org.h2.value.ValueJson;
 import org.h2.value.ValueLob;
-import org.h2.value.ValueLobDatabase;
-import org.h2.value.ValueLobInMemory;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueNumeric;
 import org.h2.value.ValueReal;
@@ -69,6 +69,9 @@ import org.h2.value.ValueUuid;
 import org.h2.value.ValueVarbinary;
 import org.h2.value.ValueVarchar;
 import org.h2.value.ValueVarcharIgnoreCase;
+import org.h2.value.lob.LobData;
+import org.h2.value.lob.LobDataDatabase;
+import org.h2.value.lob.LobDataInMemory;
 
 /**
  * A row type.
@@ -452,14 +455,15 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
         case Value.CLOB: {
             buff.put(type == Value.BLOB ? BLOB : CLOB);
             ValueLob lob = (ValueLob) v;
-            if (lob instanceof ValueLobDatabase) {
-                ValueLobDatabase lobDb = (ValueLobDatabase) lob;
+            LobData lobData = lob.getLobData();
+            if (lobData instanceof LobDataDatabase) {
+                LobDataDatabase lobDataDatabase = (LobDataDatabase) lobData;
                 buff.putVarInt(-3).
-                    putVarInt(lobDb.getTableId()).
-                    putVarLong(lobDb.getLobId()).
-                    putVarLong(lob.getType().getPrecision());
+                    putVarInt(lobDataDatabase.getTableId()).
+                    putVarLong(lobDataDatabase.getLobId()).
+                    putVarLong(lob.getPrecision());
             } else {
-                byte[] small = ((ValueLobInMemory)lob).getSmall();
+                byte[] small = ((LobDataInMemory) lobData).getSmall();
                 buff.putVarInt(small.length).
                     put(small);
             }
@@ -684,13 +688,13 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
             if (smallLen >= 0) {
                 byte[] small = Utils.newBytes(smallLen);
                 buff.get(small, 0, smallLen);
-                return ValueLobInMemory.createSmallLob(type == BLOB ? Value.BLOB : Value.CLOB, small);
+                return type == BLOB ? ValueBlob.createSmall(small) : ValueClob.createSmall(small);
             } else if (smallLen == -3) {
                 int tableId = readVarInt(buff);
                 long lobId = readVarLong(buff);
                 long precision = readVarLong(buff);
-                return ValueLobDatabase.create(type == BLOB ? Value.BLOB : Value.CLOB,
-                        handler, tableId, lobId, precision);
+                return type == BLOB ? ValueBlob.create(precision, handler, tableId, lobId)
+                        : ValueClob.create(precision, handler, tableId, lobId);
             } else {
                 throw DbException.get(ErrorCode.FILE_CORRUPTED_1, "lob type: " + smallLen);
             }

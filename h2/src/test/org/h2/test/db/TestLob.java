@@ -134,7 +134,7 @@ public class TestLob extends TestDb {
     }
 
     private void testReclamationOnInDoubtRollback() throws Exception {
-        if (config.memory) {
+        if (config.memory || config.cipher != null) {
             return;
         }
         deleteDb("lob");

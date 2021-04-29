@@ -24,6 +24,7 @@ import java.sql.SQLException;
 import java.sql.Savepoint;
 import java.sql.Statement;
 import java.sql.Types;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
@@ -33,6 +34,7 @@ import org.h2.engine.Constants;
 import org.h2.engine.SysProperties;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
+import org.h2.store.FileLister;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
@@ -70,7 +72,11 @@ public class TestLob extends TestDb {
 
     @Override
     public void test() throws Exception {
-        testRemoveAfterDeleteAndClose();
+        // TODO fails in pagestore mode
+        if (config.mvStore) {
+            testReclamationOnInDoubtRollback();
+            testRemoveAfterDeleteAndClose();
+        }
         testRemovedAfterTimeout();
         testConcurrentRemoveRead();
         testCloseLobTwice();
@@ -127,12 +133,61 @@ public class TestLob extends TestDb {
         deleteDb("lob");
     }
 
-    private void testRemoveAfterDeleteAndClose() throws Exception {
-        if (config.memory || config.cipher != null) {
+    private void testReclamationOnInDoubtRollback() throws Exception {
+        if (config.memory) {
             return;
         }
-        // TODO fails in pagestore mode
-        if (!config.mvStore) {
+        deleteDb("lob");
+        try (Connection conn = getConnection("lob")) {
+            try (Statement st = conn.createStatement()) {
+                st.executeUpdate("CREATE TABLE IF NOT EXISTS dataTable("
+                        + "dataStamp BIGINT PRIMARY KEY, "
+                        + "data BLOB)");
+            }
+
+            conn.setAutoCommit(false);
+            Random rnd = new Random(0);
+            try (PreparedStatement pstmt = conn.prepareStatement("INSERT INTO dataTable VALUES(?, ?)")) {
+                for (int i = 0; i < 100; ++i) {
+                    int numBytes = 1024 * 1024;
+                    byte[] data = new byte[numBytes];
+                    rnd.nextBytes(data);
+                    pstmt.setLong(1, i);
+                    pstmt.setBytes(2, data);
+                    pstmt.executeUpdate();
+                }
+            }
+            try (Statement st = conn.createStatement()) {
+                st.executeUpdate("PREPARE COMMIT lobtx");
+                st.execute("SHUTDOWN IMMEDIATELY");
+            }
+        }
+
+        try (Connection conn = getConnection("lob")) {
+            try (Statement st = conn.createStatement(); ResultSet rs = st.executeQuery("SELECT * FROM INFORMATION_SCHEMA.IN_DOUBT")) {
+                assertTrue("No in-doubt tx", rs.first());
+                assertEquals("LOBTX", rs.getString("TRANSACTION_NAME"));
+                assertFalse("more than one in-doubt tx", rs.next());
+                st.executeUpdate("ROLLBACK TRANSACTION lobtx; CHECKPOINT SYNC");
+            }
+        }
+
+        try (Connection conn = getConnection("lob")) {
+            try (Statement st = conn.createStatement()) {
+                st.execute("SHUTDOWN COMPACT");
+            }
+        }
+
+        ArrayList<String> dbFiles = FileLister.getDatabaseFiles(getBaseDir(), "lob", false);
+        assertEquals(1, dbFiles.size());
+        File file = new File(dbFiles.get(0));
+        assertTrue(file.exists());
+        long fileSize = file.length();
+        assertTrue("File size=" + fileSize, fileSize < 13000);
+    }
+
+    private void testRemoveAfterDeleteAndClose() throws Exception {
+        if (config.memory || config.cipher != null) {
             return;
         }
         deleteDb("lob");
@@ -1844,5 +1899,4 @@ public class TestLob extends TestDb {
             assertEquals(s, IOUtils.readStringAndClose(v.getReader(), -1));
         }
     }
-
 }

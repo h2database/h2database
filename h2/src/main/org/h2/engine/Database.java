@@ -352,13 +352,6 @@ public final class Database implements DataHandler, CastDataProvider {
             } else {
                 store = null;
             }
-            Set<String> settingKeys = dbSettings.getSettings().keySet();
-            if (store != null) {
-                store.getTransactionStore().init();
-                settingKeys.removeIf(name -> name.startsWith("PAGE_STORE_"));
-            } else {
-                settingKeys.removeIf(name -> "COMPRESS".equals(name) || "REUSE_SPACE".equals(name));
-            }
             systemUser = new User(this, 0, SYSTEM_USER_NAME, true);
             systemUser.setAdmin(true);
             mainSchema = new Schema(this, Constants.MAIN_SCHEMA_ID, sysIdentifier(Constants.SCHEMA_MAIN), systemUser,
@@ -376,6 +369,13 @@ public final class Database implements DataHandler, CastDataProvider {
             usersAndRoles.put(publicRole.getName(), publicRole);
             systemSession = createSession(systemUser);
             lobSession = createSession(systemUser);
+            Set<String> settingKeys = dbSettings.getSettings().keySet();
+            if (store != null) {
+                store.getTransactionStore().init(lobSession);
+                settingKeys.removeIf(name -> name.startsWith("PAGE_STORE_"));
+            } else {
+                settingKeys.removeIf(name -> "COMPRESS".equals(name) || "REUSE_SPACE".equals(name));
+            }
             CreateTableData data = createSysTableData();
             starting = true;
             meta = mainSchema.createTable(data);
@@ -414,6 +414,7 @@ public final class Database implements DataHandler, CastDataProvider {
                 }
             }
             lobStorage = dbSettings.mvStore ? new LobStorageMap(this) : new LobStorageBackend(this);
+            lobSession.commit(true);
             systemSession.commit(true);
             trace.info("opened {0}", databaseName);
             if (persistent) {
@@ -1209,7 +1210,7 @@ public final class Database implements DataHandler, CastDataProvider {
         }
     }
 
-    private boolean isUserSession(SessionLocal session) {
+    boolean isUserSession(SessionLocal session) {
         return session != systemSession && session != lobSession;
     }
 
@@ -1350,6 +1351,14 @@ public final class Database implements DataHandler, CastDataProvider {
             }
             tempFileDeleter.deleteAll();
             try {
+                if (lobSession != null) {
+                    lobSession.close();
+                    lobSession = null;
+                }
+                if (systemSession != null) {
+                    systemSession.close();
+                    systemSession = null;
+                }
                 closeOpenFilesAndUnlock(compactMode != CommandInterface.SHUTDOWN_IMMEDIATELY);
             } catch (DbException e) {
                 trace.error(e, "close");
@@ -1431,14 +1440,6 @@ public final class Database implements DataHandler, CastDataProvider {
                         trace.error(t, "close");
                     }
                 }
-            }
-            if (systemSession != null) {
-                systemSession.close();
-                systemSession = null;
-            }
-            if (lobSession != null) {
-                lobSession.close();
-                lobSession = null;
             }
             closeFiles(false);
             if (persistent) {

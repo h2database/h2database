@@ -728,7 +728,6 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
     }
 
     private void removeTemporaryLobs(boolean onTimeout) {
-        assert this != database.getLobSession() || Thread.holdsLock(this) || Thread.holdsLock(database);
         if (temporaryLobs != null) {
             for (ValueLob v : temporaryLobs) {
                 if (!v.isLinkedToTable()) {
@@ -1917,7 +1916,6 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
         Row result;
         if(value instanceof Row) {
             result = (Row) value;
-            assert result.getKey() == recKey : result.getKey() + " != " + recKey;
         } else {
             result = table.createRow(((ValueArray) value).getList(), 0, recKey);
         }

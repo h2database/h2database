@@ -147,19 +147,6 @@ public abstract class RandomAccessStore extends FileStore {
         return size * BLOCK_SIZE;
     }
 
-    /**
-     * Calculates a prospective fill rate, which store would have after rewrite
-     * of sparsely populated chunk(s) and evacuation of still live data into a
-     * new chunk.
-     *
-     * @param vacatedBlocks
-     *            number of blocks vacated
-     * @return prospective fill rate (0 - 100)
-     */
-    protected int getProjectedFillRate(int vacatedBlocks) {
-        return freeSpace.getProjectedFillRate(vacatedBlocks);
-    }
-
     long getFirstFree() {
         return freeSpace.getFirstFree();
     }

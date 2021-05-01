@@ -110,11 +110,6 @@ public class AppendOnlyMultiFileStore extends FileStore
     }
 
     @Override
-    protected int getProjectedFillRate(int vacatedBlocks) {
-        return 0;
-    }
-
-    @Override
     protected void shrinkStoreIfPossible(int minPercent) {}
 
     @Override

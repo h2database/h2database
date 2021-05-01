@@ -490,33 +490,34 @@ public abstract class FileStore
     public final void rollbackTo(long version) {
         if (version == 0) {
             // special case: remove all data
+            String metaId = layout.get(META_ID_KEY);
             layout.setInitialRoot(layout.createEmptyLeaf(), INITIAL_VERSION);
+            layout.put(META_ID_KEY, metaId);
         } else {
-            layout.rollbackTo(version);
+            if (!layout.rollbackRoot(version)) {
+                MVMap<String, String> layoutMap = getLayoutMap(version);
+                layout.setInitialRoot(layoutMap.getRootPage(), version);
+            }
         }
-        // find out which chunks to remove,
-        // and which is the newest chunk to keep
-        // (the chunk list can have gaps)
-        ArrayList<Chunk> remove = new ArrayList<>();
-        Chunk keep = null;
         serializationLock.lock();
         try {
-            for (Iterator<Map.Entry<Integer, Chunk>> iterator = chunks.entrySet().iterator(); iterator.hasNext(); ) {
-                Map.Entry<Integer, Chunk> entry = iterator.next();
-                Chunk c = entry.getValue();
-                if (c.version > version) {
-                    remove.add(c);
-                    iterator.remove();
-                } else if (keep == null || keep.version < c.version) {
-                    keep = c;
+            Chunk keep = getChunkForVersion(version);
+            if (keep != null) {
+                saveChunkLock.lock();
+                try {
+                    deadChunks.clear();
+                    setLastChunk(keep);
+                    storeHeader.put(HDR_CLEAN, 1);
+                    writeStoreHeader();
+                    readStoreHeader(false);
+                } finally {
+                    saveChunkLock.unlock();
                 }
-            }
-            if (!remove.isEmpty()) {
-                rollback(keep, remove);
             }
         } finally {
             serializationLock.unlock();
         }
+        removedPages.clear();
         clearCaches();
     }
 
@@ -1018,6 +1019,7 @@ public abstract class FileStore
             return result;
         };
 
+        Map<Long, Chunk> validChunksByLocation = new HashMap<>();
         if (!assumeCleanShutdown) {
             Chunk tailChunk = discoverChunk(blocksInStore);
             if (tailChunk != null) {
@@ -1026,25 +1028,23 @@ public abstract class FileStore
                     newest = tailChunk;
                 }
             }
-        }
-
-        Map<Long, Chunk> validChunksByLocation = new HashMap<>();
-        if (newest != null) {
-            // read the chunk header and footer,
-            // and follow the chain of next chunks
-            while (true) {
-                validChunksByLocation.put(newest.block, newest);
-                if (newest.next == 0 || newest.next >= blocksInStore) {
-                    // no (valid) next
-                    break;
+            if (newest != null) {
+                // read the chunk header and footer,
+                // and follow the chain of next chunks
+                while (true) {
+                    validChunksByLocation.put(newest.block, newest);
+                    if (newest.next == 0 || newest.next >= blocksInStore) {
+                        // no (valid) next
+                        break;
+                    }
+                    Chunk test = readChunkHeaderAndFooter(newest.next, newest.id + 1);
+                    if (test == null || test.version <= newest.version) {
+                        break;
+                    }
+                    // if shutdown was really clean then chain should be empty
+                    assumeCleanShutdown = false;
+                    newest = test;
                 }
-                Chunk test = readChunkHeaderAndFooter(newest.next, newest.id + 1);
-                if (test == null || test.version <= newest.version) {
-                    break;
-                }
-                // if shutdown was really clean then chain should be empty
-                assumeCleanShutdown = false;
-                newest = test;
             }
         }
 
@@ -1404,8 +1404,6 @@ public abstract class FileStore
 
     public abstract int getFillRate();
 
-    protected abstract int getProjectedFillRate(int vacatedBlocks);
-
     /**
      * Shrink store if possible, and if at least a given percentage can be
      * saved.
@@ -1515,44 +1513,6 @@ public abstract class FileStore
     public abstract void markUsed(long pos, int length);
 
     public abstract void backup(ZipOutputStream out) throws IOException;
-
-    public void rollback(Chunk keep, ArrayList<Chunk> remove) {
-        // remove the youngest first, so we don't create gaps
-        // (in case we remove many chunks)
-        remove.sort(Comparator.<Chunk>comparingLong(o -> o.version).reversed());
-
-        saveChunkLock.lock();
-        try {
-            freeChunkSpace(remove);
-            for (Chunk c : remove) {
-                if (c != null) {
-                    long start = c.block * FileStore.BLOCK_SIZE;
-                    int length = c.len * FileStore.BLOCK_SIZE;
-                    // overwrite the chunk,
-                    // so it is not be used later on
-                    WriteBuffer buff = getWriteBuffer();
-                    try {
-                        buff.limit(length);
-                        // buff.clear() does not set the data
-                        Arrays.fill(buff.getBuffer().array(), (byte) 0);
-                        writeFully(start, buff.getBuffer());
-                    } finally {
-                        releaseWriteBuffer(buff);
-                    }
-                    // only really needed if we remove many chunks, when writes are
-                    // re-ordered - but we do it always, because rollback is not
-                    // performance critical
-                    sync();
-                }
-            }
-            deadChunks.clear();
-            lastChunk = keep;
-            writeStoreHeader();
-            readStoreHeader(false);
-        } finally {
-            saveChunkLock.unlock();
-        }
-    }
 
     protected ConcurrentMap<Integer, Chunk> getChunks() {
         return chunks;

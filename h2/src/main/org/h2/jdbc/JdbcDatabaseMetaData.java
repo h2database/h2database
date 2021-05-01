@@ -1829,7 +1829,7 @@ public final class JdbcDatabaseMetaData extends TraceObject
      * ResultSet.TYPE_SCROLL_SENSITIVE is not supported.
      *
      * @param type the result set type
-     * @return true for all types except ResultSet.TYPE_FORWARD_ONLY
+     * @return true for all types except ResultSet.TYPE_SCROLL_SENSITIVE
      */
     @Override
     public boolean supportsResultSetType(int type) {

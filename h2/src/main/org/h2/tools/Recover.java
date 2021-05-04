@@ -47,6 +47,7 @@ import org.h2.mvstore.db.ValueDataType;
 import org.h2.mvstore.tx.TransactionMap;
 import org.h2.mvstore.tx.TransactionStore;
 import org.h2.mvstore.type.DataType;
+import org.h2.mvstore.type.LongDataType;
 import org.h2.mvstore.type.MetaType;
 import org.h2.mvstore.type.StringDataType;
 import org.h2.pagestore.Page;
@@ -664,17 +665,17 @@ public class Recover extends Tool implements DataHandler {
         }
         MVMap<Long, byte[]> lobData = mv.openMap("lobData");
         StreamStore streamStore = new StreamStore(lobData);
-        MVMap<Long, Object[]> lobMap = mv.openMap("lobMap");
+        MVMap<Long, LobStorageMap.BlobMeta> lobMap = mv.openMap("lobMap", new MVMap.Builder<Long, LobStorageMap.BlobMeta>().keyType(LongDataType.INSTANCE).valueType(LobStorageMap.BlobMeta.Type.INSTANCE));
         writer.println("-- LOB");
         writer.println("CREATE TABLE IF NOT EXISTS " +
                 "INFORMATION_SCHEMA.LOB_BLOCKS(" +
                 "LOB_ID BIGINT, SEQ INT, DATA VARBINARY, " +
                 "PRIMARY KEY(LOB_ID, SEQ));");
         boolean hasErrors = false;
-        for (Entry<Long, Object[]> e : lobMap.entrySet()) {
+        for (Entry<Long, LobStorageMap.BlobMeta> e : lobMap.entrySet()) {
             long lobId = e.getKey();
-            Object[] value = e.getValue();
-            byte[] streamStoreId = (byte[]) value[0];
+            LobStorageMap.BlobMeta value = e.getValue();
+            byte[] streamStoreId = value.streamStoreId;
             InputStream in = streamStore.get(streamStoreId);
             int len = 8 * 1024;
             byte[] block = new byte[len];
@@ -702,8 +703,8 @@ public class Recover extends Tool implements DataHandler {
         if (hasErrors) {
             writer.println("-- lobMap");
             for (Long k : lobMap.keyList()) {
-                Object[] value = lobMap.get(k);
-                byte[] streamStoreId = (byte[]) value[0];
+                LobStorageMap.BlobMeta value = lobMap.get(k);
+                byte[] streamStoreId = value.streamStoreId;
                 writer.println("--     " + k + " " + StreamStore.toString(streamStoreId));
             }
             writer.println("-- lobData");

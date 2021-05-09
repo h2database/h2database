@@ -19,7 +19,7 @@ import org.h2.util.StringUtils;
  * Minimum chunk size is usually 4096 bytes, and it grows in those fixed increments (blocks).
  * Chunk's length and it's position in the underlying filestore
  * are multiples of that increment (block size),
- * therefore they both are beasured in blocks, instead of bytes.
+ * therefore they both are measured in blocks, instead of bytes.
  * There are at most 67 million (2^26) chunks,
  * and each chunk is at most 2 GB large.
  */

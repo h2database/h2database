@@ -5,7 +5,7 @@
  */
 package org.h2.mvstore;
 
-import static org.h2.mvstore.MVMap.INITIAL_VERSION;
+import static org.h2.mvstore.MVStore.INITIAL_VERSION;
 import org.h2.mvstore.cache.CacheLongKeyLIRS;
 import org.h2.mvstore.type.StringDataType;
 import org.h2.util.MathUtils;
@@ -47,10 +47,9 @@ import java.util.function.IntSupplier;
 import java.util.zip.ZipOutputStream;
 
 /**
- * Class FileStore.
- * <UL>
- * <LI> 4/5/20 2:03 PM initial creation
- * </UL>
+ * Class FileStore is a base class to allow for different store implementations.
+ * FileStore concept revolvs around notion of "chunk" which is a piece of data
+ * written into the store at once.
  *
  * @author <a href='mailto:andrei.tokar@gmail.com'>Andrei Tokar</a>
  */
@@ -280,7 +279,7 @@ public abstract class FileStore
         scrubLayoutMap(mvStore);
     }
 
-    public void bind(MVStore mvStore) {
+    public final void bind(MVStore mvStore) {
         if(this.mvStore != mvStore) {
             layout = new MVMap<>(mvStore, 0, StringDataType.INSTANCE, StringDataType.INSTANCE);
             this.mvStore = mvStore;
@@ -289,7 +288,7 @@ public abstract class FileStore
         }
     }
 
-    public void stop(long allowedCompactionTime) {
+    public final void stop(long allowedCompactionTime) {
         if (allowedCompactionTime > 0) {
             compactStore(allowedCompactionTime);
         }
@@ -302,7 +301,7 @@ public abstract class FileStore
         chunks.clear();
     }
 
-    public int getMetaMapId(IntSupplier nextIdSupplier) {
+    public final int getMetaMapId(IntSupplier nextIdSupplier) {
         String metaIdStr = layout.get(META_ID_KEY);
         int metaId;
         if (metaIdStr == null) {
@@ -328,7 +327,7 @@ public abstract class FileStore
      *
      * @return the metadata map
      */
-    public MVMap<String, String> getLayoutMap() {
+    public final MVMap<String, String> getLayoutMap() {
         return layout;
     }
 
@@ -337,7 +336,7 @@ public abstract class FileStore
      * @param mapId to get root position for
      * @return opaque "position" value, that should be used to read the page
      */
-    public long getRootPos(int mapId) {
+    public final long getRootPos(int mapId) {
         String root = layout.get(MVMap.getMapRootKey(mapId));
         return root == null ? 0 : DataUtils.parseHexLong(root);
     }
@@ -348,7 +347,7 @@ public abstract class FileStore
      *
      * @param mapId to deregister
      */
-    public boolean deregisterMapRoot(int mapId) {
+    public final boolean deregisterMapRoot(int mapId) {
         return layout.remove(MVMap.getMapRootKey(mapId)) != null;
     }
 
@@ -357,25 +356,25 @@ public abstract class FileStore
      *
      * @return if there are any changes
      */
-    public boolean hasChangesSince(long lastStoredVersion) {
+    public final boolean hasChangesSince(long lastStoredVersion) {
         return layout.hasChangesSince(lastStoredVersion) && lastStoredVersion > INITIAL_VERSION;
     }
 
-    public long lastChunkVersion() {
+    public final long lastChunkVersion() {
         Chunk chunk = lastChunk;
         return chunk == null ? INITIAL_VERSION + 1 : chunk.version;
     }
 
-    public int lastMapId() {
+    private int lastMapId() {
         Chunk chunk = lastChunk;
         return chunk == null ? 0 : chunk.mapId;
     }
 
-    public long getMaxPageSize() {
+    public final long getMaxPageSize() {
         return maxPageSize;
     }
 
-    public int getRetentionTime() {
+    public final int getRetentionTime() {
         return retentionTime;
     }
 
@@ -400,7 +399,7 @@ public abstract class FileStore
      * @param ms how many milliseconds to retain old chunks (0 to overwrite them
      *            as early as possible)
      */
-    public void setRetentionTime(int ms) {
+    public final void setRetentionTime(int ms) {
         retentionTime = ms;
     }
 
@@ -417,7 +416,7 @@ public abstract class FileStore
      *
      * @return the delay in milliseconds, or 0 if auto-commit is disabled.
      */
-    public int getAutoCommitDelay() {
+    public final int getAutoCommitDelay() {
         return autoCommitDelay;
     }
 
@@ -432,7 +431,7 @@ public abstract class FileStore
      *
      * @param millis the maximum delay
      */
-    public void setAutoCommitDelay(int millis) {
+    public final void setAutoCommitDelay(int millis) {
         if (autoCommitDelay != millis) {
             autoCommitDelay = millis;
             if (!isReadOnly()) {
@@ -459,7 +458,7 @@ public abstract class FileStore
      * @param version the version
      * @return true if all data can be read
      */
-    public boolean isKnownVersion(long version) {
+    public final boolean isKnownVersion(long version) {
         if (chunks.isEmpty()) {
             // no stored data
             return true;
@@ -657,7 +656,7 @@ public abstract class FileStore
         return retentionTime < 0 || chunk.time + retentionTime <= time;
     }
 
-    public boolean isRewritable(Chunk chunk, long time) {
+    private boolean isRewritable(Chunk chunk, long time) {
         return chunk.isRewritable() && isSeasonedChunk(chunk, time);
     }
 

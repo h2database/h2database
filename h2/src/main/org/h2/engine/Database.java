@@ -1408,7 +1408,7 @@ public final class Database implements DataHandler, CastDataProvider {
         return databaseShortName;
     }
 
-    public String   getName() {
+    public String getName() {
         return databaseName;
     }
 

@@ -37,7 +37,6 @@ public final class Chunk {
      * next:ffffffffffffffff
      */
     static final int MAX_HEADER_LENGTH = 178;
-//    static final int MAX_HEADER_LENGTH = 1024;
 
     /**
      * The length of the chunk footer. The longest footer is:
@@ -481,7 +480,6 @@ public final class Chunk {
                     long filePos = originalBlock * FileStore.BLOCK_SIZE + tocPos;
                     buff = fileStore.readFully(filePos, length);
                 } else {
-//                    System.err.println("Using unsaved buffer " + id + " to fetch ToC at offset " + tocPos);
                     buff = buff.duplicate();
                     buff.position(tocPos);
                     buff = buff.slice();

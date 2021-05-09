@@ -5,7 +5,6 @@
  */
 package org.h2.mvstore;
 
-import static org.h2.mvstore.MVMap.INITIAL_VERSION;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -29,6 +28,7 @@ import org.h2.compress.CompressDeflate;
 import org.h2.compress.CompressLZF;
 import org.h2.compress.Compressor;
 import org.h2.mvstore.type.StringDataType;
+import org.h2.store.fs.FileUtils;
 import org.h2.util.Utils;
 
 /*
@@ -143,6 +143,13 @@ public class MVStore implements AutoCloseable {
      * Store is closed.
      */
     private static final int STATE_CLOSED = 3;
+
+    /**
+     * This designates the "last stored" version for a store which was
+     * just open for the first time.
+     */
+    static final long INITIAL_VERSION = -1;
+
 
     /**
      * Lock which governs access to major store operations: store(), close(), ...
@@ -602,15 +609,40 @@ public class MVStore implements AutoCloseable {
         closeStore(true, 0);
     }
 
+
     /**
-     * Close the file and the store. Unsaved changes are written to disk first,
-     * and compaction (up to a specified number of milliseconds) is attempted.
+     * Close the store. Pending changes are persisted.
+     * If time is allocated for housekeeping, chunks with a low
+     * fill rate are compacted, and some chunks are put next to each other.
+     * If time is unlimited then full compaction is performed, which uses
+     * different algorithm - opens alternative temp store and writes all live
+     * data there, then replaces this store with a new one.
      *
-     * @param allowedCompactionTime the allowed time for compaction (in
-     *            milliseconds)
+     * @param allowedCompactionTime time (in milliseconds) allotted for file
+     *                              compaction activity, 0 means no compaction,
+     *                              -1 means unlimited time (full compaction)
      */
     public void close(int allowedCompactionTime) {
-        closeStore(true, allowedCompactionTime);
+        if (!isClosed() && fileStore != null) {
+            boolean compactFully = allowedCompactionTime == -1;
+            if (fileStore.isReadOnly()) {
+                compactFully = false;
+            } else {
+                commit();
+            }
+            if (compactFully) {
+                allowedCompactionTime = 0;
+            }
+
+            closeStore(true, allowedCompactionTime);
+
+            String fileName = fileStore.getFileName();
+            if (compactFully && FileUtils.exists(fileName)) {
+                // the file could have been deleted concurrently,
+                // so only compact if the file still exists
+                MVStoreTool.compact(fileName, true);
+            }
+        }
     }
 
     /**
@@ -1337,7 +1369,7 @@ public class MVStore implements AutoCloseable {
         long v = oldestVersionToKeep.get();
         v = Math.max(v - versionsToKeep, INITIAL_VERSION);
         if (fileStore != null) {
-            long storeVersion = fileStore.lastChunkVersion()/* - 1*/;
+            long storeVersion = fileStore.lastChunkVersion();
             if (storeVersion != INITIAL_VERSION && storeVersion < v) {
                 v = storeVersion;
             }

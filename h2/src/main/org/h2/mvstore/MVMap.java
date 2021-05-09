@@ -66,13 +66,6 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
     private final AtomicLong avgKeySize;
     private final AtomicLong avgValSize;
 
-    /**
-     * This designates the "last stored" version for a store which was
-     * just open for the first time.
-     */
-    static final long INITIAL_VERSION = -1;
-
-
     protected MVMap(Map<String, Object> config, DataType<K> keyType, DataType<V> valueType) {
         this((MVStore) config.get("store"), keyType, valueType,
                 DataUtils.readHexInt(config, "id", 0),
@@ -1199,7 +1192,7 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
     private void copy(Page<K,V> source, Page<K,V> parent, int index) {
         Page<K,V> target = source.copy(this, true);
         if (parent == null) {
-            setInitialRoot(target, INITIAL_VERSION);
+            setInitialRoot(target, MVStore.INITIAL_VERSION);
         } else {
             parent.setChild(index, target);
         }
@@ -1768,11 +1761,11 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
             V result;
             unsavedMemoryHolder.value = 0;
             try {
-                CursorPos<K, V> pos = CursorPos.traverseDown(rootPage, key);
+                CursorPos<K,V> pos = CursorPos.traverseDown(rootPage, key);
                 if (!locked && rootReference != getRoot()) {
                     continue;
                 }
-                Page<K, V> p = pos.page;
+                Page<K,V> p = pos.page;
                 int index = pos.index;
                 tip = pos;
                 pos = pos.parent;
@@ -1840,18 +1833,18 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
                                 long totalCount = p.getTotalCount();
                                 int at = keyCount >> 1;
                                 K k = p.getKey(at);
-                                Page<K, V> split = p.split(at);
+                                Page<K,V> split = p.split(at);
                                 unsavedMemoryHolder.value += p.getMemory() + split.getMemory();
                                 if (pos == null) {
                                     K[] keys = p.createKeyStorage(1);
                                     keys[0] = k;
-                                    Page.PageReference<K, V>[] children = Page.createRefStorage(2);
+                                    Page.PageReference<K,V>[] children = Page.createRefStorage(2);
                                     children[0] = new Page.PageReference<>(p);
                                     children[1] = new Page.PageReference<>(split);
                                     p = Page.createNode(this, keys, children, totalCount, 0);
                                     break;
                                 }
-                                Page<K, V> c = p;
+                                Page<K,V> c = p;
                                 p = pos.page;
                                 index = pos.index;
                                 pos = pos.parent;

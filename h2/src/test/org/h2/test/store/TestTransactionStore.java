@@ -718,7 +718,6 @@ public class TestTransactionStore extends TestBase {
             for (Statement stat : statements) {
                 stat.getConnection().close();
             }
-            ts.close();
         }
     }
 
@@ -787,8 +786,6 @@ public class TestTransactionStore extends TestBase {
             tx1 = ts.begin();
             m1 = tx1.openMap("test");
             assertNull(m1.get("2"));
-
-            ts.close();
         }
     }
 

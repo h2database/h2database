@@ -337,47 +337,14 @@ public final class Store {
 
     /**
      * Close the store. Pending changes are persisted.
-     * If time is allocated for housekeeping, chunks with a low
-     * fill rate are compacted, and some chunks are put next to each other.
-     * If time is unlimited then full compaction is performed, which uses
-     * different algorithm - opens alternative temp store and writes all live
-     * data there, then replaces this store with a new one.
      *
-     * @param allowedCompactionTime time (in milliseconds) allotted for file
-     *                              compaction activity, 0 means no compaction,
-     *                              -1 means unlimited time (full compaction)
+     * @param allowedCompactionTime time (in milliseconds) allotted for store
+     *                              housekeeping activity, 0 means none,
+     *                              -1 means unlimited time (i.e.full compaction)
      */
     public void close(int allowedCompactionTime) {
         try {
-            FileStore fileStore = mvStore.getFileStore();
-            if (!mvStore.isClosed() && fileStore != null) {
-                boolean compactFully = allowedCompactionTime == -1;
-                if (fileStore.isReadOnly()) {
-                    compactFully = false;
-                } else {
-                    transactionStore.close();
-                }
-                if (compactFully) {
-                    allowedCompactionTime = 0;
-                }
-
-                String fileName = null;
-                FileStore targetFileStore = null;
-                if (compactFully) {
-                    fileName = fileStore.getFileName();
-                    String tempName = fileName + Constants.SUFFIX_MV_STORE_TEMP_FILE;
-                    FileUtils.delete(tempName);
-                    targetFileStore = fileStore.open(tempName, false);
-                }
-
-                mvStore.close(allowedCompactionTime);
-
-                if (compactFully && FileUtils.exists(fileName)) {
-                    // the file could have been deleted concurrently,
-                    // so only compact if the file still exists
-                    compact(fileName, targetFileStore);
-                }
-            }
+            mvStore.close(allowedCompactionTime);
         } catch (MVStoreException e) {
             int errorCode = e.getErrorCode();
             if (errorCode == DataUtils.ERROR_WRITING_FAILED) {

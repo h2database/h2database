@@ -551,6 +551,7 @@ public class DbException extends RuntimeException {
         case ACCESS_DENIED_TO_CLASS_1:
         case RESULT_SET_READONLY:
         case CURRENT_SEQUENCE_VALUE_IS_NOT_DEFINED_IN_SESSION_1:
+        case GROUP_BY_TABLE_TOO_LARGE:
             return new JdbcSQLNonTransientException(message, sql, state, errorCode, cause, stackTrace);
         case FEATURE_NOT_SUPPORTED_1:
             return new JdbcSQLFeatureNotSupportedException(message, sql, state, errorCode, cause, stackTrace);

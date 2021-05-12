@@ -390,6 +390,16 @@ public class SysProperties {
     public static final String AUTH_CONFIG_FILE =
             Utils.getProperty("h2.authConfigFile", null);
 
+    /**
+     * System property <code>h2.maxGroupByEntries</code>
+     * (default: -1).<br />
+     * maxGroupByEntries defines the maximum number of entries
+     * that a group by can handle. If this number is exceeded
+     * the query will fail with a memory management error.
+     */
+    public static final int MAX_GROUP_BY_ENTRIES =
+            Utils.getProperty("h2.maxGroupByEntries", -1);
+
     private static final String H2_BASE_DIR = "h2.baseDir";
 
     private SysProperties() {

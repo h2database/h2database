@@ -13,10 +13,13 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
+import org.h2.api.ErrorCode;
 import org.h2.engine.SessionLocal;
+import org.h2.engine.SysProperties;
 import org.h2.expression.Expression;
 import org.h2.expression.analysis.DataAnalysisOperation;
 import org.h2.expression.analysis.PartitionData;
+import org.h2.message.DbException;
 import org.h2.value.Value;
 import org.h2.value.ValueRow;
 
@@ -93,6 +96,9 @@ public abstract class SelectGroups {
             }
             Object[] values = groupByData.get(currentGroupsKey);
             if (values == null) {
+                if (SysProperties.MAX_GROUP_BY_ENTRIES>0 && groupByData.size()>=SysProperties.MAX_GROUP_BY_ENTRIES) {
+                    throw DbException.get(ErrorCode.GROUP_BY_TABLE_TOO_LARGE);
+                }
                 values = createRow();
                 groupByData.put(currentGroupsKey, values);
             }

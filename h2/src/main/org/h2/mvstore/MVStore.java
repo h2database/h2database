@@ -632,36 +632,41 @@ public class MVStore implements AutoCloseable {
      * @return the map
      */
     public <M extends MVMap<K, V>, K, V> M openMap(String name, MVMap.MapBuilder<M, K, V> builder) {
-        int id = getMapId(name);
-        if (id >= 0) {
-            @SuppressWarnings("unchecked")
-            M map = (M) getMap(id);
-            if(map == null) {
-                map = openMap(id, builder);
+        storeLock.lock();
+        try {
+            int id = getMapId(name);
+            if (id >= 0) {
+                @SuppressWarnings("unchecked")
+                M map = (M) getMap(id);
+                if (map == null) {
+                    map = openMap(id, builder);
+                }
+                assert builder.getKeyType() == null || map.getKeyType().getClass().equals(builder.getKeyType().getClass());
+                assert builder.getValueType() == null
+                        || map.getValueType().getClass().equals(builder.getValueType().getClass());
+                return map;
+            } else {
+                HashMap<String, Object> c = new HashMap<>();
+                id = lastMapId.incrementAndGet();
+                assert getMap(id) == null;
+                c.put("id", id);
+                c.put("createVersion", currentVersion);
+                M map = builder.create(this, c);
+                String x = Integer.toHexString(id);
+                meta.put(MVMap.getMapKey(id), map.asString(name));
+                meta.put(DataUtils.META_NAME + name, x);
+                long lastStoredVersion = currentVersion - 1;
+                map.setRootPos(0, lastStoredVersion);
+                markMetaChanged();
+                @SuppressWarnings("unchecked")
+                M existingMap = (M) maps.putIfAbsent(id, map);
+                if (existingMap != null) {
+                    map = existingMap;
+                }
+                return map;
             }
-            assert builder.getKeyType() == null || map.getKeyType().getClass().equals(builder.getKeyType().getClass());
-            assert builder.getValueType() == null
-                    || map.getValueType().getClass().equals(builder.getValueType().getClass());
-            return map;
-        } else {
-            HashMap<String, Object> c = new HashMap<>();
-            id = lastMapId.incrementAndGet();
-            assert getMap(id) == null;
-            c.put("id", id);
-            c.put("createVersion", currentVersion);
-            M map = builder.create(this, c);
-            String x = Integer.toHexString(id);
-            meta.put(MVMap.getMapKey(id), map.asString(name));
-            meta.put(DataUtils.META_NAME + name, x);
-            long lastStoredVersion = currentVersion - 1;
-            map.setRootPos(0, lastStoredVersion);
-            markMetaChanged();
-            @SuppressWarnings("unchecked")
-            M existingMap = (M) maps.putIfAbsent(id, map);
-            if (existingMap != null) {
-                map = existingMap;
-            }
-            return map;
+        } finally {
+            storeLock.unlock();
         }
     }
 
@@ -3144,7 +3149,8 @@ public class MVStore implements AutoCloseable {
         if(id > 0) {
             MVMap<?, ?> map = getMap(id);
             if (map == null) {
-                map = openMap(name, MVStoreTool.getGenericMapBuilder());
+                // Here should use id instead of name because it may be renamed
+                map = openMap(id, MVStoreTool.getGenericMapBuilder());
             }
             removeMap(map);
         }

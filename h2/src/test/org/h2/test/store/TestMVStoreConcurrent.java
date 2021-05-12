@@ -5,11 +5,7 @@
  */
 package org.h2.test.store;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -19,6 +15,8 @@ import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
+
 import org.h2.mvstore.Chunk;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVMap;
@@ -47,7 +45,8 @@ public class TestMVStoreConcurrent extends TestMVStore {
 
     @Override
     public void test() throws Exception {
-        FileUtils.createDirectories(getBaseDir());
+        String baseDir = getBaseDir();
+        FileUtils.createDirectories(baseDir);
         testInterruptReopenAsync();
         testInterruptReopenRetryNIO();
         testConcurrentSaveCompact();
@@ -64,6 +63,7 @@ public class TestMVStoreConcurrent extends TestMVStore {
         testConcurrentIterate();
         testConcurrentWrite();
         testConcurrentRead();
+        testConcurrentOpenMap(baseDir);
     }
 
     private void testInterruptReopenAsync() {
@@ -802,4 +802,31 @@ public class TestMVStoreConcurrent extends TestMVStore {
             }
         }
     }
+
+    private static void testConcurrentOpenMap(String baseDir) {
+        String fileName = "nio:" + baseDir + File.separator + "testConcurrentOpenMap.mv";
+        for (int i = 0; i < 10; ++i) {
+            AtomicReference<MVMap<String, String>> ref = new AtomicReference<>();
+            FileUtils.delete(fileName);
+            try (MVStore store = openStore(fileName)) {
+                Task[] tasks = new Task[2];
+                for (int j = 0; j < tasks.length; ++j) {
+                    (tasks[j] = new Task() {
+                        @Override
+                        public void call() throws Exception {
+                            MVMap<String, String> map = store.openMap("data");
+                            if (!ref.compareAndSet(null, map) && map != ref.get()) {
+                                throw new Exception("MVStore.openMap() thread-unsafe");
+                            }
+                        }
+                    }).execute();
+                }
+
+                for (Task task : tasks) {
+                    task.get();
+                }
+            }
+        }
+    }
+
 }

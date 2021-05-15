@@ -680,10 +680,7 @@ public final class Transaction {
                             "Transaction %d attempts to update map <%s> entry with key <%s>"
                                     + " modified by transaction %s%n",
                             transactionId, blockingMapName, blockingKey, toWaitFor));
-                    if (isDeadlocked(toWaitFor)) {
-                        throw DataUtils.newMVStoreException(DataUtils.ERROR_TRANSACTIONS_DEADLOCK, "{0}",
-                                details.toString());
-                    }
+                    throw DataUtils.newMVStoreException(DataUtils.ERROR_TRANSACTIONS_DEADLOCK, "{0}", details.toString());
                 }
             }
         }
@@ -698,11 +695,18 @@ public final class Transaction {
     }
 
     private boolean isDeadlocked(Transaction toWaitFor) {
+        // use transaction sequence No as a tie-breaker
+        // the youngest transaction should be selected as a victim
+        long maxSeqNum = 0;
         for(Transaction tx = toWaitFor, nextTx;
             (nextTx = tx.blockingTransaction) != null && tx.getStatus() == Transaction.STATUS_OPEN;
             tx = nextTx) {
+
+            if (maxSeqNum < tx.sequenceNum) {
+                maxSeqNum = tx.sequenceNum;
+            }
             if (nextTx == this) {
-                return true;
+                return sequenceNum > maxSeqNum;
             }
         }
         return false;

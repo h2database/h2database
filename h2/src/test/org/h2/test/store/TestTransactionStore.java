@@ -15,6 +15,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Random;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVStore;
@@ -24,6 +25,8 @@ import org.h2.mvstore.tx.TransactionMap;
 import org.h2.mvstore.tx.TransactionStore;
 import org.h2.mvstore.tx.TransactionStore.Change;
 import org.h2.mvstore.type.LongDataType;
+import org.h2.mvstore.type.MetaType;
+import org.h2.mvstore.type.ObjectDataType;
 import org.h2.mvstore.type.StringDataType;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
@@ -62,6 +65,7 @@ public class TestTransactionStore extends TestBase {
         testCompareWithPostgreSQL();
         testStoreMultiThreadedReads();
         testCommitAfterMapRemoval();
+        testDeadLock();
     }
 
     private void testHCLFKey() {
@@ -946,6 +950,76 @@ public class TestTransactionStore extends TestBase {
                 assertTrue(map.isEmpty());
                 map.put(2L, "B");
             }
+        }
+    }
+
+    private void testDeadLock() {
+        int threadCount = 2;
+        for (int i = 1; i < threadCount; i++) {
+            testDeadLock(threadCount, i);
+        }
+    }
+
+    private void testDeadLock(int threadCount, int stepCount) {
+        try (MVStore s = MVStore.open(null)) {
+            s.setAutoCommitDelay(0);
+            TransactionStore ts = new TransactionStore(s,
+                                    new MetaType<>(null, s.backgroundExceptionHandler), new ObjectDataType(), 10000);
+            ts.init();
+            Transaction t = ts.begin();
+            TransactionMap<Long,Long> m = t.openMap("test", LongDataType.INSTANCE, LongDataType.INSTANCE);
+            for (int i = 0; i < threadCount; i++) {
+                m.put((long)i, 0L);
+            }
+            t.commit();
+
+            CountDownLatch latch = new CountDownLatch(threadCount);
+            Task[] tasks = new Task[threadCount];
+            for (int i = 0; i < threadCount; i++) {
+                long initialKey = i;
+                tasks[i] = new Task() {
+                    @Override
+                    public void call() throws Exception {
+                        Transaction tx = ts.begin();
+                        try {
+                            TransactionMap<Long, Long> map = tx.openMap("test", LongDataType.INSTANCE, LongDataType.INSTANCE);
+                            long key = initialKey;
+                            map.computeIfPresent(key, (k, v) -> v + 1);
+                            latch.countDown();
+                            latch.await();
+                            for (int j = 0; j < stepCount; j++) {
+                                key = (key + 1) % threadCount;
+                                map.lock(key);
+                                map.put(key, map.get(key) + 1);
+                            }
+                            tx.commit();
+                        } catch (Throwable e) {
+                            tx.rollback();
+                            throw e;
+                        }
+                    }
+                }.execute();
+            }
+            int failureCount = 0;
+            for (Task task : tasks) {
+                Exception exception = task.getException();
+                if (exception != null) {
+                    ++failureCount;
+                    assertEquals(MVStoreException.class, exception.getClass());
+                    assertEquals(DataUtils.ERROR_TRANSACTIONS_DEADLOCK, ((MVStoreException)exception).getErrorCode());
+                }
+            }
+            assertEquals(" "+stepCount, stepCount, failureCount);
+            t = ts.begin();
+            m = t.openMap("test", LongDataType.INSTANCE, LongDataType.INSTANCE);
+            int count = 0;
+            for (int i = 0; i < threadCount; i++) {
+                Long value = m.get((long) i);
+                assertNotNull("Key " + i, value);
+                count += value;
+            }
+            t.commit();
+            assertEquals(" "+stepCount, (stepCount+1) * (threadCount - failureCount), count);
         }
     }
 }

@@ -1651,7 +1651,7 @@ public abstract class TestBase {
         }
     }
 
-    private static void checkErrorCode(int expectedErrorCode, Throwable t) throws AssertionError {
+    public static void checkErrorCode(int expectedErrorCode, Throwable t) throws AssertionError {
         int errorCode;
         if (t instanceof DbException) {
             errorCode = ((DbException) t).getErrorCode();

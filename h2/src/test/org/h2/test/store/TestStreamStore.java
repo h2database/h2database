@@ -87,8 +87,7 @@ public class TestStreamStore extends TestBase {
             }
             fail();
         } catch (IOException e) {
-            assertEquals(DataUtils.ERROR_BLOCK_NOT_FOUND,
-                    ((MVStoreException) e.getCause()).getErrorCode());
+            checkErrorCode(DataUtils.ERROR_BLOCK_NOT_FOUND, e.getCause());
         }
     }
 

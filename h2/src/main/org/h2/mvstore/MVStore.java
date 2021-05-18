@@ -3157,7 +3157,6 @@ public class MVStore implements AutoCloseable {
      * @return the name, or null if not found
      */
     public String getMapName(int id) {
-//        checkOpen();
         String m = meta.get(MVMap.getMapKey(id));
         return m == null ? null : DataUtils.getMapName(m);
     }

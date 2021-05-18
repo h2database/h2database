@@ -1410,7 +1410,6 @@ public final class Database implements DataHandler, CastDataProvider {
                         store.closeImmediately();
                     } else {
                         int allowedCompactionTime =
-                                compactMode == CommandInterface.SHUTDOWN_IMMEDIATELY ? 0 :
                                 compactMode == CommandInterface.SHUTDOWN_COMPACT ||
                                 compactMode == CommandInterface.SHUTDOWN_DEFRAG ||
                                 dbSettings.defragAlways ? -1 : dbSettings.maxCompactTime;
@@ -1447,7 +1446,6 @@ public final class Database implements DataHandler, CastDataProvider {
                 pageStore.close();
                 pageStore = null;
             }
-//            closeFiles(false);
             if (persistent) {
                 // Don't delete temp files if everything is already closed
                 // (maybe in checkPowerOff), the database could be open now
@@ -1464,7 +1462,7 @@ public final class Database implements DataHandler, CastDataProvider {
         }
     }
 
-    private synchronized void closeFiles(boolean immediately) {
+    private synchronized void closeFiles() {
         try {
             if (store != null) {
                 store.closeImmediately();
@@ -2482,7 +2480,7 @@ public final class Database implements DataHandler, CastDataProvider {
         } catch (DbException e) {
             // ignore
         }
-        closeFiles(true);
+        closeFiles();
         powerOffCount = 0;
     }
 

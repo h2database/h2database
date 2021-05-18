@@ -34,6 +34,7 @@ import org.h2.command.CommandInterface;
 import org.h2.command.Prepared;
 import org.h2.command.dml.ScriptCommand;
 import org.h2.command.query.Query;
+import org.h2.engine.SysProperties;
 import org.h2.engine.Mode.ModeEnum;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.jdbc.JdbcPreparedStatement;
@@ -234,6 +235,11 @@ public class TestScript extends TestDb {
                 "table", "values", "window" }) {
             testScript("queries/" + s + ".sql");
         }
+
+        SysProperties.maxGroupByMemoryUsage = 200;
+        testScript("other/large_group_by.sql");
+        SysProperties.maxGroupByMemoryUsage = -1;
+
         if (config.mvStore) {
             testScript("other/two_phase_commit.sql");
             testScript("other/unique_include.sql");

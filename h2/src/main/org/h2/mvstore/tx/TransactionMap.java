@@ -337,11 +337,9 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
     private V set(Object key, TxDecisionMaker<K,V> decisionMaker) {
         TransactionStore store = transaction.store;
         Transaction blockingTransaction;
-        long sequenceNumWhenStarted;
         VersionedValue<V> result;
         String mapName = null;
         do {
-            sequenceNumWhenStarted = store.openTransactions.get().getVersion();
             assert transaction.getBlockerId() == 0;
             @SuppressWarnings("unchecked")
             K k = (K) key;
@@ -362,8 +360,7 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
             if (mapName == null) {
                 mapName = map.getName();
             }
-        } while (blockingTransaction.sequenceNum > sequenceNumWhenStarted
-                || transaction.waitFor(blockingTransaction, mapName, key));
+        } while (transaction.waitFor(blockingTransaction, mapName, key));
 
         throw DataUtils.newMVStoreException(DataUtils.ERROR_TRANSACTION_LOCKED,
                 "Map entry <{0}> with key <{1}> and value {2} is locked by tx {3} and can not be updated by tx {4}"

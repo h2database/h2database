@@ -652,7 +652,12 @@ public class MVStore implements AutoCloseable {
             M map = builder.create(this, c);
             String x = Integer.toHexString(id);
             meta.put(MVMap.getMapKey(id), map.asString(name));
-            meta.put(DataUtils.META_NAME + name, x);
+            String existing = meta.putIfAbsent(DataUtils.META_NAME + name, x);
+            if (existing != null) {
+                // looks like map was created concurrently, cleanup and re-start
+                meta.remove(MVMap.getMapKey(id));
+                return openMap(name, builder);
+            }
             long lastStoredVersion = currentVersion - 1;
             map.setRootPos(0, lastStoredVersion);
             markMetaChanged();
@@ -675,26 +680,24 @@ public class MVStore implements AutoCloseable {
      * @param builder the map builder
      * @return the map
      */
+    @SuppressWarnings("unchecked")
     public <M extends MVMap<K, V>, K, V> M openMap(int id, MVMap.MapBuilder<M, K, V> builder) {
-        storeLock.lock();
-        try {
-            @SuppressWarnings("unchecked")
-            M map = (M) getMap(id);
-            if (map == null) {
-                String configAsString = meta.get(MVMap.getMapKey(id));
-                DataUtils.checkArgument(configAsString != null, "Missing map with id {0}", id);
-                HashMap<String, Object> config = new HashMap<>(DataUtils.parseMap(configAsString));
-                config.put("id", id);
-                map = builder.create(this, config);
-                long root = getRootPos(id);
-                long lastStoredVersion = currentVersion - 1;
-                map.setRootPos(root, lastStoredVersion);
-                maps.put(id, map);
+        M map;
+        while ((map = (M)getMap(id)) == null) {
+            String configAsString = meta.get(MVMap.getMapKey(id));
+            DataUtils.checkArgument(configAsString != null, "Missing map with id {0}", id);
+            HashMap<String, Object> config = new HashMap<>(DataUtils.parseMap(configAsString));
+            config.put("id", id);
+            map = builder.create(this, config);
+            long root = getRootPos(id);
+            long lastStoredVersion = currentVersion - 1;
+            map.setRootPos(root, lastStoredVersion);
+            if (maps.putIfAbsent(id, map) == null) {
+                break;
             }
-            return map;
-        } finally {
-            storeLock.unlock();
+            // looks like map has been concurrently created already, re-start
         }
+        return map;
     }
 
     /**

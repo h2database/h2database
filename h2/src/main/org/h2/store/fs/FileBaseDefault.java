@@ -18,7 +18,7 @@ public abstract class FileBaseDefault extends FileBase {
     private long position = 0;
 
     @Override
-    public synchronized final long position() throws IOException {
+    public final synchronized long position() throws IOException {
         return position;
     }
 

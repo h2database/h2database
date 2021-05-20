@@ -255,7 +255,7 @@ public class ArchiveTool {
                     fileIn.close();
                     fileIn = null;
                 }
-                if (files.size() == 0) {
+                if (files.isEmpty()) {
                     // EOF
                     return -1;
                 }
@@ -462,7 +462,7 @@ public class ArchiveTool {
             outPos = 0;
             DataOutputStream tempOut2 = new DataOutputStream(new BufferedOutputStream(
                     new FileOutputStream(tempFileName + ".b"), 1024 * 1024));
-            while (segmentStart.size() > 0) {
+            while (!segmentStart.isEmpty()) {
                 segmentStart2.add(outPos);
                 int s = Math.min(segmentStart.size(), blockSize);
                 List<Long> start = segmentStart.subList(0, s);
@@ -562,7 +562,7 @@ public class ArchiveTool {
 
             @Override
             public boolean hasNext() {
-                return segmentIn.size() > 0;
+                return !segmentIn.isEmpty();
             }
 
             @Override
@@ -833,7 +833,7 @@ public class ArchiveTool {
             outPos = 0;
             DataOutputStream tempOut2 = new DataOutputStream(new BufferedOutputStream(
                     new FileOutputStream(tempFileName + ".b"), 1024 * 1024));
-            while (segmentStart.size() > 0) {
+            while (!segmentStart.isEmpty()) {
                 segmentStart2.add(outPos);
                 int s = Math.min(segmentStart.size(), blockSize);
                 List<Long> start = segmentStart.subList(0, s);
@@ -948,7 +948,7 @@ public class ArchiveTool {
                     }
                     idList.add(x);
                 }
-                if (idList.size() == 0) {
+                if (idList.isEmpty()) {
                     // eof
                     in.close();
                     return null;

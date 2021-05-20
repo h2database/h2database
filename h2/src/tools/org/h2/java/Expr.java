@@ -80,7 +80,7 @@ class CallExpr extends ExprBase {
         StringBuilder buff = new StringBuilder();
         initMethod();
         if (method.isIgnore) {
-            if (args.size() == 0) {
+            if (args.isEmpty()) {
                 // ignore
             } else if (args.size() == 1) {
                 buff.append(args.get(0));
@@ -394,7 +394,7 @@ class NewExpr extends ExprBase {
     public String asString() {
         boolean refCount = type.refCount;
         StringBuilder buff = new StringBuilder();
-        if (arrayInitExpr.size() > 0) {
+        if (!arrayInitExpr.isEmpty()) {
             if (refCount) {
                 if (classObj.isPrimitive) {
                     buff.append("ptr< array< " + classObj + " > >");

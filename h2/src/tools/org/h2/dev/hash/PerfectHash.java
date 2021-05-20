@@ -183,7 +183,7 @@ public class PerfectHash {
         out.write(split);
         List<List<Integer>> lists = new ArrayList<>(split);
         for (int i = 0; i < split; i++) {
-            lists.add(new ArrayList<Integer>(size / split));
+            lists.add(new ArrayList<>(size / split));
         }
         for (int x : set) {
             lists.get(hash(x, level, 0, split)).add(x);

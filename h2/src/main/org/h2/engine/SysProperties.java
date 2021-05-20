@@ -390,6 +390,22 @@ public class SysProperties {
     public static final String AUTH_CONFIG_FILE =
             Utils.getProperty("h2.authConfigFile", null);
 
+    /**
+     * System property <code>h2.maxGroupByMemoryUsage </code>
+     * (default: -1).<br />
+     * maxGroupByMemoryUsage defines a suggested upper limit to the memory
+     * used in certain group by operations. If this number is exceeded
+     * the query will fail with a memory management error.
+     * The default value of -1 means that the use of memory is not
+     * limited.
+     * 
+     * This setting is experimental and the memory usage calculation is
+     * approximate. In the future it will be removed or replaced when a
+     * better approach for handling group bys is introduced.
+     */
+    public static int maxGroupByMemoryUsage =
+            Utils.getProperty("h2.maxGroupByMemoryUsage", -1);
+
     private static final String H2_BASE_DIR = "h2.baseDir";
 
     private SysProperties() {

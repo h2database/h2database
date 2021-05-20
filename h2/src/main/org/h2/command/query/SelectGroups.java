@@ -13,10 +13,13 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
+import org.h2.api.ErrorCode;
 import org.h2.engine.SessionLocal;
+import org.h2.engine.SysProperties;
 import org.h2.expression.Expression;
 import org.h2.expression.analysis.DataAnalysisOperation;
 import org.h2.expression.analysis.PartitionData;
+import org.h2.message.DbException;
 import org.h2.value.Value;
 import org.h2.value.ValueRow;
 
@@ -46,12 +49,24 @@ public abstract class SelectGroups {
 
     private static final class Grouped extends SelectGroups {
 
+        /**
+         * Memory usage for each treemap entry, in addition to the value,
+         * consisting of 5 pointers + object overhead
+         */
+        private static final int TREEMAP_ENTRY_OVERHEAD = 56;
+
         private final int[] groupIndex;
 
         /**
          * Map of group-by key to group-by expression data e.g. AggregateData
          */
         private TreeMap<ValueRow, Object[]> groupByData;
+
+        /**
+         * Approximation of the memory used by groupByData, based on the size of the
+         * keys that it contains
+         */
+        private int groupByDataSize;
 
         /**
          * Key into groupByData that produces currentGroupByExprData. Not used
@@ -93,8 +108,18 @@ public abstract class SelectGroups {
             }
             Object[] values = groupByData.get(currentGroupsKey);
             if (values == null) {
+                if (SysProperties.maxGroupByMemoryUsage>0 && groupByDataSize>=SysProperties.maxGroupByMemoryUsage) {
+                    throw DbException.get(ErrorCode.GROUP_BY_TABLE_TOO_LARGE);
+                }
                 values = createRow();
                 groupByData.put(currentGroupsKey, values);
+
+                // TODO: how to track the memory of values?
+                // Most values seem to take a minimum of 24 bytes, Boolean and Null take 0 bytes,
+                // Some objects such as strings and arrays take more. However, for most cases, the
+                // agregation values will be numeric, so maybe values.length * 32 + 32 is a 
+                // good enough approximation?
+                groupByDataSize += currentGroupsKey.getMemory() + TREEMAP_ENTRY_OVERHEAD;
             }
             currentGroupByExprData = values;
             currentGroupRowId++;

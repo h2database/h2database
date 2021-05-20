@@ -2240,7 +2240,15 @@ public class ErrorCode {
      */
     public static final int GROUP_BY_NOT_IN_THE_RESULT = 90157;
 
-    // next is 90158
+    /**
+     * The error with code <code>90158</code> is thrown when the in memory
+     * table containing all the entries of a group by statement would exceed
+     * the maximum capacity specified using the system property 
+     * <code>h2.maxGroupByEntries</code>.
+     */
+    public static final int GROUP_BY_TABLE_TOO_LARGE = 90158;
+
+    // next is 90159
 
     private ErrorCode() {
         // utility class

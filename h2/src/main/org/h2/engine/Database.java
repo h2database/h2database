@@ -1406,12 +1406,15 @@ public final class Database implements DataHandler, CastDataProvider {
             if (store != null) {
                 MVStore mvStore = store.getMvStore();
                 if (mvStore != null && !mvStore.isClosed()) {
-                    int allowedCompactionTime =
-                            compactMode == CommandInterface.SHUTDOWN_IMMEDIATELY ? 0 :
-                            compactMode == CommandInterface.SHUTDOWN_COMPACT ||
-                            compactMode == CommandInterface.SHUTDOWN_DEFRAG ||
-                            dbSettings.defragAlways ? -1 : dbSettings.maxCompactTime;
-                    store.close(allowedCompactionTime);
+                    if (compactMode == CommandInterface.SHUTDOWN_IMMEDIATELY) {
+                        store.closeImmediately();
+                    } else {
+                        int allowedCompactionTime =
+                                compactMode == CommandInterface.SHUTDOWN_COMPACT ||
+                                compactMode == CommandInterface.SHUTDOWN_DEFRAG ||
+                                dbSettings.defragAlways ? -1 : dbSettings.maxCompactTime;
+                        store.close(allowedCompactionTime);
+                    }
                 }
             } else if (pageStore != null) {
                 pageStore.stopWriter();
@@ -1440,8 +1443,9 @@ public final class Database implements DataHandler, CastDataProvider {
                         trace.error(t, "close");
                     }
                 }
+                pageStore.close();
+                pageStore = null;
             }
-            closeFiles(false);
             if (persistent) {
                 // Don't delete temp files if everything is already closed
                 // (maybe in checkPowerOff), the database could be open now
@@ -1458,14 +1462,10 @@ public final class Database implements DataHandler, CastDataProvider {
         }
     }
 
-    private synchronized void closeFiles(boolean immediately) {
+    private synchronized void closeFiles() {
         try {
             if (store != null) {
-                if (immediately) {
-                    store.closeImmediately();
-                } else {
-                    store.close(0);
-                }
+                store.closeImmediately();
             } else if (pageStore != null) {
                 pageStore.close();
                 pageStore = null;
@@ -2480,7 +2480,7 @@ public final class Database implements DataHandler, CastDataProvider {
         } catch (DbException e) {
             // ignore
         }
-        closeFiles(true);
+        closeFiles();
         powerOffCount = 0;
     }
 

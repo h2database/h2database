@@ -34,11 +34,7 @@ public class TestDiskFull extends TestDb {
     @Override
     public void test() throws Exception {
         fs = FilePathUnstable.register();
-        if (config.mvStore) {
-            fs.setPartialWrites(true);
-        } else {
-            fs.setPartialWrites(false);
-        }
+        fs.setPartialWrites(true);
         try {
             test(Integer.MAX_VALUE);
             int max = Integer.MAX_VALUE - fs.getDiskFullCount() + 10;

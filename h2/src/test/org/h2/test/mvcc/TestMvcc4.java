@@ -34,7 +34,7 @@ public class TestMvcc4 extends TestDb {
 
     @Override
     public boolean isEnabled() {
-        if (config.networked || !config.mvStore) {
+        if (config.networked) {
             return false;
         }
         return true;

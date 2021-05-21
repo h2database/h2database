@@ -34,7 +34,7 @@ public class TestDefrag  extends TestDb {
 
     @Override
     public boolean isEnabled() {
-        return config.mvStore && !config.memory && config.big && !config.ci;
+        return !config.memory && config.big && !config.ci;
     }
 
     @Override

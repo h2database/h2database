@@ -29,11 +29,7 @@ public class TestTransactionIsolation extends TestDb {
 
     @Override
     public boolean isEnabled() {
-        if (config.mvStore) {
-            // no tests yet
-            return false;
-        }
-        return true;
+        return false;
     }
 
     @Override

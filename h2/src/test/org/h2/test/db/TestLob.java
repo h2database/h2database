@@ -66,21 +66,16 @@ public class TestLob extends TestDb {
     public static void main(String... a) throws Exception {
         TestBase test = TestBase.createCaller().init();
         test.config.big = true;
-        test.config.mvStore = false;
         test.testFromMain();
     }
 
     @Override
     public void test() throws Exception {
-        // TODO fails in pagestore mode
-        if (config.mvStore) {
-            testReclamationOnInDoubtRollback();
-            testRemoveAfterDeleteAndClose();
-        }
+        testReclamationOnInDoubtRollback();
+        testRemoveAfterDeleteAndClose();
         testRemovedAfterTimeout();
         testConcurrentRemoveRead();
         testCloseLobTwice();
-        testCleaningUpLobsOnRollback();
         testClobWithRandomUnicodeChars();
         testCommitOnExclusiveConnection();
         testReadManyLobs();
@@ -90,7 +85,6 @@ public class TestLob extends TestDb {
         testBlobInputStreamSeek(true);
         testBlobInputStreamSeek(false);
         testDeadlock();
-        testDeadlock2();
         testCopyManyLobs();
         testCopyLob();
         testConcurrentCreate();
@@ -98,7 +92,6 @@ public class TestLob extends TestDb {
         testUniqueIndex();
         testConvert();
         testCreateAsSelect();
-        testDelete();
         testLobServerMemory();
         testUpdatingLobRow();
         testBufferedInputStreamBug();
@@ -106,7 +99,6 @@ public class TestLob extends TestDb {
             return;
         }
         testLargeClob();
-        testLobCleanupSessionTemporaries();
         testLobUpdateMany();
         testLobVariable();
         testLobDrop();
@@ -127,7 +119,6 @@ public class TestLob extends TestDb {
         testLob(false);
         testLob(true);
         testJavaObject();
-        testLobGrowth();
         testLobInValueResultSet();
         testLimits();
         deleteDb("lob");
@@ -304,28 +295,6 @@ public class TestLob extends TestDb {
         conn.close();
     }
 
-    private void testCleaningUpLobsOnRollback() throws Exception {
-        if (config.mvStore) {
-            return;
-        }
-        deleteDb("lob");
-        Connection conn = getConnection("lob");
-        Statement stat = conn.createStatement();
-        stat.execute("CREATE TABLE test(id int, data CLOB)");
-        conn.setAutoCommit(false);
-        stat.executeUpdate("insert into test values (1, '" +
-                MORE_THAN_128_CHARS + "')");
-        conn.rollback();
-        ResultSet rs = stat.executeQuery("select count(*) from test");
-        rs.next();
-        assertEquals(0, rs.getInt(1));
-        rs = stat.executeQuery("select * from information_schema.lobs");
-        rs = stat.executeQuery("select count(*) from information_schema.lob_data");
-        rs.next();
-        assertEquals(0, rs.getInt(1));
-        conn.close();
-    }
-
     private void testReadManyLobs() throws Exception {
         deleteDb("lob");
         Connection conn;
@@ -432,17 +401,6 @@ public class TestLob extends TestDb {
             prep.setBinaryStream(2, new ByteArrayInputStream(buff), -1);
             prep.execute();
         }
-        if (upgraded) {
-            if (!config.mvStore) {
-                if (config.memory) {
-                    stat.execute("update information_schema.lob_map set pos=null");
-                } else {
-                    stat.execute("alter table information_schema.lob_map drop column pos");
-                    conn.close();
-                    conn = getConnection("lob");
-                }
-            }
-        }
         prep = conn.prepareStatement("select * from test where id = ?");
         for (int i = 0; i < 1; i++) {
             random.setSeed(i);
@@ -495,111 +453,6 @@ public class TestLob extends TestDb {
         task.get();
         conn.close();
         conn2.close();
-    }
-
-    /**
-     * A background task.
-     */
-    private final class Deadlock2Task1 extends Task {
-
-        public final Connection conn;
-
-        Deadlock2Task1() throws SQLException {
-            this.conn = getDeadlock2Connection();
-        }
-
-        @Override
-        public void call() throws Exception {
-            Random random = new Random();
-            Statement stat = conn.createStatement();
-            char[] tmp = new char[1024];
-            while (!stop) {
-                try {
-                    ResultSet rs = stat.executeQuery(
-                            "select name from test where id = " + random.nextInt(999));
-                    if (rs.next()) {
-                        Reader r = rs.getClob("name").getCharacterStream();
-                        while (r.read(tmp) >= 0) {
-                            // ignore
-                        }
-                        r.close();
-                    }
-                    rs.close();
-                } catch (SQLException ex) {
-                    // ignore "LOB gone away", this can happen
-                    // in the presence of concurrent updates
-                    if (ex.getErrorCode() != ErrorCode.IO_EXCEPTION_2) {
-                        throw ex;
-                    }
-                } catch (IOException ex) {
-                    // ignore "LOB gone away", this can happen
-                    // in the presence of concurrent updates
-                    Exception e = ex;
-                    if (e.getCause() instanceof DbException) {
-                        e = (Exception) e.getCause();
-                    }
-                    if (!(e.getCause() instanceof SQLException)) {
-                        throw ex;
-                    }
-                    SQLException e2 = (SQLException) e.getCause();
-                    if (e2.getErrorCode() != ErrorCode.IO_EXCEPTION_1) {
-                        throw ex;
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace(System.out);
-                    throw e;
-                }
-            }
-        }
-
-    }
-
-    /**
-     * A background task.
-     */
-    private final class Deadlock2Task2 extends Task {
-
-        public final Connection conn;
-
-        Deadlock2Task2() throws SQLException {
-            this.conn = getDeadlock2Connection();
-        }
-
-        @Override
-        public void call() throws Exception {
-            Random random = new Random();
-            Statement stat = conn.createStatement();
-            while (!stop) {
-                stat.execute("update test set counter = " +
-                        random.nextInt(10) + " where id = " + random.nextInt(1000));
-            }
-        }
-
-    }
-
-    private void testDeadlock2() throws Exception {
-        if (config.mvStore || config.memory) {
-            return;
-        }
-        deleteDb("lob");
-        Connection conn = getDeadlock2Connection();
-        Statement stat = conn.createStatement();
-        stat.execute("create cached table test(id int generated by default as identity, " +
-                "name clob, counter int)");
-        stat.execute("insert into test(name) select space(100000) " +
-                "from system_range(1, 100)");
-        Deadlock2Task1 task1 = new Deadlock2Task1();
-        Deadlock2Task2 task2 = new Deadlock2Task2();
-        task1.execute("task1");
-        task2.execute("task2");
-        for (int i = 0; i < 100; i++) {
-            stat.execute("insert into test(name, counter) values(space(10000 + " + i + "), 1)");
-        }
-        task1.get();
-        task1.conn.close();
-        task2.get();
-        task2.conn.close();
-        conn.close();
     }
 
     Connection getDeadlock2Connection() throws SQLException {
@@ -745,51 +598,6 @@ public class TestLob extends TestDb {
         conn.close();
     }
 
-    private void testDelete() throws Exception {
-        if (config.memory || config.mvStore) {
-            return;
-        }
-        // TODO fails in pagestore mode
-        if (!config.mvStore) {
-            return;
-        }
-        deleteDb("lob");
-        Connection conn;
-        Statement stat;
-        conn = getConnection("lob");
-        stat = conn.createStatement();
-        stat.execute("create table test(id int primary key, name clob)");
-        stat.execute("insert into test values(1, space(10000))");
-        assertSingleValue(stat,
-                "select count(*) from information_schema.lob_data", 1);
-        stat.execute("insert into test values(2, space(10000))");
-        assertSingleValue(stat,
-                "select count(*) from information_schema.lob_data", 1);
-        stat.execute("delete from test where id = 1");
-        assertSingleValue(stat,
-                "select count(*) from information_schema.lob_data", 1);
-        stat.execute("insert into test values(3, space(10000))");
-        assertSingleValue(stat,
-                "select count(*) from information_schema.lob_data", 1);
-        stat.execute("insert into test values(4, space(10000))");
-        assertSingleValue(stat,
-                "select count(*) from information_schema.lob_data", 1);
-        stat.execute("delete from test where id = 2");
-        assertSingleValue(stat,
-                "select count(*) from information_schema.lob_data", 1);
-        stat.execute("delete from test where id = 3");
-        assertSingleValue(stat,
-                "select count(*) from information_schema.lob_data", 1);
-        stat.execute("delete from test");
-        conn.close();
-        conn = getConnection("lob");
-        stat = conn.createStatement();
-        assertSingleValue(stat,
-                "select count(*) from information_schema.lob_data", 0);
-        stat.execute("drop table test");
-        conn.close();
-    }
-
     private void testLobUpdateMany() throws SQLException {
         deleteDb("lob");
         Connection conn = getConnection("lob");
@@ -799,39 +607,6 @@ public class TestLob extends TestDb {
         PreparedStatement prep = conn.prepareStatement("update post set text = ?");
         prep.setCharacterStream(1, new StringReader(new String(new char[1025])), -1);
         prep.executeUpdate();
-        conn.close();
-    }
-
-    private void testLobCleanupSessionTemporaries() throws SQLException {
-        if (config.mvStore) {
-            return;
-        }
-        // TODO fails in pagestore mode
-        if (!config.mvStore) {
-            return;
-        }
-        deleteDb("lob");
-        Connection conn = getConnection("lob");
-        Statement stat = conn.createStatement();
-        stat.execute("create table test(data clob)");
-
-        ResultSet rs = stat.executeQuery("select count(*) " +
-                "from INFORMATION_SCHEMA.LOBS");
-        assertTrue(rs.next());
-        assertEquals(0, rs.getInt(1));
-        rs.close();
-
-        PreparedStatement prep = conn.prepareStatement(
-                "INSERT INTO test(data) VALUES(?)");
-        String name = new String(new char[200]).replace((char) 0, 'x');
-        prep.setString(1, name);
-        prep.execute();
-        prep.close();
-
-        rs = stat.executeQuery("select count(*) from INFORMATION_SCHEMA.LOBS");
-        assertTrue(rs.next());
-        assertEquals(1, rs.getInt(1));
-        rs.close();
         conn.close();
     }
 
@@ -1751,39 +1526,6 @@ public class TestLob extends TestDb {
             }
         }
         return new String(buffer);
-    }
-
-    private void testLobGrowth() throws SQLException {
-        if (config.mvStore) {
-            return;
-        }
-        final File dbFile = new File(getBaseDir(), "lob.h2.db");
-        final byte[] data = new byte[2560];
-        deleteDb("lob");
-        JdbcConnection conn = (JdbcConnection) getConnection("lob;LOB_TIMEOUT=0");
-        Statement stat = conn.createStatement();
-        stat.execute("CREATE TABLE TEST(ID IDENTITY PRIMARY KEY, DATA BLOB)");
-        PreparedStatement prep = conn
-                .prepareStatement("INSERT INTO TEST(DATA) VALUES(?)");
-        for (int i = 0; i < 100; i++) {
-            prep.setBinaryStream(1, new ByteArrayInputStream(data));
-            prep.executeUpdate();
-        }
-        final long initialSize = dbFile.length();
-        prep = conn.prepareStatement("UPDATE test SET data=? WHERE id=?");
-        for (int i = 0; i < 20; i++) {
-            for (int j = 0; j < 100; j++) {
-                data[0] = (byte)(i);
-                data[1] = (byte)(j);
-                prep.setBinaryStream(1, new ByteArrayInputStream(data));
-                prep.setInt(2, j);
-                prep.executeUpdate();
-            }
-        }
-        assertTrue("dbFile size " + dbFile.length() + " is > initialSize "
-                + initialSize, dbFile.length() <= (initialSize * 1.5));
-        conn.createStatement().execute("drop table test");
-        conn.close();
     }
 
     private void testLobInValueResultSet() throws SQLException {

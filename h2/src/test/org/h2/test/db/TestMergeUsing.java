@@ -35,10 +35,6 @@ public class TestMergeUsing extends TestDb implements Trigger {
 
     @Override
     public boolean isEnabled() {
-        // TODO breaks in pagestore case
-        if (!config.mvStore) {
-            return false;
-        }
         return true;
     }
 

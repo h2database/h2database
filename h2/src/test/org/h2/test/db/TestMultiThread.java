@@ -60,9 +60,7 @@ public class TestMultiThread extends TestDb implements Runnable {
     public void test() throws Exception {
         testConcurrentSchemaChange();
         testConcurrentLobAdd();
-        testConcurrentView();
         testConcurrentAlter();
-        testConcurrentAnalyze();
         testConcurrentInsertUpdateSelect();
         testViews();
         testConcurrentInsert();
@@ -135,46 +133,6 @@ public class TestMultiThread extends TestDb implements Runnable {
         }
     }
 
-    private void testConcurrentView() throws Exception {
-        if (config.mvStore) {
-            return;
-        }
-        String db = getTestName();
-        deleteDb(db);
-        final String url = getURL(db, true);
-        final Random r = new Random();
-        try (Connection conn = getConnection(url)) {
-            Statement stat = conn.createStatement();
-            StringBuilder buff = new StringBuilder();
-            buff.append("create table test(id int");
-            final int len = 3;
-            for (int i = 0; i < len; i++) {
-                buff.append(", x" + i + " int");
-            }
-            buff.append(")");
-            stat.execute(buff.toString());
-            stat.execute("create view test_view as select * from test");
-            stat.execute("insert into test(id) select x from system_range(1, 2)");
-            Task t = new Task() {
-                @Override
-                public void call() throws Exception {
-                    Connection c2 = getConnection(url);
-                    while (!stop) {
-                        c2.prepareStatement("select * from test_view where x" +
-                                r.nextInt(len) + "=1");
-                    }
-                    c2.close();
-                }
-            };
-            t.execute();
-            for (int i = 0; i < 1000; i++) {
-                conn.prepareStatement("select * from test_view where x" +
-                        r.nextInt(len) + "=1");
-            }
-            t.get();
-        }
-    }
-
     private void testConcurrentAlter() throws Exception {
         deleteDb(getTestName());
         try (final Connection conn = getConnection(getTestName())) {
@@ -194,36 +152,6 @@ public class TestMultiThread extends TestDb implements Runnable {
                 stat.execute("alter table test drop column x");
             }
             t.get();
-        }
-    }
-
-    private void testConcurrentAnalyze() throws Exception {
-        if (config.mvStore) {
-            return;
-        }
-        deleteDb(getTestName());
-        final String url = getURL("concurrentAnalyze", true);
-        try (Connection conn = getConnection(url)) {
-            Statement stat = conn.createStatement();
-            stat.execute("create table test(id bigint primary key) " +
-                    "as select x from system_range(1, 1000)");
-            Task t = new Task() {
-                @Override
-                public void call() throws SQLException {
-                    try (Connection conn2 = getConnection(url)) {
-                        for (int i = 0; i < 1000; i++) {
-                            conn2.createStatement().execute("analyze");
-                        }
-                    }
-                }
-            };
-            t.execute();
-            Thread.yield();
-            for (int i = 0; i < 1000; i++) {
-                conn.createStatement().execute("analyze");
-            }
-            t.get();
-            stat.execute("drop table test");
         }
     }
 

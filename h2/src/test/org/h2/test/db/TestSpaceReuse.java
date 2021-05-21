@@ -50,12 +50,7 @@ public class TestSpaceReuse extends TestDb {
             conn = getConnection("spaceReuse");
             conn.createStatement().execute("delete from t");
             conn.close();
-            String fileName = getBaseDir() + "/spaceReuse";
-            if (config.mvStore) {
-                fileName += Constants.SUFFIX_MV_FILE;
-            } else {
-                fileName += Constants.SUFFIX_PAGE_FILE;
-            }
+            String fileName = getBaseDir() + "/spaceReuse" + Constants.SUFFIX_MV_FILE;
             now = FileUtils.size(fileName);
             assertTrue(now > 0);
             if (i < 10) {

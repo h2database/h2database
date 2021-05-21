@@ -62,9 +62,6 @@ public class TestMvcc3 extends TestDb {
     }
 
     private void testConcurrentUpdate() throws SQLException {
-        if (!config.mvStore) {
-            return;
-        }
         deleteDb("mvcc3");
         Connection c1 = getConnection("mvcc3");
         c1.setAutoCommit(false);
@@ -101,10 +98,6 @@ public class TestMvcc3 extends TestDb {
     }
 
     private void testInsertUpdateRollback() throws SQLException {
-        if (!config.mvStore) {
-            return;
-        }
-
         deleteDb("mvcc3");
         Connection c1 = getConnection("mvcc3");
         Statement s1 = c1.createStatement();
@@ -146,9 +139,6 @@ public class TestMvcc3 extends TestDb {
     }
 
     private void testCreateTableAsSelect() throws SQLException {
-        if (!config.mvStore) {
-            return;
-        }
         deleteDb("mvcc3");
         Connection c1 = getConnection("mvcc3");
         Statement s1 = c1.createStatement();
@@ -164,10 +154,6 @@ public class TestMvcc3 extends TestDb {
     }
 
     private void testRollback() throws SQLException {
-        if (!config.mvStore) {
-            return;
-        }
-
         deleteDb("mvcc3");
         Connection conn = getConnection("mvcc3");
         Statement stat = conn.createStatement();
@@ -217,9 +203,6 @@ public class TestMvcc3 extends TestDb {
     }
 
     private void testDisableAutoCommit() throws SQLException {
-        if (!config.mvStore) {
-            return;
-        }
         deleteDb("mvcc3");
         Connection conn = getConnection("mvcc3");
         Statement stat = conn.createStatement();

@@ -49,28 +49,7 @@ public class TestTwoPhaseCommit extends TestDb {
 
         testInDoubtAfterShutdown();
 
-        if (!config.mvStore) {
-            testLargeTransactionName();
-        }
         deleteDb("twoPhaseCommit");
-    }
-
-    private void testLargeTransactionName() throws SQLException {
-        Connection conn = getConnection("twoPhaseCommit");
-        Statement stat = conn.createStatement();
-        conn.setAutoCommit(false);
-        stat.execute("CREATE TABLE TEST2(ID INT)");
-        String name = "tx12345678";
-        try {
-            while (true) {
-                stat.execute("INSERT INTO TEST2 VALUES(1)");
-                name += "x";
-                stat.execute("PREPARE COMMIT " + name);
-            }
-        } catch (SQLException e) {
-            assertKnownException(e);
-        }
-        conn.close();
     }
 
     private void test(boolean rolledBack) throws SQLException {
@@ -124,10 +103,6 @@ public class TestTwoPhaseCommit extends TestDb {
 
     private void testInDoubtAfterShutdown() throws SQLException {
         if (config.memory) {
-            return;
-        }
-        // TODO fails in pagestore mode
-        if (!config.mvStore) {
             return;
         }
         deleteDb("twoPhaseCommit");

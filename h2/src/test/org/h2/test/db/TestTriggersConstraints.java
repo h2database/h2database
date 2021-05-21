@@ -47,7 +47,6 @@ public class TestTriggersConstraints extends TestDb implements Trigger {
     public void test() throws Exception {
         deleteDb("trigger");
         testTriggerDeadlock();
-        testDeleteInTrigger();
         testTriggerAdapter();
         testTriggerSelectEachRow();
         testViewTrigger();
@@ -120,23 +119,6 @@ public class TestTriggersConstraints extends TestDb implements Trigger {
             stat.execute("drop table test");
             stat.execute("drop table test2");
         }
-    }
-
-    private void testDeleteInTrigger() throws SQLException {
-        if (config.mvStore) {
-            return;
-        }
-        Connection conn;
-        Statement stat;
-        conn = getConnection("trigger");
-        stat = conn.createStatement();
-        stat.execute("create table test(id int) as select 1");
-        stat.execute("create trigger test_u before update on test " +
-                "for each row call \"" + DeleteTrigger.class.getName() + "\"");
-        // this used to throw a NullPointerException before we fixed it
-        stat.execute("update test set id = 2");
-        stat.execute("drop table test");
-        conn.close();
     }
 
     private void testTriggerAdapter() throws SQLException {

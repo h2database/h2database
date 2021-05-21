@@ -5,15 +5,12 @@
  */
 package org.h2.test.unit;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Random;
-
 import org.h2.message.Trace;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
@@ -45,93 +42,10 @@ public class TestCache extends TestDb implements CacheWriter {
 
     @Override
     public void test() throws Exception {
-        if (!config.mvStore) {
-            testTQ();
-        }
         testMemoryUsage();
         testCache();
         testCacheDb(false);
         testCacheDb(true);
-    }
-
-    private void testTQ() throws Exception {
-        if (config.memory || config.reopen) {
-            return;
-        }
-        deleteDb("cache");
-        Connection conn = getConnection(
-                "cache;LOG=0;UNDO_LOG=0");
-        Statement stat = conn.createStatement();
-        stat.execute("create table if not exists lob" +
-                "(id int primary key, data blob)");
-        PreparedStatement prep = conn.prepareStatement(
-                "insert into lob values(?, ?)");
-        Random r = new Random(1);
-        byte[] buff = new byte[2 * 1024 * 1024];
-        for (int i = 0; i < 10; i++) {
-            prep.setInt(1, i);
-            r.nextBytes(buff);
-            prep.setBinaryStream(2, new ByteArrayInputStream(buff), -1);
-            prep.execute();
-        }
-        stat.execute("create table if not exists test" +
-                "(id int primary key, data varchar)");
-        prep = conn.prepareStatement("insert into test values(?, ?)");
-        for (int i = 0; i < 20000; i++) {
-            prep.setInt(1, i);
-            prep.setString(2, "Hello");
-            prep.execute();
-        }
-        conn.close();
-        testTQ("LRU", false);
-        testTQ("TQ", true);
-    }
-
-    private void testTQ(String cacheType, boolean scanResistant) throws Exception {
-        Connection conn = getConnection(
-                "cache;CACHE_TYPE=" + cacheType + ";CACHE_SIZE=5120");
-        Statement stat = conn.createStatement();
-        PreparedStatement prep;
-        for (int k = 0; k < 10; k++) {
-            int rc;
-            prep = conn.prepareStatement(
-                    "select * from test where id = ?");
-            rc = getReadCount(stat);
-            for (int x = 0; x < 2; x++) {
-                for (int i = 0; i < 15000; i++) {
-                    prep.setInt(1, i);
-                    prep.executeQuery();
-                }
-            }
-            int rcData = getReadCount(stat) - rc;
-            if (scanResistant && k > 0) {
-                // TQ is expected to keep the data rows in the cache
-                // even if the LOB is read once in a while
-                assertEquals(0, rcData);
-            } else {
-                assertTrue(rcData > 0);
-            }
-            rc = getReadCount(stat);
-            ResultSet rs = stat.executeQuery(
-                    "select * from lob where id = " + k);
-            rs.next();
-            InputStream in = rs.getBinaryStream(2);
-            while (in.read() >= 0) {
-                // ignore
-            }
-            in.close();
-            int rcLob = getReadCount(stat) - rc;
-            assertTrue(rcLob > 0);
-        }
-        conn.close();
-    }
-
-    private static int getReadCount(Statement stat) throws Exception {
-        ResultSet rs;
-        rs = stat.executeQuery(
-                "SELECT SETTING_VALUE FROM INFORMATION_SCHEMA.SETTINGS WHERE SETTING_NAME = 'info.FILE_READ'");
-        rs.next();
-        return rs.getInt(1);
     }
 
     private void testMemoryUsage() throws SQLException {

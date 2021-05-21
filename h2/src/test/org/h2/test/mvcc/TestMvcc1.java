@@ -36,9 +36,6 @@ public class TestMvcc1 extends TestDb {
 
     @Override
     public boolean isEnabled() {
-        if (!config.mvStore) {
-            return false;
-        }
         return true;
     }
 

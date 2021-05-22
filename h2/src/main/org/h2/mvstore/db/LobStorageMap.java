@@ -80,6 +80,14 @@ public final class LobStorageMap implements LobStorageInterface
     private final StreamStore streamStore;
 
 
+    public static MVMap<Long, LobStorageMap.BlobMeta> openLobMap(MVStore mv) {
+        return LobStorageMap.openTypedMap(mv, "lobMap", LongDataType.INSTANCE, LobStorageMap.BlobMeta.Type.INSTANCE);
+    }
+
+    public static MVMap<Long, byte[]> openLobDataMap(MVStore mv) {
+        return openTypedMap(mv, "lobData", LongDataType.INSTANCE, ByteArrayDataType.INSTANCE);
+    }
+
     public LobStorageMap(Database database) {
         this.database = database;
         Store s = database.getStore();
@@ -91,15 +99,15 @@ public final class LobStorageMap implements LobStorageInterface
         }
         MVStore.TxCounter txCounter = mvStore.registerVersionUsage();
         try {
-            lobMap = openTypedMap("lobMap", LongDataType.INSTANCE, BlobMeta.Type.INSTANCE);
-            tempLobMap = openTypedMap("tempLobMap", LongDataType.INSTANCE, ByteArrayDataType.INSTANCE);
-            refMap = openTypedMap("lobRef", BlobReference.Type.INSTANCE, NullValueDataType.INSTANCE);
+            lobMap = openLobMap(mvStore);
+            tempLobMap = openTypedMap(mvStore, "tempLobMap", LongDataType.INSTANCE, ByteArrayDataType.INSTANCE);
+            refMap = openTypedMap(mvStore, "lobRef", BlobReference.Type.INSTANCE, NullValueDataType.INSTANCE);
             /* The stream store data map.
              *
              * Key: stream store block id (long).
              * Value: data (byte[]).
              */
-            MVMap<Long, byte[]> dataMap = openTypedMap("lobData", LongDataType.INSTANCE, ByteArrayDataType.INSTANCE);
+            MVMap<Long, byte[]> dataMap = openLobDataMap(mvStore);
             streamStore = new StreamStore(dataMap);
             // garbage collection of the last blocks
             if (!database.isReadOnly()) {
@@ -421,11 +429,7 @@ public final class LobStorageMap implements LobStorageInterface
         }
     }
 
-    private <K,V> MVMap<K,V> openTypedMap(String mapName, DataType<? super K> keyType, DataType<? super V> valueType) {
-        return openTypedMap(mvStore, mapName, keyType, valueType);
-    }
-
-    private static <K,V> MVMap<K,V> openTypedMap(MVStore mv, String mapName,
+    public static <K,V> MVMap<K,V> openTypedMap(MVStore mv, String mapName,
                                                  DataType<? super K> keyType,
                                                  DataType<? super V> valueType) {
         return mv.openMap(mapName, new MVMap.Builder<K,V>().keyType(keyType).valueType(valueType));

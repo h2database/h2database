@@ -47,7 +47,6 @@ import org.h2.mvstore.db.ValueDataType;
 import org.h2.mvstore.tx.TransactionMap;
 import org.h2.mvstore.tx.TransactionStore;
 import org.h2.mvstore.type.DataType;
-import org.h2.mvstore.type.LongDataType;
 import org.h2.mvstore.type.MetaType;
 import org.h2.mvstore.type.StringDataType;
 import org.h2.pagestore.Page;
@@ -663,9 +662,9 @@ public class Recover extends Tool implements DataHandler {
         if (!lobMaps) {
             return;
         }
-        MVMap<Long, byte[]> lobData = mv.openMap("lobData");
+        MVMap<Long, byte[]> lobData = LobStorageMap.openLobDataMap(mv);
         StreamStore streamStore = new StreamStore(lobData);
-        MVMap<Long, LobStorageMap.BlobMeta> lobMap = mv.openMap("lobMap", new MVMap.Builder<Long, LobStorageMap.BlobMeta>().keyType(LongDataType.INSTANCE).valueType(LobStorageMap.BlobMeta.Type.INSTANCE));
+        MVMap<Long, LobStorageMap.BlobMeta> lobMap = LobStorageMap.openLobMap(mv);
         writer.println("-- LOB");
         writer.println("CREATE TABLE IF NOT EXISTS " +
                 "INFORMATION_SCHEMA.LOB_BLOCKS(" +

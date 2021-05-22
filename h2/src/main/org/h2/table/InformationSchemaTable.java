@@ -3016,18 +3016,6 @@ public final class InformationSchemaTable extends MetaTable {
                     add(session, rows,
                             "info.LEAF_RATIO", Integer.toString(mvStore.getLeafRatio()));
                 }
-            } else {
-                PageStore pageStore = database.getPageStore();
-                if (pageStore != null) {
-                    add(session, rows, "LOG", Integer.toString(pageStore.getLogMode()));
-                    add(session, rows, "info.FILE_WRITE_TOTAL", Long.toString(pageStore.getWriteCountTotal()));
-                    add(session, rows, "info.FILE_WRITE", Long.toString(pageStore.getWriteCount()));
-                    add(session, rows, "info.FILE_READ", Long.toString(pageStore.getReadCount()));
-                    add(session, rows, "info.PAGE_COUNT", Integer.toString(pageStore.getPageCount()));
-                    add(session, rows, "info.PAGE_SIZE", Integer.toString(pageStore.getPageSize()));
-                    add(session, rows, "info.CACHE_MAX_SIZE", Integer.toString(pageStore.getCache().getMaxMemory()));
-                    add(session, rows, "info.CACHE_SIZE", Integer.toString(pageStore.getCache().getMemory()));
-                }
             }
         }
     }

@@ -67,10 +67,6 @@ public class BackupCommand extends Prepared {
             try (OutputStream zip = FileUtils.newOutputStream(fileName, false)) {
                 ZipOutputStream out = new ZipOutputStream(zip);
                 db.flush();
-                if (db.getPageStore() != null) {
-                    String fn = db.getName() + Constants.SUFFIX_PAGE_FILE;
-                    backupPageStore(out, fn, db.getPageStore());
-                }
                 // synchronize on the database, to avoid concurrent temp file
                 // creation / deletion / backup
                 String base = FileUtils.getParent(db.getName());

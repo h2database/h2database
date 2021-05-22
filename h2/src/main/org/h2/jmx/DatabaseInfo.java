@@ -124,22 +124,12 @@ public class DatabaseInfo implements DatabaseInfoMBean {
 
     @Override
     public int getLogMode() {
-        PageStore pageStore = database.getPageStore();
-        if (pageStore != null) {
-            return pageStore.getLogMode();
-        }
         return PageStore.LOG_MODE_OFF;
     }
 
     @Override
     public void setLogMode(int value) {
-        PageStore pageStore = database.getPageStore();
-        if (pageStore == null) {
-            throw DbException.getUnsupportedException("MV_STORE=FALSE && LOG");
-        }
-        if (database.isPersistent() && value != pageStore.getLogMode()) {
-            pageStore.setLogMode(value);
-        }
+        throw DbException.getUnsupportedException("MV_STORE=FALSE && LOG");
     }
 
     @Override
@@ -154,14 +144,8 @@ public class DatabaseInfo implements DatabaseInfoMBean {
 
     @Override
     public long getFileWriteCountTotal() {
-        if (database.isPersistent()) {
-            // TODO remove this method when removing the page store
-            // (the MVStore doesn't support it)
-            PageStore pageStore = database.getPageStore();
-            if (pageStore != null) {
-                return pageStore.getWriteCountTotal();
-            }
-        }
+        // TODO remove this method when removing the page store
+        // (the MVStore doesn't support it)
         return 0;
     }
 
@@ -171,10 +155,6 @@ public class DatabaseInfo implements DatabaseInfoMBean {
             Store store = database.getStore();
             if (store != null) {
                 return store.getMvStore().getFileStore().getWriteCount();
-            }
-            PageStore pageStore = database.getPageStore();
-            if (pageStore != null) {
-                return pageStore.getWriteCount();
             }
         }
         return 0;
@@ -187,10 +167,6 @@ public class DatabaseInfo implements DatabaseInfoMBean {
             if (store != null) {
                 return store.getMvStore().getFileStore().getReadCount();
             }
-            PageStore pageStore = database.getPageStore();
-            if (pageStore != null) {
-                return pageStore.getReadCount();
-            }
         }
         return 0;
     }
@@ -202,11 +178,6 @@ public class DatabaseInfo implements DatabaseInfoMBean {
             Store store = database.getStore();
             if (store != null) {
                 size = store.getMvStore().getFileStore().size();
-            } else {
-                PageStore pageStore = database.getPageStore();
-                if (pageStore != null) {
-                    size = pageStore.getPageCount() * pageStore.getPageSize();
-                }
             }
         }
         return size / 1024;
@@ -218,10 +189,6 @@ public class DatabaseInfo implements DatabaseInfoMBean {
             Store store = database.getStore();
             if (store != null) {
                 return store.getMvStore().getCacheSize() * 1024;
-            }
-            PageStore pageStore = database.getPageStore();
-            if (pageStore != null) {
-                return pageStore.getCache().getMaxMemory();
             }
         }
         return 0;
@@ -240,10 +207,6 @@ public class DatabaseInfo implements DatabaseInfoMBean {
             Store store = database.getStore();
             if (store != null) {
                 return store.getMvStore().getCacheSizeUsed() * 1024;
-            }
-            PageStore pageStore = database.getPageStore();
-            if (pageStore != null) {
-                return pageStore.getCache().getMemory();
             }
         }
         return 0;

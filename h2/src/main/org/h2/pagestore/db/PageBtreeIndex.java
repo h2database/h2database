@@ -52,7 +52,7 @@ public class PageBtreeIndex extends PageIndex {
         if (!database.isPersistent() || id < 0) {
             throw DbException.getInternalError(indexName);
         }
-        this.store = database.getPageStore();
+        this.store = null;
         store.addIndex(this);
         boolean needRebuild = false;
         if (create) {

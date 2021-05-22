@@ -53,7 +53,7 @@ public class PageDataIndex extends PageIndex {
         // trace = database.getTrace(Trace.PAGE_STORE + "_di");
         // trace.setLevel(TraceSystem.DEBUG);
         tableData = table;
-        this.store = database.getPageStore();
+        this.store = null;
         store.addIndex(this);
         if (!database.isPersistent()) {
             throw DbException.getInternalError(table.getName());

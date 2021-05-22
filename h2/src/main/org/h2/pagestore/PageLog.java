@@ -557,10 +557,6 @@ public class PageLog {
         if (trace.isDebugEnabled()) {
             trace.debug("log commit s: " + sessionId);
         }
-        if (store.getDatabase().getPageStore() == null) {
-            // database already closed
-            return;
-        }
         Data buffer = getBuffer();
         buffer.writeByte((byte) COMMIT);
         buffer.writeVarInt(sessionId);
@@ -579,10 +575,6 @@ public class PageLog {
     void prepareCommit(SessionLocal session, String transaction) {
         if (trace.isDebugEnabled()) {
             trace.debug("log prepare commit s: " + session.getId() + ", " + transaction);
-        }
-        if (store.getDatabase().getPageStore() == null) {
-            // database already closed
-            return;
         }
         // store it on a separate log page
         int pageSize = store.getPageSize();

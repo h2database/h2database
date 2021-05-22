@@ -144,8 +144,7 @@ public class PageStoreTable extends RegularTable {
         Index index;
         if (isPersistIndexes() && indexType.isPersistent()) {
             int mainIndexColumn;
-            if (database.isStarting() &&
-                    database.getPageStore().getRootPageId(indexId) != 0) {
+            if (database.isStarting()) {
                 mainIndexColumn = -1;
             } else if (!database.isStarting() && mainIndex.getRowCount(session) != 0
                     || mainIndex.getMainIndexColumn() != -1) {

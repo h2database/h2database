@@ -1456,7 +1456,7 @@ public abstract class Page<K,V> implements Cloneable {
 
         @Override
         public V getValue(int index) {
-            return values[index];
+            return values == null ? null : values[index];
         }
 
         @Override
@@ -1617,7 +1617,7 @@ public abstract class Page<K,V> implements Cloneable {
         protected int calculateMemory() {
 //*
             return super.calculateMemory() + PAGE_LEAF_MEMORY +
-                        map.evaluateMemoryForValues(values, getKeyCount());
+                    (values == null ? 0 : map.evaluateMemoryForValues(values, getKeyCount()));
 /*/
             int keyCount = getKeyCount();
             int mem = super.calculateMemory() + PAGE_LEAF_MEMORY + keyCount * MEMORY_POINTER;

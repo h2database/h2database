@@ -1257,11 +1257,15 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
                             K[] keys = p.createKeyStorage(keyCount);
                             V[] values = p.createValueStorage(keyCount);
                             System.arraycopy(keysBuffer, available, keys, 0, keyCount);
-                            System.arraycopy(valuesBuffer, available, values, 0, keyCount);
+                            if (valuesBuffer != null) {
+                                System.arraycopy(valuesBuffer, available, values, 0, keyCount);
+                            }
                             page = Page.createLeaf(this, keys, values, 0);
                         } else {
                             System.arraycopy(keysBuffer, available, keysBuffer, 0, keyCount);
-                            System.arraycopy(valuesBuffer, available, valuesBuffer, 0, keyCount);
+                            if (valuesBuffer != null) {
+                                System.arraycopy(valuesBuffer, available, valuesBuffer, 0, keyCount);
+                            }
                             remainingBuffer = keyCount;
                         }
                     }
@@ -1269,7 +1273,7 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
                     tip = tip.parent;
                     page = Page.createLeaf(this,
                             Arrays.copyOf(keysBuffer, keyCount),
-                            Arrays.copyOf(valuesBuffer, keyCount),
+                            valuesBuffer == null ? null : Arrays.copyOf(valuesBuffer, keyCount),
                             0);
                 }
 
@@ -1373,7 +1377,9 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
                     assert appendCounter < keysPerPage;
                 }
                 keysBuffer[appendCounter] = key;
-                valuesBuffer[appendCounter] = value;
+                if (valuesBuffer != null) {
+                    valuesBuffer[appendCounter] = value;
+                }
                 ++appendCounter;
             } finally {
                 unlockRoot(appendCounter);

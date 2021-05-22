@@ -26,6 +26,8 @@ import org.h2.mvstore.MVStore;
 import org.h2.mvstore.StreamStore;
 import org.h2.mvstore.WriteBuffer;
 import org.h2.mvstore.type.BasicDataType;
+import org.h2.mvstore.type.ByteArrayDataType;
+import org.h2.mvstore.type.DataType;
 import org.h2.mvstore.type.LongDataType;
 import org.h2.store.CountingReaderInputStream;
 import org.h2.store.LobStorageFrontend;
@@ -50,7 +52,7 @@ public final class LobStorageMap implements LobStorageInterface
     private static final boolean TRACE = false;
 
     private final Database database;
-    final MVStore mvStore;
+    private final MVStore mvStore;
     private final AtomicLong nextLobId = new AtomicLong(0);
 
     /**
@@ -77,9 +79,6 @@ public final class LobStorageMap implements LobStorageInterface
 
     private final StreamStore streamStore;
 
-    private static MVMap<Long, BlobMeta> openLobMap(MVStore mv) {
-        return mv.openMap("lobMap", new MVMap.Builder<Long, BlobMeta>().keyType(LongDataType.INSTANCE).valueType(BlobMeta.Type.INSTANCE));
-    }
 
     public LobStorageMap(Database database) {
         this.database = database;
@@ -92,16 +91,15 @@ public final class LobStorageMap implements LobStorageInterface
         }
         MVStore.TxCounter txCounter = mvStore.registerVersionUsage();
         try {
-            lobMap = openLobMap(mvStore);
-            tempLobMap = mvStore.openMap("tempLobMap");
-            refMap = mvStore.openMap("lobRef", new MVMap.Builder<BlobReference,Value>().keyType(BlobReference.Type.INSTANCE).valueType(NullValueDataType.INSTANCE));
-
+            lobMap = openTypedMap("lobMap", LongDataType.INSTANCE, BlobMeta.Type.INSTANCE);
+            tempLobMap = openTypedMap("tempLobMap", LongDataType.INSTANCE, ByteArrayDataType.INSTANCE);
+            refMap = openTypedMap("lobRef", BlobReference.Type.INSTANCE, NullValueDataType.INSTANCE);
             /* The stream store data map.
              *
              * Key: stream store block id (long).
              * Value: data (byte[]).
              */
-            MVMap<Long, byte[]> dataMap = mvStore.openMap("lobData");
+            MVMap<Long, byte[]> dataMap = openTypedMap("lobData", LongDataType.INSTANCE, ByteArrayDataType.INSTANCE);
             streamStore = new StreamStore(dataMap);
             // garbage collection of the last blocks
             if (!database.isReadOnly()) {
@@ -421,6 +419,16 @@ public final class LobStorageMap implements LobStorageInterface
             }
             streamStore.remove(streamStoreId);
         }
+    }
+
+    private <K,V> MVMap<K,V> openTypedMap(String mapName, DataType<? super K> keyType, DataType<? super V> valueType) {
+        return openTypedMap(mvStore, mapName, keyType, valueType);
+    }
+
+    private static <K,V> MVMap<K,V> openTypedMap(MVStore mv, String mapName,
+                                                 DataType<? super K> keyType,
+                                                 DataType<? super V> valueType) {
+        return mv.openMap(mapName, new MVMap.Builder<K,V>().keyType(keyType).valueType(valueType));
     }
 
     private static boolean isTemporaryLob(int tableId) {

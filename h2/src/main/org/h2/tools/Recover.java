@@ -81,7 +81,7 @@ public class Recover extends Tool implements DataHandler {
     private HashSet<Integer> objectIdSet;
     private HashMap<Integer, String> tableMap;
     private HashMap<String, String> columnTypeMap;
-
+    private boolean remove;
     private boolean lobMaps;
 
     /**
@@ -128,6 +128,8 @@ public class Recover extends Tool implements DataHandler {
                 dir = args[++i];
             } else if ("-db".equals(arg)) {
                 db = args[++i];
+            } else if ("-removePassword".equals(arg)) {
+                remove = true;
             } else if ("-trace".equals(arg)) {
                 trace = true;
             } else if (arg.equals("-help") || arg.equals("-?")) {
@@ -509,7 +511,6 @@ public class Recover extends Tool implements DataHandler {
         this.storageName = "O_" + Integer.toString(storageId).replace('-', 'M');
         return storageName;
     }
-
 
     private void writeMetaRow(Row r) {
         MetaRecord meta = new MetaRecord(r);

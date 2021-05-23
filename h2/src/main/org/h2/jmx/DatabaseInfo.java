@@ -20,7 +20,6 @@ import org.h2.engine.Database;
 import org.h2.engine.SessionLocal;
 import org.h2.message.DbException;
 import org.h2.mvstore.db.Store;
-import org.h2.pagestore.PageStore;
 import org.h2.table.Table;
 import org.h2.util.NetworkConnectionInfo;
 
@@ -124,7 +123,7 @@ public class DatabaseInfo implements DatabaseInfoMBean {
 
     @Override
     public int getLogMode() {
-        return PageStore.LOG_MODE_OFF;
+        return 0; // TODO remove, not used now that PageStore gone
     }
 
     @Override

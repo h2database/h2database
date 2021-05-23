@@ -28,7 +28,6 @@ import org.h2.expression.condition.ConditionAndOr;
 import org.h2.index.Index;
 import org.h2.message.DbException;
 import org.h2.mvstore.db.MVPrimaryIndex;
-import org.h2.pagestore.db.PageDataIndex;
 import org.h2.result.ResultInterface;
 import org.h2.result.ResultTarget;
 import org.h2.result.Row;
@@ -437,12 +436,6 @@ public final class Insert extends CommandWithValues implements ResultTarget {
             MVPrimaryIndex foundMV = (MVPrimaryIndex) foundIndex;
             indexedColumns = new Column[] { foundMV.getIndexColumns()[foundMV
                     .getMainIndexColumn()].column };
-        } else if (foundIndex instanceof PageDataIndex) {
-            PageDataIndex foundPD = (PageDataIndex) foundIndex;
-            int mainIndexColumn = foundPD.getMainIndexColumn();
-            indexedColumns = mainIndexColumn >= 0
-                    ? new Column[] { foundPD.getIndexColumns()[mainIndexColumn].column }
-                    : foundIndex.getColumns();
         } else {
             indexedColumns = foundIndex.getColumns();
         }

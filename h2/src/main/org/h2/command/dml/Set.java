@@ -23,7 +23,6 @@ import org.h2.expression.ValueExpression;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.mode.DefaultNullOrdering;
-import org.h2.pagestore.db.SessionPageStore;
 import org.h2.result.ResultInterface;
 import org.h2.schema.Schema;
 import org.h2.security.auth.AuthenticatorFactory;
@@ -383,12 +382,7 @@ public class Set extends Prepared {
             break;
         }
         case SetTypes.REDO_LOG_BINARY: {
-            int value = getIntValue();
-            if (session instanceof SessionPageStore) {
-                ((SessionPageStore) session).setRedoLogBinary(value == 1);
-            } else {
-                DbException.getUnsupportedException("MV_STORE + SET REDO_LOG_BINARY");
-            }
+            DbException.getUnsupportedException("MV_STORE + SET REDO_LOG_BINARY");
             break;
         }
         case SetTypes.REFERENTIAL_INTEGRITY: {

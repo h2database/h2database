@@ -45,7 +45,6 @@ import org.h2.mvstore.MVStore;
 import org.h2.mvstore.MVStoreException;
 import org.h2.mvstore.db.LobStorageMap;
 import org.h2.mvstore.db.Store;
-import org.h2.pagestore.db.SessionPageStore;
 import org.h2.result.Row;
 import org.h2.result.RowFactory;
 import org.h2.result.SearchRow;
@@ -1138,7 +1137,7 @@ public final class Database implements DataHandler, CastDataProvider {
 
     private SessionLocal createSession(User user) {
         int id = ++nextSessionId;
-        return dbSettings.mvStore ? new SessionLocal(this, user, id) : new SessionPageStore(this, user, id);
+        return new SessionLocal(this, user, id);
     }
 
     /**

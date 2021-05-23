@@ -18,7 +18,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
-import org.h2.mvstore.MVStoreException;
 import org.h2.mvstore.StreamStore;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;

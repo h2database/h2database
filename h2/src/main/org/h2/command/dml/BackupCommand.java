@@ -11,7 +11,6 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
-import org.h2.api.DatabaseEventListener;
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.command.Prepared;
@@ -22,7 +21,6 @@ import org.h2.expression.Expression;
 import org.h2.message.DbException;
 import org.h2.mvstore.MVStore;
 import org.h2.mvstore.db.Store;
-import org.h2.pagestore.PageStore;
 import org.h2.result.ResultInterface;
 import org.h2.store.FileLister;
 import org.h2.store.fs.FileUtils;
@@ -94,28 +92,6 @@ public class BackupCommand extends Prepared {
         } catch (IOException e) {
             throw DbException.convertIOException(e, fileName);
         }
-    }
-
-    private void backupPageStore(ZipOutputStream out, String fileName,
-            PageStore store) throws IOException {
-        Database db = session.getDatabase();
-        fileName = FileUtils.getName(fileName);
-        out.putNextEntry(new ZipEntry(fileName));
-        int pos = 0;
-        try {
-            store.setBackup(true);
-            while (true) {
-                pos = store.copyDirect(pos, out);
-                if (pos < 0) {
-                    break;
-                }
-                int max = store.getPageCount();
-                db.setProgress(DatabaseEventListener.STATE_BACKUP_FILE, fileName, pos, max);
-            }
-        } finally {
-            store.setBackup(false);
-        }
-        out.closeEntry();
     }
 
     private static void backupFile(ZipOutputStream out, String base, String fn,

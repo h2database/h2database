@@ -58,17 +58,15 @@ public final class Delete extends FilteredDataChangeStatement {
             long count = 0;
             while (nextRow(limitRows, count)) {
                 Row row = targetTableFilter.get();
-                if (table.isMVStore()) {
-                    Row lockedRow = table.lockRow(session, row);
-                    if (lockedRow == null) {
+                Row lockedRow = table.lockRow(session, row);
+                if (lockedRow == null) {
+                    continue;
+                }
+                if (!row.hasSharedData(lockedRow)) {
+                    row = lockedRow;
+                    targetTableFilter.set(row);
+                    if (condition != null && !condition.getBooleanValue(session)) {
                         continue;
-                    }
-                    if (!row.hasSharedData(lockedRow)) {
-                        row = lockedRow;
-                        targetTableFilter.set(row);
-                        if (condition != null && !condition.getBooleanValue(session)) {
-                            continue;
-                        }
                     }
                 }
                 if (deltaChangeCollectionMode == ResultOption.OLD) {

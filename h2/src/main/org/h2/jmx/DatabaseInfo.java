@@ -112,13 +112,13 @@ public class DatabaseInfo implements DatabaseInfoMBean {
     @Deprecated
     @Override
     public boolean isMultiThreaded() {
-        return database.isMVStore();
+        return true; // TODO remove
     }
 
     @Deprecated
     @Override
     public boolean isMvcc() {
-        return database.isMVStore();
+        return true; // TODO remove
     }
 
     @Override

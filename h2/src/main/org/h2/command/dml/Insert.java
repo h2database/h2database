@@ -135,18 +135,6 @@ public final class Insert extends CommandWithValues implements ResultTarget {
         this.deltaChangeCollector = deltaChangeCollector;
         this.deltaChangeCollectionMode = deltaChangeCollectionMode;
         try {
-            if (sortedInsertMode) {
-                if (!session.getDatabase().isMVStore()) {
-                    /*
-                     * Take exclusive lock, otherwise two different inserts running at
-                     * the same time, the second might accidentally get
-                     * sorted-insert-mode.
-                     */
-                    table.lock(session, /* exclusive */true, /* forceLockEvenInMvcc */true);
-                    index = table.getScanIndex(session);
-                    index.setSortedInsertMode(true);
-                }
-            }
             return insertRows();
         } finally {
             this.deltaChangeCollector = null;
@@ -330,9 +318,6 @@ public final class Insert extends CommandWithValues implements ResultTarget {
                 }
             }
         } else {
-            if (!session.getDatabase().isMVStore()) {
-                query.setNeverLazy(true);
-            }
             query.prepare();
             if (query.getColumnCount() != columns.length) {
                 throw DbException.get(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);

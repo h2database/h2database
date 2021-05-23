@@ -33,6 +33,7 @@ import org.h2.util.Utils;
 
 /**
  * A table stored in a MVStore.
+ * @TODO merge this with RegularTable now that pagestore is gone
  */
 public class MVTable extends RegularTable {
     /**
@@ -610,11 +611,6 @@ public class MVTable extends RegularTable {
     Transaction getTransactionBegin() {
         // TODO need to commit/rollback the transaction
         return transactionStore.begin();
-    }
-
-    @Override
-    public boolean isMVStore() {
-        return true;
     }
 
     /**

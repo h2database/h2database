@@ -522,12 +522,12 @@ public final class Sequence extends SchemaObject {
             // locked it) because it must be committed immediately, otherwise
             // other threads can not access the sys table.
             SessionLocal sysSession = database.getSystemSession();
-            synchronized (database.isMVStore() ? sysSession : database) {
+            synchronized (sysSession) {
                 flushInternal(sysSession);
                 sysSession.commit(false);
             }
         } else {
-            synchronized (database.isMVStore() ? session : database) {
+            synchronized (session) {
                 flushInternal(session);
             }
         }

@@ -7881,9 +7881,6 @@ public class Parser {
                 if (unique) {
                     uniqueColumnCount = columns.length;
                     if (readIf("INCLUDE")) {
-                        if (!database.isMVStore()) {
-                            throw DbException.getUnsupportedException("PageStore && UNIQUE INDEX INCLUDE");
-                        }
                         read(OPEN_PAREN);
                         IndexColumn[] columnsToInclude = parseIndexColumnList();
                         int nonUniqueCount = columnsToInclude.length;

@@ -1402,10 +1402,6 @@ public abstract class Table extends SchemaObject {
         this.isHidden = hidden;
     }
 
-    public boolean isMVStore() {
-        return false;
-    }
-
     public void setTableExpression(boolean tableExpression) {
         this.tableExpression = tableExpression;
     }

@@ -428,15 +428,13 @@ public class Select extends Query {
                     Row row = tableFilter.get();
                     Table table = tableFilter.getTable();
                     // Views, function tables, links, etc. do not support locks
-                    if (table.isMVStore()) {
-                        Row lockedRow = table.lockRow(session, row);
-                        if (lockedRow == null) {
-                            return false;
-                        }
-                        if (!row.hasSharedData(lockedRow)) {
-                            tableFilter.set(lockedRow);
-                            notChanged = false;
-                        }
+                    Row lockedRow = table.lockRow(session, row);
+                    if (lockedRow == null) {
+                        return false;
+                    }
+                    if (!row.hasSharedData(lockedRow)) {
+                        tableFilter.set(lockedRow);
+                        notChanged = false;
                     }
                 }
             }
@@ -1539,9 +1537,7 @@ public class Select extends Query {
             throw DbException.get(ErrorCode.FOR_UPDATE_IS_NOT_ALLOWED_IN_DISTINCT_OR_GROUPED_SELECT);
         }
         this.isForUpdate = b;
-        if (session.getDatabase().isMVStore()) {
-            isForUpdateMvcc = b;
-        }
+        this.isForUpdateMvcc = b;
     }
 
     @Override

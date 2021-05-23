@@ -299,10 +299,7 @@ public class Set extends Prepared {
             break;
         }
         case SetTypes.LOG: {
-            if (database.isMVStore()) {
-                throw DbException.getUnsupportedException("MV_STORE=TRUE && LOG");
-            }
-            break;
+            throw DbException.getUnsupportedException("MV_STORE=TRUE && LOG");
         }
         case SetTypes.MAX_LENGTH_INPLACE_LOB: {
             session.getUser().checkAdmin();

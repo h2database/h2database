@@ -791,39 +791,37 @@ public final class Database implements DataHandler, CastDataProvider {
         assert Thread.holdsLock(this);
         int id = obj.getId();
         if (id > 0 && !obj.isTemporary()) {
-            if (isMVStore()) {
-                if (!isReadOnly()) {
-                    Row r = meta.getTemplateRow();
-                    MetaRecord.populateRowFromDBObject(obj, r);
-                    assert objectIds.get(id);
-                    if (SysProperties.CHECK) {
-                        verifyMetaLocked(session);
-                    }
-                    Cursor cursor = metaIdIndex.find(session, r, r);
-                    if (!cursor.next()) {
-                        meta.addRow(session, r);
-                    } else {
-                        assert starting;
-                        Row oldRow = cursor.get();
-                        MetaRecord rec = new MetaRecord(oldRow);
-                        assert rec.getId() == obj.getId();
-                        assert rec.getObjectType() == obj.getType();
-                        if (!rec.getSQL().equals(obj.getCreateSQLForMeta())) {
-                            meta.updateRow(session, oldRow, r);
-                        }
-                    }
-                }
-            } else if (!starting) {
+            if (!isReadOnly()) {
                 Row r = meta.getTemplateRow();
                 MetaRecord.populateRowFromDBObject(obj, r);
-                synchronized (objectIds) {
-                    objectIds.set(id);
-                }
+                assert objectIds.get(id);
                 if (SysProperties.CHECK) {
                     verifyMetaLocked(session);
                 }
-                meta.addRow(session, r);
+                Cursor cursor = metaIdIndex.find(session, r, r);
+                if (!cursor.next()) {
+                    meta.addRow(session, r);
+                } else {
+                    assert starting;
+                    Row oldRow = cursor.get();
+                    MetaRecord rec = new MetaRecord(oldRow);
+                    assert rec.getId() == obj.getId();
+                    assert rec.getObjectType() == obj.getType();
+                    if (!rec.getSQL().equals(obj.getCreateSQLForMeta())) {
+                        meta.updateRow(session, oldRow, r);
+                    }
+                }
             }
+        } else if (!starting) {
+            Row r = meta.getTemplateRow();
+            MetaRecord.populateRowFromDBObject(obj, r);
+            synchronized (objectIds) {
+                objectIds.set(id);
+            }
+            if (SysProperties.CHECK) {
+                verifyMetaLocked(session);
+            }
+            meta.addRow(session, r);
         }
     }
 
@@ -1413,9 +1411,8 @@ public final class Database implements DataHandler, CastDataProvider {
      * @return the id
      */
     public int allocateObjectId() {
-        Object lock = isMVStore() ? objectIds : this;
         int i;
-        synchronized (lock) {
+        synchronized (objectIds) {
             i = objectIds.nextClearBit(0);
             objectIds.set(i);
         }
@@ -1561,35 +1558,19 @@ public final class Database implements DataHandler, CastDataProvider {
      * @param obj the database object
      */
     public void updateMeta(SessionLocal session, DbObject obj) {
-        if (isMVStore()) {
-            int id = obj.getId();
-            if (id > 0) {
-                if (!starting && !obj.isTemporary()) {
-                    Row newRow = meta.getTemplateRow();
-                    MetaRecord.populateRowFromDBObject(obj, newRow);
-                    Row oldRow = metaIdIndex.getRow(session, id);
-                    if (oldRow != null) {
-                        meta.updateRow(session, oldRow, newRow);
-                    }
-                }
-                // for temporary objects
-                synchronized (objectIds) {
-                    objectIds.set(id);
+        int id = obj.getId();
+        if (id > 0) {
+            if (!starting && !obj.isTemporary()) {
+                Row newRow = meta.getTemplateRow();
+                MetaRecord.populateRowFromDBObject(obj, newRow);
+                Row oldRow = metaIdIndex.getRow(session, id);
+                if (oldRow != null) {
+                    meta.updateRow(session, oldRow, newRow);
                 }
             }
-        } else {
-            boolean metaWasLocked = lockMeta(session);
-            synchronized (this) {
-                int id = obj.getId();
-                removeMeta(session, id);
-                addMeta(session, obj);
-                // for temporary objects
-                if(id > 0) {
-                    objectIds.set(id);
-                }
-            }
-            if (!metaWasLocked) {
-                unlockMeta(session);
+            // for temporary objects
+            synchronized (objectIds) {
+                objectIds.set(id);
             }
         }
     }
@@ -2085,9 +2066,7 @@ public final class Database implements DataHandler, CastDataProvider {
             break;
         case Constants.LOCK_MODE_TABLE:
         case Constants.LOCK_MODE_TABLE_GC:
-            if (isMVStore()) {
-                lockMode = Constants.LOCK_MODE_READ_COMMITTED;
-            }
+            lockMode = Constants.LOCK_MODE_READ_COMMITTED;
             break;
         default:
             throw DbException.getInvalidValueException("lock mode", lockMode);
@@ -2234,15 +2213,6 @@ public final class Database implements DataHandler, CastDataProvider {
      */
     public boolean isStarting() {
         return starting;
-    }
-
-    /**
-     * Check if MVStore backend is used for this database.
-     *
-     * @return {@code true} for MVStore, {@code false} for PageStore
-     */
-    public boolean isMVStore() {
-        return dbSettings.mvStore;
     }
 
     /**

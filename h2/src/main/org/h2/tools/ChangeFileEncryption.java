@@ -207,18 +207,6 @@ public class ChangeFileEncryption extends Tool {
             }
             return;
         }
-        final FileStore in;
-        if (decrypt == null) {
-            in = FileStore.open(null, fileName, "r");
-        } else {
-            in = FileStore.open(null, fileName, "r", cipherType, decrypt);
-        }
-        try {
-            in.init();
-            copyPageStore(fileName, in, encrypt, quiet);
-        } finally {
-            in.closeSilently();
-        }
     }
 
     private void copyMvStore(String fileName, boolean quiet, char[] decryptPassword) throws IOException, SQLException {
@@ -271,41 +259,6 @@ public class ChangeFileEncryption extends Tool {
                     fileIn);
         }
         return fileIn;
-    }
-
-    private void copyPageStore(String fileName, FileStore in, byte[] key, boolean quiet) {
-        if (FileUtils.isDirectory(fileName)) {
-            return;
-        }
-        final String temp = directory + "/temp.db";
-        FileUtils.delete(temp);
-        FileStore fileOut;
-        if (key == null) {
-            fileOut = FileStore.open(null, temp, "rw");
-        } else {
-            fileOut = FileStore.open(null, temp, "rw", cipherType, key);
-        }
-        final byte[] buffer = new byte[4 * 1024];
-        fileOut.init();
-        long remaining = in.length() - FileStore.HEADER_LENGTH;
-        long total = remaining;
-        in.seek(FileStore.HEADER_LENGTH);
-        fileOut.seek(FileStore.HEADER_LENGTH);
-        long time = System.nanoTime();
-        while (remaining > 0) {
-            if (!quiet && System.nanoTime() - time > TimeUnit.SECONDS.toNanos(1)) {
-                out.println(fileName + ": " + (100 - 100 * remaining / total) + "%");
-                time = System.nanoTime();
-            }
-            int len = (int) Math.min(buffer.length, remaining);
-            in.readFully(buffer, 0, len);
-            fileOut.write(buffer, 0, len);
-            remaining -= len;
-        }
-        in.close();
-        fileOut.close();
-        FileUtils.delete(fileName);
-        FileUtils.move(temp, fileName);
     }
 
 }

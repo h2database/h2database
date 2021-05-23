@@ -264,6 +264,10 @@ public class TransactionStore {
         }
     }
 
+    int getMaxTransactionId() {
+        return maxTransactionId;
+    }
+
     /**
      * Set the maximum transaction id, after which ids are re-used. If the old
      * transaction is still in use when re-using an old id, the new transaction

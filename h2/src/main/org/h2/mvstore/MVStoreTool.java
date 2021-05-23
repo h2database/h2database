@@ -516,13 +516,9 @@ public class MVStoreTool {
             MVMap<String, String> targetMeta = target.getMetaMap();
             for (Entry<String, String> m : sourceMeta.entrySet()) {
                 String key = m.getKey();
-                if (key.startsWith(DataUtils.META_CHUNK)) {
-                    // ignore
-                } else if (key.startsWith(DataUtils.META_MAP)) {
+                if (key.startsWith(DataUtils.META_MAP)) {
                     // ignore
                 } else if (key.startsWith(DataUtils.META_NAME)) {
-                    // ignore
-                } else if (key.startsWith(DataUtils.META_ROOT)) {
                     // ignore
                 } else {
                     targetMeta.put(key, m.getValue());
@@ -548,6 +544,7 @@ public class MVStoreTool {
                 MVMap<Object, Object> sourceMap = source.openMap(mapName, mp);
                 MVMap<Object, Object> targetMap = target.openMap(mapName, mp);
                 targetMap.copyFrom(sourceMap);
+                targetMeta.put(MVMap.getMapKey(targetMap.getId()), sourceMeta.get(MVMap.getMapKey(sourceMap.getId())));
             }
             // this will end hacky mode of operation with incomplete pages
             // end ensure that all pages are saved

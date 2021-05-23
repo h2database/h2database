@@ -1366,15 +1366,17 @@ public final class Database implements DataHandler, CastDataProvider {
             if (store != null) {
                 MVStore mvStore = store.getMvStore();
                 if (mvStore != null && !mvStore.isClosed()) {
-                    int allowedCompactionTime =
-                            compactMode == CommandInterface.SHUTDOWN_IMMEDIATELY ? 0 :
-                            compactMode == CommandInterface.SHUTDOWN_COMPACT ||
-                            compactMode == CommandInterface.SHUTDOWN_DEFRAG ||
-                            dbSettings.defragAlways ? -1 : dbSettings.maxCompactTime;
-                    store.close(allowedCompactionTime);
+                    if (compactMode == CommandInterface.SHUTDOWN_IMMEDIATELY) {
+                        store.closeImmediately();
+                    } else {
+                        int allowedCompactionTime =
+                                compactMode == CommandInterface.SHUTDOWN_COMPACT ||
+                                compactMode == CommandInterface.SHUTDOWN_DEFRAG ||
+                                dbSettings.defragAlways ? -1 : dbSettings.maxCompactTime;
+                        store.close(allowedCompactionTime);
+                    }
                 }
             }
-            closeFiles(false);
             if (persistent) {
                 // Don't delete temp files if everything is already closed
                 // (maybe in checkPowerOff), the database could be open now
@@ -1391,14 +1393,10 @@ public final class Database implements DataHandler, CastDataProvider {
         }
     }
 
-    private synchronized void closeFiles(boolean immediately) {
+    private synchronized void closeFiles() {
         try {
             if (store != null) {
-                if (immediately) {
-                    store.closeImmediately();
-                } else {
-                    store.close(0);
-                }
+                store.closeImmediately();
             }
         } catch (DbException e) {
             trace.error(e, "close");
@@ -2385,7 +2383,7 @@ public final class Database implements DataHandler, CastDataProvider {
         } catch (DbException e) {
             // ignore
         }
-        closeFiles(true);
+        closeFiles();
         powerOffCount = 0;
     }
 

@@ -187,7 +187,6 @@ public class Set extends Prepared {
                 // just ignore the command if not starting
                 // this avoids problems when running recovery scripts
                 int value = getIntValue();
-                database.setCreateBuild(value);
                 synchronized (database) {
                     addOrUpdateSetting(name, null, value);
                 }

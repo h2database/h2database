@@ -225,8 +225,6 @@ public final class Database implements DataHandler, CastDataProvider {
 
     private Authenticator authenticator;
 
-    private int createBuild = Constants.BUILD_ID;
-
     public Database(ConnectionInfo ci, String cipher) {
         if (ASSERT) {
             META_LOCK_DEBUGGING.set(null);
@@ -382,11 +380,6 @@ public final class Database implements DataHandler, CastDataProvider {
             if (store != null) {
                 store.getTransactionStore().endLeftoverTransactions();
                 store.removeTemporaryMaps(objectIds);
-            } else if (createBuild < 197) {
-                // PageStore has problems due to changes in referential
-                // constraints that lead to database corruption (#1247). LOBs
-                // from 1.2.x releases are also not supported.
-                throw DbException.getFileVersionError(databaseName + Constants.SUFFIX_PAGE_FILE);
             }
             recompileInvalidViews();
             starting = false;
@@ -2600,15 +2593,6 @@ public final class Database implements DataHandler, CastDataProvider {
     public TimeZoneProvider currentTimeZone() {
         // This method should not be reachable
         throw DbException.getUnsupportedException("Unsafe comparison or cast");
-    }
-
-    /**
-     * Sets the create build.
-     *
-     * @param createBuild the create build to set
-     */
-    public void setCreateBuild(int createBuild) {
-        this.createBuild = createBuild;
     }
 
     @Override

@@ -19,7 +19,6 @@ import java.util.Random;
 import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.concurrent.atomic.AtomicReference;
-
 import org.h2.api.ErrorCode;
 import org.h2.api.JavaObjectSerializer;
 import org.h2.command.Command;
@@ -50,7 +49,6 @@ import org.h2.store.DataHandler;
 import org.h2.store.InDoubtTransaction;
 import org.h2.store.LobStorageFrontend;
 import org.h2.table.Table;
-import org.h2.table.TableType;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.HasSQL;
 import org.h2.util.NetworkConnectionInfo;

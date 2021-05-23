@@ -20,7 +20,6 @@ import org.h2.message.Trace;
 import org.h2.result.ResultInterface;
 import org.h2.result.ResultWithGeneratedKeys;
 import org.h2.result.ResultWithPaddedStrings;
-import org.h2.util.MathUtils;
 import org.h2.util.Utils;
 
 /**

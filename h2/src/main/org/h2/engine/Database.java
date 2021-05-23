@@ -812,16 +812,6 @@ public final class Database implements DataHandler, CastDataProvider {
                     }
                 }
             }
-        } else if (!starting) {
-            Row r = meta.getTemplateRow();
-            MetaRecord.populateRowFromDBObject(obj, r);
-            synchronized (objectIds) {
-                objectIds.set(id);
-            }
-            if (SysProperties.CHECK) {
-                verifyMetaLocked(session);
-            }
-            meta.addRow(session, r);
         }
     }
 

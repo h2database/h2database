@@ -206,7 +206,7 @@ public class TestIndex extends TestDb {
         stat.execute("drop table test");
     }
 
-    private class ConcurrentUpdateThread extends Thread {
+    private static class ConcurrentUpdateThread extends Thread {
         private final AtomicInteger concurrentUpdateId, concurrentUpdateValue;
 
         private final PreparedStatement psInsert, psDelete;

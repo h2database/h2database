@@ -210,9 +210,7 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
     private long startStatement = -1;
 
     /**
-     * Isolation level. Used only with MVStore engine, with PageStore engine the
-     * value of this field shouldn't be changed or used to get the real
-     * isolation level.
+     * Isolation level.
      */
     private IsolationLevel isolationLevel = IsolationLevel.READ_COMMITTED;
 
@@ -257,7 +255,6 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
         this.user = user;
         this.id = id;
         this.lockTimeout = database.getLockTimeout();
-        // PageStore creates a system session before initialization of the main schema
         Schema mainSchema = database.getMainSchema();
         this.currentSchemaName = mainSchema != null ? mainSchema.getName()
                 : database.sysIdentifier(Constants.SCHEMA_MAIN);

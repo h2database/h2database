@@ -103,21 +103,23 @@ public final class MergeUsing extends DataChangeStatement {
             boolean nullRow = targetTableFilter.isNullRow();
             if (!nullRow) {
                 Row targetRow = targetTableFilter.get();
-                Row lockedRow = table.lockRow(session, targetRow);
-                if (lockedRow == null) {
-                    if (previousSource != source) {
-                        missedSource = source;
-                    }
-                    continue;
-                }
-                if (!targetRow.hasSharedData(lockedRow)) {
-                    targetRow = lockedRow;
-                    targetTableFilter.set(targetRow);
-                    if (!onCondition.getBooleanValue(session)) {
+                if (table.isRowLockable()) {
+                    Row lockedRow = table.lockRow(session, targetRow);
+                    if (lockedRow == null) {
                         if (previousSource != source) {
                             missedSource = source;
                         }
                         continue;
+                    }
+                    if (!targetRow.hasSharedData(lockedRow)) {
+                        targetRow = lockedRow;
+                        targetTableFilter.set(targetRow);
+                        if (!onCondition.getBooleanValue(session)) {
+                            if (previousSource != source) {
+                                missedSource = source;
+                            }
+                            continue;
+                        }
                     }
                 }
                 if (hasRowId) {

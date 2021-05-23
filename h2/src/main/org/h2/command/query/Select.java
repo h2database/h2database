@@ -147,6 +147,7 @@ public class Select extends Query {
     boolean isGroupQuery;
     private boolean isGroupSortedQuery;
     private boolean isWindowQuery;
+    // @TODO merge these, they now operate in lock step, after pagestore removal
     private boolean isForUpdate, isForUpdateMvcc;
     private double cost;
     private boolean isQuickAggregateQuery, isDistinctQuery;
@@ -428,13 +429,15 @@ public class Select extends Query {
                     Row row = tableFilter.get();
                     Table table = tableFilter.getTable();
                     // Views, function tables, links, etc. do not support locks
-                    Row lockedRow = table.lockRow(session, row);
-                    if (lockedRow == null) {
-                        return false;
-                    }
-                    if (!row.hasSharedData(lockedRow)) {
-                        tableFilter.set(lockedRow);
-                        notChanged = false;
+                    if (table.isRowLockable()) {
+                        Row lockedRow = table.lockRow(session, row);
+                        if (lockedRow == null) {
+                            return false;
+                        }
+                        if (!row.hasSharedData(lockedRow)) {
+                            tableFilter.set(lockedRow);
+                            notChanged = false;
+                        }
                     }
                 }
             }

@@ -72,15 +72,17 @@ public final class Update extends FilteredDataChangeStatement {
             }
             while (nextRow(limitRows, count)) {
                 Row oldRow = targetTableFilter.get();
-                Row lockedRow = table.lockRow(session, oldRow);
-                if (lockedRow == null) {
-                    continue;
-                }
-                if (!oldRow.hasSharedData(lockedRow)) {
-                    oldRow = lockedRow;
-                    targetTableFilter.set(oldRow);
-                    if (condition != null && !condition.getBooleanValue(session)) {
+                if (table.isRowLockable()) {
+                    Row lockedRow = table.lockRow(session, oldRow);
+                    if (lockedRow == null) {
                         continue;
+                    }
+                    if (!oldRow.hasSharedData(lockedRow)) {
+                        oldRow = lockedRow;
+                        targetTableFilter.set(oldRow);
+                        if (condition != null && !condition.getBooleanValue(session)) {
+                            continue;
+                        }
                     }
                 }
                 if (setClauseList.prepareUpdate(table, session, deltaChangeCollector, deltaChangeCollectionMode,

@@ -68,12 +68,8 @@ public class TestJmx extends TestDb {
                 getAttribute(name, "FileReadCount").toString());
         assertEquals("0", mbeanServer.
                 getAttribute(name, "FileWriteCount").toString());
-        assertEquals("0", mbeanServer.
-                getAttribute(name, "FileWriteCountTotal").toString());
         assertEquals("REGULAR", mbeanServer.
                 getAttribute(name, "Mode").toString());
-        assertEquals("true", mbeanServer.getAttribute(name, "MultiThreaded").toString());
-        assertEquals("true", mbeanServer.getAttribute(name, "Mvcc").toString());
         assertEquals("false", mbeanServer.
                 getAttribute(name, "ReadOnly").toString());
         assertEquals("1", mbeanServer.
@@ -82,7 +78,7 @@ public class TestJmx extends TestDb {
         assertEquals("0", mbeanServer.
                 getAttribute(name, "TraceLevel").toString());
         assertEquals(Constants.FULL_VERSION, mbeanServer.getAttribute(name, "Version").toString());
-        assertEquals(14, info.getAttributes().length);
+        assertEquals(10, info.getAttributes().length);
         result = mbeanServer.invoke(name, "listSettings", null, null).toString();
         assertContains(result, "ANALYZE_AUTO");
 
@@ -139,8 +135,6 @@ public class TestJmx extends TestDb {
                     getAttribute(name, "FileReadCount"));
             // FileWriteCount can be not yet updated and may return 0
             assertTrue(0 <= (Long) mbeanServer.getAttribute(name, "FileWriteCount"));
-            assertEquals("0", mbeanServer.
-                    getAttribute(name, "FileWriteCountTotal").toString());
         }
 
         conn.close();

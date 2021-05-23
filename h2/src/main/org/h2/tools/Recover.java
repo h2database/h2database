@@ -29,7 +29,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.zip.CRC32;
-
 import org.h2.api.ErrorCode;
 import org.h2.compress.CompressLZF;
 import org.h2.engine.Constants;
@@ -53,7 +52,6 @@ import org.h2.pagestore.Page;
 import org.h2.pagestore.PageFreeList;
 import org.h2.pagestore.PageLog;
 import org.h2.pagestore.PageStore;
-import org.h2.pagestore.db.LobStorageBackend;
 import org.h2.result.DefaultRow;
 import org.h2.result.Row;
 import org.h2.security.SHA256;
@@ -63,6 +61,7 @@ import org.h2.store.DataReader;
 import org.h2.store.FileLister;
 import org.h2.store.FileStore;
 import org.h2.store.LobStorageFrontend;
+import org.h2.store.LobStorageInterface;
 import org.h2.store.fs.FileUtils;
 import org.h2.util.HasSQL;
 import org.h2.util.IOUtils;
@@ -1752,7 +1751,7 @@ public class Recover extends Tool implements DataHandler {
      * INTERNAL
      */
     @Override
-    public LobStorageBackend getLobStorage() {
+    public LobStorageInterface getLobStorage() {
         return null;
     }
 

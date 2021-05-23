@@ -45,7 +45,6 @@ import org.h2.mvstore.MVStore;
 import org.h2.mvstore.MVStoreException;
 import org.h2.mvstore.db.LobStorageMap;
 import org.h2.mvstore.db.Store;
-import org.h2.pagestore.db.LobStorageBackend;
 import org.h2.pagestore.db.SessionPageStore;
 import org.h2.result.Row;
 import org.h2.result.RowFactory;
@@ -403,7 +402,7 @@ public final class Database implements DataHandler, CastDataProvider {
                     addDatabaseObject(systemSession, setting);
                 }
             }
-            lobStorage = dbSettings.mvStore ? new LobStorageMap(this) : new LobStorageBackend(this);
+            lobStorage = new LobStorageMap(this);
             lobSession.commit(true);
             systemSession.commit(true);
             trace.info("opened {0}", databaseName);
@@ -1344,9 +1343,6 @@ public final class Database implements DataHandler, CastDataProvider {
     private void removeOrphanedLobs() {
         // remove all session variables and temporary lobs
         if (!persistent) {
-            return;
-        }
-        if (store == null && infoSchema.findTableOrView(systemSession, LobStorageBackend.LOB_DATA_TABLE) == null) {
             return;
         }
         try {

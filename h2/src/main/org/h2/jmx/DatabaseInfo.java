@@ -18,7 +18,6 @@ import org.h2.engine.ConnectionInfo;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.SessionLocal;
-import org.h2.message.DbException;
 import org.h2.mvstore.db.Store;
 import org.h2.table.Table;
 import org.h2.util.NetworkConnectionInfo;
@@ -109,28 +108,6 @@ public class DatabaseInfo implements DatabaseInfoMBean {
         return database.getMode().getName();
     }
 
-    @Deprecated
-    @Override
-    public boolean isMultiThreaded() {
-        return true; // TODO remove
-    }
-
-    @Deprecated
-    @Override
-    public boolean isMvcc() {
-        return true; // TODO remove
-    }
-
-    @Override
-    public int getLogMode() {
-        return 0; // TODO remove, not used now that PageStore gone
-    }
-
-    @Override
-    public void setLogMode(int value) {
-        throw DbException.getUnsupportedException("MV_STORE=FALSE && LOG");
-    }
-
     @Override
     public int getTraceLevel() {
         return database.getTraceSystem().getLevelFile();
@@ -139,13 +116,6 @@ public class DatabaseInfo implements DatabaseInfoMBean {
     @Override
     public void setTraceLevel(int level) {
         database.getTraceSystem().setLevelFile(level);
-    }
-
-    @Override
-    public long getFileWriteCountTotal() {
-        // TODO remove this method when removing the page store
-        // (the MVStore doesn't support it)
-        return 0;
     }
 
     @Override

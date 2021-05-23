@@ -547,12 +547,14 @@ public class TransactionStore {
      * @param valueType the value type
      * @return the map
      */
-    <K,V> MVMap<K, VersionedValue<V>> openMap(String name, DataType<K> keyType, DataType<V> valueType) {
+    <K,V> MVMap<K, VersionedValue<V>> openVersionedMap(String name, DataType<K> keyType, DataType<V> valueType) {
         VersionedValueType<V,?> vt = valueType == null ? null : new VersionedValueType<>(valueType);
-        MVMap.Builder<K, VersionedValue<V>> builder = new TxMapBuilder<K,VersionedValue<V>>(typeRegistry, dataType)
-                .keyType(keyType).valueType(vt);
-        MVMap<K, VersionedValue<V>> map = store.openMap(name, builder);
-        return map;
+        return openMap(name, keyType, vt);
+    }
+
+    public <K,V> MVMap<K, V> openMap(String name, DataType<K> keyType, DataType<V> valueType) {
+        return store.openMap(name, new TxMapBuilder<K, V>(typeRegistry, dataType)
+                                            .keyType(keyType).valueType(valueType));
     }
 
     /**

@@ -662,9 +662,10 @@ public class Recover extends Tool implements DataHandler {
         if (!lobMaps) {
             return;
         }
-        MVMap<Long, byte[]> lobData = LobStorageMap.openLobDataMap(mv);
+        TransactionStore txStore = new TransactionStore(mv);
+        MVMap<Long, byte[]> lobData = LobStorageMap.openLobDataMap(txStore);
         StreamStore streamStore = new StreamStore(lobData);
-        MVMap<Long, LobStorageMap.BlobMeta> lobMap = LobStorageMap.openLobMap(mv);
+        MVMap<Long, LobStorageMap.BlobMeta> lobMap = LobStorageMap.openLobMap(txStore);
         writer.println("-- LOB");
         writer.println("CREATE TABLE IF NOT EXISTS " +
                 "INFORMATION_SCHEMA.LOB_BLOCKS(" +

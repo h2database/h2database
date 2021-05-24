@@ -93,7 +93,6 @@ public class TestRecovery extends TestDb {
         Statement stat = conn.createStatement();
         stat.execute("create table test(id int primary key, data clob)");
         stat.execute("insert into test values(1, space(10000))");
-        stat.execute("set compress_lob lzf");
         stat.execute("insert into test values(2, space(10000))");
         conn.close();
         Recover rec = new Recover();

@@ -597,7 +597,6 @@ public final class Database implements DataHandler, CastDataProvider {
         data.temporary = false;
         data.persistData = persistent;
         data.persistIndexes = persistent;
-        data.create = true;
         data.isHidden = true;
         data.session = systemSession;
         return data;

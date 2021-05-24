@@ -106,7 +106,6 @@ public class CreateTable extends CommandWithColumns {
         }
         changePrimaryKeysToNotNull(data.columns);
         data.id = getObjectId();
-        data.create = create;
         data.session = session;
         Table table = schema.createTable(data);
         ArrayList<Sequence> sequences = generateSequences(data.columns, data.temporary);

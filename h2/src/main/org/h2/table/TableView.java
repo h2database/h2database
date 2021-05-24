@@ -779,7 +779,6 @@ public class TableView extends Table {
         recursiveTableData.temporary = isTemporary;
         recursiveTableData.persistData = true;
         recursiveTableData.persistIndexes = !isTemporary;
-        recursiveTableData.create = true;
         recursiveTableData.session = targetSession;
 
         // this gets a meta table lock that is not released

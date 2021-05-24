@@ -454,7 +454,6 @@ public class AlterTableAlterColumn extends CommandWithColumns {
         data.persistData = table.isPersistData();
         data.persistIndexes = table.isPersistIndexes();
         data.isHidden = table.isHidden();
-        data.create = true;
         data.session = session;
         Table newTable = getSchema().createTable(data);
         newTable.setComment(table.getComment());

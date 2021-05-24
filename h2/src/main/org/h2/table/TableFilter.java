@@ -836,15 +836,6 @@ public class TableFilter implements ColumnResolver {
     }
 
     /**
-     * Set the session of this table filter.
-     *
-     * @param session the new session
-     */
-    void setSession(SessionLocal session) {
-        this.session = session;
-    }
-
-    /**
      * Remove the joined table
      */
     public void removeJoin() {
@@ -1181,17 +1172,6 @@ public class TableFilter implements ColumnResolver {
             }
         }
         return false;
-    }
-
-    /**
-     * Add the current row to the array, if there is a current row.
-     *
-     * @param rows the rows to lock
-     */
-    public void lockRowAdd(ArrayList<Row> rows) {
-        if (state == FOUND) {
-            rows.add(get());
-        }
     }
 
     public TableFilter getNestedJoin() {

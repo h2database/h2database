@@ -197,13 +197,11 @@ public class TableFilter implements ColumnResolver {
      * Lock the table. This will also lock joined tables.
      *
      * @param s the session
-     * @param exclusive true if an exclusive lock is required
-     * @param forceLockEvenInMvcc lock even in the MVCC mode
      */
-    public void lock(SessionLocal s, boolean exclusive, boolean forceLockEvenInMvcc) {
-        table.lock(s, exclusive, forceLockEvenInMvcc);
+    public void lock(SessionLocal s) {
+        table.lock(s, false, false);
         if (join != null) {
-            join.lock(s, exclusive, forceLockEvenInMvcc);
+            join.lock(s);
         }
     }
 

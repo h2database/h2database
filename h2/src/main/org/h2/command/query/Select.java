@@ -806,7 +806,7 @@ public class Select extends Query {
         }
         topTableFilter.startQuery(session);
         topTableFilter.reset();
-        topTableFilter.lock(session, /*exclusive*/false, /*forceLockEvenInMvcc*/false);
+        topTableFilter.lock(session);
         ResultTarget to = result != null ? result : target;
         lazy &= to == null;
         LazyResult lazyResult = null;

@@ -66,7 +66,7 @@ public class PgTcpRedirect {
     /**
      * This is the working thread of the TCP redirector.
      */
-    private class TcpRedirectThread implements Runnable {
+    private static class TcpRedirectThread implements Runnable {
 
         private static final int STATE_INIT_CLIENT = 0, STATE_REGULAR = 1;
         private final Socket read, write;

@@ -1121,7 +1121,7 @@ public class TestTools extends TestDb {
     /**
      * A simple Clob implementation.
      */
-    class SimpleClob implements Clob {
+    static class SimpleClob implements Clob {
 
         private final String data;
 
@@ -1211,7 +1211,7 @@ public class TestTools extends TestDb {
     /**
      * A simple Blob implementation.
      */
-    class SimpleBlob implements Blob {
+    static class SimpleBlob implements Blob {
 
         private final byte[] data;
 

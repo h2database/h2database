@@ -8,11 +8,9 @@ package org.h2.expression;
 import java.util.List;
 
 import org.h2.api.ErrorCode;
-import org.h2.engine.Database;
 import org.h2.engine.SessionLocal;
 import org.h2.expression.function.NamedExpression;
 import org.h2.message.DbException;
-import org.h2.result.ResultInterface;
 import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
@@ -21,7 +19,6 @@ import org.h2.util.StringUtils;
 import org.h2.value.TypeInfo;
 import org.h2.value.Typed;
 import org.h2.value.Value;
-import org.h2.value.ValueRow;
 
 /**
  * An expression is a operation, a value, or a function in a query.

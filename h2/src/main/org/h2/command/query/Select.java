@@ -147,8 +147,7 @@ public class Select extends Query {
     boolean isGroupQuery;
     private boolean isGroupSortedQuery;
     private boolean isWindowQuery;
-    // @TODO merge these, they now operate in lock step, after pagestore removal
-    private boolean isForUpdate, isForUpdateMvcc;
+    private boolean isForUpdate;
     private double cost;
     private boolean isQuickAggregateQuery, isDistinctQuery;
     private boolean sortUsingIndex;
@@ -517,7 +516,7 @@ public class Select extends Query {
         setCurrentRowNumber(0);
         while (topTableFilter.next()) {
             setCurrentRowNumber(rowNumber + 1);
-            if (isForUpdateMvcc ? isConditionMetForUpdate() : isConditionMet()) {
+            if (isForUpdate ? isConditionMetForUpdate() : isConditionMet()) {
                 rowNumber++;
                 groupData.nextSource();
                 updateAgg(columnCount, stage);
@@ -717,7 +716,7 @@ public class Select extends Query {
                 limitRows = Long.MAX_VALUE;
             }
         }
-        LazyResultQueryFlat lazyResult = new LazyResultQueryFlat(expressionArray, columnCount, isForUpdateMvcc);
+        LazyResultQueryFlat lazyResult = new LazyResultQueryFlat(expressionArray, columnCount, isForUpdate);
         skipOffset(lazyResult, offset, quickOffset);
         if (result == null) {
             return lazyResult;
@@ -807,8 +806,7 @@ public class Select extends Query {
         }
         topTableFilter.startQuery(session);
         topTableFilter.reset();
-        boolean exclusive = isForUpdate && !isForUpdateMvcc;
-        topTableFilter.lock(session, exclusive, exclusive);
+        topTableFilter.lock(session, /*exclusive*/false, /*forceLockEvenInMvcc*/false);
         ResultTarget to = result != null ? result : target;
         lazy &= to == null;
         LazyResult lazyResult = null;
@@ -1258,7 +1256,7 @@ public class Select extends Query {
                     }
                 }
             }
-            if (sortUsingIndex && isForUpdateMvcc && !topTableFilter.getIndex().isRowIdIndex()) {
+            if (sortUsingIndex && isForUpdate && !topTableFilter.getIndex().isRowIdIndex()) {
                 sortUsingIndex = false;
             }
         }
@@ -1540,7 +1538,6 @@ public class Select extends Query {
             throw DbException.get(ErrorCode.FOR_UPDATE_IS_NOT_ALLOWED_IN_DISTINCT_OR_GROUPED_SELECT);
         }
         this.isForUpdate = b;
-        this.isForUpdateMvcc = b;
     }
 
     @Override

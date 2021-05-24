@@ -76,11 +76,10 @@ public final class ValueBlob extends ValueLob {
     public static ValueBlob createTempBlob(InputStream in, long length, DataHandler handler) {
         try {
             long remaining = Long.MAX_VALUE;
-            boolean compress = handler.getLobCompressionAlgorithm(Value.BLOB) != null;
             if (length >= 0 && length < remaining) {
                 remaining = length;
             }
-            int len = LobDataFile.getBufferSize(handler, compress, remaining);
+            int len = LobDataFile.getBufferSize(handler, remaining);
             byte[] buff;
             if (len >= Integer.MAX_VALUE) {
                 buff = IOUtils.readBytesAndClose(in, -1);
@@ -107,7 +106,6 @@ public final class ValueBlob extends ValueLob {
         FileStore tempFile = handler.openFile(fileName, "rw", false);
         tempFile.autoDelete();
         long tmpPrecision = 0;
-        boolean compress = handler.getLobCompressionAlgorithm(Value.BLOB) != null;
         try (FileStoreOutputStream out = new FileStoreOutputStream(tempFile, null, null)) {
             while (true) {
                 tmpPrecision += len;
@@ -116,7 +114,7 @@ public final class ValueBlob extends ValueLob {
                 if (remaining <= 0) {
                     break;
                 }
-                len = LobDataFile.getBufferSize(handler, compress, remaining);
+                len = LobDataFile.getBufferSize(handler, remaining);
                 len = IOUtils.readFully(in, buff, len);
                 if (len <= 0) {
                     break;

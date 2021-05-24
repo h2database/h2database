@@ -42,7 +42,6 @@ import org.h2.tools.Recover;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
-import org.h2.util.StringUtils;
 import org.h2.util.Task;
 import org.h2.value.ValueBlob;
 import org.h2.value.ValueClob;
@@ -108,10 +107,7 @@ public class TestLob extends TestDb {
         testLobRollbackStop();
         testLobCopy();
         testLobHibernate();
-        testLobCopy(false);
-        testLobCopy(true);
-        testLobCompression(false);
-        testLobCompression(true);
+        testLobCopy2();
         testManyLobs();
         testClob();
         testUpdateLob();
@@ -951,24 +947,13 @@ public class TestLob extends TestDb {
         conn0.close();
     }
 
-    private void testLobCopy(boolean compress) throws SQLException {
+    private void testLobCopy2() throws SQLException {
         deleteDb("lob");
         Connection conn;
         conn = reconnect(null);
         Statement stat = conn.createStatement();
-        if (compress) {
-            stat.execute("SET COMPRESS_LOB LZF");
-        } else {
-            stat.execute("SET COMPRESS_LOB NO");
-        }
         conn = reconnect(conn);
         stat = conn.createStatement();
-        ResultSet rs;
-        rs = stat.executeQuery(
-                "SELECT SETTING_VALUE FROM INFORMATION_SCHEMA.SETTINGS WHERE SETTING_NAME = 'COMPRESS_LOB'");
-        rs.next();
-        assertEquals(compress ? "LZF" : "NO", rs.getString(1));
-        assertFalse(rs.next());
         stat.execute("create table test(text clob)");
         stat.execute("create table test2(text clob)");
         StringBuilder buff = new StringBuilder();
@@ -978,7 +963,7 @@ public class TestLob extends TestDb {
         String spaces = buff.toString();
         stat.execute("insert into test values('" + spaces + "')");
         stat.execute("insert into test2 select * from test");
-        rs = stat.executeQuery("select * from test2");
+        ResultSet rs = stat.executeQuery("select * from test2");
         rs.next();
         assertEquals(spaces, rs.getString(1));
         stat.execute("drop table test");
@@ -990,55 +975,6 @@ public class TestLob extends TestDb {
         rs.next();
         assertEquals(spaces, rs.getString("text"));
         conn.close();
-    }
-
-    private void testLobCompression(boolean compress) throws Exception {
-        deleteDb("lob");
-        Connection conn;
-        conn = reconnect(null);
-        if (compress) {
-            conn.createStatement().execute("SET COMPRESS_LOB LZF");
-        } else {
-            conn.createStatement().execute("SET COMPRESS_LOB NO");
-        }
-        conn.createStatement().execute("CREATE TABLE TEST(ID INT PRIMARY KEY, C CLOB)");
-        PreparedStatement prep = conn.prepareStatement(
-                "INSERT INTO TEST VALUES(?, ?)");
-        long time = System.nanoTime();
-        int len = getSize(10, 40);
-        if (config.networked && config.big) {
-            len = 5;
-        }
-        StringBuilder buff = new StringBuilder();
-        for (int i = 0; i < 1000; i++) {
-            buff.append(StringUtils.xmlNode("content", null, "This is a test " + i));
-        }
-        String xml = buff.toString();
-        for (int i = 0; i < len; i++) {
-            prep.setInt(1, i);
-            prep.setString(2, xml + i);
-            prep.execute();
-        }
-        for (int i = 0; i < len; i++) {
-            ResultSet rs = conn.createStatement().executeQuery(
-                    "SELECT * FROM TEST");
-            while (rs.next()) {
-                if (i == 0) {
-                    assertEquals(xml + rs.getInt(1), rs.getString(2));
-                } else {
-                    Reader r = rs.getCharacterStream(2);
-                    String result = IOUtils.readStringAndClose(r, -1);
-                    assertEquals(xml + rs.getInt(1), result);
-                }
-            }
-        }
-        time = System.nanoTime() - time;
-        trace("time: " + TimeUnit.NANOSECONDS.toMillis(time) + " compress: " + compress);
-        conn.close();
-        if (!config.memory) {
-            long length = new File(getBaseDir() + "/lob.h2.db").length();
-            trace("len: " + length + " compress: " + compress);
-        }
     }
 
     private void testManyLobs() throws Exception {

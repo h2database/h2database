@@ -56,14 +56,6 @@ public interface DataHandler {
     int getMaxLengthInplaceLob();
 
     /**
-     * Get the compression algorithm used for large objects.
-     *
-     * @param type the data type (CLOB or BLOB)
-     * @return the compression algorithm, or null
-     */
-    String getLobCompressionAlgorithm(int type);
-
-    /**
      * Get the temp file deleter mechanism.
      *
      * @return the temp file deleter

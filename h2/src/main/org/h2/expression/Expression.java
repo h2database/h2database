@@ -475,43 +475,6 @@ public abstract class Expression implements HasSQL, Typed {
     }
 
     /**
-     * Extracts expression columns from ValueArray
-     *
-     * @param session the current session
-     * @param value the value to extract columns from
-     * @return array of expression columns
-     */
-    protected static Expression[] getExpressionColumns(SessionLocal session, ValueRow value) {
-        Value[] list = value.getList();
-        ExpressionColumn[] expr = new ExpressionColumn[list.length];
-        for (int i = 0, len = list.length; i < len; i++) {
-            Value v = list[i];
-            Column col = new Column("C" + (i + 1), v.getType());
-            expr[i] = new ExpressionColumn(session.getDatabase(), col);
-        }
-        return expr;
-    }
-
-    /**
-     * Extracts expression columns from the given result set.
-     *
-     * @param session the session
-     * @param result the result
-     * @return an array of expression columns
-     */
-    public static Expression[] getExpressionColumns(SessionLocal session, ResultInterface result) {
-        int columnCount = result.getVisibleColumnCount();
-        Expression[] expressions = new Expression[columnCount];
-        Database db = session == null ? null : session.getDatabase();
-        for (int i = 0; i < columnCount; i++) {
-            String name = result.getColumnName(i);
-            TypeInfo type = result.getColumnType(i);
-            expressions[i] = new ExpressionColumn(db, new Column(name, type));
-        }
-        return expressions;
-    }
-
-    /**
      * Returns count of subexpressions.
      *
      * @return count of subexpressions

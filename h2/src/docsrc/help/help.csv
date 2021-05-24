@@ -1553,23 +1553,6 @@ SET COLLATION ENGLISH
 SET COLLATION CHARSET_CP500
 "
 
-"Commands (Other)","SET COMPRESS_LOB","
-@h2@ SET COMPRESS_LOB { NO | LZF | DEFLATE }
-","
-This feature is only available for the PageStore storage engine.
-For the MVStore engine (the default for H2 version 1.4.x),
-append "";COMPRESS=TRUE"" to the database URL instead.
-
-Sets the compression algorithm for BLOB and CLOB data. Compression is usually
-slower, but needs less disk space. LZF is faster but uses more space.
-
-Admin rights are required to execute this command, as it affects all connections.
-This command commits an open transaction in this connection.
-This setting is persistent.
-","
-SET COMPRESS_LOB LZF
-"
-
 "Commands (Other)","SET DATABASE_EVENT_LISTENER","
 @h2@ SET DATABASE_EVENT_LISTENER classNameString
 ","

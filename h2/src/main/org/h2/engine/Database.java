@@ -189,7 +189,6 @@ public final class Database implements DataHandler, CastDataProvider {
     private volatile boolean closing;
     private boolean ignoreCase;
     private boolean deleteFilesOnDisconnect;
-    private String lobCompressionAlgorithm;
     private boolean optimizeReuseResults = true;
     private final String cacheType;
     private final String accessModeData;
@@ -2109,15 +2108,6 @@ public final class Database implements DataHandler, CastDataProvider {
 
     public synchronized void setDeleteFilesOnDisconnect(boolean b) {
         this.deleteFilesOnDisconnect = b;
-    }
-
-    @Override
-    public String getLobCompressionAlgorithm(int type) {
-        return lobCompressionAlgorithm;
-    }
-
-    public void setLobCompressionAlgorithm(String stringValue) {
-        this.lobCompressionAlgorithm = stringValue;
     }
 
     public void setAllowLiterals(int value) {

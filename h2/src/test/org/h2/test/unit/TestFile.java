@@ -151,11 +151,6 @@ public class TestFile extends TestBase implements DataHandler {
     }
 
     @Override
-    public String getLobCompressionAlgorithm(int type) {
-        return null;
-    }
-
-    @Override
     public Object getLobSyncObject() {
         return null;
     }

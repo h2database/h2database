@@ -295,11 +295,6 @@ public class TestDataPage extends TestBase implements DataHandler {
     }
 
     @Override
-    public String getLobCompressionAlgorithm(int type) {
-        throw new AssertionError();
-    }
-
-    @Override
     public Object getLobSyncObject() {
         return this;
     }

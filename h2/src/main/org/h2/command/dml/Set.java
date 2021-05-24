@@ -11,7 +11,6 @@ import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.command.Parser;
 import org.h2.command.Prepared;
-import org.h2.compress.Compressor;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Mode;
@@ -27,7 +26,6 @@ import org.h2.result.ResultInterface;
 import org.h2.schema.Schema;
 import org.h2.security.auth.AuthenticatorFactory;
 import org.h2.table.Table;
-import org.h2.tools.CompressTool;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.StringUtils;
 import org.h2.util.TimeZoneProvider;
@@ -169,15 +167,6 @@ public class Set extends Prepared {
                 }
                 addOrUpdateSetting(name, buff.toString(), 0);
                 database.setCompareMode(compareMode);
-            }
-            break;
-        }
-        case SetTypes.COMPRESS_LOB: {
-            session.getUser().checkAdmin();
-            int algo = CompressTool.getCompressAlgorithm(stringValue);
-            synchronized (database) {
-                database.setLobCompressionAlgorithm(algo == Compressor.NO ? null : stringValue);
-                addOrUpdateSetting(name, stringValue, 0);
             }
             break;
         }

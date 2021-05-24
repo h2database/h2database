@@ -225,11 +225,6 @@ abstract class ScriptBase extends Prepared implements DataHandler {
         return session.getDatabase().getTempFileDeleter();
     }
 
-    @Override
-    public String getLobCompressionAlgorithm(int type) {
-        return session.getDatabase().getLobCompressionAlgorithm(type);
-    }
-
     public void setCompressionAlgorithm(String algorithm) {
         this.compressionAlgorithm = algorithm;
     }

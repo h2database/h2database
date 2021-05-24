@@ -734,14 +734,6 @@ public class Recover extends Tool implements DataHandler {
      * INTERNAL
      */
     @Override
-    public String getLobCompressionAlgorithm(int type) {
-        return null;
-    }
-
-    /**
-     * INTERNAL
-     */
-    @Override
     public Object getLobSyncObject() {
         return this;
     }

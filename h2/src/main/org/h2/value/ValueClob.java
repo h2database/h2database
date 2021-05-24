@@ -117,12 +117,11 @@ public final class ValueClob extends ValueLob {
             reader = new BufferedReader(in, Constants.IO_BUFFER_SIZE);
         }
         try {
-            boolean compress = handler.getLobCompressionAlgorithm(Value.CLOB) != null;
             long remaining = Long.MAX_VALUE;
             if (length >= 0 && length < remaining) {
                 remaining = length;
             }
-            int len = LobDataFile.getBufferSize(handler, compress, remaining);
+            int len = LobDataFile.getBufferSize(handler, remaining);
             char[] buff;
             if (len >= Integer.MAX_VALUE) {
                 String data = IOUtils.readStringAndClose(reader, -1);
@@ -155,7 +154,7 @@ public final class ValueClob extends ValueLob {
         try (FileStoreOutputStream out = new FileStoreOutputStream(tempFile, null, null)) {
             char[] buff = new char[Constants.IO_BUFFER_SIZE];
             while (true) {
-                int len = LobDataFile.getBufferSize(handler, false, remaining);
+                int len = LobDataFile.getBufferSize(handler, remaining);
                 len = IOUtils.readFully(in, buff, len);
                 if (len == 0) {
                     break;

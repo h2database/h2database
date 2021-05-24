@@ -684,11 +684,6 @@ public final class SessionRemote extends Session implements DataHandler {
     }
 
     @Override
-    public String getLobCompressionAlgorithm(int type) {
-        return null;
-    }
-
-    @Override
     public int getMaxLengthInplaceLob() {
         return SysProperties.LOB_CLIENT_MAX_SIZE_MEMORY;
     }

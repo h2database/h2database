@@ -8973,11 +8973,6 @@ public class Parser {
             Set command = new Set(session, SetTypes.MODE);
             command.setString(readIdentifier());
             return command;
-        } else if (readIf("COMPRESS_LOB")) {
-            readIfEqualOrTo();
-            Set command = new Set(session, SetTypes.COMPRESS_LOB);
-            command.setString(currentTokenType == LITERAL ? readString() : readIdentifier());
-            return command;
         } else if (readIf("DATABASE")) {
             readIfEqualOrTo();
             read("COLLATION");

@@ -83,12 +83,12 @@ public final class LobDataFile extends LobData {
         return "lob-file: " + fileName;
     }
 
-    public static int getBufferSize(DataHandler handler, boolean compress, long remaining) {
+    public static int getBufferSize(DataHandler handler, long remaining) {
         if (remaining < 0 || remaining > Integer.MAX_VALUE) {
             remaining = Integer.MAX_VALUE;
         }
         int inplace = handler.getMaxLengthInplaceLob();
-        long m = compress ? Constants.IO_BUFFER_SIZE_COMPRESS : Constants.IO_BUFFER_SIZE;
+        long m = Constants.IO_BUFFER_SIZE;
         if (m < remaining && m <= inplace) {
             // using "1L" to force long arithmetic because
             // inplace could be Integer.MAX_VALUE

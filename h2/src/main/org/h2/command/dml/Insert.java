@@ -17,7 +17,6 @@ import org.h2.command.query.Query;
 import org.h2.engine.DbObject;
 import org.h2.engine.Right;
 import org.h2.engine.SessionLocal;
-import org.h2.engine.UndoLogRecord;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ExpressionVisitor;
@@ -191,7 +190,6 @@ public final class Insert extends CommandWithValues implements ResultTarget {
                     }
                     DataChangeDeltaTable.collectInsertedFinalRow(session, table, deltaChangeCollector,
                             deltaChangeCollectionMode, newRow);
-                    session.log(table, UndoLogRecord.INSERT, newRow);
                     table.fireAfterRow(session, null, newRow, false);
                 } else {
                     DataChangeDeltaTable.collectInsertedFinalRow(session, table, deltaChangeCollector,
@@ -241,7 +239,6 @@ public final class Insert extends CommandWithValues implements ResultTarget {
             table.addRow(session, newRow);
             DataChangeDeltaTable.collectInsertedFinalRow(session, table, deltaChangeCollector,
                     deltaChangeCollectionMode, newRow);
-            session.log(table, UndoLogRecord.INSERT, newRow);
             table.fireAfterRow(session, null, newRow, false);
         } else {
             DataChangeDeltaTable.collectInsertedFinalRow(session, table, deltaChangeCollector,

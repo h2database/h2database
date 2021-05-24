@@ -22,7 +22,6 @@ import org.h2.engine.Constants;
 import org.h2.engine.DbObject;
 import org.h2.engine.Right;
 import org.h2.engine.SessionLocal;
-import org.h2.engine.UndoLogRecord;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
@@ -543,7 +542,6 @@ public abstract class Table extends SchemaObject {
                 }
                 throw e;
             }
-            session.log(this, UndoLogRecord.DELETE, o);
         }
         // add the new rows
         for (rows.reset(); rows.hasNext();) {
@@ -560,7 +558,6 @@ public abstract class Table extends SchemaObject {
                 }
                 throw e;
             }
-            session.log(this, UndoLogRecord.INSERT, n);
         }
     }
 

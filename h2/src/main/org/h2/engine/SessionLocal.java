@@ -133,7 +133,6 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
     private NetworkConnectionInfo networkConnectionInfo;
 
     private final ArrayList<Table> locks = Utils.newSmallArrayList();
-    protected UndoLog undoLog;
     private boolean autoCommit = true;
     private Random random;
     private int lockTimeout;
@@ -671,9 +670,6 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
             database.commit(this);
         }
         removeTemporaryLobs(true);
-        if (undoLog != null && undoLog.size() > 0) {
-            undoLog.clear();
-        }
         if (!ddl) {
             // do not clean the temp tables if the last command was a
             // create/drop
@@ -789,7 +785,7 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
      */
     public void rollback() {
         beforeCommitOrRollback();
-        boolean needCommit = undoLog != null && undoLog.size() > 0 || transaction != null;
+        boolean needCommit = transaction != null;
         if (needCommit) {
             rollbackTo(null);
         }
@@ -812,13 +808,6 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
      */
     public void rollbackTo(Savepoint savepoint) {
         int index = savepoint == null ? 0 : savepoint.logIndex;
-        if (undoLog != null) {
-            while (undoLog.size() > index) {
-                UndoLogRecord entry = undoLog.getLast();
-                entry.undo(this);
-                undoLog.removeLast();
-            }
-        }
         if (transaction != null) {
             markUsedTablesAsUpdated();
             if (savepoint == null) {
@@ -849,7 +838,7 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
 
     @Override
     public boolean hasPendingTransaction() {
-        return undoLog != null && undoLog.size() > 0;
+        return false;
     }
 
     /**
@@ -859,9 +848,6 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
      */
     public Savepoint setSavepoint() {
         Savepoint sp = new Savepoint();
-        if (undoLog != null) {
-            sp.logIndex = undoLog.size();
-        }
         if (database.getStore() != null) {
             sp.transactionSavepoint = getStatementSavepoint();
         }
@@ -908,9 +894,6 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
                     removeTemporaryLobs(false);
                     cleanTempTables(true);
                     commit(true);       // temp table removal may have opened new transaction
-                    if (undoLog != null) {
-                        undoLog.clear();
-                    }
                 }
 
                 // Table#removeChildrenAndResources can take the meta lock,
@@ -949,16 +932,6 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
         if (!locks.contains(table)) {
             locks.add(table);
         }
-    }
-
-    /**
-     * Add an undo log entry to this session.
-     *
-     * @param table the table
-     * @param operation the operation type (see {@link UndoLogRecord})
-     * @param row the row
-     */
-    public void log(Table table, short operation, Row row) {
     }
 
     /**

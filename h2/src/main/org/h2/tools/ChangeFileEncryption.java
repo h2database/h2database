@@ -18,7 +18,6 @@ import org.h2.message.DbException;
 import org.h2.mvstore.MVStore;
 import org.h2.security.SHA256;
 import org.h2.store.FileLister;
-import org.h2.store.FileStore;
 import org.h2.store.fs.FilePath;
 import org.h2.store.fs.FileUtils;
 import org.h2.store.fs.encrypt.FileEncrypt;

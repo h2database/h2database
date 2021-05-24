@@ -5,7 +5,6 @@
  */
 package org.h2.index;
 
-import org.h2.engine.SessionLocal;
 import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
 import org.h2.result.Row;

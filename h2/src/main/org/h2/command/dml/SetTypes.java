@@ -289,7 +289,6 @@ public class SetTypes {
         list.add("THROTTLE");
         list.add("MAX_MEMORY_UNDO");
         list.add("MAX_LENGTH_INPLACE_LOB");
-        list.add("COMPRESS_LOB");
         list.add("ALLOW_LITERALS");
         list.add("SCHEMA");
         list.add("OPTIMIZE_REUSE_RESULTS");

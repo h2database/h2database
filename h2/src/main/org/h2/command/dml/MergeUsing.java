@@ -103,7 +103,7 @@ public final class MergeUsing extends DataChangeStatement {
             boolean nullRow = targetTableFilter.isNullRow();
             if (!nullRow) {
                 Row targetRow = targetTableFilter.get();
-                if (table.isMVStore()) {
+                if (table.isRowLockable()) {
                     Row lockedRow = table.lockRow(session, targetRow);
                     if (lockedRow == null) {
                         if (previousSource != source) {

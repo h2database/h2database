@@ -59,8 +59,7 @@ public class RecoverTester implements Recorder {
         if (op != Recorder.WRITE && op != Recorder.TRUNCATE) {
             return;
         }
-        if (!fileName.endsWith(Constants.SUFFIX_PAGE_FILE) &&
-                !fileName.endsWith(Constants.SUFFIX_MV_FILE)) {
+        if (!fileName.endsWith(Constants.SUFFIX_MV_FILE)) {
             return;
         }
         writeCount++;
@@ -93,13 +92,7 @@ public class RecoverTester implements Recorder {
     private synchronized void testDatabase(String fileName, PrintWriter out) {
         out.println("+ write #" + writeCount + " verify #" + verifyCount);
         try {
-            IOUtils.copyFiles(fileName, testDatabase + Constants.SUFFIX_PAGE_FILE);
-            String mvFileName = fileName.substring(0, fileName.length() -
-                    Constants.SUFFIX_PAGE_FILE.length()) +
-                    Constants.SUFFIX_MV_FILE;
-            if (FileUtils.exists(mvFileName)) {
-                IOUtils.copyFiles(mvFileName, testDatabase + Constants.SUFFIX_MV_FILE);
-            }
+            IOUtils.copyFiles(fileName, testDatabase + Constants.SUFFIX_MV_FILE);
             verifyCount++;
             // avoid using the Engine class to avoid deadlocks
             ConnectionInfo ci = new ConnectionInfo("jdbc:h2:" + testDatabase +
@@ -142,7 +135,7 @@ public class RecoverTester implements Recorder {
         }
         testDatabase += "X";
         try {
-            IOUtils.copyFiles(fileName, testDatabase + Constants.SUFFIX_PAGE_FILE);
+            IOUtils.copyFiles(fileName, testDatabase + Constants.SUFFIX_MV_FILE);
             // avoid using the Engine class to avoid deadlocks
             ConnectionInfo ci = new ConnectionInfo("jdbc:h2:" +
                         testDatabase + ";FILE_LOCK=NO", null, null, null);

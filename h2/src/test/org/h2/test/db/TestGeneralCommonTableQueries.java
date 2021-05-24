@@ -535,7 +535,6 @@ public class TestGeneralCommonTableQueries extends AbstractBaseForCommonTableExp
             // mem:script;MV_STORE=true;LOG=1;LOCK_TIMEOUT=50;
             // LAZY_QUERY_EXECUTION=1
             config.lazy = true;
-            config.mvStore = true;
             config.memory = true;
 
             String setupSQL = "--no config set";

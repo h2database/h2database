@@ -181,7 +181,6 @@ public final class Upgrade {
 
     private static void rename(String name, boolean back) throws IOException {
         rename(name, Constants.SUFFIX_MV_FILE, back);
-        rename(name, Constants.SUFFIX_PAGE_FILE, back);
         rename(name, ".lobs.db", back);
     }
 

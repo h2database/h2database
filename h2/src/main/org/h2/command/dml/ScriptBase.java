@@ -18,12 +18,12 @@ import org.h2.engine.SessionLocal;
 import org.h2.engine.SysProperties;
 import org.h2.expression.Expression;
 import org.h2.message.DbException;
-import org.h2.pagestore.db.LobStorageBackend;
 import org.h2.security.SHA256;
 import org.h2.store.DataHandler;
 import org.h2.store.FileStore;
 import org.h2.store.FileStoreInputStream;
 import org.h2.store.FileStoreOutputStream;
+import org.h2.store.LobStorageInterface;
 import org.h2.store.fs.FileUtils;
 import org.h2.tools.CompressTool;
 import org.h2.util.IOUtils;
@@ -245,7 +245,7 @@ abstract class ScriptBase extends Prepared implements DataHandler {
     }
 
     @Override
-    public LobStorageBackend getLobStorage() {
+    public LobStorageInterface getLobStorage() {
         return null;
     }
 

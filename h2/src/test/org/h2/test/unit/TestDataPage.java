@@ -9,11 +9,10 @@ import java.math.BigDecimal;
 import java.sql.Date;
 import java.sql.Time;
 import java.util.concurrent.TimeUnit;
-
-import org.h2.pagestore.db.LobStorageBackend;
 import org.h2.store.Data;
 import org.h2.store.DataHandler;
 import org.h2.store.FileStore;
+import org.h2.store.LobStorageInterface;
 import org.h2.test.TestBase;
 import org.h2.util.LegacyDateTimeUtils;
 import org.h2.util.SmallLRUCache;
@@ -316,7 +315,7 @@ public class TestDataPage extends TestBase implements DataHandler {
     }
 
     @Override
-    public LobStorageBackend getLobStorage() {
+    public LobStorageInterface getLobStorage() {
         return null;
     }
 

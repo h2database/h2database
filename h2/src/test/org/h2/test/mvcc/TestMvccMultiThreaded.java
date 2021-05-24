@@ -31,9 +31,6 @@ public class TestMvccMultiThreaded extends TestDb {
 
     @Override
     public boolean isEnabled() {
-        if (!config.mvStore) {
-            return false;
-        }
         return true;
     }
 

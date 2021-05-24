@@ -72,7 +72,7 @@ public final class Update extends FilteredDataChangeStatement {
             }
             while (nextRow(limitRows, count)) {
                 Row oldRow = targetTableFilter.get();
-                if (table.isMVStore()) {
+                if (table.isRowLockable()) {
                     Row lockedRow = table.lockRow(session, oldRow);
                     if (lockedRow == null) {
                         continue;

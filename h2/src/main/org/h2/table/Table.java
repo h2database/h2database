@@ -1402,7 +1402,10 @@ public abstract class Table extends SchemaObject {
         this.isHidden = hidden;
     }
 
-    public boolean isMVStore() {
+    /**
+     * Views, function tables, links, etc. do not support locks
+     */
+    public boolean isRowLockable() {
         return false;
     }
 

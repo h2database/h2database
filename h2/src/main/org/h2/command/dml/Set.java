@@ -23,8 +23,6 @@ import org.h2.expression.ValueExpression;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.mode.DefaultNullOrdering;
-import org.h2.pagestore.PageStore;
-import org.h2.pagestore.db.SessionPageStore;
 import org.h2.result.ResultInterface;
 import org.h2.schema.Schema;
 import org.h2.security.auth.AuthenticatorFactory;
@@ -189,7 +187,6 @@ public class Set extends Prepared {
                 // just ignore the command if not starting
                 // this avoids problems when running recovery scripts
                 int value = getIntValue();
-                database.setCreateBuild(value);
                 synchronized (database) {
                     addOrUpdateSetting(name, null, value);
                 }
@@ -301,16 +298,7 @@ public class Set extends Prepared {
             break;
         }
         case SetTypes.LOG: {
-            int value = getIntValue();
-            if (database.isMVStore()) {
-                throw DbException.getUnsupportedException("MV_STORE=TRUE && LOG");
-            }
-            PageStore pageStore = database.getPageStore();
-            if (pageStore != null && value != pageStore.getLogMode()) {
-                session.getUser().checkAdmin();
-                pageStore.setLogMode(value);
-            }
-            break;
+            throw DbException.getUnsupportedException("MV_STORE=TRUE && LOG");
         }
         case SetTypes.MAX_LENGTH_INPLACE_LOB: {
             session.getUser().checkAdmin();
@@ -329,10 +317,6 @@ public class Set extends Prepared {
             int value = getIntValue();
             if (value < 0) {
                 throw DbException.getInvalidValueException("MAX_LOG_SIZE", value);
-            }
-            synchronized (database) {
-                database.setMaxLogSize((long) value * (1024 * 1024));
-                addOrUpdateSetting(name, null, value);
             }
             break;
         }
@@ -394,12 +378,7 @@ public class Set extends Prepared {
             break;
         }
         case SetTypes.REDO_LOG_BINARY: {
-            int value = getIntValue();
-            if (session instanceof SessionPageStore) {
-                ((SessionPageStore) session).setRedoLogBinary(value == 1);
-            } else {
-                DbException.getUnsupportedException("MV_STORE + SET REDO_LOG_BINARY");
-            }
+            DbException.getUnsupportedException("MV_STORE + SET REDO_LOG_BINARY");
             break;
         }
         case SetTypes.REFERENTIAL_INTEGRITY: {

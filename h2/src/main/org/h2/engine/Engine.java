@@ -69,21 +69,15 @@ public final class Engine {
                     if (p == null) {
                         fileName = name + Constants.SUFFIX_MV_FILE;
                         if (!FileUtils.exists(fileName)) {
-                            fileName = name + Constants.SUFFIX_PAGE_FILE;
+                            throwNotFound(ifExists, forbidCreation, name);
+                            fileName = name + Constants.SUFFIX_OLD_DATABASE_FILE;
                             if (FileUtils.exists(fileName)) {
-                                ci.setProperty("MV_STORE", "false");
-                            } else {
-                                throwNotFound(ifExists, forbidCreation, name);
-                                fileName = name + Constants.SUFFIX_OLD_DATABASE_FILE;
-                                if (FileUtils.exists(fileName)) {
-                                    throw DbException.getFileVersionError(fileName);
-                                }
-                                fileName = null;
+                                throw DbException.getFileVersionError(fileName);
                             }
+                            fileName = null;
                         }
                     } else {
-                        fileName = name + (Utils.parseBoolean(p, true, false) ? Constants.SUFFIX_MV_FILE
-                                : Constants.SUFFIX_PAGE_FILE);
+                        fileName = name + Constants.SUFFIX_MV_FILE;
                         if (!FileUtils.exists(fileName)) {
                             throwNotFound(ifExists, forbidCreation, name);
                             fileName = null;

@@ -131,10 +131,10 @@ public class TestConnection extends TestDb {
             conn.setTransactionIsolation(Connection.TRANSACTION_READ_UNCOMMITTED);
             assertEquals(Connection.TRANSACTION_READ_UNCOMMITTED, conn.getTransactionIsolation());
             conn.setTransactionIsolation(Connection.TRANSACTION_REPEATABLE_READ);
-            assertEquals(config.mvStore ? Connection.TRANSACTION_REPEATABLE_READ : Connection.TRANSACTION_SERIALIZABLE,
+            assertEquals(Connection.TRANSACTION_REPEATABLE_READ,
                     conn.getTransactionIsolation());
             conn.setTransactionIsolation(Constants.TRANSACTION_SNAPSHOT);
-            assertEquals(config.mvStore ? Constants.TRANSACTION_SNAPSHOT : Connection.TRANSACTION_SERIALIZABLE,
+            assertEquals(Constants.TRANSACTION_SNAPSHOT,
                     conn.getTransactionIsolation());
             conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
             assertEquals(Connection.TRANSACTION_SERIALIZABLE, conn.getTransactionIsolation());
@@ -333,9 +333,6 @@ public class TestConnection extends TestDb {
     }
 
     private void testLockTimeout() throws SQLException {
-        if (!config.mvStore) {
-            return;
-        }
         deleteDb("lockTimeout");
         try (Connection conn1 = getConnection("lockTimeout");
                 Connection conn2 = getConnection("lockTimeout;LOCK_TIMEOUT=6000")) {

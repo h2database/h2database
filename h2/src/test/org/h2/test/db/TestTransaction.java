@@ -14,7 +14,6 @@ import java.sql.Savepoint;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Random;
-
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.test.TestBase;
@@ -43,7 +42,6 @@ public class TestTransaction extends TestDb {
         testConstraintCreationRollback();
         testCommitOnAutoCommitChange();
         testConcurrentSelectForUpdate();
-        testLogMode();
         testRollback();
         testRollback2();
         testForUpdate();
@@ -92,15 +90,9 @@ public class TestTransaction extends TestDb {
         // should have no effect
         conn.setAutoCommit(false);
 
-        ResultSet rs;
-        if (config.mvStore) {
-            rs = stat2.executeQuery("select count(*) from test");
-            rs.next();
-            assertEquals(0, rs.getInt(1));
-        } else {
-            assertThrows(ErrorCode.LOCK_TIMEOUT_1, stat2).
-                executeQuery("select count(*) from test");
-        }
+        ResultSet rs = stat2.executeQuery("select count(*) from test");
+        rs.next();
+        assertEquals(0, rs.getInt(1));
 
         // should commit
         conn.setAutoCommit(true);
@@ -111,50 +103,6 @@ public class TestTransaction extends TestDb {
         stat.execute("drop table test");
 
         conn2.close();
-        conn.close();
-    }
-
-    private void testLogMode() throws SQLException {
-        if (config.memory) {
-            return;
-        }
-        if (config.mvStore) {
-            return;
-        }
-        deleteDb("transaction");
-        testLogMode(0);
-        testLogMode(1);
-        testLogMode(2);
-    }
-
-    private void testLogMode(int logMode) throws SQLException {
-        Connection conn;
-        Statement stat;
-        ResultSet rs;
-        conn = getConnection("transaction");
-        stat = conn.createStatement();
-        stat.execute("create table test(id int primary key) as select 1");
-        stat.execute("set write_delay 0");
-        stat.execute("set log " + logMode);
-        rs = stat.executeQuery("SELECT SETTING_VALUE FROM INFORMATION_SCHEMA.SETTINGS WHERE SETTING_NAME = 'LOG'");
-        rs.next();
-        assertEquals(logMode, rs.getInt(1));
-        stat.execute("insert into test values(2)");
-        stat.execute("shutdown immediately");
-        try {
-            conn.close();
-        } catch (SQLException e) {
-            // expected
-        }
-        conn = getConnection("transaction");
-        stat = conn.createStatement();
-        rs = stat.executeQuery("select * from test order by id");
-        assertTrue(rs.next());
-        if (logMode != 0) {
-            assertTrue(rs.next());
-        }
-        assertFalse(rs.next());
-        stat.execute("drop table test");
         conn.close();
     }
 
@@ -215,9 +163,7 @@ public class TestTransaction extends TestDb {
         Connection conn2 = getConnection("transaction");
         conn2.setAutoCommit(false);
         Statement stat2 = conn2.createStatement();
-        if (config.mvStore) {
-            stat2.execute("update test set name = 'Welt' where id = 2");
-        }
+        stat2.execute("update test set name = 'Welt' where id = 2");
         assertThrows(ErrorCode.LOCK_TIMEOUT_1, stat2).
                 execute("update test set name = 'Hallo' where id = 1");
         conn2.close();
@@ -236,9 +182,7 @@ public class TestTransaction extends TestDb {
         stat1.execute("CREATE TABLE TEST (ID INT PRIMARY KEY, V INT)");
         conn1.setAutoCommit(false);
         conn2.createStatement().execute("SET LOCK_TIMEOUT 2000");
-        if (config.mvStore) {
-            testForUpdate2(conn1, stat1, conn2, false);
-        }
+        testForUpdate2(conn1, stat1, conn2, false);
         testForUpdate2(conn1, stat1, conn2, true);
         conn1.close();
         conn2.close();
@@ -649,14 +593,9 @@ public class TestTransaction extends TestDb {
         c2.setAutoCommit(false);
         s1.executeUpdate("insert into A(code) values('one')");
         Statement s2 = c2.createStatement();
-        if (config.mvStore) {
-            assertThrows(
-                    ErrorCode.REFERENTIAL_INTEGRITY_VIOLATED_PARENT_MISSING_1, s2).
-                    executeUpdate("insert into B values('two', 1)");
-        } else {
-            assertThrows(ErrorCode.LOCK_TIMEOUT_1, s2).
-                    executeUpdate("insert into B values('two', 1)");
-        }
+        assertThrows(
+                ErrorCode.REFERENTIAL_INTEGRITY_VIOLATED_PARENT_MISSING_1, s2).
+                executeUpdate("insert into B values('two', 1)");
         c2.commit();
         c1.rollback();
         c1.close();
@@ -826,84 +765,81 @@ public class TestTransaction extends TestDb {
                 // Repeatable read or serializable
                 conn2.setTransactionIsolation(isolationLevel);
                 testIsolationLevelsCheckRowsAndCount(stat2, 1, 3);
-                if (config.mvStore) {
-                    stat1.execute("INSERT INTO TEST1 VALUES 4");
-                    testIsolationLevelsCheckRowsAndCount(stat2, 1, 3);
-                    testIsolationLevelsCheckRowsAndCount(stat2, 2, 3);
-                    stat1.execute("INSERT INTO TEST2 VALUES (4, 40)");
-                    testIsolationLevelsCheckRowsAndCount(stat2, 2, 3);
-                    conn2.commit();
-                    testIsolationLevelsCheckRowsAndCount(stat2, 1, 4);
-                    testIsolationLevelsCheckRowsAndCount(stat2, 2, 4);
-                    stat1.execute("ALTER TABLE TEST2 ADD CONSTRAINT FK FOREIGN KEY(ID) REFERENCES TEST1(ID)");
-                    conn2.commit();
-                    testIsolationLevelsCheckRowsAndCount(stat2, 1, 4);
-                    stat1.execute("INSERT INTO TEST1 VALUES 5");
-                    stat1.execute("INSERT INTO TEST2 VALUES (5, 50)");
-                    testIsolationLevelsCheckRowsAndCount(stat2, 1, 4);
-                    testIsolationLevelsCheckRowsAndCount(stat2, 2, 4);
-                    conn2.commit();
-                    testIsolationLevelsCheckRowsAndCount(stat2, 1, 5);
-                    testIsolationLevelsCheckRowsAndCount(stat2, 2, 5);
-                    stat2.execute("INSERT INTO TEST1 VALUES 6");
-                    stat2.execute("INSERT INTO TEST2 VALUES (6, 60)");
-                    stat2.execute("DELETE FROM TEST2 WHERE ID IN (1, 3)");
-                    stat2.execute("UPDATE TEST2 SET V = 45 WHERE ID = 4");
-                    stat1.execute("INSERT INTO TEST1 VALUES 7");
-                    stat1.execute("INSERT INTO TEST2 VALUES (7, 70)");
-                    stat2.execute("INSERT INTO TEST1 VALUES 8");
-                    stat2.execute("INSERT INTO TEST2 VALUES (8, 80)");
-                    stat2.execute("INSERT INTO TEST1 VALUES 9");
-                    stat2.execute("INSERT INTO TEST2 VALUES (9, 90)");
-                    stat2.execute("DELETE FROM TEST2 WHERE ID = 9");
-                    testIsolationLevelsCheckRowsAndCount2(stat2, 1, 1, 2, 3, 4, 5, 6, 8, 9);
-                    // Read uncommitted
-                    testIsolationLevelsCheckRowsAndCount2(stat3, 1, 1, 2, 3, 4, 5, 6, 7, 8, 9);
-                    // Repeatable read or serializable
-                    try (ResultSet rs = stat2.executeQuery("SELECT COUNT(*) FROM TEST2")) {
-                        rs.next();
-                        assertEquals(5, rs.getLong(1));
-                    }
-                    try (ResultSet rs = stat2.executeQuery("SELECT ID, V FROM TEST2 ORDER BY ID")) {
-                        assertTrue(rs.next());
-                        assertEquals(2, rs.getInt(1));
-                        assertEquals(20, rs.getInt(2));
-                        assertTrue(rs.next());
-                        assertEquals(4, rs.getInt(1));
-                        assertEquals(45, rs.getInt(2));
-                        assertTrue(rs.next());
-                        assertEquals(5, rs.getInt(1));
-                        assertEquals(50, rs.getInt(2));
-                        assertTrue(rs.next());
-                        assertEquals(6, rs.getInt(1));
-                        assertEquals(60, rs.getInt(2));
-                        assertTrue(rs.next());
-                        assertEquals(8, rs.getInt(1));
-                        assertEquals(80, rs.getInt(2));
-                        assertFalse(rs.next());
-                    }
-                    stat1.execute("INSERT INTO TEST1 VALUES 11");
-                    stat1.execute("INSERT INTO TEST2 VALUES (11, 110)");
-                    conn2.commit();
-                    testIsolationLevelsCheckRowsAndCount2(stat1, 2, 2, 4, 5, 6, 7, 8, 11);
-                    testIsolationLevelsCheckRowsAndCount2(stat2, 2, 2, 4, 5, 6, 7, 8, 11);
-                    stat2.execute("INSERT INTO TEST1 VALUES 10");
-                    stat2.execute("INSERT INTO TEST2 VALUES (9, 90), (10, 100)");
-                    stat2.execute("DELETE FROM TEST2 WHERE ID = 9");
-                    testIsolationLevelsCheckRowsAndCount2(stat2, 2, 2, 4, 5, 6, 7, 8, 10, 11);
-                    stat1.execute("ALTER TABLE TEST2 DROP CONSTRAINT FK");
-                    conn2.commit();
-                    try (ResultSet rs = stat2.executeQuery("SELECT COUNT(*) FROM TEST1")) {
-                        rs.next();
-                        assertEquals(11, rs.getLong(1));
-                    }
-                    stat1.execute("INSERT INTO TEST2 VALUES (20, 200)");
-                    try (ResultSet rs = stat2.executeQuery("SELECT COUNT(*) FROM TEST2")) {
-                        rs.next();
-                        assertEquals(isolationLevel != Connection.TRANSACTION_REPEATABLE_READ ? 8 : 9, rs.getLong(1));
-                    }
-                } else {
-                    assertThrows(ErrorCode.LOCK_TIMEOUT_1, stat1).execute("INSERT INTO TEST1 VALUES 4");
+
+                stat1.execute("INSERT INTO TEST1 VALUES 4");
+                testIsolationLevelsCheckRowsAndCount(stat2, 1, 3);
+                testIsolationLevelsCheckRowsAndCount(stat2, 2, 3);
+                stat1.execute("INSERT INTO TEST2 VALUES (4, 40)");
+                testIsolationLevelsCheckRowsAndCount(stat2, 2, 3);
+                conn2.commit();
+                testIsolationLevelsCheckRowsAndCount(stat2, 1, 4);
+                testIsolationLevelsCheckRowsAndCount(stat2, 2, 4);
+                stat1.execute("ALTER TABLE TEST2 ADD CONSTRAINT FK FOREIGN KEY(ID) REFERENCES TEST1(ID)");
+                conn2.commit();
+                testIsolationLevelsCheckRowsAndCount(stat2, 1, 4);
+                stat1.execute("INSERT INTO TEST1 VALUES 5");
+                stat1.execute("INSERT INTO TEST2 VALUES (5, 50)");
+                testIsolationLevelsCheckRowsAndCount(stat2, 1, 4);
+                testIsolationLevelsCheckRowsAndCount(stat2, 2, 4);
+                conn2.commit();
+                testIsolationLevelsCheckRowsAndCount(stat2, 1, 5);
+                testIsolationLevelsCheckRowsAndCount(stat2, 2, 5);
+                stat2.execute("INSERT INTO TEST1 VALUES 6");
+                stat2.execute("INSERT INTO TEST2 VALUES (6, 60)");
+                stat2.execute("DELETE FROM TEST2 WHERE ID IN (1, 3)");
+                stat2.execute("UPDATE TEST2 SET V = 45 WHERE ID = 4");
+                stat1.execute("INSERT INTO TEST1 VALUES 7");
+                stat1.execute("INSERT INTO TEST2 VALUES (7, 70)");
+                stat2.execute("INSERT INTO TEST1 VALUES 8");
+                stat2.execute("INSERT INTO TEST2 VALUES (8, 80)");
+                stat2.execute("INSERT INTO TEST1 VALUES 9");
+                stat2.execute("INSERT INTO TEST2 VALUES (9, 90)");
+                stat2.execute("DELETE FROM TEST2 WHERE ID = 9");
+                testIsolationLevelsCheckRowsAndCount2(stat2, 1, 1, 2, 3, 4, 5, 6, 8, 9);
+                // Read uncommitted
+                testIsolationLevelsCheckRowsAndCount2(stat3, 1, 1, 2, 3, 4, 5, 6, 7, 8, 9);
+                // Repeatable read or serializable
+                try (ResultSet rs = stat2.executeQuery("SELECT COUNT(*) FROM TEST2")) {
+                    rs.next();
+                    assertEquals(5, rs.getLong(1));
+                }
+                try (ResultSet rs = stat2.executeQuery("SELECT ID, V FROM TEST2 ORDER BY ID")) {
+                    assertTrue(rs.next());
+                    assertEquals(2, rs.getInt(1));
+                    assertEquals(20, rs.getInt(2));
+                    assertTrue(rs.next());
+                    assertEquals(4, rs.getInt(1));
+                    assertEquals(45, rs.getInt(2));
+                    assertTrue(rs.next());
+                    assertEquals(5, rs.getInt(1));
+                    assertEquals(50, rs.getInt(2));
+                    assertTrue(rs.next());
+                    assertEquals(6, rs.getInt(1));
+                    assertEquals(60, rs.getInt(2));
+                    assertTrue(rs.next());
+                    assertEquals(8, rs.getInt(1));
+                    assertEquals(80, rs.getInt(2));
+                    assertFalse(rs.next());
+                }
+                stat1.execute("INSERT INTO TEST1 VALUES 11");
+                stat1.execute("INSERT INTO TEST2 VALUES (11, 110)");
+                conn2.commit();
+                testIsolationLevelsCheckRowsAndCount2(stat1, 2, 2, 4, 5, 6, 7, 8, 11);
+                testIsolationLevelsCheckRowsAndCount2(stat2, 2, 2, 4, 5, 6, 7, 8, 11);
+                stat2.execute("INSERT INTO TEST1 VALUES 10");
+                stat2.execute("INSERT INTO TEST2 VALUES (9, 90), (10, 100)");
+                stat2.execute("DELETE FROM TEST2 WHERE ID = 9");
+                testIsolationLevelsCheckRowsAndCount2(stat2, 2, 2, 4, 5, 6, 7, 8, 10, 11);
+                stat1.execute("ALTER TABLE TEST2 DROP CONSTRAINT FK");
+                conn2.commit();
+                try (ResultSet rs = stat2.executeQuery("SELECT COUNT(*) FROM TEST1")) {
+                    rs.next();
+                    assertEquals(11, rs.getLong(1));
+                }
+                stat1.execute("INSERT INTO TEST2 VALUES (20, 200)");
+                try (ResultSet rs = stat2.executeQuery("SELECT COUNT(*) FROM TEST2")) {
+                    rs.next();
+                    assertEquals(isolationLevel != Connection.TRANSACTION_REPEATABLE_READ ? 8 : 9, rs.getLong(1));
                 }
             }
         }
@@ -1007,9 +943,6 @@ public class TestTransaction extends TestDb {
     }
 
     private void testIsolationLevels2() throws SQLException {
-        if (!config.mvStore) {
-            return;
-        }
         for (int isolationLevel : new int[] { Connection.TRANSACTION_READ_UNCOMMITTED,
                 Connection.TRANSACTION_READ_COMMITTED, Connection.TRANSACTION_REPEATABLE_READ,
                 Constants.TRANSACTION_SNAPSHOT, Connection.TRANSACTION_SERIALIZABLE }) {
@@ -1064,9 +997,6 @@ public class TestTransaction extends TestDb {
     }
 
     private void testIsolationLevels3() throws SQLException {
-        if (!config.mvStore) {
-            return;
-        }
         for (int isolationLevel : new int[] { Connection.TRANSACTION_READ_UNCOMMITTED,
                 Connection.TRANSACTION_READ_COMMITTED, Connection.TRANSACTION_REPEATABLE_READ,
                 Constants.TRANSACTION_SNAPSHOT, Connection.TRANSACTION_SERIALIZABLE }) {
@@ -1141,9 +1071,6 @@ public class TestTransaction extends TestDb {
     }
 
     private void testIsolationLevels4() throws SQLException {
-        if (!config.mvStore) {
-            return;
-        }
         testIsolationLevels4(true);
         testIsolationLevels4(false);
     }
@@ -1222,9 +1149,6 @@ public class TestTransaction extends TestDb {
 
     private void testIsolationLevelsCountAggregate() throws SQLException {
         testIsolationLevelsCountAggregate(Connection.TRANSACTION_READ_UNCOMMITTED, 12, 15, 15, 16);
-        if (!config.mvStore) {
-            return;
-        }
         testIsolationLevelsCountAggregate(Connection.TRANSACTION_READ_COMMITTED, 6, 9, 15, 16);
         testIsolationLevelsCountAggregate(Connection.TRANSACTION_REPEATABLE_READ, 6, 9, 9, 15);
         testIsolationLevelsCountAggregate(Constants.TRANSACTION_SNAPSHOT, 6, 9, 9, 15);

@@ -87,14 +87,9 @@ public final class Trace {
     public static final int USER = 13;
 
     /**
-     * The trace module id for the page store.
-     */
-    public static final int PAGE_STORE = 14;
-
-    /**
      * The trace module id for the JDBCX API
      */
-    public static final int JDBCX = 15;
+    public static final int JDBCX = 14;
 
     /**
      * Module names by their ids as array indexes.
@@ -114,7 +109,6 @@ public final class Trace {
         "table",
         "trigger",
         "user",
-        "pageStore",
         "JDBCX"
     };
 

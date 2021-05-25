@@ -652,30 +652,16 @@ To get higher concurrency, you need to use multiple connections.
 </p>
 <p>
 An application can use multiple threads that access the same database at the same time.
-With default MVStore engine threads that use different connections can use the database concurrently.
-With PageStore engine requests to the same database are synchronized,
-that means that if one thread executes a long running query, the other threads need to wait.
+Threads that use different connections can use the database concurrently.
 </p>
 
 <h3>Locking, Lock-Timeout, Deadlocks</h3>
 <p>
-Please note MVCC is enabled in version 1.4.x by default, when using the MVStore.
-In this case, table level locking is not used.
-
-If <a href="advanced.html#mvcc">multi-version concurrency</a> is not used,
-the database uses table level locks to give each connection a consistent state of the data.
-There are two kinds of locks: read locks (shared locks) and write locks (exclusive locks).
-All locks are released when the transaction commits or rolls back.
-When using the default transaction isolation level 'read committed', read locks are already released after each statement.
-</p><p>
-If a connection wants to reads from a table, and there is no write lock on the table,
-then a read lock is added to the table. If there is a write lock, then this connection waits
-for the other connection to release the lock. If a connection cannot get a lock for a specified time,
-then a lock timeout exception is thrown.
-</p><p>
 Usually, <code>SELECT</code> statements will generate read locks. This includes subqueries.
-Statements that modify data use write locks. It is also possible to lock a table exclusively without modifying data,
+Statements that modify data use write locks on the modified rows.
+It is also possible to issue write locks without modifying data,
 using the statement <code>SELECT ... FOR UPDATE</code>.
+Data definition statements may issue exclusive locks on tables.
 The statements <code>COMMIT</code> and
 <code>ROLLBACK</code> releases all open locks.
 The commands <code>SAVEPOINT</code> and
@@ -696,18 +682,18 @@ The following statements generate locks:
         SCRIPT;</td>
     </tr>
     <tr>
-        <td>Write</td>
+        <td>Write (row-level)</td>
         <td class="notranslate">SELECT * FROM TEST WHERE 1=0 FOR UPDATE;</td>
     </tr>
     <tr>
-        <td>Write</td>
+        <td>Write (row-level)</td>
         <td class="notranslate">INSERT INTO TEST VALUES(1, 'Hello');<br />
         INSERT INTO TEST SELECT * FROM TEST;<br />
         UPDATE TEST SET NAME='Hi';<br />
         DELETE FROM TEST;</td>
     </tr>
     <tr>
-        <td>Write</td>
+        <td>Exclusive</td>
         <td class="notranslate">ALTER TABLE TEST ...;<br />
         CREATE INDEX ... ON TEST ...;<br />
         DROP INDEX ...;</td>
@@ -721,19 +707,9 @@ The initial lock timeout (that is the timeout used for new connections) can be s
 <code>SET DEFAULT_LOCK_TIMEOUT &lt;milliseconds&gt;</code>. The default lock timeout is persistent.
 </p>
 
-<h3>Avoiding Deadlocks</h3>
-<p>
-To avoid deadlocks, ensure that all transactions lock the tables in the same order
-(for example in alphabetical order), and avoid upgrading read locks to write locks.
-Both can be achieved using explicitly locking tables using <code>SELECT ... FOR UPDATE</code>.
-</p><p>
-Note that delete, insert and update operations issue table level locks with PageStore engine,
-but does not issue them with default MVStore engine.
-</p>
-
 <h2 id="database_file_layout">Database File Layout</h2>
 <p>
-The following files are created for persistent databases when the default MVStore engine is used:
+The following files are created for persistent databases:
 </p>
 <table class="main">
 <tr><th>File Name</th><th>Description</th><th>Number of Files</th></tr>
@@ -764,29 +740,6 @@ The following files are created for persistent databases when the default MVStor
 </td><td>
     0 or 1 per database
 </td></tr>
-</table>
-
-<p>
-The following file is created for persistent databases when PageStore engine is used:
-</p>
-<table class="main">
-<tr><th>File Name</th><th>Description</th><th>Number of Files</th></tr>
-<tr><td class="notranslate">
-    test.h2.db
-</td><td>
-    Database file.<br />
-    Contains the transaction log, indexes, and data for all tables.<br />
-    Format: <code>&lt;database&gt;.h2.db</code>
-</td><td>
-    1 per database
-</td></tr>
-</table>
-
-<p>
-The following files are created for persistent databases by both MVStore and PageStore engines:
-</p>
-<table class="main">
-<tr><th>File Name</th><th>Description</th><th>Number of Files</th></tr>
 <tr><td class="notranslate">
     test.lock.db
 </td><td>

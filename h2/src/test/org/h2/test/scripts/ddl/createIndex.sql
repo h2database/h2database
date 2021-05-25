@@ -25,12 +25,10 @@ CREATE INDEX TEST_IDX ON TEST(C) INCLUDE(B);
 > exception SYNTAX_ERROR_1
 
 CREATE UNIQUE INDEX TEST_IDX ON TEST(C) INCLUDE(B);
-#+mvStore#> ok
-#-mvStore#> exception FEATURE_NOT_SUPPORTED_1
+> ok
 
 DROP INDEX TEST_IDX;
-#+mvStore#> ok
-#-mvStore#> exception INDEX_NOT_FOUND_1
+> ok
 
 DROP TABLE TEST;
 > ok

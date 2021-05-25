@@ -506,7 +506,7 @@ ALTER TABLE TEST ADD CONSTRAINT NAME_UNIQUE UNIQUE(NAME)
 
 "Commands (DDL)","ALTER TABLE RENAME CONSTRAINT","
 @h2@ ALTER TABLE [ IF EXISTS ] [schemaName.]tableName
-RENAME [schemaName.]oldConstraintName
+@h2@ RENAME CONSTRAINT [schemaName.]oldConstraintName
 @h2@ TO newConstraintName
 ","
 Renames a constraint.

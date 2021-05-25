@@ -21,6 +21,33 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul>
+<li>Issue #3130: Precision of NUMERIC values isn't verified in the Oracle compatibility mode
+</li>
+<li>Issue #3122: Documentation: Syntax diagram for RENAME CONSTRAINT incorrect
+</li>
+<li>PR #3129: remove LOB compression
+</li>
+<li>PR #3127: Cleanups post PageStore removal
+</li>
+<li>PR #3126: Change nested classes to static nested classes where possible
+</li>
+<li>PR #3125: Strongly typed LobStorageMap
+</li>
+<li>PR #3124: Remove PageStore engine
+</li>
+<li>Issue #3118: SHUTDOWN COMPACT causes 2PC to corrupt database in a simulated crash
+</li>
+<li>Issue #3115: Infinite loop then OOM in org.h2.mvstore.tx.Transaction.waitFor() when deadlock occurs
+</li>
+<li>Issue #3113: Data lost when 2 threads read/write TransactionStore and close it normally even if MVStore autoCommit
+disabled
+</li>
+<li>PR #3110: Fix possible int overflow and minor doc change
+</li>
+<li>Issue #3036: A database that contains BLOBs might grow without being able to be compacted
+</li>
+<li>Issue #3097: Possible MVStore compaction issue
+</li>
 <li>PR #3096: Add separate LOB data layer for values
 </li>
 <li>Issue #3093: ROWNUM filter doesn't work with more than one table

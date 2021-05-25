@@ -68,7 +68,7 @@ This clause can be used to reuse the same definition in multiple functions.
 
 If FOR UPDATE is specified, the tables or rows are locked for writing.
 This clause is not allowed in DISTINCT queries and in queries with non-window aggregates, GROUP BY, or HAVING clauses.
-When using default MVStore engine only the selected rows are locked as in an UPDATE statement.
+Only the selected rows are locked as in an UPDATE statement.
 Rows from the right side of a left join and from the left side of a right join, including nested joins, aren't locked.
 Locking behavior for rows that were excluded from result using OFFSET / FETCH / LIMIT / TOP or QUALIFY is undefined,
 to avoid possible locking of excessive rows try to filter out unneeded rows with the WHERE criteria when possible.
@@ -78,8 +78,6 @@ Note that new uncommitted rows from other transactions are not visible unless re
 and therefore cannot be selected and locked.
 Modified uncommitted rows from other transactions that satisfy the WHERE criteria cause this SELECT to wait for
 commit or rollback of those transactions.
-With PageStore engine the whole tables are locked;
-to avoid deadlocks with this engine always lock the tables in the same order in all transactions.
 ","
 SELECT * FROM TEST;
 SELECT * FROM TEST ORDER BY NAME;
@@ -97,15 +95,12 @@ SELECT DISTINCT ON(C1) C1, C2 FROM TEST ORDER BY C1;
 
 "Commands (DML)","INSERT","
 INSERT INTO [schemaName.]tableName [ ( columnName [,...] ) ]
-{ [ overrideClause ] { insertValues | @h2@ [ DIRECT ] @c@ [ SORTED ] query } }
+{ [ overrideClause ] { insertValues | @h2@ [ DIRECT ] query } }
     | DEFAULT VALUES
 ","
 Inserts a new row / new rows into a table.
 
 When using DIRECT, then the results from the query are directly applied in the target table without any intermediate step.
-
-When using SORTED, b-tree pages are split at the insertion point. This can improve performance and reduce disk usage.
-This clause in only supported by legacy PageStore engine.
 ","
 INSERT INTO TEST VALUES(1, 'Hello')
 "
@@ -837,10 +832,10 @@ CREATE DOMAIN EMAIL AS VARCHAR(255) CHECK (POSITION('@', VALUE) > 1)
 Creates a new index.
 This command commits an open transaction in this connection.
 
-INCLUDE clause may only be specified for UNIQUE indexes and only with default MVStore engine.
+INCLUDE clause may only be specified for UNIQUE indexes.
 With this clause additional columns are included into index, but aren't used in unique checks.
 
-Spatial indexes are supported only on GEOMETRY columns and only by default MVStore engine.
+Spatial indexes are supported only on GEOMETRY columns.
 They may contain only one column and are used by the
 [spatial overlapping operator](https://h2database.com/html/grammar.html#compare).
 ","
@@ -1723,33 +1718,6 @@ This setting can be appended to the database URL: ""jdbc:h2:./test;LAZY_QUERY_EX
 SET LAZY_QUERY_EXECUTION 1
 "
 
-"Commands (Other)","SET LOG","
-@h2@ SET LOG int
-","
-Sets the transaction log mode. The values 0, 1, and 2 are supported, the default is 2.
-This setting is only supported by the PageStore engine. This setting affects all connections.
-
-LOG 0 means the transaction log is disabled completely. It is the fastest mode,
-but also the most dangerous: if the process is killed while the database is open in this mode,
-the data might be lost. It must only be used if this is not a problem, for example when
-initially loading a database, or when running tests.
-
-LOG 1 means the transaction log is enabled, but FileDescriptor.sync is disabled.
-This setting is about half as fast as with LOG 0. This setting is useful if no protection
-against power failure is required, but the data must be protected against killing the process.
-
-LOG 2 (the default) means the transaction log is enabled, and FileDescriptor.sync is called
-for each checkpoint. This setting is about half as fast as LOG 1. Depending on the
-file system, this will also protect against power failure in the majority if cases.
-
-Admin rights are required to execute this command, as it affects all connections.
-This command commits an open transaction in this connection.
-This setting is not persistent.
-This setting can be appended to the database URL: ""jdbc:h2:./test;LOG=0""
-","
-SET LOG 1
-"
-
 "Commands (Other)","SET LOCK_MODE","
 @h2@ SET LOCK_MODE int
 ","
@@ -1760,22 +1728,16 @@ The value 0 means no locking (should only be used for testing).
 Please note that using SET LOCK_MODE 0 while at the same time
 using multiple connections may result in inconsistent transactions.
 
-The value 1 means table level locking for PageStore engine,
-for default MVStore engine it is the same as default 3.
+The value 3 means row-level locking for write operations.
 
-The value 2 means table level locking with garbage collection
-(if the application does not close all connections) for PageStore engine,
-for default MVStore engine it is the same as default 3.
-
-The value 3 means table level locking, but read locks are released immediately for PageStore engine,
-for default MVStore engine it means row-level locking for write operations.
+The values 1 and 2 have the same effect as 3.
 
 Admin rights are required to execute this command, as it affects all connections.
 This command commits an open transaction in this connection.
 This setting is persistent.
-This setting can be appended to the database URL: ""jdbc:h2:./test;LOCK_MODE=3""
+This setting can be appended to the database URL: ""jdbc:h2:./test;LOCK_MODE=0""
 ","
-SET LOCK_MODE 1
+SET LOCK_MODE 0
 "
 
 "Commands (Other)","SET LOCK_TIMEOUT","
@@ -1975,7 +1937,6 @@ SET REFERENTIAL_INTEGRITY FALSE
 "Commands (Other)","SET RETENTION_TIME","
 @h2@ SET RETENTION_TIME int
 ","
-This property is only used when using the MVStore storage engine.
 How long to retain old, persisted data, in milliseconds.
 The default is 45000 (45 seconds), 0 means overwrite data as early as possible.
 It is assumed that a file system and hard disk will flush all write buffers within this time.
@@ -2172,7 +2133,7 @@ but only for at most the time defined by the database setting ""h2.maxCompactTim
 
 SHUTDOWN IMMEDIATELY closes the database files without any cleanup and without compacting.
 
-SHUTDOWN DEFRAG re-orders the pages when closing the database so that table scans are faster. In case of MVStore it is currently equivalent to COMPACT.
+SHUTDOWN DEFRAG is currently equivalent to COMPACT.
 
 Admin rights are required to execute this command.
 ","
@@ -6048,7 +6009,6 @@ ISO_YEAR(CREATED)
 @h2@ ABORT_SESSION(sessionInt)
 ","
 Cancels the currently executing statement of another session. Closes the session and releases the allocated resources.
-The method only works with default MVStore engine.
 Returns true if the session was closed, false if no session with the given id was found.
 
 If a client was connected while its session was aborted it will see an error.
@@ -6154,7 +6114,6 @@ AUTOCOMMIT()
 @h2@ CANCEL_SESSION(sessionInt)
 ","
 Cancels the currently executing statement of another session.
-The method only works with default MVStore engine.
 Returns true if the statement was canceled, false if the session is closed or no statement is currently executing.
 
 Admin rights are required to execute this command.
@@ -6355,7 +6314,6 @@ CALL SIGNAL('23505', 'Duplicate user ID: ' || user_id);
 Returns the estimated minimum bounding box that encloses all specified GEOMETRY values.
 Only 2D coordinate plane is supported.
 NULL values are ignored.
-This function is only supported by MVStore engine.
 Column must have a spatial index.
 This function is fast, but estimation may include uncommitted data (including data from other transactions),
 may return approximate bounds, or be different with actual value due to other reasons.

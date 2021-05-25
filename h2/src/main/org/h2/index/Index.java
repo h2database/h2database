@@ -508,17 +508,6 @@ public abstract class Index extends SchemaObject {
     }
 
     /**
-     * Enable or disable the 'sorted insert' optimizations (rows are inserted in
-     * ascending or descending order) if applicable for this index
-     * implementation.
-     *
-     * @param sortedInsertMode the new value
-     */
-    public void setSortedInsertMode(boolean sortedInsertMode) {
-        // ignore
-    }
-
-    /**
      * Create a duplicate key exception with a message that contains the index
      * name.
      *

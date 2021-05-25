@@ -286,9 +286,6 @@ public class Set extends Prepared {
             session.setLockTimeout(value);
             break;
         }
-        case SetTypes.LOG: {
-            throw DbException.getUnsupportedException("MV_STORE=TRUE && LOG");
-        }
         case SetTypes.MAX_LENGTH_INPLACE_LOB: {
             session.getUser().checkAdmin();
             int value = getIntValue();

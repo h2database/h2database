@@ -354,7 +354,7 @@ insert into test(id) direct sorted select x from system_range(1, 100);
 > update count: 100
 
 explain insert into test(id) direct sorted select x from system_range(1, 100);
->> INSERT INTO "PUBLIC"."TEST"("ID") DIRECT SORTED SELECT "X" FROM SYSTEM_RANGE(1, 100) /* range index */
+>> INSERT INTO "PUBLIC"."TEST"("ID") DIRECT SELECT "X" FROM SYSTEM_RANGE(1, 100) /* range index */
 
 explain select * from test limit 10;
 >> SELECT "PUBLIC"."TEST"."ID" FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */ FETCH FIRST 10 ROWS ONLY

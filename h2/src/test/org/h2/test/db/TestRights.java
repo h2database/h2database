@@ -425,9 +425,6 @@ public class TestRights extends TestDb {
         conn.close();
 
         String url = "rights";
-        if (!config.mvStore) {
-            url += ";LOG=2";
-        }
 
         // try and fail (no rights yet)
         conn = getConnection(url, "SCHEMA_CREATOR", getPassword("xyz"));
@@ -577,9 +574,6 @@ public class TestRights extends TestDb {
         conn.close();
 
         String url = "rights";
-        if (!config.mvStore) {
-            url += ";LOG=2";
-        }
         conn = getConnection(url, "PASS_READER", getPassword("abc"));
         stat = conn.createStatement();
         executeSuccess("SELECT * FROM PASS_NAME");

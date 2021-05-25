@@ -20,7 +20,6 @@ import java.util.Objects;
 import org.h2.api.ErrorCode;
 import org.h2.command.Prepared;
 import org.h2.engine.SessionLocal;
-import org.h2.engine.UndoLogRecord;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
 import org.h2.index.LinkedIndex;
@@ -615,8 +614,6 @@ public class TableLink extends Table {
                 Row oldRow = rows.next();
                 Row newRow = rows.next();
                 linkedIndex.update(oldRow, newRow, session);
-                session.log(this, UndoLogRecord.DELETE, oldRow);
-                session.log(this, UndoLogRecord.INSERT, newRow);
             }
         } else {
             super.updateRows(prepared, session, rows);

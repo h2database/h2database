@@ -463,14 +463,8 @@ public class ConnectionInfo implements Cloneable {
                 // but we consider it absolute
                 throw DbException.get(ErrorCode.URL_RELATIVE_TO_CWD, originalURL);
             }
-            String suffix = Constants.SUFFIX_PAGE_FILE;
-            String n;
-            if (FileUtils.exists(name + suffix)) {
-                n = FileUtils.toRealPath(name + suffix);
-            } else {
-                suffix = Constants.SUFFIX_MV_FILE;
-                n = FileUtils.toRealPath(name + suffix);
-            }
+            String suffix = Constants.SUFFIX_MV_FILE;
+            String n = FileUtils.toRealPath(name + suffix);
             String fileName = FileUtils.getName(n);
             if (fileName.length() < suffix.length() + 1) {
                 throw DbException.get(ErrorCode.INVALID_DATABASE_NAME_1, name);

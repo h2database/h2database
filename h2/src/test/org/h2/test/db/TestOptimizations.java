@@ -659,10 +659,6 @@ public class TestOptimizations extends TestDb {
             ResultSet rs = stat.executeQuery(
                     "explain select min(x), max(x) from test");
             rs.next();
-            if (!config.mvStore) {
-                String plan = rs.getString(1);
-                assertContains(plan, "direct");
-            }
             rs = stat.executeQuery("select min(x), max(x) from test");
             rs.next();
             int min = rs.getInt(1);

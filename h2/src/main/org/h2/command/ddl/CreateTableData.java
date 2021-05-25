@@ -57,11 +57,6 @@ public class CreateTableData {
     public boolean persistData;
 
     /**
-     * Whether to create a new table.
-     */
-    public boolean create;
-
-    /**
      * The session.
      */
     public SessionLocal session;

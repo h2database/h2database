@@ -38,9 +38,7 @@ public class TestRowLocks extends TestDb {
 
     @Override
     public void test() throws Exception {
-        if (config.mvStore) {
-            testCases();
-        }
+        testCases();
         deleteDb(getTestName());
     }
 

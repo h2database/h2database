@@ -52,7 +52,7 @@ public class JaasCredentialsValidator implements CredentialsValidator {
         appName=configProperties.getStringValue("appName",appName);
     }
 
-    class AuthenticationInfoCallbackHandler implements CallbackHandler {
+    static class AuthenticationInfoCallbackHandler implements CallbackHandler {
 
         AuthenticationInfo authenticationInfo;
 

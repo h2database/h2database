@@ -13,7 +13,6 @@ import org.h2.command.query.AllColumnsForPlan;
 import org.h2.engine.DbObject;
 import org.h2.engine.Right;
 import org.h2.engine.SessionLocal;
-import org.h2.engine.UndoLogRecord;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.message.DbException;
@@ -58,7 +57,7 @@ public final class Delete extends FilteredDataChangeStatement {
             long count = 0;
             while (nextRow(limitRows, count)) {
                 Row row = targetTableFilter.get();
-                if (table.isMVStore()) {
+                if (table.isRowLockable()) {
                     Row lockedRow = table.lockRow(session, row);
                     if (lockedRow == null) {
                         continue;
@@ -86,7 +85,6 @@ public final class Delete extends FilteredDataChangeStatement {
                 }
                 Row row = rows.next();
                 table.removeRow(session, row);
-                session.log(table, UndoLogRecord.DELETE, row);
             }
             if (table.fireRow()) {
                 for (rows.reset(); rows.hasNext();) {

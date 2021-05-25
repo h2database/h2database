@@ -26,7 +26,7 @@ import org.h2.value.Value;
  */
 public abstract class JdbcLob extends TraceObject {
 
-    final class LobPipedOutputStream extends PipedOutputStream {
+    static final class LobPipedOutputStream extends PipedOutputStream {
         private final Task task;
 
         LobPipedOutputStream(PipedInputStream snk, Task task) throws IOException {

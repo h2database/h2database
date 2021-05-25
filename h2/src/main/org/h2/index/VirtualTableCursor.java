@@ -5,7 +5,6 @@
  */
 package org.h2.index;
 
-import org.h2.engine.SessionLocal;
 import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
 import org.h2.result.Row;
@@ -25,8 +24,6 @@ class VirtualTableCursor implements Cursor {
 
     private final SearchRow last;
 
-    final SessionLocal session;
-
     private final ResultInterface result;
 
     Value[] values;
@@ -45,12 +42,11 @@ class VirtualTableCursor implements Cursor {
      * @param result
      *            the result
      */
-    VirtualTableCursor(VirtualTableIndex index, SearchRow first, SearchRow last, SessionLocal session,
+    VirtualTableCursor(VirtualTableIndex index, SearchRow first, SearchRow last,
             ResultInterface result) {
         this.index = index;
         this.first = first;
         this.last = last;
-        this.session = session;
         this.result = result;
     }
 

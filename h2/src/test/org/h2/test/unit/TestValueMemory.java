@@ -316,11 +316,6 @@ public class TestValueMemory extends TestBase implements DataHandler {
     }
 
     @Override
-    public String getLobCompressionAlgorithm(int type) {
-        return "LZF";
-    }
-
-    @Override
     public Object getLobSyncObject() {
         return this;
     }

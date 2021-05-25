@@ -20,7 +20,6 @@ import org.h2.message.Trace;
 import org.h2.result.ResultInterface;
 import org.h2.result.ResultWithGeneratedKeys;
 import org.h2.result.ResultWithPaddedStrings;
-import org.h2.util.MathUtils;
 import org.h2.util.Utils;
 
 /**
@@ -176,11 +175,10 @@ public abstract class Command implements CommandInterface {
         startTimeNanos = 0L;
         long start = 0L;
         Database database = session.getDatabase();
-        Object sync = database.isMVStore() ? session : database;
         session.waitIfExclusiveModeEnabled();
         boolean callStop = true;
         //noinspection SynchronizationOnLocalVariableOrMethodParameter
-        synchronized (sync) {
+        synchronized (session) {
             session.startStatementWithinTransaction(this);
             try {
                 while (true) {
@@ -234,11 +232,10 @@ public abstract class Command implements CommandInterface {
     public ResultWithGeneratedKeys executeUpdate(Object generatedKeysRequest) {
         long start = 0;
         Database database = session.getDatabase();
-        Object sync = database.isMVStore() ? session : database;
         session.waitIfExclusiveModeEnabled();
         boolean callStop = true;
         //noinspection SynchronizationOnLocalVariableOrMethodParameter
-        synchronized (sync) {
+        synchronized (session) {
             commitIfNonTransactional();
             SessionLocal.Savepoint rollback = session.setSavepoint();
             session.startStatementWithinTransaction(this);
@@ -319,23 +316,6 @@ public abstract class Command implements CommandInterface {
         long now = Utils.currentNanoTime();
         if (start != 0L && now - start > session.getLockTimeout() * 1_000_000L) {
             throw DbException.get(ErrorCode.LOCK_TIMEOUT_1, e);
-        }
-        // Only in PageStore mode we need to sleep here to avoid busy wait loop
-        Database database = session.getDatabase();
-        if (!database.isMVStore()) {
-            int sleep = 1 + MathUtils.randomInt(10);
-            while (true) {
-                try {
-                    // although nobody going to notify us
-                    // it is vital to give up lock on a database
-                    database.wait(sleep);
-                } catch (InterruptedException e1) {
-                    // ignore
-                }
-                if (System.nanoTime() - now >= sleep * 1_000_000L) {
-                    break;
-                }
-            }
         }
         return start == 0L ? now : start;
     }

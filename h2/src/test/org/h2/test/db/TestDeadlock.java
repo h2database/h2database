@@ -11,8 +11,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.concurrent.TimeUnit;
-
-import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
 import org.h2.util.Task;
@@ -53,11 +51,7 @@ public class TestDeadlock extends TestDb {
         testTemporaryTablesAndMetaDataLocking();
         testDeadlockInFulltextSearch();
         testConcurrentLobReadAndTempResultTableDelete();
-        testDiningPhilosophers();
-        testLockUpgrade();
-        testThreePhilosophers();
         testNoDeadlock();
-        testThreeSome();
         deleteDb("deadlock");
     }
 
@@ -235,171 +229,6 @@ public class TestDeadlock extends TestDb {
 
     }
 
-    private void testThreePhilosophers() throws Exception {
-        if (config.mvStore) {
-            return;
-        }
-        initTest();
-        c1.createStatement().execute("CREATE TABLE TEST_A(ID INT PRIMARY KEY)");
-        c1.createStatement().execute("CREATE TABLE TEST_B(ID INT PRIMARY KEY)");
-        c1.createStatement().execute("CREATE TABLE TEST_C(ID INT PRIMARY KEY)");
-        c1.commit();
-        c1.createStatement().execute("INSERT INTO TEST_A VALUES(1)");
-        c2.createStatement().execute("INSERT INTO TEST_B VALUES(1)");
-        c3.createStatement().execute("INSERT INTO TEST_C VALUES(1)");
-        DoIt t2 = new DoIt() {
-            @Override
-            public void execute() throws SQLException {
-                c1.createStatement().execute("DELETE FROM TEST_B");
-                c1.commit();
-            }
-        };
-        t2.start();
-        DoIt t3 = new DoIt() {
-            @Override
-            public void execute() throws SQLException {
-                c2.createStatement().execute("DELETE FROM TEST_C");
-                c2.commit();
-            }
-        };
-        t3.start();
-        try {
-            c3.createStatement().execute("DELETE FROM TEST_A");
-            c3.commit();
-        } catch (SQLException e) {
-            catchDeadlock(e);
-        }
-        t2.join();
-        t3.join();
-        checkDeadlock();
-        c1.commit();
-        c2.commit();
-        c3.commit();
-        c1.createStatement().execute("DROP TABLE TEST_A, TEST_B, TEST_C");
-        end();
-    }
-
-    // test case for issue # 61
-    // http://code.google.com/p/h2database/issues/detail?id=61)
-    private void testThreeSome() throws Exception {
-        if (config.mvStore) {
-            return;
-        }
-        initTest();
-        c1.createStatement().execute("CREATE TABLE TEST_A(ID INT PRIMARY KEY)");
-        c1.createStatement().execute("CREATE TABLE TEST_B(ID INT PRIMARY KEY)");
-        c1.createStatement().execute("CREATE TABLE TEST_C(ID INT PRIMARY KEY)");
-        c1.commit();
-        c1.createStatement().execute("INSERT INTO TEST_A VALUES(1)");
-        c1.createStatement().execute("INSERT INTO TEST_B VALUES(1)");
-        c2.createStatement().execute("INSERT INTO TEST_C VALUES(1)");
-        DoIt t2 = new DoIt() {
-            @Override
-            public void execute() throws SQLException {
-                c3.createStatement().execute("INSERT INTO TEST_B VALUES(2)");
-                c3.commit();
-            }
-        };
-        t2.start();
-        DoIt t3 = new DoIt() {
-            @Override
-            public void execute() throws SQLException {
-                c2.createStatement().execute("INSERT INTO TEST_A VALUES(2)");
-                c2.commit();
-            }
-        };
-        t3.start();
-        try {
-            c1.createStatement().execute("INSERT INTO TEST_C VALUES(2)");
-            c1.commit();
-        } catch (SQLException e) {
-            catchDeadlock(e);
-            c1.rollback();
-        }
-        t2.join();
-        t3.join();
-        checkDeadlock();
-        c1.commit();
-        c2.commit();
-        c3.commit();
-        c1.createStatement().execute("DROP TABLE TEST_A, TEST_B, TEST_C");
-        end();
-    }
-
-    private void testLockUpgrade() throws Exception {
-        if (config.mvStore) {
-            return;
-        }
-        initTest();
-        c1.createStatement().execute("CREATE TABLE TEST(ID INT PRIMARY KEY)");
-        c1.createStatement().execute("INSERT INTO TEST VALUES(1)");
-        c1.commit();
-        c1.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
-        c2.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
-        c1.createStatement().executeQuery("SELECT * FROM TEST");
-        c2.createStatement().executeQuery("SELECT * FROM TEST");
-        Thread t1 = new DoIt() {
-            @Override
-            public void execute() throws SQLException {
-                c1.createStatement().execute("DELETE FROM TEST");
-                c1.commit();
-            }
-        };
-        t1.start();
-        try {
-            c2.createStatement().execute("DELETE FROM TEST");
-            c2.commit();
-        } catch (SQLException e) {
-            catchDeadlock(e);
-        }
-        t1.join();
-        checkDeadlock();
-        c1.commit();
-        c2.commit();
-        c1.createStatement().execute("DROP TABLE TEST");
-        end();
-    }
-
-    private void testDiningPhilosophers() throws Exception {
-        if (config.mvStore) {
-            return;
-        }
-        initTest();
-        c1.createStatement().execute("CREATE TABLE T1(ID INT)");
-        c1.createStatement().execute("CREATE TABLE T2(ID INT)");
-        c1.createStatement().execute("INSERT INTO T1 VALUES(1)");
-        c2.createStatement().execute("INSERT INTO T2 VALUES(1)");
-        DoIt t1 = new DoIt() {
-            @Override
-            public void execute() throws SQLException {
-                c1.createStatement().execute("INSERT INTO T2 VALUES(2)");
-                c1.commit();
-            }
-        };
-        t1.start();
-        try {
-            c2.createStatement().execute("INSERT INTO T1 VALUES(2)");
-        } catch (SQLException e) {
-            catchDeadlock(e);
-        }
-        t1.join();
-        checkDeadlock();
-        c1.commit();
-        c2.commit();
-        c1.createStatement().execute("DROP TABLE T1, T2");
-        end();
-    }
-
-    private void checkDeadlock() throws SQLException {
-        assertNotNull(lastException);
-        assertKnownException(lastException);
-        assertEquals(ErrorCode.DEADLOCK_1, lastException.getErrorCode());
-        SQLException e2 = lastException.getNextException();
-        if (e2 != null) {
-            // we have two exception, but there should only be one
-            throw new SQLException("Expected one exception, got multiple", e2);
-        }
-    }
 
     // there was a bug in the meta data locking here
     private void testTemporaryTablesAndMetaDataLocking() throws Exception {

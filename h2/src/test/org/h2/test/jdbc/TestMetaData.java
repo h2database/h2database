@@ -61,7 +61,6 @@ public class TestMetaData extends TestDb {
         testGeneral();
         testAllowLiteralsNone();
         testClientInfo();
-        testSessionsUncommitted();
         testQueryStatistics();
         testQueryStatisticsLimit();
     }
@@ -1258,8 +1257,8 @@ public class TestMetaData extends TestDb {
                 pageStoreSettingsCount++;
             }
         }
-        assertEquals(config.mvStore ? 2 : 0, mvStoreSettingsCount);
-        assertEquals(config.mvStore ? 0 : 3, pageStoreSettingsCount);
+        assertEquals(2, mvStoreSettingsCount);
+        assertEquals(0, pageStoreSettingsCount);
 
         testMore();
 
@@ -1333,32 +1332,6 @@ public class TestMetaData extends TestDb {
             assertEquals(1, count);
         }
         rs.close();
-        conn.close();
-        deleteDb("metaData");
-    }
-
-    private void testSessionsUncommitted() throws SQLException {
-        if (config.mvStore || config.memory) {
-            return;
-        }
-        Connection conn = getConnection("metaData");
-        conn.setAutoCommit(false);
-        Statement stat = conn.createStatement();
-        stat.execute("create table test(id int)");
-        stat.execute("begin transaction");
-        for (int i = 0; i < 6; i++) {
-            stat.execute("insert into test values (1)");
-        }
-        ResultSet rs = stat.executeQuery("select contains_uncommitted " +
-                "from INFORMATION_SCHEMA.SESSIONS");
-        rs.next();
-        assertEquals(true, rs.getBoolean(1));
-        rs.close();
-        stat.execute("commit");
-        rs = stat.executeQuery("select contains_uncommitted " +
-                "from INFORMATION_SCHEMA.SESSIONS");
-        rs.next();
-        assertEquals(false, rs.getBoolean(1));
         conn.close();
         deleteDb("metaData");
     }

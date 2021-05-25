@@ -6076,9 +6076,6 @@ public class Parser {
              * Sometimes a new keywords are introduced. During metadata
              * initialization phase keywords are accepted as identifiers to
              * allow migration from older versions.
-             *
-             * PageStore's LobStorageBackend also needs this in databases that
-             * were created in 1.4.197 and older versions.
              */
             if (!session.isQuirksMode() || !isKeyword(currentTokenType)) {
                 throw DbException.getSyntaxError(sqlCommand, parseIndex, "identifier");
@@ -7881,9 +7878,6 @@ public class Parser {
                 if (unique) {
                     uniqueColumnCount = columns.length;
                     if (readIf("INCLUDE")) {
-                        if (!database.isMVStore()) {
-                            throw DbException.getUnsupportedException("PageStore && UNIQUE INDEX INCLUDE");
-                        }
                         read(OPEN_PAREN);
                         IndexColumn[] columnsToInclude = parseIndexColumnList();
                         int nonUniqueCount = columnsToInclude.length;
@@ -8978,11 +8972,6 @@ public class Parser {
             readIfEqualOrTo();
             Set command = new Set(session, SetTypes.MODE);
             command.setString(readIdentifier());
-            return command;
-        } else if (readIf("COMPRESS_LOB")) {
-            readIfEqualOrTo();
-            Set command = new Set(session, SetTypes.COMPRESS_LOB);
-            command.setString(currentTokenType == LITERAL ? readString() : readIdentifier());
             return command;
         } else if (readIf("DATABASE")) {
             readIfEqualOrTo();

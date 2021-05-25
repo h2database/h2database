@@ -28,6 +28,7 @@ import org.h2.engine.Database;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
+import org.h2.mvstore.db.LobStorageMap;
 import org.h2.mvstore.tx.TransactionStore;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
@@ -37,6 +38,7 @@ import org.h2.tools.Restore;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.Task;
+import org.h2.value.Value;
 
 /**
  * Tests the MVStore in a database.
@@ -54,9 +56,6 @@ public class TestMVTableEngine extends TestDb {
 
     @Override
     public boolean isEnabled() {
-        if (!config.mvStore) {
-            return false;
-        }
         return true;
     }
 
@@ -456,10 +455,10 @@ public class TestMVTableEngine extends TestDb {
             MVMap<Long, byte[]> lobData = s.openMap("lobData");
             assertEquals(0, lobData.sizeAsLong());
             assertTrue(s.hasMap("lobMap"));
-            MVMap<Long, byte[]> lobMap = s.openMap("lobMap");
+            MVMap<Long, LobStorageMap.BlobMeta> lobMap = s.openMap("lobMap");
             assertEquals(0, lobMap.sizeAsLong());
             assertTrue(s.hasMap("lobRef"));
-            MVMap<Long, byte[]> lobRef = s.openMap("lobRef");
+            MVMap<LobStorageMap.BlobReference, Value> lobRef = s.openMap("lobRef");
             assertEquals(0, lobRef.sizeAsLong());
         }
     }

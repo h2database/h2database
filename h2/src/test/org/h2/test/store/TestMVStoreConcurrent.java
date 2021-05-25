@@ -514,8 +514,7 @@ public class TestMVStoreConcurrent extends TestMVStore {
                     }
                     Exception e = task.getException();
                     if (e != null) {
-                        assertEquals(DataUtils.ERROR_CLOSED,
-                                ((MVStoreException) e).getErrorCode());
+                        checkErrorCode(DataUtils.ERROR_CLOSED, e);
                     }
                 } catch (MVStoreException e) {
                     // sometimes storing works, in which case

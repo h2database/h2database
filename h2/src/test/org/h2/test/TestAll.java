@@ -201,9 +201,7 @@ import org.h2.test.unit.TestMemoryUnmapper;
 import org.h2.test.unit.TestMode;
 import org.h2.test.unit.TestNetUtils;
 import org.h2.test.unit.TestObjectDeserialization;
-import org.h2.test.unit.TestOldVersion;
 import org.h2.test.unit.TestOverflow;
-import org.h2.test.unit.TestPageStore;
 import org.h2.test.unit.TestPageStoreCoverage;
 import org.h2.test.unit.TestPattern;
 import org.h2.test.unit.TestPerfectHash;
@@ -280,11 +278,6 @@ java org.h2.test.TestAll timer
      * the whole program.
      */
     static boolean atLeastOneTestFailed;
-
-    /**
-     * Whether the MVStore storage is used.
-     */
-    public boolean mvStore = true;
 
     /**
      * If the test should run with many rows.
@@ -600,7 +593,6 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
             abbaLockingDetector = new AbbaLockingDetector().startCollecting();
         }
 
-        mvStore = true;
         smallLog = big = networked = memory = lazy = ssl = false;
         diskResult = traceSystemOut = diskUndo = false;
         traceTest = stopOnError = false;
@@ -631,13 +623,6 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         memory = false;
         test();
         testAdditional();
-
-        // basic pagestore testing
-        memory = false;
-        mvStore = false;
-        test();
-        testAdditional();
-        mvStore = true;
 
         networked = true;
 
@@ -707,7 +692,6 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         testAdditional();
         testUtils();
 
-        mvStore = false;
         test();
         // testUnit();
     }
@@ -886,9 +870,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestExit());
         addTest(new TestFileLock());
         addTest(new TestJmx());
-        addTest(new TestOldVersion());
         addTest(new TestMultiThreadedKernel());
-        addTest(new TestPageStore());
         addTest(new TestPageStoreCoverage());
         addTest(new TestPgServer());
         addTest(new TestRecovery());
@@ -1131,11 +1113,6 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
     public String toString() {
         StringBuilder buff = new StringBuilder();
         appendIf(buff, lazy, "lazy");
-        if (mvStore) {
-            buff.append("mvStore ");
-        } else {
-            buff.append("pageStore ");
-        }
         appendIf(buff, big, "big");
         appendIf(buff, networked, "net");
         appendIf(buff, memory, "memory");

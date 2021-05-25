@@ -206,9 +206,9 @@ public class IOUtils {
                 if (out != null) {
                     out.write(buffer, 0, len);
                 }
+                copied += len;
                 length -= len;
                 len = (int) Math.min(length, Constants.IO_BUFFER_SIZE);
-                copied += len;
             }
             return copied;
         } catch (Exception e) {

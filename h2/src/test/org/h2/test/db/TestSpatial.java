@@ -57,7 +57,7 @@ public class TestSpatial extends TestDb {
 
     @Override
     public boolean isEnabled() {
-        if (config.memory && config.mvStore) {
+        if (config.memory) {
             return false;
         }
         if (ValueToObjectConverter.GEOMETRY_CLASS == null) {
@@ -78,16 +78,12 @@ public class TestSpatial extends TestDb {
         testSpatialValues();
         testOverlap();
         testNotOverlap();
-        if (config.mvStore) {
-            testPersistentSpatialIndex();
-            testSpatialIndexQueryMultipleTable();
-            testIndexTransaction();
-        }
+        testPersistentSpatialIndex();
+        testSpatialIndexQueryMultipleTable();
+        testIndexTransaction();
         testJavaAlias();
         testJavaAliasTableFunction();
-        if (config.mvStore) {
-            testMemorySpatialIndex();
-        }
+        testMemorySpatialIndex();
         testGeometryDataType();
         testWKB();
         testValueConversion();
@@ -97,20 +93,16 @@ public class TestSpatial extends TestDb {
         testTableViewSpatialPredicate();
         testValueGeometryScript();
         testInPlaceUpdate();
-        if (config.mvStore) {
-            testScanIndexOnNonSpatialQuery();
-            testStoreCorruption();
-            testExplainSpatialIndexWithPk();
-            testNullableGeometry();
-            testNullableGeometryDelete();
-            testNullableGeometryInsert();
-        }
+        testScanIndexOnNonSpatialQuery();
+        testStoreCorruption();
+        testExplainSpatialIndexWithPk();
+        testNullableGeometry();
+        testNullableGeometryDelete();
+        testNullableGeometryInsert();
         testNullableGeometryUpdate();
-        if (config.mvStore) {
-            testIndexUpdateNullGeometry();
-            testInsertNull();
-            testSpatialIndexWithOrder();
-        }
+        testIndexUpdateNullGeometry();
+        testInsertNull();
+        testSpatialIndexWithOrder();
     }
 
     private void testBug1() throws SQLException {
@@ -450,9 +442,7 @@ public class TestSpatial extends TestDb {
                 "explain select * from test " +
                 "where polygon && 'POLYGON ((1 1, 1 2, 2 2, 1 1))'::Geometry");
         rs.next();
-        if (config.mvStore) {
-            assertContains(rs.getString(1), "/* PUBLIC.IDX_TEST_POLYGON: POLYGON &&");
-        }
+        assertContains(rs.getString(1), "/* PUBLIC.IDX_TEST_POLYGON: POLYGON &&");
 
         // TODO equality should probably also use the spatial index
         // rs = stat.executeQuery("explain select * from test " +
@@ -1032,10 +1022,6 @@ public class TestSpatial extends TestDb {
     }
 
     private void testNullableGeometryUpdate() throws SQLException {
-        // TODO breaks in pagestore case
-        if (!config.mvStore) {
-            return;
-        }
         deleteDb("spatial");
         Connection conn = getConnection(URL);
         Statement stat = conn.createStatement();

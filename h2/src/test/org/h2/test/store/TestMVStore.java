@@ -513,8 +513,7 @@ public class TestMVStore extends TestBase {
             }
             Throwable e = exRef.get();
             assertNotNull(e);
-            assertEquals(DataUtils.ERROR_WRITING_FAILED,
-                    ((MVStoreException) e).getErrorCode());
+            checkErrorCode(DataUtils.ERROR_WRITING_FAILED, e);
         } catch (MVStoreException e) {
             // sometimes it is detected right away
             assertEquals(DataUtils.ERROR_CLOSED, e.getErrorCode());

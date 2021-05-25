@@ -16,9 +16,12 @@ import org.h2.util.StringUtils;
 /**
  * A chunk of data, containing one or multiple pages.
  * <p>
- * Chunks are page aligned (each page is usually 4096 bytes).
+ * Minimum chunk size is usually 4096 bytes, and it grows in those fixed increments (blocks).
+ * Chunk's length and it's position in the underlying filestore
+ * are multiples of that increment (block size),
+ * therefore they both are measured in blocks, instead of bytes.
  * There are at most 67 million (2^26) chunks,
- * each chunk is at most 2 GB large.
+ * and each chunk is at most 2 GB large.
  */
 public final class Chunk {
 
@@ -79,13 +82,13 @@ public final class Chunk {
     int pageCount;
 
     /**
-     * The number of pages still alive.
+     * The number of pages that are still alive in the latest version of the store.
      */
     int pageCountLive;
 
     /**
      * Offset (from the beginning of the chunk) for the table of content.
-     * Table of content is holding a long value for each page in the chunk.
+     * Table of content is holding a value of type "long" for each page in the chunk.
      * This value consists of map id, page offset, page length and page type.
      * Format is the same as page's position id, but with map id replacing chunk id.
      *
@@ -104,7 +107,7 @@ public final class Chunk {
     public long maxLen;
 
     /**
-     * The sum of the max length of all pages that are in use.
+     * The sum of the length of all pages that are still alive.
      */
     public long maxLenLive;
 
@@ -393,7 +396,7 @@ public final class Chunk {
             long originalBlock = block;
             try {
                 long filePos = originalBlock * MVStore.BLOCK_SIZE;
-                long maxPos = filePos + len * MVStore.BLOCK_SIZE;
+                long maxPos = filePos + (long) len * MVStore.BLOCK_SIZE;
                 filePos += offset;
                 if (filePos < 0) {
                     throw DataUtils.newMVStoreException(
@@ -518,7 +521,6 @@ public final class Chunk {
         assert (pageCountLive == 0) == (maxLenLive == 0) : this;
 
         if (!isLive()) {
-            assert isEvacuatable() : this;
             unused = now;
             return true;
         }

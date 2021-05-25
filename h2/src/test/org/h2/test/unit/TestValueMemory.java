@@ -31,8 +31,10 @@ import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueBigint;
 import org.h2.value.ValueBinary;
+import org.h2.value.ValueBlob;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueChar;
+import org.h2.value.ValueClob;
 import org.h2.value.ValueDate;
 import org.h2.value.ValueDecfloat;
 import org.h2.value.ValueDouble;
@@ -42,7 +44,6 @@ import org.h2.value.ValueInterval;
 import org.h2.value.ValueJavaObject;
 import org.h2.value.ValueJson;
 import org.h2.value.ValueLob;
-import org.h2.value.ValueLobFile;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueNumeric;
 import org.h2.value.ValueReal;
@@ -315,11 +316,6 @@ public class TestValueMemory extends TestBase implements DataHandler {
     }
 
     @Override
-    public String getLobCompressionAlgorithm(int type) {
-        return "LZF";
-    }
-
-    @Override
     public Object getLobSyncObject() {
         return this;
     }
@@ -380,7 +376,7 @@ public class TestValueMemory extends TestBase implements DataHandler {
             // this method is only implemented on the server side of a TCP connection
             throw new IllegalStateException();
         }
-        
+
         @Override
         public InputStream getInputStream(long lobId, int tableId,
                 long byteCount) throws IOException {
@@ -404,11 +400,11 @@ public class TestValueMemory extends TestBase implements DataHandler {
         }
 
         @Override
-        public ValueLob createBlob(InputStream in, long maxLength) {
+        public ValueBlob createBlob(InputStream in, long maxLength) {
             // need to use a temp file, because the input stream could come from
             // the same database, which would create a weird situation (trying
             // to read a block while writing something)
-            return ValueLobFile.createTempBlob(in, maxLength, TestValueMemory.this);
+            return ValueBlob.createTempBlob(in, maxLength, TestValueMemory.this);
         }
 
         /**
@@ -419,11 +415,11 @@ public class TestValueMemory extends TestBase implements DataHandler {
          * @return the LOB
          */
         @Override
-        public ValueLob createClob(Reader reader, long maxLength) {
+        public ValueClob createClob(Reader reader, long maxLength) {
             // need to use a temp file, because the input stream could come from
             // the same database, which would create a weird situation (trying
             // to read a block while writing something)
-            return ValueLobFile.createTempClob(reader, maxLength, TestValueMemory.this);
+            return ValueClob.createTempClob(reader, maxLength, TestValueMemory.this);
         }
     }
 }

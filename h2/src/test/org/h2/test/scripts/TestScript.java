@@ -234,10 +234,8 @@ public class TestScript extends TestDb {
                 "table", "values", "window" }) {
             testScript("queries/" + s + ".sql");
         }
-        if (config.mvStore) {
-            testScript("other/two_phase_commit.sql");
-            testScript("other/unique_include.sql");
-        }
+        testScript("other/two_phase_commit.sql");
+        testScript("other/unique_include.sql");
 
         deleteDb("script");
         System.out.flush();
@@ -329,7 +327,7 @@ public class TestScript extends TestDb {
                 s = s.substring(end + 1);
                 switch (flag) {
                 case "mvStore":
-                    if (config.mvStore == val) {
+                    if (val) {
                         out.print("#" + (val ? '+' : '-') + flag + '#');
                         break;
                     } else {

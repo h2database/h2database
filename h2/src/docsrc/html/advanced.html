@@ -146,18 +146,6 @@ than reading from separate files, but slows down the performance of operations
 that don't involve this column.
 </p>
 
-<h3>Large Object Compression</h3>
-<p>
-The following feature is only available for the PageStore storage engine.
-For the MVStore engine (the default for H2 version 1.4.x),
-append <code>;COMPRESS=TRUE</code> to the database URL instead.
-CLOB and BLOB values can be compressed by using
-<a href="commands.html#set_compress_lob" class="notranslate" >SET COMPRESS_LOB</a>.
-The LZF algorithm is faster but needs more disk space. By default compression is disabled, which usually speeds up write
-operations. If you store many large compressible values such as XML, HTML, text, and uncompressed binary files,
-then compressing can save a lot of disk space (sometimes more than 50%), and read operations may even be faster.
-</p>
-
 <h2 id="linked_tables">Linked Tables</h2>
 <p>
 This database supports linked tables, which means tables that don't exist in the current database but

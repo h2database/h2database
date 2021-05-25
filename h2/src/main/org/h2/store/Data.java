@@ -32,8 +32,10 @@ import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueBigint;
 import org.h2.value.ValueBinary;
+import org.h2.value.ValueBlob;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueChar;
+import org.h2.value.ValueClob;
 import org.h2.value.ValueCollectionBase;
 import org.h2.value.ValueDate;
 import org.h2.value.ValueDecfloat;
@@ -44,8 +46,6 @@ import org.h2.value.ValueInterval;
 import org.h2.value.ValueJavaObject;
 import org.h2.value.ValueJson;
 import org.h2.value.ValueLob;
-import org.h2.value.ValueLobDatabase;
-import org.h2.value.ValueLobInMemory;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueNumeric;
 import org.h2.value.ValueReal;
@@ -60,6 +60,9 @@ import org.h2.value.ValueUuid;
 import org.h2.value.ValueVarbinary;
 import org.h2.value.ValueVarchar;
 import org.h2.value.ValueVarcharIgnoreCase;
+import org.h2.value.lob.LobData;
+import org.h2.value.lob.LobDataDatabase;
+import org.h2.value.lob.LobDataInMemory;
 
 /**
  * This class represents a byte buffer that contains persistent data of a page.
@@ -658,14 +661,15 @@ public class Data {
         case Value.CLOB: {
             writeByte(type == Value.BLOB ? BLOB : CLOB);
             ValueLob lob = (ValueLob) v;
-            if (lob instanceof ValueLobDatabase) {
-                ValueLobDatabase lobDb = (ValueLobDatabase) lob;
+            LobData lobData = lob.getLobData();
+            if (lobData instanceof LobDataDatabase) {
+                LobDataDatabase lobDataDatabase = (LobDataDatabase) lobData;
                 writeVarInt(-3);
-                writeVarInt(lobDb.getTableId());
-                writeVarLong(lobDb.getLobId());
-                writeVarLong(lob.getType().getPrecision());
+                writeVarInt(lobDataDatabase.getTableId());
+                writeVarLong(lobDataDatabase.getLobId());
+                writeVarLong(lob.getPrecision());
             } else {
-                byte[] small = ((ValueLobInMemory)lob).getSmall();
+                byte[] small = ((LobDataInMemory) lobData).getSmall();
                 writeVarInt(small.length);
                 write(small, 0, small.length);
             }
@@ -864,13 +868,13 @@ public class Data {
             if (smallLen >= 0) {
                 byte[] small = Utils.newBytes(smallLen);
                 read(small, 0, smallLen);
-                return ValueLobInMemory.createSmallLob(type == BLOB ? Value.BLOB : Value.CLOB, small);
+                return type == BLOB ? ValueBlob.createSmall(small) : ValueClob.createSmall(small);
             } else if (smallLen == -3) {
                 int tableId = readVarInt();
                 long lobId = readVarLong();
                 long precision = readVarLong();
-                return ValueLobDatabase.create(type == BLOB ? Value.BLOB : Value.CLOB, handler, tableId,
-                        lobId, precision);
+                return type == BLOB ? ValueBlob.create(precision, handler, tableId, lobId)
+                        : ValueClob.create(precision, handler, tableId, lobId);
             } else {
                 throw getOldLobException(smallLen);
             }
@@ -1112,14 +1116,15 @@ public class Data {
         case Value.CLOB: {
             int len = 1;
             ValueLob lob = (ValueLob) v;
-            if (lob instanceof ValueLobDatabase) {
-                ValueLobDatabase lobDb = (ValueLobDatabase) lob;
+            LobData lobData = lob.getLobData();
+            if (lobData instanceof LobDataDatabase) {
+                LobDataDatabase lobDataDatabase = (LobDataDatabase) lobData;
                 len += getVarIntLen(-3);
-                len += getVarIntLen(lobDb.getTableId());
-                len += getVarLongLen(lobDb.getLobId());
-                len += getVarLongLen(lob.getType().getPrecision());
+                len += getVarIntLen(lobDataDatabase.getTableId());
+                len += getVarLongLen(lobDataDatabase.getLobId());
+                len += getVarLongLen(lob.getPrecision());
             } else {
-                byte[] small = ((ValueLobInMemory)lob).getSmall();
+                byte[] small = ((LobDataInMemory) lobData).getSmall();
                 len += getVarIntLen(small.length);
                 len += small.length;
             }

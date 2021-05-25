@@ -6,9 +6,9 @@
 package org.h2.test.unit;
 
 import java.util.Random;
-import org.h2.pagestore.db.LobStorageBackend;
 import org.h2.store.DataHandler;
 import org.h2.store.FileStore;
+import org.h2.store.LobStorageInterface;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.util.SmallLRUCache;
@@ -151,11 +151,6 @@ public class TestFile extends TestBase implements DataHandler {
     }
 
     @Override
-    public String getLobCompressionAlgorithm(int type) {
-        return null;
-    }
-
-    @Override
     public Object getLobSyncObject() {
         return null;
     }
@@ -181,7 +176,7 @@ public class TestFile extends TestBase implements DataHandler {
     }
 
     @Override
-    public LobStorageBackend getLobStorage() {
+    public LobStorageInterface getLobStorage() {
         return null;
     }
 

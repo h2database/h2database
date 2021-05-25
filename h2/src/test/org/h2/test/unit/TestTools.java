@@ -101,7 +101,6 @@ public class TestTools extends TestDb {
         testDeleteFiles();
         testScriptRunscriptLob();
         testServerMain();
-        testRemove();
         testConvertTraceFile();
         testManagementDb();
         testChangeFileEncryption(false);
@@ -784,32 +783,6 @@ public class TestTools extends TestDb {
         conn.close();
     }
 
-    private void testRemove() throws SQLException {
-        if (config.mvStore) {
-            return;
-        }
-        deleteDb("toolsRemove");
-        org.h2.Driver.load();
-        String url = "jdbc:h2:" + getBaseDir() + "/toolsRemove";
-        Connection conn = getConnection(url, "sa", "sa");
-        Statement stat = conn.createStatement();
-        stat.execute("create table test(id int primary key, name varchar)");
-        stat.execute("insert into test values(1, 'Hello')");
-        conn.close();
-        Recover.main("-dir", getBaseDir(), "-db", "toolsRemove",
-                "-removePassword");
-        conn = getConnection(url, "sa", "");
-        stat = conn.createStatement();
-        ResultSet rs;
-        rs = stat.executeQuery("select * from test");
-        rs.next();
-        assertEquals(1, rs.getInt(1));
-        assertEquals("Hello", rs.getString(2));
-        conn.close();
-        deleteDb("toolsRemove");
-        FileUtils.delete(getBaseDir() + "/toolsRemove.h2.sql");
-    }
-
     private void testRecover() throws SQLException {
         if (config.memory) {
             return;
@@ -1148,7 +1121,7 @@ public class TestTools extends TestDb {
     /**
      * A simple Clob implementation.
      */
-    class SimpleClob implements Clob {
+    static class SimpleClob implements Clob {
 
         private final String data;
 
@@ -1238,7 +1211,7 @@ public class TestTools extends TestDb {
     /**
      * A simple Blob implementation.
      */
-    class SimpleBlob implements Blob {
+    static class SimpleBlob implements Blob {
 
         private final byte[] data;
 

@@ -40,47 +40,6 @@ public interface DatabaseInfoMBean {
     String getMode();
 
     /**
-     * Is multi-threading enabled?
-     * @h2.resource
-     *
-     * @return true if multi-threading is enabled, false otherwise
-     */
-    @Deprecated
-    boolean isMultiThreaded();
-
-    /**
-     * Is MVCC (multi version concurrency) enabled?
-     * @h2.resource
-     *
-     * @return true if MVCC is enabled, false otherwise
-     */
-    @Deprecated
-    boolean isMvcc();
-
-    /**
-     * The transaction log mode (0 disabled, 1 without sync, 2 enabled).
-     * @h2.resource
-     *
-     * @return the transaction log mode
-     */
-    int getLogMode();
-
-    /**
-     * Set the transaction log mode.
-     *
-     * @param value the new log mode
-     */
-    void setLogMode(int value);
-
-    /**
-     * The number of write operations since the database was created.
-     * @h2.resource
-     *
-     * @return the total write count
-     */
-    long getFileWriteCountTotal();
-
-    /**
      * The number of write operations since the database was opened.
      * @h2.resource
      *

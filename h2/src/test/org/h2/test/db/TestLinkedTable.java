@@ -694,7 +694,7 @@ public class TestLinkedTable extends TestDb {
     }
 
     private void testGeometry() throws SQLException {
-        if (config.memory && config.mvStore) {
+        if (config.memory) {
             return;
         }
         org.h2.Driver.load();

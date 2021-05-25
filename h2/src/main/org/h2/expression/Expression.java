@@ -8,11 +8,9 @@ package org.h2.expression;
 import java.util.List;
 
 import org.h2.api.ErrorCode;
-import org.h2.engine.Database;
 import org.h2.engine.SessionLocal;
 import org.h2.expression.function.NamedExpression;
 import org.h2.message.DbException;
-import org.h2.result.ResultInterface;
 import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
@@ -21,7 +19,6 @@ import org.h2.util.StringUtils;
 import org.h2.value.TypeInfo;
 import org.h2.value.Typed;
 import org.h2.value.Value;
-import org.h2.value.ValueRow;
 
 /**
  * An expression is a operation, a value, or a function in a query.
@@ -472,43 +469,6 @@ public abstract class Expression implements HasSQL, Typed {
     @Override
     public String toString() {
         return getTraceSQL();
-    }
-
-    /**
-     * Extracts expression columns from ValueArray
-     *
-     * @param session the current session
-     * @param value the value to extract columns from
-     * @return array of expression columns
-     */
-    protected static Expression[] getExpressionColumns(SessionLocal session, ValueRow value) {
-        Value[] list = value.getList();
-        ExpressionColumn[] expr = new ExpressionColumn[list.length];
-        for (int i = 0, len = list.length; i < len; i++) {
-            Value v = list[i];
-            Column col = new Column("C" + (i + 1), v.getType());
-            expr[i] = new ExpressionColumn(session.getDatabase(), col);
-        }
-        return expr;
-    }
-
-    /**
-     * Extracts expression columns from the given result set.
-     *
-     * @param session the session
-     * @param result the result
-     * @return an array of expression columns
-     */
-    public static Expression[] getExpressionColumns(SessionLocal session, ResultInterface result) {
-        int columnCount = result.getVisibleColumnCount();
-        Expression[] expressions = new Expression[columnCount];
-        Database db = session == null ? null : session.getDatabase();
-        for (int i = 0; i < columnCount; i++) {
-            String name = result.getColumnName(i);
-            TypeInfo type = result.getColumnType(i);
-            expressions[i] = new ExpressionColumn(db, new Column(name, type));
-        }
-        return expressions;
     }
 
     /**

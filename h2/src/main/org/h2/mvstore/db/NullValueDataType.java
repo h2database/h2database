@@ -53,6 +53,7 @@ public final class NullValueDataType implements DataType<Value> {
 
     @Override
     public void write(WriteBuffer buff, Object storage, int len) {
+        assert storage == null;
     }
 
     @Override
@@ -62,12 +63,12 @@ public final class NullValueDataType implements DataType<Value> {
 
     @Override
     public void read(ByteBuffer buff, Object storage, int len) {
-        Arrays.fill((Value[]) storage, 0, len, ValueNull.INSTANCE);
+        assert storage == null;
     }
 
     @Override
     public Value[] createStorage(int size) {
-        return new Value[size];
+        return null;
     }
 
 }

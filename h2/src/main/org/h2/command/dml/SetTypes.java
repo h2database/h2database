@@ -123,14 +123,9 @@ public class SetTypes {
     public static final int MAX_LENGTH_INPLACE_LOB = MAX_MEMORY_UNDO + 1;
 
     /**
-     * The type of a SET COMPRESS_LOB statement.
-     */
-    public static final int COMPRESS_LOB = MAX_LENGTH_INPLACE_LOB + 1;
-
-    /**
      * The type of a SET ALLOW_LITERALS statement.
      */
-    public static final int ALLOW_LITERALS = COMPRESS_LOB + 1;
+    public static final int ALLOW_LITERALS = MAX_LENGTH_INPLACE_LOB + 1;
 
     /**
      * The type of a SET SCHEMA statement.
@@ -294,7 +289,6 @@ public class SetTypes {
         list.add("THROTTLE");
         list.add("MAX_MEMORY_UNDO");
         list.add("MAX_LENGTH_INPLACE_LOB");
-        list.add("COMPRESS_LOB");
         list.add("ALLOW_LITERALS");
         list.add("SCHEMA");
         list.add("OPTIMIZE_REUSE_RESULTS");
@@ -323,6 +317,7 @@ public class SetTypes {
         list.add("DEFAULT_NULL_ORDERING");
         list.add("TRUNCATE_LARGE_LENGTH");
         TYPES = list;
+        assert(list.size() == COUNT);
     }
 
     /**

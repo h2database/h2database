@@ -146,15 +146,6 @@ public class DbSettings extends SettingsBase {
     public final int lobTimeout = get("LOB_TIMEOUT", 300_000);
 
     /**
-     * Database setting <code>MAX_COMPACT_COUNT</code>
-     * (default: Integer.MAX_VALUE).<br />
-     * The maximum number of pages to move when closing a database.<br />
-     * This setting only affects PageStore engine.
-     */
-    public final int maxCompactCount = get("MAX_COMPACT_COUNT",
-            Integer.MAX_VALUE);
-
-    /**
      * Database setting <code>MAX_COMPACT_TIME</code> (default: 200).<br />
      * The maximum time in milliseconds used to compact a database when closing.
      */
@@ -225,28 +216,6 @@ public class DbSettings extends SettingsBase {
      * added so an index on A can be used.
      */
     public final boolean optimizeTwoEquals = get("OPTIMIZE_TWO_EQUALS", true);
-
-    /**
-     * Database setting <code>PAGE_STORE_MAX_GROWTH</code>
-     * (default: 128 * 1024).<br />
-     * The maximum number of pages the file grows at any time.
-     */
-    public final int pageStoreMaxGrowth = get("PAGE_STORE_MAX_GROWTH",
-            128 * 1024);
-
-    /**
-     * Database setting <code>PAGE_STORE_INTERNAL_COUNT</code>
-     * (default: false).<br />
-     * Update the row counts on a node level.
-     */
-    public final boolean pageStoreInternalCount = get(
-            "PAGE_STORE_INTERNAL_COUNT", false);
-
-    /**
-     * Database setting <code>PAGE_STORE_TRIM</code> (default: true).<br />
-     * Trim the database size when closing.
-     */
-    public final boolean pageStoreTrim = get("PAGE_STORE_TRIM", true);
 
     /**
      * Database setting <code>QUERY_CACHE_SIZE</code> (default: 8).<br />

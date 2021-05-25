@@ -22,7 +22,7 @@ import org.h2.value.ValueNull;
  */
 public class UniquePredicate extends PredicateWithSubquery {
 
-    private final class Target implements ResultTarget {
+    private static final class Target implements ResultTarget {
 
         private final int columnCount;
 

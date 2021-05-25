@@ -176,12 +176,7 @@ public class TestWeb extends TestDb {
             result = client.get(url,
                     "tools.do?tool=DeleteDbFiles&args=-dir," +
                     getBaseDir() + ",-db," + getTestName());
-            String fn = getBaseDir() + "/" + getTestName();
-            if (config.mvStore) {
-                fn += Constants.SUFFIX_MV_FILE;
-            } else {
-                fn += Constants.SUFFIX_PAGE_FILE;
-            }
+            String fn = getBaseDir() + "/" + getTestName() + Constants.SUFFIX_MV_FILE;
             assertFalse(FileUtils.exists(fn));
             result = client.get(url, "tools.do?tool=Restore&args=-dir," +
                     getBaseDir() + ",-db," + getTestName() +",-file," + getBaseDir() +

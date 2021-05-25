@@ -164,11 +164,6 @@ public class Constants {
     public static final int CACHE_MIN_RECORDS = 16;
 
     /**
-     * The default cache size in KB for each GB of RAM.
-     */
-    public static final int CACHE_SIZE_DEFAULT = 64 * 1024;
-
-    /**
      * The default cache type.
      */
     public static final String CACHE_TYPE_DEFAULT = "LRU";
@@ -225,11 +220,6 @@ public class Constants {
      * itself, and not in a separate place.
      */
     public static final int DEFAULT_MAX_LENGTH_INPLACE_LOB = 256;
-
-    /**
-     * The default value for the maximum transaction log size.
-     */
-    public static final long DEFAULT_MAX_LOG_SIZE = 16 * 1024 * 1024;
 
     /**
      * The default value for the MAX_MEMORY_UNDO setting.
@@ -329,16 +319,6 @@ public class Constants {
     public static final int MAX_PARAMETER_INDEX = 100_000;
 
     /**
-     * The memory needed by a object of class Data
-     */
-    public static final int MEMORY_DATA = 24;
-
-    /**
-     * This value is used to calculate the average memory usage.
-     */
-    public static final int MEMORY_FACTOR = 64;
-
-    /**
      * The memory needed by a regular object with at least one field.
      */
     // Java 6, 64 bit: 24
@@ -361,11 +341,6 @@ public class Constants {
      * The memory needed by a Row.
      */
     public static final int MEMORY_ROW = 40;
-
-    /**
-     * The minimum write delay that causes commits to be delayed.
-     */
-    public static final int MIN_WRITE_DELAY = 5;
 
     /**
      * The name prefix used for indexes that are not explicitly named.
@@ -456,11 +431,6 @@ public class Constants {
     public static final String START_URL = "jdbc:h2:";
 
     /**
-     * The file name suffix of all database files.
-     */
-    public static final String SUFFIX_DB_FILE = ".db";
-
-    /**
      * The file name suffix of file lock files that are used to make sure a
      * database is open by only one process at any time.
      */
@@ -471,10 +441,6 @@ public class Constants {
      */
     public static final String SUFFIX_OLD_DATABASE_FILE = ".data.db";
 
-    /**
-     * The file name suffix of page files.
-     */
-    public static final String SUFFIX_PAGE_FILE = ".h2.db";
     /**
      * The file name suffix of a MVStore file.
      */
@@ -506,11 +472,6 @@ public class Constants {
      * THROTTLE has been used.
      */
     public static final int THROTTLE_DELAY = 50;
-
-    /**
-     * The maximum size of an undo log block.
-     */
-    public static final int UNDO_BLOCK_SIZE = 1024 * 1024;
 
     /**
      * The database URL format in simplified Backus-Naur form.

@@ -42,7 +42,6 @@ public class TestLargeBlob extends TestDb {
         Connection conn = getConnection(url);
         final long testLength = Integer.MAX_VALUE + 110L;
         Statement stat = conn.createStatement();
-        stat.execute("set COMPRESS_LOB LZF");
         stat.execute("create table test(x blob)");
         PreparedStatement prep = conn.prepareStatement(
                 "insert into test values(?)");

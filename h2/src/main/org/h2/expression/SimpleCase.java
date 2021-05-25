@@ -54,16 +54,6 @@ public final class SimpleCase extends Expression {
         this.elseResult = elseResult;
     }
 
-    /**
-     * Adds an else clause.
-     *
-     * @param result
-     *            the result
-     */
-    public void addElse(Expression result) {
-        elseResult = result;
-    }
-
     @Override
     public Value getValue(SessionLocal session) {
         Value v = operand.getValue(session);

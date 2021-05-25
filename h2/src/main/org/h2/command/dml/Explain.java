@@ -17,7 +17,6 @@ import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.mvstore.db.Store;
-import org.h2.pagestore.PageStore;
 import org.h2.result.LocalResult;
 import org.h2.result.ResultInterface;
 import org.h2.table.Column;
@@ -79,16 +78,10 @@ public class Explain extends Prepared {
             String plan;
             if (executeCommand) {
                 Store store = null;
-                PageStore pageStore = null;
                 if (db.isPersistent()) {
                     store = db.getStore();
                     if (store != null) {
                         store.statisticsStart();
-                    } else {
-                        pageStore = db.getPageStore();
-                        if (pageStore != null) {
-                            pageStore.statisticsStart();
-                        }
                     }
                 }
                 if (command.isQuery()) {
@@ -100,8 +93,6 @@ public class Explain extends Prepared {
                 Map<String, Integer> statistics = null;
                 if (store != null) {
                     statistics = store.statisticsEnd();
-                } else if (pageStore != null) {
-                    statistics = pageStore.statisticsEnd();
                 }
                 if (statistics != null) {
                     int total = 0;

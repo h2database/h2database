@@ -39,10 +39,11 @@ import org.h2.util.LegacyDateTimeUtils;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
+import org.h2.value.ValueBlob;
+import org.h2.value.ValueClob;
 import org.h2.value.ValueDouble;
 import org.h2.value.ValueInterval;
 import org.h2.value.ValueJavaObject;
-import org.h2.value.ValueLobInMemory;
 import org.h2.value.ValueNumeric;
 import org.h2.value.ValueReal;
 import org.h2.value.ValueTimestamp;
@@ -132,7 +133,7 @@ public class TestValue extends TestDb {
         assertEquals(32, v.castTo(typeInfo, null).getBytes()[9]);
         assertEquals(10, v.castTo(typeInfo, null).getType().getPrecision());
 
-        v = ValueLobInMemory.createSmallLob(Value.CLOB, spaces.getBytes(), 100);
+        v = ValueClob.createSmall(spaces.getBytes(), 100);
         typeInfo = TypeInfo.getTypeInfo(Value.CLOB, 10L, 0, null);
         assertEquals(100, v.getType().getPrecision());
         assertEquals(10, v.castTo(typeInfo, null).getType().getPrecision());
@@ -140,7 +141,7 @@ public class TestValue extends TestDb {
         assertEquals("          ", v.castTo(typeInfo, null).getString());
         assertEquals(10, v.castTo(typeInfo, null).getType().getPrecision());
 
-        v = ValueLobInMemory.createSmallLob(Value.BLOB, spaces.getBytes(), 100);
+        v = ValueBlob.createSmall(spaces.getBytes());
         typeInfo = TypeInfo.getTypeInfo(Value.BLOB, 10L, 0, null);
         assertEquals(100, v.getType().getPrecision());
         assertEquals(10, v.castTo(typeInfo, null).getType().getPrecision());
@@ -361,7 +362,7 @@ public class TestValue extends TestDb {
 
     private static Value createLob(DataHandler dh, int type, byte[] bytes) {
         if (dh == null) {
-            return ValueLobInMemory.createSmallLob(type, bytes);
+            return type == Value.BLOB ? ValueBlob.createSmall(bytes) : ValueClob.createSmall(bytes);
         }
         ByteArrayInputStream in = new ByteArrayInputStream(bytes);
         if (type == Value.BLOB) {

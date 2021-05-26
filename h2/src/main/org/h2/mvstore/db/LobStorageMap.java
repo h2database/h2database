@@ -411,7 +411,8 @@ public final class LobStorageMap implements LobStorageInterface
             streamStoreId = value.streamStoreId;
         }
         BlobReference key = new BlobReference(streamStoreId, lobId);
-        refMap.remove(key);
+        Value existing = refMap.remove(key);
+        assert existing != null;
         // check if there are more entries for this streamStoreId
         key = new BlobReference(streamStoreId, 0L);
         BlobReference value = refMap.ceilingKey(key);

@@ -1681,7 +1681,8 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
                     && (scale >= targetScale || !provider.getMode().convertOnlyToSmallerScale)) {
                 value = ValueNumeric.setScale(value, targetScale);
             }
-            if (value.precision() > targetType.getPrecision()) {
+            if (conversionMode != CONVERT_TO
+                    && value.precision() > targetType.getPrecision() - targetScale + value.scale()) {
                 throw getValueTooLongException(targetType, column);
             }
             return ValueNumeric.get(value);
@@ -1696,7 +1697,8 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
             if (scale != targetScale && (scale >= targetScale || !provider.getMode().convertOnlyToSmallerScale)) {
                 v = ValueNumeric.get(ValueNumeric.setScale(value, targetScale));
             }
-            if (v.getBigDecimal().precision() > targetType.getPrecision()) {
+            BigDecimal bd = v.getBigDecimal();
+            if (bd.precision() > targetType.getPrecision() - targetScale + bd.scale()) {
                 throw v.getValueTooLongException(targetType, column);
             }
         }

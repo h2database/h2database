@@ -214,7 +214,7 @@ See the <a href="commands.html">Commands</a> for details.
 Transaction isolation is provided for all data manipulation language (DML) statements.
 </p>
 <p>
-The default MVStore engine supports read uncommitted, read committed, repeatable read, snapshot,
+H2 supports read uncommitted, read committed, repeatable read, snapshot,
 and serializable (partially, see below) isolation levels:
 </p>
 <ul>
@@ -249,30 +249,6 @@ and serializable (partially, see below) isolation levels:
     <code>SET SESSION CHARACTERISTICS AS TRANSACTION ISOLATION LEVEL SERIALIZABLE</code>
 </li>
 </ul>
-<p>
-The PageStore engine supports read uncommitted, read committed, and serializable isolation levels:
-</p>
-<ul>
-<li><b>Read uncommitted</b><br />
-    This level means that transaction isolation is disabled.
-    This level is not supported by PageStore engine if multi-threaded mode is enabled.
-    To enable, execute the SQL statement
-    <code>SET SESSION CHARACTERISTICS AS TRANSACTION ISOLATION LEVEL READ UNCOMMITTED</code>
-</li>
-<li><b>Read committed</b><br />
-    This is the default level.
-    Read locks are released immediately after executing the statement, but write locks are kept until the transaction commits.
-    To enable, execute the SQL statement
-    <code>SET SESSION CHARACTERISTICS AS TRANSACTION ISOLATION LEVEL READ COMMITTED</code>
-</li>
-<li><b>Serializable</b><br />
-    Both read locks and write locks are kept until the transaction commits.
-    To enable, execute the SQL statement
-    <code>SET SESSION CHARACTERISTICS AS TRANSACTION ISOLATION LEVEL SERIALIZABLE</code>
-</li>
-</ul>
-<p>If repeatable read isolation level is requested when using a PageStore engine it is replaced
-with serializable isolation level.</p>
 <ul>
 <li><b>Dirty reads</b><br />
     Means a connection can read uncommitted changes made by another connection.<br />
@@ -291,29 +267,13 @@ with serializable isolation level.</p>
 
 <h3 id="mvcc">Multi-Version Concurrency Control (MVCC)</h3>
 <p>
-With default MVStore engine delete, insert and update operations only issue a shared lock on the table.
+Insert and update operations only issue a shared lock on the table.
 An exclusive lock is still used when adding or removing columns or when dropping the table.
 Connections only 'see' committed data, and own changes. That means, if connection A updates
 a row but doesn't commit this change yet, connection B will see the old value.
 Only when the change is committed, the new value is visible by other connections
 (read committed). If multiple connections concurrently try to lock or update the same row, the
 database waits until it can apply the change, but at most until the lock timeout expires.
-</p>
-
-<h3>Table Level Locking (PageStore engine)</h3>
-<p>
-With PageStore engine to make sure all connections only see consistent data, table level locking is used.
-This mechanism does not allow high concurrency, but is very fast.
-Shared locks and exclusive locks are supported.
-Before reading from a table, the database tries to add a shared lock to the table
-(this is only possible if there is no exclusive lock on the object by another connection).
-If the shared lock is added successfully, the table can be read. It is allowed that
-other connections also have a shared lock on the same object. If a connection wants
-to write to a table (update or delete a row), an exclusive lock is required. To get the
-exclusive lock, other connection must not have any locks on the object. After the
-connection commits, all locks are released.
-This database keeps all locks in memory.
-When a lock is released, and multiple connections are waiting for it, one of them is picked at random.
 </p>
 
 <h3>Lock Timeout</h3>

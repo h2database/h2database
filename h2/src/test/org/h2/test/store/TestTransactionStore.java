@@ -940,7 +940,8 @@ public class TestTransactionStore extends TestBase {
                     public void call() throws Exception {
                         Transaction tx = ts.begin();
                         try {
-                            TransactionMap<Long, Long> map = tx.openMap("test", LongDataType.INSTANCE, LongDataType.INSTANCE);
+                            TransactionMap<Long, Long> map = tx.openMap("test", LongDataType.INSTANCE,
+                                    LongDataType.INSTANCE);
                             long key = initialKey;
                             map.computeIfPresent(key, (k, v) -> v + 1);
                             latch.countDown();

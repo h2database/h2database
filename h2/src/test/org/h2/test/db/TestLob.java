@@ -151,7 +151,8 @@ public class TestLob extends TestDb {
         }
 
         try (Connection conn = getConnection("lob")) {
-            try (Statement st = conn.createStatement(); ResultSet rs = st.executeQuery("SELECT * FROM INFORMATION_SCHEMA.IN_DOUBT")) {
+            try (Statement st = conn.createStatement();
+                    ResultSet rs = st.executeQuery("SELECT * FROM INFORMATION_SCHEMA.IN_DOUBT")) {
                 assertTrue("No in-doubt tx", rs.first());
                 assertEquals("LOBTX", rs.getString("TRANSACTION_NAME"));
                 assertFalse("more than one in-doubt tx", rs.next());

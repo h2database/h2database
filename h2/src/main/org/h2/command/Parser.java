@@ -1971,7 +1971,6 @@ public class Parser {
         }
         if (readIf("SORTED")) {
             requireQuery = true;
-            command.setSortedInsertMode(true);
         }
         readValues: {
             if (!requireQuery) {
@@ -9082,6 +9081,8 @@ public class Parser {
             Set command = new Set(session, SetTypes.DEFAULT_NULL_ORDERING);
             command.setString(readIdentifier());
             return command;
+        } else if (readIf("LOG")) {
+            throw DbException.getUnsupportedException("LOG");
         } else {
             String upperName = upperName(currentToken);
             if (ConnectionInfo.isIgnoredByParser(upperName)) {
@@ -10364,9 +10365,7 @@ public class Parser {
             command.setHidden(true);
         }
         if (readIf(AS)) {
-            if (readIf("SORTED")) {
-                command.setSortedInsertMode(true);
-            }
+            readIf("SORTED");
             command.setQuery(parseQuery());
             if (readIf(WITH)) {
                 command.setWithNoData(readIf("NO"));

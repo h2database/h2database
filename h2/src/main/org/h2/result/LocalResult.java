@@ -40,7 +40,7 @@ public class LocalResult implements ResultInterface, ResultTarget {
     private SortOrder sort;
     // HashSet cannot be used here, because we need to compare values of
     // different type or scale properly.
-    private TreeMap<Value, Value[]> distinctRows;
+    private TreeMap<ValueRow, Value[]> distinctRows;
     private Value[] currentRow;
     private long offset;
     private long limit = -1;
@@ -248,8 +248,7 @@ public class LocalResult implements ResultInterface, ResultTarget {
         }
         assert values.length == visibleColumnCount;
         if (distinctRows != null) {
-            ValueRow array = ValueRow.get(values);
-            distinctRows.remove(array);
+            distinctRows.remove(ValueRow.get(values));
             rowCount = distinctRows.size();
         } else {
             rowCount = external.removeRow(values);
@@ -340,10 +339,10 @@ public class LocalResult implements ResultInterface, ResultTarget {
         cloneLobs(values);
         if (isAnyDistinct()) {
             if (distinctRows != null) {
-                ValueRow array = getDistinctRow(values);
-                Value[] previous = distinctRows.get(array);
+                ValueRow distinctRow = getDistinctRow(values);
+                Value[] previous = distinctRows.get(distinctRow);
                 if (previous == null || sort != null && sort.compare(previous, values) > 0) {
-                    distinctRows.put(array, values);
+                    distinctRows.put(distinctRow, values);
                 }
                 rowCount = distinctRows.size();
                 if (rowCount > maxMemoryRows) {

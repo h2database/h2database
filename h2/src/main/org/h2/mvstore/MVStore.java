@@ -532,9 +532,12 @@ public class MVStore implements AutoCloseable {
      *
      * @return the metadata map
      */
-    public MVMap<String, String> getLayoutMap() {
-        checkOpen();
+    public Map<String, String> getLayoutMap() {
         return fileStore == null ? null : fileStore.getLayoutMap();
+    }
+
+    private boolean isSpecialMap(MVMap<?,?> map) {
+        return fileStore != null && fileStore.isSpecialMap(map) || map == meta;
     }
 
     /**
@@ -710,7 +713,7 @@ public class MVStore implements AutoCloseable {
     private void setWriteVersion(long version) {
         for (Iterator<MVMap<?, ?>> iter = maps.values().iterator(); iter.hasNext(); ) {
             MVMap<?, ?> map = iter.next();
-            assert map != getLayoutMap() && map != meta;
+            assert !isSpecialMap(map);
             if (map.setWriteVersion(version) == null) {
                 iter.remove();
             }
@@ -1452,8 +1455,7 @@ public class MVStore implements AutoCloseable {
                 // map root lock
                 (storeLock.isHeldByCurrentThread() || !map.getRoot().isLockedByCurrentThread()) &&
                 // to avoid infinite recursion via store() -> dropUnusedChunks() -> layout.remove()
-                map != getLayoutMap()) {
-            assert fileStore != null;
+                !fileStore.isSpecialMap(map)) {
             saveNeeded = false;
             // check again, because it could have been written by now
             if (autoCommitMemory > 0 && needStore()) {
@@ -1614,8 +1616,7 @@ public class MVStore implements AutoCloseable {
      */
     public void renameMap(MVMap<?, ?> map, String newName) {
         checkOpen();
-        DataUtils.checkArgument(map != getLayoutMap() && map != meta,
-                "Renaming the meta map is not allowed");
+        DataUtils.checkArgument(!isSpecialMap(map), "Renaming the meta map is not allowed");
         int id = map.getId();
         String oldName = getMapName(id);
         if (oldName != null && !oldName.equals(newName)) {
@@ -1643,8 +1644,7 @@ public class MVStore implements AutoCloseable {
         storeLock.lock();
         try {
             checkOpen();
-            DataUtils.checkArgument(map != getLayoutMap() && map != meta,
-                    "Removing the meta map is not allowed");
+            DataUtils.checkArgument(!isSpecialMap(map), "Removing the meta map is not allowed");
             RootReference<?,?> rootReference = map.clearIt();
             map.close();
 
@@ -1816,11 +1816,6 @@ public class MVStore implements AutoCloseable {
         RootReference<?,?> rootReference = meta.getRoot();
         updateCounter += rootReference.updateCounter;
         updateAttemptCounter += rootReference.updateAttemptCounter;
-        if (fileStore != null) {
-            rootReference = getLayoutMap().getRoot();
-            updateCounter += rootReference.updateCounter;
-            updateAttemptCounter += rootReference.updateAttemptCounter;
-        }
         for (MVMap<?, ?> map : maps.values()) {
             RootReference<?,?> root = map.getRoot();
             updateCounter += root.updateCounter;

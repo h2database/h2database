@@ -404,7 +404,7 @@ public class Recover extends Tool implements DataHandler {
     }
 
     private static void dumpLayout(PrintWriter writer, MVStore mv) {
-        MVMap<String, String> layout = mv.getLayoutMap();
+        Map<String, String> layout = mv.getLayoutMap();
         for (Entry<String, String> e : layout.entrySet()) {
             writer.println("-- " + e.getKey() + " = " + e.getValue());
         }

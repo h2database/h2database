@@ -291,7 +291,7 @@ public class TestMVStore extends TestBase {
             s.commit();
             map.put(1, new byte[10 * 1024]);
             s.commit();
-            MVMap<String, String> layout = s.getLayoutMap();
+            Map<String, String> layout = s.getLayoutMap();
             Chunk c = Chunk.fromString(layout.get(DataUtils.META_CHUNK + "1"));
             assertTrue(c.maxLen < Integer.MAX_VALUE);
             assertTrue(c.maxLenLive < Integer.MAX_VALUE);
@@ -821,14 +821,11 @@ public class TestMVStore extends TestBase {
                 FileStore fileStore = s.getFileStore();
                 long readCount = fileStore.getReadCount();
                 int expected = expectedReadsForCacheSize[cacheSize];
-                CacheLongKeyLIRS<Page<?, ?>> cache = fileStore.getCache();
                 assertTrue("Cache " + cacheMB + "Mb, reads: " + readCount + " expected: " + expected +
                                 " size: " + fileStore.getReadBytes() +
                                 " cache used: " + s.getCacheSizeUsed() +
-                                (cache == null ? "" : (
-                                " cache hits: " + cache.getHits() +
-                                " cache misses: " + cache.getMisses() +
-                                " cache requests: " + (cache.getHits() + cache.getMisses()))) +
+                                " cache hit ratio: " + s.getFileStore().getCacheHitRatio() +
+                                " cache ToC hit ratio: " + s.getFileStore().getTocCacheHitRatio() +
                                 "",
                         Math.abs(100 - (100 * expected / readCount)) < 15);
             }
@@ -1570,7 +1567,7 @@ public class TestMVStore extends TestBase {
         FileUtils.delete(fileName);
         try (MVStore s = openStore(fileName)) {
             s.setRetentionTime(Integer.MAX_VALUE);
-            MVMap<String, String> m = s.getMetaMap();
+            Map<String, String> m = s.getMetaMap();
             assertEquals("[]", s.getMapNames().toString());
             MVMap<String, String> data = s.openMap("data");
             data.put("1", "Hello");
@@ -1718,12 +1715,11 @@ public class TestMVStore extends TestBase {
             s.setRetentionTime(0);
             s.setVersionsToKeep(0);
 
-            Map<String, String> layout = s.getLayoutMap();
-            int chunkCount1 = getChunkCount(layout);
+            int chunkCount1 = getChunkCount(s);
             s.compact(80, 1);
             s.compact(80, 1);
 
-            int chunkCount2 = getChunkCount(layout);
+            int chunkCount2 = getChunkCount(s);
             assertTrue(chunkCount2 >= chunkCount1);
 
             MVMap<Integer, String> m = s.openMap("data");
@@ -1737,7 +1733,7 @@ public class TestMVStore extends TestBase {
             assertFalse(s.compact(50, 1024));
             compactMoveChunks(s);
 
-            int chunkCount3 = getChunkCount(layout);
+            int chunkCount3 = getChunkCount(s);
 
             assertTrue(chunkCount1 + " >= " + chunkCount2 + " > " + chunkCount3,
                     chunkCount3 < chunkCount1);
@@ -1748,7 +1744,8 @@ public class TestMVStore extends TestBase {
         }
     }
 
-    private static int getChunkCount(Map<String, String> layout) {
+    private static int getChunkCount(MVStore s) {
+        Map<String, String> layout = s.getLayoutMap();
         int chunkCount = 0;
         for (String k : layout.keySet()) {
             if (k.startsWith(DataUtils.META_CHUNK)) {

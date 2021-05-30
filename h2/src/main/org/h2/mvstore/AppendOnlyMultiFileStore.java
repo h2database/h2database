@@ -55,7 +55,7 @@ public class AppendOnlyMultiFileStore extends FileStore
 
     @Override
     public boolean shouldSaveNow(int unsavedMemory, int autoCommitMemory) {
-        return false;
+        return unsavedMemory > autoCommitMemory;
     }
 
     /**
@@ -101,7 +101,11 @@ public class AppendOnlyMultiFileStore extends FileStore
 
     @Override
     protected void writeFully(long pos, ByteBuffer src) {
-
+        int len = src.remaining();
+        setSize(Math.max(super.size(), pos + len));
+        DataUtils.writeFully(file, pos, src);
+        writeCount.incrementAndGet();
+        writeBytes.addAndGet(len);
     }
 
     @Override

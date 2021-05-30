@@ -30,6 +30,7 @@ import java.util.NoSuchElementException;
 import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -115,10 +116,9 @@ public abstract class FileStore
     private String fileName;
 
     /**
-     * How long to retain old, persisted chunks, in milliseconds. For larger or
-     * equal to zero, a chunk is never directly overwritten if unused, but
-     * instead, the unused field is set. If smaller zero, chunks are directly
-     * overwritten if unused.
+     * For how long (in milliseconds) to retain a persisted chunk after it becomes irrelevant
+     * (not in use, because it only contains data from some old versions).
+     * Non-positive value allows chunk to be discarded immediately, once it goes out of use.
      */
     private int retentionTime = getDefaultRetentionTime();
 
@@ -328,8 +328,12 @@ public abstract class FileStore
      *
      * @return the metadata map
      */
-    public final MVMap<String, String> getLayoutMap() {
-        return layout;
+    public final Map<String, String> getLayoutMap() {
+        return new TreeMap<>(layout);
+    }
+
+    public final boolean isSpecialMap(MVMap<?,?> map) {
+        return map == layout;
     }
 
     /**
@@ -364,11 +368,6 @@ public abstract class FileStore
     public final long lastChunkVersion() {
         Chunk chunk = lastChunk;
         return chunk == null ? INITIAL_VERSION + 1 : chunk.version;
-    }
-
-    private int lastMapId() {
-        Chunk chunk = lastChunk;
-        return chunk == null ? 0 : chunk.mapId;
     }
 
     public final long getMaxPageSize() {
@@ -619,7 +618,6 @@ public abstract class FileStore
                 if (chunks.remove(chunk.id) != null) {
                     // purge dead pages from cache
                     long[] toc = cleanToCCache(chunk);
-                    CacheLongKeyLIRS<Page<?, ?>> cache = getCache();
                     if (toc != null && cache != null) {
                         for (long tocElement : toc) {
                             long pagePos = DataUtils.composePagePos(chunk.id, tocElement);
@@ -627,7 +625,7 @@ public abstract class FileStore
                         }
                     }
 
-                    if (getLayoutMap().remove(Chunk.getMetaKey(chunk.id)) != null) {
+                    if (layout.remove(Chunk.getMetaKey(chunk.id)) != null) {
                         mvStore.markMetaChanged();
                     }
                     if (chunk.isAllocated()) {
@@ -910,6 +908,11 @@ public abstract class FileStore
         lastCommitTime = getTimeSinceCreation();
         mvStore.resetLastMapId(lastMapId());
         mvStore.setCurrentVersion(lastChunkVersion());
+    }
+
+    private int lastMapId() {
+        Chunk chunk = lastChunk;
+        return chunk == null ? 0 : chunk.mapId;
     }
 
     private void readStoreHeader(boolean recoveryMode) {
@@ -1511,15 +1514,15 @@ public abstract class FileStore
      * @param pos the position in bytes
      * @param length the number of bytes
      */
-    public abstract void markUsed(long pos, int length);
+    protected abstract void markUsed(long pos, int length);
 
     public abstract void backup(ZipOutputStream out) throws IOException;
 
-    protected ConcurrentMap<Integer, Chunk> getChunks() {
+    protected final ConcurrentMap<Integer, Chunk> getChunks() {
         return chunks;
     }
 
-    public Collection<Chunk> getRewriteCandidates() {
+    protected Collection<Chunk> getRewriteCandidates() {
         return null;
     }
 
@@ -1530,7 +1533,7 @@ public abstract class FileStore
     public void setReuseSpace(boolean reuseSpace) {
     }
 
-    protected void store() {
+    protected final void store() {
         serializationLock.unlock();
         try {
             mvStore.storeNow();
@@ -1542,11 +1545,24 @@ public abstract class FileStore
     private int serializationExecutorHWM;
 
 
-    public void storeIt(ArrayList<Page<?,?>> changed, long version, boolean syncWrite) throws ExecutionException {
+    final void storeIt(ArrayList<Page<?,?>> changed, long version, boolean syncWrite) throws ExecutionException {
         lastCommitTime = getTimeSinceCreation();
         serializationExecutorHWM = submitOrRun(serializationExecutor,
                 () -> serializeAndStore(syncWrite, changed, lastCommitTime, version),
                 syncWrite, PIPE_LENGTH, serializationExecutorHWM);
+    }
+
+    final void onPageSerialized(Page<?,?> page, Chunk chunk, boolean isDeleted, int diskSpaceUsed, boolean isPinned) {
+        cachePage(page);
+        if (!page.isLeaf()) {
+            // cache again - this will make sure nodes stays in the cache
+            // for a longer time
+            cachePage(page);
+        }
+        chunk.accountForWrittenPage(diskSpaceUsed, isPinned);
+        if (isDeleted) {
+            accountForRemovedPage(page.getPos(), chunk.version + 1, isPinned, page.pageNo);
+        }
     }
 
     private static int submitOrRun(ThreadPoolExecutor executor, Runnable action,
@@ -1616,17 +1632,16 @@ public abstract class FileStore
         buff.position(headerLength);
         c.next = headerLength;
 
-        MVMap<String, String> layoutMap = getLayoutMap();
         long version = c.version;
         List<Long> toc = new ArrayList<>();
         for (Page<?,?> p : changed) {
             String key = MVMap.getMapRootKey(p.getMapId());
             if (p.getTotalCount() == 0) {
-                layoutMap.remove(key);
+                layout.remove(key);
             } else {
                 p.writeUnsavedRecursive(c, buff, toc);
                 long root = p.getPos();
-                layoutMap.put(key, Long.toHexString(root));
+                layout.put(key, Long.toHexString(root));
             }
         }
 
@@ -1642,7 +1657,7 @@ public abstract class FileStore
             }
         }
 
-        RootReference<String,String> layoutRootReference = layoutMap.setWriteVersion(version);
+        RootReference<String,String> layoutRootReference = layout.setWriteVersion(version);
         assert layoutRootReference != null;
         assert layoutRootReference.version == version : layoutRootReference.version + " != " + version;
 
@@ -1821,7 +1836,7 @@ public abstract class FileStore
      * Put the page in the cache.
      * @param page the page
      */
-    void cachePage(Page<?,?> page) {
+    private void cachePage(Page<?,?> page) {
         if (cache != null) {
             cache.put(page.getPos(), page, page.getMemory());
         }
@@ -1868,20 +1883,11 @@ public abstract class FileStore
         }
     }
 
-    /**
-     * Get the cache.
-     *
-     * @return the cache
-     */
-    public CacheLongKeyLIRS<Page<?,?>> getCache() {
-        return cache;
-    }
-
-    protected void cacheToC(Chunk chunk, long[] toc) {
+    private void cacheToC(Chunk chunk, long[] toc) {
         chunksToC.put(chunk.version, toc, toc.length * 8);
     }
 
-    protected long[] cleanToCCache(Chunk chunk) {
+    private long[] cleanToCCache(Chunk chunk) {
         return chunksToC.remove(chunk.version);
     }
 
@@ -1936,13 +1942,13 @@ public abstract class FileStore
                         }
                     }
                 }
-                shutdown();
+                shutdownExecutors();
                 break;
             }
         }
     }
 
-    void shutdown() {
+    private void shutdownExecutors() {
         shutdownExecutor(serializationExecutor);
         serializationExecutor = null;
         shutdownExecutor(bufferSaveExecutor);
@@ -2104,9 +2110,8 @@ public abstract class FileStore
                 for (int pageNo = 0; (pageNo = chunk.occupancy.nextClearBit(pageNo)) < chunk.pageCount; ++pageNo) {
                     long tocElement = toc[pageNo];
                     int mapId = DataUtils.getPageMapId(tocElement);
-                    MVMap<String, String> layoutMap = getLayoutMap();
                     MVMap<String, String> metaMap = mvStore.getMetaMap();
-                    MVMap<?, ?> map = mapId == layoutMap.getId() ? layoutMap : mapId == metaMap.getId() ? metaMap : mvStore.getMap(mapId);
+                    MVMap<?, ?> map = mapId == layout.getId() ? layout : mapId == metaMap.getId() ? metaMap : mvStore.getMap(mapId);
                     if (map != null && !map.isClosed()) {
                         assert !map.isSingleWriter();
                         if (secondPass || DataUtils.isLeafPosition(tocElement)) {
@@ -2197,8 +2202,7 @@ public abstract class FileStore
         int chunkId = DataUtils.getPageChunkId(pos);
         Chunk c = chunks.get(chunkId);
         if (c == null) {
-//            mvStore.checkOpen();
-            String s = getLayoutMap().get(Chunk.getMetaKey(chunkId));
+            String s = layout.get(Chunk.getMetaKey(chunkId));
             if (s == null) {
                 throw DataUtils.newMVStoreException(
                         DataUtils.ERROR_CHUNK_NOT_FOUND,

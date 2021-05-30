@@ -350,7 +350,7 @@ public class MVStoreTool {
         try (MVStore store = new MVStore.Builder().
                 fileName(fileName).recoveryMode().
                 readOnly().open()) {
-            MVMap<String, String> layout = store.getLayoutMap();
+            Map<String, String> layout = store.getLayoutMap();
             Map<String, Object> header = store.getStoreHeader();
             long fileCreated = DataUtils.readHexLong(header, "created", 0L);
             TreeMap<Integer, Chunk> chunks = new TreeMap<>();

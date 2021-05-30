@@ -439,9 +439,9 @@ public class TestMVStoreConcurrent extends TestMVStore {
                 m.put(2, 2);
                 s.commit();
 
-                MVMap<String, String> layoutMap = s.getLayoutMap();
+                Map<String, String> layoutMap = s.getLayoutMap();
                 int chunkCount = 0;
-                for (String k : layoutMap.keyList()) {
+                for (String k : layoutMap.keySet()) {
                     if (k.startsWith(DataUtils.META_CHUNK)) {
                         // dead chunks may stay around for a little while
                         // discount them

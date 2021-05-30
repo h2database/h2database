@@ -43,12 +43,13 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Function;
 import java.util.function.IntSupplier;
 import java.util.zip.ZipOutputStream;
 
 /**
  * Class FileStore is a base class to allow for different store implementations.
- * FileStore concept revolvs around notion of "chunk" which is a piece of data
+ * FileStore concept revolves around notion of a "chunk", which is a piece of data
  * written into the store at once.
  *
  * @author <a href='mailto:andrei.tokar@gmail.com'>Andrei Tokar</a>
@@ -1248,6 +1249,7 @@ public abstract class FileStore
     private Iterable<Chunk> getChunksFromLayoutMap(MVMap<String, String> layoutMap) {
         return () -> new Iterator<Chunk>() {
             private final Cursor<String, String> cursor = layoutMap.cursor(DataUtils.META_CHUNK);
+            private final Function<Integer, Chunk> mappingFunction = id -> Chunk.fromString(cursor.getValue());
             private Chunk nextChunk;
 
             @Override
@@ -1705,8 +1707,8 @@ public abstract class FileStore
             mvStore.panic(DataUtils.newMVStoreException(DataUtils.ERROR_INTERNAL, "{0}", e.toString(), e));
         } finally {
             saveChunkLock.unlock();
-            releaseWriteBuffer(buff);
             c.buffer = null;
+            releaseWriteBuffer(buff);
         }
     }
 
@@ -2142,13 +2144,15 @@ public abstract class FileStore
                 throw DataUtils.newMVStoreException(
                         DataUtils.ERROR_FILE_CORRUPT, "Position 0");
             }
-            Page<K,V> p = readPageFromCache(pos);
-            if (p == null) {
+            Page<K,V> page = readPageFromCache(pos);
+            if (page == null) {
                 Chunk chunk = getChunk(pos);
                 int pageOffset = DataUtils.getPageOffset(pos);
-                try {
+                while(true) {
+                    MVStoreException exception = null;
                     ByteBuffer buff = chunk.buffer;
-                    if (buff == null) {
+                    boolean alreadySaved = buff == null;
+                    if (alreadySaved) {
                         buff = chunk.readBufferForPage(this, pageOffset, pos);
                     } else {
 //                        System.err.println("Using unsaved buffer " + chunk.id + "/" + pageOffset);
@@ -2156,17 +2160,25 @@ public abstract class FileStore
                         buff.position(pageOffset);
                         buff = buff.slice();
                     }
-                    p = Page.read(buff, pos, map);
-                } catch (MVStoreException e) {
-                    throw e;
-                } catch (Exception e) {
-                    throw DataUtils.newMVStoreException(DataUtils.ERROR_FILE_CORRUPT,
-                            "Unable to read the page at position 0x{0}, chunk {1}, offset 0x{3}",
-                            Long.toHexString(pos), chunk, Long.toHexString(pageOffset), e);
+                    try {
+                        page = Page.read(buff, pos, map);
+                    } catch (MVStoreException e) {
+                        exception = e;
+                    } catch (Exception e) {
+                        exception = DataUtils.newMVStoreException(DataUtils.ERROR_FILE_CORRUPT,
+                                "Unable to read the page at position 0x{0}, chunk {1}, offset 0x{3}",
+                                Long.toHexString(pos), chunk, Long.toHexString(pageOffset), e);
+                    }
+                    if (alreadySaved || buff == chunk.buffer) {
+                        if (exception == null) {
+                            break;
+                        }
+                        throw exception;
+                    }
                 }
-                cachePage(p);
+                cachePage(page);
             }
-            return p;
+            return page;
         } catch (MVStoreException e) {
             if (recoveryMode) {
                 return map.createEmptyLeaf();

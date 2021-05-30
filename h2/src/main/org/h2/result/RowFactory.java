@@ -51,10 +51,10 @@ public abstract class RowFactory {
     }
 
     /**
-     * Create new row.
+     * Create a new row.
      *
      * @param data the values
-     * @param memory whether the row is in memory
+     * @param memory the estimated memory usage in bytes
      * @return the created row
      */
     public abstract Row createRow(Value[] data, int memory);

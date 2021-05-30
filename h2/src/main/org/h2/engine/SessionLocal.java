@@ -522,11 +522,6 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
     }
 
     @Override
-    public int getClientVersion() {
-        return Constants.TCP_PROTOCOL_VERSION_MAX_SUPPORTED;
-    }
-
-    @Override
     public boolean getAutoCommit() {
         return autoCommit;
     }

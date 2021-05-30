@@ -234,7 +234,11 @@ public final class SessionRemote extends Session implements DataHandler {
         }
     }
 
-    @Override
+    /**
+     * Returns the TCP protocol version of remote connection.
+     *
+     * @return the TCP protocol version
+     */
     public int getClientVersion() {
         return clientVersion;
     }

@@ -175,7 +175,6 @@ import org.h2.test.unit.TestCollation;
 import org.h2.test.unit.TestCompress;
 import org.h2.test.unit.TestConcurrentJdbc;
 import org.h2.test.unit.TestConnectionInfo;
-import org.h2.test.unit.TestDataPage;
 import org.h2.test.unit.TestDate;
 import org.h2.test.unit.TestDateIso8601;
 import org.h2.test.unit.TestDateTimeUtils;
@@ -924,7 +923,6 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestBinaryOperation());
         addTest(new TestBitStream());
         addTest(new TestCharsetCollator());
-        addTest(new TestDataPage());
         addTest(new TestDateIso8601());
         addTest(new TestDbException());
         addTest(new TestFile());

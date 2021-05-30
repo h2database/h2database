@@ -21,8 +21,7 @@ public class FileStoreOutputStream extends OutputStream {
     private final CompressTool compress;
     private final byte[] buffer = { 0 };
 
-    public FileStoreOutputStream(FileStore store, DataHandler handler,
-            String compressionAlgorithm) {
+    public FileStoreOutputStream(FileStore store, String compressionAlgorithm) {
         this.store = store;
         if (compressionAlgorithm != null) {
             this.compress = CompressTool.getInstance();
@@ -31,7 +30,7 @@ public class FileStoreOutputStream extends OutputStream {
             this.compress = null;
             this.compressionAlgorithm = null;
         }
-        page = Data.create(handler, Constants.FILE_BLOCK_SIZE);
+        page = Data.create(Constants.FILE_BLOCK_SIZE);
     }
 
     @Override
@@ -57,12 +56,12 @@ public class FileStoreOutputStream extends OutputStream {
                 int uncompressed = len;
                 buff = compress.compress(buff, compressionAlgorithm);
                 len = buff.length;
-                page.checkCapacity(2 * Data.LENGTH_INT + len);
+                page.checkCapacity(2 * Integer.BYTES + len);
                 page.writeInt(len);
                 page.writeInt(uncompressed);
                 page.write(buff, off, len);
             } else {
-                page.checkCapacity(Data.LENGTH_INT + len);
+                page.checkCapacity(Integer.BYTES + len);
                 page.writeInt(len);
                 page.write(buff, off, len);
             }

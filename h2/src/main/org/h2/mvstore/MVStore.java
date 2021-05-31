@@ -1749,6 +1749,10 @@ public class MVStore implements AutoCloseable {
         return state <= STATE_STOPPING;
     }
 
+    public boolean isBackgroundThread() {
+        return fileStore != null && fileStore.isBackgroundThread();
+    }
+
     /**
      * Set the maximum delay in milliseconds to auto-commit changes.
      * <p>

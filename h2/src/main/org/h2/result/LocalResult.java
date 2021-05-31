@@ -14,11 +14,15 @@ import org.h2.engine.Session;
 import org.h2.engine.SessionLocal;
 import org.h2.engine.SysProperties;
 import org.h2.expression.Expression;
+import org.h2.expression.ExpressionColumn;
 import org.h2.message.DbException;
 import org.h2.mvstore.db.MVTempResult;
+import org.h2.table.Column;
+import org.h2.table.Table;
 import org.h2.util.Utils;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
+import org.h2.value.ValueBigint;
 import org.h2.value.ValueLob;
 import org.h2.value.ValueRow;
 
@@ -30,8 +34,31 @@ import org.h2.value.ValueRow;
  */
 public class LocalResult implements ResultInterface, ResultTarget {
 
+    /**
+     * Constructs a new local result object for the specified table.
+     *
+     * @param session
+     *            the session
+     * @param table
+     *            the table
+     * @return the local result
+     */
+    public static LocalResult forTable(SessionLocal session, Table table) {
+        Column[] columns = table.getColumns();
+        int degree = columns.length;
+        Expression[] expressions = new Expression[degree + 1];
+        Database database = session.getDatabase();
+        for (int i = 0; i < degree; i++) {
+            expressions[i] = new ExpressionColumn(database, columns[i]);
+        }
+        Column rowIdColumn = table.getRowIdColumn();
+        expressions[degree] = rowIdColumn != null ? new ExpressionColumn(database, rowIdColumn)
+                : new ExpressionColumn(database, null, table.getName());
+        return new LocalResult(session, expressions, degree, degree + 1);
+    }
+
     private int maxMemoryRows;
-    private SessionLocal session;
+    private final SessionLocal session;
     private int visibleColumnCount;
     private int resultColumnCount;
     private Expression[] expressions;
@@ -40,7 +67,7 @@ public class LocalResult implements ResultInterface, ResultTarget {
     private SortOrder sort;
     // HashSet cannot be used here, because we need to compare values of
     // different type or scale properly.
-    private TreeMap<Value, Value[]> distinctRows;
+    private TreeMap<ValueRow, Value[]> distinctRows;
     private Value[] currentRow;
     private long offset;
     private long limit = -1;
@@ -58,7 +85,11 @@ public class LocalResult implements ResultInterface, ResultTarget {
      * Construct a local result object.
      */
     public LocalResult() {
-        // nothing to do
+        this(null);
+    }
+
+    private LocalResult(SessionLocal session) {
+        this.session = session;
     }
 
     /**
@@ -131,9 +162,8 @@ public class LocalResult implements ResultInterface, ResultTarget {
                 return null;
             }
         }
-        LocalResult copy = new LocalResult();
+        LocalResult copy = new LocalResult((SessionLocal) targetSession);
         copy.maxMemoryRows = this.maxMemoryRows;
-        copy.session = (SessionLocal) targetSession;
         copy.visibleColumnCount = this.visibleColumnCount;
         copy.resultColumnCount = this.resultColumnCount;
         copy.expressions = this.expressions;
@@ -248,8 +278,7 @@ public class LocalResult implements ResultInterface, ResultTarget {
         }
         assert values.length == visibleColumnCount;
         if (distinctRows != null) {
-            ValueRow array = ValueRow.get(values);
-            distinctRows.remove(array);
+            distinctRows.remove(ValueRow.get(values));
             rowCount = distinctRows.size();
         } else {
             rowCount = external.removeRow(values);
@@ -263,6 +292,15 @@ public class LocalResult implements ResultInterface, ResultTarget {
         if (external != null) {
             external.reset();
         }
+    }
+
+    public Row currentRowForTable() {
+        int degree = visibleColumnCount;
+        Value[] currentRow = this.currentRow;
+        Row row = session.getDatabase().getRowFactory()
+                .createRow(Arrays.copyOf(currentRow, degree), SearchRow.MEMORY_CALCULATE);
+        row.setKey(currentRow[degree].getLong());
+        return row;
     }
 
     @Override
@@ -330,6 +368,21 @@ public class LocalResult implements ResultInterface, ResultTarget {
     }
 
     /**
+     * Add a row for a table.
+     *
+     * @param row the row to add
+     */
+    public void addRowForTable(Row row) {
+        int degree = visibleColumnCount;
+        Value[] values = new Value[degree + 1];
+        for (int i = 0; i < degree; i++) {
+            values[i] = row.getValue(i);
+        }
+        values[degree] = ValueBigint.get(row.getKey());
+        addRowInternal(values);
+    }
+
+    /**
      * Add a row to this object.
      *
      * @param values the row to add
@@ -338,12 +391,16 @@ public class LocalResult implements ResultInterface, ResultTarget {
     public void addRow(Value... values) {
         assert values.length == resultColumnCount;
         cloneLobs(values);
+        addRowInternal(values);
+    }
+
+    private void addRowInternal(Value... values) {
         if (isAnyDistinct()) {
             if (distinctRows != null) {
-                ValueRow array = getDistinctRow(values);
-                Value[] previous = distinctRows.get(array);
+                ValueRow distinctRow = getDistinctRow(values);
+                Value[] previous = distinctRows.get(distinctRow);
                 if (previous == null || sort != null && sort.compare(previous, values) > 0) {
-                    distinctRows.put(array, values);
+                    distinctRows.put(distinctRow, values);
                 }
                 rowCount = distinctRows.size();
                 if (rowCount > maxMemoryRows) {

@@ -24,8 +24,7 @@ public class FileStoreInputStream extends InputStream {
     private boolean endOfFile;
     private final boolean alwaysClose;
 
-    public FileStoreInputStream(FileStore store, DataHandler handler,
-            boolean compression, boolean alwaysClose) {
+    public FileStoreInputStream(FileStore store, boolean compression, boolean alwaysClose) {
         this.store = store;
         this.alwaysClose = alwaysClose;
         if (compression) {
@@ -33,7 +32,7 @@ public class FileStoreInputStream extends InputStream {
         } else {
             compress = null;
         }
-        page = Data.create(handler, Constants.FILE_BLOCK_SIZE);
+        page = Data.create(Constants.FILE_BLOCK_SIZE);
         try {
             if (store.length() <= FileStore.HEADER_LENGTH) {
                 close();
@@ -104,7 +103,7 @@ public class FileStoreInputStream extends InputStream {
         page.checkCapacity(remainingInBuffer);
         // get the length to read
         if (compress != null) {
-            page.checkCapacity(Data.LENGTH_INT);
+            page.checkCapacity(Integer.BYTES);
             page.readInt();
         }
         page.setPos(page.length() + remainingInBuffer);

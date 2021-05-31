@@ -56,7 +56,6 @@ import org.h2.util.SmallLRUCache;
 import org.h2.util.TimeZoneProvider;
 import org.h2.util.Utils;
 import org.h2.value.Value;
-import org.h2.value.ValueArray;
 import org.h2.value.ValueLob;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueTimestampTimeZone;
@@ -71,7 +70,7 @@ import org.h2.value.lob.LobDataInMemory;
  * mode, this object resides on the server side and communicates with a
  * SessionRemote object on the client side.
  */
-public class SessionLocal extends Session implements TransactionStore.RollbackListener {
+public final class SessionLocal extends Session implements TransactionStore.RollbackListener {
 
     public enum State { INIT, RUNNING, BLOCKED, SLEEP, THROTTLED, SUSPENDED, CLOSED }
 
@@ -520,11 +519,6 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
                 constraint.removeChildrenAndResources(this);
             }
         }
-    }
-
-    @Override
-    public int getClientVersion() {
-        return Constants.TCP_PROTOCOL_VERSION_MAX_SUPPORTED;
     }
 
     @Override
@@ -1809,9 +1803,8 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
         if (store != null) {
             MVTable table = store.getTable(map.getName());
             if (table != null) {
-                long recKey = (Long)key;
-                Row oldRow = getRowFromVersionedValue(table, recKey, existingValue);
-                Row newRow = getRowFromVersionedValue(table, recKey, restoredValue);
+                Row oldRow = existingValue == null ? null : (Row) existingValue.getCurrentValue();
+                Row newRow = restoredValue == null ? null : (Row) restoredValue.getCurrentValue();
                 table.fireAfterRow(this, oldRow, newRow, true);
 
                 if (table.getContainsLargeObject()) {
@@ -1835,22 +1828,6 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
             }
         }
     }
-
-    private static Row getRowFromVersionedValue(MVTable table, long recKey,
-                                                VersionedValue<Object> versionedValue) {
-        Object value = versionedValue == null ? null : versionedValue.getCurrentValue();
-        if (value == null) {
-            return null;
-        }
-        Row result;
-        if(value instanceof Row) {
-            result = (Row) value;
-        } else {
-            result = table.createRow(((ValueArray) value).getList(), 0, recKey);
-        }
-        return result;
-    }
-
 
     /**
      * Represents a savepoint (a position in a transaction to where one can roll

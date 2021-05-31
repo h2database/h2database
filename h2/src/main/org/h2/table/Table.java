@@ -28,9 +28,9 @@ import org.h2.index.IndexType;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.result.DefaultRow;
+import org.h2.result.LocalResult;
 import org.h2.result.Row;
 import org.h2.result.RowFactory;
-import org.h2.result.RowList;
 import org.h2.result.SearchRow;
 import org.h2.result.SimpleRowValue;
 import org.h2.result.SortOrder;
@@ -522,16 +522,16 @@ public abstract class Table extends SchemaObject {
      * @param rows a list of row pairs of the form old row, new row, old row,
      *            new row,...
      */
-    public void updateRows(Prepared prepared, SessionLocal session, RowList rows) {
+    public void updateRows(Prepared prepared, SessionLocal session, LocalResult rows) {
         // in case we need to undo the update
         SessionLocal.Savepoint rollback = session.setSavepoint();
         // remove the old rows
         int rowScanCount = 0;
-        for (rows.reset(); rows.hasNext();) {
+        while (rows.next()) {
             if ((++rowScanCount & 127) == 0) {
                 prepared.checkCanceled();
             }
-            Row o = rows.next();
+            Row o = rows.currentRowForTable();
             rows.next();
             try {
                 removeRow(session, o);
@@ -544,12 +544,13 @@ public abstract class Table extends SchemaObject {
             }
         }
         // add the new rows
-        for (rows.reset(); rows.hasNext();) {
+        rows.reset();
+        while (rows.next()) {
             if ((++rowScanCount & 127) == 0) {
                 prepared.checkCanceled();
             }
             rows.next();
-            Row n = rows.next();
+            Row n = rows.currentRowForTable();
             try {
                 addRow(session, n);
             } catch (DbException e) {
@@ -671,7 +672,7 @@ public abstract class Table extends SchemaObject {
      * Create a new row for this table.
      *
      * @param data the values
-     * @param memory whether the row is in memory
+     * @param memory the estimated memory usage in bytes
      * @return the created row
      */
     public Row createRow(Value[] data, int memory) {
@@ -682,7 +683,7 @@ public abstract class Table extends SchemaObject {
      * Create a new row for this table.
      *
      * @param data the values
-     * @param memory whether the row is in memory
+     * @param memory the estimated memory usage in bytes
      * @param key the key
      * @return the created row
      */

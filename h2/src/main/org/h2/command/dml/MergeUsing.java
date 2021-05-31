@@ -21,9 +21,9 @@ import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.Parameter;
 import org.h2.expression.ValueExpression;
 import org.h2.message.DbException;
+import org.h2.result.LocalResult;
 import org.h2.result.ResultTarget;
 import org.h2.result.Row;
-import org.h2.result.RowList;
 import org.h2.table.Column;
 import org.h2.table.DataChangeDeltaTable;
 import org.h2.table.DataChangeDeltaTable.ResultOption;
@@ -432,7 +432,7 @@ public final class MergeUsing extends DataChangeStatement {
         void merge(SessionLocal session, ResultTarget deltaChangeCollector, ResultOption deltaChangeCollectionMode) {
             TableFilter targetTableFilter = MergeUsing.this.targetTableFilter;
             Table table = targetTableFilter.getTable();
-            try (RowList rows = new RowList(session, table)) {
+            try (LocalResult rows = LocalResult.forTable(session, table)) {
                 setClauseList.prepareUpdate(table, session, deltaChangeCollector, deltaChangeCollectionMode, rows,
                         targetTableFilter.get(), false);
                 Update.doUpdate(MergeUsing.this, session, table, rows);

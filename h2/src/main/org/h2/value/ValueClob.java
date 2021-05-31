@@ -151,7 +151,7 @@ public final class ValueClob extends ValueLob {
         tempFile.autoDelete();
 
         long tmpPrecision = 0;
-        try (FileStoreOutputStream out = new FileStoreOutputStream(tempFile, null, null)) {
+        try (FileStoreOutputStream out = new FileStoreOutputStream(tempFile, null)) {
             char[] buff = new char[Constants.IO_BUFFER_SIZE];
             while (true) {
                 int len = LobDataFile.getBufferSize(handler, remaining);

@@ -244,11 +244,8 @@ public final class Database implements DataHandler, CastDataProvider {
             readOnly = true;
         }
         String lockMethodName = ci.getProperty("FILE_LOCK", null);
-        if (dbSettings.mvStore && lockMethodName == null) {
-            fileLockMethod = autoServerMode ? FileLockMethod.FILE : FileLockMethod.FS;
-        } else {
-            fileLockMethod = FileLock.getFileLockMethod(lockMethodName);
-        }
+        fileLockMethod = lockMethodName != null ? FileLock.getFileLockMethod(lockMethodName) :
+                            autoServerMode ? FileLockMethod.FILE : FileLockMethod.FS;
         this.databaseURL = ci.getURL();
         String s = ci.removeProperty("DATABASE_EVENT_LISTENER", null);
         if (s != null) {
@@ -322,18 +319,14 @@ public final class Database implements DataHandler, CastDataProvider {
                     }
                 }
                 deleteOldTempFiles();
-                starting = true;
-                if (dbSettings.mvStore) {
-                    store = createStore();
-                } else {
-                    throw new UnsupportedOperationException();
-                }
-                starting = false;
-            } else if (dbSettings.mvStore) {
-                store = createStore();
+            }
+            starting = true;
+            if (dbSettings.mvStore) {
+                store = new Store(this);
             } else {
                 throw new UnsupportedOperationException();
             }
+            starting = false;
             systemUser = new User(this, 0, SYSTEM_USER_NAME, true);
             systemUser.setAdmin(true);
             mainSchema = new Schema(this, Constants.MAIN_SCHEMA_ID, sysIdentifier(Constants.SCHEMA_MAIN), systemUser,
@@ -438,10 +431,6 @@ public final class Database implements DataHandler, CastDataProvider {
 
     public Store getStore() {
         return store;
-    }
-
-    private Store createStore() {
-        return new Store(this);
     }
 
     public long getModificationDataId() {

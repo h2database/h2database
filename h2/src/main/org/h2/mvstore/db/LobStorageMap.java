@@ -27,7 +27,6 @@ import org.h2.mvstore.WriteBuffer;
 import org.h2.mvstore.tx.TransactionStore;
 import org.h2.mvstore.type.BasicDataType;
 import org.h2.mvstore.type.ByteArrayDataType;
-import org.h2.mvstore.type.DataType;
 import org.h2.mvstore.type.LongDataType;
 import org.h2.store.CountingReaderInputStream;
 import org.h2.store.LobStorageFrontend;
@@ -91,15 +90,8 @@ public final class LobStorageMap implements LobStorageInterface
     public LobStorageMap(Database database) {
         this.database = database;
         Store s = database.getStore();
-        TransactionStore txStore;
-        if (s == null) {
-            // in-memory database
-            mvStore = MVStore.open(null);
-            txStore = new TransactionStore(mvStore);
-        } else {
-            txStore = s.getTransactionStore();
-            mvStore = s.getMvStore();
-        }
+        TransactionStore txStore = s.getTransactionStore();
+        mvStore = s.getMvStore();
         MVStore.TxCounter txCounter = mvStore.registerVersionUsage();
         try {
             lobMap = openLobMap(txStore);
@@ -431,11 +423,6 @@ public final class LobStorageMap implements LobStorageInterface
             }
             streamStore.remove(streamStoreId);
         }
-    }
-
-    public static <K,V> MVMap<K,V> openTypedMap(MVStore mv, String mapName, DataType<? super K> keyType,
-            DataType<? super V> valueType) {
-        return mv.openMap(mapName, new MVMap.Builder<K,V>().keyType(keyType).valueType(valueType));
     }
 
     private static boolean isTemporaryLob(int tableId) {

@@ -278,7 +278,7 @@ public class MVStore implements AutoCloseable {
 
     private final HashMap<String, Object> storeHeader = new HashMap<>();
 
-    private Queue<WriteBuffer> writeBufferPool = new ArrayBlockingQueue<>(PIPE_LENGTH + 1);
+    private final Queue<WriteBuffer> writeBufferPool = new ArrayBlockingQueue<>(PIPE_LENGTH + 1);
 
     private final AtomicInteger lastMapId = new AtomicInteger();
 
@@ -1231,12 +1231,13 @@ public class MVStore implements AutoCloseable {
     }
 
     private void writeStoreHeader() {
-        StringBuilder buff = new StringBuilder(112);
+        Chunk lastChunk = this.lastChunk;
         if (lastChunk != null) {
             storeHeader.put(HDR_BLOCK, lastChunk.block);
             storeHeader.put(HDR_CHUNK, lastChunk.id);
             storeHeader.put(HDR_VERSION, lastChunk.version);
         }
+        StringBuilder buff = new StringBuilder(112);
         DataUtils.appendMap(buff, storeHeader);
         byte[] bytes = buff.toString().getBytes(StandardCharsets.ISO_8859_1);
         int checksum = DataUtils.getFletcher32(bytes, 0, bytes.length);

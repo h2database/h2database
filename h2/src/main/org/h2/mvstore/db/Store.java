@@ -231,10 +231,9 @@ public final class Store {
      * Close the store, without persisting changes.
      */
     public void closeImmediately() {
-        if (mvStore.isClosed()) {
-            return;
+        if (!mvStore.isClosed()) {
+            mvStore.closeImmediately();
         }
-        mvStore.closeImmediately();
     }
 
     /**

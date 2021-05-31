@@ -325,7 +325,6 @@ public class Set extends Prepared {
                 throw DbException.getInvalidValueException("MAX_MEMORY_UNDO", value);
             }
             synchronized (database) {
-                database.setMaxMemoryUndo(value);
                 addOrUpdateSetting(name, null, value);
             }
             break;

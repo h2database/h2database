@@ -178,7 +178,6 @@ public final class Database implements DataHandler, CastDataProvider {
     private boolean readOnly;
     private DatabaseEventListener eventListener;
     private int maxMemoryRows = SysProperties.MAX_MEMORY_ROWS;
-    private int maxMemoryUndo = Constants.DEFAULT_MAX_MEMORY_UNDO;
     private int lockMode = Constants.DEFAULT_LOCK_MODE;
     private int maxLengthInplaceLob;
     private int allowLiterals = Constants.ALLOW_LITERALS_ALL;
@@ -210,7 +209,6 @@ public final class Database implements DataHandler, CastDataProvider {
     private int defaultTableType = Table.TYPE_CACHED;
     private final DbSettings dbSettings;
     private final Store store;
-    private int retentionTime;
     private boolean allowBuiltinAliasOverride;
     private final AtomicReference<DbException> backgroundException = new AtomicReference<>();
     private JavaObjectSerializer javaObjectSerializer;
@@ -339,7 +337,7 @@ public final class Database implements DataHandler, CastDataProvider {
             } else if (dbSettings.mvStore) {
                 store = createStore();
             } else {
-                store = null;
+                throw new UnsupportedOperationException();
             }
             systemUser = new User(this, 0, SYSTEM_USER_NAME, true);
             systemUser.setAdmin(true);
@@ -359,12 +357,8 @@ public final class Database implements DataHandler, CastDataProvider {
             systemSession = createSession(systemUser);
             lobSession = createSession(systemUser);
             Set<String> settingKeys = dbSettings.getSettings().keySet();
-            if (store != null) {
-                store.getTransactionStore().init(lobSession);
-                settingKeys.removeIf(name -> name.startsWith("PAGE_STORE_"));
-            } else {
-                settingKeys.removeIf(name -> "COMPRESS".equals(name) || "REUSE_SPACE".equals(name));
-            }
+            store.getTransactionStore().init(lobSession);
+            settingKeys.removeIf(name -> name.startsWith("PAGE_STORE_"));
             CreateTableData data = createSysTableData();
             starting = true;
             meta = mainSchema.createTable(data);
@@ -376,10 +370,8 @@ public final class Database implements DataHandler, CastDataProvider {
             objectIds.set(0);
             executeMeta();
             systemSession.commit(true);
-            if (store != null) {
-                store.getTransactionStore().endLeftoverTransactions();
-                store.removeTemporaryMaps(objectIds);
-            }
+            store.getTransactionStore().endLeftoverTransactions();
+            store.removeTemporaryMaps(objectIds);
             recompileInvalidViews();
             starting = false;
             if (!readOnly) {
@@ -418,7 +410,7 @@ public final class Database implements DataHandler, CastDataProvider {
                     }
                 }
                 traceSystem.close();
-                closeOpenFilesAndUnlock(false);
+                closeOpenFilesAndUnlock();
             } catch (Throwable ex) {
                 e.addSuppressed(ex);
             }
@@ -455,9 +447,7 @@ public final class Database implements DataHandler, CastDataProvider {
     }
 
     private Store createStore() {
-        Store store = new Store(this);
-        retentionTime = store.getMvStore().getRetentionTime();
-        return store;
+        return new Store(this);
     }
 
     public long getModificationDataId() {
@@ -503,9 +493,7 @@ public final class Database implements DataHandler, CastDataProvider {
         if (powerOffCount != -1) {
             try {
                 powerOffCount = -1;
-                if (store != null) {
-                    store.closeImmediately();
-                }
+                store.closeImmediately();
                 if (lock != null) {
                     stopServer();
                     // allow testing shutdown
@@ -690,7 +678,7 @@ public final class Database implements DataHandler, CastDataProvider {
     }
 
     private void handleUpgradeIssues() {
-        if (store != null && !isReadOnly()) {
+        if (!isReadOnly()) {
             MVStore mvStore = store.getMvStore();
             // Version 1.4.197 erroneously handles index on SYS_ID.ID as secondary
             // and does not delegate to scan index as it should.
@@ -1296,7 +1284,7 @@ public final class Database implements DataHandler, CastDataProvider {
                     systemSession.close();
                     systemSession = null;
                 }
-                closeOpenFilesAndUnlock(compactMode != CommandInterface.SHUTDOWN_IMMEDIATELY);
+                closeOpenFilesAndUnlock();
             } catch (DbException e) {
                 trace.error(e, "close");
             }
@@ -1335,20 +1323,17 @@ public final class Database implements DataHandler, CastDataProvider {
      *
      * @param flush whether writing is allowed
      */
-    private synchronized void closeOpenFilesAndUnlock(boolean flush) {
+    private synchronized void closeOpenFilesAndUnlock() {
         try {
-            if (store != null) {
-                MVStore mvStore = store.getMvStore();
-                if (mvStore != null && !mvStore.isClosed()) {
-                    if (compactMode == CommandInterface.SHUTDOWN_IMMEDIATELY) {
-                        store.closeImmediately();
-                    } else {
-                        int allowedCompactionTime =
-                                compactMode == CommandInterface.SHUTDOWN_COMPACT ||
-                                compactMode == CommandInterface.SHUTDOWN_DEFRAG ||
-                                dbSettings.defragAlways ? -1 : dbSettings.maxCompactTime;
-                        store.close(allowedCompactionTime);
-                    }
+            if (!store.getMvStore().isClosed()) {
+                if (compactMode == CommandInterface.SHUTDOWN_IMMEDIATELY) {
+                    store.closeImmediately();
+                } else {
+                    int allowedCompactionTime =
+                            compactMode == CommandInterface.SHUTDOWN_COMPACT ||
+                            compactMode == CommandInterface.SHUTDOWN_DEFRAG ||
+                            dbSettings.defragAlways ? -1 : dbSettings.maxCompactTime;
+                    store.close(allowedCompactionTime);
                 }
             }
             if (persistent) {
@@ -1369,9 +1354,7 @@ public final class Database implements DataHandler, CastDataProvider {
 
     private synchronized void closeFiles() {
         try {
-            if (store != null) {
-                store.closeImmediately();
-            }
+            store.closeImmediately();
         } catch (DbException e) {
             trace.error(e, "close");
         }
@@ -1788,9 +1771,7 @@ public final class Database implements DataHandler, CastDataProvider {
             int max = MathUtils.convertLongToInt(Utils.getMemoryMax()) / 2;
             kb = Math.min(kb, max);
         }
-        if (store != null) {
-            store.setCacheSize(Math.max(1, kb));
-        }
+        store.setCacheSize(Math.max(1, kb));
     }
 
     public synchronized void setMasterUser(User user) {
@@ -1839,20 +1820,15 @@ public final class Database implements DataHandler, CastDataProvider {
     }
 
     public void setWriteDelay(int value) {
-        if (store != null) {
-            store.getMvStore().setAutoCommitDelay(value < 0 ? 0 : value);
-        }
+        store.getMvStore().setAutoCommitDelay(value < 0 ? 0 : value);
     }
 
     public int getRetentionTime() {
-        return retentionTime;
+        return store.getMvStore().getRetentionTime();
     }
 
     public void setRetentionTime(int value) {
-        retentionTime = value;
-        if (store != null) {
-            store.getMvStore().setRetentionTime(value);
-        }
+        store.getMvStore().setRetentionTime(value);
     }
 
     public void setAllowBuiltinAliasOverride(boolean b) {
@@ -1869,10 +1845,7 @@ public final class Database implements DataHandler, CastDataProvider {
      * @return the list
      */
     public ArrayList<InDoubtTransaction> getInDoubtTransactions() {
-        if (store != null) {
-            return store.getInDoubtTransactions();
-        }
-        return null;
+        return store.getInDoubtTransactions();
     }
 
     /**
@@ -1882,23 +1855,8 @@ public final class Database implements DataHandler, CastDataProvider {
      * @param transaction the name of the transaction
      */
     synchronized void prepareCommit(SessionLocal session, String transaction) {
-        if (readOnly) {
-            return;
-        }
-        if (store != null) {
+        if (!readOnly) {
             store.prepareCommit(session, transaction);
-        }
-    }
-
-    /**
-     * Commit the current transaction of the given session.
-     *
-     * @param session the session
-     */
-    synchronized void commit(SessionLocal session) {
-        throwLastBackgroundException();
-        if (readOnly) {
-            return;
         }
     }
 
@@ -1907,7 +1865,7 @@ public final class Database implements DataHandler, CastDataProvider {
      * that thread, throw it now.
      */
     void throwLastBackgroundException() {
-        if (store == null || !store.getMvStore().isBackgroundThread()) {
+        if (!store.getMvStore().isBackgroundThread()) {
             DbException b = backgroundException.getAndSet(null);
             if (b != null) {
                 // wrap the exception, so we see it was thrown here
@@ -1938,10 +1896,7 @@ public final class Database implements DataHandler, CastDataProvider {
      * Flush all pending changes to the transaction log.
      */
     public synchronized void flush() {
-        if (readOnly) {
-            return;
-        }
-        if (store != null) {
+        if (!readOnly) {
             try {
                 store.flush();
             } catch (RuntimeException e) {
@@ -2019,9 +1974,7 @@ public final class Database implements DataHandler, CastDataProvider {
         if (readOnly) {
             return;
         }
-        if (store != null) {
-            store.sync();
-        }
+        store.sync();
     }
 
     public int getMaxMemoryRows() {
@@ -2030,14 +1983,6 @@ public final class Database implements DataHandler, CastDataProvider {
 
     public void setMaxMemoryRows(int value) {
         this.maxMemoryRows = value;
-    }
-
-    public void setMaxMemoryUndo(int value) {
-        this.maxMemoryUndo = value;
-    }
-
-    public int getMaxMemoryUndo() {
-        return maxMemoryUndo;
     }
 
     public void setLockMode(int lockMode) {
@@ -2357,9 +2302,7 @@ public final class Database implements DataHandler, CastDataProvider {
      */
     public void checkpoint() {
         if (persistent) {
-            if (store != null) {
-                store.flush();
-            }
+            store.flush();
         }
         getTempFileDeleter().deleteUnused();
     }

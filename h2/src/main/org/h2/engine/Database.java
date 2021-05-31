@@ -8,14 +8,11 @@ package org.h2.engine;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -41,7 +38,6 @@ import org.h2.message.Trace;
 import org.h2.message.TraceSystem;
 import org.h2.mode.DefaultNullOrdering;
 import org.h2.mode.PgCatalogSchema;
-import org.h2.mvstore.MVStore;
 import org.h2.mvstore.MVStoreException;
 import org.h2.mvstore.db.LobStorageMap;
 import org.h2.mvstore.db.Store;
@@ -146,7 +142,7 @@ public final class Database implements DataHandler, CastDataProvider {
 
     private final HashMap<String, TableEngine> tableEngines = new HashMap<>();
 
-    private final Set<SessionLocal> userSessions = Collections.synchronizedSet(new HashSet<SessionLocal>());
+    private final Set<SessionLocal> userSessions = Collections.synchronizedSet(new HashSet<>());
     private final AtomicReference<SessionLocal> exclusiveSession = new AtomicReference<>();
     private final BitSet objectIds = new BitSet();
     private final Object lobSyncObject = new Object();
@@ -178,7 +174,7 @@ public final class Database implements DataHandler, CastDataProvider {
     private boolean readOnly;
     private DatabaseEventListener eventListener;
     private int maxMemoryRows = SysProperties.MAX_MEMORY_ROWS;
-    private int lockMode = Constants.DEFAULT_LOCK_MODE;
+    private int lockMode;
     private int maxLengthInplaceLob;
     private int allowLiterals = Constants.ALLOW_LITERALS_ALL;
 
@@ -190,7 +186,6 @@ public final class Database implements DataHandler, CastDataProvider {
     private boolean deleteFilesOnDisconnect;
     private boolean optimizeReuseResults = true;
     private final String cacheType;
-    private final String accessModeData;
     private boolean referentialIntegrity = true;
     private Mode mode = Mode.getRegular();
     private DefaultNullOrdering defaultNullOrdering = DefaultNullOrdering.LOW;
@@ -238,13 +233,13 @@ public final class Database implements DataHandler, CastDataProvider {
         this.databaseShortName = parseDatabaseShortName();
         this.maxLengthInplaceLob = Constants.DEFAULT_MAX_LENGTH_INPLACE_LOB;
         this.cipher = cipher;
-        this.accessModeData = StringUtils.toLowerEnglish(ci.getProperty("ACCESS_MODE_DATA", "rw"));
         this.autoServerMode = ci.getProperty("AUTO_SERVER", false);
         this.autoServerPort = ci.getProperty("AUTO_SERVER_PORT", 0);
         pageSize = ci.getProperty("PAGE_SIZE", Constants.DEFAULT_PAGE_SIZE);
         if (cipher != null && pageSize % FileEncrypt.BLOCK_SIZE != 0) {
             throw DbException.getUnsupportedException("CIPHER && PAGE_SIZE=" + pageSize);
         }
+        String accessModeData = StringUtils.toLowerEnglish(ci.getProperty("ACCESS_MODE_DATA", "rw"));
         if ("r".equals(accessModeData)) {
             readOnly = true;
         }
@@ -362,7 +357,6 @@ public final class Database implements DataHandler, CastDataProvider {
             CreateTableData data = createSysTableData();
             starting = true;
             meta = mainSchema.createTable(data);
-            handleUpgradeIssues();
             IndexColumn[] pkCols = IndexColumn.wrap(new Column[] { data.columns.get(0) });
             metaIdIndex = meta.addIndex(systemSession, "SYS_ID", 0, pkCols, 1,
                     IndexType.createPrimaryKey(false, false), true, null);
@@ -673,44 +667,6 @@ public final class Database implements DataHandler, CastDataProvider {
             records.sort(null);
             for (MetaRecord rec : records) {
                 rec.prepareAndExecute(this, systemSession, eventListener);
-            }
-        }
-    }
-
-    private void handleUpgradeIssues() {
-        if (!isReadOnly()) {
-            MVStore mvStore = store.getMvStore();
-            // Version 1.4.197 erroneously handles index on SYS_ID.ID as secondary
-            // and does not delegate to scan index as it should.
-            // This code will try to fix that by converging ROW_ID and ID,
-            // since they may have got out of sync, and by removing map "index.0",
-            // which corresponds to a secondary index.
-            if (mvStore.hasMap("index.0")) {
-                Index scanIndex = meta.getScanIndex(systemSession);
-                Cursor curs = scanIndex.find(systemSession, null, null);
-                List<Row> allMetaRows = new ArrayList<>();
-                boolean needRepair = false;
-                while (curs.next()) {
-                    Row row = curs.get();
-                    allMetaRows.add(row);
-                    long rowId = row.getKey();
-                    int id = row.getValue(0).getInt();
-                    if (id != rowId) {
-                        needRepair = true;
-                        row.setKey(id);
-                    }
-                }
-                if (needRepair) {
-                    Row[] array = allMetaRows.toArray(new Row[0]);
-                    Arrays.sort(array, Comparator.comparingInt(t -> t.getValue(0).getInt()));
-                    meta.truncate(systemSession);
-                    for (Row row : array) {
-                        meta.addRow(systemSession, row);
-                    }
-                    systemSession.commit(true);
-                }
-                mvStore.removeMap("index.0");
-                mvStore.commit();
             }
         }
     }
@@ -1320,8 +1276,6 @@ public final class Database implements DataHandler, CastDataProvider {
 
     /**
      * Close all open files and unlock the database.
-     *
-     * @param flush whether writing is allowed
      */
     private synchronized void closeOpenFilesAndUnlock() {
         try {

@@ -2969,9 +2969,8 @@ public final class InformationSchemaTable extends MetaTable {
         for (Map.Entry<String, String> entry : database.getSettings().getSortedSettings()) {
             add(session, rows, entry.getKey(), entry.getValue());
         }
-        Store store = database.getStore();
 
-        MVStore mvStore = store.getMvStore();
+        MVStore mvStore = database.getStore().getMvStore();
         add(session, rows,
                 "info.UPDATE_FAILURE_PERCENT",
                 String.format(Locale.ENGLISH, "%.2f%%", 100 * mvStore.getUpdateFailureRatio()));

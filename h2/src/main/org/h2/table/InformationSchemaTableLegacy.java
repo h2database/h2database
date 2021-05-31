@@ -1117,8 +1117,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
             for (Map.Entry<String, String> entry : database.getSettings().getSortedSettings()) {
                 add(session, rows, entry.getKey(), entry.getValue());
             }
-            Store store = database.getStore();
-            MVStore mvStore = store.getMvStore();
+            MVStore mvStore = database.getStore().getMvStore();
             add(session, rows,
                     "info.UPDATE_FAILURE_PERCENT",
                     String.format(Locale.ENGLISH, "%.2f%%", 100 * mvStore.getUpdateFailureRatio()));
@@ -1135,7 +1134,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                 add(session, rows,
                         "info.FILE_READ_BYTES", Long.toString(fs.getReadBytes()));
                 add(session, rows,
-                        "info.FILL_RATE", Integer.toString(mvStore.getFillRate()));
+                        "info.FILL_RATE", Integer.toString(fs.getFillRate()));
                 add(session, rows,
                         "info.CHUNKS_FILL_RATE", Integer.toString(fs.getChunksFillRate()));
                 add(session, rows,
@@ -1147,9 +1146,9 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                 add(session, rows,
                         "info.PAGE_COUNT", Long.toString(fs.getPageCount()));
                 add(session, rows,
-                        "info.PAGE_SIZE", Long.toString(fs.getMaxPageSize()));
-                add(session, rows,
                         "info.PAGE_COUNT_LIVE", Long.toString(fs.getLivePageCount()));
+                add(session, rows,
+                        "info.PAGE_SIZE", Long.toString(fs.getMaxPageSize()));
                 add(session, rows,
                         "info.CACHE_MAX_SIZE", Integer.toString(fs.getCacheSize()));
                 add(session, rows,

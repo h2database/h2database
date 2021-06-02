@@ -25,9 +25,7 @@ import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
 import org.h2.mvstore.MVStoreException;
 import org.h2.mvstore.OffHeapStore;
-import org.h2.mvstore.Page;
 import org.h2.mvstore.RandomAccessStore;
-import org.h2.mvstore.cache.CacheLongKeyLIRS;
 import org.h2.mvstore.type.DataType;
 import org.h2.mvstore.type.ObjectDataType;
 import org.h2.mvstore.type.StringDataType;
@@ -505,7 +503,7 @@ public class TestMVStore extends TestBase {
         }
     }
 
-    private void testBackgroundExceptionListener() throws Exception {
+    private void testBackgroundExceptionListener() {
         String fileName = getBaseDir() + "/" + getTestName();
         FileUtils.delete(fileName);
         AtomicReference<Throwable> exRef = new AtomicReference<>();
@@ -526,7 +524,7 @@ public class TestMVStore extends TestBase {
             }
             Throwable e = exRef.get();
             assertNotNull(e);
-            checkErrorCode(DataUtils.ERROR_WRITING_FAILED, e);
+            checkErrorCode(DataUtils.ERROR_CLOSED, e);
         } catch (MVStoreException e) {
             // sometimes it is detected right away
             assertEquals(DataUtils.ERROR_CLOSED, e.getErrorCode());
@@ -803,14 +801,13 @@ public class TestMVStore extends TestBase {
 //                1880, 490, 476, 501, 476, 476, 541   // compressed
 //                1887, 1775, 1599, 1355, 1035, 732, 507    // uncompressed
         };
-        for (int cacheSize = 0; cacheSize <= 6; cacheSize += 1) {
-            int cacheMB = cacheSize;
+        for (int cacheSizeMB = 0; cacheSizeMB <= 6; cacheSizeMB += 1) {
             Utils.collectGarbage();
             try (MVStore s = new MVStore.Builder().
                     fileName(fileName).
                     autoCommitDisabled().
-                    cacheSize(cacheMB).open()) {
-                assertEquals(cacheMB, s.getCacheSize());
+                    cacheSize(cacheSizeMB).open()) {
+                assertEquals(cacheSizeMB, s.getCacheSize());
                 MVMap<Integer, String> map = s.openMap("test");
                 for (int i = 0; i < 1024; i += 128) {
                     for (int j = 0; j < i; j++) {
@@ -820,8 +817,8 @@ public class TestMVStore extends TestBase {
                 }
                 FileStore fileStore = s.getFileStore();
                 long readCount = fileStore.getReadCount();
-                int expected = expectedReadsForCacheSize[cacheSize];
-                assertTrue("Cache " + cacheMB + "Mb, reads: " + readCount + " expected: " + expected +
+                int expected = expectedReadsForCacheSize[cacheSizeMB];
+                assertTrue("Cache " + cacheSizeMB + "Mb, reads: " + readCount + " expected: " + expected +
                                 " size: " + fileStore.getReadBytes() +
                                 " cache used: " + s.getCacheSizeUsed() +
                                 " cache hit ratio: " + s.getFileStore().getCacheHitRatio() +
@@ -1000,6 +997,7 @@ public class TestMVStore extends TestBase {
             if (i < 0 || i >= 50) {
                 assertNull(k);
             } else {
+                assertNull(k);
                 assertEquals(i * 2, k.intValue());
             }
         }

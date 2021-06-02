@@ -135,14 +135,9 @@ public class MVStore implements AutoCloseable {
     private static final int STATE_STOPPING = 1;
 
     /**
-     * Store is closing now, and any operation on it may fail.
-     */
-    private static final int STATE_CLOSING = 2;
-
-    /**
      * Store is closed.
      */
-    private static final int STATE_CLOSED = 3;
+    private static final int STATE_CLOSED = 2;
 
     /**
      * This designates the "last stored" version for a store which was
@@ -687,10 +682,7 @@ public class MVStore implements AutoCloseable {
                                 fileStore.stop(allowedCompactionTime);
                             }
 
-                            state = STATE_CLOSING;
-
-                            // release memory early - this is important when called
-                            // because of out of memory
+                            meta.close();
                             for (MVMap<?, ?> m : new ArrayList<>(maps.values())) {
                                 m.close();
                             }

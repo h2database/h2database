@@ -44,7 +44,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.Function;
 import java.util.function.IntSupplier;
 import java.util.zip.ZipOutputStream;
 
@@ -221,7 +220,7 @@ public abstract class FileStore
 
 
 
-    public FileStore(Map<String, Object> config) {
+    protected FileStore(Map<String, Object> config) {
         recoveryMode = config.containsKey("recoveryMode");
         autoCompactFillRate = DataUtils.getConfigParam(config, "autoCompactFillRate", 90);
         CacheLongKeyLIRS.Config cc = null;
@@ -298,6 +297,7 @@ public abstract class FileStore
     }
 
     public void close() {
+        layout.close();
         closed = true;
         chunks.clear();
     }
@@ -602,8 +602,7 @@ public abstract class FileStore
         deadChunks.offer(chunk);
     }
 
-    public final int dropUnusedChunks() {
-        int count = 0;
+    public final void dropUnusedChunks() {
         if (!deadChunks.isEmpty()) {
             long oldestVersionToKeep = mvStore.getOldestVersionToKeep();
             long time = getTimeSinceCreation();
@@ -631,7 +630,6 @@ public abstract class FileStore
                     if (chunk.isAllocated()) {
                         toBeFreed.add(chunk);
                     }
-                    ++count;
                 }
             }
             if (!toBeFreed.isEmpty()) {
@@ -643,7 +641,6 @@ public abstract class FileStore
                 }
             }
         }
-        return count;
     }
 
     private static boolean canOverwriteChunk(Chunk c, long oldestVersionToKeep) {
@@ -1252,7 +1249,6 @@ public abstract class FileStore
     private Iterable<Chunk> getChunksFromLayoutMap(MVMap<String, String> layoutMap) {
         return () -> new Iterator<Chunk>() {
             private final Cursor<String, String> cursor = layoutMap.cursor(DataUtils.META_CHUNK);
-            private final Function<Integer, Chunk> mappingFunction = id -> Chunk.fromString(cursor.getValue());
             private Chunk nextChunk;
 
             @Override
@@ -1552,19 +1548,6 @@ public abstract class FileStore
                 syncWrite, PIPE_LENGTH, serializationExecutorHWM);
     }
 
-    final void onPageSerialized(Page<?,?> page, Chunk chunk, boolean isDeleted, int diskSpaceUsed, boolean isPinned) {
-        cachePage(page);
-        if (!page.isLeaf()) {
-            // cache again - this will make sure nodes stays in the cache
-            // for a longer time
-            cachePage(page);
-        }
-        chunk.accountForWrittenPage(diskSpaceUsed, isPinned);
-        if (isDeleted) {
-            accountForRemovedPage(page.getPos(), chunk.version + 1, isPinned, page.pageNo);
-        }
-    }
-
     private static int submitOrRun(ThreadPoolExecutor executor, Runnable action,
                                     boolean syncRun, int threshold, int hwm) throws ExecutionException {
         if (executor != null) {
@@ -1633,13 +1616,13 @@ public abstract class FileStore
         c.next = headerLength;
 
         long version = c.version;
-        List<Long> toc = new ArrayList<>();
+        PageSerializationManager pageSerializationManager = new PageSerializationManager(c, buff);
         for (Page<?,?> p : changed) {
             String key = MVMap.getMapRootKey(p.getMapId());
             if (p.getTotalCount() == 0) {
                 layout.remove(key);
             } else {
-                p.writeUnsavedRecursive(c, buff, toc);
+                p.writeUnsavedRecursive(pageSerializationManager);
                 long root = p.getPos();
                 layout.put(key, Long.toHexString(root));
             }
@@ -1666,7 +1649,7 @@ public abstract class FileStore
         mvStore.onVersionChange(version);
 
         Page<String,String> layoutRoot = layoutRootReference.root;
-        layoutRoot.writeUnsavedRecursive(c, buff, toc);
+        layoutRoot.writeUnsavedRecursive(pageSerializationManager);
         c.layoutRootPos = layoutRoot.getPos();
         changed.add(layoutRoot);
 
@@ -1676,19 +1659,11 @@ public abstract class FileStore
         c.mapId = mvStore.getLastMapId();
 
         c.tocPos = buff.position();
-        long[] tocArray = new long[toc.size()];
-        int index = 0;
-        for (long tocElement : toc) {
-            tocArray[index++] = tocElement;
-            buff.putLong(tocElement);
-            mvStore.countNewPage(DataUtils.isLeafPosition(tocElement));
-        }
-        cacheToC(c, tocArray);
+        pageSerializationManager.serializeToC();
         int chunkLength = buff.position();
 
         // add the store header and round to the next block
-        int length = MathUtils.roundUpInt(chunkLength +
-                Chunk.FOOTER_LENGTH, FileStore.BLOCK_SIZE);
+        int length = MathUtils.roundUpInt(chunkLength + Chunk.FOOTER_LENGTH, FileStore.BLOCK_SIZE);
         buff.limit(length);
         c.len = buff.limit() / FileStore.BLOCK_SIZE;
         c.buffer = buff.getBuffer();
@@ -2289,6 +2264,60 @@ public abstract class FileStore
     }
 
 
+
+    public final class PageSerializationManager
+    {
+        private final Chunk chunk;
+        private final WriteBuffer buff;
+        private final List<Long> toc = new ArrayList<>();
+
+        PageSerializationManager(Chunk chunk, WriteBuffer buff) {
+            this.chunk = chunk;
+            this.buff = buff;
+        }
+
+        public WriteBuffer getBuffer() {
+            return buff;
+        }
+
+        public int getChunkId() {
+            return chunk.id;
+        }
+
+        public int getPageNo() {
+            return toc.size();
+        }
+
+        public long getPagePosition(int mapId, int offset, int pageLength, int type) {
+            long tocElement = DataUtils.getTocElement(mapId, offset, pageLength, type);
+            toc.add(tocElement);
+            return DataUtils.composePagePos(chunk.id, tocElement);
+        }
+
+        public void onPageSerialized(Page<?,?> page, boolean isDeleted, int diskSpaceUsed, boolean isPinned) {
+            cachePage(page);
+            if (!page.isLeaf()) {
+                // cache again - this will make sure nodes stays in the cache
+                // for a longer time
+                cachePage(page);
+            }
+            chunk.accountForWrittenPage(diskSpaceUsed, isPinned);
+            if (isDeleted) {
+                accountForRemovedPage(page.getPos(), chunk.version + 1, isPinned, page.pageNo);
+            }
+        }
+
+        public void serializeToC() {
+            long[] tocArray = new long[toc.size()];
+            int index = 0;
+            for (long tocElement : toc) {
+                tocArray[index++] = tocElement;
+                buff.putLong(tocElement);
+                mvStore.countNewPage(DataUtils.isLeafPosition(tocElement));
+            }
+            cacheToC(chunk, tocArray);
+        }
+    }
 
 
     private static final class RemovedPageInfo implements Comparable<RemovedPageInfo> {

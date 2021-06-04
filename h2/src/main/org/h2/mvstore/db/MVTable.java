@@ -33,7 +33,7 @@ import org.h2.util.Utils;
 
 /**
  * A table stored in a MVStore.
- * 
+ *
  * @TODO merge this with RegularTable now that pagestore is gone
  */
 public class MVTable extends RegularTable {
@@ -89,7 +89,7 @@ public class MVTable extends RegularTable {
         }
     }
 
-    private MVPrimaryIndex primaryIndex;
+    private final MVPrimaryIndex primaryIndex;
     private final ArrayList<Index> indexes = Utils.newSmallArrayList();
     private final AtomicLong lastModificationId = new AtomicLong();
 
@@ -359,7 +359,7 @@ public class MVTable extends RegularTable {
 
     private void rebuildIndex(SessionLocal session, MVIndex<?,?> index, String indexName) {
         try {
-            if (session.getDatabase().getStore() == null || index instanceof MVSpatialIndex) {
+            if (!session.getDatabase().isPersistent() || index instanceof MVSpatialIndex) {
                 // in-memory
                 rebuildIndexBuffered(session, index);
             } else {

@@ -13,7 +13,6 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicLong;
@@ -28,7 +27,6 @@ import org.h2.mvstore.WriteBuffer;
 import org.h2.mvstore.tx.TransactionStore;
 import org.h2.mvstore.type.BasicDataType;
 import org.h2.mvstore.type.ByteArrayDataType;
-import org.h2.mvstore.type.DataType;
 import org.h2.mvstore.type.LongDataType;
 import org.h2.store.CountingReaderInputStream;
 import org.h2.store.LobStorageFrontend;
@@ -53,7 +51,7 @@ public final class LobStorageMap implements LobStorageInterface
     private static final boolean TRACE = false;
 
     private final Database database;
-    private final MVStore mvStore;
+    final MVStore mvStore;
     private final AtomicLong nextLobId = new AtomicLong(0);
 
     /**
@@ -92,26 +90,19 @@ public final class LobStorageMap implements LobStorageInterface
     public LobStorageMap(Database database) {
         this.database = database;
         Store s = database.getStore();
-        TransactionStore txtore;
-        if (s == null) {
-            // in-memory database
-            mvStore = MVStore.open(null);
-            txtore = new TransactionStore(mvStore);
-        } else {
-            txtore = s.getTransactionStore();
-            mvStore = s.getMvStore();
-        }
+        TransactionStore txStore = s.getTransactionStore();
+        mvStore = s.getMvStore();
         MVStore.TxCounter txCounter = mvStore.registerVersionUsage();
         try {
-            lobMap = openLobMap(txtore);
-            tempLobMap = txtore.openMap("tempLobMap", LongDataType.INSTANCE, ByteArrayDataType.INSTANCE);
-            refMap = txtore.openMap("lobRef", BlobReference.Type.INSTANCE, NullValueDataType.INSTANCE);
+            lobMap = openLobMap(txStore);
+            tempLobMap = txStore.openMap("tempLobMap", LongDataType.INSTANCE, ByteArrayDataType.INSTANCE);
+            refMap = txStore.openMap("lobRef", BlobReference.Type.INSTANCE, NullValueDataType.INSTANCE);
             /* The stream store data map.
              *
              * Key: stream store block id (long).
              * Value: data (byte[]).
              */
-            MVMap<Long, byte[]> dataMap = openLobDataMap(txtore);
+            MVMap<Long, byte[]> dataMap = openLobDataMap(txStore);
             streamStore = new StreamStore(dataMap);
             // garbage collection of the last blocks
             if (!database.isReadOnly()) {
@@ -434,12 +425,6 @@ public final class LobStorageMap implements LobStorageInterface
         }
     }
 
-    public static <K,V> MVMap<K,V> openTypedMap(MVStore mv, String mapName,
-                                                 DataType<? super K> keyType,
-                                                 DataType<? super V> valueType) {
-        return mv.openMap(mapName, new MVMap.Builder<K,V>().keyType(keyType).valueType(valueType));
-    }
-
     private static boolean isTemporaryLob(int tableId) {
         return tableId == LobStorageFrontend.TABLE_ID_SESSION_VARIABLE || tableId == LobStorageFrontend.TABLE_TEMP
                 || tableId == LobStorageFrontend.TABLE_RESULT;
@@ -474,8 +459,7 @@ public final class LobStorageMap implements LobStorageInterface
             return res;
         }
 
-        public static final class Type extends BasicDataType<BlobReference> implements Comparator<BlobReference>
-        {
+        public static final class Type extends BasicDataType<BlobReference> {
             public static final Type INSTANCE = new Type();
 
             private Type() {}
@@ -500,10 +484,10 @@ public final class LobStorageMap implements LobStorageInterface
             @Override
             public BlobReference read(ByteBuffer buff) {
                 int len = DataUtils.readVarInt(buff);
-                byte[] streamStroreId = new byte[len];
-                buff.get(streamStroreId);
+                byte[] streamStoreId = new byte[len];
+                buff.get(streamStoreId);
                 long blobId = DataUtils.readVarLong(buff);
-                return new BlobReference(streamStroreId, blobId);
+                return new BlobReference(streamStoreId, blobId);
             }
 
             @Override
@@ -550,12 +534,12 @@ public final class LobStorageMap implements LobStorageInterface
             @Override
             public BlobMeta read(ByteBuffer buff) {
                 int len = DataUtils.readVarInt(buff);
-                byte[] streamStroreId = new byte[len];
-                buff.get(streamStroreId);
+                byte[] streamStoreId = new byte[len];
+                buff.get(streamStoreId);
                 int tableId = DataUtils.readVarInt(buff);
                 long byteCount = DataUtils.readVarLong(buff);
                 long hash = buff.getLong();
-                return new BlobMeta(streamStroreId, tableId, byteCount, hash);
+                return new BlobMeta(streamStoreId, tableId, byteCount, hash);
             }
 
             @Override

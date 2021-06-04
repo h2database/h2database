@@ -712,7 +712,8 @@ public final class Transaction {
         BitSet visited = new BitSet();
         StringBuilder details = new StringBuilder(
                 String.format("Transaction %d has been chosen as a deadlock victim. Details:%n", transactionId));
-        for (Transaction tx = this, nextTx; !visited.get(tx.transactionId) &&  (nextTx = tx.blockingTransaction) != null; tx = nextTx) {
+        for (Transaction tx = this, nextTx;
+                !visited.get(tx.transactionId) &&  (nextTx = tx.blockingTransaction) != null; tx = nextTx) {
             visited.set(tx.transactionId);
             details.append(String.format(
                     "Transaction %d attempts to update map <%s> entry with key <%s> modified by transaction %s%n",

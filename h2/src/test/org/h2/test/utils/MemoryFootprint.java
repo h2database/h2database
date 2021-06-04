@@ -33,7 +33,7 @@ public class MemoryFootprint {
         print("BigDecimal", new BigDecimal("0"));
         print("BigInteger", new BigInteger("0"));
         print("String", new String("Hello"));
-        print("Data", Data.create(null, 10));
+        print("Data", Data.create(10));
         print("Row", Row.get(new Value[0], 0));
         System.out.println();
         for (int i = 1; i < 128; i += i) {

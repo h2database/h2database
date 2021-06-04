@@ -56,7 +56,6 @@ import org.h2.util.SmallLRUCache;
 import org.h2.util.TimeZoneProvider;
 import org.h2.util.Utils;
 import org.h2.value.Value;
-import org.h2.value.ValueArray;
 import org.h2.value.ValueLob;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueTimestampTimeZone;
@@ -71,7 +70,7 @@ import org.h2.value.lob.LobDataInMemory;
  * mode, this object resides on the server side and communicates with a
  * SessionRemote object on the client side.
  */
-public class SessionLocal extends Session implements TransactionStore.RollbackListener {
+public final class SessionLocal extends Session implements TransactionStore.RollbackListener {
 
     public enum State { INIT, RUNNING, BLOCKED, SLEEP, THROTTLED, SUSPENDED, CLOSED }
 
@@ -523,11 +522,6 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
     }
 
     @Override
-    public int getClientVersion() {
-        return Constants.TCP_PROTOCOL_VERSION_MAX_SUPPORTED;
-    }
-
-    @Override
     public boolean getAutoCommit() {
         return autoCommit;
     }
@@ -655,32 +649,26 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
      */
     public void commit(boolean ddl) {
         beforeCommitOrRollback();
-        boolean forRepeatableRead = false;
         if (transaction != null) {
-            forRepeatableRead = !transaction.allowNonRepeatableRead();
             try {
                 markUsedTablesAsUpdated();
                 transaction.commit();
+                removeTemporaryLobs(true);
+                endTransaction();
             } finally {
                 transaction = null;
             }
-        } else if (containsUncommitted()) {
-            // need to commit even if rollback is not possible
-            // (create/drop table and so on)
-            database.commit(this);
-        }
-        removeTemporaryLobs(true);
-        if (!ddl) {
-            // do not clean the temp tables if the last command was a
-            // create/drop
-            cleanTempTables(false);
-            if (autoCommitAtTransactionEnd) {
-                autoCommit = true;
-                autoCommitAtTransactionEnd = false;
+            if (!ddl) {
+                // do not clean the temp tables if the last command was a
+                // create/drop
+                cleanTempTables(false);
+                if (autoCommitAtTransactionEnd) {
+                    autoCommit = true;
+                    autoCommitAtTransactionEnd = false;
+                }
             }
+            analyzeTables();
         }
-        analyzeTables();
-        endTransaction(forRepeatableRead);
     }
 
     private void markUsedTablesAsUpdated() {
@@ -746,15 +734,11 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
         }
         currentTransactionName = null;
         currentTimestamp = null;
+        database.throwLastBackgroundException();
     }
 
-    private void endTransaction(boolean forRepeatableRead) {
-        if (removeLobMap != null && removeLobMap.size() > 0) {
-            if (database.getStore() == null) {
-                // need to flush the transaction log, because we can't unlink
-                // lobs if the commit record is not written
-                database.flush();
-            }
+    private void endTransaction() {
+        if (removeLobMap != null && !removeLobMap.isEmpty()) {
             for (ValueLob v : removeLobMap.values()) {
                 v.remove();
             }
@@ -765,7 +749,7 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
             database.releaseDatabaseObjectIds(idsToRelease);
             idsToRelease = null;
         }
-        if (forRepeatableRead) {
+        if (transaction != null && !transaction.allowNonRepeatableRead()) {
             snapshotDataModificationId = database.getNextModificationDataId();
         }
     }
@@ -785,12 +769,8 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
      */
     public void rollback() {
         beforeCommitOrRollback();
-        boolean needCommit = transaction != null;
-        if (needCommit) {
+        if (transaction != null) {
             rollbackTo(null);
-        }
-        if (!locks.isEmpty() || needCommit) {
-            database.commit(this);
         }
         idsToRelease = null;
         cleanTempTables(false);
@@ -798,7 +778,7 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
             autoCommit = true;
             autoCommitAtTransactionEnd = false;
         }
-        endTransaction(transaction != null && !transaction.allowNonRepeatableRead());
+        endTransaction();
     }
 
     /**
@@ -888,7 +868,7 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
                     if (currentTransactionName != null) {
                         removeLobMap = null;
                     }
-                    endTransaction(transaction != null && !transaction.allowNonRepeatableRead());
+                    endTransaction();
                 } else {
                     rollback();
                     removeTemporaryLobs(false);
@@ -959,30 +939,24 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
     }
 
     private void cleanTempTables(boolean closeSession) {
-        if (localTempTables != null && localTempTables.size() > 0) {
-            _cleanTempTables(closeSession);
-        }
-    }
-
-    private void _cleanTempTables(boolean closeSession) {
-        Iterator<Table> it = localTempTables.values().iterator();
-        while (it.hasNext()) {
-            Table table = it.next();
-            if (closeSession || table.getOnCommitDrop()) {
-                modificationId++;
-                table.setModified();
-                it.remove();
-                // Exception thrown in org.h2.engine.Database.removeMeta
-                // if line below is missing with TestDeadlock
-                database.lockMeta(this);
-                table.removeChildrenAndResources(this);
-                if (closeSession) {
-                    // need to commit, otherwise recovery might
-                    // ignore the table removal
-                    database.commit(this);
+        if (localTempTables != null && !localTempTables.isEmpty()) {
+            Iterator<Table> it = localTempTables.values().iterator();
+            while (it.hasNext()) {
+                Table table = it.next();
+                if (closeSession || table.getOnCommitDrop()) {
+                    modificationId++;
+                    table.setModified();
+                    it.remove();
+                    // Exception thrown in org.h2.engine.Database.removeMeta
+                    // if line below is missing with TestDeadlock
+                    database.lockMeta(this);
+                    table.removeChildrenAndResources(this);
+                    if (closeSession) {
+                        database.throwLastBackgroundException();
+                    }
+                } else if (table.getOnCommitTruncate()) {
+                    table.truncate(this);
                 }
-            } else if (table.getOnCommitTruncate()) {
-                table.truncate(this);
             }
         }
     }
@@ -1809,9 +1783,8 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
         if (store != null) {
             MVTable table = store.getTable(map.getName());
             if (table != null) {
-                long recKey = (Long)key;
-                Row oldRow = getRowFromVersionedValue(table, recKey, existingValue);
-                Row newRow = getRowFromVersionedValue(table, recKey, restoredValue);
+                Row oldRow = existingValue == null ? null : (Row) existingValue.getCurrentValue();
+                Row newRow = restoredValue == null ? null : (Row) restoredValue.getCurrentValue();
                 table.fireAfterRow(this, oldRow, newRow, true);
 
                 if (table.getContainsLargeObject()) {
@@ -1835,22 +1808,6 @@ public class SessionLocal extends Session implements TransactionStore.RollbackLi
             }
         }
     }
-
-    private static Row getRowFromVersionedValue(MVTable table, long recKey,
-                                                VersionedValue<Object> versionedValue) {
-        Object value = versionedValue == null ? null : versionedValue.getCurrentValue();
-        if (value == null) {
-            return null;
-        }
-        Row result;
-        if(value instanceof Row) {
-            result = (Row) value;
-        } else {
-            result = table.createRow(((ValueArray) value).getList(), 0, recKey);
-        }
-        return result;
-    }
-
 
     /**
      * Represents a savepoint (a position in a transaction to where one can roll

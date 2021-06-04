@@ -306,40 +306,7 @@ public class TestScript extends TestDb {
         String s;
         boolean comment = false;
         while ((s = in.readLine()) != null) {
-            if (s.startsWith("#")) {
-                int end = s.indexOf('#', 1);
-                if (end < 3) {
-                    fail("Bad line \"" + s + '\"');
-                }
-                boolean val;
-                switch (s.charAt(1)) {
-                case '+':
-                    val = true;
-                    break;
-                case '-':
-                    val = false;
-                    break;
-                default:
-                    fail("Bad line \"" + s + '\"');
-                    return null;
-                }
-                String flag = s.substring(2, end);
-                s = s.substring(end + 1);
-                switch (flag) {
-                case "mvStore":
-                    if (val) {
-                        out.print("#" + (val ? '+' : '-') + flag + '#');
-                        break;
-                    } else {
-                        if (FIX_OUTPUT) {
-                            write("#" + (val ? '+' : '-') + flag + '#' + s);
-                        }
-                        continue;
-                    }
-                default:
-                    fail("Unknown flag \"" + flag + '\"');
-                }
-            } else if (s.startsWith("--")) {
+            if (s.startsWith("--")) {
                 write(s);
                 comment = true;
                 continue;

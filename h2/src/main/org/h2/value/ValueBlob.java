@@ -106,7 +106,7 @@ public final class ValueBlob extends ValueLob {
         FileStore tempFile = handler.openFile(fileName, "rw", false);
         tempFile.autoDelete();
         long tmpPrecision = 0;
-        try (FileStoreOutputStream out = new FileStoreOutputStream(tempFile, null, null)) {
+        try (FileStoreOutputStream out = new FileStoreOutputStream(tempFile, null)) {
             while (true) {
                 tmpPrecision += len;
                 out.write(buff, 0, len);

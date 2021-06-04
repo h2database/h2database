@@ -25,8 +25,8 @@ import org.h2.index.IndexType;
 import org.h2.index.LinkedIndex;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
+import org.h2.result.LocalResult;
 import org.h2.result.Row;
-import org.h2.result.RowList;
 import org.h2.schema.Schema;
 import org.h2.util.JdbcUtils;
 import org.h2.util.StringUtils;
@@ -606,13 +606,14 @@ public class TableLink extends Table {
     }
 
     @Override
-    public void updateRows(Prepared prepared, SessionLocal session, RowList rows) {
+    public void updateRows(Prepared prepared, SessionLocal session, LocalResult rows) {
         checkReadOnly();
         if (emitUpdates) {
-            for (rows.reset(); rows.hasNext();) {
+            while (rows.next()) {
                 prepared.checkCanceled();
-                Row oldRow = rows.next();
-                Row newRow = rows.next();
+                Row oldRow = rows.currentRowForTable();
+                rows.next();
+                Row newRow = rows.currentRowForTable();
                 linkedIndex.update(oldRow, newRow, session);
             }
         } else {

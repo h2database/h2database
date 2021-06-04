@@ -57,9 +57,7 @@ public class BackupCommand extends Prepared {
         }
         try {
             Store store = db.getStore();
-            if (store != null) {
-                store.flush();
-            }
+            store.flush();
             String name = db.getName();
             name = FileUtils.getName(name);
             try (OutputStream zip = FileUtils.newOutputStream(fileName, false)) {
@@ -74,7 +72,7 @@ public class BackupCommand extends Prepared {
                     dir = FileLister.getDir(dir);
                     ArrayList<String> fileList = FileLister.getDatabaseFiles(dir, name, true);
                     for (String n : fileList) {
-                        if (n.endsWith(Constants.SUFFIX_MV_FILE) && store != null) {
+                        if (n.endsWith(Constants.SUFFIX_MV_FILE)) {
                             MVStore s = store.getMvStore();
                             boolean before = s.getReuseSpace();
                             s.setReuseSpace(false);

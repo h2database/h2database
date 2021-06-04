@@ -80,9 +80,7 @@ public class Explain extends Prepared {
                 Store store = null;
                 if (db.isPersistent()) {
                     store = db.getStore();
-                    if (store != null) {
-                        store.statisticsStart();
-                    }
+                    store.statisticsStart();
                 }
                 if (command.isQuery()) {
                     command.query(maxrows);

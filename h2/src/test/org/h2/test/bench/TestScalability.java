@@ -73,16 +73,6 @@ public class TestScalability implements Database.DatabaseTest {
 
         ArrayList<Database> dbs = new ArrayList<>();
         int id = 1;
-        final String h2Url = "jdbc:h2:./data/test;" +
-                "LOCK_TIMEOUT=10000;MV_STORE=FALSE";
-        dbs.add(createDbEntry(id++, "H2", 1, h2Url));
-        dbs.add(createDbEntry(id++, "H2", 2, h2Url));
-        dbs.add(createDbEntry(id++, "H2", 4, h2Url));
-        dbs.add(createDbEntry(id++, "H2", 8, h2Url));
-        dbs.add(createDbEntry(id++, "H2", 16, h2Url));
-        dbs.add(createDbEntry(id++, "H2", 32, h2Url));
-        dbs.add(createDbEntry(id++, "H2", 64, h2Url));
-
         final String mvUrl = "jdbc:h2:./data/mvTest;" +
                 "LOCK_MODE=0";
         dbs.add(createDbEntry(id++, "MV", 1, mvUrl));
@@ -92,6 +82,7 @@ public class TestScalability implements Database.DatabaseTest {
         dbs.add(createDbEntry(id++, "MV", 16, mvUrl));
         dbs.add(createDbEntry(id++, "MV", 32, mvUrl));
         dbs.add(createDbEntry(id++, "MV", 64, mvUrl));
+        dbs.add(createDbEntry(id++, "MV", 128, mvUrl));
 
         final BenchB test = new BenchB() {
             // Since we focus on scalability here, lets emphasize multi-threaded

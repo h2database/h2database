@@ -8,14 +8,11 @@ package org.h2.engine;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -41,7 +38,6 @@ import org.h2.message.Trace;
 import org.h2.message.TraceSystem;
 import org.h2.mode.DefaultNullOrdering;
 import org.h2.mode.PgCatalogSchema;
-import org.h2.mvstore.MVStore;
 import org.h2.mvstore.MVStoreException;
 import org.h2.mvstore.db.LobStorageMap;
 import org.h2.mvstore.db.Store;
@@ -146,7 +142,7 @@ public final class Database implements DataHandler, CastDataProvider {
 
     private final HashMap<String, TableEngine> tableEngines = new HashMap<>();
 
-    private final Set<SessionLocal> userSessions = Collections.synchronizedSet(new HashSet<SessionLocal>());
+    private final Set<SessionLocal> userSessions = Collections.synchronizedSet(new HashSet<>());
     private final AtomicReference<SessionLocal> exclusiveSession = new AtomicReference<>();
     private final BitSet objectIds = new BitSet();
     private final Object lobSyncObject = new Object();
@@ -178,8 +174,7 @@ public final class Database implements DataHandler, CastDataProvider {
     private boolean readOnly;
     private DatabaseEventListener eventListener;
     private int maxMemoryRows = SysProperties.MAX_MEMORY_ROWS;
-    private int maxMemoryUndo = Constants.DEFAULT_MAX_MEMORY_UNDO;
-    private int lockMode = Constants.DEFAULT_LOCK_MODE;
+    private int lockMode;
     private int maxLengthInplaceLob;
     private int allowLiterals = Constants.ALLOW_LITERALS_ALL;
 
@@ -191,7 +186,6 @@ public final class Database implements DataHandler, CastDataProvider {
     private boolean deleteFilesOnDisconnect;
     private boolean optimizeReuseResults = true;
     private final String cacheType;
-    private final String accessModeData;
     private boolean referentialIntegrity = true;
     private Mode mode = Mode.getRegular();
     private DefaultNullOrdering defaultNullOrdering = DefaultNullOrdering.LOW;
@@ -210,7 +204,6 @@ public final class Database implements DataHandler, CastDataProvider {
     private int defaultTableType = Table.TYPE_CACHED;
     private final DbSettings dbSettings;
     private final Store store;
-    private int retentionTime;
     private boolean allowBuiltinAliasOverride;
     private final AtomicReference<DbException> backgroundException = new AtomicReference<>();
     private JavaObjectSerializer javaObjectSerializer;
@@ -240,22 +233,19 @@ public final class Database implements DataHandler, CastDataProvider {
         this.databaseShortName = parseDatabaseShortName();
         this.maxLengthInplaceLob = Constants.DEFAULT_MAX_LENGTH_INPLACE_LOB;
         this.cipher = cipher;
-        this.accessModeData = StringUtils.toLowerEnglish(ci.getProperty("ACCESS_MODE_DATA", "rw"));
         this.autoServerMode = ci.getProperty("AUTO_SERVER", false);
         this.autoServerPort = ci.getProperty("AUTO_SERVER_PORT", 0);
         pageSize = ci.getProperty("PAGE_SIZE", Constants.DEFAULT_PAGE_SIZE);
         if (cipher != null && pageSize % FileEncrypt.BLOCK_SIZE != 0) {
             throw DbException.getUnsupportedException("CIPHER && PAGE_SIZE=" + pageSize);
         }
+        String accessModeData = StringUtils.toLowerEnglish(ci.getProperty("ACCESS_MODE_DATA", "rw"));
         if ("r".equals(accessModeData)) {
             readOnly = true;
         }
         String lockMethodName = ci.getProperty("FILE_LOCK", null);
-        if (dbSettings.mvStore && lockMethodName == null) {
-            fileLockMethod = autoServerMode ? FileLockMethod.FILE : FileLockMethod.FS;
-        } else {
-            fileLockMethod = FileLock.getFileLockMethod(lockMethodName);
-        }
+        fileLockMethod = lockMethodName != null ? FileLock.getFileLockMethod(lockMethodName) :
+                            autoServerMode ? FileLockMethod.FILE : FileLockMethod.FS;
         this.databaseURL = ci.getURL();
         String s = ci.removeProperty("DATABASE_EVENT_LISTENER", null);
         if (s != null) {
@@ -329,18 +319,14 @@ public final class Database implements DataHandler, CastDataProvider {
                     }
                 }
                 deleteOldTempFiles();
-                starting = true;
-                if (dbSettings.mvStore) {
-                    store = createStore();
-                } else {
-                    throw new UnsupportedOperationException();
-                }
-                starting = false;
-            } else if (dbSettings.mvStore) {
-                store = createStore();
-            } else {
-                store = null;
             }
+            starting = true;
+            if (dbSettings.mvStore) {
+                store = new Store(this);
+            } else {
+                throw new UnsupportedOperationException();
+            }
+            starting = false;
             systemUser = new User(this, 0, SYSTEM_USER_NAME, true);
             systemUser.setAdmin(true);
             mainSchema = new Schema(this, Constants.MAIN_SCHEMA_ID, sysIdentifier(Constants.SCHEMA_MAIN), systemUser,
@@ -359,16 +345,11 @@ public final class Database implements DataHandler, CastDataProvider {
             systemSession = createSession(systemUser);
             lobSession = createSession(systemUser);
             Set<String> settingKeys = dbSettings.getSettings().keySet();
-            if (store != null) {
-                store.getTransactionStore().init(lobSession);
-                settingKeys.removeIf(name -> name.startsWith("PAGE_STORE_"));
-            } else {
-                settingKeys.removeIf(name -> "COMPRESS".equals(name) || "REUSE_SPACE".equals(name));
-            }
+            store.getTransactionStore().init(lobSession);
+            settingKeys.removeIf(name -> name.startsWith("PAGE_STORE_"));
             CreateTableData data = createSysTableData();
             starting = true;
             meta = mainSchema.createTable(data);
-            handleUpgradeIssues();
             IndexColumn[] pkCols = IndexColumn.wrap(new Column[] { data.columns.get(0) });
             metaIdIndex = meta.addIndex(systemSession, "SYS_ID", 0, pkCols, 1,
                     IndexType.createPrimaryKey(false, false), true, null);
@@ -376,10 +357,8 @@ public final class Database implements DataHandler, CastDataProvider {
             objectIds.set(0);
             executeMeta();
             systemSession.commit(true);
-            if (store != null) {
-                store.getTransactionStore().endLeftoverTransactions();
-                store.removeTemporaryMaps(objectIds);
-            }
+            store.getTransactionStore().endLeftoverTransactions();
+            store.removeTemporaryMaps(objectIds);
             recompileInvalidViews();
             starting = false;
             if (!readOnly) {
@@ -418,7 +397,7 @@ public final class Database implements DataHandler, CastDataProvider {
                     }
                 }
                 traceSystem.close();
-                closeOpenFilesAndUnlock(false);
+                closeOpenFilesAndUnlock();
             } catch (Throwable ex) {
                 e.addSuppressed(ex);
             }
@@ -451,12 +430,6 @@ public final class Database implements DataHandler, CastDataProvider {
     }
 
     public Store getStore() {
-        return store;
-    }
-
-    private Store createStore() {
-        Store store = new Store(this);
-        retentionTime = store.getMvStore().getRetentionTime();
         return store;
     }
 
@@ -503,9 +476,7 @@ public final class Database implements DataHandler, CastDataProvider {
         if (powerOffCount != -1) {
             try {
                 powerOffCount = -1;
-                if (store != null) {
-                    store.closeImmediately();
-                }
+                store.closeImmediately();
                 if (lock != null) {
                     stopServer();
                     // allow testing shutdown
@@ -685,44 +656,6 @@ public final class Database implements DataHandler, CastDataProvider {
             records.sort(null);
             for (MetaRecord rec : records) {
                 rec.prepareAndExecute(this, systemSession, eventListener);
-            }
-        }
-    }
-
-    private void handleUpgradeIssues() {
-        if (store != null && !isReadOnly()) {
-            MVStore mvStore = store.getMvStore();
-            // Version 1.4.197 erroneously handles index on SYS_ID.ID as secondary
-            // and does not delegate to scan index as it should.
-            // This code will try to fix that by converging ROW_ID and ID,
-            // since they may have got out of sync, and by removing map "index.0",
-            // which corresponds to a secondary index.
-            if (mvStore.hasMap("index.0")) {
-                Index scanIndex = meta.getScanIndex(systemSession);
-                Cursor curs = scanIndex.find(systemSession, null, null);
-                List<Row> allMetaRows = new ArrayList<>();
-                boolean needRepair = false;
-                while (curs.next()) {
-                    Row row = curs.get();
-                    allMetaRows.add(row);
-                    long rowId = row.getKey();
-                    int id = row.getValue(0).getInt();
-                    if (id != rowId) {
-                        needRepair = true;
-                        row.setKey(id);
-                    }
-                }
-                if (needRepair) {
-                    Row[] array = allMetaRows.toArray(new Row[0]);
-                    Arrays.sort(array, Comparator.comparingInt(t -> t.getValue(0).getInt()));
-                    meta.truncate(systemSession);
-                    for (Row row : array) {
-                        meta.addRow(systemSession, row);
-                    }
-                    systemSession.commit(true);
-                }
-                mvStore.removeMap("index.0");
-                mvStore.commit();
             }
         }
     }
@@ -1296,7 +1229,7 @@ public final class Database implements DataHandler, CastDataProvider {
                     systemSession.close();
                     systemSession = null;
                 }
-                closeOpenFilesAndUnlock(compactMode != CommandInterface.SHUTDOWN_IMMEDIATELY);
+                closeOpenFilesAndUnlock();
             } catch (DbException e) {
                 trace.error(e, "close");
             }
@@ -1332,23 +1265,18 @@ public final class Database implements DataHandler, CastDataProvider {
 
     /**
      * Close all open files and unlock the database.
-     *
-     * @param flush whether writing is allowed
      */
-    private synchronized void closeOpenFilesAndUnlock(boolean flush) {
+    private synchronized void closeOpenFilesAndUnlock() {
         try {
-            if (store != null) {
-                MVStore mvStore = store.getMvStore();
-                if (mvStore != null && !mvStore.isClosed()) {
-                    if (compactMode == CommandInterface.SHUTDOWN_IMMEDIATELY) {
-                        store.closeImmediately();
-                    } else {
-                        int allowedCompactionTime =
-                                compactMode == CommandInterface.SHUTDOWN_COMPACT ||
-                                compactMode == CommandInterface.SHUTDOWN_DEFRAG ||
-                                dbSettings.defragAlways ? -1 : dbSettings.maxCompactTime;
-                        store.close(allowedCompactionTime);
-                    }
+            if (!store.getMvStore().isClosed()) {
+                if (compactMode == CommandInterface.SHUTDOWN_IMMEDIATELY) {
+                    store.closeImmediately();
+                } else {
+                    int allowedCompactionTime =
+                            compactMode == CommandInterface.SHUTDOWN_COMPACT ||
+                            compactMode == CommandInterface.SHUTDOWN_DEFRAG ||
+                            dbSettings.defragAlways ? -1 : dbSettings.maxCompactTime;
+                    store.close(allowedCompactionTime);
                 }
             }
             if (persistent) {
@@ -1369,9 +1297,7 @@ public final class Database implements DataHandler, CastDataProvider {
 
     private synchronized void closeFiles() {
         try {
-            if (store != null) {
-                store.closeImmediately();
-            }
+            store.closeImmediately();
         } catch (DbException e) {
             trace.error(e, "close");
         }
@@ -1788,9 +1714,7 @@ public final class Database implements DataHandler, CastDataProvider {
             int max = MathUtils.convertLongToInt(Utils.getMemoryMax()) / 2;
             kb = Math.min(kb, max);
         }
-        if (store != null) {
-            store.setCacheSize(Math.max(1, kb));
-        }
+        store.setCacheSize(Math.max(1, kb));
     }
 
     public synchronized void setMasterUser(User user) {
@@ -1839,20 +1763,15 @@ public final class Database implements DataHandler, CastDataProvider {
     }
 
     public void setWriteDelay(int value) {
-        if (store != null) {
-            store.getMvStore().setAutoCommitDelay(value < 0 ? 0 : value);
-        }
+        store.getMvStore().setAutoCommitDelay(value < 0 ? 0 : value);
     }
 
     public int getRetentionTime() {
-        return retentionTime;
+        return store.getMvStore().getRetentionTime();
     }
 
     public void setRetentionTime(int value) {
-        retentionTime = value;
-        if (store != null) {
-            store.getMvStore().setRetentionTime(value);
-        }
+        store.getMvStore().setRetentionTime(value);
     }
 
     public void setAllowBuiltinAliasOverride(boolean b) {
@@ -1869,10 +1788,7 @@ public final class Database implements DataHandler, CastDataProvider {
      * @return the list
      */
     public ArrayList<InDoubtTransaction> getInDoubtTransactions() {
-        if (store != null) {
-            return store.getInDoubtTransactions();
-        }
-        return null;
+        return store.getInDoubtTransactions();
     }
 
     /**
@@ -1882,23 +1798,8 @@ public final class Database implements DataHandler, CastDataProvider {
      * @param transaction the name of the transaction
      */
     synchronized void prepareCommit(SessionLocal session, String transaction) {
-        if (readOnly) {
-            return;
-        }
-        if (store != null) {
+        if (!readOnly) {
             store.prepareCommit(session, transaction);
-        }
-    }
-
-    /**
-     * Commit the current transaction of the given session.
-     *
-     * @param session the session
-     */
-    synchronized void commit(SessionLocal session) {
-        throwLastBackgroundException();
-        if (readOnly) {
-            return;
         }
     }
 
@@ -1907,7 +1808,7 @@ public final class Database implements DataHandler, CastDataProvider {
      * that thread, throw it now.
      */
     void throwLastBackgroundException() {
-        if (store == null || !store.getMvStore().isBackgroundThread()) {
+        if (!store.getMvStore().isBackgroundThread()) {
             DbException b = backgroundException.getAndSet(null);
             if (b != null) {
                 // wrap the exception, so we see it was thrown here
@@ -1938,10 +1839,7 @@ public final class Database implements DataHandler, CastDataProvider {
      * Flush all pending changes to the transaction log.
      */
     public synchronized void flush() {
-        if (readOnly) {
-            return;
-        }
-        if (store != null) {
+        if (!readOnly) {
             try {
                 store.flush();
             } catch (RuntimeException e) {
@@ -2019,9 +1917,7 @@ public final class Database implements DataHandler, CastDataProvider {
         if (readOnly) {
             return;
         }
-        if (store != null) {
-            store.sync();
-        }
+        store.sync();
     }
 
     public int getMaxMemoryRows() {
@@ -2030,14 +1926,6 @@ public final class Database implements DataHandler, CastDataProvider {
 
     public void setMaxMemoryRows(int value) {
         this.maxMemoryRows = value;
-    }
-
-    public void setMaxMemoryUndo(int value) {
-        this.maxMemoryUndo = value;
-    }
-
-    public int getMaxMemoryUndo() {
-        return maxMemoryUndo;
     }
 
     public void setLockMode(int lockMode) {
@@ -2357,9 +2245,7 @@ public final class Database implements DataHandler, CastDataProvider {
      */
     public void checkpoint() {
         if (persistent) {
-            if (store != null) {
-                store.flush();
-            }
+            store.flush();
         }
         getTempFileDeleter().deleteUnused();
     }

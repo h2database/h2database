@@ -144,8 +144,7 @@ create table t2 (id int primary key) as (select x from system_range(1, 1000));
 > ok
 
 explain select count(*) from t1 where t1.id in ( select t2.id from t2 );
-#+mvStore#>> SELECT COUNT(*) FROM "PUBLIC"."T1" /* PUBLIC.PRIMARY_KEY_A: ID IN(SELECT DISTINCT T2.ID FROM PUBLIC.T2 /* PUBLIC.T2.tableScan */) */ WHERE "T1"."ID" IN( SELECT DISTINCT "T2"."ID" FROM "PUBLIC"."T2" /* PUBLIC.T2.tableScan */)
-#-mvStore#>> SELECT COUNT(*) FROM "PUBLIC"."T1" /* PUBLIC.PRIMARY_KEY_A: ID IN(SELECT DISTINCT T2.ID FROM PUBLIC.T2 /* PUBLIC.PRIMARY_KEY_A5 */) */ WHERE "T1"."ID" IN( SELECT DISTINCT "T2"."ID" FROM "PUBLIC"."T2" /* PUBLIC.PRIMARY_KEY_A5 */)
+>> SELECT COUNT(*) FROM "PUBLIC"."T1" /* PUBLIC.PRIMARY_KEY_A: ID IN(SELECT DISTINCT T2.ID FROM PUBLIC.T2 /* PUBLIC.T2.tableScan */) */ WHERE "T1"."ID" IN( SELECT DISTINCT "T2"."ID" FROM "PUBLIC"."T2" /* PUBLIC.T2.tableScan */)
 
 select count(*) from t1 where t1.id in ( select t2.id from t2 );
 > COUNT(*)
@@ -401,8 +400,7 @@ SELECT V, V IN (SELECT * FROM TEST) FROM (VALUES 1, 2) T(V);
 > rows: 2
 
 EXPLAIN SELECT V, V IN (SELECT * FROM TEST) FROM (VALUES 1, 2) T(V);
-#+mvStore#>> SELECT "V", "V" IN( SELECT DISTINCT "PUBLIC"."TEST"."C" FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */) FROM (VALUES (1), (2)) "T"("V") /* table scan */
-#-mvStore#>> SELECT "V", "V" IN( SELECT DISTINCT "PUBLIC"."TEST"."C" FROM "PUBLIC"."TEST" /* PUBLIC.PRIMARY_KEY_2 */) FROM (VALUES (1), (2)) "T"("V") /* table scan */
+>> SELECT "V", "V" IN( SELECT DISTINCT "PUBLIC"."TEST"."C" FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */) FROM (VALUES (1), (2)) "T"("V") /* table scan */
 
 DROP TABLE TEST;
 > ok
@@ -418,8 +416,7 @@ SELECT V, V IN (SELECT * FROM TEST) FROM (VALUES 1, 1000000000000) T(V);
 > rows: 2
 
 EXPLAIN SELECT V, V IN (SELECT * FROM TEST) FROM (VALUES 1, 1000000000000) T(V);
-#+mvStore#>> SELECT "V", "V" IN( SELECT DISTINCT "PUBLIC"."TEST"."C" FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */) FROM (VALUES (1), (1000000000000)) "T"("V") /* table scan */
-#-mvStore#>> SELECT "V", "V" IN( SELECT DISTINCT "PUBLIC"."TEST"."C" FROM "PUBLIC"."TEST" /* PUBLIC.PRIMARY_KEY_2 */) FROM (VALUES (1), (1000000000000)) "T"("V") /* table scan */
+>> SELECT "V", "V" IN( SELECT DISTINCT "PUBLIC"."TEST"."C" FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */) FROM (VALUES (1), (1000000000000)) "T"("V") /* table scan */
 
 DROP TABLE TEST;
 > ok

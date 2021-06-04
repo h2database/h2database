@@ -69,7 +69,7 @@ public final class LobDataFile extends LobData {
     public InputStream getInputStream(long precision) {
         FileStore store = handler.openFile(fileName, "r", true);
         boolean alwaysClose = SysProperties.lobCloseBetweenReads;
-        return new BufferedInputStream(new FileStoreInputStream(store, handler, false, alwaysClose),
+        return new BufferedInputStream(new FileStoreInputStream(store, false, alwaysClose),
                 Constants.IO_BUFFER_SIZE);
     }
 

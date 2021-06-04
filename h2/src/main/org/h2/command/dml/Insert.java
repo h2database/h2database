@@ -46,7 +46,6 @@ public final class Insert extends CommandWithValues implements ResultTarget {
     private Table table;
     private Column[] columns;
     private Query query;
-    private boolean sortedInsertMode;
     private long rowNumber;
     private boolean insertFromSelect;
 
@@ -130,7 +129,6 @@ public final class Insert extends CommandWithValues implements ResultTarget {
 
     @Override
     public long update(ResultTarget deltaChangeCollector, ResultOption deltaChangeCollectionMode) {
-        Index index = null;
         this.deltaChangeCollector = deltaChangeCollector;
         this.deltaChangeCollectionMode = deltaChangeCollectionMode;
         try {
@@ -138,9 +136,6 @@ public final class Insert extends CommandWithValues implements ResultTarget {
         } finally {
             this.deltaChangeCollector = null;
             this.deltaChangeCollectionMode = null;
-            if (index != null) {
-                index.setSortedInsertMode(false);
-            }
         }
     }
 
@@ -266,9 +261,6 @@ public final class Insert extends CommandWithValues implements ResultTarget {
         if (insertFromSelect) {
             builder.append("DIRECT ");
         }
-        if (sortedInsertMode) {
-            builder.append("SORTED ");
-        }
         if (!valuesExpressionList.isEmpty()) {
             builder.append("VALUES ");
             int row = 0;
@@ -320,10 +312,6 @@ public final class Insert extends CommandWithValues implements ResultTarget {
                 throw DbException.get(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
             }
         }
-    }
-
-    public void setSortedInsertMode(boolean sortedInsertMode) {
-        this.sortedInsertMode = sortedInsertMode;
     }
 
     @Override

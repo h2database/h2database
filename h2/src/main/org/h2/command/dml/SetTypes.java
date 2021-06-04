@@ -103,14 +103,9 @@ public class SetTypes {
     public static final int DB_CLOSE_DELAY = LOCK_MODE + 1;
 
     /**
-     * The type of a SET LOG statement.
-     */
-    public static final int LOG = DB_CLOSE_DELAY + 1;
-
-    /**
      * The type of a SET THROTTLE statement.
      */
-    public static final int THROTTLE = LOG + 1;
+    public static final int THROTTLE = DB_CLOSE_DELAY + 1;
 
     /**
      * The type of a SET MAX_MEMORY_UNDO statement.
@@ -285,7 +280,6 @@ public class SetTypes {
         list.add("MAX_MEMORY_ROWS");
         list.add("LOCK_MODE");
         list.add("DB_CLOSE_DELAY");
-        list.add("LOG");
         list.add("THROTTLE");
         list.add("MAX_MEMORY_UNDO");
         list.add("MAX_LENGTH_INPLACE_LOB");

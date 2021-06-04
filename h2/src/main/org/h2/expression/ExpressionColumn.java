@@ -300,7 +300,7 @@ public final class ExpressionColumn extends Expression {
 
     @Override
     public TypeInfo getType() {
-        return column == null ? TypeInfo.TYPE_UNKNOWN : column.getType();
+        return column != null ? column.getType() : rowId ? TypeInfo.TYPE_BIGINT : TypeInfo.TYPE_UNKNOWN;
     }
 
     @Override

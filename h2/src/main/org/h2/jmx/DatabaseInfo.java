@@ -121,10 +121,7 @@ public class DatabaseInfo implements DatabaseInfoMBean {
     @Override
     public long getFileWriteCount() {
         if (database.isPersistent()) {
-            Store store = database.getStore();
-            if (store != null) {
-                return store.getMvStore().getFileStore().getWriteCount();
-            }
+            return database.getStore().getMvStore().getFileStore().getWriteCount();
         }
         return 0;
     }
@@ -132,10 +129,7 @@ public class DatabaseInfo implements DatabaseInfoMBean {
     @Override
     public long getFileReadCount() {
         if (database.isPersistent()) {
-            Store store = database.getStore();
-            if (store != null) {
-                return store.getMvStore().getFileStore().getReadCount();
-            }
+            return database.getStore().getMvStore().getFileStore().getReadCount();
         }
         return 0;
     }
@@ -144,10 +138,7 @@ public class DatabaseInfo implements DatabaseInfoMBean {
     public long getFileSize() {
         long size = 0;
         if (database.isPersistent()) {
-            Store store = database.getStore();
-            if (store != null) {
-                size = store.getMvStore().getFileStore().size();
-            }
+            size = database.getStore().getMvStore().getFileStore().size();
         }
         return size / 1024;
     }
@@ -155,10 +146,7 @@ public class DatabaseInfo implements DatabaseInfoMBean {
     @Override
     public int getCacheSizeMax() {
         if (database.isPersistent()) {
-            Store store = database.getStore();
-            if (store != null) {
-                return store.getMvStore().getCacheSize() * 1024;
-            }
+            return database.getStore().getMvStore().getCacheSize() * 1024;
         }
         return 0;
     }
@@ -173,10 +161,7 @@ public class DatabaseInfo implements DatabaseInfoMBean {
     @Override
     public int getCacheSize() {
         if (database.isPersistent()) {
-            Store store = database.getStore();
-            if (store != null) {
-                return store.getMvStore().getCacheSizeUsed() * 1024;
-            }
+            return database.getStore().getMvStore().getCacheSizeUsed() * 1024;
         }
         return 0;
     }

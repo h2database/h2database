@@ -158,14 +158,6 @@ public abstract class Session implements CastDataProvider, AutoCloseable {
     public abstract void cancel();
 
     /**
-     * Returns the TCP protocol version of remote connection, or the latest
-     * supported TCP protocol version for local session.
-     *
-     * @return the TCP protocol version
-     */
-    public abstract int getClientVersion();
-
-    /**
      * Check if this session is in auto-commit mode.
      *
      * @return true if the session is in auto-commit mode

@@ -506,7 +506,7 @@ public class FullText {
         case Types.LONGVARBINARY:
         case Types.BINARY:
             if (data instanceof UUID) {
-                return "'" + data.toString() + "'";
+                return "'" + data + "'";
             }
             byte[] bytes = (byte[]) data;
             StringBuilder builder = new StringBuilder(bytes.length * 2 + 2).append('\'');
@@ -756,7 +756,6 @@ public class FullText {
                     + StringUtils.quoteIdentifier(TRIGGER_PREFIX + table);
             stat.execute("DROP TRIGGER IF EXISTS " + trigger);
             if (create) {
-                boolean multiThread = FullTextTrigger.isMultiThread(conn);
                 StringBuilder buff = new StringBuilder(
                         "CREATE TRIGGER IF NOT EXISTS ");
                 // unless multithread, trigger needs to be called on rollback as well,
@@ -764,9 +763,6 @@ public class FullText {
                 // (not the user connection)
                 buff.append(trigger).
                         append(" AFTER INSERT, UPDATE, DELETE");
-                if(!multiThread) {
-                    buff.append(", ROLLBACK");
-                }
                 buff.append(" ON ");
                 StringUtils.quoteIdentifier(buff, schema).
                         append('.');
@@ -860,7 +856,6 @@ public class FullText {
         private IndexInfo                 index;
         private int[]                     columnTypes;
         private final PreparedStatement[] prepStatements = new PreparedStatement[SQL.length];
-        private boolean                   useOwnConnection;
 
         private static final int INSERT_WORD = 0;
         private static final int INSERT_ROW  = 1;
@@ -869,7 +864,7 @@ public class FullText {
         private static final int DELETE_MAP  = 4;
         private static final int SELECT_ROW  = 5;
 
-        private static final String SQL[] = {
+        private static final String[] SQL = {
             "MERGE INTO " + SCHEMA + ".WORDS(NAME) KEY(NAME) VALUES(?)",
             "INSERT INTO " + SCHEMA + ".ROWS(HASH, INDEXID, `KEY`) VALUES(?, ?, ?)",
             "INSERT INTO " + SCHEMA + ".MAP(ROWID, WORDID) VALUES(?, ?)",
@@ -943,30 +938,6 @@ public class FullText {
             index.indexColumns = new int[indexList.size()];
             setColumns(index.indexColumns, indexList, columnList);
             setting.addIndexInfo(index);
-
-            useOwnConnection = isMultiThread(conn);
-            if(!useOwnConnection) {
-                for (int i = 0; i < SQL.length; i++) {
-                    prepStatements[i] = conn.prepareStatement(SQL[i],
-                            Statement.RETURN_GENERATED_KEYS);
-                }
-            }
-        }
-
-        /**
-         * Check whether the database is in multi-threaded mode.
-         *
-         * @param conn the connection
-         * @return true if the multi-threaded mode is used
-         */
-        static boolean isMultiThread(Connection conn)
-                throws SQLException {
-            try (Statement stat = conn.createStatement()) {
-                ResultSet rs = stat.executeQuery(
-                                "SELECT SETTING_VALUE FROM INFORMATION_SCHEMA.SETTINGS" +
-                                " WHERE SETTING_NAME = 'MV_STORE'");
-                return rs.next() && "true".equals(rs.getString(1));
-            }
         }
 
         /**
@@ -1037,10 +1008,8 @@ public class FullText {
                     prepInsertMap.execute();
                 }
             } finally {
-                if (useOwnConnection) {
-                    IOUtils.closeSilently(prepInsertRow);
-                    IOUtils.closeSilently(prepInsertMap);
-                }
+                IOUtils.closeSilently(prepInsertRow);
+                IOUtils.closeSilently(prepInsertMap);
             }
         }
 
@@ -1078,11 +1047,9 @@ public class FullText {
                     prepDeleteRow.executeUpdate();
                 }
             } finally {
-                if (useOwnConnection) {
-                    IOUtils.closeSilently(prepSelectRow);
-                    IOUtils.closeSilently(prepDeleteMap);
-                    IOUtils.closeSilently(prepDeleteRow);
-                }
+                IOUtils.closeSilently(prepSelectRow);
+                IOUtils.closeSilently(prepDeleteMap);
+                IOUtils.closeSilently(prepDeleteRow);
             }
         }
 
@@ -1130,9 +1097,7 @@ public class FullText {
                 Arrays.sort(wordIds);
                 return wordIds;
             } finally {
-                if (useOwnConnection) {
-                    IOUtils.closeSilently(prepInsertWord);
-                }
+                IOUtils.closeSilently(prepInsertWord);
             }
         }
 
@@ -1156,9 +1121,7 @@ public class FullText {
         }
 
         private PreparedStatement getStatement(Connection conn, int index) throws SQLException {
-            return useOwnConnection ?
-                    conn.prepareStatement(SQL[index], Statement.RETURN_GENERATED_KEYS)
-                    : prepStatements[index];
+            return conn.prepareStatement(SQL[index], Statement.RETURN_GENERATED_KEYS);
         }
 
     }

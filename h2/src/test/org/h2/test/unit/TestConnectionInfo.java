@@ -54,7 +54,6 @@ public class TestConnectionInfo extends TestDb {
     private void testConnectionInfo() {
         ConnectionInfo connectionInfo = new ConnectionInfo(
                 "jdbc:h2:mem:" + getTestName() +
-                        ";LOG=2" +
                         ";ACCESS_MODE_DATA=rws" +
                         ";INIT=CREATE this...\\;INSERT that..." +
                         ";IFEXISTS=TRUE",
@@ -63,8 +62,6 @@ public class TestConnectionInfo extends TestDb {
         assertEquals("jdbc:h2:mem:" + getTestName(),
                 connectionInfo.getURL());
 
-        assertEquals("2",
-                connectionInfo.getProperty("LOG", ""));
         assertEquals("rws",
                 connectionInfo.getProperty("ACCESS_MODE_DATA", ""));
         assertEquals("CREATE this...;INSERT that...",

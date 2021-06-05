@@ -150,7 +150,7 @@ public class Recover extends Tool implements DataHandler {
         verifyPageStore(h);
         LobDataDatabase lobData = new LobDataDatabase(h, LobStorageFrontend.TABLE_TEMP, lobId);
         lobData.setRecoveryReference(true);
-        return new ValueBlob(precision, lobData);
+        return new ValueBlob(lobData, precision);
     }
 
     private static void verifyPageStore(DataHandler h) {
@@ -169,7 +169,7 @@ public class Recover extends Tool implements DataHandler {
         verifyPageStore(h);
         LobDataDatabase lobData = new LobDataDatabase(h, LobStorageFrontend.TABLE_TEMP, lobId);
         lobData.setRecoveryReference(true);
-        return new ValueClob(precision, lobData);
+        return new ValueClob(lobData, precision);
     }
 
     /**

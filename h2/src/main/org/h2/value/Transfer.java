@@ -1081,7 +1081,7 @@ public final class Transfer {
                 long id = readLong();
                 byte[] hmac = readBytes();
                 long precision = readLong();
-                return new ValueBlob(precision, new LobDataFetchOnDemand(session.getDataHandler(), tableId, id, hmac));
+                return new ValueBlob(new LobDataFetchOnDemand(session.getDataHandler(), tableId, id, hmac), precision);
             }
             Value v = session.getDataHandler().getLobStorage().createBlob(in, length);
             int magic = readInt();
@@ -1099,7 +1099,7 @@ public final class Transfer {
                 long id = readLong();
                 byte[] hmac = readBytes();
                 long precision = readLong();
-                return new ValueClob(precision, new LobDataFetchOnDemand(session.getDataHandler(), tableId, id, hmac));
+                return new ValueClob(new LobDataFetchOnDemand(session.getDataHandler(), tableId, id, hmac), precision);
             }
             if (length < 0) {
                 throw DbException.get(

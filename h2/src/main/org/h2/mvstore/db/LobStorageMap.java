@@ -186,7 +186,7 @@ public final class LobStorageMap implements LobStorageInterface
             CountingReaderInputStream in = new CountingReaderInputStream(reader, maxLength);
             // Don't inline
             LobData lobData = createBlob(in).getLobData();
-            return new ValueClob(in.getLength(), lobData);
+            return new ValueClob(lobData, in.getLength());
         } catch (IllegalStateException e) {
             throw DbException.get(ErrorCode.OBJECT_CLOSED, e);
         } catch (IOException e) {
@@ -209,7 +209,7 @@ public final class LobStorageMap implements LobStorageInterface
         tempLobMap.put(lobId, streamStoreId);
         BlobReference key = new BlobReference(streamStoreId, lobId);
         refMap.put(key, ValueNull.INSTANCE);
-        ValueBlob lob =  new ValueBlob(length, new LobDataDatabase(database, tableId, lobId));
+        ValueBlob lob =  new ValueBlob(new LobDataDatabase(database, tableId, lobId), length);
         if (TRACE) {
             trace("create " + tableId + "/" + lobId);
         }
@@ -255,7 +255,7 @@ public final class LobStorageMap implements LobStorageInterface
             BlobReference refMapKey = new BlobReference(streamStoreId, newLobId);
             refMap.put(refMapKey, ValueNull.INSTANCE);
             LobDataDatabase newLobData = new LobDataDatabase(database, tableId, newLobId);
-            ValueLob lob = type == Value.BLOB ? new ValueBlob(length, newLobData) : new ValueClob(length, newLobData);
+            ValueLob lob = type == Value.BLOB ? new ValueBlob(newLobData, length) : new ValueClob(newLobData, length);
             if (TRACE) {
                 trace("copy " + lobData.getTableId() + "/" + lobData.getLobId() +
                         " > " + tableId + "/" + newLobId);

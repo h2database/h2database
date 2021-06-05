@@ -294,12 +294,14 @@ public class Recover extends Tool implements DataHandler {
                 LobDataDatabase lobDataDatabase = (LobDataDatabase) lobData;
                 int type = v.getValueType();
                 long id = lobDataDatabase.getLobId();
-                long precision = lob.getPrecision();
+                long precision;
                 String columnType;
                 if (type == Value.BLOB) {
+                    precision = lob.octetLength();
                     columnType = "BLOB";
                     builder.append("READ_BLOB");
                 } else {
+                    precision = lob.charLength();
                     columnType = "CLOB";
                     builder.append("READ_CLOB");
                 }

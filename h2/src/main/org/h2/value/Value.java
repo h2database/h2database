@@ -1296,7 +1296,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         if (conversionMode != CONVERT_TO) {
             if (conversionMode == CAST_TO) {
                 v = v.convertPrecision(targetType.getPrecision());
-            } else if (v.getPrecision() > targetType.getPrecision()) {
+            } else if (v.charLength() > targetType.getPrecision()) {
                 throw v.getValueTooLongException(targetType, column);
             }
         }
@@ -1400,7 +1400,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         if (conversionMode != CONVERT_TO) {
             if (conversionMode == CAST_TO) {
                 v = v.convertPrecision(targetType.getPrecision());
-            } else if (v.getPrecision() > targetType.getPrecision()) {
+            } else if (v.octetLength() > targetType.getPrecision()) {
                 throw v.getValueTooLongException(targetType, column);
             }
         }

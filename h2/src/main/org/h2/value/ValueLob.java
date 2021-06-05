@@ -219,15 +219,6 @@ public abstract class ValueLob extends Value {
         return hash;
     }
 
-    /**
-     * Returns the precision.
-     *
-     * @return the precision
-     */
-    public long getPrecision() {
-        return precision;
-    }
-
     @Override
     public boolean equals(Object other) {
         if (!(other instanceof ValueLob))

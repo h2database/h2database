@@ -874,16 +874,16 @@ public final class Transfer {
             writeInt(BLOB);
             ValueBlob lob = (ValueBlob) v;
             LobData lobData = lob.getLobData();
+            long length = lob.octetLength();
             if (lobData instanceof LobDataDatabase) {
                 LobDataDatabase lobDataDatabase = (LobDataDatabase) lobData;
                 writeLong(-1);
                 writeInt(lobDataDatabase.getTableId());
                 writeLong(lobDataDatabase.getLobId());
                 writeBytes(calculateLobMac(lobDataDatabase.getLobId()));
-                writeLong(lob.getPrecision());
+                writeLong(length);
                 break;
             }
-            long length = lob.getPrecision();
             if (length < 0) {
                 throw DbException.get(
                         ErrorCode.CONNECTION_BROKEN_1, "length=" + length);
@@ -901,16 +901,16 @@ public final class Transfer {
             writeInt(CLOB);
             ValueClob lob = (ValueClob) v;
             LobData lobData = lob.getLobData();
+            long length = lob.charLength();
             if (lobData instanceof LobDataDatabase) {
                 LobDataDatabase lobDataDatabase = (LobDataDatabase) lobData;
                 writeLong(-1);
                 writeInt(lobDataDatabase.getTableId());
                 writeLong(lobDataDatabase.getLobId());
                 writeBytes(calculateLobMac(lobDataDatabase.getLobId()));
-                writeLong(lob.getPrecision());
+                writeLong(length);
                 break;
             }
-            long length = lob.getPrecision();
             if (length < 0) {
                 throw DbException.get(
                         ErrorCode.CONNECTION_BROKEN_1, "length=" + length);

@@ -232,7 +232,7 @@ public final class LobStorageMap implements LobStorageInterface
             final LobDataDatabase lobData = (LobDataDatabase) old.getLobData();
             final int type = old.getValueType();
             final long oldLobId = lobData.getLobId();
-            final long oldLength = old.getPrecision();
+            final long oldLength = type == Value.CLOB ? old.charLength() : old.octetLength();
             if (oldLength != length) {
                 throw DbException.getInternalError("Length is different");
             }

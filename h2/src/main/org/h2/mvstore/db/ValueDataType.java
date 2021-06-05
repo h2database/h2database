@@ -54,7 +54,6 @@ import org.h2.value.ValueInteger;
 import org.h2.value.ValueInterval;
 import org.h2.value.ValueJavaObject;
 import org.h2.value.ValueJson;
-import org.h2.value.ValueLob;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueNumeric;
 import org.h2.value.ValueReal;
@@ -451,17 +450,33 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
             }
             break;
         }
-        case Value.BLOB:
-        case Value.CLOB: {
-            buff.put(type == Value.BLOB ? BLOB : CLOB);
-            ValueLob lob = (ValueLob) v;
+        case Value.BLOB: {
+            buff.put(BLOB);
+            ValueBlob lob = (ValueBlob) v;
             LobData lobData = lob.getLobData();
             if (lobData instanceof LobDataDatabase) {
                 LobDataDatabase lobDataDatabase = (LobDataDatabase) lobData;
                 buff.putVarInt(-3).
                     putVarInt(lobDataDatabase.getTableId()).
                     putVarLong(lobDataDatabase.getLobId()).
-                    putVarLong(lob.getPrecision());
+                    putVarLong(lob.octetLength());
+            } else {
+                byte[] small = ((LobDataInMemory) lobData).getSmall();
+                buff.putVarInt(small.length).
+                    put(small);
+            }
+            break;
+        }
+        case Value.CLOB: {
+            buff.put(CLOB);
+            ValueClob lob = (ValueClob) v;
+            LobData lobData = lob.getLobData();
+            if (lobData instanceof LobDataDatabase) {
+                LobDataDatabase lobDataDatabase = (LobDataDatabase) lobData;
+                buff.putVarInt(-3).
+                    putVarInt(lobDataDatabase.getTableId()).
+                    putVarLong(lobDataDatabase.getLobId()).
+                    putVarLong(lob.charLength());
             } else {
                 byte[] small = ((LobDataInMemory) lobData).getSmall();
                 buff.putVarInt(small.length).

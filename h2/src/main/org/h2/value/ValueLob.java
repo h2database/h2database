@@ -243,15 +243,6 @@ public abstract class ValueLob extends Value {
         return lobData.getMemory();
     }
 
-    /**
-     * Returns the data handler.
-     *
-     * @return the data handler, or {@code null}
-     */
-    public DataHandler getDataHandler() {
-        return lobData.getDataHandler();
-    }
-
     public LobData getLobData() {
         return lobData;
     }

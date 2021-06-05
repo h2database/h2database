@@ -1380,7 +1380,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
             v = (ValueBlob) this;
             break;
         case CLOB:
-            DataHandler handler = ((ValueLob) this).getDataHandler();
+            DataHandler handler = ((ValueLob) this).lobData.getDataHandler();
             if (handler != null) {
                 v = handler.getLobStorage().createBlob(getInputStream(), -1);
                 break;

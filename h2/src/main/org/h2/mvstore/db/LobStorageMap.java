@@ -184,9 +184,9 @@ public final class LobStorageMap implements LobStorageInterface
                 maxLength = Long.MAX_VALUE;
             }
             CountingReaderInputStream in = new CountingReaderInputStream(reader, maxLength);
-            // Don't inline
-            LobData lobData = createBlob(in).getLobData();
-            return new ValueClob(lobData, in.getLength());
+            ValueBlob blob = createBlob(in);
+            LobData lobData = blob.getLobData();
+            return new ValueClob(lobData, blob.octetLength(), in.getLength());
         } catch (IllegalStateException e) {
             throw DbException.get(ErrorCode.OBJECT_CLOSED, e);
         } catch (IOException e) {
@@ -232,7 +232,8 @@ public final class LobStorageMap implements LobStorageInterface
             final LobDataDatabase lobData = (LobDataDatabase) old.getLobData();
             final int type = old.getValueType();
             final long oldLobId = lobData.getLobId();
-            final long oldLength = type == Value.CLOB ? old.charLength() : old.octetLength();
+            long octetLength = old.octetLength();
+            final long oldLength = type == Value.CLOB ? old.charLength() : octetLength;
             if (oldLength != length) {
                 throw DbException.getInternalError("Length is different");
             }
@@ -255,7 +256,8 @@ public final class LobStorageMap implements LobStorageInterface
             BlobReference refMapKey = new BlobReference(streamStoreId, newLobId);
             refMap.put(refMapKey, ValueNull.INSTANCE);
             LobDataDatabase newLobData = new LobDataDatabase(database, tableId, newLobId);
-            ValueLob lob = type == Value.BLOB ? new ValueBlob(newLobData, length) : new ValueClob(newLobData, length);
+            ValueLob lob = type == Value.BLOB ? new ValueBlob(newLobData, length)
+                    : new ValueClob(newLobData, octetLength, length);
             if (TRACE) {
                 trace("copy " + lobData.getTableId() + "/" + lobData.getLobId() +
                         " > " + tableId + "/" + newLobId);

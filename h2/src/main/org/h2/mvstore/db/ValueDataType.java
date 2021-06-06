@@ -476,11 +476,13 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
                 buff.putVarInt(-3).
                     putVarInt(lobDataDatabase.getTableId()).
                     putVarLong(lobDataDatabase.getLobId()).
+                    putVarLong(lob.octetLength()).
                     putVarLong(lob.charLength());
             } else {
                 byte[] small = ((LobDataInMemory) lobData).getSmall();
                 buff.putVarInt(small.length).
-                    put(small);
+                    put(small).
+                    putVarLong(lob.charLength());
             }
             break;
         }
@@ -697,19 +699,26 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
             return ValueDouble.get(Double.longBitsToDouble(Long.reverse(readVarLong(buff))));
         case REAL:
             return ValueReal.get(Float.intBitsToFloat(Integer.reverse(readVarInt(buff))));
-        case BLOB:
+        case BLOB: {
+            int smallLen = readVarInt(buff);
+            if (smallLen >= 0) {
+                byte[] small = Utils.newBytes(smallLen);
+                buff.get(small, 0, smallLen);
+                return ValueBlob.createSmall(small);
+            } else if (smallLen == -3) {
+                return new ValueBlob(readLobDataDatabase(buff), readVarLong(buff));
+            } else {
+                throw DbException.get(ErrorCode.FILE_CORRUPTED_1, "lob type: " + smallLen);
+            }
+        }
         case CLOB: {
             int smallLen = readVarInt(buff);
             if (smallLen >= 0) {
                 byte[] small = Utils.newBytes(smallLen);
                 buff.get(small, 0, smallLen);
-                return type == BLOB ? ValueBlob.createSmall(small) : ValueClob.createSmall(small);
+                return ValueClob.createSmall(small, readVarLong(buff));
             } else if (smallLen == -3) {
-                int tableId = readVarInt(buff);
-                long lobId = readVarLong(buff);
-                long precision = readVarLong(buff);
-                return type == BLOB ? ValueBlob.create(precision, handler, tableId, lobId)
-                        : ValueClob.create(precision, handler, tableId, lobId);
+                return new ValueClob(readLobDataDatabase(buff), readVarLong(buff), readVarLong(buff));
             } else {
                 throw DbException.get(ErrorCode.FILE_CORRUPTED_1, "lob type: " + smallLen);
             }
@@ -761,6 +770,13 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
             }
             throw DbException.get(ErrorCode.FILE_CORRUPTED_1, "type: " + type);
         }
+    }
+
+    private LobDataDatabase readLobDataDatabase(ByteBuffer buff) {
+        int tableId = readVarInt(buff);
+        long lobId = readVarLong(buff);
+        LobDataDatabase lobData = new LobDataDatabase(handler, tableId, lobId);
+        return lobData;
     }
 
     private Value[] readArrayElements(ByteBuffer buff, TypeInfo elementType) {

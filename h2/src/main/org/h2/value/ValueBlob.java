@@ -35,23 +35,6 @@ import org.h2.value.lob.LobDataInMemory;
 public final class ValueBlob extends ValueLob {
 
     /**
-     * Creates a reference to the BLOB data persisted in the database.
-     *
-     * @param precision
-     *            the precision (count of bytes)
-     * @param handler
-     *            the data handler
-     * @param tableId
-     *            the table identifier
-     * @param lobId
-     *            the LOB identifier
-     * @return the BLOB
-     */
-    public static ValueBlob create(long precision, DataHandler handler, int tableId, long lobId) {
-        return new ValueBlob(new LobDataDatabase(handler, tableId, lobId), precision);
-    }
-
-    /**
      * Creates a small BLOB value that can be stored in the row directly.
      *
      * @param data

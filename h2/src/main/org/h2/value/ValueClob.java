@@ -36,23 +36,6 @@ import org.h2.value.lob.LobDataInMemory;
 public final class ValueClob extends ValueLob {
 
     /**
-     * Creates a reference to the CLOB data persisted in the database.
-     *
-     * @param precision
-     *            the precision (count of characters)
-     * @param handler
-     *            the data handler
-     * @param tableId
-     *            the table identifier
-     * @param lobId
-     *            the LOB identifier
-     * @return the CLOB
-     */
-    public static ValueClob create(long precision, DataHandler handler, int tableId, long lobId) {
-        return new ValueClob(new LobDataDatabase(handler, tableId, lobId), precision);
-    }
-
-    /**
      * Creates a small CLOB value that can be stored in the row directly.
      *
      * @param data
@@ -60,7 +43,8 @@ public final class ValueClob extends ValueLob {
      * @return the CLOB
      */
     public static ValueClob createSmall(byte[] data) {
-        return new ValueClob(new LobDataInMemory(data), new String(data, StandardCharsets.UTF_8).length());
+        return new ValueClob(new LobDataInMemory(data), data.length,
+                new String(data, StandardCharsets.UTF_8).length());
     }
 
     /**
@@ -74,7 +58,7 @@ public final class ValueClob extends ValueLob {
      * @return the CLOB
      */
     public static ValueClob createSmall(byte[] data, long charLength) {
-        return new ValueClob(new LobDataInMemory(data), charLength);
+        return new ValueClob(new LobDataInMemory(data), data.length, charLength);
     }
 
     /**
@@ -85,7 +69,8 @@ public final class ValueClob extends ValueLob {
      * @return the CLOB
      */
     public static ValueClob createSmall(String string) {
-        return new ValueClob(new LobDataInMemory(string.getBytes(StandardCharsets.UTF_8)), string.length());
+        byte[] bytes = string.getBytes(StandardCharsets.UTF_8);
+        return new ValueClob(new LobDataInMemory(bytes), bytes.length, string.length());
     }
 
     /**
@@ -150,7 +135,7 @@ public final class ValueClob extends ValueLob {
         FileStore tempFile = handler.openFile(fileName, "rw", false);
         tempFile.autoDelete();
 
-        long tmpPrecision = 0;
+        long octetLength = 0L, charLength = 0L;
         try (FileStoreOutputStream out = new FileStoreOutputStream(tempFile, null)) {
             char[] buff = new char[Constants.IO_BUFFER_SIZE];
             while (true) {
@@ -159,16 +144,18 @@ public final class ValueClob extends ValueLob {
                 if (len == 0) {
                     break;
                 }
+                // TODO reduce memory allocation
                 byte[] data = new String(buff, 0, len).getBytes(StandardCharsets.UTF_8);
                 out.write(data);
-                tmpPrecision += len;
+                octetLength += data.length;
+                charLength += len;
             }
         }
-        return new ValueClob(new LobDataFile(handler, fileName, tempFile), tmpPrecision);
+        return new ValueClob(new LobDataFile(handler, fileName, tempFile), octetLength, charLength);
     }
 
-    public ValueClob(LobData lobData, long charLength) {
-        super(lobData, -1L, charLength);
+    public ValueClob(LobData lobData, long octetLength, long charLength) {
+        super(lobData, octetLength, charLength);
     }
 
     @Override

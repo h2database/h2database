@@ -41,10 +41,9 @@ public interface LobStorageInterface {
      *
      * @param old the old lob
      * @param tableId the new table id
-     * @param length the length
      * @return the new lob
      */
-    ValueLob copyLob(ValueLob old, int tableId, long length);
+    ValueLob copyLob(ValueLob old, int tableId);
 
     /**
      * Get the input stream for the given lob, only called on server side of a TCP connection.

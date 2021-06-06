@@ -226,17 +226,13 @@ public final class LobStorageMap implements LobStorageInterface
     }
 
     @Override
-    public ValueLob copyLob(ValueLob old, int tableId, long length) {
+    public ValueLob copyLob(ValueLob old, int tableId) {
         MVStore.TxCounter txCounter = mvStore.registerVersionUsage();
         try {
             final LobDataDatabase lobData = (LobDataDatabase) old.getLobData();
             final int type = old.getValueType();
             final long oldLobId = lobData.getLobId();
             long octetLength = old.octetLength();
-            final long oldLength = type == Value.CLOB ? old.charLength() : octetLength;
-            if (oldLength != length) {
-                throw DbException.getInternalError("Length is different");
-            }
             // get source lob
             final byte[] streamStoreId;
             if (isTemporaryLob(lobData.getTableId())) {
@@ -250,14 +246,15 @@ public final class LobStorageMap implements LobStorageInterface
             if (isTemporaryLob(tableId)) {
                 tempLobMap.put(newLobId, streamStoreId);
             } else {
-                BlobMeta value = new BlobMeta(streamStoreId, tableId, length, 0);
+                BlobMeta value = new BlobMeta(streamStoreId, tableId,
+                        type == Value.CLOB ? old.charLength() : octetLength, 0);
                 lobMap.put(newLobId, value);
             }
             BlobReference refMapKey = new BlobReference(streamStoreId, newLobId);
             refMap.put(refMapKey, ValueNull.INSTANCE);
             LobDataDatabase newLobData = new LobDataDatabase(database, tableId, newLobId);
-            ValueLob lob = type == Value.BLOB ? new ValueBlob(newLobData, length)
-                    : new ValueClob(newLobData, octetLength, length);
+            ValueLob lob = type == Value.BLOB ? new ValueBlob(newLobData, octetLength)
+                    : new ValueClob(newLobData, octetLength, old.charLength());
             if (TRACE) {
                 trace("copy " + lobData.getTableId() + "/" + lobData.getLobId() +
                         " > " + tableId + "/" + newLobId);

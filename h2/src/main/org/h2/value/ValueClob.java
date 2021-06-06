@@ -330,7 +330,7 @@ public final class ValueClob extends ValueLob {
             }
             return this;
         } else if (lobData instanceof LobDataDatabase) {
-            return database.getLobStorage().copyLob(this, tableId, charLength);
+            return database.getLobStorage().copyLob(this, tableId);
         } else {
             throw new UnsupportedOperationException();
         }

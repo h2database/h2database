@@ -249,8 +249,7 @@ public abstract class ValueLob extends Value {
         if (lobData instanceof LobDataDatabase) {
             LobStorageInterface s = lobData.getDataHandler().getLobStorage();
             if (!s.isReadOnly()) {
-                int valueType = getValueType();
-                return s.copyLob(this, LobStorageFrontend.TABLE_RESULT, valueType == CLOB ? charLength : octetLength);
+                return s.copyLob(this, LobStorageFrontend.TABLE_RESULT);
             }
         }
         return this;

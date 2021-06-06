@@ -68,13 +68,13 @@ public final class ValueClob extends ValueLob {
      *
      * @param data
      *            the data in UTF-8 encoding
-     * @param precision
+     * @param charLength
      *            the count of characters, must be exactly the same as count of
      *            characters in the data
      * @return the CLOB
      */
-    public static ValueClob createSmall(byte[] data, long precision) {
-        return new ValueClob(new LobDataInMemory(data), precision);
+    public static ValueClob createSmall(byte[] data, long charLength) {
+        return new ValueClob(new LobDataInMemory(data), charLength);
     }
 
     /**

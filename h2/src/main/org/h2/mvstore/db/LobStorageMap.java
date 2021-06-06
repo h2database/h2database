@@ -178,7 +178,7 @@ public final class LobStorageMap implements LobStorageInterface
                             "len > maxinplace, " + utf8.length + " > "
                                     + database.getMaxLengthInplaceLob());
                 }
-                return ValueClob.createSmall(utf8);
+                return ValueClob.createSmall(utf8, len);
             }
             if (maxLength < 0) {
                 maxLength = Long.MAX_VALUE;

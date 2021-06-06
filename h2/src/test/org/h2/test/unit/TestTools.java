@@ -757,8 +757,7 @@ public class TestTools extends TestDb {
 
     private void testTraceFile(String url) throws SQLException {
         Connection conn;
-        Recover.main("-removePassword", "-dir", getBaseDir(), "-db",
-                "toolsConvertTraceFile");
+        Recover.main("-dir", getBaseDir(), "-db", "toolsConvertTraceFile");
         conn = getConnection(url, "sa", "");
         Statement stat = conn.createStatement();
         ResultSet rs;

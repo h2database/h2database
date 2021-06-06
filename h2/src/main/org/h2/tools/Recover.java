@@ -26,11 +26,9 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
-import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.DbObject;
 import org.h2.engine.MetaRecord;
-import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
@@ -58,8 +56,6 @@ import org.h2.util.TempFileDeleter;
 import org.h2.util.Tool;
 import org.h2.value.CompareMode;
 import org.h2.value.Value;
-import org.h2.value.ValueBlob;
-import org.h2.value.ValueClob;
 import org.h2.value.ValueCollectionBase;
 import org.h2.value.ValueLob;
 import org.h2.value.lob.LobData;
@@ -81,7 +77,6 @@ public class Recover extends Tool implements DataHandler {
     private HashSet<Integer> objectIdSet;
     private HashMap<Integer, String> tableMap;
     private HashMap<String, String> columnTypeMap;
-    private boolean remove;
     private boolean lobMaps;
 
     /**
@@ -128,8 +123,6 @@ public class Recover extends Tool implements DataHandler {
                 dir = args[++i];
             } else if ("-db".equals(arg)) {
                 db = args[++i];
-            } else if ("-removePassword".equals(arg)) {
-                remove = true;
             } else if ("-trace".equals(arg)) {
                 trace = true;
             } else if (arg.equals("-help") || arg.equals("-?")) {
@@ -140,36 +133,6 @@ public class Recover extends Tool implements DataHandler {
             }
         }
         process(dir, db);
-    }
-
-    /**
-     * INTERNAL
-     */
-    public static ValueBlob readBlobDb(Connection conn, long lobId, long precision) {
-        DataHandler h = ((JdbcConnection) conn).getSession().getDataHandler();
-        verifyPageStore(h);
-        LobDataDatabase lobData = new LobDataDatabase(h, LobStorageFrontend.TABLE_TEMP, lobId);
-        lobData.setRecoveryReference(true);
-        return new ValueBlob(lobData, precision);
-    }
-
-    private static void verifyPageStore(DataHandler h) {
-        if (h.getLobStorage() instanceof LobStorageMap) {
-            throw DbException.get(ErrorCode.FEATURE_NOT_SUPPORTED_1,
-                    "Restore page store recovery SQL script " +
-                    "can only be restored to a PageStore file");
-        }
-    }
-
-    /**
-     * INTERNAL
-     */
-    public static ValueClob readClobDb(Connection conn, long lobId, long precision) {
-        DataHandler h = ((JdbcConnection) conn).getSession().getDataHandler();
-        verifyPageStore(h);
-        LobDataDatabase lobData = new LobDataDatabase(h, LobStorageFrontend.TABLE_TEMP, lobId);
-        lobData.setRecoveryReference(true);
-        return new ValueClob(lobData, precision);
     }
 
     /**

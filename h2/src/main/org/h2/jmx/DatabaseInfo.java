@@ -18,7 +18,6 @@ import org.h2.engine.ConnectionInfo;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.SessionLocal;
-import org.h2.mvstore.db.Store;
 import org.h2.table.Table;
 import org.h2.util.NetworkConnectionInfo;
 

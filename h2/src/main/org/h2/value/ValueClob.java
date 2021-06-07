@@ -36,23 +36,6 @@ import org.h2.value.lob.LobDataInMemory;
 public final class ValueClob extends ValueLob {
 
     /**
-     * Creates a reference to the CLOB data persisted in the database.
-     *
-     * @param precision
-     *            the precision (count of characters)
-     * @param handler
-     *            the data handler
-     * @param tableId
-     *            the table identifier
-     * @param lobId
-     *            the LOB identifier
-     * @return the CLOB
-     */
-    public static ValueClob create(long precision, DataHandler handler, int tableId, long lobId) {
-        return new ValueClob(precision, new LobDataDatabase(handler, tableId, lobId));
-    }
-
-    /**
      * Creates a small CLOB value that can be stored in the row directly.
      *
      * @param data
@@ -60,7 +43,8 @@ public final class ValueClob extends ValueLob {
      * @return the CLOB
      */
     public static ValueClob createSmall(byte[] data) {
-        return new ValueClob(new String(data, StandardCharsets.UTF_8).length(), new LobDataInMemory(data));
+        return new ValueClob(new LobDataInMemory(data), data.length,
+                new String(data, StandardCharsets.UTF_8).length());
     }
 
     /**
@@ -68,13 +52,13 @@ public final class ValueClob extends ValueLob {
      *
      * @param data
      *            the data in UTF-8 encoding
-     * @param precision
+     * @param charLength
      *            the count of characters, must be exactly the same as count of
      *            characters in the data
      * @return the CLOB
      */
-    public static ValueClob createSmall(byte[] data, long precision) {
-        return new ValueClob(precision, new LobDataInMemory(data));
+    public static ValueClob createSmall(byte[] data, long charLength) {
+        return new ValueClob(new LobDataInMemory(data), data.length, charLength);
     }
 
     /**
@@ -85,7 +69,8 @@ public final class ValueClob extends ValueLob {
      * @return the CLOB
      */
     public static ValueClob createSmall(String string) {
-        return new ValueClob(string.length(), new LobDataInMemory(string.getBytes(StandardCharsets.UTF_8)));
+        byte[] bytes = string.getBytes(StandardCharsets.UTF_8);
+        return new ValueClob(new LobDataInMemory(bytes), bytes.length, string.length());
     }
 
     /**
@@ -150,7 +135,7 @@ public final class ValueClob extends ValueLob {
         FileStore tempFile = handler.openFile(fileName, "rw", false);
         tempFile.autoDelete();
 
-        long tmpPrecision = 0;
+        long octetLength = 0L, charLength = 0L;
         try (FileStoreOutputStream out = new FileStoreOutputStream(tempFile, null)) {
             char[] buff = new char[Constants.IO_BUFFER_SIZE];
             while (true) {
@@ -159,16 +144,18 @@ public final class ValueClob extends ValueLob {
                 if (len == 0) {
                     break;
                 }
+                // TODO reduce memory allocation
                 byte[] data = new String(buff, 0, len).getBytes(StandardCharsets.UTF_8);
                 out.write(data);
-                tmpPrecision += len;
+                octetLength += data.length;
+                charLength += len;
             }
         }
-        return new ValueClob(tmpPrecision, new LobDataFile(handler, fileName, tempFile));
+        return new ValueClob(new LobDataFile(handler, fileName, tempFile), octetLength, charLength);
     }
 
-    public ValueClob(long precision, LobData lobData) {
-        super(precision, lobData);
+    public ValueClob(LobData lobData, long octetLength, long charLength) {
+        super(lobData, octetLength, charLength);
     }
 
     @Override
@@ -178,29 +165,29 @@ public final class ValueClob extends ValueLob {
 
     @Override
     public String getString() {
-        if (precision > Constants.MAX_STRING_LENGTH) {
-            throw getStringTooLong(precision);
+        if (charLength > Constants.MAX_STRING_LENGTH) {
+            throw getStringTooLong(charLength);
         }
         if (lobData instanceof LobDataInMemory) {
             return new String(((LobDataInMemory) lobData).getSmall(), StandardCharsets.UTF_8);
         }
-        return readString((int) precision);
+        return readString((int) charLength);
     }
 
     @Override
     byte[] getBytesInternal() {
-        long p = otherPrecision;
+        long p = octetLength;
         if (p >= 0L) {
             if (p > Constants.MAX_STRING_LENGTH) {
                 throw getBinaryTooLong(p);
             }
             return readBytes((int) p);
         }
-        if (precision > Constants.MAX_STRING_LENGTH) {
+        if (octetLength > Constants.MAX_STRING_LENGTH) {
             throw getBinaryTooLong(octetLength());
         }
         byte[] b = readBytes(Integer.MAX_VALUE);
-        otherPrecision = p = b.length;
+        octetLength = p = b.length;
         if (p > Constants.MAX_STRING_LENGTH) {
             throw getBinaryTooLong(p);
         }
@@ -219,7 +206,7 @@ public final class ValueClob extends ValueLob {
 
     @Override
     public Reader getReader(long oneBasedOffset, long length) {
-        return rangeReader(getReader(), oneBasedOffset, length, precision);
+        return rangeReader(getReader(), oneBasedOffset, length, charLength);
     }
 
     @Override
@@ -255,7 +242,7 @@ public final class ValueClob extends ValueLob {
      * @return result of comparison
      */
     private static int compare(ValueClob v1, ValueClob v2) {
-        long minPrec = Math.min(v1.precision, v2.precision);
+        long minPrec = Math.min(v1.charLength, v2.charLength);
         try (Reader reader1 = v1.getReader(); Reader reader2 = v2.getReader()) {
             char[] buf1 = new char[BLOCK_COMPARISON_SIZE];
             char[] buf2 = new char[BLOCK_COMPARISON_SIZE];
@@ -289,15 +276,15 @@ public final class ValueClob extends ValueLob {
     @Override
     public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
         if ((sqlFlags & REPLACE_LOBS_FOR_TRACE) != 0
-                && (!(lobData instanceof LobDataInMemory) || precision > SysProperties.MAX_TRACE_DATA_LENGTH)) {
-            builder.append("SPACE(").append(precision);
+                && (!(lobData instanceof LobDataInMemory) || charLength > SysProperties.MAX_TRACE_DATA_LENGTH)) {
+            builder.append("SPACE(").append(charLength);
             LobDataDatabase lobDb = (LobDataDatabase) lobData;
             builder.append(" /* table: ").append(lobDb.getTableId()).append(" id: ").append(lobDb.getLobId())
                     .append(" */)");
         } else {
             if ((sqlFlags & (REPLACE_LOBS_FOR_TRACE | NO_CASTS)) == 0) {
                 StringUtils.quoteStringSQL(builder.append("CAST("), getString()).append(" AS CHARACTER LARGE OBJECT(")
-                        .append(precision).append("))");
+                        .append(charLength).append("))");
             } else {
                 StringUtils.quoteStringSQL(builder, getString());
             }
@@ -313,7 +300,7 @@ public final class ValueClob extends ValueLob {
      * @return the truncated or this value
      */
     ValueClob convertPrecision(long precision) {
-        if (this.precision <= precision) {
+        if (this.charLength <= precision) {
             return this;
         }
         ValueClob lob;
@@ -336,14 +323,14 @@ public final class ValueClob extends ValueLob {
             byte[] small = ((LobDataInMemory) lobData).getSmall();
             if (small.length > database.getMaxLengthInplaceLob()) {
                 LobStorageInterface s = database.getLobStorage();
-                ValueClob v = s.createClob(getReader(), precision);
+                ValueClob v = s.createClob(getReader(), charLength);
                 ValueLob v2 = v.copy(database, tableId);
                 v.remove();
                 return v2;
             }
             return this;
         } else if (lobData instanceof LobDataDatabase) {
-            return database.getLobStorage().copyLob(this, tableId, precision);
+            return database.getLobStorage().copyLob(this, tableId);
         } else {
             throw new UnsupportedOperationException();
         }
@@ -351,12 +338,12 @@ public final class ValueClob extends ValueLob {
 
     @Override
     public long charLength() {
-        return precision;
+        return charLength;
     }
 
     @Override
     public long octetLength() {
-        long p = otherPrecision;
+        long p = octetLength;
         if (p < 0L) {
             if (lobData instanceof LobDataInMemory) {
                 p = ((LobDataInMemory) lobData).getSmall().length;
@@ -374,7 +361,7 @@ public final class ValueClob extends ValueLob {
                     throw DbException.convertIOException(e, null);
                 }
             }
-            otherPrecision = p;
+            octetLength = p;
         }
         return p;
     }

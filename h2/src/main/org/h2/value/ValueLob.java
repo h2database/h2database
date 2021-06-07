@@ -88,28 +88,27 @@ public abstract class ValueLob extends Value {
 
     private TypeInfo type;
 
-    /**
-     * Length in characters for character large objects or length in bytes for
-     * binary large objects.
-     */
-    protected long precision;
-
     final LobData lobData;
 
     /**
-     * Length in characters for binary large objects or length in bytes for
-     * character large objects.
+     * Length in bytes.
      */
-    volatile long otherPrecision = -1L;
+    long octetLength;
+
+    /**
+     * Length in characters.
+     */
+    long charLength;
 
     /**
      * Cache the hashCode because it can be expensive to compute.
      */
     private int hash;
 
-    ValueLob(long precision, LobData lobData) {
-        this.precision = precision;
+    ValueLob(LobData lobData, long octetLength, long charLength) {
         this.lobData = lobData;
+        this.octetLength = octetLength;
+        this.charLength = charLength;
     }
 
     /**
@@ -144,7 +143,8 @@ public abstract class ValueLob extends Value {
     public TypeInfo getType() {
         TypeInfo type = this.type;
         if (type == null) {
-            this.type = type = new TypeInfo(getValueType(), precision, 0, null);
+            int valueType = getValueType();
+            this.type = type = new TypeInfo(valueType, valueType == CLOB ? charLength : octetLength, 0, null);
         }
         return type;
     }
@@ -209,23 +209,16 @@ public abstract class ValueLob extends Value {
     @Override
     public int hashCode() {
         if (hash == 0) {
-            if (precision > 4096) {
+            int valueType = getValueType();
+            long length = valueType == Value.CLOB ? charLength : octetLength;
+            if (length > 4096) {
                 // TODO: should calculate the hash code when saving, and store
                 // it in the database file
-                return (int) (precision ^ (precision >>> 32));
+                return (int) (length ^ (length >>> 32));
             }
             hash = Utils.getByteArrayHash(getBytesNoCopy());
         }
         return hash;
-    }
-
-    /**
-     * Returns the precision.
-     *
-     * @return the precision
-     */
-    public long getPrecision() {
-        return precision;
     }
 
     @Override
@@ -243,15 +236,6 @@ public abstract class ValueLob extends Value {
         return lobData.getMemory();
     }
 
-    /**
-     * Returns the data handler.
-     *
-     * @return the data handler, or {@code null}
-     */
-    public DataHandler getDataHandler() {
-        return lobData.getDataHandler();
-    }
-
     public LobData getLobData() {
         return lobData;
     }
@@ -265,7 +249,7 @@ public abstract class ValueLob extends Value {
         if (lobData instanceof LobDataDatabase) {
             LobStorageInterface s = lobData.getDataHandler().getLobStorage();
             if (!s.isReadOnly()) {
-                return s.copyLob(this, LobStorageFrontend.TABLE_RESULT, precision);
+                return s.copyLob(this, LobStorageFrontend.TABLE_RESULT);
             }
         }
         return this;

@@ -390,7 +390,7 @@ public class TestValueMemory extends TestBase implements DataHandler {
         }
 
         @Override
-        public ValueLob copyLob(ValueLob old, int tableId, long length) {
+        public ValueLob copyLob(ValueLob old, int tableId) {
             throw new UnsupportedOperationException();
         }
 

@@ -65,7 +65,7 @@ public class LobStorageFrontend implements LobStorageInterface {
     }
 
     @Override
-    public ValueLob copyLob(ValueLob old, int tableId, long length) {
+    public ValueLob copyLob(ValueLob old, int tableId) {
         throw new UnsupportedOperationException();
     }
 

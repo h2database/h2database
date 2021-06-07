@@ -1296,7 +1296,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         if (conversionMode != CONVERT_TO) {
             if (conversionMode == CAST_TO) {
                 v = v.convertPrecision(targetType.getPrecision());
-            } else if (v.getPrecision() > targetType.getPrecision()) {
+            } else if (v.charLength() > targetType.getPrecision()) {
                 throw v.getValueTooLongException(targetType, column);
             }
         }
@@ -1380,7 +1380,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
             v = (ValueBlob) this;
             break;
         case CLOB:
-            DataHandler handler = ((ValueLob) this).getDataHandler();
+            DataHandler handler = ((ValueLob) this).lobData.getDataHandler();
             if (handler != null) {
                 v = handler.getLobStorage().createBlob(getInputStream(), -1);
                 break;
@@ -1400,7 +1400,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         if (conversionMode != CONVERT_TO) {
             if (conversionMode == CAST_TO) {
                 v = v.convertPrecision(targetType.getPrecision());
-            } else if (v.getPrecision() > targetType.getPrecision()) {
+            } else if (v.octetLength() > targetType.getPrecision()) {
                 throw v.getValueTooLongException(targetType, column);
             }
         }

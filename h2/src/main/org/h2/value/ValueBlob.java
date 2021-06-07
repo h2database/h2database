@@ -35,23 +35,6 @@ import org.h2.value.lob.LobDataInMemory;
 public final class ValueBlob extends ValueLob {
 
     /**
-     * Creates a reference to the BLOB data persisted in the database.
-     *
-     * @param precision
-     *            the precision (count of bytes)
-     * @param handler
-     *            the data handler
-     * @param tableId
-     *            the table identifier
-     * @param lobId
-     *            the LOB identifier
-     * @return the BLOB
-     */
-    public static ValueBlob create(long precision, DataHandler handler, int tableId, long lobId) {
-        return new ValueBlob(precision, new LobDataDatabase(handler, tableId, lobId));
-    }
-
-    /**
      * Creates a small BLOB value that can be stored in the row directly.
      *
      * @param data
@@ -59,7 +42,7 @@ public final class ValueBlob extends ValueLob {
      * @return the BLOB
      */
     public static ValueBlob createSmall(byte[] data) {
-        return new ValueBlob(data.length, new LobDataInMemory(data));
+        return new ValueBlob(new LobDataInMemory(data), data.length);
     }
 
     /**
@@ -121,11 +104,11 @@ public final class ValueBlob extends ValueLob {
                 }
             }
         }
-        return new ValueBlob(tmpPrecision, new LobDataFile(handler, fileName, tempFile));
+        return new ValueBlob(new LobDataFile(handler, fileName, tempFile), tmpPrecision);
     }
 
-    public ValueBlob(long precision, LobData lobData) {
-        super(precision, lobData);
+    public ValueBlob(LobData lobData, long octetLength) {
+        super(lobData, octetLength, -1L);
     }
 
     @Override
@@ -135,7 +118,7 @@ public final class ValueBlob extends ValueLob {
 
     @Override
     public String getString() {
-        long p = otherPrecision;
+        long p = charLength;
         if (p >= 0L) {
             if (p > Constants.MAX_STRING_LENGTH) {
                 throw getStringTooLong(p);
@@ -143,7 +126,7 @@ public final class ValueBlob extends ValueLob {
             return readString((int) p);
         }
         // 1 Java character may be encoded with up to 3 bytes
-        if (precision > Constants.MAX_STRING_LENGTH * 3) {
+        if (octetLength > Constants.MAX_STRING_LENGTH * 3) {
             throw getStringTooLong(charLength());
         }
         String s;
@@ -152,7 +135,7 @@ public final class ValueBlob extends ValueLob {
         } else {
             s = readString(Integer.MAX_VALUE);
         }
-        otherPrecision = p = s.length();
+        charLength = p = s.length();
         if (p > Constants.MAX_STRING_LENGTH) {
             throw getStringTooLong(p);
         }
@@ -161,20 +144,20 @@ public final class ValueBlob extends ValueLob {
 
     @Override
     byte[] getBytesInternal() {
-        if (precision > Constants.MAX_STRING_LENGTH) {
-            throw getBinaryTooLong(precision);
+        if (octetLength > Constants.MAX_STRING_LENGTH) {
+            throw getBinaryTooLong(octetLength);
         }
-        return readBytes((int) precision);
+        return readBytes((int) octetLength);
     }
 
     @Override
     public InputStream getInputStream() {
-        return lobData.getInputStream(precision);
+        return lobData.getInputStream(octetLength);
     }
 
     @Override
     public InputStream getInputStream(long oneBasedOffset, long length) {
-        long p = precision;
+        long p = octetLength;
         return rangeInputStream(lobData.getInputStream(p), oneBasedOffset, length, p);
     }
 
@@ -217,7 +200,7 @@ public final class ValueBlob extends ValueLob {
      * @return result of comparison
      */
     private static int compare(ValueBlob v1, ValueBlob v2) {
-        long minPrec = Math.min(v1.precision, v2.precision);
+        long minPrec = Math.min(v1.octetLength, v2.octetLength);
         try (InputStream is1 = v1.getInputStream(); InputStream is2 = v2.getInputStream()) {
             byte[] buf1 = new byte[BLOCK_COMPARISON_SIZE];
             byte[] buf2 = new byte[BLOCK_COMPARISON_SIZE];
@@ -251,8 +234,8 @@ public final class ValueBlob extends ValueLob {
     @Override
     public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
         if ((sqlFlags & REPLACE_LOBS_FOR_TRACE) != 0
-                && (!(lobData instanceof LobDataInMemory) || precision > SysProperties.MAX_TRACE_DATA_LENGTH)) {
-            builder.append("CAST(REPEAT(CHAR(0), ").append(precision).append(") AS BINARY VARYING");
+                && (!(lobData instanceof LobDataInMemory) || octetLength > SysProperties.MAX_TRACE_DATA_LENGTH)) {
+            builder.append("CAST(REPEAT(CHAR(0), ").append(octetLength).append(") AS BINARY VARYING");
             LobDataDatabase lobDb = (LobDataDatabase) lobData;
             builder.append(" /* table: ").append(lobDb.getTableId()).append(" id: ").append(lobDb.getLobId())
                     .append(" */)");
@@ -260,7 +243,7 @@ public final class ValueBlob extends ValueLob {
             if ((sqlFlags & (REPLACE_LOBS_FOR_TRACE | NO_CASTS)) == 0) {
                 builder.append("CAST(X'");
                 StringUtils.convertBytesToHex(builder, getBytesNoCopy()).append("' AS BINARY LARGE OBJECT(")
-                        .append(precision).append("))");
+                        .append(octetLength).append("))");
             } else {
                 builder.append("X'");
                 StringUtils.convertBytesToHex(builder, getBytesNoCopy()).append('\'');
@@ -277,7 +260,7 @@ public final class ValueBlob extends ValueLob {
      * @return the truncated or this value
      */
     ValueBlob convertPrecision(long precision) {
-        if (this.precision <= precision) {
+        if (this.octetLength <= precision) {
             return this;
         }
         ValueBlob lob;
@@ -300,14 +283,14 @@ public final class ValueBlob extends ValueLob {
             byte[] small = ((LobDataInMemory) lobData).getSmall();
             if (small.length > database.getMaxLengthInplaceLob()) {
                 LobStorageInterface s = database.getLobStorage();
-                ValueBlob v = s.createBlob(getInputStream(), precision);
+                ValueBlob v = s.createBlob(getInputStream(), octetLength);
                 ValueLob v2 = v.copy(database, tableId);
                 v.remove();
                 return v2;
             }
             return this;
         } else if (lobData instanceof LobDataDatabase) {
-            return database.getLobStorage().copyLob(this, tableId, precision);
+            return database.getLobStorage().copyLob(this, tableId);
         } else {
             throw new UnsupportedOperationException();
         }
@@ -315,7 +298,7 @@ public final class ValueBlob extends ValueLob {
 
     @Override
     public long charLength() {
-        long p = otherPrecision;
+        long p = charLength;
         if (p < 0L) {
             if (lobData instanceof LobDataInMemory) {
                 p = new String(((LobDataInMemory) lobData).getSmall(), StandardCharsets.UTF_8).length();
@@ -333,14 +316,14 @@ public final class ValueBlob extends ValueLob {
                     throw DbException.convertIOException(e, null);
                 }
             }
-            otherPrecision = p;
+            charLength = p;
         }
         return p;
     }
 
     @Override
     public long octetLength() {
-        return precision;
+        return octetLength;
     }
 
 }

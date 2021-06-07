@@ -874,16 +874,16 @@ public final class Transfer {
             writeInt(BLOB);
             ValueBlob lob = (ValueBlob) v;
             LobData lobData = lob.getLobData();
+            long length = lob.octetLength();
             if (lobData instanceof LobDataDatabase) {
                 LobDataDatabase lobDataDatabase = (LobDataDatabase) lobData;
                 writeLong(-1);
                 writeInt(lobDataDatabase.getTableId());
                 writeLong(lobDataDatabase.getLobId());
                 writeBytes(calculateLobMac(lobDataDatabase.getLobId()));
-                writeLong(lob.getPrecision());
+                writeLong(length);
                 break;
             }
-            long length = lob.getPrecision();
             if (length < 0) {
                 throw DbException.get(
                         ErrorCode.CONNECTION_BROKEN_1, "length=" + length);
@@ -901,21 +901,24 @@ public final class Transfer {
             writeInt(CLOB);
             ValueClob lob = (ValueClob) v;
             LobData lobData = lob.getLobData();
+            long charLength = lob.charLength();
             if (lobData instanceof LobDataDatabase) {
                 LobDataDatabase lobDataDatabase = (LobDataDatabase) lobData;
                 writeLong(-1);
                 writeInt(lobDataDatabase.getTableId());
                 writeLong(lobDataDatabase.getLobId());
                 writeBytes(calculateLobMac(lobDataDatabase.getLobId()));
-                writeLong(lob.getPrecision());
+                if (version >= Constants.TCP_PROTOCOL_VERSION_20) {
+                    writeLong(lob.octetLength());
+                }
+                writeLong(charLength);
                 break;
             }
-            long length = lob.getPrecision();
-            if (length < 0) {
+            if (charLength < 0) {
                 throw DbException.get(
-                        ErrorCode.CONNECTION_BROKEN_1, "length=" + length);
+                        ErrorCode.CONNECTION_BROKEN_1, "length=" + charLength);
             }
-            writeLong(length);
+            writeLong(charLength);
             Reader reader = lob.getReader();
             Data.copyString(reader, out);
             writeInt(LOB_MAGIC);
@@ -1081,7 +1084,7 @@ public final class Transfer {
                 long id = readLong();
                 byte[] hmac = readBytes();
                 long precision = readLong();
-                return new ValueBlob(precision, new LobDataFetchOnDemand(session.getDataHandler(), tableId, id, hmac));
+                return new ValueBlob(new LobDataFetchOnDemand(session.getDataHandler(), tableId, id, hmac), precision);
             }
             Value v = session.getDataHandler().getLobStorage().createBlob(in, length);
             int magic = readInt();
@@ -1092,21 +1095,23 @@ public final class Transfer {
             return v;
         }
         case CLOB: {
-            long length = readLong();
-            if (length == -1) {
+            long charLength = readLong();
+            if (charLength == -1) {
                 // fetch-on-demand LOB
                 int tableId = readInt();
                 long id = readLong();
                 byte[] hmac = readBytes();
-                long precision = readLong();
-                return new ValueClob(precision, new LobDataFetchOnDemand(session.getDataHandler(), tableId, id, hmac));
+                long octetLength = version >= Constants.TCP_PROTOCOL_VERSION_20 ? readLong() : -1L;
+                charLength = readLong();
+                return new ValueClob(new LobDataFetchOnDemand(session.getDataHandler(), tableId, id, hmac),
+                        octetLength, charLength);
             }
-            if (length < 0) {
+            if (charLength < 0) {
                 throw DbException.get(
-                        ErrorCode.CONNECTION_BROKEN_1, "length="+ length);
+                        ErrorCode.CONNECTION_BROKEN_1, "length="+ charLength);
             }
             Value v = session.getDataHandler().getLobStorage().
-                    createClob(new DataReader(in), length);
+                    createClob(new DataReader(in), charLength);
             int magic = readInt();
             if (magic != LOB_MAGIC) {
                 throw DbException.get(

@@ -596,14 +596,12 @@ public class JdbcUtils {
     }
 
     private static void setLob(PreparedStatement prep, int parameterIndex, ValueLob value) throws SQLException {
-        long p = value.getPrecision();
-        if (p > Integer.MAX_VALUE) {
-            p = -1;
-        }
         if (value.getValueType() == Value.BLOB) {
-            prep.setBinaryStream(parameterIndex, value.getInputStream(), (int) p);
+            long p = value.octetLength();
+            prep.setBinaryStream(parameterIndex, value.getInputStream(), p > Integer.MAX_VALUE ? -1 : (int) p);
         } else {
-            prep.setCharacterStream(parameterIndex, value.getReader(), (int) p);
+            long p = value.charLength();
+            prep.setCharacterStream(parameterIndex, value.getReader(), p > Integer.MAX_VALUE ? -1 : (int) p);
         }
     }
 

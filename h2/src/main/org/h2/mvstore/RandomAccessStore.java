@@ -385,8 +385,8 @@ public abstract class RandomAccessStore extends FileStore {
         // in the absence of a reserved area,
         // block should always move closer to the beginning of the file
         assert reservedAreaHigh > 0 || block <= chunk.block : block + " " + chunk;
-        ByteBuffer readBuff = readFully(start, length);
-        writeFully(pos, readBuff);
+        ByteBuffer readBuff = readFully(0, start, length);
+        writeFully(0, pos, readBuff);
         free(start, length);
         // can not set chunk's new block/len until it's fully written at new location,
         // because concurrent reader can pick it up prematurely,

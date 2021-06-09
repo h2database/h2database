@@ -997,7 +997,7 @@ public class TestMVStore extends TestBase {
             if (i < 0 || i >= 50) {
                 assertNull(k);
             } else {
-                assertNull(k);
+                assertNotNull(k);
                 assertEquals(i * 2, k.intValue());
             }
         }

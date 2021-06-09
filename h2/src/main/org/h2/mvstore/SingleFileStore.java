@@ -56,21 +56,23 @@ public class SingleFileStore extends RandomAccessStore {
     /**
      * Read from the file.
      *
+     *
+     * @param volumeId
      * @param pos the write position
      * @param len the number of bytes to read
      * @return the byte buffer
      */
-    public ByteBuffer readFully(long pos, int len) {
+    public ByteBuffer readFully(int volumeId, long pos, int len) {
         return readFully(this.file, pos, len);
     }
 
     /**
      * Write to the file.
-     *
+     * @param volumeId
      * @param pos the write position
      * @param src the source buffer
      */
-    public void writeFully(long pos, ByteBuffer src) {
+    public void writeFully(int volumeId, long pos, ByteBuffer src) {
         int len = src.remaining();
         setSize(Math.max(super.size(), pos + len));
         DataUtils.writeFully(file, pos, src);

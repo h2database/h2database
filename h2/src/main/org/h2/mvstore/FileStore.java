@@ -656,15 +656,24 @@ public abstract class FileStore
         return chunk.isRewritable() && isSeasonedChunk(chunk, time);
     }
 
+    /**
+     * Write data to the store.
+     * @param volumeId 0-based index
+     * @param pos the write "position"
+     * @param src the source buffer
+     */
+    protected abstract void writeFully(int volumeId, long pos, ByteBuffer src);
 
     /**
      * Read data from the store.
      *
+     *
+     * @param volumeId 0-based index
      * @param pos the read "position"
      * @param len the number of bytes to read
      * @return the byte buffer with data requested
      */
-    public abstract ByteBuffer readFully(long pos, int len);
+    public abstract ByteBuffer readFully(int volumeId, long pos, int len);
 
     protected final ByteBuffer readFully(FileChannel file, long pos, int len) {
         ByteBuffer dst = ByteBuffer.allocate(len);
@@ -783,7 +792,7 @@ public abstract class FileStore
         header.position(BLOCK_SIZE);
         header.put(bytes);
         header.rewind();
-        writeFully(0, header);
+        writeFully(0, 0, header);
     }
 
     protected void writeCleanShutdown() {
@@ -919,7 +928,7 @@ public abstract class FileStore
         boolean validStoreHeader = false;
         // find out which chunk and version are the newest
         // read the first two blocks
-        ByteBuffer fileHeaderBlocks = readFully(0, 2 * FileStore.BLOCK_SIZE);
+        ByteBuffer fileHeaderBlocks = readFully(0, 0, 2 * FileStore.BLOCK_SIZE);
         byte[] buff = new byte[FileStore.BLOCK_SIZE];
         for (int i = 0; i <= FileStore.BLOCK_SIZE; i += FileStore.BLOCK_SIZE) {
             fileHeaderBlocks.get(buff);
@@ -1230,7 +1239,7 @@ public abstract class FileStore
 
     private Chunk readChunkHeader(long block) {
         long p = block * FileStore.BLOCK_SIZE;
-        ByteBuffer buff = readFully(p, Chunk.MAX_HEADER_LENGTH);
+        ByteBuffer buff = readFully(0, p, Chunk.MAX_HEADER_LENGTH);
         Chunk chunk = Chunk.readChunkHeader(buff, p);
         if (chunk.block == 0) {
             chunk.block = block;
@@ -1338,7 +1347,7 @@ public abstract class FileStore
             if(pos < 0) {
                 return null;
             }
-            ByteBuffer lastBlock = readFully(pos, Chunk.FOOTER_LENGTH);
+            ByteBuffer lastBlock = readFully(0, pos, Chunk.FOOTER_LENGTH);
             byte[] buff = new byte[Chunk.FOOTER_LENGTH];
             lastBlock.get(buff);
             HashMap<String, String> m = DataUtils.parseChecksummedMap(buff);
@@ -1391,14 +1400,6 @@ public abstract class FileStore
         return autoCompactFillRate;
     }
 
-
-    /**
-     * Write data to the store.
-     *
-     * @param pos the write "position"
-     * @param src the source buffer
-     */
-    protected abstract void writeFully(long pos, ByteBuffer src);
 
     public void sync() {}
 
@@ -1678,7 +1679,7 @@ public abstract class FileStore
             allocateChunkSpace(c, buff);
             buff.position(0);
             long filePos = c.block * BLOCK_SIZE;
-            writeFully(filePos, buff.getBuffer());
+            writeFully(c.volumeId, filePos, buff.getBuffer());
 
             // end of the used space is not necessarily the end of the file
             boolean storeAtEndOfFile = filePos + buff.limit() >= size();

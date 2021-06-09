@@ -45,6 +45,7 @@ public final class Chunk {
     static final int FOOTER_LENGTH = 128; // it's really 70 now
 
     private static final String ATTR_CHUNK = "chunk";
+    private static final String ATTR_VOLUME = "vol";
     private static final String ATTR_BLOCK = "block";
     private static final String ATTR_LEN = "len";
     private static final String ATTR_MAP = "map";
@@ -72,6 +73,11 @@ public final class Chunk {
      * The start block number within the file.
      */
     public volatile long block;
+
+    /**
+     * The index of the file (0-based), containing this chunk.
+     */
+    public volatile int volumeId;
 
     /**
      * The length in number of blocks.
@@ -178,6 +184,7 @@ public final class Chunk {
 
     private Chunk(Map<String, String> map, boolean full) {
         this(DataUtils.readHexInt(map, ATTR_CHUNK, 0));
+        volumeId = DataUtils.readHexInt(map, ATTR_VOLUME, 0);
         block = DataUtils.readHexLong(map, ATTR_BLOCK, 0);
         len = DataUtils.readHexInt(map, ATTR_LEN, 0);
         version = DataUtils.readHexLong(map, ATTR_VERSION, id);
@@ -322,6 +329,9 @@ public final class Chunk {
     public String asString() {
         StringBuilder buff = new StringBuilder(240);
         DataUtils.appendMap(buff, ATTR_CHUNK, id);
+        if (volumeId != 0) {
+            DataUtils.appendMap(buff, ATTR_VOLUME, volumeId);
+        }
         DataUtils.appendMap(buff, ATTR_BLOCK, block);
         DataUtils.appendMap(buff, ATTR_LEN, len);
         DataUtils.appendMap(buff, ATTR_PAGES, pageCount);
@@ -443,7 +453,7 @@ public final class Chunk {
                 int length = DataUtils.getPageMaxLength(pos);
                 if (length == DataUtils.PAGE_LARGE) {
                     // read the first bytes to figure out actual length
-                    length = fileStore.readFully(filePos, 128).getInt();
+                    length = getReadFully(fileStore, filePos, 128).getInt();
                     // pageNo is deliberately not included into length to preserve compatibility
                     // TODO: remove this adjustment when page on disk format is re-organized
                     length += 4;
@@ -454,7 +464,7 @@ public final class Chunk {
                             "Illegal page length {0} reading at {1}; max pos {2} ", length, filePos, maxPos);
                 }
 
-                ByteBuffer buff = fileStore.readFully(filePos, length);
+                ByteBuffer buff = getReadFully(fileStore, filePos, length);
 
                 if (originalBlock == block) {
                     return buff;
@@ -465,6 +475,10 @@ public final class Chunk {
                 }
             }
         }
+    }
+
+    private ByteBuffer getReadFully(FileStore fileStore, long filePos, int length) {
+        return fileStore.readFully(volumeId, filePos, length);
     }
 
     long[] readToC(FileStore fileStore) {
@@ -478,7 +492,7 @@ public final class Chunk {
                 if (buff == null) {
                     int length = pageCount * 8;
                     long filePos = originalBlock * FileStore.BLOCK_SIZE + tocPos;
-                    buff = fileStore.readFully(filePos, length);
+                    buff = getReadFully(fileStore, filePos, length);
                 } else {
                     buff = buff.duplicate();
                     buff.position(tocPos);

@@ -58,16 +58,25 @@ public class AppendOnlyMultiFileStore extends FileStore
         return unsavedMemory > autoCommitMemory;
     }
 
+    @Override
+    protected void writeFully(int volumeId, long pos, ByteBuffer src) {
+        int len = src.remaining();
+        setSize(Math.max(super.size(), pos + len));
+        DataUtils.writeFully(files[volumeId], pos, src);
+        writeCount.incrementAndGet();
+        writeBytes.addAndGet(len);
+    }
+
     /**
      * Read from the file.
      *
-     * @param pos the write position
+     * @param volumeId of the file to read from
+     * @param pos the offset within the file
      * @param len the number of bytes to read
      * @return the byte buffer
      */
-    public ByteBuffer readFully(long pos, int len) {
-
-        return readFully(file, pos, len);
+    public ByteBuffer readFully(int volumeId, long pos, int len) {
+        return readFully(files[volumeId], pos, len);
     }
 
     @Override
@@ -97,15 +106,6 @@ public class AppendOnlyMultiFileStore extends FileStore
     @Override
     protected void doHousekeeping(MVStore mvStore) throws InterruptedException {
 
-    }
-
-    @Override
-    protected void writeFully(long pos, ByteBuffer src) {
-        int len = src.remaining();
-        setSize(Math.max(super.size(), pos + len));
-        DataUtils.writeFully(file, pos, src);
-        writeCount.incrementAndGet();
-        writeBytes.addAndGet(len);
     }
 
     @Override

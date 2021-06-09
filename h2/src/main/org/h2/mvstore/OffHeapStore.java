@@ -35,7 +35,7 @@ public class OffHeapStore extends RandomAccessStore {
     }
 
     @Override
-    public ByteBuffer readFully(long pos, int len) {
+    public ByteBuffer readFully(int volumeId, long pos, int len) {
         Entry<Long, ByteBuffer> memEntry = memory.floorEntry(pos);
         if (memEntry == null) {
             throw DataUtils.newMVStoreException(
@@ -66,7 +66,7 @@ public class OffHeapStore extends RandomAccessStore {
     }
 
     @Override
-    public void writeFully(long pos, ByteBuffer src) {
+    public void writeFully(int volumeId, long pos, ByteBuffer src) {
         setSize(Math.max(super.size(), pos + src.remaining()));
         Entry<Long, ByteBuffer> mem = memory.floorEntry(pos);
         if (mem == null) {

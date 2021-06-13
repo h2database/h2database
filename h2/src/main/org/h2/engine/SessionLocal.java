@@ -541,7 +541,7 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
 
     public void setLockTimeout(int lockTimeout) {
         this.lockTimeout = lockTimeout;
-        if (transaction != null) {
+        if (hasTransaction()) {
             transaction.setTimeoutMillis(lockTimeout);
         }
     }
@@ -649,7 +649,7 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
      */
     public void commit(boolean ddl) {
         beforeCommitOrRollback();
-        if (transaction != null) {
+        if (hasTransaction()) {
             try {
                 markUsedTablesAsUpdated();
                 transaction.commit();
@@ -749,7 +749,7 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
             database.releaseDatabaseObjectIds(idsToRelease);
             idsToRelease = null;
         }
-        if (transaction != null && !transaction.allowNonRepeatableRead()) {
+        if (hasTransaction() && !transaction.allowNonRepeatableRead()) {
             snapshotDataModificationId = database.getNextModificationDataId();
         }
     }
@@ -769,7 +769,7 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
      */
     public void rollback() {
         beforeCommitOrRollback();
-        if (transaction != null) {
+        if (hasTransaction()) {
             rollbackTo(null);
         }
         idsToRelease = null;
@@ -788,7 +788,7 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
      */
     public void rollbackTo(Savepoint savepoint) {
         int index = savepoint == null ? 0 : savepoint.logIndex;
-        if (transaction != null) {
+        if (hasTransaction()) {
             markUsedTablesAsUpdated();
             if (savepoint == null) {
                 transaction.rollback();
@@ -818,7 +818,7 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
 
     @Override
     public boolean hasPendingTransaction() {
-        return false;
+        return hasTransaction() && transaction.hasChanges() && transaction.getStatus() != Transaction.STATUS_PREPARED;
     }
 
     /**
@@ -921,6 +921,11 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
      */
     void unlock(Table t) {
         locks.remove(t);
+    }
+
+
+    private boolean hasTransaction() {
+        return transaction != null;
     }
 
     private void unlockAll() {
@@ -1094,7 +1099,7 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
      * @param transactionName the name of the transaction
      */
     public void prepareCommit(String transactionName) {
-        if (containsUncommitted()) {
+        if (hasPendingTransaction()) {
             // need to commit even if rollback is not possible (create/drop
             // table and so on)
             database.prepareCommit(this, transactionName);
@@ -1713,7 +1718,7 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
      */
     public void endStatement() {
         setCurrentCommand(null);
-        if (transaction != null) {
+        if (hasTransaction()) {
             transaction.markStatementEnd();
         }
         startStatement = -1;

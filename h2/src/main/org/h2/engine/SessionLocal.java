@@ -1131,18 +1131,14 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
                 rollback();
             }
         } else {
-            ArrayList<InDoubtTransaction> list = database
-                    .getInDoubtTransactions();
-            int state = commit ? InDoubtTransaction.COMMIT
-                    : InDoubtTransaction.ROLLBACK;
+            ArrayList<InDoubtTransaction> list = database.getInDoubtTransactions();
+            int state = commit ? InDoubtTransaction.COMMIT : InDoubtTransaction.ROLLBACK;
             boolean found = false;
-            if (list != null) {
-                for (InDoubtTransaction p: list) {
-                    if (p.getTransactionName().equals(transactionName)) {
-                        p.setState(state);
-                        found = true;
-                        break;
-                    }
+            for (InDoubtTransaction p: list) {
+                if (p.getTransactionName().equals(transactionName)) {
+                    p.setState(state);
+                    found = true;
+                    break;
                 }
             }
             if (!found) {

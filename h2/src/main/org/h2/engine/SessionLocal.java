@@ -828,9 +828,7 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
      */
     public Savepoint setSavepoint() {
         Savepoint sp = new Savepoint();
-        if (database.getStore() != null) {
-            sp.transactionSavepoint = getStatementSavepoint();
-        }
+        sp.transactionSavepoint = getStatementSavepoint();
         return sp;
     }
 
@@ -1611,14 +1609,12 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
     public Transaction getTransaction() {
         if (transaction == null) {
             Store store = database.getStore();
-            if (store != null) {
-                if (store.getMvStore().isClosed()) {
-                    Throwable backgroundException = database.getBackgroundException();
-                    database.shutdownImmediately();
-                    throw DbException.get(ErrorCode.DATABASE_IS_CLOSED, backgroundException);
-                }
-                transaction = store.getTransactionStore().begin(this, this.lockTimeout, id, isolationLevel);
+            if (store.getMvStore().isClosed()) {
+                Throwable backgroundException = database.getBackgroundException();
+                database.shutdownImmediately();
+                throw DbException.get(ErrorCode.DATABASE_IS_CLOSED, backgroundException);
             }
+            transaction = store.getTransactionStore().begin(this, this.lockTimeout, id, isolationLevel);
             startStatement = -1;
         }
         return transaction;
@@ -1781,28 +1777,26 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
         // Here we are relying on the fact that map which backs table's primary index
         // has the same name as the table itself
         Store store = database.getStore();
-        if (store != null) {
-            MVTable table = store.getTable(map.getName());
-            if (table != null) {
-                Row oldRow = existingValue == null ? null : (Row) existingValue.getCurrentValue();
-                Row newRow = restoredValue == null ? null : (Row) restoredValue.getCurrentValue();
-                table.fireAfterRow(this, oldRow, newRow, true);
+        MVTable table = store.getTable(map.getName());
+        if (table != null) {
+            Row oldRow = existingValue == null ? null : (Row) existingValue.getCurrentValue();
+            Row newRow = restoredValue == null ? null : (Row) restoredValue.getCurrentValue();
+            table.fireAfterRow(this, oldRow, newRow, true);
 
-                if (table.getContainsLargeObject()) {
-                    if (oldRow != null) {
-                        for (int i = 0, len = oldRow.getColumnCount(); i < len; i++) {
-                            Value v = oldRow.getValue(i);
-                            if (v instanceof ValueLob) {
-                                removeAtCommit((ValueLob) v);
-                            }
+            if (table.getContainsLargeObject()) {
+                if (oldRow != null) {
+                    for (int i = 0, len = oldRow.getColumnCount(); i < len; i++) {
+                        Value v = oldRow.getValue(i);
+                        if (v instanceof ValueLob) {
+                            removeAtCommit((ValueLob) v);
                         }
                     }
-                    if (newRow != null) {
-                        for (int i = 0, len = newRow.getColumnCount(); i < len; i++) {
-                            Value v = newRow.getValue(i);
-                            if (v instanceof ValueLob) {
-                                removeAtCommitStop((ValueLob) v);
-                            }
+                }
+                if (newRow != null) {
+                    for (int i = 0, len = newRow.getColumnCount(); i < len; i++) {
+                        Value v = newRow.getValue(i);
+                        if (v instanceof ValueLob) {
+                            removeAtCommitStop((ValueLob) v);
                         }
                     }
                 }

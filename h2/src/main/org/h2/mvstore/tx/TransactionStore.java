@@ -617,18 +617,20 @@ public class TransactionStore {
                 preparedTransactions.remove(txId);
             }
 
-            if (wasStored || store.getAutoCommitDelay() == 0) {
-                store.commit();
-            } else {
-                if (isUndoEmpty()) {
-                    // to avoid having to store the transaction log,
-                    // if there is no open transaction,
-                    // and if there have been many changes, store them now
-                    int unsaved = store.getUnsavedMemory();
-                    int max = store.getAutoCommitMemory();
-                    // save at 3/4 capacity
-                    if (unsaved * 4 > max * 3) {
-                        store.tryCommit();
+            if (store.getFileStore() != null) {
+                if (wasStored || store.getAutoCommitDelay() == 0) {
+                    store.commit();
+                } else {
+                    if (isUndoEmpty()) {
+                        // to avoid having to store the transaction log,
+                        // if there is no open transaction,
+                        // and if there have been many changes, store them now
+                        int unsaved = store.getUnsavedMemory();
+                        int max = store.getAutoCommitMemory();
+                        // save at 3/4 capacity
+                        if (unsaved * 4 > max * 3) {
+                            store.tryCommit();
+                        }
                     }
                 }
             }

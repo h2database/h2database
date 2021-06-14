@@ -541,7 +541,7 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
 
     public void setLockTimeout(int lockTimeout) {
         this.lockTimeout = lockTimeout;
-        if (transaction != null) {
+        if (hasTransaction()) {
             transaction.setTimeoutMillis(lockTimeout);
         }
     }
@@ -649,7 +649,7 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
      */
     public void commit(boolean ddl) {
         beforeCommitOrRollback();
-        if (transaction != null) {
+        if (hasTransaction()) {
             try {
                 markUsedTablesAsUpdated();
                 transaction.commit();
@@ -749,7 +749,7 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
             database.releaseDatabaseObjectIds(idsToRelease);
             idsToRelease = null;
         }
-        if (transaction != null && !transaction.allowNonRepeatableRead()) {
+        if (hasTransaction() && !transaction.allowNonRepeatableRead()) {
             snapshotDataModificationId = database.getNextModificationDataId();
         }
     }
@@ -769,7 +769,7 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
      */
     public void rollback() {
         beforeCommitOrRollback();
-        if (transaction != null) {
+        if (hasTransaction()) {
             rollbackTo(null);
         }
         idsToRelease = null;
@@ -788,7 +788,7 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
      */
     public void rollbackTo(Savepoint savepoint) {
         int index = savepoint == null ? 0 : savepoint.logIndex;
-        if (transaction != null) {
+        if (hasTransaction()) {
             markUsedTablesAsUpdated();
             if (savepoint == null) {
                 transaction.rollback();
@@ -818,7 +818,7 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
 
     @Override
     public boolean hasPendingTransaction() {
-        return false;
+        return hasTransaction() && transaction.hasChanges() && transaction.getStatus() != Transaction.STATUS_PREPARED;
     }
 
     /**
@@ -828,9 +828,7 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
      */
     public Savepoint setSavepoint() {
         Savepoint sp = new Savepoint();
-        if (database.getStore() != null) {
-            sp.transactionSavepoint = getStatementSavepoint();
-        }
+        sp.transactionSavepoint = getStatementSavepoint();
         return sp;
     }
 
@@ -921,6 +919,11 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
      */
     void unlock(Table t) {
         locks.remove(t);
+    }
+
+
+    private boolean hasTransaction() {
+        return transaction != null;
     }
 
     private void unlockAll() {
@@ -1094,7 +1097,7 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
      * @param transactionName the name of the transaction
      */
     public void prepareCommit(String transactionName) {
-        if (containsUncommitted()) {
+        if (hasPendingTransaction()) {
             // need to commit even if rollback is not possible (create/drop
             // table and so on)
             database.prepareCommit(this, transactionName);
@@ -1126,18 +1129,14 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
                 rollback();
             }
         } else {
-            ArrayList<InDoubtTransaction> list = database
-                    .getInDoubtTransactions();
-            int state = commit ? InDoubtTransaction.COMMIT
-                    : InDoubtTransaction.ROLLBACK;
+            ArrayList<InDoubtTransaction> list = database.getInDoubtTransactions();
+            int state = commit ? InDoubtTransaction.COMMIT : InDoubtTransaction.ROLLBACK;
             boolean found = false;
-            if (list != null) {
-                for (InDoubtTransaction p: list) {
-                    if (p.getTransactionName().equals(transactionName)) {
-                        p.setState(state);
-                        found = true;
-                        break;
-                    }
+            for (InDoubtTransaction p: list) {
+                if (p.getTransactionName().equals(transactionName)) {
+                    p.setState(state);
+                    found = true;
+                    break;
                 }
             }
             if (!found) {
@@ -1610,14 +1609,12 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
     public Transaction getTransaction() {
         if (transaction == null) {
             Store store = database.getStore();
-            if (store != null) {
-                if (store.getMvStore().isClosed()) {
-                    Throwable backgroundException = database.getBackgroundException();
-                    database.shutdownImmediately();
-                    throw DbException.get(ErrorCode.DATABASE_IS_CLOSED, backgroundException);
-                }
-                transaction = store.getTransactionStore().begin(this, this.lockTimeout, id, isolationLevel);
+            if (store.getMvStore().isClosed()) {
+                Throwable backgroundException = database.getBackgroundException();
+                database.shutdownImmediately();
+                throw DbException.get(ErrorCode.DATABASE_IS_CLOSED, backgroundException);
             }
+            transaction = store.getTransactionStore().begin(this, this.lockTimeout, id, isolationLevel);
             startStatement = -1;
         }
         return transaction;
@@ -1713,7 +1710,7 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
      */
     public void endStatement() {
         setCurrentCommand(null);
-        if (transaction != null) {
+        if (hasTransaction()) {
             transaction.markStatementEnd();
         }
         startStatement = -1;
@@ -1780,28 +1777,26 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
         // Here we are relying on the fact that map which backs table's primary index
         // has the same name as the table itself
         Store store = database.getStore();
-        if (store != null) {
-            MVTable table = store.getTable(map.getName());
-            if (table != null) {
-                Row oldRow = existingValue == null ? null : (Row) existingValue.getCurrentValue();
-                Row newRow = restoredValue == null ? null : (Row) restoredValue.getCurrentValue();
-                table.fireAfterRow(this, oldRow, newRow, true);
+        MVTable table = store.getTable(map.getName());
+        if (table != null) {
+            Row oldRow = existingValue == null ? null : (Row) existingValue.getCurrentValue();
+            Row newRow = restoredValue == null ? null : (Row) restoredValue.getCurrentValue();
+            table.fireAfterRow(this, oldRow, newRow, true);
 
-                if (table.getContainsLargeObject()) {
-                    if (oldRow != null) {
-                        for (int i = 0, len = oldRow.getColumnCount(); i < len; i++) {
-                            Value v = oldRow.getValue(i);
-                            if (v instanceof ValueLob) {
-                                removeAtCommit((ValueLob) v);
-                            }
+            if (table.getContainsLargeObject()) {
+                if (oldRow != null) {
+                    for (int i = 0, len = oldRow.getColumnCount(); i < len; i++) {
+                        Value v = oldRow.getValue(i);
+                        if (v instanceof ValueLob) {
+                            removeAtCommit((ValueLob) v);
                         }
                     }
-                    if (newRow != null) {
-                        for (int i = 0, len = newRow.getColumnCount(); i < len; i++) {
-                            Value v = newRow.getValue(i);
-                            if (v instanceof ValueLob) {
-                                removeAtCommitStop((ValueLob) v);
-                            }
+                }
+                if (newRow != null) {
+                    for (int i = 0, len = newRow.getColumnCount(); i < len; i++) {
+                        Value v = newRow.getValue(i);
+                        if (v instanceof ValueLob) {
+                            removeAtCommitStop((ValueLob) v);
                         }
                     }
                 }

@@ -2862,7 +2862,7 @@ public final class InformationSchemaTable extends MetaTable {
                 // EXECUTING_STATEMENT_START
                 command == null ? null : s.getCommandStartOrEnd(),
                 // CONTAINS_UNCOMMITTED
-                ValueBoolean.get(s.containsUncommitted()),
+                ValueBoolean.get(s.hasPendingTransaction()),
                 // SESSION_STATE
                 String.valueOf(s.getState()),
                 // BLOCKER_ID

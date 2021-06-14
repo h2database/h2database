@@ -1928,7 +1928,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                             // STATEMENT_START
                             command == null ? null : s.getCommandStartOrEnd(),
                             // CONTAINS_UNCOMMITTED
-                            ValueBoolean.get(s.containsUncommitted()),
+                            ValueBoolean.get(s.hasPendingTransaction()),
                             // STATE
                             String.valueOf(s.getState()),
                             // BLOCKER_ID

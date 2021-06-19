@@ -782,7 +782,7 @@ public abstract class Page<K,V> implements Cloneable {
         diskSpaceUsed = pageLengthDecoded != DataUtils.PAGE_LARGE ? pageLengthDecoded : pageLength;
         boolean singleWriter = map.isSingleWriter();
 
-        pageSerializationManager.onPageSerialized(this, isDeleted, diskSpaceUsed, singleWriter);
+        pageSerializationManager.onPageSerialized(this, isDeleted, pageLengthDecoded, singleWriter);
         return childrenPos;
     }
 

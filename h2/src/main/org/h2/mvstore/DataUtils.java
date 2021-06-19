@@ -638,7 +638,7 @@ public final class DataUtils {
 
         long pos = (long) chunkId << 38;
         pos |= (long) offset << 6;
-        pos |= encodeLength(length) << 1;
+        pos |= (long) encodeLength(length) << 1;
         pos |= type;
         return pos;
     }
@@ -671,7 +671,7 @@ public final class DataUtils {
         assert type == DataUtils.PAGE_TYPE_LEAF || type == DataUtils.PAGE_TYPE_NODE;
         long pos = (long) mapId << 38;
         pos |= (long) offset << 6;
-        pos |= encodeLength(length) << 1;
+        pos |= (long) encodeLength(length) << 1;
         pos |= type;
         return pos;
     }

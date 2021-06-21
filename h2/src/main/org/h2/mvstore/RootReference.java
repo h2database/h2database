@@ -24,7 +24,7 @@ public final class RootReference<K,V> {
      */
     public final long version;
     /**
-     * Counter of reenterant locks.
+     * Counter of reentrant locks.
      */
     private final byte holdCount;
     /**

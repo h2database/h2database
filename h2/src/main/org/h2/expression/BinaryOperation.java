@@ -38,7 +38,7 @@ public class BinaryOperation extends Operation2 {
         MULTIPLY,
 
         /**
-         * This operation represents a division as in 4 * 2.
+         * This operation represents a division as in 4 / 2.
          */
         DIVIDE
     }

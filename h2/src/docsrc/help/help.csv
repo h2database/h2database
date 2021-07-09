@@ -6615,7 +6615,7 @@ SELECT * FROM CSVREAD('test.csv');
 SELECT * FROM CSVREAD('test2.csv', 'ID|NAME', 'charset=UTF-8 fieldSeparator=|');
 SELECT * FROM CSVREAD('data/test.csv', null, 'rowSeparator=;');
 -- Read a tab-separated file
-SELECT * FROM CSVREAD('data/test.tsv', null, 'rowSeparator=' || CHAR(9));
+SELECT * FROM CSVREAD('data/test.tsv', null, 'fieldSeparator=' || CHAR(9));
 SELECT ""Last Name"" FROM CSVREAD('address.csv');
 SELECT ""Last Name"" FROM CSVREAD('classpath:/org/acme/data/address.csv');
 "

@@ -3,10 +3,6 @@
 # config reference here: https://help.sonatype.com/lift/configuration-reference
 #
 
-# build the code once to generate the h2/src/main/org/h2/res/help.csv file.
-#
-setup = "(cd h2; ./build.sh compile)"
-
 # Tell sonatype where our pom file lives, so it can build it again
 #
 build = "maven -f h2/pom.xml compile"

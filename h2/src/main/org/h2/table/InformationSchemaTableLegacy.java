@@ -1164,25 +1164,56 @@ public final class InformationSchemaTableLegacy extends MetaTable {
         case HELP: {
             String resource = "/org/h2/res/help.csv";
             try {
-                byte[] data = Utils.getResource(resource);
-                Reader reader = new InputStreamReader(
+                final byte[] data = Utils.getResource(resource);
+                final Reader reader = new InputStreamReader(
                         new ByteArrayInputStream(data));
-                Csv csv = new Csv();
+                final Csv csv = new Csv();
                 csv.setLineCommentCharacter('#');
-                ResultSet rs = csv.read(reader, null);
+                final ResultSet rs = csv.read(reader, null);
+                final int columnCount = rs.getMetaData().getColumnCount() - 1;
+                final String[] values = new String[5];
                 for (int i = 0; rs.next(); i++) {
+                    for (int j = 0; j < columnCount; j++) {
+                        String s = rs.getString(1 + j);
+                        switch (j) {
+                        case 2: // SYNTAX column
+                            // Strip out the special annotations we use to help build
+                            // the railroad/BNF diagrams
+                            s = s.replaceAll("@c@ ", "").replaceAll("@h2@ ", "").replaceAll("@c@", "")
+                                    .replaceAll("@h2@", "");
+                            break;
+                        case 3: { // TEXT column
+                            int len = s.length();
+                            int end = 0;
+                            for (; end < len; end++) {
+                                char ch = s.charAt(end);
+                                if (ch == '.') {
+                                    end++;
+                                    break;
+                                }
+                                if (ch == '"') {
+                                    do {
+                                        end++;
+                                    } while (end < len && s.charAt(end) != '"');
+                                }
+                            }
+                            s = s.substring(0, end);
+                        }
+                        }
+                        values[j] = s.trim();
+                    }
                     add(session,
                         rows,
                         // ID
                         ValueInteger.get(i),
                         // SECTION
-                        rs.getString(1).trim(),
+                        values[0],
                         // TOPIC
-                        rs.getString(2).trim(),
+                        values[1],
                         // SYNTAX
-                        rs.getString(3).trim(),
+                        values[2],
                         // TEXT
-                        rs.getString(4).trim()
+                        values[3]
                     );
                 }
             } catch (Exception e) {

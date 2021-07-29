@@ -191,6 +191,13 @@
         </includes>
       </resource>
       <resource>
+        <directory>src/docsrc</directory>
+        <includes>
+          <include>help/help.csv</include>
+        </includes>
+        <targetPath>org/h2/res</targetPath>
+      </resource>
+      <resource>
         <directory>src/java9/precompiled</directory>
         <targetPath>META-INF/versions/9</targetPath>
       </resource>
@@ -212,37 +219,6 @@
     </testResource>
     </testResources>
     <plugins>
-    <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-enforcer-plugin</artifactId>
-        <version>3.0.0-M3</version>
-        <executions>
-          <execution>
-            <id>enforce-files-exist</id>
-            <goals>
-              <goal>enforce</goal>
-            </goals>
-            <configuration>
-              <rules>
-                <requireFilesExist>
-                  <files>
-                   <file>src/main/org/h2/res/help.csv</file>
-                  </files>
-                  <message>
-<![CDATA[
---------------------------------------------------------------------------------
-!!!         Run "./build.cmd compile" or "./build.sh compile" first,         !!!
-!!!         as described in h2/MAVEN.md                                      !!!
---------------------------------------------------------------------------------
-]]>
-                  </message>
-                </requireFilesExist>
-              </rules>
-              <fail>true</fail>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>

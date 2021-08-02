@@ -191,13 +191,6 @@
         </includes>
       </resource>
       <resource>
-        <directory>src/docsrc</directory>
-        <includes>
-          <include>help/help.csv</include>
-        </includes>
-        <targetPath>org/h2/res</targetPath>
-      </resource>
-      <resource>
         <directory>src/java9/precompiled</directory>
         <targetPath>META-INF/versions/9</targetPath>
       </resource>

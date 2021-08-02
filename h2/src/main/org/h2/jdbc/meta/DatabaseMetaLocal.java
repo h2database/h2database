@@ -180,13 +180,13 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
                     if (builder.length() != 0) {
                         builder.append(',');
                     }
-                    String f = rs.getString(2).trim();
-                    int spaceIndex = f.indexOf(' ');
+                    String topic = rs.getString(2).trim();
+                    int spaceIndex = topic.indexOf(' ');
                     if (spaceIndex >= 0) {
                         // remove 'Function' from 'INSERT Function'
-                        StringUtils.trimSubstring(builder, f, 0, spaceIndex);
+                        StringUtils.trimSubstring(builder, topic, 0, spaceIndex);
                     } else {
-                        builder.append(f);
+                        builder.append(topic);
                     }
                 }
             }

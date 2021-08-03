@@ -20,6 +20,7 @@ import java.util.Map;
 
 import org.h2.command.Command;
 import org.h2.command.Parser;
+import org.h2.command.dml.Help;
 import org.h2.constraint.Constraint;
 import org.h2.constraint.Constraint.Type;
 import org.h2.constraint.ConstraintActionType;
@@ -1179,26 +1180,10 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                         case 2: // SYNTAX column
                             // Strip out the special annotations we use to help build
                             // the railroad/BNF diagrams
-                            s = s.replaceAll("@c@ ", "").replaceAll("@h2@ ", "").replaceAll("@c@", "")
-                                    .replaceAll("@h2@", "");
+                            s = Help.stripAnnotationsFromSyntax(s);
                             break;
-                        case 3: { // TEXT column
-                            int len = s.length();
-                            int end = 0;
-                            for (; end < len; end++) {
-                                char ch = s.charAt(end);
-                                if (ch == '.') {
-                                    end++;
-                                    break;
-                                }
-                                if (ch == '"') {
-                                    do {
-                                        end++;
-                                    } while (end < len && s.charAt(end) != '"');
-                                }
-                            }
-                            s = s.substring(0, end);
-                        }
+                        case 3: // TEXT column
+                            s = Help.processHelpText(s);
                         }
                         values[j] = s.trim();
                     }

@@ -66,19 +66,13 @@ public class Help extends Prepared {
                         continue loop;
                     }
                 }
-                // SYNTAX column - Strip out the special annotations we use to
-                // help build
-                // the railroad/BNF diagrams.
-                final String syntax = rs.getString(3).replaceAll("@c@ ", "").replaceAll("@h2@ ", "")
-                        .replaceAll("@c@", "").replaceAll("@h2@", "").trim();
-                
                 result.addRow(
                         // SECTION
                         ValueVarchar.get(rs.getString(1).trim(), session),
                         // TOPIC
                         ValueVarchar.get(topic, session),
                         // SYNTAX
-                        ValueVarchar.get(syntax, session),
+                        ValueVarchar.get(stripAnnotationsFromSyntax(rs.getString(3)), session),
                         // TEXT
                         ValueVarchar.get(processHelpText(rs.getString(4)), session));
             }
@@ -88,9 +82,16 @@ public class Help extends Prepared {
         result.done();
         return result;
     }
+    
+    public static String stripAnnotationsFromSyntax(String s) {
+        // SYNTAX column - Strip out the special annotations we use to
+        // help build the railroad/BNF diagrams.
+        return s.replaceAll("@c@ ", "").replaceAll("@h2@ ", "")
+                .replaceAll("@c@", "").replaceAll("@h2@", "").trim();
+    }
 
     /** process the help text column we load from help.csv */
-    private static String processHelpText(String s) {
+    public static String processHelpText(String s) {
         int len = s.length();
         int end = 0;
         for (; end < len; end++) {

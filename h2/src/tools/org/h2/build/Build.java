@@ -179,7 +179,6 @@ public class Build extends BuildBase {
             exclude("*/package.html");
         copy("temp", files, "src/test");
 
-        java("org.h2.build.doc.GenerateHelp", null);
         javadoc("-sourcepath", "src/main", "org.h2.tools", "org.h2.jmx",
                 "-classpath",
                 "ext/lucene-core-" + LUCENE_VERSION + ".jar" +
@@ -348,7 +347,6 @@ public class Build extends BuildBase {
         java("org.h2.build.code.CheckJavadoc", null);
         java("org.h2.build.code.CheckTextFiles", null);
         java("org.h2.build.doc.GenerateDoc", null);
-        java("org.h2.build.doc.GenerateHelp", null);
         java("org.h2.build.indexer.Indexer", null);
         java("org.h2.build.doc.MergeDocs", null);
         java("org.h2.build.doc.WebSite", null);

@@ -1,0 +1,8 @@
+# Config file for SonaType Lift analysis tool
+#
+# config reference here: https://help.sonatype.com/lift/configuration-reference
+#
+
+# Tell sonatype where our pom file lives, so it can build it again
+#
+build = "maven -f h2/pom.xml compile"

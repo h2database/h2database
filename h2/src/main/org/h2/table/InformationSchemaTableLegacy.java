@@ -20,6 +20,7 @@ import java.util.Map;
 
 import org.h2.command.Command;
 import org.h2.command.Parser;
+import org.h2.command.dml.Help;
 import org.h2.constraint.Constraint;
 import org.h2.constraint.Constraint.Type;
 import org.h2.constraint.ConstraintActionType;
@@ -1164,25 +1165,40 @@ public final class InformationSchemaTableLegacy extends MetaTable {
         case HELP: {
             String resource = "/org/h2/res/help.csv";
             try {
-                byte[] data = Utils.getResource(resource);
-                Reader reader = new InputStreamReader(
+                final byte[] data = Utils.getResource(resource);
+                final Reader reader = new InputStreamReader(
                         new ByteArrayInputStream(data));
-                Csv csv = new Csv();
+                final Csv csv = new Csv();
                 csv.setLineCommentCharacter('#');
-                ResultSet rs = csv.read(reader, null);
+                final ResultSet rs = csv.read(reader, null);
+                final int columnCount = rs.getMetaData().getColumnCount() - 1;
+                final String[] values = new String[5];
                 for (int i = 0; rs.next(); i++) {
+                    for (int j = 0; j < columnCount; j++) {
+                        String s = rs.getString(1 + j);
+                        switch (j) {
+                        case 2: // SYNTAX column
+                            // Strip out the special annotations we use to help build
+                            // the railroad/BNF diagrams
+                            s = Help.stripAnnotationsFromSyntax(s);
+                            break;
+                        case 3: // TEXT column
+                            s = Help.processHelpText(s);
+                        }
+                        values[j] = s.trim();
+                    }
                     add(session,
                         rows,
                         // ID
                         ValueInteger.get(i),
                         // SECTION
-                        rs.getString(1).trim(),
+                        values[0],
                         // TOPIC
-                        rs.getString(2).trim(),
+                        values[1],
                         // SYNTAX
-                        rs.getString(3).trim(),
+                        values[2],
                         // TEXT
-                        rs.getString(4).trim()
+                        values[3]
                     );
                 }
             } catch (Exception e) {

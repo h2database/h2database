@@ -171,6 +171,7 @@
   </profiles>
 
   <build>
+    <finalName>${project.artifactId}-${project.version}-${git.commit.id.describe-short}</finalName>
     <sourceDirectory>src/main</sourceDirectory>
     <testSourceDirectory>src/test</testSourceDirectory>
     <!-- Resources do not follow maven project layout. We need to manually copy them -->

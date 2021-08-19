@@ -5,6 +5,7 @@
  */
 package org.h2.value;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
@@ -145,9 +146,20 @@ public final class ValueBlob extends ValueLob {
     @Override
     byte[] getBytesInternal() {
         if (octetLength > Constants.MAX_STRING_LENGTH) {
-            throw getBinaryTooLong(octetLength);
-        }
-        return readBytes((int) octetLength);
+            //throw getBinaryTooLong(octetLength);
+
+            try (InputStream inputStream = lobData.getInputStream(octetLength);
+                 ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream(); ) {
+                IOUtils.copy(inputStream, byteArrayOutputStream);
+                byte[] bytes = byteArrayOutputStream.toByteArray();
+
+                return bytes;
+            } catch (IOException ex) {
+                throw DbException.convert(ex);
+            }
+
+        } else
+            return readBytes((int) octetLength);
     }
 
     @Override

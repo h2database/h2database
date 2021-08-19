@@ -1,10 +1,10 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>com.h2database</groupId>
   <artifactId>h2</artifactId>
-  <version>2.0.201</version>
+  <version>2.0.201-SNAPSHOT</version>
   <packaging>jar</packaging>
   <name>H2 Database Engine</name>
   <url>https://h2database.com</url>
@@ -69,9 +69,9 @@
       <version>${lucene.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.apache.lucene</groupId>
-      <artifactId>lucene-queryparser</artifactId>
-      <version>${lucene.version}</version>
+        <groupId>org.apache.lucene</groupId>
+        <artifactId>lucene-queryparser</artifactId>
+        <version>${lucene.version}</version>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
@@ -125,7 +125,7 @@
   </dependencies>
 
   <!-- The test code creates proxy files using javac or tools.jar. Through maven we need to tell it
-  where to possibly find tools.jar and annoyingly its called classes.jar on OSX -->
+       where to possibly find tools.jar and annoyingly its called classes.jar on OSX -->
   <profiles>
     <profile>
       <id>jigsaw-jdk</id>
@@ -172,7 +172,6 @@
 
   <build>
     <sourceDirectory>src/main</sourceDirectory>
-    <finalName>${project.artifactId}-${project.version}-${git.commit.id.describe-short}</finalName>
     <testSourceDirectory>src/test</testSourceDirectory>
     <!-- Resources do not follow maven project layout. We need to manually copy them -->
     <resources>
@@ -201,50 +200,19 @@
       </resource>
     </resources>
     <testResources>
-      <testResource>
-        <directory>src/test</directory>
-        <includes>
-          <include>org/h2/test/bench/test.properties</include>
-          <include>org/h2/test/script/testScrip.sql</include>
-          <include>org/h2/test/scripts/**/*.sql</include>
-          <include>org/h2/samples/newsfeed.sql</include>
-          <include>org/h2/samples/optimizations.sql</include>
-        </includes>
-      </testResource>
+  <testResource>
+    <directory>src/test</directory>
+      <includes>
+        <include>org/h2/test/bench/test.properties</include>
+        <include>org/h2/test/script/testScrip.sql</include>
+        <include>org/h2/test/scripts/**/*.sql</include>
+        <include>org/h2/samples/newsfeed.sql</include>
+        <include>org/h2/samples/optimizations.sql</include>
+      </includes>
+    </testResource>
     </testResources>
     <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-enforcer-plugin</artifactId>
-        <version>3.0.0-M3</version>
-        <executions>
-          <execution>
-            <id>enforce-files-exist</id>
-            <goals>
-              <goal>enforce</goal>
-            </goals>
-            <configuration>
-              <rules>
-                <requireFilesExist>
-                  <files>
-                    <file>src/main/org/h2/res/help.csv</file>
-                  </files>
-                  <message>
-<![CDATA[
---------------------------------------------------------------------------------
-!!!         Run "./build.cmd compile" or "./build.sh compile" first,         !!!
-!!!         as described in MAVED.md                                         !!!
---------------------------------------------------------------------------------
-]]>
-                  </message>
-                </requireFilesExist>
-              </rules>
-              <fail>true</fail>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
+    <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
         <version>3.1.2</version>
@@ -291,33 +259,7 @@
           </includes>
         </configuration>
       </plugin>
-      <plugin>
-        <groupId>pl.project13.maven</groupId>
-        <artifactId>git-commit-id-plugin</artifactId>
-        <version>4.0.3</version>
-        <executions>
-          <execution>
-            <id>get-the-git-infos</id>
-            <goals>
-              <goal>revision</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <dotGitDirectory>${project.basedir}/.git</dotGitDirectory>
-          <prefix>git</prefix>
-          <verbose>false</verbose>
-          <generateGitPropertiesFile>true</generateGitPropertiesFile>
-          <generateGitPropertiesFilename>${project.build.outputDirectory}/git.properties</generateGitPropertiesFilename>
-          <format>json</format>
-          <gitDescribe>
-            <skip>false</skip>
-            <always>false</always>
-            <dirty></dirty>
-            <abbrev>9</abbrev>
-          </gitDescribe>
-        </configuration>
-      </plugin>
+
     </plugins>
   </build>
 

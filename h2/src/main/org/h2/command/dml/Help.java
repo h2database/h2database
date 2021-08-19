@@ -72,9 +72,9 @@ public class Help extends Prepared {
                         // TOPIC
                         ValueVarchar.get(topic, session),
                         // SYNTAX
-                        ValueVarchar.get(rs.getString(3).trim(), session),
+                        ValueVarchar.get(stripAnnotationsFromSyntax(rs.getString(3)), session),
                         // TEXT
-                        ValueVarchar.get(rs.getString(4).trim(), session));
+                        ValueVarchar.get(processHelpText(rs.getString(4)), session));
             }
         } catch (Exception e) {
             throw DbException.convert(e);
@@ -82,11 +82,38 @@ public class Help extends Prepared {
         result.done();
         return result;
     }
+    
+    public static String stripAnnotationsFromSyntax(String s) {
+        // SYNTAX column - Strip out the special annotations we use to
+        // help build the railroad/BNF diagrams.
+        return s.replaceAll("@c@ ", "").replaceAll("@h2@ ", "")
+                .replaceAll("@c@", "").replaceAll("@h2@", "").trim();
+    }
+
+    /** process the help text column we load from help.csv */
+    public static String processHelpText(String s) {
+        int len = s.length();
+        int end = 0;
+        for (; end < len; end++) {
+            char ch = s.charAt(end);
+            if (ch == '.') {
+                end++;
+                break;
+            }
+            if (ch == '"') {
+                do {
+                    end++;
+                } while (end < len && s.charAt(end) != '"');
+            }
+        }
+        s = s.substring(0, end);
+        return s.trim();
+    }
 
     /**
      * Returns HELP table.
      *
-     * @return HELP table
+     * @return HELP table with columns SECTION,TOPIC,SYNTAX,TEXT
      * @throws IOException
      *             on I/O exception
      */

@@ -14,8 +14,8 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.StringTokenizer;
-
 import org.h2.bnf.context.DbContextRule;
+import org.h2.command.dml.Help;
 import org.h2.tools.Csv;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
@@ -93,7 +93,7 @@ public class Bnf {
                 continue;
             }
             String topic = rs.getString("TOPIC");
-            syntax = rs.getString("SYNTAX").trim();
+            syntax = Help.stripAnnotationsFromSyntax(rs.getString("SYNTAX"));
             currentTopic = section;
             tokens = tokenize();
             index = 0;

@@ -5,12 +5,15 @@
  */
 package org.h2.value;
 
+import java.util.Arrays;
 import static org.h2.util.geometry.EWKBUtils.EWKB_SRID;
 
 import org.h2.api.ErrorCode;
+import org.h2.engine.CastDataProvider;
 import org.h2.message.DbException;
 import org.h2.util.Bits;
 import org.h2.util.StringUtils;
+import org.h2.util.Utils;
 import org.h2.util.geometry.EWKBUtils;
 import org.h2.util.geometry.EWKTUtils;
 import org.h2.util.geometry.GeometryUtils;
@@ -27,7 +30,17 @@ import org.locationtech.jts.geom.Geometry;
  * @author Noel Grandin
  * @author Nicolas Fortin, Atelier SIG, IRSTV FR CNRS 24888
  */
-public final class ValueGeometry extends ValueBytesBase {
+public final class ValueGeometry extends Value {
+
+    /**
+     * The value.
+     */
+    byte[] value;
+
+    /**
+     * The hash code.
+     */
+    int hash;
 
     private static final double[] UNKNOWN_ENVELOPE = new double[0];
 
@@ -60,7 +73,6 @@ public final class ValueGeometry extends ValueBytesBase {
      * @param envelope the envelope
      */
     private ValueGeometry(byte[] bytes, double[] envelope) {
-        super(bytes);
         if (bytes.length < 9 || bytes[0] != 0) {
             throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, StringUtils.convertBytesToHex(bytes));
         }
@@ -74,8 +86,7 @@ public final class ValueGeometry extends ValueBytesBase {
     /**
      * Get or create a geometry value for the given geometry.
      *
-     * @param o the geometry object (of type
-     *            org.locationtech.jts.geom.Geometry)
+     * @param o the geometry object (of type org.locationtech.jts.geom.Geometry)
      * @return the value
      */
     public static ValueGeometry getFromGeometry(Object o) {
@@ -108,7 +119,8 @@ public final class ValueGeometry extends ValueBytesBase {
     }
 
     /**
-     * Get or create a geometry value for the given internal EWKB representation.
+     * Get or create a geometry value for the given internal EWKB
+     * representation.
      *
      * @param bytes the WKB representation of the geometry. May not be modified.
      * @return the value
@@ -252,7 +264,7 @@ public final class ValueGeometry extends ValueBytesBase {
             EWKBUtils.parseEWKB(value, new EWKTTarget(builder.append('\''), getDimensionSystem()));
             builder.append('\'');
         } else {
-            super.getSQL(builder, DEFAULT_SQL_FLAGS);
+            return StringUtils.convertBytesToHex(builder.append("X'"), value).append('\'');
         }
         return builder;
     }
@@ -265,6 +277,29 @@ public final class ValueGeometry extends ValueBytesBase {
     @Override
     public int getMemory() {
         return value.length * 20 + 24;
+    }
+
+    @Override
+    public final int hashCode() {
+        int h = hash;
+        if (h == 0) {
+            h = getClass().hashCode() ^ Utils.getByteArrayHash(value);
+            if (h == 0) {
+                h = 1_234_570_417;
+            }
+            hash = h;
+        }
+        return h;
+    }
+
+    @Override
+    public final boolean equals(Object other) {
+        return other != null && getClass() == other.getClass() && Arrays.equals(value, ((ValueBytesBase) other).value);
+    }
+
+    @Override
+    public int compareTypeSafe(Value v, CompareMode mode, CastDataProvider provider) {
+        return Bits.compareNotNullUnsigned(value, ((ValueBytesBase) v).value);
     }
 
 }

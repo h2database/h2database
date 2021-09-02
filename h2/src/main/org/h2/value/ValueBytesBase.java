@@ -30,11 +30,11 @@ abstract class ValueBytesBase extends Value {
     int hash;
 
     ValueBytesBase(byte[] value) {
-        int length = value.length;
+        /*int length = value.length;
         if (length > Constants.MAX_STRING_LENGTH) {
             throw DbException.getValueTooLongException(getTypeName(getValueType()),
                     StringUtils.convertBytesToHex(value, 41), length);
-        }
+        }*/
         this.value = value;
     }
 

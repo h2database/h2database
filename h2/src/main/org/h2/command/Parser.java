@@ -10300,6 +10300,14 @@ public class Parser {
         }
         if (readIf("FETCH_SIZE")) {
             command.setFetchSize(readNonNegativeInt());
+            if(readIf("AUTOCOMMIT")){
+                if(readIf("ON")) {
+                    command.setAutoCommit(true);
+                }
+                else if(readIf("OFF")){
+                    command.setAutoCommit(false);
+                }
+            }
         }
         return command;
     }

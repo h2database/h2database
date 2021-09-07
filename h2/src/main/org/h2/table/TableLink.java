@@ -402,9 +402,7 @@ public class TableLink extends Table {
         if (fetchSize != 0) {
             buff.append(" FETCH_SIZE ").append(fetchSize);
         }
-        if(autocommit) {
-            buff.append(" AUTOCOMMIT ON");
-        } else {
+        if(!autocommit) {
             buff.append(" AUTOCOMMIT OFF");
         }
         buff.append(" /*").append(DbException.HIDE_SQL).append("*/");

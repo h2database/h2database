@@ -64,6 +64,7 @@ public class TableLink extends Table {
     private boolean readOnly;
     private boolean targetsMySql;
     private int fetchSize = 0;
+    private boolean autocommit =true;
 
     public TableLink(Schema schema, int id, String name, String driver,
             String url, String user, String password, String originalSchema,
@@ -95,6 +96,7 @@ public class TableLink extends Table {
         for (int retry = 0;; retry++) {
             try {
                 conn = database.getLinkConnection(driver, url, user, password);
+                conn.setAutoCommit(autocommit);
                 synchronized (conn) {
                     try {
                         readMetaData();
@@ -400,6 +402,9 @@ public class TableLink extends Table {
         if (fetchSize != 0) {
             buff.append(" FETCH_SIZE ").append(fetchSize);
         }
+        if(!autocommit) {
+            buff.append(" AUTOCOMMIT OFF");
+        }
         buff.append(" /*").append(DbException.HIDE_SQL).append("*/");
         return buff.toString();
     }
@@ -691,6 +696,23 @@ public class TableLink extends Table {
      */
     public void setFetchSize(int fetchSize) {
         this.fetchSize = fetchSize;
+    }
+
+    /**
+     * Specify if the autocommit mode is activated or not
+     *
+     * @param mode
+     */
+    public void setAutoCommit(boolean mode) {
+        this.autocommit= mode;
+    }
+
+    /**
+     * The autocommit mode
+     * @return
+     */
+    public boolean getAutocommit(){
+        return autocommit;
     }
 
     /**

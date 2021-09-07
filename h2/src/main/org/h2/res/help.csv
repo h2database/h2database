@@ -847,7 +847,7 @@ CREATE INDEX IDXNAME ON TEST(NAME)
 @h2@ LINKED TABLE [ IF NOT EXISTS ]
 @h2@ [schemaName.]tableName ( driverString, urlString, userString, passwordString,
 @h2@ [ originalSchemaString, ] @h2@ originalTableString )
-@h2@ [ EMIT UPDATES | READONLY ] [ FETCH_SIZE sizeInt [AUTOCOMMIT ON|OFF]]
+@h2@ [ EMIT UPDATES | READONLY ] [ FETCH_SIZE sizeInt] [AUTOCOMMIT ON|OFF]
 ","
 Creates a table link to an external table. The driver name may be empty if the
 driver is already loaded. If the schema name is not set, only one table with

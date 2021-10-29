@@ -8515,7 +8515,12 @@ public class Parser {
                 } else {
                     session.removeLocalTempTable(view);
                 }
-                view = new TableView(schema, id, cteViewName, querySQL, parameters,
+                // https://github.com/h2database/h2database/issues/3040:
+                // By using new allocated objectId we can prevent this bug.
+                // id was already marked as unused in above calls, it will be recycled during commit/rollback, therefore using it again could lead to constraint violation.
+                // nextIdToUse will be recycled only once in org.h2.command.CommandContainer.stop when clearCTE method is called.
+                int nextIdToUse = database.allocateObjectId();
+                view = new TableView(schema, nextIdToUse, cteViewName, querySQL, parameters,
                         columnTemplateArray, session,
                         false/* assume recursive */, false /* literalsChecked */, true /* isTableExpression */,
                         isTemporary);

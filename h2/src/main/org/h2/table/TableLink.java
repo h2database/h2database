@@ -62,7 +62,7 @@ public class TableLink extends Table {
     private boolean supportsMixedCaseIdentifiers;
     private boolean globalTemporary;
     private boolean readOnly;
-    private boolean targetsMySql;
+    private final boolean targetsMySql;
     private int fetchSize = 0;
     private boolean autocommit =true;
 
@@ -196,7 +196,7 @@ public class TableLink extends Table {
             }
         } catch (Exception e) {
             throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, e,
-                    originalTable + '(' + e.toString() + ')');
+                    originalTable + '(' + e + ')');
         }
         Column[] cols = columnList.toArray(new Column[0]);
         setColumns(cols);
@@ -692,7 +692,7 @@ public class TableLink extends Table {
     /**
      * Specify the number of rows fetched by the linked table command
      *
-     * @param fetchSize
+     * @param fetchSize to set
      */
     public void setFetchSize(int fetchSize) {
         this.fetchSize = fetchSize;
@@ -701,7 +701,7 @@ public class TableLink extends Table {
     /**
      * Specify if the autocommit mode is activated or not
      *
-     * @param mode
+     * @param mode to set
      */
     public void setAutoCommit(boolean mode) {
         this.autocommit= mode;
@@ -709,7 +709,7 @@ public class TableLink extends Table {
 
     /**
      * The autocommit mode
-     * @return
+     * @return true if autocommit is on
      */
     public boolean getAutocommit(){
         return autocommit;
@@ -719,7 +719,7 @@ public class TableLink extends Table {
      * The number of rows to fetch
      * default is 0
      *
-     * @return
+     * @return number of rows to fetch
      */
     public int getFetchSize() {
         return fetchSize;

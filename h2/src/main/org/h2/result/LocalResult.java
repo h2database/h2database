@@ -294,6 +294,10 @@ public class LocalResult implements ResultInterface, ResultTarget {
         }
     }
 
+    /**
+     * Retrieve the current row
+     * @return row
+     */
     public Row currentRowForTable() {
         int degree = visibleColumnCount;
         Value[] currentRow = this.currentRow;

@@ -79,10 +79,20 @@ public final class LobStorageMap implements LobStorageInterface
     private final StreamStore streamStore;
 
 
+    /**
+     * Open map used to store LOB metadata
+     * @param txStore containing map
+     * @return MVMap instance
+     */
     public static MVMap<Long, LobStorageMap.BlobMeta> openLobMap(TransactionStore txStore) {
         return txStore.openMap("lobMap", LongDataType.INSTANCE, LobStorageMap.BlobMeta.Type.INSTANCE);
     }
 
+    /**
+     * Open map used to store LOB data
+     * @param txStore containing map
+     * @return MVMap instance
+     */
     public static MVMap<Long, byte[]> openLobDataMap(TransactionStore txStore) {
         return txStore.openMap("lobData", LongDataType.INSTANCE, ByteArrayDataType.INSTANCE);
     }
@@ -498,10 +508,13 @@ public final class LobStorageMap implements LobStorageInterface
 
     public static final class BlobMeta
     {
+        /**
+         * Stream identifier. It is used as a key in LOB data map.
+         */
         public final byte[] streamStoreId;
-        public final int tableId;
-        public final long byteCount;
-        public final long hash;
+        final int tableId;
+        final long byteCount;
+        final long hash;
 
         public BlobMeta(byte[] streamStoreId, int tableId, long byteCount, long hash) {
             this.streamStoreId = streamStoreId;

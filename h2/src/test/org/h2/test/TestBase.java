@@ -1651,6 +1651,12 @@ public abstract class TestBase {
         }
     }
 
+    /**
+     * Verify that actual error code is the one expected
+     * @param expectedErrorCode to compare against
+     * @param t actual exception to extract error code from
+     * @throws AssertionError if code is unexpected
+     */
     public static void checkErrorCode(int expectedErrorCode, Throwable t) throws AssertionError {
         int errorCode;
         if (t instanceof DbException) {

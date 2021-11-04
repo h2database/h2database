@@ -1402,6 +1402,7 @@ public abstract class Table extends SchemaObject {
 
     /**
      * Views, function tables, links, etc. do not support locks
+     * @return true if table supports row-level locks
      */
     public boolean isRowLockable() {
         return false;

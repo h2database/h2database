@@ -82,7 +82,12 @@ public class Help extends Prepared {
         result.done();
         return result;
     }
-    
+
+    /**
+     * Strip out the special annotations we use to help build the railroad/BNF diagrams
+     * @param s to process
+     * @return sanitized text
+     */
     public static String stripAnnotationsFromSyntax(String s) {
         // SYNTAX column - Strip out the special annotations we use to
         // help build the railroad/BNF diagrams.
@@ -90,7 +95,11 @@ public class Help extends Prepared {
                 .replaceAll("@c@", "").replaceAll("@h2@", "").trim();
     }
 
-    /** process the help text column we load from help.csv */
+    /**
+     * Sanitize value read from csv file (i.e. help.csv)
+     * @param s text to process
+     * @return text without wrapping quotes and trimmed
+     */
     public static String processHelpText(String s) {
         int len = s.length();
         int end = 0;

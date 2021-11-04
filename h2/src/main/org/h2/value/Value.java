@@ -934,7 +934,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
      * Divide by a value and return the result.
      *
      * @param v the divisor
-     *            the type of quotient (used only to read precision and scale
+     * @param quotientType the type of quotient (used only to read precision and scale
      *            when applicable)
      * @return the result
      */

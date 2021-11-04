@@ -146,7 +146,7 @@ public class TableLinkConnection {
     /**
      * Specify if the autocommit mode is activated or not
      *
-     * @param mode
+     * @param mode to set
      */
     public void setAutoCommit(boolean mode) {
         this.autocommit= mode;
@@ -154,7 +154,7 @@ public class TableLinkConnection {
 
     /**
      * The autocommit mode
-     * @return
+     * @return true if autocommit is on
      */
     public boolean getAutocommit(){
         return autocommit;

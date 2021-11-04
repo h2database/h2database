@@ -175,6 +175,10 @@ public class TransactionStore {
         return store.openMap(TYPE_REGISTRY_NAME, typeRegistryBuilder);
     }
 
+    /**
+     * Initialize the store without any RollbackListener.
+     * @see #init(RollbackListener)
+     */
     public void init() {
         init(ROLLBACK_LISTENER_NONE);
     }
@@ -183,6 +187,8 @@ public class TransactionStore {
      * Initialize the store. This is needed before a transaction can be opened.
      * If the transaction store is corrupt, this method can throw an exception,
      * in which case the store can only be used for reading.
+     *
+     * @param listener to notify about transaction rollback
      */
     public void init(RollbackListener listener) {
         if (!init) {
@@ -538,20 +544,21 @@ public class TransactionStore {
         } while(!success);
     }
 
-    /**
-     * Open the map with the given name.
-     *
-     * @param <K> the key type
-     * @param name the map name
-     * @param keyType the key type
-     * @param valueType the value type
-     * @return the map
-     */
     <K,V> MVMap<K, VersionedValue<V>> openVersionedMap(String name, DataType<K> keyType, DataType<V> valueType) {
         VersionedValueType<V,?> vt = valueType == null ? null : new VersionedValueType<>(valueType);
         return openMap(name, keyType, vt);
     }
 
+    /**
+     * Open the map with the given name.
+     *
+     * @param <K> the key type
+     * @param <V> the value type
+     * @param name the map name
+     * @param keyType the key type
+     * @param valueType the value type
+     * @return the map
+     */
     public <K,V> MVMap<K, V> openMap(String name, DataType<K> keyType, DataType<V> valueType) {
         return store.openMap(name, new TxMapBuilder<K, V>(typeRegistry, dataType)
                                             .keyType(keyType).valueType(valueType));

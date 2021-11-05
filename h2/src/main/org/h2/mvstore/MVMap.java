@@ -640,7 +640,7 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
         if (root.map != this) {
             // this can only happen on concurrent opening of existing map,
             // when second thread picks up some cached page already owned by
-            // the first map's instantiation (both instantiations share same id)
+            // the first map's instantiation (both maps share the same id)
             assert id == root.map.id;
             // since it is unknown which one will win the race,
             // let each map instance to have it's own copy

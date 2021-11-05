@@ -221,7 +221,7 @@ english enhance enhanced enhancement enhancer enlarge enough enqueued ensp ensur
 ensures ensuring enter entered entering enterprise entire entities entity entrance
 entries entry enum enumerate enumerated enumerator enumerators enumeration env envelope
 environment environments enwiki eof eol epl epoch epoll epsilon equal equality equally
-equals equipment equitable equiv equivalence equivalent equivalents era erable eremainder
+equals equipment equitable equiv equivalence equivalent equivalents era erase eremainder
 eric erik err error errorlevel errors erwan ery esc escape escaped escapes escaping
 escargots ese espa essential essentials established estimate estimated estimates
 estimating estimation estoppel eta etc eth etl euml euro europe europeu euros eva eval
@@ -469,7 +469,7 @@ periodically periods permanently permil permission permissions permits permitted
 permutation permutations perp persist persisted persistence persistent persister
 persisting persists person personal persons perspective pervasive pete peter
 petra pfgrc pfister pgdn pgup phane phantom phase phi philip philippe
-philosophers phone php phrase phrases phromros physical pick picked pickle pico
+philosophers phone php phrase phrases phromros physical pick picked pickle picks pico
 pid pieces pier pietrzak pilot piman ping pinned pipe piped pit pitest piv pivot
 pkcolumn pkcs pktable place placed placeholders places placing plain plaintext
 plan planned planner planning plans plant plenty platform platforms play player please

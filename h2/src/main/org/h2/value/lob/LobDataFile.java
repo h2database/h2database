@@ -39,18 +39,6 @@ public final class LobDataFile extends LobData {
         this.tempFile = tempFile;
     }
 
-    public static String createTempLobFileName(DataHandler handler) throws IOException {
-        String path = handler.getDatabasePath();
-        if (path.isEmpty()) {
-            path = SysProperties.PREFIX_TEMP_FILE;
-        }
-        return FileUtils.createTempFile(path, Constants.SUFFIX_TEMP_FILE, true);
-    }
-
-    /**
-     * Remove the underlying resource, if any. For values that are kept fully in
-     * memory this method has no effect.
-     */
     @Override
     public void remove(ValueLob value) {
         if (fileName != null) {
@@ -81,28 +69,6 @@ public final class LobDataFile extends LobData {
     @Override
     public String toString() {
         return "lob-file: " + fileName;
-    }
-
-    public static int getBufferSize(DataHandler handler, long remaining) {
-        if (remaining < 0 || remaining > Integer.MAX_VALUE) {
-            remaining = Integer.MAX_VALUE;
-        }
-        int inplace = handler.getMaxLengthInplaceLob();
-        long m = Constants.IO_BUFFER_SIZE;
-        if (m < remaining && m <= inplace) {
-            // using "1L" to force long arithmetic because
-            // inplace could be Integer.MAX_VALUE
-            m = Math.min(remaining, inplace + 1L);
-            // the buffer size must be bigger than the inplace lob, otherwise we
-            // can't know if it must be stored in-place or not
-            m = MathUtils.roundUpLong(m, Constants.IO_BUFFER_SIZE);
-        }
-        m = Math.min(remaining, m);
-        m = MathUtils.convertLongToInt(m);
-        if (m < 0) {
-            m = Integer.MAX_VALUE;
-        }
-        return (int) m;
     }
 
 }

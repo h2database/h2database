@@ -18,6 +18,11 @@ public abstract class LobData {
     LobData() {
     }
 
+    /**
+     * Get stream to read LOB data from
+     * @param precision octet length of the stream, or -1 if unknown
+     * @return stream to read LOB data from
+     */
     public abstract InputStream getInputStream(long precision);
 
     public DataHandler getDataHandler() {
@@ -28,6 +33,11 @@ public abstract class LobData {
         return false;
     }
 
+    /**
+     * Remove the underlying resource, if any. For values that are kept fully in
+     * memory this method has no effect.
+     * @param value to remove
+     */
     public void remove(ValueLob value) {
     }
 

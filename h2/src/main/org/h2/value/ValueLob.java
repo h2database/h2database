@@ -115,9 +115,9 @@ public abstract class ValueLob extends Value {
     }
 
     /**
-     * Create file name for tem LOB storage
+     * Create file name for temporary LOB storage
      * @param handler to get path from
-     * @return full pathname of the created file
+     * @return full path and name of the created file
      * @throws IOException if file creation fails
      */
     static String createTempLobFileName(DataHandler handler) throws IOException {

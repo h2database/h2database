@@ -86,7 +86,7 @@ public class Help extends Prepared {
     /**
      * Strip out the special annotations we use to help build the railroad/BNF diagrams
      * @param s to process
-     * @return sanitized text
+     * @return cleaned text
      */
     public static String stripAnnotationsFromSyntax(String s) {
         // SYNTAX column - Strip out the special annotations we use to

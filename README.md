@@ -1,4 +1,4 @@
-# Welcome to H2, the Java SQL database. [![CI](https://github.com/h2database/h2database/workflows/CI/badge.svg?event=push)](https://github.com/h2database/h2database/actions?query=workflow%3ACI)
+# Welcome to H2, the Java SQL database. [![CI](/home/andrei/java-projects/h2database-clean/h2/src/docsrc/images/h2-logo.png)](https://github.com/h2database/h2database/actions?query=workflow%3ACI)
 
 ## The main features of H2 are:
 
@@ -21,7 +21,7 @@ More information: https://h2database.com
 <dependency>
     <groupId>com.h2database</groupId>
     <artifactId>h2</artifactId>
-    <version>1.4.200</version>
+    <version>2.0.202</version>
 </dependency>
 ```
 

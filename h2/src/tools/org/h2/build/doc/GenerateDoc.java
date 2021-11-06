@@ -36,7 +36,7 @@ import org.h2.util.StringUtils;
  */
 public class GenerateDoc {
 
-    private static final String IN_HELP = "src/docsrc/help/help.csv";
+    private static final String IN_HELP = "src/main/org/h2/res/help.csv";
     private Path inDir = Paths.get("src/docsrc/html");
     private Path outDir = Paths.get("docs/html");
     private Connection conn;

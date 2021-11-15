@@ -2753,13 +2753,20 @@ public class Database implements DataHandler {
         return tempFileDeleter;
     }
 
+    /**
+     * 初始化存储引擎-MvStore
+     * @return
+     */
     public PageStore getPageStore() {
+        //MV_STORE=false/true 默认true 表明存储引擎使用 MvStore
         if (dbSettings.mvStore) {
             if (store == null) {
+                //传dataBase对象进去 初始化 MVTableEngine.Store(包含 MvStore TransactionStore)
                 store = MVTableEngine.init(this);
             }
             return null;
         }
+        //存储引擎使用 pageStore
         synchronized (this) {
             if (pageStore == null) {
                 pageStore = new PageStore(this, databaseName +

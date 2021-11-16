@@ -30,9 +30,10 @@ public class Console extends Tool implements ShutdownHandler {
 
     /**
      * When running without options, -tcp, -web, -browser and -pg are started.
-     * <br />
-     * Options are case sensitive. Supported options are:
+     *
+     * Options are case sensitive.
      * <table>
+     * <caption>Supported options</caption>
      * <tr><td>[-help] or [-?]</td>
      * <td>Print the list of options</td></tr>
      * <tr><td>[-url]</td>
@@ -55,12 +56,13 @@ public class Console extends Tool implements ShutdownHandler {
      * <td>Start the PG server</td></tr>
      * </table>
      * For each Server, additional options are available;
-     * for details, see the Server tool.<br />
+     * for details, see the Server tool.
      * If a service can not be started, the program
      * terminates with an exit code of 1.
      * @h2.resource
      *
      * @param args the command line arguments
+     * @throws SQLException on failure
      */
     public static void main(String... args) throws SQLException {
         Console console;

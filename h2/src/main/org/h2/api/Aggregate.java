@@ -43,6 +43,7 @@ public interface Aggregate {
      * those are passed as array.
      *
      * @param value the value(s) for this row
+     * @throws SQLException on failure
      */
     void add(Object value) throws SQLException;
 
@@ -52,6 +53,7 @@ public interface Aggregate {
      * more values were added since its previous invocation.
      *
      * @return the aggregated value
+     * @throws SQLException on failure
      */
     Object getResult() throws SQLException;
 

@@ -15,6 +15,7 @@ import java.nio.channels.FileChannel;
 import java.nio.file.OpenOption;
 import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.FileAttribute;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -242,6 +243,7 @@ public class FileUtils {
      * @param fileName the file name
      * @param mode the access mode. Supported are r, rw, rws, rwd
      * @return the file object
+     * @throws IOException on failure
      */
     public static FileChannel open(String fileName, String mode)
             throws IOException {
@@ -255,6 +257,7 @@ public class FileUtils {
      *
      * @param fileName the file name
      * @return the input stream
+     * @throws IOException on failure
      */
     public static InputStream newInputStream(String fileName)
             throws IOException {
@@ -270,6 +273,7 @@ public class FileUtils {
      * @param append if true, the file will grow, if false, the file will be
      *            truncated first
      * @return the output stream
+     * @throws IOException on failure
      */
     public static OutputStream newOutputStream(String fileName, boolean append)
             throws IOException {
@@ -377,6 +381,7 @@ public class FileUtils {
      * @param suffix the suffix
      * @param inTempDir if the file should be stored in the temporary directory
      * @return the name of the created file
+     * @throws IOException on failure
      */
     public static String createTempFile(String prefix, String suffix,
             boolean inTempDir) throws IOException {
@@ -389,6 +394,7 @@ public class FileUtils {
      *
      * @param channel the file channel
      * @param dst the byte buffer
+     * @throws IOException on failure
      */
     public static void readFully(FileChannel channel, ByteBuffer dst)
             throws IOException {
@@ -405,6 +411,7 @@ public class FileUtils {
      *
      * @param channel the file channel
      * @param src the byte buffer
+     * @throws IOException on failure
      */
     public static void writeFully(FileChannel channel, ByteBuffer src)
             throws IOException {

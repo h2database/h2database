@@ -386,6 +386,7 @@ public class DataType {
      * @param meta the meta data
      * @param columnIndex the column index (1, 2,...)
      * @return the value type
+     * @throws SQLException on failure
      */
     public static int getValueTypeFromResultSet(ResultSetMetaData meta,
             int columnIndex) throws SQLException {

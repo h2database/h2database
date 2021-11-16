@@ -198,6 +198,7 @@ public class Data {
      *
      * @param source the reader
      * @param target the output stream
+     * @throws IOException on failure
      */
     public static void copyString(Reader source, OutputStream target)
             throws IOException {

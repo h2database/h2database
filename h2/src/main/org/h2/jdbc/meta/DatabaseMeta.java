@@ -20,6 +20,7 @@ public abstract class DatabaseMeta {
      * @see java.sql.DatabaseMetaData#nullsAreSortedLow()
      * @see java.sql.DatabaseMetaData#nullsAreSortedAtStart()
      * @see java.sql.DatabaseMetaData#nullsAreSortedAtEnd()
+     * @return DefaultNullOrdering
      */
     public abstract DefaultNullOrdering defaultNullOrdering();
 
@@ -27,6 +28,7 @@ public abstract class DatabaseMeta {
      * INTERNAL
      *
      * @see java.sql.DatabaseMetaData#getDatabaseProductVersion()
+     * @return product version as String
      */
     public abstract String getDatabaseProductVersion();
 
@@ -34,6 +36,7 @@ public abstract class DatabaseMeta {
      * INTERNAL
      *
      * @see java.sql.DatabaseMetaData#getSQLKeywords()
+     * @return list of supported SQL keywords
      */
     public abstract String getSQLKeywords();
 
@@ -41,6 +44,7 @@ public abstract class DatabaseMeta {
      * INTERNAL
      *
      * @see java.sql.DatabaseMetaData#getNumericFunctions()
+     * @return list of supported numeric functions
      */
     public abstract String getNumericFunctions();
 
@@ -48,6 +52,7 @@ public abstract class DatabaseMeta {
      * INTERNAL
      *
      * @see java.sql.DatabaseMetaData#getStringFunctions()
+     * @return list of supported string functions
      */
     public abstract String getStringFunctions();
 
@@ -55,6 +60,7 @@ public abstract class DatabaseMeta {
      * INTERNAL
      *
      * @see java.sql.DatabaseMetaData#getSystemFunctions()
+     * @return list of supported system functions
      */
     public abstract String getSystemFunctions();
 
@@ -62,6 +68,7 @@ public abstract class DatabaseMeta {
      * INTERNAL
      *
      * @see java.sql.DatabaseMetaData#getTimeDateFunctions()
+     * @return list of supported time/date functions
      */
     public abstract String getTimeDateFunctions();
 
@@ -69,11 +76,16 @@ public abstract class DatabaseMeta {
      * INTERNAL
      *
      * @see java.sql.DatabaseMetaData#getSearchStringEscape()
+     * @return search string escape sequence
      */
     public abstract String getSearchStringEscape();
 
     /**
      * INTERNAL
+     * @param catalog to inspect
+     * @param schemaPattern "LIKE" style pattern to filter result
+     * @param procedureNamePattern "LIKE" style pattern to filter result
+     * @return ResultInterface
      *
      * @see java.sql.DatabaseMetaData#getProcedures(String, String, String)
      */
@@ -81,6 +93,11 @@ public abstract class DatabaseMeta {
 
     /**
      * INTERNAL
+     * @param catalog to inspect
+     * @param schemaPattern "LIKE" style pattern to filter result
+     * @param procedureNamePattern "LIKE" style pattern to filter result
+     * @param columnNamePattern "LIKE" style pattern to filter result
+     * @return ResultInterface
      *
      * @see java.sql.DatabaseMetaData#getProcedureColumns(String, String,
      *      String, String)
@@ -90,6 +107,11 @@ public abstract class DatabaseMeta {
 
     /**
      * INTERNAL
+     * @param catalog to inspect
+     * @param schemaPattern "LIKE" style pattern to filter result
+     * @param tableNamePattern "LIKE" style pattern to filter result
+     * @param types String[]
+     * @return ResultInterface
      *
      * @see java.sql.DatabaseMetaData#getTables(String, String, String,
      *      String[])
@@ -99,6 +121,7 @@ public abstract class DatabaseMeta {
 
     /**
      * INTERNAL
+     * @return ResultInterface
      *
      * @see java.sql.DatabaseMetaData#getSchemas()
      */
@@ -106,6 +129,7 @@ public abstract class DatabaseMeta {
 
     /**
      * INTERNAL
+     * @return ResultInterface
      *
      * @see java.sql.DatabaseMetaData#getCatalogs()
      */
@@ -113,6 +137,7 @@ public abstract class DatabaseMeta {
 
     /**
      * INTERNAL
+     * @return ResultInterface
      *
      * @see java.sql.DatabaseMetaData#getTableTypes()
      */
@@ -120,6 +145,11 @@ public abstract class DatabaseMeta {
 
     /**
      * INTERNAL
+     * @param catalog to inspect
+     * @param schemaPattern "LIKE" style pattern to filter result
+     * @param tableNamePattern "LIKE" style pattern to filter result
+     * @param columnNamePattern "LIKE" style pattern to filter result
+     * @return ResultInterface
      *
      * @see java.sql.DatabaseMetaData#getColumns(String, String, String, String)
      */
@@ -128,6 +158,11 @@ public abstract class DatabaseMeta {
 
     /**
      * INTERNAL
+     * @param catalog to inspect
+     * @param schema to inspect
+     * @param table to inspect
+     * @param columnNamePattern "LIKE" style pattern to filter result
+     * @return ResultInterface
      *
      * @see java.sql.DatabaseMetaData#getColumnPrivileges(String, String,
      *      String, String)
@@ -137,6 +172,10 @@ public abstract class DatabaseMeta {
 
     /**
      * INTERNAL
+     * @param catalog to inspect
+     * @param schemaPattern "LIKE" style pattern to filter result
+     * @param tableNamePattern "LIKE" style pattern to filter result
+     * @return ResultInterface
      *
      * @see java.sql.DatabaseMetaData#getTablePrivileges(String, String, String)
      */
@@ -144,6 +183,12 @@ public abstract class DatabaseMeta {
 
     /**
      * INTERNAL
+     * @param catalogPattern "LIKE" style pattern to filter result
+     * @param schemaPattern "LIKE" style pattern to filter result
+     * @param tableName table of interest
+     * @param scope of interest
+     * @param nullable include nullable columns
+     * @return ResultInterface
      *
      * @see java.sql.DatabaseMetaData#getBestRowIdentifier(String, String,
      *      String, int, boolean)
@@ -153,6 +198,10 @@ public abstract class DatabaseMeta {
 
     /**
      * INTERNAL
+     * @param catalog to inspect
+     * @param schema to inspect
+     * @param table to inspect
+     * @return ResultInterface
      *
      * @see java.sql.DatabaseMetaData#getVersionColumns(String, String, String)
      */
@@ -160,6 +209,10 @@ public abstract class DatabaseMeta {
 
     /**
      * INTERNAL
+     * @param catalog to inspect
+     * @param schema to inspect
+     * @param table to inspect
+     * @return ResultInterface
      *
      * @see java.sql.DatabaseMetaData#getPrimaryKeys(String, String, String)
      */
@@ -167,6 +220,10 @@ public abstract class DatabaseMeta {
 
     /**
      * INTERNAL
+     * @param catalog to inspect
+     * @param schema to inspect
+     * @param table to inspect
+     * @return ResultInterface
      *
      * @see java.sql.DatabaseMetaData#getImportedKeys(String, String, String)
      */
@@ -174,6 +231,10 @@ public abstract class DatabaseMeta {
 
     /**
      * INTERNAL
+     * @param catalog to inspect
+     * @param schema to inspect
+     * @param table to inspect
+     * @return ResultInterface
      *
      * @see java.sql.DatabaseMetaData#getExportedKeys(String, String, String)
      */
@@ -181,6 +242,13 @@ public abstract class DatabaseMeta {
 
     /**
      * INTERNAL
+     * @param primaryCatalog to inspect
+     * @param primarySchema to inspect
+     * @param primaryTable to inspect
+     * @param foreignCatalog to inspect
+     * @param foreignSchema to inspect
+     * @param foreignTable to inspect
+     * @return ResultInterface
      *
      * @see java.sql.DatabaseMetaData#getCrossReference(String, String, String,
      *      String, String, String)
@@ -190,6 +258,7 @@ public abstract class DatabaseMeta {
 
     /**
      * INTERNAL
+     * @return ResultInterface
      *
      * @see java.sql.DatabaseMetaData#getTypeInfo()
      */
@@ -197,6 +266,12 @@ public abstract class DatabaseMeta {
 
     /**
      * INTERNAL
+     * @param catalog to inspect
+     * @param schema to inspect
+     * @param table to inspect
+     * @param unique only
+     * @param approximate allowed
+     * @return ResultInterface
      *
      * @see java.sql.DatabaseMetaData#getIndexInfo(String, String, String,
      *      boolean, boolean)
@@ -206,6 +281,11 @@ public abstract class DatabaseMeta {
 
     /**
      * INTERNAL
+     * @param catalog to inspect
+     * @param schemaPattern "LIKE" style pattern to filter result
+     * @param typeNamePattern "LIKE" style pattern to filter result
+     * @param types int[]
+     * @return ResultInterface
      *
      * @see java.sql.DatabaseMetaData#getUDTs(String, String, String, int[])
      */
@@ -213,6 +293,10 @@ public abstract class DatabaseMeta {
 
     /**
      * INTERNAL
+     * @param catalog to inspect
+     * @param schemaPattern "LIKE" style pattern to filter result
+     * @param typeNamePattern "LIKE" style pattern to filter result
+     * @return ResultInterface
      *
      * @see java.sql.DatabaseMetaData#getSuperTypes(String, String, String)
      */
@@ -220,6 +304,10 @@ public abstract class DatabaseMeta {
 
     /**
      * INTERNAL
+     * @param catalog to inspect
+     * @param schemaPattern "LIKE" style pattern to filter result
+     * @param tableNamePattern "LIKE" style pattern to filter result
+     * @return ResultInterface
      *
      * @see java.sql.DatabaseMetaData#getSuperTables(String, String, String)
      */
@@ -227,6 +315,11 @@ public abstract class DatabaseMeta {
 
     /**
      * INTERNAL
+     * @param catalog to inspect
+     * @param schemaPattern "LIKE" style pattern to filter result
+     * @param typeNamePattern "LIKE" style pattern to filter result
+     * @param attributeNamePattern "LIKE" style pattern to filter result
+     * @return ResultInterface
      *
      * @see java.sql.DatabaseMetaData#getAttributes(String, String, String,
      *      String)
@@ -236,6 +329,7 @@ public abstract class DatabaseMeta {
 
     /**
      * INTERNAL
+     * @return ResultInterface
      *
      * @see java.sql.DatabaseMetaData#getDatabaseMajorVersion()
      */
@@ -243,6 +337,7 @@ public abstract class DatabaseMeta {
 
     /**
      * INTERNAL
+     * @return ResultInterface
      *
      * @see java.sql.DatabaseMetaData#getDatabaseMinorVersion()
      */
@@ -250,6 +345,9 @@ public abstract class DatabaseMeta {
 
     /**
      * INTERNAL
+     * @param catalog to inspect
+     * @param schemaPattern "LIKE" style pattern to filter result
+     * @return ResultInterface
      *
      * @see java.sql.DatabaseMetaData#getSchemas(String, String)
      */
@@ -257,6 +355,10 @@ public abstract class DatabaseMeta {
 
     /**
      * INTERNAL
+     * @param catalog to inspect
+     * @param schemaPattern "LIKE" style pattern to filter result
+     * @param functionNamePattern "LIKE" style pattern to filter result
+     * @return ResultInterface
      *
      * @see java.sql.DatabaseMetaData#getFunctions(String, String, String)
      */
@@ -264,6 +366,11 @@ public abstract class DatabaseMeta {
 
     /**
      * INTERNAL
+     * @param catalog to inspect
+     * @param schemaPattern "LIKE" style pattern to filter result
+     * @param functionNamePattern "LIKE" style pattern to filter result
+     * @param columnNamePattern "LIKE" style pattern to filter result
+     * @return ResultInterface
      *
      * @see java.sql.DatabaseMetaData#getFunctionColumns(String, String, String,
      *      String)
@@ -273,6 +380,11 @@ public abstract class DatabaseMeta {
 
     /**
      * INTERNAL
+     * @param catalog to inspect
+     * @param schemaPattern "LIKE" style pattern to filter result
+     * @param tableNamePattern "LIKE" style pattern to filter result
+     * @param columnNamePattern "LIKE" style pattern to filter result
+     * @return ResultInterface
      *
      * @see java.sql.DatabaseMetaData#getPseudoColumns(String, String, String,
      *      String)

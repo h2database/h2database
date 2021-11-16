@@ -76,6 +76,10 @@ public final class JdbcSQLXML extends JdbcLob implements SQLXML {
 
     /**
      * INTERNAL
+     * @param conn to use
+     * @param value for this JdbcSQLXML
+     * @param state of the LOB
+     * @param id of the trace object
      */
     public JdbcSQLXML(JdbcConnection conn, Value value, State state, int id) {
         super(conn, value, state, TraceObject.SQLXML, id);

@@ -19,6 +19,7 @@ public interface Service {
      * Initialize the service from command line options.
      *
      * @param args the command line options
+     * @throws Exception on failure
      */
     void init(String... args) throws Exception;
 
@@ -32,6 +33,7 @@ public interface Service {
     /**
      * Start the service. This usually means create the server socket.
      * This method must not block.
+     * @throws SQLException on failure
      */
     void start() throws SQLException;
 

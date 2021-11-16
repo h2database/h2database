@@ -64,6 +64,7 @@ public class DbColumn {
      * @param contents the database contents
      * @param rs the result set
      * @return the column
+     * @throws SQLException on failure
      */
     public static DbColumn getProcedureColumn(DbContents contents, ResultSet rs)
             throws SQLException {
@@ -76,6 +77,7 @@ public class DbColumn {
      * @param contents the database contents
      * @param rs the result set
      * @return the column
+     * @throws SQLException on failure
      */
     public static DbColumn getColumn(DbContents contents, ResultSet rs)
             throws SQLException {

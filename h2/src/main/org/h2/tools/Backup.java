@@ -23,7 +23,7 @@ import org.h2.util.Tool;
 
 /**
  * Creates a backup of a database.
- * <br />
+ *
  * This tool copies all database files. The database must be closed before using
  * this tool. To create a backup while the database is in use, run the BACKUP
  * SQL statement. In an emergency, for example if the application is not
@@ -36,8 +36,9 @@ import org.h2.util.Tool;
 public class Backup extends Tool {
 
     /**
-     * Options are case sensitive. Supported options are:
+     * Options are case sensitive.
      * <table>
+     * <caption>Supported options are:</caption>
      * <tr><td>[-help] or [-?]</td>
      * <td>Print the list of options</td></tr>
      * <tr><td>[-file &lt;filename&gt;]</td>
@@ -52,6 +53,7 @@ public class Backup extends Tool {
      * @h2.resource
      *
      * @param args the command line arguments
+     * @throws SQLException on failure
      */
     public static void main(String... args) throws SQLException {
         new Backup().runTool(args);
@@ -95,6 +97,7 @@ public class Backup extends Tool {
      * @param db the source database name (null if there is only one database,
      *            and empty string to backup all files in this directory)
      * @param quiet don't print progress information
+     * @throws SQLException on failure
      */
     public static void execute(String zipFileName, String directory, String db,
             boolean quiet) throws SQLException {

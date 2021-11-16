@@ -25,8 +25,9 @@ import org.h2.util.Tool;
 public class Restore extends Tool {
 
     /**
-     * Options are case sensitive. Supported options are:
+     * Options are case sensitive. Supported options
      * <table>
+     * <caption>Supported options</caption>
      * <tr><td>[-help] or [-?]</td>
      * <td>Print the list of options</td></tr>
      * <tr><td>[-file &lt;filename&gt;]</td>
@@ -41,6 +42,7 @@ public class Restore extends Tool {
      * @h2.resource
      *
      * @param args the command line arguments
+     * @throws SQLException on failure
      */
     public static void main(String... args) throws SQLException {
         new Restore().runTool(args);

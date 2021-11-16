@@ -7,6 +7,7 @@ package org.h2.expression;
 
 import java.io.IOException;
 import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
 
 import org.h2.api.ErrorCode;
 import org.h2.message.DbException;
@@ -68,6 +69,7 @@ public class ParameterRemote implements ParameterInterface {
      * Read the parameter meta data from the transfer object.
      *
      * @param transfer the transfer object
+     * @throws IOException on failure
      */
     public void readMetaData(Transfer transfer) throws IOException {
         type = transfer.readTypeInfo();
@@ -79,6 +81,7 @@ public class ParameterRemote implements ParameterInterface {
      *
      * @param transfer the transfer object
      * @param p the parameter
+     * @throws IOException on failure
      */
     public static void writeMetaData(Transfer transfer, ParameterInterface p) throws IOException {
         transfer.writeTypeInfo(p.getType()).writeInt(p.getNullable());

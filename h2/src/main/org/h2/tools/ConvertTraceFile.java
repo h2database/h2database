@@ -20,7 +20,7 @@ import org.h2.util.Tool;
 
 /**
  * Converts a .trace.db file to a SQL script and Java source code.
- * <br />
+ *
  * SQL statement statistics are listed as well.
  * @h2.resource
  */
@@ -55,8 +55,9 @@ public class ConvertTraceFile extends Tool {
     }
 
     /**
-     * Options are case sensitive. Supported options are:
+     * Options are case sensitive.
      * <table>
+     * <caption>Supported options</caption>
      * <tr><td>[-help] or [-?]</td>
      * <td>Print the list of options</td></tr>
      * <tr><td>[-traceFile &lt;file&gt;]</td>
@@ -69,6 +70,7 @@ public class ConvertTraceFile extends Tool {
      * @h2.resource
      *
      * @param args the command line arguments
+     * @throws SQLException on failure
      */
     public static void main(String... args) throws SQLException {
         new ConvertTraceFile().runTool(args);

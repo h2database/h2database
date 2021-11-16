@@ -276,6 +276,7 @@ public abstract class FilePath {
      * @param suffix the suffix
      * @param inTempDir if the file should be stored in the temporary directory
      * @return the name of the created file
+     * @throws IOException on failure
      */
     @SuppressWarnings("unused")
     public FilePath createTempFile(String suffix, boolean inTempDir) throws IOException {

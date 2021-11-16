@@ -62,7 +62,7 @@ public abstract class FileBaseDefault extends FileBase {
      * The truncate implementation.
      *
      * @param size the new size
+     * @throws IOException on failure
      */
     protected abstract void implTruncate(long size) throws IOException;
-
 }

@@ -45,6 +45,8 @@ public class Bnf {
      *
      * @param csv if not specified, the help.csv is used
      * @return a new instance
+     * @throws SQLException on failure
+     * @throws IOException on failure
      */
     public static Bnf getInstance(Reader csv) throws SQLException, IOException {
         Bnf bnf = new Bnf();

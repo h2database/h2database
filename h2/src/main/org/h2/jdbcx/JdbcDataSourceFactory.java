@@ -77,6 +77,7 @@ public final class JdbcDataSourceFactory implements ObjectFactory {
 
     /**
      * INTERNAL
+     * @return TraceSystem
      */
     public static TraceSystem getTraceSystem() {
         return traceSystem;

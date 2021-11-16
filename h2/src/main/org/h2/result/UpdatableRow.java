@@ -5,6 +5,7 @@
  */
 package org.h2.result;
 
+import java.io.IOException;
 import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -45,6 +46,7 @@ public class UpdatableRow {
      *
      * @param conn the database connection
      * @param result the result
+     * @throws SQLException on failure
      */
     public UpdatableRow(JdbcConnection conn, ResultInterface result)
             throws SQLException {
@@ -226,6 +228,7 @@ public class UpdatableRow {
      *
      * @param row the values that contain the key
      * @return the row
+     * @throws SQLException on failure
      */
     public Value[] readRow(Value[] row) throws SQLException {
         StringBuilder builder = new StringBuilder("SELECT ");

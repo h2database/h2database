@@ -272,7 +272,7 @@ public abstract class Expression implements HasSQL, Typed {
 
     /**
      * If it is possible, return the negated expression. This is used
-     * to optimize NOT expressions: NOT ID>10 can be converted to
+     * to optimize NOT expressions: NOT ID&gt;10 can be converted to
      * ID&lt;=10. Returns null if negating is not possible.
      *
      * @param session the session

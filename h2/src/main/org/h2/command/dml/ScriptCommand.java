@@ -639,6 +639,7 @@ public class ScriptCommand extends ScriptBase {
      * @param conn a connection
      * @param id the lob id
      * @return a stream for the combined data
+     * @throws SQLException on failure
      */
     public static InputStream combineBlob(Connection conn, int id)
             throws SQLException {
@@ -696,6 +697,7 @@ public class ScriptCommand extends ScriptBase {
      * @param conn a connection
      * @param id the lob id
      * @return a reader for the combined data
+     * @throws SQLException on failure
      */
     public static Reader combineClob(Connection conn, int id) throws SQLException {
         if (id < 0) {

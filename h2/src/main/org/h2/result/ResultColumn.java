@@ -75,6 +75,7 @@ public class ResultColumn {
      * @param out the object to where to write the data
      * @param result the result
      * @param i the column index
+     * @throws IOException on failure
      */
     public static void writeColumn(Transfer out, ResultInterface result, int i)
             throws IOException {

@@ -141,6 +141,7 @@ public class Driver implements java.sql.Driver, JdbcDriverBackwardsCompat {
 
     /**
      * INTERNAL
+     * @return instance of the driver registered with the DriverManager
      */
     public static synchronized Driver load() {
         try {
@@ -172,6 +173,7 @@ public class Driver implements java.sql.Driver, JdbcDriverBackwardsCompat {
      * INTERNAL
      * Sets, on a per-thread basis, the default-connection for
      * user-defined functions.
+     * @param c to set default to
      */
     public static void setDefaultConnection(Connection c) {
         if (c == null) {
@@ -183,6 +185,7 @@ public class Driver implements java.sql.Driver, JdbcDriverBackwardsCompat {
 
     /**
      * INTERNAL
+     * @param thread to set context class loader for
      */
     public static void setThreadContextClassLoader(Thread thread) {
         // Apache Tomcat: use the classloader of the driver to avoid the

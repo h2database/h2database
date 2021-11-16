@@ -20,15 +20,16 @@ import org.h2.util.Tool;
 
 /**
  * Creates a cluster from a stand-alone database.
- * <br />
+ *
  * Copies a database to another location if required.
  * @h2.resource
  */
 public class CreateCluster extends Tool {
 
     /**
-     * Options are case sensitive. Supported options are:
+     * Options are case sensitive.
      * <table>
+     * <caption>Supported options</caption>
      * <tr><td>[-help] or [-?]</td>
      * <td>Print the list of options</td></tr>
      * <tr><td>[-urlSource "&lt;url&gt;"]</td>
@@ -45,6 +46,7 @@ public class CreateCluster extends Tool {
      * @h2.resource
      *
      * @param args the command line arguments
+     * @throws SQLException on failure
      */
     public static void main(String... args) throws SQLException {
         new CreateCluster().runTool(args);
@@ -91,6 +93,7 @@ public class CreateCluster extends Tool {
      * @param user the user name
      * @param password the password
      * @param serverList the server list
+     * @throws SQLException on failure
      */
     public void execute(String urlSource, String urlTarget,
             String user, String password, String serverList) throws SQLException {

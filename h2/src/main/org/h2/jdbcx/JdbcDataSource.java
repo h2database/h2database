@@ -84,6 +84,8 @@ public final class JdbcDataSource extends TraceObject implements XADataSource, D
      * Called when de-serializing the object.
      *
      * @param in the input stream
+     * @throws IOException on failure
+     * @throws ClassNotFoundException on failure
      */
     private void readObject(ObjectInputStream in) throws IOException,
             ClassNotFoundException {

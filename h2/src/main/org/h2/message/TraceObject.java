@@ -130,6 +130,7 @@ public abstract class TraceObject {
 
     /**
      * INTERNAL
+     * @return id
      */
     public int getTraceId() {
         return id;
@@ -137,6 +138,7 @@ public abstract class TraceObject {
 
     /**
      * INTERNAL
+     * @return object name
      */
     public String getTraceObjectName() {
         return PREFIX[traceType] + id;

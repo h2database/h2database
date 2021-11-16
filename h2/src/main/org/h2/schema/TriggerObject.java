@@ -472,6 +472,7 @@ public final class TriggerObject extends SchemaObject {
 
     /**
      * Close the trigger.
+     * @throws SQLException on failure
      */
     public void close() throws SQLException {
         if (triggerCallback != null) {

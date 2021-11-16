@@ -84,10 +84,9 @@ public class CompressTool {
 
     private static int compress(byte[] in, int len, Compressor compress,
             byte[] out) {
-        int newLen = 0;
         out[0] = (byte) compress.getAlgorithm();
         int start = 1 + writeVariableInt(out, 1, len);
-        newLen = compress.compress(in, 0, len, out, start);
+        int newLen = compress.compress(in, 0, len, out, start);
         if (newLen > len + start || newLen <= 0) {
             out[0] = Compressor.NO;
             System.arraycopy(in, 0, out, start, len);
@@ -121,6 +120,9 @@ public class CompressTool {
 
     /**
      * INTERNAL
+     * @param in compressed data
+     * @param out uncompressed result
+     * @param outPos the offset at the output array
      */
     public static void expand(byte[] in, byte[] out, int outPos) {
         int algorithm = in[0];
@@ -240,8 +242,10 @@ public class CompressTool {
 
     /**
      * INTERNAL
+     * @param algorithm to translate into index
+     * @return index of the specified algorithm
      */
-    public static int getCompressAlgorithm(String algorithm) {
+    private static int getCompressAlgorithm(String algorithm) {
         algorithm = StringUtils.toUpperEnglish(algorithm);
         if ("NO".equals(algorithm)) {
             return Compressor.NO;
@@ -273,6 +277,10 @@ public class CompressTool {
 
     /**
      * INTERNAL
+     * @param out stream
+     * @param compressionAlgorithm to be used
+     * @param entryName in a zip file
+     * @return compressed stream
      */
     public static OutputStream wrapOutputStream(OutputStream out,
             String compressionAlgorithm, String entryName) {
@@ -300,6 +308,10 @@ public class CompressTool {
 
     /**
      * INTERNAL
+     * @param in stream
+     * @param compressionAlgorithm to be used
+     * @param entryName in a zip file
+     * @return in stream or null if there is no such entry
      */
     public static InputStream wrapInputStream(InputStream in,
             String compressionAlgorithm, String entryName) {

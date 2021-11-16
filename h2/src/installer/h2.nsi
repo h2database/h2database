@@ -1,3 +1,4 @@
+    Unicode True
     !include "MUI.nsh"
 
     SetCompressor /SOLID lzma

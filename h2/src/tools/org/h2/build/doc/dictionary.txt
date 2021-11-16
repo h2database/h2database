@@ -25,8 +25,8 @@ amt analysis analytics analyze analyzed analyzer analyzers analyzing anatr
 ancestor anchor and andrew android andy anewarray ang angel angle angus animal
 animate aniseed anne annotate annotated annotation annotations annual ano anon
 anonymous another ans ansi ansorg answers ant anthony anti antialias antialiasing
-anton antonio any anybody anyhow anyone anything anyway anywhere anzo apache
-apart api apos app apparatus appear appears append appended appender appending
+anton antonio any anybody anyhow anyone anything anyway anywhere anzo apache apart
+api apiguardian apos app apparatus appear appears append appended appender appending
 appendix appends apple apples applet applets applicable application applications
 applied applies apply applying appreciate approach appropriate appropriateness
 approx approximate approximated approximation apps april aquiles arabic arbitrary
@@ -75,7 +75,7 @@ cached caches caching cafe cajun cal calculate calculated calculates calculating
 calculation calculations calendar calendars call callable callback callbacks
 called caller calling calls cally caload came camel can cancel canceled canceling
 cancellation cancelled cancels candidates cannot canonical cap capabilities
-capability capacity capitalization capitalize capitalized capone caps capture
+capability capacity capitalization capitalize capitalized capone caps caption capture
 captured car card cardinal cardinality care careful carriage carrier cars cartesian
 cas cascade cascading case cases casesensitive casewhen cash casing casqueiro cast
 casting castore cat catalina catalog catalogs cataloguing catch catcher catches

@@ -65,7 +65,7 @@ The following can be skipped currently; benchmarks should probably be removed:
 
 ## Build the Release
 
-In Build.java, comment "-Xdoclint:none", but don't commit that change.
+In Build.java, comment "-Xdoclint:...", but don't commit that change.
 
 Run the following commands:
 Non-Windows:

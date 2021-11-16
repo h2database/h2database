@@ -61,6 +61,8 @@ public class Build extends BuildBase {
 
     private static final String SLF4J_VERSION = "1.7.30";
 
+    private static final String APIGUARDIAN_VERSION = "1.1.0";
+
     private boolean filesMissing;
 
     /**
@@ -397,6 +399,9 @@ public class Build extends BuildBase {
         downloadUsingMaven("ext/asm-" + ASM_VERSION + ".jar",
                 "org.ow2.asm", "asm", ASM_VERSION,
                 "3f5199523fb95304b44563f5d56d9f5a07270669");
+        downloadUsingMaven("ext/apiguardian-" + APIGUARDIAN_VERSION + ".jar",
+                "org.apiguardian", "apiguardian-api", APIGUARDIAN_VERSION,
+                "fc9dff4bb36d627bdc553de77e1f17efd790876c");
     }
 
     private void downloadOrVerify(String target, String group, String artifact,
@@ -444,7 +449,7 @@ public class Build extends BuildBase {
         jar();
         docs();
         try {
-            exec("soffice", args("-invisible", "macro:///Standard.Module1.H2Pdf"));
+            exec("soffice", args("--invisible", "macro:///Standard.Module1.H2Pdf"));
             copy("docs", files("../h2web/h2.pdf"), "../h2web");
         } catch (Exception e) {
             println("OpenOffice / LibreOffice is not available or macros H2Pdf is not installed:");
@@ -469,7 +474,7 @@ public class Build extends BuildBase {
         zip("../h2web/h2.zip", files, "../", false, false);
         boolean installer = false;
         try {
-            exec("makensis", args("/v2", "src/installer/h2.nsi"));
+            exec("makensis", args(isWindows() ? "/V2" : "-V2", "src/installer/h2.nsi"));
             installer = true;
         } catch (Exception e) {
             println("NSIS is not available: " + e);
@@ -597,7 +602,7 @@ public class Build extends BuildBase {
                 File.pathSeparator + "src/test" +
                 File.pathSeparator + "src/tools",
                 // need to be disabled for java 7
-                "-Xdoclint:none",
+                "-Xdoclint:all,-missing",
                 "-noindex",
                 "-tag", "h2.resource",
                 "-d", "docs/javadocImpl2",
@@ -611,8 +616,10 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/org.osgi.enterprise-" + OSGI_VERSION + ".jar" +
                 File.pathSeparator + "ext/jts-core-" + JTS_VERSION + ".jar" +
                 File.pathSeparator + "ext/asm-" + ASM_VERSION + ".jar" +
-                File.pathSeparator + "ext/junit-jupiter-api-" + JUNIT_VERSION + ".jar",
-                "-subpackages", "org.h2");
+                File.pathSeparator + "ext/junit-jupiter-api-" + JUNIT_VERSION + ".jar" +
+                File.pathSeparator + "ext/apiguardian-api-" + APIGUARDIAN_VERSION + ".jar",
+                "-subpackages", "org.h2",
+                "-exclude", "org.h2.dev:org.h2.java:org.h2.test:org.h2.build.code:org.h2.build.doc");
 
         mkdir("docs/javadocImpl3");
         javadoc("-sourcepath", "src/main",
@@ -646,7 +653,8 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/org.osgi.enterprise-" + OSGI_VERSION + ".jar" +
                 File.pathSeparator + "ext/jts-core-" + JTS_VERSION + ".jar" +
                 File.pathSeparator + "ext/asm-" + ASM_VERSION + ".jar" +
-                File.pathSeparator + "ext/junit-jupiter-api-" + JUNIT_VERSION + ".jar",
+                File.pathSeparator + "ext/junit-jupiter-api-" + JUNIT_VERSION + ".jar" +
+                File.pathSeparator + "ext/apiguardian-api-" + APIGUARDIAN_VERSION + ".jar",
                 "-subpackages", "org.h2",
                 "-package",
                 "-docletpath", "bin" + File.pathSeparator + "temp",

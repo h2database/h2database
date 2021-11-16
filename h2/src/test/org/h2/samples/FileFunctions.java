@@ -10,6 +10,7 @@ import java.io.RandomAccessFile;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 
 /**
@@ -23,6 +24,7 @@ public class FileFunctions {
      * command line.
      *
      * @param args the command line parameters
+     * @throws Exception on failure
      */
     public static void main(String... args) throws Exception {
         Class.forName("org.h2.Driver");
@@ -50,6 +52,7 @@ public class FileFunctions {
      *
      * @param fileName the file name
      * @return the text
+     * @throws IOException on failure
      */
     public static String readTextFile(String fileName) throws IOException {
         byte[] buff = readFile(fileName);
@@ -63,6 +66,7 @@ public class FileFunctions {
      * @param fileName the file name
      * @param encoding the encoding
      * @return the text
+     * @throws IOException on failure
      */
     public static String readTextFileWithEncoding(String fileName,
             String encoding) throws IOException {
@@ -76,6 +80,7 @@ public class FileFunctions {
      *
      * @param fileName the file name
      * @return the byte array
+     * @throws IOException on failure
      */
     public static byte[] readFile(String fileName) throws IOException {
         try (RandomAccessFile file = new RandomAccessFile(fileName, "r")) {

@@ -30,6 +30,7 @@ public class SQLInjection {
      * command line.
      *
      * @param args the command line parameters
+     * @throws Exception on failure
      */
     public static void main(String... args) throws Exception {
         new SQLInjection().run("org.h2.Driver",
@@ -146,6 +147,7 @@ public class SQLInjection {
      * @param userName the user name
      * @param password the password
      * @return a result set with the user record if the password matches
+     * @throws Exception on failure
      */
     public static ResultSet getUser(Connection conn, String userName,
             String password) throws Exception {
@@ -164,6 +166,7 @@ public class SQLInjection {
      * @param userName the user name
      * @param password the password
      * @return the new password
+     * @throws Exception on failure
      */
     public static String changePassword(Connection conn, String userName,
             String password) throws Exception {

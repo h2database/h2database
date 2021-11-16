@@ -26,6 +26,7 @@ public class Function {
      * command line.
      *
      * @param args the command line parameters
+     * @throws Exception on failure
      */
     public static void main(String... args) throws Exception {
         Class.forName("org.h2.Driver");
@@ -109,6 +110,7 @@ public class Function {
      * @param conn the connection
      * @param sql the SQL statement
      * @return the result set
+     * @throws SQLException on failure
      */
     public static ResultSet query(Connection conn, String sql) throws SQLException {
         return conn.createStatement().executeQuery(sql);
@@ -133,6 +135,7 @@ public class Function {
      * @param conn the connection
      * @param size the number of x and y values
      * @return the result set with two columns
+     * @throws SQLException on failure
      */
     public static ResultSet getMatrix(Connection conn, Integer size)
             throws SQLException {

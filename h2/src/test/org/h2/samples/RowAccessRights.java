@@ -26,6 +26,7 @@ public class RowAccessRights extends TriggerAdapter {
      * Called when ran from command line.
      *
      * @param args ignored
+     * @throws Exception on failure
      */
     public static void main(String... args) throws Exception {
         DeleteDbFiles.execute("~", "test", true);

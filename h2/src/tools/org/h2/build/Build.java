@@ -37,7 +37,7 @@ public class Build extends BuildBase {
 
     private static final String ARGS4J_VERSION = "2.33";
 
-    private static final String DERBY_VERSION = "10.15.2.0";
+    private static final String DERBY_VERSION = "10.14.2.0";
 
     private static final String HSQLDB_VERSION = "2.5.1";
 
@@ -84,16 +84,16 @@ public class Build extends BuildBase {
                 "b1f720a63a8756867895cc22dd74b51fb70e90ac");
         downloadUsingMaven("ext/derby-" + DERBY_VERSION,
                 "org.apache.derby", "derby", DERBY_VERSION,
-                "b64da6681994f33ba5783ffae55cdb44885b9e70");
+                "7efad40ef52fbb1f08142f07a83b42d29e47d8ce");
         downloadUsingMaven("ext/derbyclient-" + DERBY_VERSION + ".jar",
                 "org.apache.derby", "derbyclient", DERBY_VERSION,
-                "60ad423e9d7acba99a13b8684927206e94c31e03");
+                "fdd338d43e09bf7cd16f5523a0f717e5ef79a1a8");
         downloadUsingMaven("ext/derbynet-" + DERBY_VERSION + ".jar",
                 "org.apache.derby", "derbynet", DERBY_VERSION,
-                "072c8fb0870227477b64edb2d7a5eccdac5de2af");
-        downloadUsingMaven("ext/derbyshared-" + DERBY_VERSION + ".jar",
-                "org.apache.derby", "derbyshared", DERBY_VERSION,
-                "ff2dfb3e2a92d593cf111baad242d156947abbc1");
+                "d03edf879317c7102884c4689e03a4d1a5f84126");
+//        downloadUsingMaven("ext/derbyshared-" + DERBY_VERSION + ".jar",
+//                "org.apache.derby", "derbyshared", DERBY_VERSION,
+//                "ff2dfb3e2a92d593cf111baad242d156947abbc1");
         downloadUsingMaven("ext/postgresql-" + PGJDBC_VERSION + ".jar",
                 "org.postgresql", "postgresql", PGJDBC_VERSION, PGJDBC_HASH);
         downloadUsingMaven("ext/mysql-connector-java-" + MYSQL_CONNECTOR_VERSION + ".jar",
@@ -107,7 +107,7 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/derby-" + DERBY_VERSION + ".jar" +
                 File.pathSeparator + "ext/derbyclient-" + DERBY_VERSION + ".jar" +
                 File.pathSeparator + "ext/derbynet-" + DERBY_VERSION + ".jar" +
-                File.pathSeparator + "ext/derbyshared-" + DERBY_VERSION + ".jar" +
+//                File.pathSeparator + "ext/derbyshared-" + DERBY_VERSION + ".jar" +
                 File.pathSeparator + "ext/postgresql-" + PGJDBC_VERSION + ".jar" +
                 File.pathSeparator + "ext/mysql-connector-java-" + MYSQL_CONNECTOR_VERSION + ".jar";
         StringList args = args("-Xmx128m",

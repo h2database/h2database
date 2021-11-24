@@ -15,7 +15,7 @@ public class Constants {
     /**
      * The build date is updated for each public release.
      */
-    public static final String BUILD_DATE = "2021-11-06";
+    public static final String BUILD_DATE = "2021-11-23";
 
     /**
      * The build date of the last stable release.
@@ -84,7 +84,7 @@ public class Constants {
 
     /**
      * The TCP protocol version number 20.
-     * @since 2.0.202 (2021-11-06)
+     * @since 2.0.202 (2021-11-23)
      */
     public static final int TCP_PROTOCOL_VERSION_20 = 20;
 

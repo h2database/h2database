@@ -49,7 +49,7 @@ public class Build extends BuildBase {
 
     private static final String LUCENE_VERSION = "8.5.2";
 
-    private static final String MYSQL_CONNECTOR_VERSION = "8.0.20";
+    private static final String MYSQL_CONNECTOR_VERSION = "8.0.27";
 
     private static final String OSGI_VERSION = "5.0.0";
 
@@ -82,7 +82,7 @@ public class Build extends BuildBase {
         downloadUsingMaven("ext/hsqldb-" + HSQLDB_VERSION + ".jar",
                 "org.hsqldb", "hsqldb", HSQLDB_VERSION,
                 "b1f720a63a8756867895cc22dd74b51fb70e90ac");
-        downloadUsingMaven("ext/derby-" + DERBY_VERSION,
+        downloadUsingMaven("ext/derby-" + DERBY_VERSION + ".jar",
                 "org.apache.derby", "derby", DERBY_VERSION,
                 "7efad40ef52fbb1f08142f07a83b42d29e47d8ce");
         downloadUsingMaven("ext/derbyclient-" + DERBY_VERSION + ".jar",
@@ -98,7 +98,7 @@ public class Build extends BuildBase {
                 "org.postgresql", "postgresql", PGJDBC_VERSION, PGJDBC_HASH);
         downloadUsingMaven("ext/mysql-connector-java-" + MYSQL_CONNECTOR_VERSION + ".jar",
                 "mysql", "mysql-connector-java", MYSQL_CONNECTOR_VERSION,
-                "d8d388e71c823570662a45dd33f4284141921280");
+                "f1da9f10a3de6348725a413304aab6d0aa04f923");
         compile();
 
         String cp = "temp" +
@@ -111,7 +111,7 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/postgresql-" + PGJDBC_VERSION + ".jar" +
                 File.pathSeparator + "ext/mysql-connector-java-" + MYSQL_CONNECTOR_VERSION + ".jar";
         StringList args = args("-Xmx128m",
-                "-cp", cp, "org.h2.test.bench.TestPerformance");
+                "-cp", cp, "-Dderby.system.durability=test", "org.h2.test.bench.TestPerformance");
         execJava(args.plus("-init", "-db", "1"));
         execJava(args.plus("-db", "2"));
         execJava(args.plus("-db", "3", "-out", "pe.html"));
@@ -806,11 +806,11 @@ public class Build extends BuildBase {
         // MVStore
         jarMVStore();
         String pom = new String(readFile(Paths.get("src/installer/pom-mvstore-template.xml")));
-        pom = replaceAll(pom, "@version@", "1.0-SNAPSHOT");
+        pom = replaceAll(pom, "@version@", getVersion());
         writeFile(Paths.get("bin/pom.xml"), pom.getBytes());
         execScript("mvn", args(
                 "install:install-file",
-                "-Dversion=1.0-SNAPSHOT",
+                "-Dversion=" + getVersion(),
                 "-Dfile=bin/h2-mvstore" + getJarSuffix(),
                 "-Dpackaging=jar",
                 "-DpomFile=bin/pom.xml",
@@ -819,11 +819,11 @@ public class Build extends BuildBase {
         // database
         jar();
         pom = new String(readFile(Paths.get("src/installer/pom-template.xml")));
-        pom = replaceAll(pom, "@version@", "1.0-SNAPSHOT");
+        pom = replaceAll(pom, "@version@", getVersion());
         writeFile(Paths.get("bin/pom.xml"), pom.getBytes());
         execScript("mvn", args(
                 "install:install-file",
-                "-Dversion=1.0-SNAPSHOT",
+                "-Dversion=" + getVersion(),
                 "-Dfile=bin/h2" + getJarSuffix(),
                 "-Dpackaging=jar",
                 "-DpomFile=bin/pom.xml",

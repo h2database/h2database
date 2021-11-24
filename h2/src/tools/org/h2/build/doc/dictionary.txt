@@ -55,7 +55,7 @@ becomes becoming been beep before begin beginning behalf behave behaving behavio
 behaviour behind being bel belgium believes bellinzona belong belonging belongs
 below bench benchmark benchmarks beneficial benefit bennet berger berkeley
 berlini bern bernd berne best beta better between beverages beware beyond bfff
-bgcolor biased bid biel bienne big bigger biggest bigint biginteger bigserial
+bgcolor biased bid biel bienne big bigger biggest bigint biginteger bigserial binlog
 bilinear bilingual billion bin binaries binary bind bindings bio biodiversity
 biological bipush birth birthday biscuits bit bitand bitmap bitnot bitor bits bitwise
 bitxor biz bjorn black blank blanked blanks bleyl blind blitz blob blobs block
@@ -155,7 +155,7 @@ database databaseaccess databases dataflyer datagram datalink datareader
 datasource datasources datastore datatext datatype datatypes datawriter date
 dateadd datediff datepart dates datestyle datetime datetimes datum david davide
 day daylight dayname dayofmonth dayofweek dayofyear days dba dbbench dbcp dbid
-dbms dbname dbo dbs dbserv dbsnmp dclassifier dcmpg dcmpl dconst ddiv ddl
+dbms dbname dbo dbs dbserv dbsnmp dclassifier dcmpg dcmpl dconst dderby ddiv ddl
 ddladmin deactivate deactivated deactivation dead deadlock deadlocked deadlocks
 deal dealing deallocate death debug debugging dec decade december decide decided decimal
 decision deck declaration declarations declarative declaratory declare declared
@@ -244,7 +244,7 @@ fact factor factorial factories factory factual fadd fail failed failing fails f
 failures fair fake fall fallback falls faload false familiar families family faq
 far fashion fashioned fast faster fastest fastore fat fatal faulhaber fault
 favicon favorite fbj fcmpg fcmpl fconst fdiv feature features feb februar
-february federal federated federation fedotovs fee feed feedback fees feff fetch
+february federal federated federation fedora fedotovs fee feed feedback fees feff fetch
 fetched fetching few fewer ffeecc fffe fid field fields fiery fifo fifty file
 filed filename filepwd files filesystem fill filled filler fillers filling fills
 filo filter filtered filtering filters fin final finalization finalize finalizer
@@ -393,7 +393,8 @@ matcher matches matching material materialized materials math mathematical
 mathematicians mathematics matrix matter matters maurice maven max maxbqualsize
 maxed maxgtridsize maximum maxlength maxrows maxvalue maxwidth may maybe mbean
 mbeans mcleod mdash mdd mddata mdsys mdtm mean meaning meaningful means meant
-meantime meanwhile measurable measure measured meat mechanism media median medium
+meantime meanwhile measurable measure measured measurement measurements
+meat mechanism media median medium
 mediumblob mediumint mediumtext megabyte megabytes mehner meier meijer melbourne
 mem member members memcpy memmove memo memory mendonca mentioned menu
 merchantability merchantable merge merged merges merging meridian message

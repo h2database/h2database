@@ -15,10 +15,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
-import org.h2.util.IOUtils;
-import org.h2.util.JdbcUtils;
+import org.h2.test.bench.Database.Measurement;
 
 /**
  * Used to compare scalability between the old engine and the new MVStore
@@ -42,7 +43,7 @@ public class TestScalability implements Database.DatabaseTest {
      * @param args the command line parameters
      */
     public static void main(String... args) throws Exception {
-        new TestScalability().test();
+        new TestScalability().test(args);
     }
 
     private static Connection getResultConnection() throws SQLException {
@@ -51,40 +52,59 @@ public class TestScalability implements Database.DatabaseTest {
     }
 
     private static void openResults() throws SQLException {
-        Connection conn = null;
-        Statement stat = null;
-        try {
-            conn = getResultConnection();
-            stat = conn.createStatement();
+        try (Connection conn = getResultConnection();
+                Statement stat = conn.createStatement()) {
             stat.execute(
                     "CREATE TABLE IF NOT EXISTS RESULTS(TESTID INT, " +
-                    "TEST VARCHAR, UNIT VARCHAR, DBID INT, " +
-                    "DB VARCHAR, TCNT INT, RESULT VARCHAR)");
-        } finally {
-            JdbcUtils.closeSilently(stat);
-            JdbcUtils.closeSilently(conn);
+                            "TEST VARCHAR, UNIT VARCHAR, DBID INT, " +
+                            "DB VARCHAR, TCNT INT, RESULT VARCHAR)");
         }
     }
 
-    private void test() throws Exception {
-        FileUtils.deleteRecursive("data", true);
-        final String out = "benchmark.html";
-        final int size = 400;
+    private void test(String... args) throws Exception {
+        int dbId = -1;
+        boolean exit = false;
+        String out = "scalability.html";
+        int size = 400;
+        for (int i = 0; i < args.length; i++) {
+            String arg = args[i];
+            if ("-db".equals(arg)) {
+                dbId = Integer.parseInt(args[++i]);
+            } else if ("-init".equals(arg)) {
+                FileUtils.deleteRecursive("data", true);
+            } else if ("-out".equals(arg)) {
+                out = args[++i];
+            } else if ("-trace".equals(arg)) {
+                trace = true;
+            } else if ("-exit".equals(arg)) {
+                exit = true;
+            } else if ("-size".equals(arg)) {
+                size = Integer.parseInt(args[++i]);
+            }
+        }
 
-        ArrayList<Database> dbs = new ArrayList<>();
-        int id = 1;
-        final String mvUrl = "jdbc:h2:./data/mvTest;" +
-                "LOCK_MODE=0";
-        dbs.add(createDbEntry(id++, "MV", 1, mvUrl));
-        dbs.add(createDbEntry(id++, "MV", 2, mvUrl));
-        dbs.add(createDbEntry(id++, "MV", 4, mvUrl));
-        dbs.add(createDbEntry(id++, "MV", 8, mvUrl));
-        dbs.add(createDbEntry(id++, "MV", 16, mvUrl));
-        dbs.add(createDbEntry(id++, "MV", 32, mvUrl));
-        dbs.add(createDbEntry(id++, "MV", 64, mvUrl));
-        dbs.add(createDbEntry(id++, "MV", 128, mvUrl));
+        Properties prop = loadProperties();
 
-        final BenchB test = new BenchB() {
+        ArrayList<RunSequence> dbs = new ArrayList<>();
+        for (int id = 0; id < 100; id++) {
+            if (dbId != -1 && id != dbId) {
+                continue;
+            }
+            String dbString = prop.getProperty("db" + id);
+            if (dbString != null) {
+                Database db = Database.parse(this, id, dbString, prop);
+                if (db != null) {
+                    int runCount = 8;
+                    String valueStr = prop.getProperty("runCount" + id);
+                    if (valueStr != null) {
+                        runCount = Integer.parseInt(valueStr);
+                    }
+                    dbs.add(new RunSequence(db, runCount));
+                }
+            }
+        }
+
+        BenchB test = new BenchB() {
             // Since we focus on scalability here, lets emphasize multi-threaded
             // part of the test (transactions) and minimize impact of the init.
             @Override
@@ -93,108 +113,123 @@ public class TestScalability implements Database.DatabaseTest {
             }
         };
         testAll(dbs, test, size);
-        collect = false;
 
-        ArrayList<Object[]> results = dbs.get(0).getResults();
-        Connection conn = null;
-        PreparedStatement prep = null;
-        Statement stat = null;
-        PrintWriter writer = null;
-        try {
+        List<Measurement> results = dbs.get(0).results.get(0);
+        try (Connection conn = getResultConnection()) {
             openResults();
-            conn = getResultConnection();
-            stat = conn.createStatement();
-            prep = conn.prepareStatement(
+            try (PreparedStatement prep = conn.prepareStatement(
                     "INSERT INTO RESULTS(TESTID, " +
-                    "TEST, UNIT, DBID, DB, TCNT, RESULT) VALUES(?, ?, ?, ?, ?, ?, ?)");
-            for (int i = 0; i < results.size(); i++) {
-                Object[] res = results.get(i);
-                prep.setInt(1, i);
-                prep.setString(2, res[0].toString());
-                prep.setString(3, res[1].toString());
-                for (Database db : dbs) {
-                    prep.setInt(4, db.getId());
-                    prep.setString(5, db.getName());
-                    prep.setInt(6, db.getThreadsCount());
-                    Object[] v = db.getResults().get(i);
-                    prep.setString(7, v[2].toString());
-                    prep.execute();
+                    "TEST, UNIT, DBID, DB, TCNT, RESULT) VALUES(?, ?, ?, ?, ?, ?, ?)")) {
+                for (int i = 0; i < results.size(); i++) {
+                    Measurement res = results.get(i);
+                    prep.setInt(1, i);
+                    prep.setString(2, res.name);
+                    prep.setString(3, res.unit);
+                    for (RunSequence runSequence : dbs) {
+                        Database db = runSequence.database;
+                        int threadCount = 1;
+                        for (List<Measurement> result : runSequence.results) {
+                            if (result.size() > i) {
+                                Measurement measurement = result.get(i);
+                                prep.setInt(4, db.getId());
+                                prep.setString(5, db.getName());
+                                prep.setInt(6, threadCount);
+                                prep.setString(7, String.valueOf(measurement.value));
+                                prep.execute();
+                                threadCount <<= 1;
+                            }
+                        }
+                    }
                 }
             }
 
-            writer = new PrintWriter(new FileWriter(out));
-            ResultSet rs = stat.executeQuery(
-                "CALL '<table border=\"1\"><tr><th rowspan=\"2\">Test Case</th>" +
-                "<th rowspan=\"2\">Unit</th>' " +
-                "|| (SELECT GROUP_CONCAT('<th colspan=\"' || COLSPAN || '\">' || TCNT || '</th>' " +
-                "ORDER BY TCNT SEPARATOR '') FROM " +
-                "(SELECT TCNT, COUNT(*) COLSPAN FROM (SELECT DISTINCT DB, TCNT FROM RESULTS) GROUP BY TCNT))" +
-                "|| '</tr>' || CHAR(10) " +
-                "|| '<tr>' || (SELECT GROUP_CONCAT('<th>' || DB || '</th>' ORDER BY TCNT, DB SEPARATOR '')" +
-                " FROM (SELECT DISTINCT DB, TCNT FROM RESULTS)) || '</tr>' || CHAR(10) " +
-                "|| (SELECT GROUP_CONCAT('<tr><td>' || TEST || '</td><td>' || UNIT || '</td>' || ( " +
-                "SELECT GROUP_CONCAT('<td>' || RESULT || '</td>' ORDER BY TCNT,DB SEPARATOR '')" +
-                " FROM RESULTS R2 WHERE R2.TESTID = R1.TESTID) || '</tr>' " +
-                "ORDER BY TESTID SEPARATOR CHAR(10)) FROM " +
-                "(SELECT DISTINCT TESTID, TEST, UNIT FROM RESULTS) R1)" +
-                "|| '</table>'");
-            rs.next();
-            String result = rs.getString(1);
-            writer.println(result);
-        } finally {
-            JdbcUtils.closeSilently(prep);
-            JdbcUtils.closeSilently(stat);
-            JdbcUtils.closeSilently(conn);
-            IOUtils.closeSilently(writer);
-        }
-    }
-
-    private Database createDbEntry(int id, String namePrefix,
-            int threadCount, String url) {
-        Database db = Database.parse(this, id, namePrefix +
-                ", org.h2.Driver, " + url + ", sa, sa", threadCount);
-        return db;
-    }
-
-
-    private void testAll(ArrayList<Database> dbs, BenchB test, int size)
-            throws Exception {
-        for (int i = 0; i < dbs.size(); i++) {
-            if (i > 0) {
-                Thread.sleep(1000);
+            try (Statement stat = conn.createStatement();
+                    PrintWriter writer = new PrintWriter(new FileWriter(out));
+                    ResultSet rs = stat.executeQuery(
+                        "CALL '<table border=\"1\"><tr><th rowspan=\"2\">Test Case</th>" +
+                        "<th rowspan=\"2\">Unit</th>' " +
+                        "|| (SELECT GROUP_CONCAT('<th colspan=\"' || COLSPAN || '\">' || TCNT || '</th>' " +
+                        "ORDER BY TCNT SEPARATOR '') FROM " +
+                        "(SELECT TCNT, COUNT(*) COLSPAN FROM (SELECT DISTINCT DB, TCNT FROM RESULTS) GROUP BY TCNT))" +
+                        "|| '</tr>' || CHAR(10) " +
+                        "|| '<tr>' || (SELECT GROUP_CONCAT('<th>' || DB || '</th>' ORDER BY TCNT, DB SEPARATOR '')" +
+                        " FROM (SELECT DISTINCT DB, TCNT FROM RESULTS)) || '</tr>' || CHAR(10) " +
+                        "|| (SELECT GROUP_CONCAT('<tr><td>' || TEST || '</td><td>' || UNIT || '</td>' || ( " +
+                        "SELECT GROUP_CONCAT('<td>' || RESULT || '</td>' ORDER BY TCNT,DB SEPARATOR '')" +
+                        " FROM RESULTS R2 WHERE R2.TESTID = R1.TESTID) || '</tr>' " +
+                        "ORDER BY TESTID SEPARATOR CHAR(10)) FROM " +
+                        "(SELECT DISTINCT TESTID, TEST, UNIT FROM RESULTS) R1)" +
+                        "|| '</table>'")) {
+                rs.next();
+                String result = rs.getString(1);
+                writer.println(result);
             }
-            // calls garbage collection
-            TestBase.getMemoryUsed();
-            Database db = dbs.get(i);
-            System.out.println("Testing the performance of " + db.getName()
-                    + " (" + db.getThreadsCount() + " threads)");
-            db.startServer();
-            Connection conn = db.openNewConnection();
-            DatabaseMetaData meta = conn.getMetaData();
-            System.out.println(" " + meta.getDatabaseProductName() + " " +
-                    meta.getDatabaseProductVersion());
-            runDatabase(db, test, 1);
-            runDatabase(db, test, 1);
-            collect = true;
-            runDatabase(db, test, size);
-            conn.close();
-            db.log("Executed statements", "#", db.getExecutedStatements());
-            db.log("Total time", "ms", db.getTotalTime());
-            int statPerSec = (int) (db.getExecutedStatements() *
-                    1000L / db.getTotalTime());
-            db.log("Statements per second", "#", statPerSec);
-            System.out.println("Statements per second: " + statPerSec);
-            System.out.println("GC overhead: " + (100 * db.getTotalGCTime() / db.getTotalTime()) + "%");
-            collect = false;
-            db.stopServer();
+        }
+
+        if (exit) {
+            System.exit(0);
         }
     }
 
-    private static void runDatabase(Database db, BenchB bench, int size)
-            throws Exception {
-        bench.init(db, size);
-        bench.setThreadCount(db.getThreadsCount());
-        bench.runTest();
+    private void testAll(ArrayList<RunSequence> runSequences, BenchB test, int size) throws Exception {
+        Database lastDb = null;
+        Connection conn = null;
+        for (RunSequence runSequence : runSequences) {
+            Database db = runSequence.database;
+            try {
+                if (lastDb != null) {
+                    conn.close();
+                    lastDb.stopServer();
+                    Thread.sleep(1000);
+                    // calls garbage collection
+                    TestBase.getMemoryUsed();
+                }
+                String dbName = db.getName();
+                System.out.println("------------------");
+                System.out.println("Testing the performance of " + dbName);
+                db.startServer();
+                // hold one connection open during the whole test to keep database up
+                conn = db.openNewConnection();
+                test.init(db, size);
+
+                for (int runNo = 0, threadCount = 1; runNo < runSequence.runCount; runNo++, threadCount <<= 1) {
+                    System.out.println("Testing the performance of " + dbName
+                            + " (" + threadCount + " threads)");
+
+                    DatabaseMetaData meta = conn.getMetaData();
+                    System.out.println(" " + meta.getDatabaseProductName() + " " +
+                            meta.getDatabaseProductVersion());
+                    test.setThreadCount(threadCount);
+
+                    test.runTest();
+                    test.runTest();
+                    db.reset();
+                    collect = true;
+                    test.runTest();
+
+                    int executedStatements = db.getExecutedStatements();
+                    int totalTime = db.getTotalTime();
+                    int totalGCTime = db.getTotalGCTime();
+                    db.log("Executed statements", "#", executedStatements);
+                    db.log("Total time", "ms", totalTime);
+                    int statPerSec = (int) (executedStatements * 1000L / totalTime);
+                    db.log("Statements per second", "#/s", statPerSec);
+                    collect = false;
+                    System.out.println("Statements per second: " + statPerSec);
+                    System.out.println("GC overhead: " + (100 * totalGCTime / totalTime) + "%");
+                    ArrayList<Measurement> measurements = db.reset();
+                    runSequence.results.add(measurements);
+                }
+            } catch (Throwable ex) {
+                ex.printStackTrace();
+            } finally {
+                lastDb = db;
+            }
+        }
+        if (lastDb != null) {
+            conn.close();
+            lastDb.stopServer();
+        }
     }
 
     /**
@@ -212,5 +247,17 @@ public class TestScalability implements Database.DatabaseTest {
     @Override
     public boolean isCollect() {
         return collect;
+    }
+
+    private static final class RunSequence
+    {
+        final Database database;
+        final int runCount;
+        final List<List<Measurement>> results = new ArrayList<>();
+
+        public RunSequence(Database dataBase, int runCount) {
+            this.database = dataBase;
+            this.runCount = runCount;
+        }
     }
 }

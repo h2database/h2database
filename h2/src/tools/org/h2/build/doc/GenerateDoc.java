@@ -72,6 +72,7 @@ public class GenerateDoc {
         session.put("versionDate", Constants.BUILD_DATE);
         session.put("stableVersion", Constants.VERSION_STABLE);
         session.put("stableVersionDate", Constants.BUILD_DATE_STABLE);
+        session.put("downloadRoot", "github.com/h2database/h2database/releases/download/version-" + Constants.VERSION);
         String help = "SELECT ROWNUM ID, * FROM CSVREAD('" +
                 IN_HELP + "', NULL, 'lineComment=#') WHERE SECTION ";
         map("commandsDML",

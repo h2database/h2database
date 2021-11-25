@@ -312,8 +312,8 @@ public class DataType {
         dataType.prefix = "'";
         dataType.suffix = "'";
         dataType.params = "TYPE,SRID";
-        dataType.maxPrecision = Constants.MAX_STRING_LENGTH;
-        dataType.defaultPrecision = Constants.MAX_STRING_LENGTH;
+        dataType.maxPrecision = Long.MAX_VALUE;
+        dataType.defaultPrecision = Long.MAX_VALUE;
         return dataType;
     }
 

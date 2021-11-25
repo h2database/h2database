@@ -148,7 +148,7 @@ cryptoloop css csv csvread csvwrite cte ctid ctor ctrl ctx ctxsys cuaz cube
 cumulative cup curation curdate cure curious curly curr curren currency current
 currently currval cursor cursors curtime curtimestamp curve curves cust custom
 customarily customer customerid customers customizable customized customizer
-customizers customizing cut cutover cvf cvs cwd cycle cycles cyclic cycling cyr
+customizers customizing cut cutover cve cvf cvs cwd cycle cycles cyclic cycling cyr
 czech dadd daemon daffodil dagger dairy daload dalvik damage damages dan dance
 dangerous daniel dark darr darri dartifact darwin dash dashes dastore dat data
 database databaseaccess databases dataflyer datagram datalink datareader

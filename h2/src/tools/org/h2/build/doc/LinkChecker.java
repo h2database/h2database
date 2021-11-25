@@ -166,7 +166,7 @@ public class LinkChecker {
         for (String error : errors) {
             System.out.println(error);
         }
-        if (errors.size() > 0) {
+        if (!errors.isEmpty()) {
             throw new Exception("Problems where found by the Link Checker");
         }
     }

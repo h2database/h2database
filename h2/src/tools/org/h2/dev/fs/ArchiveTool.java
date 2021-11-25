@@ -255,7 +255,7 @@ public class ArchiveTool {
                     fileIn.close();
                     fileIn = null;
                 }
-                if (files.size() == 0) {
+                if (files.isEmpty()) {
                     // EOF
                     return -1;
                 }
@@ -562,7 +562,7 @@ public class ArchiveTool {
 
             @Override
             public boolean hasNext() {
-                return segmentIn.size() > 0;
+                return !segmentIn.isEmpty();
             }
 
             @Override
@@ -948,7 +948,7 @@ public class ArchiveTool {
                     }
                     idList.add(x);
                 }
-                if (idList.size() == 0) {
+                if (idList.isEmpty()) {
                     // eof
                     in.close();
                     return null;

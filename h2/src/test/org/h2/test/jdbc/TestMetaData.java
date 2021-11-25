@@ -357,7 +357,7 @@ public class TestMetaData extends TestDb {
                 "PRECISION,SCALE", false, false, (short) 0, (short) 9, 0);
         testTypeInfo(rs, "ENUM", Types.OTHER, MAX_STRING_LENGTH, "'", "'", "ELEMENT [,...]", false, false, (short) 0,
                 (short) 0, 0);
-        testTypeInfo(rs, "GEOMETRY", Types.OTHER, MAX_STRING_LENGTH, "'", "'", "TYPE,SRID", false, false, (short) 0,
+        testTypeInfo(rs, "GEOMETRY", Types.OTHER, Integer.MAX_VALUE, "'", "'", "TYPE,SRID", false, false, (short) 0,
                 (short) 0, 0);
         testTypeInfo(rs, "JSON", Types.OTHER, MAX_STRING_LENGTH, "JSON '", "'", "LENGTH", true, false, (short) 0,
                 (short) 0, 0);
@@ -379,13 +379,13 @@ public class TestMetaData extends TestDb {
         conn.close();
     }
 
-    private void testTypeInfo(ResultSet rs, String name, int type, int precision, String prefix, String suffix,
+    private void testTypeInfo(ResultSet rs, String name, int type, long precision, String prefix, String suffix,
             String params, boolean caseSensitive, boolean fixed, short minScale, short maxScale, int radix)
                     throws SQLException {
         assertTrue(rs.next());
         assertEquals(name, rs.getString(1));
         assertEquals(type, rs.getInt(2));
-        assertEquals(precision, rs.getInt(3));
+        assertEquals(precision, rs.getLong(3));
         assertEquals(prefix, rs.getString(4));
         assertEquals(suffix, rs.getString(5));
         assertEquals(params, rs.getString(6));

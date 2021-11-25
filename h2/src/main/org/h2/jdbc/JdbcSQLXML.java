@@ -56,7 +56,7 @@ import org.xml.sax.helpers.XMLReaderFactory;
 public final class JdbcSQLXML extends JdbcLob implements SQLXML {
 
     private static final Map<String,Boolean> secureFeatureMap = new HashMap<>();
-    private static final EntityResolver NOOP_ENTITY_RESOLVER = (publicId, systemId) -> new InputSource(new StringReader(""));
+    private static final EntityResolver NOOP_ENTITY_RESOLVER = (pubId, sysId) -> new InputSource(new StringReader(""));
     private static final URIResolver NOOP_URI_RESOLVER = (href, base) -> new StreamSource(new StringReader(""));
 
     static {
@@ -76,6 +76,10 @@ public final class JdbcSQLXML extends JdbcLob implements SQLXML {
 
     /**
      * INTERNAL
+     * @param conn to use
+     * @param value for this JdbcSQLXML
+     * @param state of the LOB
+     * @param id of the trace object
      */
     public JdbcSQLXML(JdbcConnection conn, Value value, State state, int id) {
         super(conn, value, state, TraceObject.SQLXML, id);
@@ -128,7 +132,7 @@ public final class JdbcSQLXML extends JdbcLob implements SQLXML {
                         "getSource(" + (sourceClass != null ? sourceClass.getSimpleName() + ".class" : "null") + ')');
             }
             checkReadable();
-            // According to https://cheatsheetseries.owasp.org/cheatsheets/XML_External_Entity_Prevention_Cheat_Sheet.html
+            // see https://cheatsheetseries.owasp.org/cheatsheets/XML_External_Entity_Prevention_Cheat_Sheet.html
             if (sourceClass == null || sourceClass == DOMSource.class) {
                 DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
                 for (Map.Entry<String,Boolean> entry : secureFeatureMap.entrySet()) {
@@ -162,7 +166,8 @@ public final class JdbcSQLXML extends JdbcLob implements SQLXML {
                 tf.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
                 tf.setAttribute(XMLConstants.ACCESS_EXTERNAL_STYLESHEET, "");
                 tf.setURIResolver(NOOP_URI_RESOLVER);
-                tf.newTransformer().transform(new StreamSource(value.getInputStream()), new SAXResult(new DefaultHandler()));
+                tf.newTransformer().transform(new StreamSource(value.getInputStream()),
+                                                new SAXResult(new DefaultHandler()));
                 return (T) new StreamSource(value.getInputStream());
             }
             throw unsupported(sourceClass.getName());

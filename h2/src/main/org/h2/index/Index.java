@@ -528,7 +528,7 @@ public abstract class Index extends SchemaObject {
     }
 
     /**
-     * Get "PRIMARY KEY ON <table> [(column)]".
+     * Get "PRIMARY KEY ON &lt;table&gt; [(column)]".
      *
      * @param mainIndexColumn the column index
      * @return the message

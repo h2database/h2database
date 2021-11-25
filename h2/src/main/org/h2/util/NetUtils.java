@@ -13,6 +13,7 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.sql.SQLException;
 
 import org.h2.api.ErrorCode;
 import org.h2.engine.SysProperties;
@@ -40,6 +41,7 @@ public class NetUtils {
      * @param port the port
      * @param ssl if SSL should be used
      * @return the socket
+     * @throws IOException on failure
      */
     public static Socket createLoopbackSocket(int port, boolean ssl)
             throws IOException {
@@ -64,6 +66,7 @@ public class NetUtils {
      *            address)
      * @param ssl if SSL should be used
      * @return the socket
+     * @throws IOException on failure
      */
     public static Socket createSocket(String server, int defaultPort, boolean ssl) throws IOException {
         return createSocket(server, defaultPort, ssl, 0);
@@ -78,6 +81,7 @@ public class NetUtils {
      * @param ssl if SSL should be used
      * @param networkTimeout socket so timeout
      * @return the socket
+     * @throws IOException on failure
      */
     public static Socket createSocket(String server, int defaultPort,
             boolean ssl, int networkTimeout) throws IOException {
@@ -103,6 +107,7 @@ public class NetUtils {
      * @param port the port
      * @param ssl if SSL should be used
      * @return the socket
+     * @throws IOException on failure
      */
     public static Socket createSocket(InetAddress address, int port, boolean ssl)
         throws IOException {
@@ -116,6 +121,7 @@ public class NetUtils {
      * @param ssl if SSL should be used
      * @param networkTimeout socket so timeout
      * @return the socket
+     * @throws IOException on failure
      */
     public static Socket createSocket(InetAddress address, int port, boolean ssl, int networkTimeout)
             throws IOException {
@@ -215,6 +221,7 @@ public class NetUtils {
      *
      * @param socket the socket
      * @return true if it is
+     * @throws UnknownHostException on failure
      */
     public static boolean isLocalAddress(Socket socket)
             throws UnknownHostException {

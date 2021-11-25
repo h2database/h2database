@@ -104,10 +104,10 @@ public class CipherFactory {
      * @param address the address to connect to
      * @param port the port
      * @return the socket
+     * @throws IOException on failure
      */
     public static Socket createSocket(InetAddress address, int port)
             throws IOException {
-        Socket socket = null;
         setKeystore();
         SSLSocketFactory f = (SSLSocketFactory) SSLSocketFactory.getDefault();
         SSLSocket secureSocket = (SSLSocket) f.createSocket();
@@ -121,8 +121,7 @@ public class CipherFactory {
                     secureSocket.getSupportedCipherSuites());
             secureSocket.setEnabledCipherSuites(list);
         }
-        socket = secureSocket;
-        return socket;
+        return secureSocket;
     }
 
 /**
@@ -138,6 +137,7 @@ public class CipherFactory {
      * @param bindAddress the address to bind to, or null to bind to all
      *            addresses
      * @return the server socket
+     * @throws IOException on failure
      */
     public static ServerSocket createServerSocket(int port,
             InetAddress bindAddress) throws IOException {
@@ -271,6 +271,7 @@ public class CipherFactory {
      *
      * @param password the keystore password
      * @return the keystore
+     * @throws IOException on failure
      */
     public static KeyStore getKeyStore(String password) throws IOException {
         try {

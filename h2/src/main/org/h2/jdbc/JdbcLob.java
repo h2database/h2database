@@ -151,6 +151,7 @@ public abstract class JdbcLob extends TraceObject {
      * Returns the input stream.
      *
      * @return the input stream
+     * @throws SQLException on failure
      */
     InputStream getBinaryStream() throws SQLException {
         try {
@@ -166,6 +167,7 @@ public abstract class JdbcLob extends TraceObject {
      * Returns the reader.
      *
      * @return the reader
+     * @throws SQLException on failure
      */
     Reader getCharacterStream() throws SQLException {
         try {

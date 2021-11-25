@@ -14,6 +14,7 @@ import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 
 import org.h2.tools.RunScript;
 import org.h2.util.StringUtils;
@@ -30,6 +31,7 @@ public class Newsfeed {
      * command line.
      *
      * @param args the command line parameters
+     * @throws Exception on failure
      */
     public static void main(String... args) throws Exception {
         Path targetDir = Paths.get(args.length == 0 ? "." : args[0]);

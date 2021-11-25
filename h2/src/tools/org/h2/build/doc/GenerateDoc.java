@@ -36,7 +36,7 @@ import org.h2.util.StringUtils;
  */
 public class GenerateDoc {
 
-    private static final String IN_HELP = "src/docsrc/help/help.csv";
+    private static final String IN_HELP = "src/main/org/h2/res/help.csv";
     private Path inDir = Paths.get("src/docsrc/html");
     private Path outDir = Paths.get("docs/html");
     private Connection conn;
@@ -72,6 +72,8 @@ public class GenerateDoc {
         session.put("versionDate", Constants.BUILD_DATE);
         session.put("stableVersion", Constants.VERSION_STABLE);
         session.put("stableVersionDate", Constants.BUILD_DATE_STABLE);
+        session.put("downloadRoot",
+                "https://github.com/h2database/h2database/releases/download/version-" + Constants.VERSION);
         String help = "SELECT ROWNUM ID, * FROM CSVREAD('" +
                 IN_HELP + "', NULL, 'lineComment=#') WHERE SECTION ";
         map("commandsDML",

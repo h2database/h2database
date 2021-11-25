@@ -26,7 +26,7 @@ import org.h2.util.Tool;
 
 /**
  * Allows changing the database file encryption password or algorithm.
- * <br />
+ *
  * This tool can not be used to change a password of a user.
  * The database must be closed before using this tool.
  * @h2.resource
@@ -41,8 +41,9 @@ public class ChangeFileEncryption extends Tool {
     private byte[] encryptKey;
 
     /**
-     * Options are case sensitive. Supported options are:
+     * Options are case sensitive.
      * <table>
+     * <caption>Supported options</caption>
      * <tr><td>[-help] or [-?]</td>
      * <td>Print the list of options</td></tr>
      * <tr><td>[-cipher type]</td>
@@ -137,6 +138,7 @@ public class ChangeFileEncryption extends Tool {
      * @param decryptPassword the decryption password as a char array
      * @param encryptPassword the encryption password as a char array
      * @param quiet don't print progress information
+     * @throws SQLException on failure
      */
     public static void execute(String dir, String db, String cipher,
             char[] decryptPassword, char[] encryptPassword, boolean quiet)

@@ -29,6 +29,10 @@ public final class JdbcBlob extends JdbcLob implements Blob {
 
     /**
      * INTERNAL
+     * @param conn it belongs to
+     * @param value of
+     * @param state of the LOB
+     * @param id of the trace object
      */
     public JdbcBlob(JdbcConnection conn, Value value, State state, int id) {
         super(conn, value, state, TraceObject.BLOB, id);

@@ -124,6 +124,7 @@ public class SourceCompiler {
      *
      * @param packageAndClassName the class name
      * @return the class
+     * @throws ClassNotFoundException on failure
      */
     public Class<?> getClass(String packageAndClassName)
             throws ClassNotFoundException {
@@ -201,6 +202,7 @@ public class SourceCompiler {
      *
      * @param packageAndClassName the package and class name
      * @return the compiled script
+     * @throws ScriptException on failure
      */
     public CompiledScript getCompiledScript(String packageAndClassName) throws ScriptException {
         CompiledScript compiledScript = compiledScripts.get(packageAndClassName);
@@ -227,6 +229,7 @@ public class SourceCompiler {
      *
      * @param className the class name
      * @return the method name
+     * @throws ClassNotFoundException on failure
      */
     public Method getMethod(String className) throws ClassNotFoundException {
         Class<?> clazz = getClass(className);

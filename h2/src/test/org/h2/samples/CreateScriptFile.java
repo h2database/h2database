@@ -37,6 +37,7 @@ public class CreateScriptFile {
      * command line.
      *
      * @param args the command line parameters
+     * @throws Exception on failure
      */
     public static void main(String... args) throws Exception {
 
@@ -99,6 +100,7 @@ public class CreateScriptFile {
      * @param password the encryption password
      * @param charset the character set (for example UTF-8)
      * @return the print writer
+     * @throws IOException on failure
      */
     public static PrintWriter openScriptWriter(String fileName,
             String compressionAlgorithm,
@@ -134,6 +136,7 @@ public class CreateScriptFile {
      * @param password the encryption password
      * @param charset the character set (for example UTF-8)
      * @return the script reader
+     * @throws IOException on failure
      */
     public static LineNumberReader openScriptReader(String fileName,
             String compressionAlgorithm,

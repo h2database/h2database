@@ -41,8 +41,9 @@ public class FileShell extends Tool {
     private String currentWorkingDirectory;
 
     /**
-     * Options are case sensitive. Supported options are:
+     * Options are case sensitive.
      * <table>
+     * <caption>Supported options</caption>
      * <tr><td>[-help] or [-?]</td>
      * <td>Print the list of options</td></tr>
      * <tr><td>[-verbose]</td>
@@ -54,6 +55,7 @@ public class FileShell extends Tool {
      * @h2.resource
      *
      * @param args the command line arguments
+     * @throws SQLException on failure
      */
     public static void main(String... args) throws SQLException {
         new FileShell().runTool(args);

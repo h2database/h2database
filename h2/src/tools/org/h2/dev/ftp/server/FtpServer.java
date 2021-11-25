@@ -91,9 +91,10 @@ public class FtpServer extends Tool implements Service {
 
     /**
      * When running without options, -tcp, -web, -browser,
-     * and -pg are started.<br />
-     * Options are case sensitive. Supported options are:
+     * and -pg are started.
+     * Options are case sensitive.
      * <table>
+     * <caption>Supported options</caption>
      * <tr><td>[-help] or [-?]</td>
      * <td>Print the list of options</td></tr>
      * <tr><td>[-web]</td>

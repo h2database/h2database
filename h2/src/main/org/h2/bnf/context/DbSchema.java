@@ -114,6 +114,7 @@ public class DbSchema {
      *
      * @param meta the database meta data
      * @param tableTypes the table types to read
+     * @throws SQLException on failure
      */
     public void readTables(DatabaseMetaData meta, String[] tableTypes)
             throws SQLException {

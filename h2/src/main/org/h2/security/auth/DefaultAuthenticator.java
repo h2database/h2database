@@ -246,6 +246,10 @@ public class DefaultAuthenticator implements Authenticator {
      * Configure the authenticator from a configuration file
      *
      * @param configUrl URL of configuration file
+     * @throws AuthenticationException on failure
+     * @throws SAXException on failure
+     * @throws IOException on failure
+     * @throws ParserConfigurationException on failure
      */
     public void configureFromUrl(URL configUrl) throws AuthenticationException,
             SAXException, IOException, ParserConfigurationException {

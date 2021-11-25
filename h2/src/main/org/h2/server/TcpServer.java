@@ -431,6 +431,7 @@ public class TcpServer implements Service {
      * @param force if the server should be stopped immediately
      * @param all whether all TCP servers that are running in the JVM should be
      *            stopped
+     * @throws SQLException on failure
      */
     public static synchronized void shutdown(String url, String password,
             boolean force, boolean all) throws SQLException {

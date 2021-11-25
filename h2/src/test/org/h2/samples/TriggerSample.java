@@ -25,6 +25,7 @@ public class TriggerSample {
      * command line.
      *
      * @param args the command line parameters
+     * @throws Exception on failure
      */
     public static void main(String... args) throws Exception {
         Class.forName("org.h2.Driver");

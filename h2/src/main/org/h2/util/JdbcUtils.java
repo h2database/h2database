@@ -136,6 +136,7 @@ public class JdbcUtils {
      * perform access rights checking, the system property h2.allowedClasses
      * needs to be set to a list of class file name prefixes.
      *
+     * @param <Z> generic return type
      * @param className the name of the class
      * @return the class object
      */
@@ -165,6 +166,7 @@ public class JdbcUtils {
             for (String s : allowedClassNamePrefixes) {
                 if (className.startsWith(s)) {
                     allowed = true;
+                    break;
                 }
             }
             if (!allowed) {
@@ -261,6 +263,7 @@ public class JdbcUtils {
      * @param user the user name
      * @param password the password
      * @return the database connection
+     * @throws SQLException on failure
      */
     public static Connection getConnection(String driver, String url,
             String user, String password) throws SQLException {
@@ -276,6 +279,7 @@ public class JdbcUtils {
      * @param password the password or {@code null}
      * @param networkConnectionInfo the network connection information, or {@code null}
      * @return the database connection
+     * @throws SQLException on failure
      */
     public static Connection getConnection(String driver, String url, String user, String password,
             NetworkConnectionInfo networkConnectionInfo) throws SQLException {
@@ -451,14 +455,11 @@ public class JdbcUtils {
     /**
      * Set a value as a parameter in a prepared statement.
      *
-     * @param prep
-     *            the prepared statement
-     * @param parameterIndex
-     *            the parameter index
-     * @param value
-     *            the value
-     * @param conn
-     *            the own connection
+     * @param prep the prepared statement
+     * @param parameterIndex the parameter index
+     * @param value the value
+     * @param conn the own connection
+     * @throws SQLException on failure
      */
     public static void set(PreparedStatement prep, int parameterIndex, Value value, JdbcConnection conn)
             throws SQLException {
@@ -611,6 +612,7 @@ public class JdbcUtils {
      * @param conn the connection
      * @param sql the SQL statement
      * @return the metadata
+     * @throws SQLException on failure
      */
     public static ResultSet getMetaResultSet(Connection conn, String sql)
             throws SQLException {

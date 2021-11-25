@@ -174,6 +174,7 @@ public class MultiDimension implements Comparator<long[]> {
      * @param min the lower values
      * @param max the upper values
      * @return the result set
+     * @throws SQLException on failure
      */
     public ResultSet getResult(PreparedStatement prep, int[] min, int[] max)
             throws SQLException {

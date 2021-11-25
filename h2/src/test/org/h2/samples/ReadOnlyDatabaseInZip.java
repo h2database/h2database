@@ -7,6 +7,7 @@ package org.h2.samples;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.sql.Statement;
 import org.h2.store.fs.FileUtils;
 import org.h2.tools.Backup;
@@ -25,6 +26,7 @@ public class ReadOnlyDatabaseInZip {
      * command line.
      *
      * @param args the command line parameters
+     * @throws Exception on failure
      */
     public static void main(String... args) throws Exception {
 

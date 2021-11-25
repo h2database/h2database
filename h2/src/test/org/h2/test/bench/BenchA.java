@@ -103,27 +103,16 @@ public class BenchA implements Bench {
         db.commit();
         db.closeConnection();
         db.end();
-
-//        db.start(this, "Open/Close");
-//        db.openConnection();
-//        db.closeConnection();
-//        db.end();
     }
 
     @Override
     public void runTest() throws SQLException {
-
+        database.openConnection();
         database.start(this, "Transactions");
-        database.openConnection();
         processTransactions();
-        database.closeConnection();
         database.end();
-
-        database.openConnection();
-        processTransactions();
         database.logMemory(this, "Memory Usage");
         database.closeConnection();
-
     }
 
     private void processTransactions() throws SQLException {

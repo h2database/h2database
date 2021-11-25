@@ -6,6 +6,7 @@
 package org.h2.build.doclet;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import org.h2.build.doc.XMLParser;
 import org.h2.build.indexer.HtmlConverter;
 import org.h2.util.SortedProperties;
@@ -33,6 +34,7 @@ public class ResourceDoclet {
      *
      * @param root the root
      * @return true if successful
+     * @throws IOException on failure
      */
     public static boolean start(RootDoc root) throws IOException {
         return new ResourceDoclet().startDoc(root);

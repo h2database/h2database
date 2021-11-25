@@ -91,6 +91,7 @@ public class DbTableOrView {
      * @param meta the database meta data
      * @param ps prepared statement with custom query for H2 database, null for
      *           others
+     * @throws SQLException on failure
      */
     public void readColumns(DatabaseMetaData meta, PreparedStatement ps) throws SQLException {
         ResultSet rs;

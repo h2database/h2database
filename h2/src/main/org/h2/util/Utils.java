@@ -14,6 +14,7 @@ import java.lang.management.OperatingSystemMXBean;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -378,6 +379,7 @@ public class Utils {
      *
      * @param name the name of the resource
      * @return the resource data
+     * @throws IOException on failure
      */
     public static byte[] getResource(String name) throws IOException {
         byte[] data = RESOURCES.get(name);
@@ -434,6 +436,7 @@ public class Utils {
      *            "java.lang.System.gc"
      * @param params the method parameters
      * @return the return value from this call
+     * @throws Exception on failure
      */
     public static Object callStaticMethod(String classAndMethod,
             Object... params) throws Exception {
@@ -452,6 +455,7 @@ public class Utils {
      * @param methodName a string with the method name
      * @param params the method parameters
      * @return the return value from this call
+     * @throws Exception on failure
      */
     public static Object callMethod(
             Object instance,
@@ -491,6 +495,7 @@ public class Utils {
      * @param className a string with the entire class, eg. "java.lang.Integer"
      * @param params the constructor parameters
      * @return the newly created object
+     * @throws Exception on failure
      */
     public static Object newInstance(String className, Object... params)
             throws Exception {

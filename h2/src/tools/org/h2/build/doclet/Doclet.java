@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -46,6 +47,7 @@ public class Doclet {
      *
      * @param root the root
      * @return true if successful
+     * @throws IOException on failure
      */
     public static boolean start(RootDoc root) throws IOException {
         return new Doclet().startDoc(root);

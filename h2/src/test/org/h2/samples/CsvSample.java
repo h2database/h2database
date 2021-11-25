@@ -27,6 +27,7 @@ public class CsvSample {
      * command line.
      *
      * @param args the command line parameters
+     * @throws SQLException on failure
      */
     public static void main(String... args) throws SQLException {
         CsvSample.write();

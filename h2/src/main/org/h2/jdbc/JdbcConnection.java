@@ -97,10 +97,13 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
 
     /**
      * INTERNAL
-     */
-    /*
      * the session closable object does not leak as Eclipse warns - due to the
      * CloseWatcher.
+     * @param url of this connection
+     * @param info of this connection
+     * @param user of this connection
+     * @param password for the user
+     * @throws SQLException on failure
      */
     @SuppressWarnings("resource")
     public JdbcConnection(String url, Properties info, String user, Object password) throws SQLException {
@@ -130,6 +133,7 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
 
     /**
      * INTERNAL
+     * @param clone connection to clone
      */
     public JdbcConnection(JdbcConnection clone) {
         this.session = clone.session;
@@ -150,6 +154,9 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
 
     /**
      * INTERNAL
+     * @param session of this connection
+     * @param user of this connection
+     * @param url of this connection
      */
     public JdbcConnection(Session session, String user, String url) {
         this.session = session;
@@ -300,6 +307,7 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
 
     /**
      * INTERNAL
+     * @return session
      */
     public Session getSession() {
         return session;
@@ -1833,6 +1841,7 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
 
     /**
      * INTERNAL
+     * @return StaticSettings
      */
     public StaticSettings getStaticSettings() {
         checkClosed();

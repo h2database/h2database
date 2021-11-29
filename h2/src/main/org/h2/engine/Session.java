@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
@@ -1871,10 +1872,13 @@ public class Session extends SessionWithState implements TransactionStore.Rollba
                 maps.add(((MVIndex) index).getMVMap());
             }
         }
-        for (Constraint constraint : table.getConstraints()) {
-            Table ref = constraint.getTable();
-            if (ref != table && ref instanceof MVTable) {
-                addTableToDependencies((MVTable) ref, maps, processed);
+        List<Constraint> constraints = table.getConstraints();
+        if (constraints != null) {
+            for (Constraint constraint : constraints) {
+                Table ref = constraint.getTable();
+                if (ref != table && ref instanceof MVTable) {
+                    addTableToDependencies((MVTable) ref, maps, processed);
+                }
             }
         }
     }

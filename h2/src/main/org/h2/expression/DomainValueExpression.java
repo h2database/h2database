@@ -51,7 +51,7 @@ public final class DomainValueExpression extends Operation0 {
 
     @Override
     public boolean isValueSet() {
-        return true;
+        return columnResolver.getValue(null) != null;
     }
 
     @Override

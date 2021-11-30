@@ -57,7 +57,7 @@ For compatibility with other databases and future versions of H2 please use pare
 11. Number of rows in output can be limited with OFFSET and FETCH clauses.
 OFFSET specifies how many rows to skip.
 Please note that queries with high offset values can be slow.
-FETCH FIRST/NEXT limits the number of rows returned by the query (no limit if null or smaller than zero).
+FETCH FIRST/NEXT limits the number of rows returned by the query.
 If PERCENT is specified number of rows is specified as a percent of the total number of rows
 and should be an integer value between 0 and 100 inclusive.
 WITH TIES can be used only together with ORDER BY and means that all additional rows that have the same sorting position
@@ -6026,9 +6026,10 @@ CALL ABORT_SESSION(3)
 ","
 Returns element at the specified 1-based index from an array.
 
-This function is deprecated, use ""arrayExpression[indexExpression]"" instead of it.
+This function is deprecated, use
+[array element reference](https://www.h2database.com/html/grammar.html#array_element_reference) instead of it.
 
-Returns NULL if there is no such element or array is NULL.
+Returns NULL if array or index is NULL.
 ","
 CALL ARRAY_GET(ARRAY['Hello', 'World'], 2)
 "

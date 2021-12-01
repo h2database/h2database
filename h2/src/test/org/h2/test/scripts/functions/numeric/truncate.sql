@@ -79,20 +79,20 @@ SELECT TRUNCATE(V, S) FROM (VALUES (1.111, 1)) T(V, S);
 >> 1.100
 
 SELECT TRUNC(1, 10000000);
-> exception INVALID_VALUE_2
+>> 1
 
 CREATE TABLE T1(N NUMERIC(10, 2), D DECFLOAT(10), I INTEGER) AS VALUES (99999999.99, 99999999.99, 10);
 > ok
 
-SELECT TRUNC(N) N0, TRUNC(N, 1) N1, TRUNC(N, 2) N2, TRUNC(N, 3) N3,
+SELECT TRUNC(N, -1) NN, TRUNC(N) N0, TRUNC(N, 1) N1, TRUNC(N, 2) N2, TRUNC(N, 3) N3, TRUNC(N, 10000000) NL,
     TRUNC(D) D0, TRUNC(D, 2) D2, TRUNC(D, 3) D3,
     TRUNC(I) I0, TRUNC(I, 1) I1, TRUNC(I, I) II FROM T1;
-> N0       N1         N2          N3          D0       D2          D3          I0 I1 II
-> -------- ---------- ----------- ----------- -------- ----------- ----------- -- -- --
-> 99999999 99999999.9 99999999.99 99999999.99 99999999 99999999.99 99999999.99 10 10 10
+> NN       N0       N1         N2          N3          NL          D0       D2          D3          I0 I1 II
+> -------- -------- ---------- ----------- ----------- ----------- -------- ----------- ----------- -- -- --
+> 99999990 99999999 99999999.9 99999999.99 99999999.99 99999999.99 99999999 99999999.99 99999999.99 10 10 10
 > rows: 1
 
-CREATE TABLE T2 AS SELECT TRUNC(N) N0, TRUNC(N, 1) N1, TRUNC(N, 2) N2, TRUNC(N, 3) N3,
+CREATE TABLE T2 AS SELECT TRUNC(N, -1) NN, TRUNC(N) N0, TRUNC(N, 1) N1, TRUNC(N, 2) N2, TRUNC(N, 3) N3, TRUNC(N, 10000000) NL,
     TRUNC(D) D0, TRUNC(D, 2) D2, TRUNC(D, 3) D3,
     TRUNC(I) I0, TRUNC(I, 1) I1, TRUNC(I, I) II FROM T1;
 > ok
@@ -101,17 +101,31 @@ SELECT COLUMN_NAME, DATA_TYPE, NUMERIC_PRECISION, NUMERIC_SCALE FROM INFORMATION
     WHERE TABLE_NAME = 'T2' ORDER BY ORDINAL_POSITION;
 > COLUMN_NAME DATA_TYPE NUMERIC_PRECISION NUMERIC_SCALE
 > ----------- --------- ----------------- -------------
+> NN          NUMERIC   8                 0
 > N0          NUMERIC   8                 0
 > N1          NUMERIC   9                 1
 > N2          NUMERIC   10                2
 > N3          NUMERIC   10                2
+> NL          NUMERIC   10                2
 > D0          DECFLOAT  10                null
 > D2          DECFLOAT  10                null
 > D3          DECFLOAT  10                null
 > I0          INTEGER   32                0
 > I1          INTEGER   32                0
 > II          INTEGER   32                0
-> rows (ordered): 10
+> rows (ordered): 12
 
 DROP TABLE T1;
 > ok
+
+SELECT TRUNC(11, -1) I, TRUNC(CAST(11 AS NUMERIC(2)), -1) N;
+> I  N
+> -- --
+> 10 10
+> rows: 1
+
+SELECT TRUNC(11, -2) I, TRUNC(CAST(11 AS NUMERIC(2)), -2) N;
+> I N
+> - -
+> 0 0
+> rows: 1

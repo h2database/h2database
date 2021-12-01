@@ -195,7 +195,7 @@ public class IndexCursor implements Cursor {
             v = v.convertToGeometry(null).getEnvelopeUnion(vg);
         }
         if (columnId == SearchRow.ROWID_INDEX) {
-            row.setKey(v.getLong());
+            row.setKey(v == ValueNull.INSTANCE ? Long.MIN_VALUE : v.getLong());
         } else {
             row.setValue(columnId, v);
         }
@@ -209,7 +209,7 @@ public class IndexCursor implements Cursor {
             v = getMax(row.getValue(columnId), v, max);
         }
         if (columnId == SearchRow.ROWID_INDEX) {
-            row.setKey(v.getLong());
+            row.setKey(v == ValueNull.INSTANCE ? Long.MIN_VALUE : v.getLong());
         } else {
             row.setValue(columnId, v);
         }

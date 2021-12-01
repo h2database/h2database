@@ -3647,6 +3647,8 @@ The CACHE option sets the number of pre-allocated numbers.
 If the system crashes without closing the database, at most this many numbers are lost.
 The default cache size is 32 if sequence has enough range of values.
 NO CACHE option or the cache size 1 or lower disable the cache.
+If CACHE option is specified, it cannot be larger than the total number of values
+that sequence can produce within a cycle.
 ","
 MAXVALUE 100000
 CYCLE

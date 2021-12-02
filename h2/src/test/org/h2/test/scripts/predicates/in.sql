@@ -296,6 +296,12 @@ SELECT 1 WHERE 1 IN ();
 > -
 > rows: 0
 
+SELECT 1 WHERE 1 NOT IN ();
+>> 1
+
+SELECT CASE 1 WHEN IN() THEN 1 ELSE 2 END;
+> exception SYNTAX_ERROR_2
+
 SET MODE DB2;
 > ok
 

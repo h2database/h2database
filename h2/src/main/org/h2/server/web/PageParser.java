@@ -246,61 +246,61 @@ public class PageParser {
                 return "&nbsp;";
             }
         }
-        StringBuilder buff = new StringBuilder(length);
+        StringBuilder builder = new StringBuilder(length);
         boolean convertSpace = true;
-        for (int i = 0; i < length; i++) {
-            char c = s.charAt(i);
-            if (c == ' ' || c == '\t') {
+        for (int i = 0; i < length;) {
+            int cp = s.codePointAt(i);
+            if (cp == ' ' || cp == '\t') {
                 // convert tabs into spaces
-                for (int j = 0; j < (c == ' ' ? 1 : TAB_WIDTH); j++) {
+                for (int j = 0; j < (cp == ' ' ? 1 : TAB_WIDTH); j++) {
                     if (convertSpace && convertBreakAndSpace) {
-                        buff.append("&nbsp;");
+                        builder.append("&nbsp;");
                     } else {
-                        buff.append(' ');
+                        builder.append(' ');
                         convertSpace = true;
                     }
                 }
-                continue;
-            }
-            convertSpace = false;
-            switch (c) {
-            case '$':
-                // so that ${ } in the text is interpreted correctly
-                buff.append("&#36;");
-                break;
-            case '<':
-                buff.append("&lt;");
-                break;
-            case '>':
-                buff.append("&gt;");
-                break;
-            case '&':
-                buff.append("&amp;");
-                break;
-            case '"':
-                buff.append("&quot;");
-                break;
-            case '\'':
-                buff.append("&#39;");
-                break;
-            case '\n':
-                if (convertBreakAndSpace) {
-                    buff.append("<br />");
-                    convertSpace = true;
-                } else {
-                    buff.append(c);
+            } else {
+                convertSpace = false;
+                switch (cp) {
+                case '$':
+                    // so that ${ } in the text is interpreted correctly
+                    builder.append("&#36;");
+                    break;
+                case '<':
+                    builder.append("&lt;");
+                    break;
+                case '>':
+                    builder.append("&gt;");
+                    break;
+                case '&':
+                    builder.append("&amp;");
+                    break;
+                case '"':
+                    builder.append("&quot;");
+                    break;
+                case '\'':
+                    builder.append("&#39;");
+                    break;
+                case '\n':
+                    if (convertBreakAndSpace) {
+                        builder.append("<br />");
+                        convertSpace = true;
+                    } else {
+                        builder.append(cp);
+                    }
+                    break;
+                default:
+                    if (cp >= 128) {
+                        builder.append("&#").append(cp).append(';');
+                    } else {
+                        builder.append((char) cp);
+                    }
                 }
-                break;
-            default:
-                if (c >= 128) {
-                    buff.append("&#").append((int) c).append(';');
-                } else {
-                    buff.append(c);
-                }
-                break;
             }
+            i += Character.charCount(cp);
         }
-        return buff.toString();
+        return builder.toString();
     }
 
     /**

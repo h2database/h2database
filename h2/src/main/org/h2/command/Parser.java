@@ -3590,8 +3590,8 @@ public class Parser {
 
     private Expression readInPredicate(Expression left, boolean not, boolean whenOperand) {
         read(OPEN_PAREN);
-        if (database.getMode().allowEmptyInPredicate && readIf(CLOSE_PAREN)) {
-            return ValueExpression.FALSE;
+        if (!whenOperand && database.getMode().allowEmptyInPredicate && readIf(CLOSE_PAREN)) {
+            return ValueExpression.getBoolean(not);
         }
         ArrayList<Expression> v;
         if (isQuery()) {

@@ -13,7 +13,6 @@ import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.index.IndexCondition;
-import org.h2.message.DbException;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.value.TypeInfo;
@@ -171,25 +170,7 @@ public final class ConditionInConstantSet extends Condition {
 
     @Override
     public boolean isEverything(ExpressionVisitor visitor) {
-        if (!left.isEverything(visitor)) {
-            return false;
-        }
-        switch (visitor.getType()) {
-        case ExpressionVisitor.OPTIMIZABLE_AGGREGATE:
-        case ExpressionVisitor.DETERMINISTIC:
-        case ExpressionVisitor.READONLY:
-        case ExpressionVisitor.INDEPENDENT:
-        case ExpressionVisitor.EVALUATABLE:
-        case ExpressionVisitor.SET_MAX_DATA_MODIFICATION_ID:
-        case ExpressionVisitor.NOT_FROM_RESOLVER:
-        case ExpressionVisitor.GET_DEPENDENCIES:
-        case ExpressionVisitor.QUERY_COMPARABLE:
-        case ExpressionVisitor.GET_COLUMNS1:
-        case ExpressionVisitor.GET_COLUMNS2:
-            return true;
-        default:
-            throw DbException.getInternalError("type=" + visitor.getType());
-        }
+        return left.isEverything(visitor);
     }
 
     @Override

@@ -56,17 +56,8 @@ public final class SetFunction extends Function2 {
         case ExpressionVisitor.QUERY_COMPARABLE:
         case ExpressionVisitor.READONLY:
             return false;
-        case ExpressionVisitor.EVALUATABLE:
-        case ExpressionVisitor.GET_DEPENDENCIES:
-        case ExpressionVisitor.INDEPENDENT:
-        case ExpressionVisitor.NOT_FROM_RESOLVER:
-        case ExpressionVisitor.OPTIMIZABLE_AGGREGATE:
-        case ExpressionVisitor.SET_MAX_DATA_MODIFICATION_ID:
-        case ExpressionVisitor.GET_COLUMNS1:
-        case ExpressionVisitor.GET_COLUMNS2:
-            return true;
         default:
-            throw DbException.getInternalError("type=" + visitor.getType());
+            return true;
         }
     }
 

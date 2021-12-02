@@ -8,7 +8,6 @@ package org.h2.expression;
 import org.h2.engine.SessionLocal;
 import org.h2.expression.condition.Comparison;
 import org.h2.index.IndexCondition;
-import org.h2.message.DbException;
 import org.h2.table.TableFilter;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
@@ -142,22 +141,7 @@ public class ValueExpression extends Operation0 {
 
     @Override
     public boolean isEverything(ExpressionVisitor visitor) {
-        switch (visitor.getType()) {
-        case ExpressionVisitor.OPTIMIZABLE_AGGREGATE:
-        case ExpressionVisitor.DETERMINISTIC:
-        case ExpressionVisitor.READONLY:
-        case ExpressionVisitor.INDEPENDENT:
-        case ExpressionVisitor.EVALUATABLE:
-        case ExpressionVisitor.SET_MAX_DATA_MODIFICATION_ID:
-        case ExpressionVisitor.NOT_FROM_RESOLVER:
-        case ExpressionVisitor.GET_DEPENDENCIES:
-        case ExpressionVisitor.QUERY_COMPARABLE:
-        case ExpressionVisitor.GET_COLUMNS1:
-        case ExpressionVisitor.GET_COLUMNS2:
-            return true;
-        default:
-            throw DbException.getInternalError("type=" + visitor.getType());
-        }
+        return true;
     }
 
     @Override

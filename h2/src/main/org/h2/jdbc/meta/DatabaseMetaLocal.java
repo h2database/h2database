@@ -1258,63 +1258,67 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
         return result;
     }
 
-    private void getIndexInfo(Value catalogValue, Value schemaValue, Table table, boolean unique, boolean approximate,
-            SimpleResult result, Database db) {
-        for (Index index : table.getIndexes()) {
-            if (index.getCreateSQL() == null) {
-                continue;
-            }
-            int uniqueColumnCount = index.getUniqueColumnCount();
-            if (unique && uniqueColumnCount == 0) {
-                continue;
-            }
-            Value tableValue = getString(table.getName());
-            Value indexValue = getString(index.getName());
-            IndexColumn[] cols = index.getIndexColumns();
-            ValueSmallint type = TABLE_INDEX_STATISTIC;
-            type: if (uniqueColumnCount == cols.length) {
-                for (IndexColumn c : cols) {
-                    if (c.column.isNullable()) {
-                        break type;
+    private void getIndexInfo(Value catalogValue, Value schemaValue, Table table, boolean unique,
+                                boolean approximate, SimpleResult result, Database db) {
+        ArrayList<Index> indexes = table.getIndexes();
+        if (indexes != null) {
+            for (Index index : indexes) {
+                if (index.getCreateSQL() == null) {
+                    continue;
+                }
+                int uniqueColumnCount = index.getUniqueColumnCount();
+                if (unique && uniqueColumnCount == 0) {
+                    continue;
+                }
+                Value tableValue = getString(table.getName());
+                Value indexValue = getString(index.getName());
+                IndexColumn[] cols = index.getIndexColumns();
+                ValueSmallint type = TABLE_INDEX_STATISTIC;
+                type:
+                if (uniqueColumnCount == cols.length) {
+                    for (IndexColumn c : cols) {
+                        if (c.column.isNullable()) {
+                            break type;
+                        }
                     }
+                    type = index.getIndexType().isHash() ? TABLE_INDEX_HASHED : TABLE_INDEX_OTHER;
                 }
-                type = index.getIndexType().isHash() ? TABLE_INDEX_HASHED : TABLE_INDEX_OTHER;
-            }
-            for (int i = 0, l = cols.length; i < l; i++) {
-                IndexColumn c = cols[i];
-                boolean nonUnique = i >= uniqueColumnCount;
-                if (unique && nonUnique) {
-                    break;
+                for (int i = 0, l = cols.length; i < l; i++) {
+                    IndexColumn c = cols[i];
+                    boolean nonUnique = i >= uniqueColumnCount;
+                    if (unique && nonUnique) {
+                        break;
+                    }
+                    result.addRow(
+                            // TABLE_CAT
+                            catalogValue,
+                            // TABLE_SCHEM
+                            schemaValue,
+                            // TABLE_NAME
+                            tableValue,
+                            // NON_UNIQUE
+                            ValueBoolean.get(nonUnique),
+                            // INDEX_QUALIFIER
+                            catalogValue,
+                            // INDEX_NAME
+                            indexValue,
+                            // TYPE
+                            type,
+                            // ORDINAL_POSITION
+                            ValueSmallint.get((short) (i + 1)),
+                            // COLUMN_NAME
+                            getString(c.column.getName()),
+                            // ASC_OR_DESC
+                            getString((c.sortType & SortOrder.DESCENDING) != 0 ? "D" : "A"),
+                            // CARDINALITY
+                            ValueBigint.get(approximate //
+                                    ? index.getRowCountApproximation(session)
+                                    : index.getRowCount(session)),
+                            // PAGES
+                            ValueBigint.get(index.getDiskSpaceUsed() / db.getPageSize()),
+                            // FILTER_CONDITION
+                            ValueNull.INSTANCE);
                 }
-                result.addRow(
-                        // TABLE_CAT
-                        catalogValue,
-                        // TABLE_SCHEM
-                        schemaValue,
-                        // TABLE_NAME
-                        tableValue,
-                        // NON_UNIQUE
-                        ValueBoolean.get(nonUnique),
-                        // INDEX_QUALIFIER
-                        catalogValue,
-                        // INDEX_NAME
-                        indexValue,
-                        // TYPE
-                        type,
-                        // ORDINAL_POSITION
-                        ValueSmallint.get((short) (i + 1)),
-                        // COLUMN_NAME
-                        getString(c.column.getName()),
-                        // ASC_OR_DESC
-                        getString((c.sortType & SortOrder.DESCENDING) != 0 ? "D" : "A"),
-                        // CARDINALITY
-                        ValueBigint.get(approximate //
-                                ? index.getRowCountApproximation(session)
-                                : index.getRowCount(session)),
-                        // PAGES
-                        ValueBigint.get(index.getDiskSpaceUsed() / db.getPageSize()),
-                        // FILTER_CONDITION
-                        ValueNull.INSTANCE);
             }
         }
     }

@@ -127,7 +127,12 @@ public final class FileFunction extends Function1_2 {
     public boolean isEverything(ExpressionVisitor visitor) {
         switch (visitor.getType()) {
         case ExpressionVisitor.DETERMINISTIC:
+        case ExpressionVisitor.QUERY_COMPARABLE:
             return false;
+        case ExpressionVisitor.READONLY:
+            if (function == FILE_WRITE) {
+                return false;
+            }
         }
         return super.isEverything(visitor);
     }

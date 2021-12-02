@@ -92,7 +92,7 @@ public final class Subquery extends Expression {
             return ValueExpression.get(getValue(session));
         }
         Expression e = query.getIfSingleRow();
-        if (e != null) {
+        if (e != null && e.isEverything(ExpressionVisitor.DECREMENT_QUERY_LEVEL_VISITOR)) {
             return e.optimize(session);
         }
         setType();

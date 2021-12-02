@@ -84,6 +84,8 @@ public final class SessionControlFunction extends Function1 {
     public boolean isEverything(ExpressionVisitor visitor) {
         switch (visitor.getType()) {
         case ExpressionVisitor.DETERMINISTIC:
+        case ExpressionVisitor.READONLY:
+        case ExpressionVisitor.QUERY_COMPARABLE:
             return false;
         }
         return super.isEverything(visitor);

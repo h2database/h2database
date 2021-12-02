@@ -98,6 +98,8 @@ public final class JavaFunction extends Expression implements NamedExpression {
     public boolean isEverything(ExpressionVisitor visitor) {
         switch (visitor.getType()) {
         case ExpressionVisitor.DETERMINISTIC:
+        case ExpressionVisitor.READONLY:
+        case ExpressionVisitor.QUERY_COMPARABLE:
             if (!functionAlias.isDeterministic()) {
                 return false;
             }

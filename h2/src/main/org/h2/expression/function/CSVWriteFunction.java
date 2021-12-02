@@ -110,7 +110,17 @@ public final class CSVWriteFunction extends FunctionN {
 
     @Override
     public boolean isEverything(ExpressionVisitor visitor) {
-        return isEverythingNonDeterministic(visitor);
+        if (!super.isEverything(visitor)) {
+            return false;
+        }
+        switch (visitor.getType()) {
+        case ExpressionVisitor.DETERMINISTIC:
+        case ExpressionVisitor.QUERY_COMPARABLE:
+        case ExpressionVisitor.READONLY:
+            return false;
+        default:
+            return true;
+        }
     }
 
 }

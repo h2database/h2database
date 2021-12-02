@@ -7,7 +7,6 @@ package org.h2.expression;
 
 import org.h2.command.Prepared;
 import org.h2.engine.SessionLocal;
-import org.h2.message.DbException;
 import org.h2.schema.Sequence;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
@@ -68,12 +67,6 @@ public final class SequenceValue extends Operation0 {
     @Override
     public boolean isEverything(ExpressionVisitor visitor) {
         switch (visitor.getType()) {
-        case ExpressionVisitor.EVALUATABLE:
-        case ExpressionVisitor.OPTIMIZABLE_AGGREGATE:
-        case ExpressionVisitor.NOT_FROM_RESOLVER:
-        case ExpressionVisitor.GET_COLUMNS1:
-        case ExpressionVisitor.GET_COLUMNS2:
-            return true;
         case ExpressionVisitor.DETERMINISTIC:
         case ExpressionVisitor.INDEPENDENT:
         case ExpressionVisitor.QUERY_COMPARABLE:
@@ -87,7 +80,7 @@ public final class SequenceValue extends Operation0 {
         case ExpressionVisitor.READONLY:
             return current;
         default:
-            throw DbException.getInternalError("type=" + visitor.getType());
+            return true;
         }
     }
 

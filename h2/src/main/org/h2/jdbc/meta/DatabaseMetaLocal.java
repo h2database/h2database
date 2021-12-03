@@ -5,8 +5,6 @@
  */
 package org.h2.jdbc.meta;
 
-import static org.h2.util.HasSQL.DEFAULT_SQL_FLAGS;
-
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.util.ArrayList;
@@ -34,10 +32,10 @@ import org.h2.result.ResultInterface;
 import org.h2.result.SimpleResult;
 import org.h2.result.SortOrder;
 import org.h2.schema.FunctionAlias;
+import org.h2.schema.FunctionAlias.JavaMethod;
 import org.h2.schema.Schema;
 import org.h2.schema.SchemaObject;
 import org.h2.schema.UserDefinedFunction;
-import org.h2.schema.FunctionAlias.JavaMethod;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.Table;
@@ -863,20 +861,7 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
     }
 
     private Value getDataTypeName(TypeInfo typeInfo) {
-        String name;
-        switch (typeInfo.getValueType()) {
-        case Value.ARRAY:
-            typeInfo = (TypeInfo) typeInfo.getExtTypeInfo();
-            // Use full type names with parameters for elements
-            name = typeInfo.getSQL(new StringBuilder(), DEFAULT_SQL_FLAGS).append(" ARRAY").toString();
-            break;
-        case Value.ROW:
-            name = typeInfo.getSQL(DEFAULT_SQL_FLAGS);
-            break;
-        default:
-            name = typeInfo.getDeclaredTypeName();
-        }
-        return getString(name);
+        return getString(typeInfo.getDeclaredTypeName());
     }
 
     @Override
@@ -1258,8 +1243,8 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
         return result;
     }
 
-    private void getIndexInfo(Value catalogValue, Value schemaValue, Table table, boolean unique,
-                                boolean approximate, SimpleResult result, Database db) {
+    private void getIndexInfo(Value catalogValue, Value schemaValue, Table table, boolean unique, boolean approximate,
+            SimpleResult result, Database db) {
         ArrayList<Index> indexes = table.getIndexes();
         if (indexes != null) {
             for (Index index : indexes) {
@@ -1274,8 +1259,7 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
                 Value indexValue = getString(index.getName());
                 IndexColumn[] cols = index.getIndexColumns();
                 ValueSmallint type = TABLE_INDEX_STATISTIC;
-                type:
-                if (uniqueColumnCount == cols.length) {
+                type: if (uniqueColumnCount == cols.length) {
                     for (IndexColumn c : cols) {
                         if (c.column.isNullable()) {
                             break type;

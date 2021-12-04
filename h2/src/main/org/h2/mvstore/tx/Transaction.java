@@ -249,7 +249,7 @@ public final class Transaction {
                 throw DataUtils.newMVStoreException(
                         DataUtils.ERROR_TRANSACTION_ILLEGAL_STATE,
                         "Transaction was illegally transitioned from {0} to {1}",
-                        STATUS_NAMES[currentStatus], STATUS_NAMES[status]);
+                        getStatusName(currentStatus), getStatusName(status));
             }
             long newState = composeState(status, logId, hasRollback(currentState));
             if (statusAndLogId.compareAndSet(currentState, newState)) {
@@ -623,7 +623,7 @@ public final class Transaction {
         if (status != STATUS_OPEN) {
             throw DataUtils.newMVStoreException(
                     DataUtils.ERROR_TRANSACTION_ILLEGAL_STATE,
-                    "Transaction {0} has status {1}, not OPEN", transactionId, STATUS_NAMES[status]);
+                    "Transaction {0} has status {1}, not OPEN", transactionId, getStatusName(status));
         }
     }
 
@@ -771,7 +771,7 @@ public final class Transaction {
     }
 
     private static String stateToString(long state) {
-        return STATUS_NAMES[getStatus(state)] + (hasRollback(state) ? "<" : "") + " " + getLogId(state);
+        return getStatusName(getStatus(state)) + (hasRollback(state) ? "<" : "") + " " + getLogId(state);
     }
 
 
@@ -799,5 +799,9 @@ public final class Transaction {
             status |= 1 << STATUS_BITS;
         }
         return ((long)status << LOG_ID_BITS1) | logId;
+    }
+
+    private static String getStatusName(int status) {
+        return status >= 0 && status < STATUS_NAMES.length ? STATUS_NAMES[status] : "UNKNOWN_STATUS_" + status;
     }
 }

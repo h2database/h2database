@@ -135,7 +135,7 @@ public final class MVSecondaryIndex extends MVIndex<SearchRow, Value> {
                 SearchRow row = s.next();
 
                 if (uniqueColumnColumn > 0 && !mayHaveNullDuplicates(row)) {
-                    checkUnique(true, dataMap, row, Long.MIN_VALUE);
+                    checkUnique(false, dataMap, row, Long.MIN_VALUE);
                 }
 
                 dataMap.putCommitted(row, ValueNull.INSTANCE);
@@ -177,16 +177,10 @@ public final class MVSecondaryIndex extends MVIndex<SearchRow, Value> {
     public void add(SessionLocal session, Row row) {
         TransactionMap<SearchRow,Value> map = getMap(session);
         SearchRow key = convertToKey(row, null);
-        boolean checkRequired, allowNonRepeatableRead;
-        if (uniqueColumnColumn > 0 && !mayHaveNullDuplicates(row)) {
-            checkRequired = true;
-            allowNonRepeatableRead = session.getTransaction().allowNonRepeatableRead();
-        } else {
-            checkRequired = false;
-            allowNonRepeatableRead = false;
-        }
+        boolean checkRequired = uniqueColumnColumn > 0 && !mayHaveNullDuplicates(row);
         if (checkRequired) {
-            checkUnique(allowNonRepeatableRead, map, row, Long.MIN_VALUE);
+            boolean repeatableRead = !session.getTransaction().allowNonRepeatableRead();
+            checkUnique(repeatableRead, map, row, Long.MIN_VALUE);
         }
 
         try {
@@ -196,11 +190,11 @@ public final class MVSecondaryIndex extends MVIndex<SearchRow, Value> {
         }
 
         if (checkRequired) {
-            checkUnique(allowNonRepeatableRead, map, row, row.getKey());
+            checkUnique(false, map, row, row.getKey());
         }
     }
 
-    private void checkUnique(boolean allowNonRepeatableRead, TransactionMap<SearchRow,Value> map, SearchRow row,
+    private void checkUnique(boolean repeatableRead, TransactionMap<SearchRow,Value> map, SearchRow row,
             long newKey) {
         RowFactory uniqueRowFactory = getUniqueRowFactory();
         SearchRow from = uniqueRowFactory.createRow();
@@ -209,7 +203,10 @@ public final class MVSecondaryIndex extends MVIndex<SearchRow, Value> {
         SearchRow to = uniqueRowFactory.createRow();
         to.copyFrom(row);
         to.setKey(Long.MAX_VALUE);
-        if (!allowNonRepeatableRead) {
+        if (repeatableRead) {
+            // In order to guarantee repeatable reads, snapshot taken at the beginning of the statement or transaction
+            // need to be checked additionaly, because existence of the key should be accounted for,
+            // even if since then, it was already deleted by another (possibly committed) transaction.
             Iterator<SearchRow> it = map.keyIterator(from, to);
             while (it.hasNext()) {
                 SearchRow k = it.next();

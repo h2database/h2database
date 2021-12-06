@@ -6,7 +6,9 @@
 package org.h2.test.jdbc;
 
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
@@ -28,79 +30,82 @@ public class TestTransactionIsolation extends TestDb {
     }
 
     @Override
-    public boolean isEnabled() {
-        return false;
-    }
-
-    @Override
     public void test() throws SQLException {
         testTableLevelLocking();
     }
 
     private void testTableLevelLocking() throws SQLException {
         deleteDb("transactionIsolation");
+
         conn1 = getConnection("transactionIsolation");
-        assertEquals(Connection.TRANSACTION_READ_COMMITTED,
-                conn1.getTransactionIsolation());
-        conn1.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
-        assertEquals(Connection.TRANSACTION_SERIALIZABLE,
-                conn1.getTransactionIsolation());
-        conn1.setTransactionIsolation(Connection.TRANSACTION_READ_UNCOMMITTED);
-        assertEquals(Connection.TRANSACTION_READ_UNCOMMITTED,
-                conn1.getTransactionIsolation());
-        assertSingleValue(conn1.createStatement(), "CALL LOCK_MODE()", 0);
-        conn1.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
-        assertSingleValue(conn1.createStatement(), "CALL LOCK_MODE()", 3);
-        assertEquals(Connection.TRANSACTION_READ_COMMITTED,
-                conn1.getTransactionIsolation());
-        conn1.createStatement().execute("SET LOCK_MODE 1");
-        assertEquals(Connection.TRANSACTION_SERIALIZABLE,
-                conn1.getTransactionIsolation());
-        conn1.createStatement().execute("CREATE TABLE TEST(ID INT)");
-        conn1.createStatement().execute("INSERT INTO TEST VALUES(1)");
         conn1.setAutoCommit(false);
 
         conn2 = getConnection("transactionIsolation");
         conn2.setAutoCommit(false);
 
-        conn1.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
+        assertEquals(Connection.TRANSACTION_READ_COMMITTED, conn1.getMetaData().getDefaultTransactionIsolation());
+        assertEquals(Connection.TRANSACTION_READ_COMMITTED, conn1.getTransactionIsolation());
 
-        // serializable: just reading
-        assertSingleValue(conn1.createStatement(), "SELECT * FROM TEST", 1);
-        assertSingleValue(conn2.createStatement(), "SELECT * FROM TEST", 1);
-        conn1.commit();
-        conn2.commit();
+        try (Connection conn = getConnection("transactionIsolation");
+                Statement stmt = conn.createStatement()) {
+            stmt.execute("CREATE TABLE TEST(ID INT)");
+        }
+        testIt(Connection.TRANSACTION_READ_UNCOMMITTED);
+        testIt(Connection.TRANSACTION_READ_COMMITTED);
+        testIt(Connection.TRANSACTION_REPEATABLE_READ);
+        testIt(Connection.TRANSACTION_SERIALIZABLE);
 
-        // serializable: write lock
-        conn1.createStatement().executeUpdate("UPDATE TEST SET ID=2");
-        assertThrows(ErrorCode.LOCK_TIMEOUT_1, conn2.createStatement()).
-                executeQuery("SELECT * FROM TEST");
-        conn1.commit();
-        conn2.commit();
+        try (Connection conn = getConnection("transactionIsolation");
+                Statement stmt = conn.createStatement()) {
+            stmt.execute("DROP TABLE TEST");
+            stmt.execute("CREATE TABLE TEST(ID INT UNIQUE)");
+        }
+        testIt(Connection.TRANSACTION_READ_UNCOMMITTED);
+        testIt(Connection.TRANSACTION_READ_COMMITTED);
+        testIt(Connection.TRANSACTION_REPEATABLE_READ);
+        testIt(Connection.TRANSACTION_SERIALIZABLE);
 
-        conn1.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
-
-        // read-committed: #1 read, #2 update, #1 read again
-        assertSingleValue(conn1.createStatement(), "SELECT * FROM TEST", 2);
-        conn2.createStatement().executeUpdate("UPDATE TEST SET ID=3");
-        conn2.commit();
-        assertSingleValue(conn1.createStatement(), "SELECT * FROM TEST", 3);
-        conn1.commit();
-
-        // read-committed: #1 read, #2 read, #2 update, #1 delete
-        assertSingleValue(conn1.createStatement(), "SELECT * FROM TEST", 3);
-        assertSingleValue(conn2.createStatement(), "SELECT * FROM TEST", 3);
-        conn2.createStatement().executeUpdate("UPDATE TEST SET ID=4");
-        assertThrows(ErrorCode.LOCK_TIMEOUT_1, conn1.createStatement()).
-                executeUpdate("DELETE FROM TEST");
-        conn2.commit();
-        conn1.commit();
-        assertSingleValue(conn1.createStatement(), "SELECT * FROM TEST", 4);
-        assertSingleValue(conn2.createStatement(), "SELECT * FROM TEST", 4);
-
-        conn1.close();
         conn2.close();
+        conn1.close();
         deleteDb("transactionIsolation");
     }
 
+    private void testIt(int isolationLevel2) throws SQLException {
+        try (Connection conn = getConnection("transactionIsolation");
+                Statement stmt = conn.createStatement()) {
+            stmt.execute("DELETE FROM TEST");
+            stmt.execute("INSERT INTO TEST VALUES(1)");
+        }
+
+        conn2.setTransactionIsolation(isolationLevel2);
+        assertEquals(isolationLevel2, conn2.getTransactionIsolation());
+
+        testRowLocks(Connection.TRANSACTION_READ_UNCOMMITTED);
+        testRowLocks(Connection.TRANSACTION_READ_COMMITTED);
+        testRowLocks(Connection.TRANSACTION_REPEATABLE_READ);
+        testRowLocks(Connection.TRANSACTION_SERIALIZABLE);
+
+        testDirtyRead(Connection.TRANSACTION_READ_UNCOMMITTED, 1, true, true);
+        testDirtyRead(Connection.TRANSACTION_READ_COMMITTED, 2, false, true);
+        testDirtyRead(Connection.TRANSACTION_REPEATABLE_READ, 3, false, false);
+        testDirtyRead(Connection.TRANSACTION_SERIALIZABLE, 4, false, false);
+    }
+
+    private void testDirtyRead(int isolationLevel, int value, boolean dirtyVisible, boolean commitedVisible) throws SQLException {
+        conn1.setTransactionIsolation(isolationLevel);
+        assertSingleValue(conn1.createStatement(), "SELECT * FROM TEST", value);
+        int newValue = value + 1;
+        conn2.createStatement().executeUpdate("UPDATE TEST SET ID=" + newValue);
+        assertSingleValue(conn1.createStatement(), "SELECT * FROM TEST", dirtyVisible ? newValue  : value);
+        conn2.commit();
+        assertSingleValue(conn1.createStatement(), "SELECT * FROM TEST", commitedVisible ? newValue : value);
+    }
+
+    private void testRowLocks(int isolationLevel) throws SQLException {
+        conn1.setTransactionIsolation(isolationLevel);
+        assertSingleValue(conn1.createStatement(), "SELECT * FROM TEST", 1);
+        assertSingleValue(conn2.createStatement(), "SELECT * FROM TEST FOR UPDATE", 1);
+        assertThrows(ErrorCode.LOCK_TIMEOUT_1, conn1.createStatement()).executeUpdate("DELETE FROM TEST");
+        conn2.commit();
+    }
 }

@@ -433,7 +433,8 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
     }
 
     /**
-     * Get the value for the given key from a snapshot, or null if not found.
+     * Get the value for the given key, or null if value does not exist in accordance with transactional rules.
+     * Value is taken from a snapshot, appropriate for an isolation level of the related transaction
      *
      * @param key the key
      * @return the value, or null if not found
@@ -472,7 +473,7 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
     private V getFromSnapshot(RootReference<K, VersionedValue<V>> rootRef, BitSet committingTransactions, K key) {
         VersionedValue<V> data = map.get(rootRef.root, key);
         if (data == null) {
-            // doesn't exist or deleted by a committed transaction
+            // doesn't exist
             return null;
         }
         long id = data.getOperationId();
@@ -489,6 +490,7 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
 
     /**
      * Get the value for the given key, or null if not found.
+     * Operation is performed on a snapshot of the map taken during this call.
      *
      * @param key the key
      * @return the value, or null if not found
@@ -810,7 +812,7 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
                 VersionedValue<?> data = cursor.getValue();
                 if (data != null) {
                     Object currentValue = data.getCurrentValue();
-                    if (currentValue != null || isApplicable(data)) {
+                    if (currentValue != null || shouldIgnoreRemoval(data)) {
                         registerCurrent(key, currentValue);
                         return;
                     }
@@ -819,19 +821,23 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
             current = null;
         }
 
-        boolean isApplicable(VersionedValue<?> data) {
+        boolean shouldIgnoreRemoval(VersionedValue<?> data) {
             return false;
         }
     }
 
+
+    // This iterator should include all entries applicable for unique index validation,
+    // committed and otherwise, only excluding keys removed by the current transaction
+    // or by some other already committed (but not closed yet) transactions
     private static final class ValidationIterator<K,V,X> extends UncommittedIterator<K,V,X> {
         ValidationIterator(TransactionMap<K,V> transactionMap, K from, K to) {
             super(transactionMap, from, to, transactionMap.createSnapshot(), false, false);
         }
 
         @Override
-        boolean isApplicable(VersionedValue<?> data) {
-            // Include all uncommitted entries for unique index validation
+        boolean shouldIgnoreRemoval(VersionedValue<?> data) {
+            assert data.getCurrentValue() == null;
             long id = data.getOperationId();
             if (id != 0) {
                 int tx = TransactionStore.getTransactionId(id);

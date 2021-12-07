@@ -7,7 +7,6 @@ package org.h2.expression;
 
 import java.io.IOException;
 import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
 
 import org.h2.api.ErrorCode;
 import org.h2.message.DbException;

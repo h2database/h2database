@@ -5,7 +5,6 @@
  */
 package org.h2.result;
 
-import java.io.IOException;
 import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;

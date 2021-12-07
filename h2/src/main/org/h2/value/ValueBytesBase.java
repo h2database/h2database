@@ -8,8 +8,6 @@ package org.h2.value;
 import java.util.Arrays;
 
 import org.h2.engine.CastDataProvider;
-import org.h2.engine.Constants;
-import org.h2.message.DbException;
 import org.h2.util.Bits;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;

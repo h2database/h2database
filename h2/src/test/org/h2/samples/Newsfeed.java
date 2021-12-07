@@ -14,7 +14,6 @@ import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 
 import org.h2.tools.RunScript;
 import org.h2.util.StringUtils;

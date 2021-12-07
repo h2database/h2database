@@ -5,8 +5,6 @@
  */
 package org.h2.api;
 
-import java.sql.SQLException;
-
 /**
  * Custom serialization mechanism for java objects being stored in column of
  * type OTHER.

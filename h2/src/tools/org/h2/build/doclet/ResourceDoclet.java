@@ -6,7 +6,6 @@
 package org.h2.build.doclet;
 
 import java.io.IOException;
-import java.sql.SQLException;
 import org.h2.build.doc.XMLParser;
 import org.h2.build.indexer.HtmlConverter;
 import org.h2.util.SortedProperties;

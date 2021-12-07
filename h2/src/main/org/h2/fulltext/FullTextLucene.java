@@ -612,7 +612,7 @@ public class FullTextLucene extends FullText {
          * @param commitIndex whether to commit the changes to the Lucene index
          * @throws SQLException on failure
          */
-        private void insert(Object[] row, boolean commitIndex) throws SQLException {
+        void insert(Object[] row, boolean commitIndex) throws SQLException {
             String query = getQuery(row);
             Document doc = new Document();
             doc.add(new Field(LUCENE_FIELD_QUERY, query, DOC_ID_FIELD_TYPE));

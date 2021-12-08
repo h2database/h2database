@@ -318,3 +318,28 @@ UPDATE FOO SET BAR.VAL = FOO.VAL FROM BAR WHERE FOO.ID = BAR.ID;
 
 SET MODE Regular;
 > ok
+
+CREATE TABLE DEST(ID INT, X INT, Y INT);
+> ok
+
+INSERT INTO DEST VALUES (1, 10, 11), (2, 20, 21);
+> update count: 2
+
+CREATE TABLE SRC(ID INT, X INT, Y INT);
+> ok
+
+INSERT INTO SRC VALUES (1, 100, 101);
+> update count: 1
+
+UPDATE DEST SET (X, Y) = (SELECT X, Y FROM SRC WHERE SRC.ID = DEST.ID);
+> update count: 2
+
+TABLE DEST;
+> ID X    Y
+> -- ---- ----
+> 1  100  101
+> 2  null null
+> rows: 2
+
+DROP TABLE SRC, DEST;
+> ok

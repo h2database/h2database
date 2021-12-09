@@ -47,24 +47,6 @@ public class Constants {
     public static final String BUILD_VENDOR_AND_VERSION = null;
 
     /**
-     * The TCP protocol version number 14.
-     * @since 1.3.176 (2014-04-05)
-     */
-    public static final int TCP_PROTOCOL_VERSION_14 = 14;
-
-    /**
-     * The TCP protocol version number 15.
-     * @since 1.4.178 Beta (2014-05-02)
-     */
-    public static final int TCP_PROTOCOL_VERSION_15 = 15;
-
-    /**
-     * The TCP protocol version number 16.
-     * @since 1.4.194 (2017-03-10)
-     */
-    public static final int TCP_PROTOCOL_VERSION_16 = 16;
-
-    /**
      * The TCP protocol version number 17.
      * @since 1.4.197 (2018-03-18)
      */
@@ -91,7 +73,7 @@ public class Constants {
     /**
      * Minimum supported version of TCP protocol.
      */
-    public static final int TCP_PROTOCOL_VERSION_MIN_SUPPORTED = TCP_PROTOCOL_VERSION_14;
+    public static final int TCP_PROTOCOL_VERSION_MIN_SUPPORTED = TCP_PROTOCOL_VERSION_17;
 
     /**
      * Maximum supported version of TCP protocol.

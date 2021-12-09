@@ -6,7 +6,6 @@
 package org.h2.value.lob;
 
 import java.io.BufferedInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 
 import org.h2.engine.Constants;
@@ -15,7 +14,6 @@ import org.h2.store.DataHandler;
 import org.h2.store.FileStore;
 import org.h2.store.FileStoreInputStream;
 import org.h2.store.fs.FileUtils;
-import org.h2.util.MathUtils;
 import org.h2.value.ValueLob;
 
 /**

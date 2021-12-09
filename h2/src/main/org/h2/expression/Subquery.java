@@ -14,6 +14,7 @@ import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
+import org.h2.value.ExtTypeInfoRow;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
@@ -26,7 +27,10 @@ import org.h2.value.ValueRow;
 public final class Subquery extends Expression {
 
     private final Query query;
+
     private Expression expression;
+
+    private Value nullValue;
 
     public Subquery(Query query) {
         this.query = query;
@@ -38,7 +42,7 @@ public final class Subquery extends Expression {
         try (ResultInterface result = query.query(2)) {
             Value v;
             if (!result.next()) {
-                v = ValueNull.INSTANCE;
+                return nullValue;
             } else {
                 v = readRow(result);
                 if (result.hasNext()) {
@@ -104,14 +108,18 @@ public final class Subquery extends Expression {
         int columnCount = query.getColumnCount();
         if (columnCount == 1) {
             expression = expressions.get(0);
+            nullValue = ValueNull.INSTANCE;
         } else {
             Expression[] list = new Expression[columnCount];
+            Value[] nulls = new Value[columnCount];
             for (int i = 0; i < columnCount; i++) {
                 list[i] = expressions.get(i);
+                nulls[i] = ValueNull.INSTANCE;
             }
             ExpressionList expressionList = new ExpressionList(list, false);
             expressionList.initializeType();
             expression = expressionList;
+            nullValue = ValueRow.get(new ExtTypeInfoRow(list), nulls);
         }
     }
 

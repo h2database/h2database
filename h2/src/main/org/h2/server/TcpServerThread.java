@@ -279,9 +279,8 @@ public class TcpServerThread implements Runnable {
     private void process() throws IOException {
         int operation = transfer.readInt();
         switch (operation) {
-        case SessionRemote.SESSION_PREPARE_READ_PARAMS:
-        case SessionRemote.SESSION_PREPARE_READ_PARAMS2:
-        case SessionRemote.SESSION_PREPARE: {
+        case SessionRemote.SESSION_PREPARE:
+        case SessionRemote.SESSION_PREPARE_READ_PARAMS2: {
             int id = transfer.readInt();
             String sql = transfer.readString();
             int old = session.getModificationId();
@@ -293,7 +292,7 @@ public class TcpServerThread implements Runnable {
             transfer.writeInt(getState(old)).writeBoolean(isQuery).
                     writeBoolean(readonly);
 
-            if (operation == SessionRemote.SESSION_PREPARE_READ_PARAMS2) {
+            if (operation != SessionRemote.SESSION_PREPARE) {
                 transfer.writeInt(command.getCommandType());
             }
 
@@ -369,43 +368,38 @@ public class TcpServerThread implements Runnable {
             int id = transfer.readInt();
             Command command = (Command) cache.getObject(id, false);
             setParameters(command);
-            boolean supportsGeneratedKeys = clientVersion >= Constants.TCP_PROTOCOL_VERSION_17;
-            boolean writeGeneratedKeys = supportsGeneratedKeys;
+            boolean writeGeneratedKeys = true;
             Object generatedKeysRequest;
-            if (supportsGeneratedKeys) {
-                int mode = transfer.readInt();
-                switch (mode) {
-                case GeneratedKeysMode.NONE:
-                    generatedKeysRequest = false;
-                    writeGeneratedKeys = false;
-                    break;
-                case GeneratedKeysMode.AUTO:
-                    generatedKeysRequest = true;
-                    break;
-                case GeneratedKeysMode.COLUMN_NUMBERS: {
-                    int len = transfer.readInt();
-                    int[] keys = new int[len];
-                    for (int i = 0; i < len; i++) {
-                        keys[i] = transfer.readInt();
-                    }
-                    generatedKeysRequest = keys;
-                    break;
-                }
-                case GeneratedKeysMode.COLUMN_NAMES: {
-                    int len = transfer.readInt();
-                    String[] keys = new String[len];
-                    for (int i = 0; i < len; i++) {
-                        keys[i] = transfer.readString();
-                    }
-                    generatedKeysRequest = keys;
-                    break;
-                }
-                default:
-                    throw DbException.get(ErrorCode.CONNECTION_BROKEN_1,
-                            "Unsupported generated keys' mode " + mode);
-                }
-            } else {
+            int mode = transfer.readInt();
+            switch (mode) {
+            case GeneratedKeysMode.NONE:
                 generatedKeysRequest = false;
+                writeGeneratedKeys = false;
+                break;
+            case GeneratedKeysMode.AUTO:
+                generatedKeysRequest = true;
+                break;
+            case GeneratedKeysMode.COLUMN_NUMBERS: {
+                int len = transfer.readInt();
+                int[] keys = new int[len];
+                for (int i = 0; i < len; i++) {
+                    keys[i] = transfer.readInt();
+                }
+                generatedKeysRequest = keys;
+                break;
+            }
+            case GeneratedKeysMode.COLUMN_NAMES: {
+                int len = transfer.readInt();
+                String[] keys = new String[len];
+                for (int i = 0; i < len; i++) {
+                    keys[i] = transfer.readString();
+                }
+                generatedKeysRequest = keys;
+                break;
+            }
+            default:
+                throw DbException.get(ErrorCode.CONNECTION_BROKEN_1,
+                        "Unsupported generated keys' mode " + mode);
             }
             int old = session.getModificationId();
             ResultWithGeneratedKeys result;
@@ -483,11 +477,9 @@ public class TcpServerThread implements Runnable {
             if (clientVersion >= Constants.TCP_PROTOCOL_VERSION_20) {
                 session.setTimeZone(TimeZoneProvider.ofId(transfer.readString()));
             }
-            transfer.writeInt(SessionRemote.STATUS_OK);
-            if (clientVersion >= Constants.TCP_PROTOCOL_VERSION_15) {
-                transfer.writeBoolean(session.getAutoCommit());
-            }
-            transfer.flush();
+            transfer.writeInt(SessionRemote.STATUS_OK)
+                .writeBoolean(session.getAutoCommit())
+                .flush();
             break;
         }
         case SessionRemote.SESSION_SET_AUTOCOMMIT: {

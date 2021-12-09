@@ -9,7 +9,6 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
-import java.sql.SQLException;
 import org.h2.util.IOUtils;
 
 /**

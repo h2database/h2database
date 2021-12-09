@@ -7,7 +7,6 @@ package org.h2.command;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import org.h2.engine.Constants;
 import org.h2.engine.GeneratedKeysMode;
 import org.h2.engine.SessionRemote;
 import org.h2.engine.SysProperties;
@@ -67,14 +66,9 @@ public class CommandRemote implements CommandInterface {
             try {
                 Transfer transfer = transferList.get(i);
 
-                boolean v16 = s.getClientVersion() >= Constants.TCP_PROTOCOL_VERSION_16;
-
                 if (createParams) {
-                    s.traceOperation(v16 ? "SESSION_PREPARE_READ_PARAMS2"
-                            : "SESSION_PREPARE_READ_PARAMS", id);
-                    transfer.writeInt(
-                            v16 ? SessionRemote.SESSION_PREPARE_READ_PARAMS2
-                                    : SessionRemote.SESSION_PREPARE_READ_PARAMS)
+                    s.traceOperation("SESSION_PREPARE_READ_PARAMS2", id);
+                    transfer.writeInt(SessionRemote.SESSION_PREPARE_READ_PARAMS2)
                             .writeInt(id).writeString(sql);
                 } else {
                     s.traceOperation("SESSION_PREPARE", id);
@@ -85,7 +79,7 @@ public class CommandRemote implements CommandInterface {
                 isQuery = transfer.readBoolean();
                 readonly = transfer.readBoolean();
 
-                cmdType = v16 && createParams ? transfer.readInt() : UNKNOWN;
+                cmdType = createParams ? transfer.readInt() : UNKNOWN;
 
                 int paramCount = transfer.readInt();
                 if (createParams) {
@@ -197,9 +191,8 @@ public class CommandRemote implements CommandInterface {
     @Override
     public ResultWithGeneratedKeys executeUpdate(Object generatedKeysRequest) {
         checkParameters();
-        boolean supportsGeneratedKeys = session.isSupportsGeneratedKeys();
         int generatedKeysMode = GeneratedKeysMode.valueOf(generatedKeysRequest);
-        boolean readGeneratedKeys = supportsGeneratedKeys && generatedKeysMode != GeneratedKeysMode.NONE;
+        boolean readGeneratedKeys = generatedKeysMode != GeneratedKeysMode.NONE;
         int objectId = readGeneratedKeys ? session.getNextId() : 0;
         synchronized (session) {
             long updateCount = 0L;
@@ -212,26 +205,24 @@ public class CommandRemote implements CommandInterface {
                     session.traceOperation("COMMAND_EXECUTE_UPDATE", id);
                     transfer.writeInt(SessionRemote.COMMAND_EXECUTE_UPDATE).writeInt(id);
                     sendParameters(transfer);
-                    if (supportsGeneratedKeys) {
-                        transfer.writeInt(generatedKeysMode);
-                        switch (generatedKeysMode) {
-                        case GeneratedKeysMode.COLUMN_NUMBERS: {
-                            int[] keys = (int[]) generatedKeysRequest;
-                            transfer.writeInt(keys.length);
-                            for (int key : keys) {
-                                transfer.writeInt(key);
-                            }
-                            break;
+                    transfer.writeInt(generatedKeysMode);
+                    switch (generatedKeysMode) {
+                    case GeneratedKeysMode.COLUMN_NUMBERS: {
+                        int[] keys = (int[]) generatedKeysRequest;
+                        transfer.writeInt(keys.length);
+                        for (int key : keys) {
+                            transfer.writeInt(key);
                         }
-                        case GeneratedKeysMode.COLUMN_NAMES: {
-                            String[] keys = (String[]) generatedKeysRequest;
-                            transfer.writeInt(keys.length);
-                            for (String key : keys) {
-                                transfer.writeString(key);
-                            }
-                            break;
+                        break;
+                    }
+                    case GeneratedKeysMode.COLUMN_NAMES: {
+                        String[] keys = (String[]) generatedKeysRequest;
+                        transfer.writeInt(keys.length);
+                        for (String key : keys) {
+                            transfer.writeString(key);
                         }
-                        }
+                        break;
+                    }
                     }
                     session.done(transfer);
                     updateCount = transfer.readRowCount();

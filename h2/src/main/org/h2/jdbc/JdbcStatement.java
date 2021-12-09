@@ -890,12 +890,7 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
             }
             checkClosed();
             if (generatedKeys == null) {
-                if (session.isSupportsGeneratedKeys()) {
-                    generatedKeys = new JdbcResultSet(conn, this, null, new SimpleResult(), id, true, false);
-                } else {
-                    // Old server, use SCOPE_IDENTITY()
-                    generatedKeys = conn.getGeneratedKeys(this, id);
-                }
+                generatedKeys = new JdbcResultSet(conn, this, null, new SimpleResult(), id, true, false);
             }
             return generatedKeys;
         } catch (Exception e) {

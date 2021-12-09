@@ -238,7 +238,8 @@ public final class MathFunction extends Function1_2 {
             if (valueType == Value.NULL) {
                 commonType = TypeInfo.TYPE_BIGINT;
             } else if (!DataType.isNumericType(valueType)) {
-                throw DbException.getInvalidValueException("numeric", commonType.getTraceSQL());
+                throw DbException.getInvalidExpressionTypeException("MOD argument",
+                        DataType.isNumericType(left.getType().getValueType()) ? right : left);
             }
             type = DataType.isNumericType(divisorType.getValueType()) ? divisorType : commonType;
             break;
@@ -377,7 +378,7 @@ public final class MathFunction extends Function1_2 {
             break;
         }
         default:
-            throw DbException.getInvalidValueException("numeric", leftType.getTraceSQL());
+            throw DbException.getInvalidExpressionTypeException(getName() + " argument", left);
         }
         if (scaleIsNull) {
             return TypedValueExpression.get(ValueNull.INSTANCE, type);

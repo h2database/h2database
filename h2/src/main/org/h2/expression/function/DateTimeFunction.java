@@ -973,7 +973,7 @@ public final class DateTimeFunction extends Function1_2 {
             int valueType = type.getValueType();
             // TODO set scale when possible
             if (!DataType.isDateTimeType(valueType)) {
-                throw DbException.getInvalidValueException("DATE_TRUNC datetime argument", type.getTraceSQL());
+                throw DbException.getInvalidExpressionTypeException("DATE_TRUNC datetime argument", left);
             } else if (session.getMode().getEnum() == ModeEnum.PostgreSQL && valueType == Value.DATE) {
                 type = TypeInfo.TYPE_TIMESTAMP_TZ;
             }

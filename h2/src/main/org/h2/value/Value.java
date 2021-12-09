@@ -352,6 +352,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
     };
 
     private static final String NAMES[] = {
+            "UNKNOWN",
             "NULL", //
             "CHARACTER", "CHARACTER VARYING", "CHARACTER LARGE OBJECT", "VARCHAR_IGNORECASE", //
             "BINARY", "BINARY VARYING", "BINARY LARGE OBJECT", //
@@ -408,7 +409,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
      * @return the name
      */
     public static String getTypeName(int valueType) {
-        return NAMES[valueType];
+        return NAMES[valueType + 1];
     }
 
     /**

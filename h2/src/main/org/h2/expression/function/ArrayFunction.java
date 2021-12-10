@@ -148,10 +148,11 @@ public final class ArrayFunction extends FunctionN {
         switch (function) {
         case TRIM_ARRAY:
         case ARRAY_SLICE: {
-            type = args[0].getType();
+            Expression arg = args[0];
+            type = arg.getType();
             int t = type.getValueType();
             if (t != Value.ARRAY && t != Value.NULL) {
-                throw DbException.getInvalidValueException(getName() + " array argument", type.getTraceSQL());
+                throw DbException.getInvalidExpressionTypeException(getName() + " array argument", arg);
             }
             break;
         }

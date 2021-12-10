@@ -59,7 +59,7 @@ public final class ArrayElementReference extends Operation2 {
             }
             break;
         default:
-            throw DbException.getInvalidValueException("Array", leftType.getTraceSQL());
+            throw DbException.getInvalidExpressionTypeException("Array", left);
         }
         return this;
     }

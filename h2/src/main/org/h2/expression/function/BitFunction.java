@@ -713,7 +713,7 @@ public final class BitFunction extends Function1_2 {
         case Value.BIGINT:
             return t;
         }
-        throw DbException.getInvalidValueException("bit function parameter", t.getTraceSQL());
+        throw DbException.getInvalidExpressionTypeException("bit function argument", arg);
     }
 
     @Override

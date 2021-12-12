@@ -16,6 +16,7 @@ import org.h2.message.DbException;
 import org.h2.value.DataType;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
+import org.h2.value.ValueBigint;
 import org.h2.value.ValueDecfloat;
 import org.h2.value.ValueDouble;
 import org.h2.value.ValueInteger;
@@ -118,9 +119,22 @@ public final class MathFunction extends Function1_2 {
 
     @SuppressWarnings("incomplete-switch")
     private Value round(Value v1, Value v2, RoundingMode roundingMode) {
-        int scale = v2 != null ? checkScale(v2) : 0;
+        int scale = v2 != null ? v2.getInt() : 0;
         int t = type.getValueType();
         c: switch (t) {
+        case Value.TINYINT:
+        case Value.SMALLINT:
+        case Value.INTEGER:
+        case Value.BIGINT: {
+            if (scale < 0) {
+                long original = v1.getLong();
+                long scaled = BigDecimal.valueOf(original).setScale(scale, roundingMode).longValue();
+                if (original != scaled) {
+                    v1 = ValueBigint.get(scaled).convertTo(type);
+                }
+            }
+            break;
+        }
         case Value.NUMERIC: {
             int targetScale = type.getScale();
             BigDecimal bd = v1.getBigDecimal();
@@ -196,14 +210,6 @@ public final class MathFunction extends Function1_2 {
         return Double.parseDouble(s.toString());
     }
 
-    private static int checkScale(Value v) {
-        int scale = v.getInt();
-        if (scale < 0 || scale > ValueNumeric.MAXIMUM_SCALE) {
-            throw DbException.getInvalidValueException("digits", scale);
-        }
-        return scale;
-    }
-
     @Override
     public Expression optimize(SessionLocal session) {
         left = left.optimize(session);
@@ -219,7 +225,7 @@ public final class MathFunction extends Function1_2 {
             break;
         case FLOOR:
         case CEIL: {
-            Expression e = optimizeRound(0, false, true);
+            Expression e = optimizeRound(0, true, false, true);
             if (e != null) {
                 return e;
             }
@@ -232,7 +238,8 @@ public final class MathFunction extends Function1_2 {
             if (valueType == Value.NULL) {
                 commonType = TypeInfo.TYPE_BIGINT;
             } else if (!DataType.isNumericType(valueType)) {
-                throw DbException.getInvalidValueException("numeric", commonType.getTraceSQL());
+                throw DbException.getInvalidExpressionTypeException("MOD argument",
+                        DataType.isNumericType(left.getType().getValueType()) ? right : left);
             }
             type = DataType.isNumericType(divisorType.getValueType()) ? divisorType : commonType;
             break;
@@ -287,12 +294,13 @@ public final class MathFunction extends Function1_2 {
 
     private Expression optimizeRoundWithScale(SessionLocal session, boolean possibleRoundUp) {
         int scale;
-        boolean scaleIsNull = false;
+        boolean scaleIsKnown = false, scaleIsNull = false;
         if (right != null) {
             if (right.isConstant()) {
                 Value scaleValue = right.getValue(session);
+                scaleIsKnown = true;
                 if (scaleValue != ValueNull.INSTANCE) {
-                    scale = checkScale(scaleValue);
+                    scale = scaleValue.getInt();
                 } else {
                     scale = -1;
                     scaleIsNull = true;
@@ -302,16 +310,18 @@ public final class MathFunction extends Function1_2 {
             }
         } else {
             scale = 0;
+            scaleIsKnown = true;
         }
-        return optimizeRound(scale, scaleIsNull, possibleRoundUp);
+        return optimizeRound(scale, scaleIsKnown, scaleIsNull, possibleRoundUp);
     }
 
     /**
      * Optimizes rounding and truncation functions.
      *
      * @param scale
-     *            the scale, {@code -1} if {@code NULL} or unknown, non-negative
-     *            integer if known and valid scale
+     *            the scale, if known
+     * @param scaleIsKnown
+     *            whether scale is known
      * @param scaleIsNull
      *            whether scale is {@code NULL}
      * @param possibleRoundUp
@@ -320,7 +330,7 @@ public final class MathFunction extends Function1_2 {
      * @return the optimized expression or {@code null} if this function should
      *         be used
      */
-    private Expression optimizeRound(int scale, boolean scaleIsNull, boolean possibleRoundUp) {
+    private Expression optimizeRound(int scale, boolean scaleIsKnown, boolean scaleIsNull, boolean possibleRoundUp) {
         TypeInfo leftType = left.getType();
         switch (leftType.getValueType()) {
         case Value.NULL:
@@ -330,7 +340,7 @@ public final class MathFunction extends Function1_2 {
         case Value.SMALLINT:
         case Value.INTEGER:
         case Value.BIGINT:
-            if (scale >= 0) {
+            if (scaleIsKnown && scale >= 0) {
                 return left;
             }
             type = leftType;
@@ -343,10 +353,15 @@ public final class MathFunction extends Function1_2 {
         case Value.NUMERIC: {
             long precision;
             int originalScale = leftType.getScale();
-            if (scale >= 0) {
+            if (scaleIsKnown) {
                 if (originalScale <= scale) {
                     return left;
                 } else {
+                    if (scale < 0) {
+                        scale = 0;
+                    } else if (scale > ValueNumeric.MAXIMUM_SCALE) {
+                        scale = ValueNumeric.MAXIMUM_SCALE;
+                    }
                     precision = leftType.getPrecision() - originalScale + scale;
                     if (possibleRoundUp) {
                         precision++;
@@ -363,7 +378,7 @@ public final class MathFunction extends Function1_2 {
             break;
         }
         default:
-            throw DbException.getInvalidValueException("numeric", leftType.getTraceSQL());
+            throw DbException.getInvalidExpressionTypeException(getName() + " argument", left);
         }
         if (scaleIsNull) {
             return TypedValueExpression.get(ValueNull.INSTANCE, type);

@@ -28,6 +28,7 @@ public class FunctionMultiReturn {
      * command line.
      *
      * @param args the command line parameters
+     * @throws Exception on failure
      */
     public static void main(String... args) throws Exception {
         Class.forName("org.h2.Driver");
@@ -135,6 +136,7 @@ public class FunctionMultiReturn {
      * @param conn the connection
      * @param query the query
      * @return a result set with the coordinates
+     * @throws SQLException on failure
      */
     public static ResultSet polar2CartesianSet(Connection conn, String query)
             throws SQLException {

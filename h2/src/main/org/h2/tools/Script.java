@@ -19,8 +19,9 @@ import org.h2.util.Tool;
 public class Script extends Tool {
 
     /**
-     * Options are case sensitive. Supported options are:
+     * Options are case sensitive.
      * <table>
+     * <caption>Supported options</caption>
      * <tr><td>[-help] or [-?]</td>
      * <td>Print the list of options</td></tr>
      * <tr><td>[-url "&lt;url&gt;"]</td>
@@ -39,6 +40,7 @@ public class Script extends Tool {
      * @h2.resource
      *
      * @param args the command line arguments
+     * @throws SQLException on failure
      */
     public static void main(String... args) throws SQLException {
         new Script().runTool(args);
@@ -108,6 +110,7 @@ public class Script extends Tool {
      * @param fileName the target file name
      * @param options1 the options before the file name (may be an empty string)
      * @param options2 the options after the file name (may be an empty string)
+     * @throws SQLException on failure
      */
     public static void process(String url, String user, String password, String fileName, String options1,
             String options2) throws SQLException {
@@ -124,6 +127,7 @@ public class Script extends Tool {
      * @param fileName the target file name
      * @param options1 the options before the file name
      * @param options2 the options after the file name
+     * @throws SQLException on failure
      */
     public static void process(Connection conn,
             String fileName, String options1, String options2) throws SQLException {

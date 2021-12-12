@@ -216,7 +216,7 @@ public class MathUtils {
      *
      * @param x the original value
      * @return the next power of two value
-     * @throws IllegalArgumentException if x < 0 or x > 0x40000000
+     * @throws IllegalArgumentException if x &lt; 0 or x &gt; 0x40000000
      */
     public static int nextPowerOf2(int x) throws IllegalArgumentException {
         if (x == 0) {

@@ -803,6 +803,7 @@ public class WebServer implements Service {
      *
      * @param conn the connection
      * @return the URL of the web site to access this connection
+     * @throws SQLException on failure
      */
     public String addSession(Connection conn) throws SQLException {
         WebSession session = createNewSession("local");

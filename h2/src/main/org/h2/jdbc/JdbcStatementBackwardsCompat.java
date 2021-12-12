@@ -25,6 +25,7 @@ public interface JdbcStatementBackwardsCompat {
      * @param alwaysQuote
      *            if {@code true} identifier will be quoted unconditionally
      * @return specified identifier quoted if required or explicitly requested
+     * @throws SQLException on failure
      */
     String enquoteIdentifier(String identifier, boolean alwaysQuote) throws SQLException;
 
@@ -34,6 +35,7 @@ public interface JdbcStatementBackwardsCompat {
      * @param identifier
      *            identifier to check
      * @return is specified identifier may be used without quotes
+     * @throws SQLException on failure
      */
     boolean isSimpleIdentifier(String identifier) throws SQLException;
 }

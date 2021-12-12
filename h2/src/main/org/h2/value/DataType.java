@@ -312,8 +312,8 @@ public class DataType {
         dataType.prefix = "'";
         dataType.suffix = "'";
         dataType.params = "TYPE,SRID";
-        dataType.maxPrecision = Constants.MAX_STRING_LENGTH;
-        dataType.defaultPrecision = Constants.MAX_STRING_LENGTH;
+        dataType.maxPrecision = Long.MAX_VALUE;
+        dataType.defaultPrecision = Long.MAX_VALUE;
         return dataType;
     }
 
@@ -386,6 +386,7 @@ public class DataType {
      * @param meta the meta data
      * @param columnIndex the column index (1, 2,...)
      * @return the value type
+     * @throws SQLException on failure
      */
     public static int getValueTypeFromResultSet(ResultSetMetaData meta,
             int columnIndex) throws SQLException {

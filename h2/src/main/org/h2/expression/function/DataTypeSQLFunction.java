@@ -147,7 +147,11 @@ public final class DataTypeSQLFunction extends FunctionN {
 
     @Override
     public boolean isEverything(ExpressionVisitor visitor) {
-        return isEverythingNonDeterministic(visitor);
+        switch (visitor.getType()) {
+        case ExpressionVisitor.DETERMINISTIC:
+            return false;
+        }
+        return true;
     }
 
 }

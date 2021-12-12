@@ -62,12 +62,12 @@ public enum DefaultNullOrdering {
     }
 
     /**
-     * Returns a sort type bit mask with {@link #NULLS_FIRST} or
-     * {@link #NULLS_LAST} explicitly set
+     * Returns a sort type bit mask with {@link org.h2.result.SortOrder#NULLS_FIRST} or
+     * {@link org.h2.result.SortOrder#NULLS_LAST} explicitly set
      *
      * @param sortType
      *            sort type bit mask
-     * @return bit mask with {@link #NULLS_FIRST} or {@link #NULLS_LAST}
+     * @return bit mask with {@link org.h2.result.SortOrder#NULLS_FIRST} or {@link org.h2.result.SortOrder#NULLS_LAST}
      *         explicitly set
      */
     public int addExplicitNullOrdering(int sortType) {

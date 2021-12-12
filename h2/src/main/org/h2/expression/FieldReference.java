@@ -50,7 +50,7 @@ public final class FieldReference extends Operation1 {
         arg = arg.optimize(session);
         TypeInfo type = arg.getType();
         if (type.getValueType() != Value.ROW) {
-            throw DbException.getInvalidValueException("ROW", type.getTraceSQL());
+            throw DbException.getInvalidExpressionTypeException("ROW", arg);
         }
         int ordinal = 0;
         for (Entry<String, TypeInfo> entry : ((ExtTypeInfoRow) type.getExtTypeInfo()).getFields()) {

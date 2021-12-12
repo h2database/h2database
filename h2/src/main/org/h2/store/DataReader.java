@@ -32,6 +32,7 @@ public class DataReader extends Reader {
      * Read a byte.
      *
      * @return the byte
+     * @throws IOException on failure
      */
     public byte readByte() throws IOException {
         int x = in.read();
@@ -45,6 +46,7 @@ public class DataReader extends Reader {
      * Read a variable size integer.
      *
      * @return the value
+     * @throws IOException on failure
      */
     public int readVarInt() throws IOException {
         int b = readByte();
@@ -73,6 +75,7 @@ public class DataReader extends Reader {
      * Read a variable size long.
      *
      * @return the value
+     * @throws IOException on failure
      */
     public long readVarLong() throws IOException {
         long x = readByte();
@@ -113,6 +116,7 @@ public class DataReader extends Reader {
      *
      * @param buff the target buffer
      * @param len the number of bytes to read
+     * @throws IOException on failure
      */
     public void readFully(byte[] buff, int len) throws IOException {
         int got = IOUtils.readFully(in, buff, len);
@@ -125,6 +129,7 @@ public class DataReader extends Reader {
      * Read a string from the stream.
      *
      * @return the string
+     * @throws IOException on failure
      */
     public String readString() throws IOException {
         int len = readVarInt();

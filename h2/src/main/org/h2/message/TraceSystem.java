@@ -269,7 +269,7 @@ public class TraceSystem implements TraceWriter {
                     JdbcException se = (JdbcException) t;
                     int code = se.getErrorCode();
                     if (ErrorCode.isCommon(code)) {
-                        printWriter.println(t.toString());
+                        printWriter.println(t);
                     } else {
                         t.printStackTrace(printWriter);
                     }

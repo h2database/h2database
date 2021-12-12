@@ -140,8 +140,8 @@ public final class Sequence extends SchemaObject {
      * Allows the base value, start value, min value, max value, increment and
      * cache size to be updated atomically, including atomic validation. Useful
      * because setting these attributes one after the other could otherwise
-     * result in an invalid sequence state (e.g. min value > max value, start
-     * value < min value, etc).
+     * result in an invalid sequence state (e.g. min value &gt; max value, start
+     * value &lt; min value, etc).
      * @param baseValue
      *            the base value ({@code null} if restart is not requested)
      * @param startValue

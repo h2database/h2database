@@ -29,6 +29,10 @@ public final class JdbcClob extends JdbcLob implements NClob {
 
     /**
      * INTERNAL
+     * @param conn it belongs to
+     * @param value of
+     * @param state of the LOB
+     * @param id of the trace object
      */
     public JdbcClob(JdbcConnection conn, Value value, State state, int id) {
         super(conn, value, state, TraceObject.CLOB, id);
@@ -161,6 +165,7 @@ public final class JdbcClob extends JdbcLob implements NClob {
      * @param pos where to start writing (the first character is at position 1)
      * @param str the string to add
      * @return the length of the added text
+     * @throws SQLException on failure
      */
     @Override
     public int setString(long pos, String str) throws SQLException {

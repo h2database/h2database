@@ -56,6 +56,7 @@ public class Indexer {
      * line.
      *
      * @param args the command line parameters
+     * @throws Exception on failure
      */
     public static void main(String... args) throws Exception {
         new Indexer().run(args);

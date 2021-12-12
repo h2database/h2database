@@ -53,12 +53,12 @@ import org.h2.result.SortOrder;
 import org.h2.schema.Constant;
 import org.h2.schema.Domain;
 import org.h2.schema.FunctionAlias;
+import org.h2.schema.FunctionAlias.JavaMethod;
 import org.h2.schema.Schema;
 import org.h2.schema.SchemaObject;
 import org.h2.schema.Sequence;
 import org.h2.schema.TriggerObject;
 import org.h2.schema.UserDefinedFunction;
-import org.h2.schema.FunctionAlias.JavaMethod;
 import org.h2.store.InDoubtTransaction;
 import org.h2.tools.Csv;
 import org.h2.util.DateTimeUtils;
@@ -898,7 +898,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                             // GENERATION_EXPRESSION
                             isGenerated ? c.getDefaultSQL() : null,
                             // TYPE_NAME
-                            identifier(isInterval ? "INTERVAL" : getDataTypeName(typeInfo)),
+                            identifier(isInterval ? "INTERVAL" : typeInfo.getDeclaredTypeName()),
                             // NULLABLE
                             ValueInteger.get(c.isNullable()
                                     ? DatabaseMetaData.columnNullable : DatabaseMetaData.columnNoNulls),
@@ -1398,7 +1398,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                                     // DATA_TYPE
                                     ValueInteger.get(DataType.convertTypeToSQLType(typeInfo)),
                                     // TYPE_NAME
-                                    getDataTypeName(typeInfo),
+                                    typeInfo.getDeclaredTypeName(),
                                     // COLUMN_COUNT
                                     ValueInteger.get(method.getParameterCount()),
                                     // RETURNS_RESULT
@@ -1484,7 +1484,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                                         // DATA_TYPE
                                         ValueInteger.get(DataType.convertTypeToSQLType(typeInfo)),
                                         // TYPE_NAME
-                                        getDataTypeName(typeInfo),
+                                        typeInfo.getDeclaredTypeName(),
                                         // PRECISION
                                         ValueInteger.get(MathUtils.convertLongToInt(dt.defaultPrecision)),
                                         // SCALE
@@ -1530,7 +1530,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                                         // DATA_TYPE
                                         ValueInteger.get(DataType.convertTypeToSQLType(columnTypeInfo)),
                                         // TYPE_NAME
-                                        getDataTypeName(columnTypeInfo),
+                                        columnTypeInfo.getDeclaredTypeName(),
                                         // PRECISION
                                         ValueInteger.get(MathUtils.convertLongToInt(dt.defaultPrecision)),
                                         // SCALE
@@ -1853,7 +1853,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                         // SCALE
                         ValueInteger.get(typeInfo.getScale()),
                         // TYPE_NAME
-                        getDataTypeName(typeInfo),
+                        typeInfo.getDeclaredTypeName(),
                         // PARENT_DOMAIN_CATALOG
                         parentDomain != null ? catalog : null,
                         // PARENT_DOMAIN_SCHEMA
@@ -2356,18 +2356,6 @@ public final class InformationSchemaTableLegacy extends MetaTable {
             throw DbException.getInternalError("type=" + type);
         }
         return rows;
-    }
-
-    private static String getDataTypeName(TypeInfo typeInfo) {
-        switch (typeInfo.getValueType()) {
-        case Value.ARRAY:
-            typeInfo = (TypeInfo) typeInfo.getExtTypeInfo();
-            // Use full type names with parameters for elements
-            return typeInfo.getSQL(new StringBuilder(), DEFAULT_SQL_FLAGS).append(" ARRAY").toString();
-        case Value.ROW:
-            return typeInfo.getSQL(DEFAULT_SQL_FLAGS);
-        }
-        return typeInfo.getDeclaredTypeName();
     }
 
     private static short getRefAction(ConstraintActionType action) {

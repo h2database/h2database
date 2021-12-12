@@ -256,10 +256,10 @@ public final class SortOrder implements Comparator<Value[]> {
     }
 
     /**
-     * Returns sort order bit masks with {@link #NULLS_FIRST} or
-     * {@link #NULLS_LAST} explicitly set.
+     * Returns sort order bit masks with {@link SortOrder#NULLS_FIRST} or
+     * {@link SortOrder#NULLS_LAST} explicitly set.
      *
-     * @return bit masks with either {@link #NULLS_FIRST} or {@link #NULLS_LAST}
+     * @return bit masks with either {@link SortOrder#NULLS_FIRST} or {@link SortOrder#NULLS_LAST}
      *         explicitly set.
      */
     public int[] getSortTypesWithNullOrdering() {
@@ -267,7 +267,7 @@ public final class SortOrder implements Comparator<Value[]> {
     }
 
     /**
-     * Add explicit {@link #NULLS_FIRST} or {@link #NULLS_LAST} where they
+     * Add explicit {@link SortOrder#NULLS_FIRST} or {@link SortOrder#NULLS_LAST} where they
      * aren't already specified.
      *
      * @param database

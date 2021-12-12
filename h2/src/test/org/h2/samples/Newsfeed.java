@@ -30,6 +30,7 @@ public class Newsfeed {
      * command line.
      *
      * @param args the command line parameters
+     * @throws Exception on failure
      */
     public static void main(String... args) throws Exception {
         Path targetDir = Paths.get(args.length == 0 ? "." : args[0]);

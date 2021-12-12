@@ -92,18 +92,8 @@ public class BenchSimple implements Bench {
             db.update(prep, "deleteTest");
         }
         db.end();
-
-        db.closeConnection();
-
-        db.openConnection();
-        prep = db.prepare("SELECT * FROM TEST WHERE ID=?");
-        for (int i = 0; i < records; i++) {
-            prep.setInt(1, random.nextInt(records));
-            db.queryReadResult(prep);
-        }
         db.logMemory(this, "Memory Usage");
         db.closeConnection();
-
     }
 
     @Override

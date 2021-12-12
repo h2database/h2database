@@ -91,7 +91,7 @@ abstract class ValueStringBase extends Value {
 
     @Override
     public final boolean getBoolean() {
-        String s = value;
+        String s = value.trim();
         if (s.equalsIgnoreCase("true") || s.equalsIgnoreCase("t") || s.equalsIgnoreCase("yes")
                 || s.equalsIgnoreCase("y")) {
             return true;

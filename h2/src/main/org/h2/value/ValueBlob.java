@@ -63,7 +63,7 @@ public final class ValueBlob extends ValueLob {
             if (length >= 0 && length < remaining) {
                 remaining = length;
             }
-            int len = LobDataFile.getBufferSize(handler, remaining);
+            int len = ValueLob.getBufferSize(handler, remaining);
             byte[] buff;
             if (len >= Integer.MAX_VALUE) {
                 buff = IOUtils.readBytesAndClose(in, -1);
@@ -86,7 +86,7 @@ public final class ValueBlob extends ValueLob {
      */
     private static ValueBlob createTemporary(DataHandler handler, byte[] buff, int len, InputStream in, long remaining)
             throws IOException {
-        String fileName = LobDataFile.createTempLobFileName(handler);
+        String fileName = ValueLob.createTempLobFileName(handler);
         FileStore tempFile = handler.openFile(fileName, "rw", false);
         tempFile.autoDelete();
         long tmpPrecision = 0;
@@ -98,7 +98,7 @@ public final class ValueBlob extends ValueLob {
                 if (remaining <= 0) {
                     break;
                 }
-                len = LobDataFile.getBufferSize(handler, remaining);
+                len = ValueLob.getBufferSize(handler, remaining);
                 len = IOUtils.readFully(in, buff, len);
                 if (len <= 0) {
                     break;

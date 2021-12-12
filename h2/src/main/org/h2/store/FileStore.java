@@ -442,6 +442,7 @@ public class FileStore {
 
     /**
      * Close the file. The file may later be re-opened using openFile.
+     * @throws IOException on failure
      */
     public void closeFile() throws IOException {
         file.close();
@@ -464,6 +465,7 @@ public class FileStore {
     /**
      * Re-open the file. The file pointer will be reset to the previous
      * location.
+     * @throws IOException on failure
      */
     public void openFile() throws IOException {
         if (file == null) {

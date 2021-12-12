@@ -102,6 +102,7 @@ public class Csv implements SimpleRowSource {
      * @param writer the writer
      * @param rs the result set
      * @return the number of rows written
+     * @throws SQLException on failure
      */
     public int write(Writer writer, ResultSet rs) throws SQLException {
         this.output = writer;
@@ -123,6 +124,7 @@ public class Csv implements SimpleRowSource {
      *          first row.
      * @param charset the charset or null to use the system default charset
      * @return the number of rows written
+     * @throws SQLException on failure
      */
     public int write(String outputFileName, ResultSet rs, String charset)
             throws SQLException {
@@ -144,6 +146,7 @@ public class Csv implements SimpleRowSource {
      * @param charset the charset or null to use the system default charset
      *          (see system property file.encoding)
      * @return the number of rows written
+     * @throws SQLException on failure
      */
     public int write(Connection conn, String outputFileName, String sql,
             String charset) throws SQLException {
@@ -158,7 +161,7 @@ public class Csv implements SimpleRowSource {
      * Reads from the CSV file and returns a result set. The rows in the result
      * set are created on demand, that means the file is kept open until all
      * rows are read or the result set is closed.
-     * <br />
+     *
      * If the columns are read from the CSV file, then the following rules are
      * used: columns names that start with a letter or '_', and only
      * contain letters, '_', and digits, are considered case insensitive
@@ -170,6 +173,7 @@ public class Csv implements SimpleRowSource {
      *          file
      * @param charset the charset or null to use the system default charset
      * @return the result set
+     * @throws SQLException on failure
      */
     public ResultSet read(String inputFileName, String[] colNames,
             String charset) throws SQLException {
@@ -190,6 +194,7 @@ public class Csv implements SimpleRowSource {
      * @param colNames or null if the column names should be read from the CSV
      *            file
      * @return the result set
+     * @throws IOException on failure
      */
     public ResultSet read(Reader reader, String[] colNames) throws IOException {
         init(null, null);

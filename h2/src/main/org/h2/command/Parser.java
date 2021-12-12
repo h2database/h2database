@@ -3590,8 +3590,8 @@ public class Parser {
 
     private Expression readInPredicate(Expression left, boolean not, boolean whenOperand) {
         read(OPEN_PAREN);
-        if (database.getMode().allowEmptyInPredicate && readIf(CLOSE_PAREN)) {
-            return ValueExpression.FALSE;
+        if (!whenOperand && database.getMode().allowEmptyInPredicate && readIf(CLOSE_PAREN)) {
+            return ValueExpression.getBoolean(not);
         }
         ArrayList<Expression> v;
         if (isQuery()) {
@@ -10300,6 +10300,14 @@ public class Parser {
         }
         if (readIf("FETCH_SIZE")) {
             command.setFetchSize(readNonNegativeInt());
+        }
+        if(readIf("AUTOCOMMIT")){
+            if(readIf("ON")) {
+                command.setAutoCommit(true);
+            }
+            else if(readIf("OFF")){
+                command.setAutoCommit(false);
+            }
         }
         return command;
     }

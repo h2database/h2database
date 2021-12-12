@@ -53,8 +53,9 @@ public class Shell extends Tool implements Runnable {
     private String serverPropertiesDir = Constants.SERVER_PROPERTIES_DIR;
 
     /**
-     * Options are case sensitive. Supported options are:
+     * Options are case sensitive.
      * <table>
+     * <caption>Supported options</caption>
      * <tr><td>[-help] or [-?]</td>
      * <td>Print the list of options</td></tr>
      * <tr><td>[-url "&lt;url&gt;"]</td>
@@ -75,6 +76,7 @@ public class Shell extends Tool implements Runnable {
      * @h2.resource
      *
      * @param args the command line arguments
+     * @throws SQLException on failure
      */
     public static void main(String... args) throws SQLException {
         new Shell().runTool(args);
@@ -174,6 +176,7 @@ public class Shell extends Tool implements Runnable {
      *
      * @param conn the connection
      * @param args the command line settings
+     * @throws SQLException on failure
      */
     public void runTool(Connection conn, String... args) throws SQLException {
         this.conn = conn;

@@ -51,10 +51,10 @@ Update newsfeed.sql:
     * (150, '1.4.200', '2019-10-14'),
     * remove oldest entry in that list
 
+## Skipped
+
 Update download-archive.html:
     * add new version under Distribution section
-
-## Skipped
 
 * Minor version change: change sourceError.html and source.html
 * If a beta, change download.html: Version ${version} (${versionDate}), Beta
@@ -65,7 +65,7 @@ The following can be skipped currently; benchmarks should probably be removed:
 
 ## Build the Release
 
-In Build.java, comment "-Xdoclint:none", but don't commit that change.
+In Build.java, comment "-Xdoclint:...", but don't commit that change.
 
 Run the following commands:
 Non-Windows:

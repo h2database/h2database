@@ -161,6 +161,7 @@ public final class Transfer {
     /**
      * Initialize the transfer object. This method will try to open an input and
      * output stream.
+     * @throws IOException on failure
      */
     public synchronized void init() throws IOException {
         if (socket != null) {
@@ -175,6 +176,7 @@ public final class Transfer {
 
     /**
      * Write pending changes.
+     * @throws IOException on failure
      */
     public void flush() throws IOException {
         out.flush();
@@ -185,6 +187,7 @@ public final class Transfer {
      *
      * @param x the value
      * @return itself
+     * @throws IOException on failure
      */
     public Transfer writeBoolean(boolean x) throws IOException {
         out.writeByte((byte) (x ? 1 : 0));
@@ -195,6 +198,7 @@ public final class Transfer {
      * Read a boolean.
      *
      * @return the value
+     * @throws IOException on failure
      */
     public boolean readBoolean() throws IOException {
         return in.readByte() != 0;
@@ -205,6 +209,7 @@ public final class Transfer {
      *
      * @param x the value
      * @return itself
+     * @throws IOException on failure
      */
     public Transfer writeByte(byte x) throws IOException {
         out.writeByte(x);
@@ -215,6 +220,7 @@ public final class Transfer {
      * Read a byte.
      *
      * @return the value
+     * @throws IOException on failure
      */
     public byte readByte() throws IOException {
         return in.readByte();
@@ -225,6 +231,7 @@ public final class Transfer {
      *
      * @param x the value
      * @return itself
+     * @throws IOException on failure
      */
     private Transfer writeShort(short x) throws IOException {
         out.writeShort(x);
@@ -235,6 +242,7 @@ public final class Transfer {
      * Read a short.
      *
      * @return the value
+     * @throws IOException on failure
      */
     private short readShort() throws IOException {
         return in.readShort();
@@ -245,6 +253,7 @@ public final class Transfer {
      *
      * @param x the value
      * @return itself
+     * @throws IOException on failure
      */
     public Transfer writeInt(int x) throws IOException {
         out.writeInt(x);
@@ -255,6 +264,7 @@ public final class Transfer {
      * Read an int.
      *
      * @return the value
+     * @throws IOException on failure
      */
     public int readInt() throws IOException {
         return in.readInt();
@@ -265,6 +275,7 @@ public final class Transfer {
      *
      * @param x the value
      * @return itself
+     * @throws IOException on failure
      */
     public Transfer writeLong(long x) throws IOException {
         out.writeLong(x);
@@ -275,6 +286,7 @@ public final class Transfer {
      * Read a long.
      *
      * @return the value
+     * @throws IOException on failure
      */
     public long readLong() throws IOException {
         return in.readLong();
@@ -285,6 +297,7 @@ public final class Transfer {
      *
      * @param i the value
      * @return itself
+     * @throws IOException on failure
      */
     private Transfer writeDouble(double i) throws IOException {
         out.writeDouble(i);
@@ -306,6 +319,7 @@ public final class Transfer {
      * Read a double.
      *
      * @return the value
+     * @throws IOException on failure
      */
     private double readDouble() throws IOException {
         return in.readDouble();
@@ -315,6 +329,7 @@ public final class Transfer {
      * Read a float.
      *
      * @return the value
+     * @throws IOException on failure
      */
     private float readFloat() throws IOException {
         return in.readFloat();
@@ -325,6 +340,7 @@ public final class Transfer {
      *
      * @param s the value
      * @return itself
+     * @throws IOException on failure
      */
     public Transfer writeString(String s) throws IOException {
         if (s == null) {
@@ -340,6 +356,7 @@ public final class Transfer {
      * Read a string.
      *
      * @return the value
+     * @throws IOException on failure
      */
     public String readString() throws IOException {
         int len = in.readInt();
@@ -360,6 +377,7 @@ public final class Transfer {
      *
      * @param data the value
      * @return itself
+     * @throws IOException on failure
      */
     public Transfer writeBytes(byte[] data) throws IOException {
         if (data == null) {
@@ -378,6 +396,7 @@ public final class Transfer {
      * @param off the offset
      * @param len the length
      * @return itself
+     * @throws IOException on failure
      */
     public Transfer writeBytes(byte[] buff, int off, int len) throws IOException {
         out.write(buff, off, len);
@@ -388,6 +407,7 @@ public final class Transfer {
      * Read a byte array.
      *
      * @return the value
+     * @throws IOException on failure
      */
     public byte[] readBytes() throws IOException {
         int len = readInt();
@@ -405,6 +425,7 @@ public final class Transfer {
      * @param buff the target buffer
      * @param off the offset
      * @param len the number of bytes to read
+     * @throws IOException on failure
      */
     public void readBytes(byte[] buff, int off, int len) throws IOException {
         in.readFully(buff, off, len);
@@ -433,6 +454,7 @@ public final class Transfer {
      *
      * @param type data type information
      * @return itself
+     * @throws IOException on failure
      */
     public Transfer writeTypeInfo(TypeInfo type) throws IOException {
         if (version >= Constants.TCP_PROTOCOL_VERSION_20) {
@@ -593,6 +615,7 @@ public final class Transfer {
      * Read a type information.
      *
      * @return the type information
+     * @throws IOException on failure
      */
     public TypeInfo readTypeInfo() throws IOException {
         if (version >= Constants.TCP_PROTOCOL_VERSION_20) {
@@ -740,6 +763,7 @@ public final class Transfer {
      * Write a value.
      *
      * @param v the value
+     * @throws IOException on failure
      */
     public void writeValue(Value v) throws IOException {
         int type = v.getValueType();
@@ -1015,6 +1039,7 @@ public final class Transfer {
      *
      * @param columnType the data type of value, or {@code null}
      * @return the value
+     * @throws IOException on failure
      */
     public Value readValue(TypeInfo columnType) throws IOException {
         int type = readInt();
@@ -1192,6 +1217,7 @@ public final class Transfer {
      * Read a row count.
      *
      * @return the row count
+     * @throws IOException on failure
      */
     public long readRowCount() throws IOException {
         return version >= Constants.TCP_PROTOCOL_VERSION_20 ? readLong() : readInt();
@@ -1202,6 +1228,7 @@ public final class Transfer {
      *
      * @param rowCount the row count
      * @return itself
+     * @throws IOException on failure
      */
     public Transfer writeRowCount(long rowCount) throws IOException {
         return version >= Constants.TCP_PROTOCOL_VERSION_20 ? writeLong(rowCount)
@@ -1239,6 +1266,7 @@ public final class Transfer {
      * Open a new connection to the same address and port as this one.
      *
      * @return the new transfer object
+     * @throws IOException on failure
      */
     public Transfer openNewConnection() throws IOException {
         InetAddress address = socket.getInetAddress();

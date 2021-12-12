@@ -21,6 +21,7 @@ public class HelloWorld {
      * Called when ran from command line.
      *
      * @param args ignored
+     * @throws Exception on failure
      */
     public static void main(String... args) throws Exception {
         // delete the database named 'test' in the user home directory

@@ -29,6 +29,7 @@ public class CreateLinkedTable extends SchemaCommand {
     private boolean globalTemporary;
     private boolean readOnly;
     private int fetchSize;
+    private boolean autocommit = true;
 
     public CreateLinkedTable(SessionLocal session, Schema schema) {
         super(session, schema);
@@ -65,10 +66,19 @@ public class CreateLinkedTable extends SchemaCommand {
     /**
      * Specify the number of rows fetched by the linked table command
      *
-     * @param fetchSize
+     * @param fetchSize to set
      */
     public void setFetchSize(int fetchSize) {
         this.fetchSize = fetchSize;
+    }
+
+    /**
+     * Specify if the autocommit mode is activated or not
+     *
+     * @param mode to set
+     */
+    public void setAutoCommit(boolean mode) {
+        this.autocommit= mode;
     }
 
     @Override
@@ -92,6 +102,7 @@ public class CreateLinkedTable extends SchemaCommand {
         if (fetchSize > 0) {
             table.setFetchSize(fetchSize);
         }
+        table.setAutoCommit(autocommit);
         if (temporary && !globalTemporary) {
             session.addLocalTempTable(table);
         } else {

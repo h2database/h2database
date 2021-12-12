@@ -139,6 +139,7 @@ public class DbContents {
      *
      * @param url the database URL
      * @param conn the connection
+     * @throws SQLException on failure
      */
     public synchronized void readContents(String url, Connection conn)
             throws SQLException {

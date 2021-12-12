@@ -7,7 +7,6 @@ package org.h2.test.bench;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Random;
 
@@ -34,8 +33,8 @@ public class BenchB implements Bench, Runnable {
     // client data
     private BenchB master;
     private Connection conn;
-    private PreparedStatement updateAccount;
     private PreparedStatement selectAccount;
+    private PreparedStatement updateAccount;
     private PreparedStatement updateTeller;
     private PreparedStatement updateBranch;
     private PreparedStatement insertHistory;
@@ -50,10 +49,15 @@ public class BenchB implements Bench, Runnable {
         random = new Random(seed);
         conn = master.database.openNewConnection();
         conn.setAutoCommit(false);
+        try {
+            selectAccount = conn.prepareStatement(
+                    "SELECT ABALANCE FROM ACCOUNTS WHERE AID=? FOR UPDATE");
+        } catch (SQLException ignored) {
+            selectAccount = conn.prepareStatement(
+                    "SELECT ABALANCE FROM ACCOUNTS WHERE AID=?");
+        }
         updateAccount = conn.prepareStatement(
                 "UPDATE ACCOUNTS SET ABALANCE=ABALANCE+? WHERE AID=?");
-        selectAccount = conn.prepareStatement(
-                "SELECT ABALANCE FROM ACCOUNTS WHERE AID=?");
         updateTeller = conn.prepareStatement(
                 "UPDATE TELLERS SET TBALANCE=TBALANCE+? WHERE TID=?");
         updateBranch = conn.prepareStatement(
@@ -85,7 +89,7 @@ public class BenchB implements Bench, Runnable {
                         "BID INT, ABALANCE INT, FILLER VARCHAR(84))",
                 "CREATE TABLE HISTORY(" +
                         "TID INT, BID INT, AID INT, " +
-                        "DELTA INT, TIME DATETIME, FILLER VARCHAR(22))" };
+                        "DELTA INT, HTIME DATETIME, FILLER VARCHAR(22))" };
         for (String sql : create) {
             db.update(sql);
         }
@@ -127,10 +131,6 @@ public class BenchB implements Bench, Runnable {
         db.commit();
         db.closeConnection();
         db.end();
-//        db.start(this, "Open/Close");
-//        db.openConnection();
-//        db.closeConnection();
-//        db.end();
     }
 
     /**
@@ -147,72 +147,74 @@ public class BenchB implements Bench, Runnable {
     public void run() {
         int accountsPerBranch = ACCOUNTS / BRANCHES;
         for (int i = 0; i < master.transactionPerClient; i++) {
-            int branch = random.nextInt(BRANCHES);
-            int teller = random.nextInt(TELLERS);
-            int account;
-            if (random.nextInt(100) < 85) {
-                account = random.nextInt(accountsPerBranch) + branch * accountsPerBranch;
-            } else {
-                account = random.nextInt(ACCOUNTS);
+            try {
+                int branch = random.nextInt(BRANCHES);
+                int teller = random.nextInt(TELLERS);
+                int account;
+                if (random.nextInt(100) < 85) {
+                    account = random.nextInt(accountsPerBranch) + branch * accountsPerBranch;
+                } else {
+                    account = random.nextInt(ACCOUNTS);
+                }
+                int delta = random.nextInt(1000);
+                doOne(branch, teller, account, -delta);
+                try {
+                    conn.commit();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            } catch (SQLException ignore) {
+                try {
+                    conn.rollback();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
             }
-            int delta = random.nextInt(1000);
-            doOne(branch, teller, account, delta);
         }
         try {
+            conn.setAutoCommit(true);
             conn.close();
-        } catch (SQLException e) {
-            // ignore
-        }
-    }
-
-    private void doOne(int branch, int teller, int account, int delta) {
-        try {
-            // UPDATE ACCOUNTS SET ABALANCE=ABALANCE+? WHERE AID=?
-            updateAccount.setInt(1, delta);
-            updateAccount.setInt(2, account);
-            master.database.update(updateAccount, "UpdateAccounts");
-
-            // SELECT ABALANCE FROM ACCOUNTS WHERE AID=?
-            selectAccount.setInt(1, account);
-            ResultSet rs = master.database.query(selectAccount);
-            while (rs.next()) {
-                rs.getInt(1);
-            }
-
-            // UPDATE TELLERS SET TBALANCE=TABLANCE+? WHERE TID=?
-            updateTeller.setInt(1, delta);
-            updateTeller.setInt(2, teller);
-            master.database.update(updateTeller, "UpdateTeller");
-
-            // UPDATE BRANCHES SET BBALANCE=BBALANCE+? WHERE BID=?
-            updateBranch.setInt(1, delta);
-            updateBranch.setInt(2, branch);
-            master.database.update(updateBranch, "UpdateBranch");
-
-            // INSERT INTO HISTORY(TID, BID, AID, DELTA) VALUES(?, ?, ?, ?)
-            insertHistory.setInt(1, teller);
-            insertHistory.setInt(2, branch);
-            insertHistory.setInt(3, account);
-            insertHistory.setInt(4, delta);
-            master.database.update(insertHistory, "InsertHistory");
-            conn.commit();
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
+    private void doOne(int branch, int teller, int account, int delta) throws SQLException {
+        selectAccount.setInt(1, account);
+        master.database.queryReadResult(selectAccount);
+
+        updateAccount.setInt(1, delta);
+        updateAccount.setInt(2, account);
+        master.database.update(updateAccount, "UpdateAccounts");
+
+        updateTeller.setInt(1, delta);
+        updateTeller.setInt(2, teller);
+        master.database.update(updateTeller, "UpdateTeller");
+
+        updateBranch.setInt(1, delta);
+        updateBranch.setInt(2, branch);
+        master.database.update(updateBranch, "UpdateBranch");
+
+        insertHistory.setInt(1, teller);
+        insertHistory.setInt(2, branch);
+        insertHistory.setInt(3, account);
+        insertHistory.setInt(4, delta);
+        master.database.update(insertHistory, "InsertHistory");
+    }
+
+    private void clearHistory() throws SQLException {
+        database.update("DELETE FROM HISTORY");
+    }
 
     @Override
     public void runTest() throws Exception {
         Database db = database;
+        db.openConnection();
         db.start(this, "Transactions");
-        db.openConnection();
         processTransactions();
-        db.closeConnection();
         db.end();
-        db.openConnection();
-        processTransactions();
         db.logMemory(this, "Memory Usage");
+        clearHistory();
         db.closeConnection();
     }
 

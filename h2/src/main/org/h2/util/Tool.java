@@ -41,6 +41,7 @@ public abstract class Tool {
      * Run the tool with the given output stream and arguments.
      *
      * @param args the argument list
+     * @throws SQLException on failure
      */
     public abstract void runTool(String... args) throws SQLException;
 
@@ -49,6 +50,7 @@ public abstract class Tool {
      *
      * @param option the unsupported option
      * @return this method never returns normally
+     * @throws SQLException on failure
      */
     protected SQLException showUsageAndThrowUnsupportedOption(String option)
             throws SQLException {
@@ -61,6 +63,7 @@ public abstract class Tool {
      *
      * @param option the unsupported option
      * @return this method never returns normally
+     * @throws SQLException on failure
      */
     protected SQLException throwUnsupportedOption(String option)
             throws SQLException {

@@ -18,7 +18,7 @@ public abstract class FileBaseDefault extends FileBase {
     private long position = 0;
 
     @Override
-    public synchronized final long position() throws IOException {
+    public final synchronized long position() throws IOException {
         return position;
     }
 
@@ -62,7 +62,7 @@ public abstract class FileBaseDefault extends FileBase {
      * The truncate implementation.
      *
      * @param size the new size
+     * @throws IOException on failure
      */
     protected abstract void implTruncate(long size) throws IOException;
-
 }

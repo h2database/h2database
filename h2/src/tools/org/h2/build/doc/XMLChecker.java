@@ -94,7 +94,7 @@ public class XMLChecker {
             if (event == XMLParser.END_DOCUMENT) {
                 break;
             } else if (event == XMLParser.START_ELEMENT) {
-                if (stack.size() == 0) {
+                if (stack.isEmpty()) {
                     if (rootElement) {
                         throw new Exception("Second root element at " + parser.getRemaining());
                     }
@@ -146,7 +146,7 @@ public class XMLChecker {
                         + parser.getRemaining());
             }
         }
-        if (stack.size() != 0) {
+        if (!stack.isEmpty()) {
             throw new Exception("Unclosed root element");
         }
     }

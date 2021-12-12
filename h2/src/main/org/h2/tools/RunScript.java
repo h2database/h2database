@@ -38,8 +38,9 @@ public class RunScript extends Tool {
     private boolean checkResults;
 
     /**
-     * Options are case sensitive. Supported options are:
+     * Options are case sensitive.
      * <table>
+     * <caption>Supported options</caption>
      * <tr><td>[-help] or [-?]</td>
      * <td>Print the list of options</td></tr>
      * <tr><td>[-url "&lt;url&gt;"]</td>
@@ -64,6 +65,7 @@ public class RunScript extends Tool {
      * @h2.resource
      *
      * @param args the command line arguments
+     * @throws SQLException on failure
      */
     public static void main(String... args) throws SQLException {
         new RunScript().runTool(args);
@@ -153,6 +155,7 @@ public class RunScript extends Tool {
      * @param conn the connection to a database
      * @param reader the reader
      * @return the last result set
+     * @throws SQLException on failure
      */
     public static ResultSet execute(Connection conn, Reader reader)
             throws SQLException {
@@ -289,6 +292,7 @@ public class RunScript extends Tool {
      * @param charset the character set or null for UTF-8
      * @param continueOnError if execution should be continued if an error
      *            occurs
+     * @throws SQLException on failure
      */
     public static void execute(String url, String user, String password,
             String fileName, Charset charset, boolean continueOnError)

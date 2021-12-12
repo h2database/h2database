@@ -138,10 +138,20 @@ public class ExpressionVisitor {
     public static final int GET_COLUMNS2 = 10;
 
     /**
+     * Decrement query level of all expression columns.
+     */
+    public static final int DECREMENT_QUERY_LEVEL = 11;
+
+    /**
      * The visitor singleton for the type QUERY_COMPARABLE.
      */
     public static final ExpressionVisitor QUERY_COMPARABLE_VISITOR =
             new ExpressionVisitor(QUERY_COMPARABLE);
+
+    /**
+     * The visitor singleton for the type DECREMENT_QUERY_LEVEL.
+     */
+    public static final ExpressionVisitor DECREMENT_QUERY_LEVEL_VISITOR = new ExpressionVisitor(DECREMENT_QUERY_LEVEL);
 
     private final int type;
     private final int queryLevel;

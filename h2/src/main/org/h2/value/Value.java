@@ -352,6 +352,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
     };
 
     private static final String NAMES[] = {
+            "UNKNOWN",
             "NULL", //
             "CHARACTER", "CHARACTER VARYING", "CHARACTER LARGE OBJECT", "VARCHAR_IGNORECASE", //
             "BINARY", "BINARY VARYING", "BINARY LARGE OBJECT", //
@@ -408,7 +409,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
      * @return the name
      */
     public static String getTypeName(int valueType) {
-        return NAMES[valueType];
+        return NAMES[valueType + 1];
     }
 
     /**
@@ -934,7 +935,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
      * Divide by a value and return the result.
      *
      * @param v the divisor
-     *            the type of quotient (used only to read precision and scale
+     * @param quotientType the type of quotient (used only to read precision and scale
      *            when applicable)
      * @return the result
      */

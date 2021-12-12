@@ -17,6 +17,7 @@ public interface SimpleRowSource {
      * Get the next row. Must return null if no more rows are available.
      *
      * @return the row or null
+     * @throws SQLException on failure
      */
     Object[] readRow() throws SQLException;
 

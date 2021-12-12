@@ -62,8 +62,9 @@ public class TableLink extends Table {
     private boolean supportsMixedCaseIdentifiers;
     private boolean globalTemporary;
     private boolean readOnly;
-    private boolean targetsMySql;
+    private final boolean targetsMySql;
     private int fetchSize = 0;
+    private boolean autocommit =true;
 
     public TableLink(Schema schema, int id, String name, String driver,
             String url, String user, String password, String originalSchema,
@@ -95,6 +96,7 @@ public class TableLink extends Table {
         for (int retry = 0;; retry++) {
             try {
                 conn = database.getLinkConnection(driver, url, user, password);
+                conn.setAutoCommit(autocommit);
                 synchronized (conn) {
                     try {
                         readMetaData();
@@ -194,7 +196,7 @@ public class TableLink extends Table {
             }
         } catch (Exception e) {
             throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, e,
-                    originalTable + '(' + e.toString() + ')');
+                    originalTable + '(' + e + ')');
         }
         Column[] cols = columnList.toArray(new Column[0]);
         setColumns(cols);
@@ -399,6 +401,9 @@ public class TableLink extends Table {
         }
         if (fetchSize != 0) {
             buff.append(" FETCH_SIZE ").append(fetchSize);
+        }
+        if(!autocommit) {
+            buff.append(" AUTOCOMMIT OFF");
         }
         buff.append(" /*").append(DbException.HIDE_SQL).append("*/");
         return buff.toString();
@@ -687,17 +692,34 @@ public class TableLink extends Table {
     /**
      * Specify the number of rows fetched by the linked table command
      *
-     * @param fetchSize
+     * @param fetchSize to set
      */
     public void setFetchSize(int fetchSize) {
         this.fetchSize = fetchSize;
     }
 
     /**
+     * Specify if the autocommit mode is activated or not
+     *
+     * @param mode to set
+     */
+    public void setAutoCommit(boolean mode) {
+        this.autocommit= mode;
+    }
+
+    /**
+     * The autocommit mode
+     * @return true if autocommit is on
+     */
+    public boolean getAutocommit(){
+        return autocommit;
+    }
+
+    /**
      * The number of rows to fetch
      * default is 0
      *
-     * @return
+     * @return number of rows to fetch
      */
     public int getFetchSize() {
         return fetchSize;

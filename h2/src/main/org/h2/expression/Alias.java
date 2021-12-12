@@ -100,6 +100,14 @@ public final class Alias extends Expression {
     }
 
     @Override
+    public String getSchemaName() {
+        if (aliasColumnName) {
+            return null;
+        }
+        return expr.getSchemaName();
+    }
+
+    @Override
     public String getTableName() {
         if (aliasColumnName) {
             return null;

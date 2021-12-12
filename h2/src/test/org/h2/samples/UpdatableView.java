@@ -27,6 +27,7 @@ public class UpdatableView extends TriggerAdapter {
      * command line.
      *
      * @param args ignored
+     * @throws Exception on failure
      */
     public static void main(String... args) throws Exception {
         Class.forName("org.h2.Driver");

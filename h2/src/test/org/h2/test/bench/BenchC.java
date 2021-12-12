@@ -545,18 +545,13 @@ public class BenchC implements Bench {
 
     @Override
     public void runTest() throws SQLException {
-        database.start(this, "Transactions");
         database.openConnection();
+        database.start(this, "Transactions");
         for (int i = 0; i < 70; i++) {
             BenchCThread process = new BenchCThread(database, this, random, i);
             process.process();
         }
-        database.closeConnection();
         database.end();
-
-        database.openConnection();
-        BenchCThread process = new BenchCThread(database, this, random, 0);
-        process.process();
         database.logMemory(this, "Memory Usage");
         database.closeConnection();
     }

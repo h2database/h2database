@@ -1842,11 +1842,6 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
 
     }
 
-    @Override
-    public boolean isSupportsGeneratedKeys() {
-        return true;
-    }
-
     /**
      * Returns the network connection information, or {@code null}.
      *

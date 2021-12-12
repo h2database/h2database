@@ -33,6 +33,7 @@ public class ResourceDoclet {
      *
      * @param root the root
      * @return true if successful
+     * @throws IOException on failure
      */
     public static boolean start(RootDoc root) throws IOException {
         return new ResourceDoclet().startDoc(root);

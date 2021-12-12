@@ -13,7 +13,6 @@ import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.engine.Constants;
 import org.h2.engine.Session;
-import org.h2.engine.SessionRemote;
 import org.h2.expression.ParameterInterface;
 import org.h2.message.DbException;
 import org.h2.mode.DefaultNullOrdering;
@@ -181,7 +180,7 @@ public final class DatabaseMetaLegacy extends DatabaseMetaLocalBase {
     @Override
     public ResultInterface getTables(String catalog, String schemaPattern, String tableNamePattern, String[] types) {
         int typesLength = types != null ? types.length : 0;
-        boolean includeSynonyms = hasSynonyms() && (types == null || Arrays.asList(types).contains("SYNONYM"));
+        boolean includeSynonyms = types == null || Arrays.asList(types).contains("SYNONYM");
         // (1024 - 16) is enough for the most cases
         StringBuilder select = new StringBuilder(1008);
         if (includeSynonyms) {
@@ -282,72 +281,67 @@ public final class DatabaseMetaLegacy extends DatabaseMetaLocalBase {
     @Override
     public ResultInterface getColumns(String catalog, String schemaPattern, String tableNamePattern,
             String columnNamePattern) {
-        boolean includeSynonyms = hasSynonyms();
-        StringBuilder select = new StringBuilder(2432);
-        if (includeSynonyms) {
-            select.append("SELECT " //
-                    + "TABLE_CAT, " //
-                    + "TABLE_SCHEM, " //
-                    + "TABLE_NAME, " //
-                    + "COLUMN_NAME, " //
-                    + "DATA_TYPE, " //
-                    + "TYPE_NAME, " //
-                    + "COLUMN_SIZE, " //
-                    + "BUFFER_LENGTH, " //
-                    + "DECIMAL_DIGITS, " //
-                    + "NUM_PREC_RADIX, " //
-                    + "NULLABLE, " //
-                    + "REMARKS, " //
-                    + "COLUMN_DEF, " //
-                    + "SQL_DATA_TYPE, " //
-                    + "SQL_DATETIME_SUB, " //
-                    + "CHAR_OCTET_LENGTH, " //
-                    + "ORDINAL_POSITION, " //
-                    + "IS_NULLABLE, " //
-                    + "SCOPE_CATALOG, " //
-                    + "SCOPE_SCHEMA, " //
-                    + "SCOPE_TABLE, " //
-                    + "SOURCE_DATA_TYPE, " //
-                    + "IS_AUTOINCREMENT, " //
-                    + "IS_GENERATEDCOLUMN " //
-                    + "FROM (" //
-                    + "SELECT " //
-                    + "s.SYNONYM_CATALOG TABLE_CAT, " //
-                    + "s.SYNONYM_SCHEMA TABLE_SCHEM, " //
-                    + "s.SYNONYM_NAME TABLE_NAME, " //
-                    + "c.COLUMN_NAME, " //
-                    + "c.DATA_TYPE, " //
-                    + "c.TYPE_NAME, " //
-                    + "c.CHARACTER_MAXIMUM_LENGTH COLUMN_SIZE, " //
-                    + "c.CHARACTER_MAXIMUM_LENGTH BUFFER_LENGTH, " //
-                    + "c.NUMERIC_SCALE DECIMAL_DIGITS, " //
-                    + "c.NUMERIC_PRECISION_RADIX NUM_PREC_RADIX, " //
-                    + "c.NULLABLE, " //
-                    + "c.REMARKS, " //
-                    + "c.COLUMN_DEFAULT COLUMN_DEF, " //
-                    + "c.DATA_TYPE SQL_DATA_TYPE, " //
-                    + "ZERO() SQL_DATETIME_SUB, " //
-                    + "c.CHARACTER_OCTET_LENGTH CHAR_OCTET_LENGTH, " //
-                    + "c.ORDINAL_POSITION, " //
-                    + "c.IS_NULLABLE IS_NULLABLE, " //
-                    + "CAST(c.SOURCE_DATA_TYPE AS VARCHAR) SCOPE_CATALOG, " //
-                    + "CAST(c.SOURCE_DATA_TYPE AS VARCHAR) SCOPE_SCHEMA, " //
-                    + "CAST(c.SOURCE_DATA_TYPE AS VARCHAR) SCOPE_TABLE, " //
-                    + "c.SOURCE_DATA_TYPE, " //
-                    + "CASE WHEN c.SEQUENCE_NAME IS NULL THEN " //
-                    + "CAST(?1 AS VARCHAR) ELSE CAST(?2 AS VARCHAR) END IS_AUTOINCREMENT, " //
-                    + "CASE WHEN c.IS_COMPUTED THEN " //
-                    + "CAST(?2 AS VARCHAR) ELSE CAST(?1 AS VARCHAR) END IS_GENERATEDCOLUMN " //
-                    + "FROM INFORMATION_SCHEMA.COLUMNS c JOIN INFORMATION_SCHEMA.SYNONYMS s ON " //
-                    + "s.SYNONYM_FOR = c.TABLE_NAME " //
-                    + "AND s.SYNONYM_FOR_SCHEMA = c.TABLE_SCHEMA " //
-                    + "WHERE s.SYNONYM_CATALOG LIKE ?3 ESCAPE ?7 " //
-                    + "AND s.SYNONYM_SCHEMA LIKE ?4 ESCAPE ?7 " //
-                    + "AND s.SYNONYM_NAME LIKE ?5 ESCAPE ?7 " //
-                    + "AND c.COLUMN_NAME LIKE ?6 ESCAPE ?7 " //
-                    + "UNION ");
-        }
-        select.append("SELECT " //
+        return executeQuery("SELECT " //
+                + "TABLE_CAT, " //
+                + "TABLE_SCHEM, " //
+                + "TABLE_NAME, " //
+                + "COLUMN_NAME, " //
+                + "DATA_TYPE, " //
+                + "TYPE_NAME, " //
+                + "COLUMN_SIZE, " //
+                + "BUFFER_LENGTH, " //
+                + "DECIMAL_DIGITS, " //
+                + "NUM_PREC_RADIX, " //
+                + "NULLABLE, " //
+                + "REMARKS, " //
+                + "COLUMN_DEF, " //
+                + "SQL_DATA_TYPE, " //
+                + "SQL_DATETIME_SUB, " //
+                + "CHAR_OCTET_LENGTH, " //
+                + "ORDINAL_POSITION, " //
+                + "IS_NULLABLE, " //
+                + "SCOPE_CATALOG, " //
+                + "SCOPE_SCHEMA, " //
+                + "SCOPE_TABLE, " //
+                + "SOURCE_DATA_TYPE, " //
+                + "IS_AUTOINCREMENT, " //
+                + "IS_GENERATEDCOLUMN " //
+                + "FROM (" //
+                + "SELECT " //
+                + "s.SYNONYM_CATALOG TABLE_CAT, " //
+                + "s.SYNONYM_SCHEMA TABLE_SCHEM, " //
+                + "s.SYNONYM_NAME TABLE_NAME, " //
+                + "c.COLUMN_NAME, " //
+                + "c.DATA_TYPE, " //
+                + "c.TYPE_NAME, " //
+                + "c.CHARACTER_MAXIMUM_LENGTH COLUMN_SIZE, " //
+                + "c.CHARACTER_MAXIMUM_LENGTH BUFFER_LENGTH, " //
+                + "c.NUMERIC_SCALE DECIMAL_DIGITS, " //
+                + "c.NUMERIC_PRECISION_RADIX NUM_PREC_RADIX, " //
+                + "c.NULLABLE, " //
+                + "c.REMARKS, " //
+                + "c.COLUMN_DEFAULT COLUMN_DEF, " //
+                + "c.DATA_TYPE SQL_DATA_TYPE, " //
+                + "ZERO() SQL_DATETIME_SUB, " //
+                + "c.CHARACTER_OCTET_LENGTH CHAR_OCTET_LENGTH, " //
+                + "c.ORDINAL_POSITION, " //
+                + "c.IS_NULLABLE IS_NULLABLE, " //
+                + "CAST(c.SOURCE_DATA_TYPE AS VARCHAR) SCOPE_CATALOG, " //
+                + "CAST(c.SOURCE_DATA_TYPE AS VARCHAR) SCOPE_SCHEMA, " //
+                + "CAST(c.SOURCE_DATA_TYPE AS VARCHAR) SCOPE_TABLE, " //
+                + "c.SOURCE_DATA_TYPE, " //
+                + "CASE WHEN c.SEQUENCE_NAME IS NULL THEN " //
+                + "CAST(?1 AS VARCHAR) ELSE CAST(?2 AS VARCHAR) END IS_AUTOINCREMENT, " //
+                + "CASE WHEN c.IS_COMPUTED THEN " //
+                + "CAST(?2 AS VARCHAR) ELSE CAST(?1 AS VARCHAR) END IS_GENERATEDCOLUMN " //
+                + "FROM INFORMATION_SCHEMA.COLUMNS c JOIN INFORMATION_SCHEMA.SYNONYMS s ON " //
+                + "s.SYNONYM_FOR = c.TABLE_NAME " //
+                + "AND s.SYNONYM_FOR_SCHEMA = c.TABLE_SCHEMA " //
+                + "WHERE s.SYNONYM_CATALOG LIKE ?3 ESCAPE ?7 " //
+                + "AND s.SYNONYM_SCHEMA LIKE ?4 ESCAPE ?7 " //
+                + "AND s.SYNONYM_NAME LIKE ?5 ESCAPE ?7 " //
+                + "AND c.COLUMN_NAME LIKE ?6 ESCAPE ?7 " //
+                + "UNION SELECT " //
                 + "TABLE_CATALOG TABLE_CAT, " //
                 + "TABLE_SCHEMA TABLE_SCHEM, " //
                 + "TABLE_NAME, " //
@@ -378,11 +372,8 @@ public final class DatabaseMetaLegacy extends DatabaseMetaLocalBase {
                 + "WHERE TABLE_CATALOG LIKE ?3 ESCAPE ?7 " //
                 + "AND TABLE_SCHEMA LIKE ?4 ESCAPE ?7 " //
                 + "AND TABLE_NAME LIKE ?5 ESCAPE ?7 " //
-                + "AND COLUMN_NAME LIKE ?6 ESCAPE ?7");
-        if (includeSynonyms) {
-            select.append(')');
-        }
-        return executeQuery(select.append(" ORDER BY TABLE_SCHEM, TABLE_NAME, ORDINAL_POSITION").toString(), //
+                + "AND COLUMN_NAME LIKE ?6 ESCAPE ?7) " //
+                + "ORDER BY TABLE_SCHEM, TABLE_NAME, ORDINAL_POSITION", //
                 NO, //
                 YES, //
                 getCatalogPattern(catalog), //
@@ -679,11 +670,6 @@ public final class DatabaseMetaLegacy extends DatabaseMetaLocalBase {
         if (session.isClosed()) {
             throw DbException.get(ErrorCode.DATABASE_CALLED_AT_SHUTDOWN);
         }
-    }
-
-    private boolean hasSynonyms() {
-        return !(session instanceof SessionRemote)
-                || ((SessionRemote) session).getClientVersion() >= Constants.TCP_PROTOCOL_VERSION_17;
     }
 
     private Value getString(String string) {

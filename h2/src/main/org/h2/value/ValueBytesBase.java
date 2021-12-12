@@ -8,8 +8,6 @@ package org.h2.value;
 import java.util.Arrays;
 
 import org.h2.engine.CastDataProvider;
-import org.h2.engine.Constants;
-import org.h2.message.DbException;
 import org.h2.util.Bits;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
@@ -30,11 +28,6 @@ abstract class ValueBytesBase extends Value {
     int hash;
 
     ValueBytesBase(byte[] value) {
-        int length = value.length;
-        if (length > Constants.MAX_STRING_LENGTH) {
-            throw DbException.getValueTooLongException(getTypeName(getValueType()),
-                    StringUtils.convertBytesToHex(value, 41), length);
-        }
         this.value = value;
     }
 

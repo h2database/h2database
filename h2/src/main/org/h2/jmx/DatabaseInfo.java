@@ -64,6 +64,7 @@ public class DatabaseInfo implements DatabaseInfoMBean {
      *
      * @param connectionInfo connection info
      * @param database database
+     * @throws JMException on failure
      */
     public static void registerMBean(ConnectionInfo connectionInfo,
             Database database) throws JMException {
@@ -83,6 +84,7 @@ public class DatabaseInfo implements DatabaseInfoMBean {
      * Unregisters the MBean for the database if one is registered.
      *
      * @param name database name
+     * @throws JMException on failure
      */
     public static void unregisterMBean(String name) throws Exception {
         ObjectName mbeanObjectName = MBEANS.remove(name);

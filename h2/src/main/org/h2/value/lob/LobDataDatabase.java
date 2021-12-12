@@ -38,10 +38,6 @@ public final class LobDataDatabase extends LobData {
         this.lobId = lobId;
     }
 
-    /**
-     * Remove the underlying resource, if any. For values that are kept fully in
-     * memory this method has no effect.
-     */
     @Override
     public void remove(ValueLob value) {
         if (handler != null) {

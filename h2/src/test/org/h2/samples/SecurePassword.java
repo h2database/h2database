@@ -23,6 +23,7 @@ public class SecurePassword {
      * command line.
      *
      * @param args the command line parameters
+     * @throws Exception on failure
      */
     public static void main(String... args) throws Exception {
 

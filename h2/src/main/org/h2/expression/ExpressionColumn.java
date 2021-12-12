@@ -376,10 +376,6 @@ public final class ExpressionColumn extends Expression {
         switch (visitor.getType()) {
         case ExpressionVisitor.OPTIMIZABLE_AGGREGATE:
             return false;
-        case ExpressionVisitor.READONLY:
-        case ExpressionVisitor.DETERMINISTIC:
-        case ExpressionVisitor.QUERY_COMPARABLE:
-            return true;
         case ExpressionVisitor.INDEPENDENT:
             return this.queryLevel < visitor.getQueryLevel();
         case ExpressionVisitor.EVALUATABLE:
@@ -414,8 +410,17 @@ public final class ExpressionColumn extends Expression {
             }
             visitor.addColumn2(column);
             return true;
+        case ExpressionVisitor.DECREMENT_QUERY_LEVEL:
+            if (column == null) {
+                throw DbException.get(ErrorCode.COLUMN_NOT_FOUND_1, getTraceSQL());
+            }
+            if (queryLevel > 0) {
+                queryLevel--;
+                return true;
+            }
+            throw DbException.getInternalError("queryLevel=0");
         default:
-            throw DbException.getInternalError("type=" + visitor.getType());
+            return true;
         }
     }
 

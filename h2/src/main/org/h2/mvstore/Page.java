@@ -268,9 +268,10 @@ public abstract class Page<K,V> implements Cloneable {
      * mid-process without tree integrity violation
      *
      * @param map new map to own resulting page
+     * @param eraseChildrenRefs whether cloned Page should have no child references or keep originals
      * @return the page
      */
-    abstract Page<K,V> copy(MVMap<K,V> map);
+    abstract Page<K,V> copy(MVMap<K, V> map, boolean eraseChildrenRefs);
 
     /**
      * Get the key at the given index.
@@ -1099,8 +1100,10 @@ public abstract class Page<K,V> implements Cloneable {
         }
 
         @Override
-        public Page<K,V> copy(MVMap<K,V> map) {
-            return new IncompleteNonLeaf<>(map, this);
+        public Page<K,V> copy(MVMap<K, V> map, boolean eraseChildrenRefs) {
+            return eraseChildrenRefs ?
+                    new IncompleteNonLeaf<>(map, this) :
+                    new NonLeaf<>(map, this, children, totalCount);
         }
 
         @Override
@@ -1440,7 +1443,7 @@ public abstract class Page<K,V> implements Cloneable {
         }
 
         @Override
-        public Page<K,V> copy(MVMap<K,V> map) {
+        public Page<K,V> copy(MVMap<K, V> map, boolean eraseChildrenRefs) {
             return new Leaf<>(map, this);
         }
 

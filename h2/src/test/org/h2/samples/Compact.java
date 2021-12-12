@@ -27,6 +27,7 @@ public class Compact {
      * command line.
      *
      * @param args the command line parameters
+     * @throws Exception on failure
      */
     public static void main(String... args) throws Exception {
         DeleteDbFiles.execute("./data", "test", true);
@@ -49,6 +50,7 @@ public class Compact {
      * @param dbName the database name
      * @param user the user name
      * @param password the password
+     * @throws SQLException on failure
      */
     public static void compact(String dir, String dbName,
             String user, String password) throws SQLException {

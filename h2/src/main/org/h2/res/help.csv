@@ -57,7 +57,7 @@ For compatibility with other databases and future versions of H2 please use pare
 11. Number of rows in output can be limited with OFFSET and FETCH clauses.
 OFFSET specifies how many rows to skip.
 Please note that queries with high offset values can be slow.
-FETCH FIRST/NEXT limits the number of rows returned by the query (no limit if null or smaller than zero).
+FETCH FIRST/NEXT limits the number of rows returned by the query.
 If PERCENT is specified number of rows is specified as a percent of the total number of rows
 and should be an integer value between 0 and 100 inclusive.
 WITH TIES can be used only together with ORDER BY and means that all additional rows that have the same sorting position
@@ -847,7 +847,7 @@ CREATE INDEX IDXNAME ON TEST(NAME)
 @h2@ LINKED TABLE [ IF NOT EXISTS ]
 @h2@ [schemaName.]tableName ( driverString, urlString, userString, passwordString,
 @h2@ [ originalSchemaString, ] @h2@ originalTableString )
-@h2@ [ EMIT UPDATES | READONLY ] [ FETCH_SIZE sizeInt ]
+@h2@ [ EMIT UPDATES | READONLY ] [ FETCH_SIZE sizeInt] [AUTOCOMMIT ON|OFF]
 ","
 Creates a table link to an external table. The driver name may be empty if the
 driver is already loaded. If the schema name is not set, only one table with
@@ -865,6 +865,9 @@ READONLY - is set, the remote table may not be updated. This is enforced by H2.
 FETCH_SIZE - the number of rows fetched, a hint with non-negative number of rows to fetch from the external table
 at once, may be ignored by the driver of external database. 0 is default and means no hint.
 The value is passed to ""java.sql.Statement.setFetchSize()"" method.
+
+AUTOCOMMIT - is set to ON, the auto-commit mode is enable. OFF is disable.
+The value is passed to ""java.sql.Connection.setAutoCommit()"" method.
 
 If the connection to the source database is lost, the connection is re-opened
 (this is a workaround for MySQL that disconnects after 8 hours of inactivity by default).
@@ -3644,6 +3647,8 @@ The CACHE option sets the number of pre-allocated numbers.
 If the system crashes without closing the database, at most this many numbers are lost.
 The default cache size is 32 if sequence has enough range of values.
 NO CACHE option or the cache size 1 or lower disable the cache.
+If CACHE option is specified, it cannot be larger than the total number of values
+that sequence can produce within a cycle.
 ","
 MAXVALUE 100000
 CYCLE
@@ -6023,9 +6028,10 @@ CALL ABORT_SESSION(3)
 ","
 Returns element at the specified 1-based index from an array.
 
-This function is deprecated, use ""arrayExpression[indexExpression]"" instead of it.
+This function is deprecated, use
+[array element reference](https://www.h2database.com/html/grammar.html#array_element_reference) instead of it.
 
-Returns NULL if there is no such element or array is NULL.
+Returns NULL if array or index is NULL.
 ","
 CALL ARRAY_GET(ARRAY['Hello', 'World'], 2)
 "

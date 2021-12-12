@@ -15,28 +15,28 @@ public class Constants {
     /**
      * The build date is updated for each public release.
      */
-    public static final String BUILD_DATE = "2019-10-14";
+    public static final String BUILD_DATE = "2021-11-26";
 
     /**
      * The build date of the last stable release.
      */
-    public static final String BUILD_DATE_STABLE = "2019-03-13";
+    public static final String BUILD_DATE_STABLE = "2021-11-25";
 
     /**
      * Sequential version number. Even numbers are used for official releases,
      * odd numbers are used for development builds.
      */
-    public static final int BUILD_ID = 201;
+    public static final int BUILD_ID = 203;
 
     /**
      * The build id of the last stable release.
      */
-    public static final int BUILD_ID_STABLE = 199;
+    public static final int BUILD_ID_STABLE = 202;
 
     /**
      * Whether this is a snapshot version.
      */
-    public static final boolean BUILD_SNAPSHOT = false;
+    public static final boolean BUILD_SNAPSHOT = true;
 
     /**
      * If H2 is compiled to be included in a product, this should be set to
@@ -45,24 +45,6 @@ public class Constants {
      * Example: ACME_SVN1651_BUILD3
      */
     public static final String BUILD_VENDOR_AND_VERSION = null;
-
-    /**
-     * The TCP protocol version number 14.
-     * @since 1.3.176 (2014-04-05)
-     */
-    public static final int TCP_PROTOCOL_VERSION_14 = 14;
-
-    /**
-     * The TCP protocol version number 15.
-     * @since 1.4.178 Beta (2014-05-02)
-     */
-    public static final int TCP_PROTOCOL_VERSION_15 = 15;
-
-    /**
-     * The TCP protocol version number 16.
-     * @since 1.4.194 (2017-03-10)
-     */
-    public static final int TCP_PROTOCOL_VERSION_16 = 16;
 
     /**
      * The TCP protocol version number 17.
@@ -84,14 +66,14 @@ public class Constants {
 
     /**
      * The TCP protocol version number 20.
-     * @since 2.0.202 (TODO)
+     * @since 2.0.202 (2021-11-25)
      */
     public static final int TCP_PROTOCOL_VERSION_20 = 20;
 
     /**
      * Minimum supported version of TCP protocol.
      */
-    public static final int TCP_PROTOCOL_VERSION_MIN_SUPPORTED = TCP_PROTOCOL_VERSION_14;
+    public static final int TCP_PROTOCOL_VERSION_MIN_SUPPORTED = TCP_PROTOCOL_VERSION_17;
 
     /**
      * Maximum supported version of TCP protocol.

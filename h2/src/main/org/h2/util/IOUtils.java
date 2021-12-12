@@ -104,6 +104,7 @@ public class IOUtils {
      * @param in the input stream
      * @param out the output stream
      * @return the number of bytes copied
+     * @throws IOException on failure
      */
     public static long copyAndClose(InputStream in, OutputStream out)
             throws IOException {
@@ -125,6 +126,7 @@ public class IOUtils {
      * @param in the input stream
      * @param out the output stream (null if writing is not required)
      * @return the number of bytes copied
+     * @throws IOException on failure
      */
     public static long copyAndCloseInput(InputStream in, OutputStream out)
             throws IOException {
@@ -144,6 +146,7 @@ public class IOUtils {
      * @param in the input stream
      * @param out the output stream (null if writing is not required)
      * @return the number of bytes copied
+     * @throws IOException on failure
      */
     public static long copy(InputStream in, OutputStream out)
             throws IOException {
@@ -158,6 +161,7 @@ public class IOUtils {
      * @param out the output stream (null if writing is not required)
      * @param length the maximum number of bytes to copy
      * @return the number of bytes copied
+     * @throws IOException on failure
      */
     public static long copy(InputStream in, OutputStream out, long length)
             throws IOException {
@@ -191,6 +195,7 @@ public class IOUtils {
      * @param out the writer (null if writing is not required)
      * @param length the maximum number of bytes to copy
      * @return the number of characters copied
+     * @throws IOException on failure
      */
     public static long copyAndCloseInput(Reader in, Writer out, long length)
             throws IOException {
@@ -225,6 +230,7 @@ public class IOUtils {
      * @param length the maximum number of bytes to read, or -1 to read until
      *            the end of file
      * @return the bytes read
+     * @throws IOException on failure
      */
     public static byte[] readBytesAndClose(InputStream in, int length)
             throws IOException {
@@ -250,6 +256,7 @@ public class IOUtils {
      * @param length the maximum number of characters to read, or -1 to read
      *            until the end of file
      * @return the string read
+     * @throws IOException on failure
      */
     public static String readStringAndClose(Reader in, int length)
             throws IOException {
@@ -275,6 +282,7 @@ public class IOUtils {
      * @param buffer the output buffer
      * @param max the number of bytes to read at most
      * @return the number of bytes read, 0 meaning EOF
+     * @throws IOException on failure
      */
     public static int readFully(InputStream in, byte[] buffer, int max)
             throws IOException {
@@ -303,6 +311,7 @@ public class IOUtils {
      * @param buffer the output buffer
      * @param max the number of characters to read at most
      * @return the number of characters read, 0 meaning EOF
+     * @throws IOException on failure
      */
     public static int readFully(Reader in, char[] buffer, int max)
             throws IOException {
@@ -393,6 +402,7 @@ public class IOUtils {
      *
      * @param original the original file name
      * @param copy the file name of the copy
+     * @throws IOException on failure
      */
     public static void copyFiles(String original, String copy) throws IOException {
         InputStream in = FileUtils.newInputStream(original);

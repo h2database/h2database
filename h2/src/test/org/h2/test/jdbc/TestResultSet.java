@@ -1876,6 +1876,7 @@ public class TestResultSet extends TestDb {
         prep.execute();
         prep.close();
         rs = stat.executeQuery("SELECT * FROM TEST ORDER BY ID");
+        assertEquals("INTEGER ARRAY", rs.getMetaData().getColumnTypeName(2));
         rs.next();
         assertEquals(1, rs.getInt(1));
         Object[] list = (Object[]) ((Array) rs.getObject(2)).getArray();
@@ -1980,6 +1981,7 @@ public class TestResultSet extends TestDb {
         trace("Test ROW value");
         ResultSet rs;
         rs = stat.executeQuery("SELECT (1, 'test')");
+        assertEquals("ROW(\"C1\" INTEGER, \"C2\" CHARACTER VARYING(4))", rs.getMetaData().getColumnTypeName(1));
         rs.next();
         testRowValue((ResultSet) rs.getObject(1));
         ResultSet rowAsResultSet = rs.getObject(1, ResultSet.class);
@@ -2029,6 +2031,7 @@ public class TestResultSet extends TestDb {
         prep.executeUpdate();
 
         ResultSet rs = stat.executeQuery("SELECT * FROM TEST ORDER BY ID");
+        assertEquals("ENUM('A', 'B', 'C', 'D', 'E', 'F', 'G')", rs.getMetaData().getColumnTypeName(2));
         testEnumResult(rs, 1, "A", 1);
         testEnumResult(rs, 2, "B", 2);
         testEnumResult(rs, 3, "C", 3);

@@ -28,7 +28,7 @@ public class Analyze extends DefineCommand {
 
     private static final class SelectivityData {
 
-        private long count, distinctCount;
+        private long distinctCount;
         private final IntIntHashMap distinctHashes;
 
         SelectivityData() {
@@ -36,7 +36,6 @@ public class Analyze extends DefineCommand {
         }
 
         void add(Value v) {
-            count++;
             int size = distinctHashes.size();
             if (size >= Constants.SELECTIVITY_DISTINCT_COUNT) {
                 distinctHashes.clear();
@@ -46,7 +45,7 @@ public class Analyze extends DefineCommand {
             distinctHashes.put(v.hashCode(), 1);
         }
 
-        int getSelectivity() {
+        int getSelectivity(long count) {
             int s;
             if (count == 0) {
                 s = 0;
@@ -131,7 +130,7 @@ public class Analyze extends DefineCommand {
                     array[i] = new SelectivityData();
                 }
             }
-            int rowNumber = 0;
+            long rowNumber = 0;
             do {
                 Row row = cursor.get();
                 for (int i = 0; i < columnCount; i++) {
@@ -140,11 +139,12 @@ public class Analyze extends DefineCommand {
                         selectivity.add(row.getValue(i));
                     }
                 }
-            } while ((sample <= 0 || ++rowNumber < sample) && cursor.next());
+                rowNumber++;
+            } while ((sample <= 0 || rowNumber < sample) && cursor.next());
             for (int i = 0; i < columnCount; i++) {
                 SelectivityData selectivity = array[i];
                 if (selectivity != null) {
-                    columns[i].setSelectivity(selectivity.getSelectivity());
+                    columns[i].setSelectivity(selectivity.getSelectivity(rowNumber));
                 }
             }
         } else {

@@ -5,6 +5,8 @@
  */
 package org.h2.command.ddl;
 
+import java.util.Arrays;
+
 import org.h2.command.CommandInterface;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
@@ -16,7 +18,6 @@ import org.h2.schema.Schema;
 import org.h2.table.Column;
 import org.h2.table.Table;
 import org.h2.table.TableType;
-import org.h2.util.IntIntHashMap;
 import org.h2.value.DataType;
 import org.h2.value.Value;
 
@@ -29,20 +30,43 @@ public class Analyze extends DefineCommand {
     private static final class SelectivityData {
 
         private long distinctCount;
-        private final IntIntHashMap distinctHashes;
+
+        /**
+         * The number of occupied slots, excluding the zero element (if any).
+         */
+        private int size;
+
+        private int[] elements;
+
+        /**
+         * Whether the zero element is present.
+         */
+        private boolean zeroElement;
+
+        private int maxSize;
 
         SelectivityData() {
-            distinctHashes = new IntIntHashMap(false);
+            elements = new int[8];
+            maxSize = 7;
         }
 
         void add(Value v) {
-            int size = distinctHashes.size();
-            if (size >= Constants.SELECTIVITY_DISTINCT_COUNT) {
-                distinctHashes.clear();
-                distinctCount += size;
+            int currentSize = currentSize();
+            if (currentSize >= Constants.SELECTIVITY_DISTINCT_COUNT) {
+                size = 0;
+                Arrays.fill(elements, 0);
+                zeroElement = false;
+                distinctCount += currentSize;
             }
-            // the value -1 is not supported
-            distinctHashes.put(v.hashCode(), 1);
+            int hash = v.hashCode();
+            if (hash == 0) {
+                zeroElement = true;
+            } else {
+                if (size >= maxSize) {
+                    rehash();
+                }
+                add(hash);
+            }
         }
 
         int getSelectivity(long count) {
@@ -50,12 +74,54 @@ public class Analyze extends DefineCommand {
             if (count == 0) {
                 s = 0;
             } else {
-                s = (int) (100 * (distinctCount + distinctHashes.size()) / count);
+                s = (int) (100 * (distinctCount + currentSize()) / count);
                 if (s <= 0) {
                     s = 1;
                 }
             }
             return s;
+        }
+
+        private int currentSize() {
+            int size = this.size;
+            if (zeroElement) {
+                size++;
+            }
+            return size;
+        }
+
+        private void add(int element) {
+            int len = elements.length;
+            int mask = len - 1;
+            int index = element & mask;
+            int plus = 1;
+            do {
+                int k = elements[index];
+                if (k == 0) {
+                    // found an empty record
+                    size++;
+                    elements[index] = element;
+                    return;
+                } else if (k == element) {
+                    // existing element
+                    return;
+                }
+                index = (index + plus++) & mask;
+            } while (plus <= len);
+            // no space, ignore
+        }
+
+        private void rehash() {
+            size = 0;
+            int[] oldElements = elements;
+            int len = oldElements.length << 1;
+            elements = new int[len];
+            maxSize = (int) (len * 90L / 100);
+            for (int k : oldElements) {
+                if (k != 0) {
+                    add(k);
+                }
+            }
         }
 
     }

@@ -16,7 +16,6 @@ import java.util.concurrent.TimeUnit;
 import org.h2.engine.Constants;
 import org.h2.message.DbException;
 import org.h2.mvstore.MVStore;
-import org.h2.security.SHA256;
 import org.h2.store.FileLister;
 import org.h2.store.fs.FilePath;
 import org.h2.store.fs.FileUtils;
@@ -35,8 +34,6 @@ public class ChangeFileEncryption extends Tool {
 
     private String directory;
     private String cipherType;
-    private byte[] decrypt;
-    private byte[] encrypt;
     private byte[] decryptKey;
     private byte[] encryptKey;
 
@@ -114,20 +111,6 @@ public class ChangeFileEncryption extends Tool {
     }
 
     /**
-     * Get the file encryption key for a given password.
-     *
-     * @param password the password as a char array
-     * @return the encryption key
-     */
-    private static byte[] getFileEncryptionKey(char[] password) {
-        if (password == null) {
-            return null;
-        }
-        // the clone is to avoid the unhelpful array cleaning
-        return SHA256.getKeyPasswordHash("file", password.clone());
-    }
-
-    /**
      * Changes the password for a database. The passwords must be supplied as
      * char arrays and are cleaned in this method. The database must be closed
      * before calling this method.
@@ -163,11 +146,9 @@ public class ChangeFileEncryption extends Tool {
                 }
             }
             change.encryptKey = FilePathEncrypt.getPasswordBytes(encryptPassword);
-            change.encrypt = getFileEncryptionKey(encryptPassword);
         }
         if (decryptPassword != null) {
             change.decryptKey = FilePathEncrypt.getPasswordBytes(decryptPassword);
-            change.decrypt = getFileEncryptionKey(decryptPassword);
         }
         change.out = out;
         change.directory = dir;

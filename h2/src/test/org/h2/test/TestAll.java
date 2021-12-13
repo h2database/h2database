@@ -187,7 +187,6 @@ import org.h2.test.unit.TestFileSystem;
 import org.h2.test.unit.TestFtp;
 import org.h2.test.unit.TestGeometryUtils;
 import org.h2.test.unit.TestIntArray;
-import org.h2.test.unit.TestIntIntHashMap;
 import org.h2.test.unit.TestIntPerfectHash;
 import org.h2.test.unit.TestInterval;
 import org.h2.test.unit.TestJmx;
@@ -931,7 +930,6 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestGeometryUtils());
         addTest(new TestInterval());
         addTest(new TestIntArray());
-        addTest(new TestIntIntHashMap());
         addTest(new TestIntPerfectHash());
         addTest(new TestJsonUtils());
         addTest(new TestKeywords());

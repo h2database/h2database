@@ -14,6 +14,8 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiFunction;
+
+import org.h2.engine.IsolationLevel;
 import org.h2.mvstore.Cursor;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVMap;
@@ -124,6 +126,10 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
      * @return the size
      */
     public long sizeAsLong() {
+        IsolationLevel isolationLevel = transaction.getIsolationLevel();
+        if (!isolationLevel.allowNonRepeatableRead() && hasChanges) {
+            return sizeAsLongSlow();
+        }
         // getting coherent picture of the map, committing transactions, and undo logs
         // either from values stored in transaction (never loops in that case),
         // or current values from the transaction store (loops until moment of silence)
@@ -142,15 +148,9 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
         if (undoLogsTotalSize == 0) {
             return size;
         }
-        switch (transaction.getIsolationLevel()) {
-        case READ_UNCOMMITTED:
-            return adjustSize(undoLogRootReferences, mapRootReference, null, size, undoLogsTotalSize);
-        case READ_COMMITTED:
-            return adjustSize(undoLogRootReferences, mapRootReference, snapshot.committingTransactions, size,
-                    undoLogsTotalSize);
-        default:
-            return sizeAsLongSlow();
-        }
+        return adjustSize(undoLogRootReferences, mapRootReference,
+                isolationLevel == IsolationLevel.READ_UNCOMMITTED ? null : snapshot.committingTransactions,
+                size, undoLogsTotalSize);
     }
 
     private long adjustSize(RootReference<Long, Record<?, ?>>[] undoLogRootReferences,

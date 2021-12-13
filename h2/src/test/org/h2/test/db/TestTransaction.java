@@ -59,6 +59,7 @@ public class TestTransaction extends TestDb {
         testIsolationLevels3();
         testIsolationLevels4();
         testIsolationLevelsCountAggregate();
+        testIsolationLevelsCountAggregate2();
         deleteDb("transaction");
     }
 
@@ -1195,6 +1196,76 @@ public class TestTransaction extends TestDb {
             rs.next();
             assertEquals(expected, rs.getLong(1));
         }
+    }
+
+    private void testIsolationLevelsCountAggregate2() throws SQLException {
+        testIsolationLevelsCountAggregate2(Connection.TRANSACTION_READ_UNCOMMITTED);
+        testIsolationLevelsCountAggregate2(Connection.TRANSACTION_READ_COMMITTED);
+        testIsolationLevelsCountAggregate2(Connection.TRANSACTION_REPEATABLE_READ);
+        testIsolationLevelsCountAggregate2(Constants.TRANSACTION_SNAPSHOT);
+        testIsolationLevelsCountAggregate2(Connection.TRANSACTION_SERIALIZABLE);
+    }
+
+    private void testIsolationLevelsCountAggregate2(int isolationLevel)
+            throws SQLException {
+        deleteDb("transaction");
+        try (Connection conn1 = getConnection("transaction"); Connection conn2 = getConnection("transaction")) {
+            conn1.setTransactionIsolation(isolationLevel);
+            conn1.setAutoCommit(false);
+            Statement stat1 = conn1.createStatement();
+            Statement stat2 = conn2.createStatement();
+            stat1.executeUpdate(
+                    "CREATE TABLE TEST(X INTEGER PRIMARY KEY, Y INTEGER) AS SELECT X, 1 FROM SYSTEM_RANGE(1, 100)");
+            conn1.commit();
+            conn2.setTransactionIsolation(isolationLevel);
+            conn2.setAutoCommit(false);
+            PreparedStatement prep = conn1.prepareStatement("SELECT COUNT(*) FROM TEST");
+            // Initial count
+            testIsolationLevelCountAggregate2(prep, 100L);
+            stat1.executeUpdate("INSERT INTO TEST VALUES (101, 2)");
+            stat1.executeUpdate("DELETE FROM TEST WHERE X BETWEEN 2 AND 3");
+            stat1.executeUpdate("UPDATE TEST SET Y = 2 WHERE X BETWEEN 4 AND 7");
+            // Own uncommitted changes
+            testIsolationLevelCountAggregate2(prep, 99L);
+            stat2.executeUpdate("INSERT INTO TEST VALUES (102, 2)");
+            stat2.executeUpdate("DELETE FROM TEST WHERE X BETWEEN 12 AND 13");
+            stat2.executeUpdate("UPDATE TEST SET Y = 2 WHERE X BETWEEN 14 AND 17");
+            // Own and concurrent uncommitted changes
+            testIsolationLevelCountAggregate2(prep,
+                    isolationLevel == Connection.TRANSACTION_READ_UNCOMMITTED ? 98L : 99L);
+            conn2.commit();
+            // Own uncommitted and concurrent committed changes
+            testIsolationLevelCountAggregate2(prep,
+                    isolationLevel <= Connection.TRANSACTION_READ_COMMITTED ? 98L: 99L);
+            conn1.commit();
+            // Everything is committed
+            testIsolationLevelCountAggregate2(prep, 98L);
+            stat2.executeUpdate("INSERT INTO TEST VALUES (103, 2)");
+            stat2.executeUpdate("DELETE FROM TEST WHERE X BETWEEN 22 AND 23");
+            stat2.executeUpdate("UPDATE TEST SET Y = 2 WHERE X BETWEEN 24 AND 27");
+            // Concurrent uncommitted changes
+            testIsolationLevelCountAggregate2(prep,
+                    isolationLevel == Connection.TRANSACTION_READ_UNCOMMITTED ? 97L : 98L);
+            conn2.commit();
+            // Concurrent committed changes
+            testIsolationLevelCountAggregate2(prep,
+                    isolationLevel <= Connection.TRANSACTION_READ_COMMITTED ? 97L: 98L);
+            conn1.commit();
+            // Everything is committed again
+            testIsolationLevelCountAggregate2(prep, 97L);
+            stat2.executeUpdate("INSERT INTO TEST VALUES (104, 2)");
+            conn1.commit();
+            // Transaction was started with concurrent uncommitted change
+            testIsolationLevelCountAggregate2(prep, 
+                    isolationLevel == Connection.TRANSACTION_READ_UNCOMMITTED ? 98L : 97L);
+        }
+    }
+
+    private void testIsolationLevelCountAggregate2(PreparedStatement prep, long expected) throws SQLException {
+        ResultSet rs;
+        rs = prep.executeQuery();
+        rs.next();
+        assertEquals(expected, rs.getLong(1));
     }
 
 }

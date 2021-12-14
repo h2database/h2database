@@ -330,17 +330,15 @@ public final class MVSecondaryIndex extends MVIndex<SearchRow, Value> {
 
     @Override
     public Cursor findFirstOrLast(SessionLocal session, boolean first) {
-        TransactionMap<SearchRow,Value> map = getMap(session);
-        SearchRow key = first ? map.firstKey() : map.lastKey();
-        while (true) {
-            if (key == null) {
-                return new SingleRowCursor(null);
-            }
+        TransactionMap<SearchRow, Value> map = getMap(session);
+        Iterator<SearchRow> iter = map.keyIterator(null, !first);
+        while (iter.hasNext()) {
+            SearchRow key = iter.next();
             if (key.getValue(columnIds[0]) != ValueNull.INSTANCE) {
                 return new SingleRowCursor(mvTable.getRow(session, key.getKey()));
             }
-            key = first ? map.higherKey(key) : map.lowerKey(key);
         }
+        return new SingleRowCursor(null);
     }
 
     @Override

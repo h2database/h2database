@@ -790,6 +790,17 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
     }
 
     /**
+     * Iterate over keys in the specified order
+     *
+     * @param from the first key to return
+     * @param reverse if true, iterate in reverse (descending) order
+     * @return the iterator
+     */
+    public Iterator<K> keyIterator(K from, boolean reverse) {
+        return chooseIterator(from, null, reverse, false);
+    }
+
+    /**
      * Iterate over keys.
      *
      * @param from the first key to return

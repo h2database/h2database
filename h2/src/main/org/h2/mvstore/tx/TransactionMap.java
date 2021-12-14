@@ -226,8 +226,7 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
     private long sizeAsLongRepeatableReadWithChanges() {
         long count = 0L;
         RepeatableIterator<K, V, K> iterator = new RepeatableIterator<>(this, null, null, false, false);
-        while (iterator.hasNext()) {
-            iterator.next();
+        while (iterator.fetchNext() != null) {
             count++;
         }
         return count;
@@ -644,7 +643,7 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
      * @return the first entry, or null if empty
      */
     public Entry<K,V> firstEntry() {
-        return this.<Entry<K,V>>chooseIterator(null, null, false, true).current;
+        return this.<Entry<K,V>>chooseIterator(null, null, false, true).fetchNext();
     }
 
     /**
@@ -653,7 +652,7 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
      * @return the first key, or null if empty
      */
     public K firstKey() {
-        return this.<K>chooseIterator(null, null, false, false).current;
+        return this.<K>chooseIterator(null, null, false, false).fetchNext();
     }
 
     /**
@@ -662,7 +661,7 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
      * @return the last entry, or null if empty
      */
     public Entry<K,V> lastEntry() {
-        return this.<Entry<K,V>>chooseIterator(null, null, true, true).current;
+        return this.<Entry<K,V>>chooseIterator(null, null, true, true).fetchNext();
     }
 
     /**
@@ -671,7 +670,7 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
      * @return the last key, or null if empty
      */
     public K lastKey() {
-        return this.<K>chooseIterator(null, null, true, false).current;
+        return this.<K>chooseIterator(null, null, true, false).fetchNext();
     }
 
     /**
@@ -704,7 +703,7 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
      * @return the result
      */
     public Entry<K,V> ceilingEntry(K key) {
-        return this.<Entry<K, V>>chooseIterator(key, null, false, true).current;
+        return this.<Entry<K, V>>chooseIterator(key, null, false, true).fetchNext();
     }
 
     /**
@@ -715,7 +714,7 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
      * @return the result
      */
     public K ceilingKey(K key) {
-        return this.<K>chooseIterator(key, null, false, false).current;
+        return this.<K>chooseIterator(key, null, false, false).fetchNext();
     }
 
     /**
@@ -726,7 +725,7 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
      * @return the result
      */
     public Entry<K,V> floorEntry(K key) {
-        return this.<Entry<K, V>>chooseIterator(key, null, true, true).current;
+        return this.<Entry<K, V>>chooseIterator(key, null, true, true).fetchNext();
     }
 
     /**
@@ -737,7 +736,7 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
      * @return the result
      */
     public K floorKey(K key) {
-        return this.<K>chooseIterator(key, null, true, false).current;
+        return this.<K>chooseIterator(key, null, true, false).fetchNext();
     }
 
     /**
@@ -764,20 +763,18 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
 
     private Entry<K, V> higherLowerEntry(K key, boolean lower) {
         TMIterator<K, V, Entry<K, V>> it = chooseIterator(key, null, lower, true);
-        Entry<K, V> result = it.current;
+        Entry<K, V> result = it.fetchNext();
         if (result != null && map.getKeyType().compare(key, result.getKey()) == 0) {
-            it.next();
-            result = it.current;
+            result = it.fetchNext();
         }
         return result;
     }
 
     private K higherLowerKey(K key, boolean lower) {
         TMIterator<K, V, K> it = chooseIterator(key, null, lower, false);
-        K result = it.current;
+        K result = it.fetchNext();
         if (result != null && map.getKeyType().compare(key, result) == 0) {
-            it.next();
-            result = it.current;
+            result = it.fetchNext();
         }
         return result;
     }
@@ -862,29 +859,26 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
     private static class UncommittedIterator<K,V,X> extends TMIterator<K,V,X> {
         UncommittedIterator(TransactionMap<K, V> transactionMap, K from, K to, boolean reverse, boolean forEntries) {
             super(transactionMap, from, to, transactionMap.createSnapshot(), reverse, forEntries);
-            fetchNext();
         }
 
         UncommittedIterator(TransactionMap<K, V> transactionMap, K from, K to, Snapshot<K, VersionedValue<V>> snapshot,
                             boolean reverse, boolean forEntries) {
             super(transactionMap, from, to, snapshot, reverse, forEntries);
-            fetchNext();
         }
 
         @Override
-        final void fetchNext() {
+        final X fetchNext() {
             while (cursor.hasNext()) {
                 K key = cursor.next();
                 VersionedValue<?> data = cursor.getValue();
                 if (data != null) {
                     Object currentValue = data.getCurrentValue();
                     if (currentValue != null || shouldIgnoreRemoval(data)) {
-                        registerCurrent(key, currentValue);
-                        return;
+                        return toElement(key, currentValue);
                     }
                 }
             }
-            current = null;
+            return null;
         }
 
         boolean shouldIgnoreRemoval(VersionedValue<?> data) {
@@ -925,11 +919,10 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
     private static final class CommittedIterator<K,V,X> extends TMIterator<K,V,X> {
         CommittedIterator(TransactionMap<K, V> transactionMap, K from, K to, boolean reverse, boolean forEntries) {
             super(transactionMap, from, to, transactionMap.getSnapshot(), reverse, forEntries);
-            fetchNext();
         }
 
         @Override
-        void fetchNext() {
+        X fetchNext() {
             while (cursor.hasNext()) {
                 K key = cursor.next();
                 VersionedValue<?> data = cursor.getValue();
@@ -946,18 +939,16 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
                             if (committedValue == null) {
                                 continue;
                             }
-                            registerCurrent(key, committedValue);
-                            return;
+                            return toElement(key, committedValue);
                         }
                     }
                     Object currentValue = data.getCurrentValue();
                     if (currentValue != null) {
-                        registerCurrent(key, currentValue);
-                        return;
+                        return toElement(key, currentValue);
                     }
                 }
             }
-            current = null;
+            return null;
         }
     }
 
@@ -987,12 +978,11 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
             keyType = transactionMap.map.getKeyType();
             Snapshot<K,VersionedValue<V>> snapshot = transactionMap.getStatementSnapshot();
             uncommittedCursor = transactionMap.map.cursor(snapshot.root, from, to, reverse);
-            fetchNext();
         }
 
         @Override
-        void fetchNext() {
-            current = null;
+        X fetchNext() {
+            X next = null;
             do {
                 if (snapshotKey == null) {
                     fetchSnapshot();
@@ -1007,19 +997,20 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
                             uncommittedKey == null ? -1 :
                             keyType.compare(snapshotKey, uncommittedKey);
                 if (cmp < 0) {
-                    registerCurrent(snapshotKey, snapshotValue);
+                    next = toElement(snapshotKey, snapshotValue);
                     snapshotKey = null;
                     break;
                 }
                 if (uncommittedValue != null) {
                     // This entry was added / updated by this transaction, use the new value
-                    registerCurrent(uncommittedKey, uncommittedValue);
+                    next = toElement(uncommittedKey, uncommittedValue);
                 }
                 if (cmp == 0) { // This entry was updated / deleted
                     snapshotKey = null;
                 }
                 uncommittedKey = null;
-            } while (current == null);
+            } while (next == null);
+            return next;
         }
 
         private void fetchSnapshot() {
@@ -1085,26 +1076,30 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
         }
 
         @SuppressWarnings("unchecked")
-        final void registerCurrent(K key, Object value) {
-            current = (X) (forEntries ? new AbstractMap.SimpleImmutableEntry<>(key, value) : key);
+        final X toElement(K key, Object value) {
+            return (X) (forEntries ? new AbstractMap.SimpleImmutableEntry<>(key, value) : key);
         }
 
-        abstract void fetchNext();
+        abstract X fetchNext();
 
         @Override
         public final boolean hasNext() {
-            return current != null;
+            return current != null || (current = fetchNext()) != null;
         }
 
         @Override
         public final X next() {
-            if (current == null) {
-                throw new NoSuchElementException();
-            }
             X result = current;
-            fetchNext();
+            if (result == null) {
+                if ((result = fetchNext()) == null) {
+                    throw new NoSuchElementException();
+                }
+            } else {
+                current = null;
+            }
             return result;
         }
+
     }
 
 }

@@ -314,13 +314,9 @@ public class MVPrimaryIndex extends MVIndex<Long, SearchRow> {
 
     @Override
     public Cursor findFirstOrLast(SessionLocal session, boolean first) {
-        TransactionMap<Long,SearchRow> map = getMap(session);
-        Long rowId = first ? map.firstKey() : map.lastKey();
-        Row row = null;
-        if (rowId != null) {
-            row = setRowKey((Row) map.getFromSnapshot(rowId), rowId);
-        }
-        return new SingleRowCursor(row);
+        TransactionMap<Long, SearchRow> map = getMap(session);
+        Entry<Long, SearchRow> entry = first ? map.firstEntry() : map.lastEntry();
+        return new SingleRowCursor(entry != null ? setRowKey((Row) entry.getValue(), entry.getKey()) : null);
     }
 
     @Override

@@ -1256,7 +1256,7 @@ public class TestTransaction extends TestDb {
             stat2.executeUpdate("INSERT INTO TEST VALUES (104, 2)");
             conn1.commit();
             // Transaction was started with concurrent uncommitted change
-            testIsolationLevelCountAggregate2(prep, 
+            testIsolationLevelCountAggregate2(prep,
                     isolationLevel == Connection.TRANSACTION_READ_UNCOMMITTED ? 98L : 97L);
         }
     }

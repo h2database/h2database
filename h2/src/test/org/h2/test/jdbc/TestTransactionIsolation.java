@@ -90,14 +90,15 @@ public class TestTransactionIsolation extends TestDb {
         testDirtyRead(Connection.TRANSACTION_SERIALIZABLE, 4, false, false);
     }
 
-    private void testDirtyRead(int isolationLevel, int value, boolean dirtyVisible, boolean commitedVisible) throws SQLException {
+    private void testDirtyRead(int isolationLevel, int value, boolean dirtyVisible, boolean committedVisible)
+            throws SQLException {
         conn1.setTransactionIsolation(isolationLevel);
         assertSingleValue(conn1.createStatement(), "SELECT * FROM TEST", value);
         int newValue = value + 1;
         conn2.createStatement().executeUpdate("UPDATE TEST SET ID=" + newValue);
         assertSingleValue(conn1.createStatement(), "SELECT * FROM TEST", dirtyVisible ? newValue  : value);
         conn2.commit();
-        assertSingleValue(conn1.createStatement(), "SELECT * FROM TEST", commitedVisible ? newValue : value);
+        assertSingleValue(conn1.createStatement(), "SELECT * FROM TEST", committedVisible ? newValue : value);
     }
 
     private void testRowLocks(int isolationLevel) throws SQLException {

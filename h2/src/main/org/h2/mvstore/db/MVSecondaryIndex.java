@@ -205,7 +205,7 @@ public final class MVSecondaryIndex extends MVIndex<SearchRow, Value> {
         to.setKey(Long.MAX_VALUE);
         if (repeatableRead) {
             // In order to guarantee repeatable reads, snapshot taken at the beginning of the statement or transaction
-            // need to be checked additionaly, because existence of the key should be accounted for,
+            // need to be checked additionally, because existence of the key should be accounted for,
             // even if since then, it was already deleted by another (possibly committed) transaction.
             Iterator<SearchRow> it = map.keyIterator(from, to);
             while (it.hasNext()) {

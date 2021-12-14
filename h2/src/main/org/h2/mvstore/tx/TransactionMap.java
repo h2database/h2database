@@ -664,11 +664,7 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
      * @return the result
      */
     public K higherKey(K key) {
-        RootReference<K,VersionedValue<V>> rootReference = getSnapshot().root;
-        do {
-            key = map.higherKey(rootReference, key);
-        } while (key != null && getFromSnapshot(key) == null);
-        return key;
+        return higherLowerKey(key, false);
     }
 
     /**
@@ -701,11 +697,17 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
      * @return the result
      */
     public K lowerKey(K key) {
-        RootReference<K,VersionedValue<V>> rootReference = getSnapshot().root;
-        do {
-            key = map.lowerKey(rootReference, key);
-        } while (key != null && getFromSnapshot(key) == null);
-        return key;
+        return higherLowerKey(key, true);
+    }
+
+    private K higherLowerKey(K key, boolean lower) {
+        TMIterator<K, V, K> it = chooseIterator(key, null, lower, false);
+        K result = it.current;
+        if (result != null && map.getKeyType().compare(key, result) == 0) {
+            it.next();
+            result = it.current;
+        }
+        return result;
     }
 
     /**

@@ -128,7 +128,7 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
     public long sizeAsLong() {
         IsolationLevel isolationLevel = transaction.getIsolationLevel();
         if (!isolationLevel.allowNonRepeatableRead() && hasChanges) {
-            return sizeAsLongSlow();
+            return sizeAsLongRepeatableReadWithChanges();
         }
         // getting coherent picture of the map, committing transactions, and undo logs
         // either from values stored in transaction (never loops in that case),
@@ -223,9 +223,9 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
         return v == null;
     }
 
-    private long sizeAsLongSlow() {
+    private long sizeAsLongRepeatableReadWithChanges() {
         long count = 0L;
-        Iterator<K> iterator = keyIterator(null, null);
+        RepeatableIterator<K, V, K> iterator = new RepeatableIterator<>(this, null, null, false, false);
         while (iterator.hasNext()) {
             iterator.next();
             count++;

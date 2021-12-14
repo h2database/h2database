@@ -10,6 +10,7 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -75,9 +76,11 @@ public class TestTransactionStore extends TestBase {
             Transaction t = ts.begin();
             LongDataType keyType = LongDataType.INSTANCE;
             TransactionMap<Long, Long> map = t.openMap("test", keyType, keyType);
-            // firstKey()
+            // firstEntry() & firstKey()
+            assertNull(map.firstEntry());
             assertNull(map.firstKey());
-            // lastKey()
+            // lastEntry() & lastKey()
+            assertNull(map.lastEntry());
             assertNull(map.lastKey());
             map.put(10L, 100L);
             map.put(20L, 200L);
@@ -88,28 +91,50 @@ public class TestTransactionStore extends TestBase {
             map = t.openMap("test", keyType, keyType);
             map.put(15L, 150L);
             // The same transaction
+            assertEquals(new SimpleImmutableEntry<>(15L, 150L), map.higherEntry(10L));
             assertEquals((Object) 15L, map.higherKey(10L));
             t = ts.begin();
             map = t.openMap("test", keyType, keyType);
             // Another transaction
-            // higherKey()
+            // firstEntry() & firstKey()
+            assertEquals(new SimpleImmutableEntry<>(10L, 100L), map.firstEntry());
+            assertEquals((Object) 10L, map.firstKey());
+            // lastEntry() & lastKey()
+            assertEquals(new SimpleImmutableEntry<>(40L, 400L),map.lastEntry());
+            assertEquals((Object) 40L, map.lastKey());
+            // higherEntry() & higherKey()
+            assertEquals(new SimpleImmutableEntry<>(20L, 200L), map.higherEntry(10L));
             assertEquals((Object) 20L, map.higherKey(10L));
+            assertEquals(new SimpleImmutableEntry<>(20L, 200L), map.higherEntry(15L));
             assertEquals((Object) 20L, map.higherKey(15L));
+            assertNull(map.higherEntry(40L));
             assertNull(map.higherKey(40L));
-            // ceilingKey()
+            // ceilingEntry() & ceilingKey()
+            assertEquals(new SimpleImmutableEntry<>(10L, 100L), map.ceilingEntry(10L));
             assertEquals((Object) 10L, map.ceilingKey(10L));
+            assertEquals(new SimpleImmutableEntry<>(20L, 200L), map.ceilingEntry(15L));
             assertEquals((Object) 20L, map.ceilingKey(15L));
+            assertEquals(new SimpleImmutableEntry<>(40L, 400L), map.ceilingEntry(40L));
             assertEquals((Object) 40L, map.ceilingKey(40L));
+            assertNull(map.higherEntry(45L));
             assertNull(map.higherKey(45L));
-            // lowerKey()
+            // lowerEntry() & lowerKey()
+            assertNull(map.lowerEntry(10L));
             assertNull(map.lowerKey(10L));
+            assertEquals(new SimpleImmutableEntry<>(10L, 100L), map.lowerEntry(15L));
             assertEquals((Object) 10L, map.lowerKey(15L));
+            assertEquals(new SimpleImmutableEntry<>(10L, 100L), map.lowerEntry(20L));
             assertEquals((Object) 10L, map.lowerKey(20L));
+            assertEquals(new SimpleImmutableEntry<>(20L, 200L), map.lowerEntry(25L));
             assertEquals((Object) 20L, map.lowerKey(25L));
-            // floorKey()
+            // floorEntry() & floorKey()
+            assertNull(map.floorEntry(5L));
             assertNull(map.floorKey(5L));
+            assertEquals(new SimpleImmutableEntry<>(10L, 100L), map.floorEntry(10L));
             assertEquals((Object) 10L, map.floorKey(10L));
+            assertEquals(new SimpleImmutableEntry<>(10L, 100L), map.floorEntry(15L));
             assertEquals((Object) 10L, map.floorKey(15L));
+            assertEquals(new SimpleImmutableEntry<>(30L, 300L), map.floorEntry(35L));
             assertEquals((Object) 30L, map.floorKey(35L));
         }
     }

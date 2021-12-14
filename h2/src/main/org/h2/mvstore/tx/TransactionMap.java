@@ -639,6 +639,15 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
     }
 
     /**
+     * Get the first entry.
+     *
+     * @return the first entry, or null if empty
+     */
+    public Entry<K,V> firstEntry() {
+        return this.<Entry<K,V>>chooseIterator(null, null, false, true).current;
+    }
+
+    /**
      * Get the first key.
      *
      * @return the first key, or null if empty
@@ -648,12 +657,32 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
     }
 
     /**
+     * Get the last entry.
+     *
+     * @return the last entry, or null if empty
+     */
+    public Entry<K,V> lastEntry() {
+        return this.<Entry<K,V>>chooseIterator(null, null, true, true).current;
+    }
+
+    /**
      * Get the last key.
      *
      * @return the last key, or null if empty
      */
     public K lastKey() {
         return this.<K>chooseIterator(null, null, true, false).current;
+    }
+
+    /**
+     * Get the entry with smallest key that is larger than the given key, or null if no
+     * such key exists.
+     *
+     * @param key the key (may not be null)
+     * @return the result
+     */
+    public Entry<K,V> higherEntry(K key) {
+        return higherLowerEntry(key, false);
     }
 
     /**
@@ -668,6 +697,17 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
     }
 
     /**
+     * Get the entry with smallest key that is larger than or equal to this key,
+     * or null if no such key exists.
+     *
+     * @param key the key (may not be null)
+     * @return the result
+     */
+    public Entry<K,V> ceilingEntry(K key) {
+        return this.<Entry<K, V>>chooseIterator(key, null, false, true).current;
+    }
+
+    /**
      * Get the smallest key that is larger than or equal to this key,
      * or null if no such key exists.
      *
@@ -676,6 +716,17 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
      */
     public K ceilingKey(K key) {
         return this.<K>chooseIterator(key, null, false, false).current;
+    }
+
+    /**
+     * Get the entry with largest key that is smaller than or equal to this key,
+     * or null if no such key exists.
+     *
+     * @param key the key (may not be null)
+     * @return the result
+     */
+    public Entry<K,V> floorEntry(K key) {
+        return this.<Entry<K, V>>chooseIterator(key, null, true, true).current;
     }
 
     /**
@@ -690,6 +741,17 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
     }
 
     /**
+     * Get the entry with largest key that is smaller than the given key, or null if no
+     * such key exists.
+     *
+     * @param key the key (may not be null)
+     * @return the result
+     */
+    public Entry<K,V> lowerEntry(K key) {
+        return higherLowerEntry(key, true);
+    }
+
+    /**
      * Get the largest key that is smaller than the given key, or null if no
      * such key exists.
      *
@@ -698,6 +760,16 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
      */
     public K lowerKey(K key) {
         return higherLowerKey(key, true);
+    }
+
+    private Entry<K, V> higherLowerEntry(K key, boolean lower) {
+        TMIterator<K, V, Entry<K, V>> it = chooseIterator(key, null, lower, true);
+        Entry<K, V> result = it.current;
+        if (result != null && map.getKeyType().compare(key, result.getKey()) == 0) {
+            it.next();
+            result = it.current;
+        }
+        return result;
     }
 
     private K higherLowerKey(K key, boolean lower) {

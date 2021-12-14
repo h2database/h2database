@@ -644,8 +644,7 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
      * @return the first key, or null if empty
      */
     public K firstKey() {
-        Iterator<K> it = keyIterator(null);
-        return it.hasNext() ? it.next() : null;
+        return this.<K>chooseIterator(null, null, false, false).current;
     }
 
     /**
@@ -654,8 +653,7 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
      * @return the last key, or null if empty
      */
     public K lastKey() {
-        Iterator<K> it = keyIteratorReverse(null);
-        return it.hasNext() ? it.next() : null;
+        return this.<K>chooseIterator(null, null, true, false).current;
     }
 
     /**
@@ -681,8 +679,7 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
      * @return the result
      */
     public K ceilingKey(K key) {
-        Iterator<K> it = keyIterator(key);
-        return it.hasNext() ? it.next() : null;
+        return this.<K>chooseIterator(key, null, false, false).current;
     }
 
     /**
@@ -693,8 +690,7 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
      * @return the result
      */
     public K floorKey(K key) {
-        Iterator<K> it = keyIteratorReverse(key);
-        return it.hasNext() ? it.next() : null;
+        return this.<K>chooseIterator(key, null, true, false).current;
     }
 
     /**
@@ -720,10 +716,6 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
      */
     public Iterator<K> keyIterator(K from) {
         return chooseIterator(from, null, false, false);
-    }
-
-    private Iterator<K> keyIteratorReverse(K from) {
-        return chooseIterator(from, null, true, false);
     }
 
     /**
@@ -759,7 +751,7 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
         return chooseIterator(from, to, false, true);
     }
 
-    private <X> Iterator<X> chooseIterator(K from, K to, boolean reverse, boolean forEntries) {
+    private <X> TMIterator<K, V, X> chooseIterator(K from, K to, boolean reverse, boolean forEntries) {
         switch (transaction.isolationLevel) {
             case READ_UNCOMMITTED:
                 return new UncommittedIterator<>(this, from, to, reverse, forEntries);

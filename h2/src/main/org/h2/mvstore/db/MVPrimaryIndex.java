@@ -5,7 +5,6 @@
  */
 package org.h2.mvstore.db;
 
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicLong;
@@ -21,6 +20,7 @@ import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStoreException;
 import org.h2.mvstore.tx.Transaction;
 import org.h2.mvstore.tx.TransactionMap;
+import org.h2.mvstore.tx.TransactionMap.TMIterator;
 import org.h2.mvstore.type.LongDataType;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
@@ -406,11 +406,11 @@ public class MVPrimaryIndex extends MVIndex<Long, SearchRow> {
      */
     static final class MVStoreCursor implements Cursor {
 
-        private final Iterator<Entry<Long,SearchRow>> it;
-        private Entry<Long,SearchRow> current;
+        private final TMIterator<Long, SearchRow, Entry<Long, SearchRow>> it;
+        private Entry<Long, SearchRow> current;
         private Row row;
 
-        public MVStoreCursor(Iterator<Entry<Long,SearchRow>> it) {
+        public MVStoreCursor(TMIterator<Long, SearchRow, Entry<Long, SearchRow>> it) {
             this.it = it;
         }
 
@@ -434,7 +434,7 @@ public class MVPrimaryIndex extends MVIndex<Long, SearchRow> {
 
         @Override
         public boolean next() {
-            current = it.hasNext() ? it.next() : null;
+            current = it.fetchNext();
             row = null;
             return current != null;
         }

@@ -790,13 +790,13 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
     }
 
     /**
-     * Iterate over keys in the specified order
+     * Iterate over keys in the specified order.
      *
      * @param from the first key to return
      * @param reverse if true, iterate in reverse (descending) order
      * @return the iterator
      */
-    public Iterator<K> keyIterator(K from, boolean reverse) {
+    public TMIterator<K, V, K> keyIterator(K from, boolean reverse) {
         return chooseIterator(from, null, reverse, false);
     }
 
@@ -807,7 +807,7 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
      * @param to the last key to return or null if there is no limit
      * @return the iterator
      */
-    public Iterator<K> keyIterator(K from, K to) {
+    public TMIterator<K, V, K> keyIterator(K from, K to) {
         return chooseIterator(from, to, false, false);
     }
 
@@ -818,7 +818,7 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
      * @param to the last key to return or null if there is no limit
      * @return the iterator
      */
-    public Iterator<K> keyIteratorUncommitted(K from, K to) {
+    public TMIterator<K, V, K> keyIteratorUncommitted(K from, K to) {
         return new ValidationIterator<>(this, from, to);
     }
 
@@ -829,7 +829,7 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
      * @param to the last key to return
      * @return the iterator
      */
-    public Iterator<Map.Entry<K, V>> entryIterator(final K from, final K to) {
+    public TMIterator<K, V, Map.Entry<K, V>> entryIterator(final K from, final K to) {
         return chooseIterator(from, to, false, true);
     }
 
@@ -878,7 +878,7 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
         }
 
         @Override
-        final X fetchNext() {
+        public final X fetchNext() {
             while (cursor.hasNext()) {
                 K key = cursor.next();
                 VersionedValue<?> data = cursor.getValue();
@@ -933,7 +933,7 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
         }
 
         @Override
-        X fetchNext() {
+        public X fetchNext() {
             while (cursor.hasNext()) {
                 K key = cursor.next();
                 VersionedValue<?> data = cursor.getValue();
@@ -992,7 +992,7 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
         }
 
         @Override
-        X fetchNext() {
+        public X fetchNext() {
             X next = null;
             do {
                 if (snapshotKey == null) {
@@ -1066,7 +1066,7 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
         }
     }
 
-    private abstract static class TMIterator<K,V,X> implements Iterator<X> {
+    public abstract static class TMIterator<K,V,X> implements Iterator<X> {
         final int transactionId;
 
         final BitSet committingTransactions;
@@ -1091,7 +1091,15 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
             return (X) (forEntries ? new AbstractMap.SimpleImmutableEntry<>(key, value) : key);
         }
 
-        abstract X fetchNext();
+        /**
+         * Fetches a next entry.
+         *
+         * This method cannot be used together with {@link #hasNext()} and
+         * {@link #next()}.
+         *
+         * @return the next entry or {@code null}
+         */
+        public abstract X fetchNext();
 
         @Override
         public final boolean hasNext() {

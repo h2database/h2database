@@ -60,6 +60,10 @@ public class TestMathUtils extends TestBase {
         for (int i = 0; i < testValues.length; i++) {
             assertEquals(resultValues[i], MathUtils.nextPowerOf2(testValues[i]));
         }
+        testValues = new int[] { Integer.MIN_VALUE, -1, largestPower2 + 1, Integer.MAX_VALUE };
+        for (int v : testValues) {
+            assertThrows(IllegalArgumentException.class, () -> MathUtils.nextPowerOf2(v));
+        }
     }
 
 }

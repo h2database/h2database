@@ -328,7 +328,6 @@ public class ScriptCommand extends ScriptBase {
             }
             if (tempLobTableCreated) {
                 add("DROP TABLE IF EXISTS SYSTEM_LOB_STREAM", true);
-                add("CALL SYSTEM_COMBINE_BLOB(-1)", true);
                 add("DROP ALIAS IF EXISTS SYSTEM_COMBINE_CLOB", true);
                 add("DROP ALIAS IF EXISTS SYSTEM_COMBINE_BLOB", true);
                 tempLobTableCreated = false;

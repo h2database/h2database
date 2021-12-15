@@ -219,19 +219,11 @@ public class MathUtils {
      * @throws IllegalArgumentException if x &lt; 0 or x &gt; 0x40000000
      */
     public static int nextPowerOf2(int x) throws IllegalArgumentException {
-        if (x == 0) {
-            return 1;
-        } else if (x < 0 || x > 0x4000_0000 ) {
+        if (x + Integer.MIN_VALUE > (0x4000_0000 + Integer.MIN_VALUE)) {
             throw new IllegalArgumentException("Argument out of range"
                     + " [0x0-0x40000000]. Argument was: " + x);
         }
-        x--;
-        x |= x >> 1;
-        x |= x >> 2;
-        x |= x >> 4;
-        x |= x >> 8;
-        x |= x >> 16;
-        return ++x;
+        return x <= 1 ? 1 : (-1 >>> Integer.numberOfLeadingZeros(x - 1)) + 1;
     }
 
     /**

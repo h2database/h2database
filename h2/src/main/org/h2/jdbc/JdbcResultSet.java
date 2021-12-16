@@ -1800,8 +1800,7 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
             if (isDebugEnabled()) {
                 debugCode("updateBigDecimal(" + columnIndex + ", " + quoteBigDecimal(x) + ')');
             }
-            update(checkColumnIndex(columnIndex), x == null ? ValueNull.INSTANCE
-            : ValueNumeric.get(x));
+            update(checkColumnIndex(columnIndex), x == null ? ValueNull.INSTANCE : ValueNumeric.getAnyScale(x));
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -1820,7 +1819,7 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
             if (isDebugEnabled()) {
                 debugCode("updateBigDecimal(" + quote(columnLabel) + ", " + quoteBigDecimal(x) + ')');
             }
-            update(getColumnIndex(columnLabel), x == null ? ValueNull.INSTANCE : ValueNumeric.get(x));
+            update(getColumnIndex(columnLabel), x == null ? ValueNull.INSTANCE : ValueNumeric.getAnyScale(x));
         } catch (Exception e) {
             throw logAndConvert(e);
         }

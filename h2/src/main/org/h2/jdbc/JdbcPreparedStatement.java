@@ -394,7 +394,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
             if (isDebugEnabled()) {
                 debugCode("setBigDecimal(" + parameterIndex + ", " + quoteBigDecimal(x) + ')');
             }
-            setParameter(parameterIndex, x == null ? ValueNull.INSTANCE : ValueNumeric.get(x));
+            setParameter(parameterIndex, x == null ? ValueNull.INSTANCE : ValueNumeric.getAnyScale(x));
         } catch (Exception e) {
             throw logAndConvert(e);
         }

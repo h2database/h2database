@@ -229,7 +229,7 @@ public final class ValueToObjectConverter2 extends TraceObject {
         }
         case Value.NUMERIC: {
             BigDecimal value = rs.getBigDecimal(columnIndex);
-            v = value == null ? ValueNull.INSTANCE : ValueNumeric.get(value);
+            v = value == null ? ValueNull.INSTANCE : ValueNumeric.getAnyScale(value);
             break;
         }
         case Value.REAL: {

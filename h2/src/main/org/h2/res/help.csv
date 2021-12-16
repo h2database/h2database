@@ -4113,7 +4113,7 @@ BIGINT
 "
 
 "Data Types","NUMERIC Type","
-{ NUMERIC | DECIMAL | DEC | @c@ { NUMBER } } [ ( precisionInt [ , scaleInt ] ) ]
+{ NUMERIC | DECIMAL | DEC } [ ( precisionInt [ , scaleInt ] ) ]
 ","
 Data type with fixed decimal precision and scale.
 This data type is recommended for storing currency values.

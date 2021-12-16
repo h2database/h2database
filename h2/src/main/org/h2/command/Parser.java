@@ -7235,6 +7235,11 @@ public class Parser {
                 original = "NCHAR LARGE OBJECT";
             }
             break;
+        case "NUMBER":
+            if (!isToken(OPEN_PAREN)) {
+                return TypeInfo.getTypeInfo(Value.DECFLOAT, 40, -1, null);
+            }
+            //$FALL-THROUGH$
         case "NUMERIC":
             return parseNumericType(false);
         case "SMALLDATETIME":

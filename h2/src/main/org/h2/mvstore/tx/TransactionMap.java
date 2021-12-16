@@ -334,7 +334,6 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
     }
 
     private V set(Object key, TxDecisionMaker<K,V> decisionMaker) {
-        TransactionStore store = transaction.store;
         Transaction blockingTransaction;
         VersionedValue<V> result;
         String mapName = null;

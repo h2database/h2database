@@ -21,6 +21,16 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul>
+<li>Issue #3266: Oracle compatibility NUMBER without precision and scale should have variable scale
+</li>
+<li>Issue #3263: Unable to store BigDecimal with negative scale in NUMERIC(19,6) column
+</li>
+<li>PR #3261: Small optimization for MIN and MAX
+</li>
+<li>Issue #3258 / PR #3259: Prevent incorrect optimization of COUNT(*) and other changes
+</li>
+<li>PR #3255: Throw proper exception when type of argument isn't known
+</li>
 <li>Issue #3249: Multi-column assignment with subquery throws exception when subquery doesn't return any rows
 </li>
 <li>PR #3248: Remove redundant uniqueness check, correct version in pom

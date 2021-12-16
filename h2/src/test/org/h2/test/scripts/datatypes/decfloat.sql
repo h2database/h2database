@@ -3,16 +3,16 @@
 -- Initial Developer: H2 Group
 --
 
-CREATE MEMORY TABLE TEST(D1 DECFLOAT, D2 DECFLOAT(5), D3 DECFLOAT(10));
+CREATE MEMORY TABLE TEST(D1 DECFLOAT, D2 DECFLOAT(5), D3 DECFLOAT(10), X NUMBER);
 > ok
 
-INSERT INTO TEST VALUES(1, 1, 9999999999);
+INSERT INTO TEST VALUES(1, 1, 9999999999, 1.23);
 > update count: 1
 
 TABLE TEST;
-> D1 D2 D3
-> -- -- ----------
-> 1  1  9999999999
+> D1 D2 D3         X
+> -- -- ---------- ----
+> 1  1  9999999999 1.23
 > rows: 1
 
 SELECT COLUMN_NAME, DATA_TYPE, NUMERIC_PRECISION, NUMERIC_PRECISION_RADIX, NUMERIC_SCALE,
@@ -23,7 +23,8 @@ SELECT COLUMN_NAME, DATA_TYPE, NUMERIC_PRECISION, NUMERIC_PRECISION_RADIX, NUMER
 > D1          DECFLOAT  100000            10                      null          DECFLOAT           null                       null
 > D2          DECFLOAT  5                 10                      null          DECFLOAT           5                          null
 > D3          DECFLOAT  10                10                      null          DECFLOAT           10                         null
-> rows (ordered): 3
+> X           DECFLOAT  40                10                      null          DECFLOAT           40                         null
+> rows (ordered): 4
 
 SELECT D2 + D3 A, D2 - D3 S, D2 * D3 M, D2 / D3 D FROM TEST;
 > A     S           M          D

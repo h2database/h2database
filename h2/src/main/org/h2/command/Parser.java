@@ -7235,6 +7235,14 @@ public class Parser {
                 original = "NCHAR LARGE OBJECT";
             }
             break;
+        case "NUMBER":
+            if (database.getMode().disallowedTypes.contains("NUMBER")) {
+                throw DbException.get(ErrorCode.UNKNOWN_DATA_TYPE_1, "NUMBER");
+            }
+            if (!isToken(OPEN_PAREN)) {
+                return TypeInfo.getTypeInfo(Value.DECFLOAT, 40, -1, null);
+            }
+            //$FALL-THROUGH$
         case "NUMERIC":
             return parseNumericType(false);
         case "SMALLDATETIME":

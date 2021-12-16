@@ -172,6 +172,21 @@ public final class ValueNumeric extends ValueBigDecimalBase {
     }
 
     /**
+     * Get or create a NUMERIC value for the given big decimal with possibly
+     * negative scale. If scale is negative, it is normalized to 0.
+     *
+     * @param dec
+     *            the big decimal
+     * @return the value
+     */
+    public static ValueNumeric getAnyScale(BigDecimal dec) {
+        if (dec.scale() < 0) {
+            dec = dec.setScale(0, RoundingMode.UNNECESSARY);
+        }
+        return get(dec);
+    }
+
+    /**
      * Get or create a NUMERIC value for the given big integer.
      *
      * @param bigInteger the big integer

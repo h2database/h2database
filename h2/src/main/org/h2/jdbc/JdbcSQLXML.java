@@ -22,6 +22,7 @@ import java.util.Map;
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.SAXParserFactory;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.transform.Result;
@@ -48,7 +49,6 @@ import org.xml.sax.EntityResolver;
 import org.xml.sax.InputSource;
 import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.DefaultHandler;
-import org.xml.sax.helpers.XMLReaderFactory;
 
 /**
  * Represents a SQLXML value.
@@ -147,12 +147,13 @@ public final class JdbcSQLXML extends JdbcLob implements SQLXML {
                 db.setEntityResolver(NOOP_ENTITY_RESOLVER);
                 return (T) new DOMSource(db.parse(new InputSource(value.getInputStream())));
             } else if (sourceClass == SAXSource.class) {
-                XMLReader reader = XMLReaderFactory.createXMLReader();
+                SAXParserFactory spf = SAXParserFactory.newInstance();
                 for (Map.Entry<String,Boolean> entry : secureFeatureMap.entrySet()) {
                     try {
-                        reader.setFeature(entry.getKey(), entry.getValue());
+                        spf.setFeature(entry.getKey(), entry.getValue());
                     } catch (Exception ignore) {/**/}
                 }
+                XMLReader reader = spf.newSAXParser().getXMLReader();
                 reader.setEntityResolver(NOOP_ENTITY_RESOLVER);
                 return (T) new SAXSource(reader, new InputSource(value.getInputStream()));
             } else if (sourceClass == StAXSource.class) {

@@ -150,7 +150,7 @@ public class DataType {
         dataType.params = "PRECISION,SCALE";
         dataType.supportsPrecision = true;
         dataType.supportsScale = true;
-        add(Value.NUMERIC, Types.NUMERIC, dataType, "NUMERIC", "DECIMAL", "DEC", "NUMBER");
+        add(Value.NUMERIC, Types.NUMERIC, dataType, "NUMERIC", "DECIMAL", "DEC");
         add(Value.REAL, Types.REAL, createNumeric(ValueReal.PRECISION, 0), "REAL", "FLOAT4");
         add(Value.DOUBLE, Types.DOUBLE, createNumeric(ValueDouble.PRECISION, 0),
                 "DOUBLE PRECISION", "DOUBLE", "FLOAT8");

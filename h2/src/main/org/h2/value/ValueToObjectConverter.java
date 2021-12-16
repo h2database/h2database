@@ -145,7 +145,7 @@ public final class ValueToObjectConverter extends TraceObject {
         } else if (x instanceof BigInteger) {
             return ValueNumeric.get((BigInteger) x);
         } else if (x instanceof BigDecimal) {
-            return ValueNumeric.get((BigDecimal) x);
+            return ValueNumeric.getAnyScale((BigDecimal) x);
         } else {
             return otherToValue(session, x);
         }

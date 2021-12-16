@@ -6,7 +6,7 @@
 CREATE MEMORY TABLE TEST(
     N1 NUMERIC, N2 NUMERIC(10), N3 NUMERIC(10, 0), N4 NUMERIC(10, 2),
     D1 DECIMAL, D2 DECIMAL(10), D3 DECIMAL(10, 0), D4 DECIMAL(10, 2), D5 DEC,
-    X1 NUMBER);
+    X1 NUMBER(10), X2 NUMBER(10, 2));
 > ok
 
 SELECT COLUMN_NAME, DATA_TYPE, NUMERIC_PRECISION, NUMERIC_PRECISION_RADIX, NUMERIC_SCALE,
@@ -23,8 +23,9 @@ SELECT COLUMN_NAME, DATA_TYPE, NUMERIC_PRECISION, NUMERIC_PRECISION_RADIX, NUMER
 > D3          NUMERIC   10                10                      0             DECIMAL            10                         0
 > D4          NUMERIC   10                10                      2             DECIMAL            10                         2
 > D5          NUMERIC   100000            10                      0             DECIMAL            null                       null
-> X1          NUMERIC   100000            10                      0             NUMERIC            null                       null
-> rows (ordered): 10
+> X1          NUMERIC   10                10                      0             NUMERIC            10                         null
+> X2          NUMERIC   10                10                      2             NUMERIC            10                         2
+> rows (ordered): 11
 
 DROP TABLE TEST;
 > ok

@@ -22,6 +22,7 @@ import org.h2.engine.ConnectionInfo;
 import org.h2.engine.Constants;
 import org.h2.engine.Engine;
 import org.h2.engine.GeneratedKeysMode;
+import org.h2.engine.Session;
 import org.h2.engine.SessionLocal;
 import org.h2.engine.SessionRemote;
 import org.h2.engine.SysProperties;
@@ -565,31 +566,38 @@ public class TcpServerThread implements Runnable {
     private void sendRows(ResultInterface result, long count) throws IOException {
         int columnCount = result.getVisibleColumnCount();
         boolean lazy = result.isLazy();
-        while (count-- > 0L) {
-            boolean hasNext;
-            try {
-                hasNext = result.next();
-            } catch (Exception e) {
-                transfer.writeByte((byte) -1);
-                sendError(e, false);
-                break;
-            }
-            if (hasNext) {
-                transfer.writeByte((byte) 1);
-                Value[] values = result.currentRow();
-                for (int i = 0; i < columnCount; i++) {
-                    Value v = values[i];
-                    if (lazy && v instanceof ValueLob) {
-                        ValueLob v2 = ((ValueLob) v).copyToResult();
-                        if (v2 != v) {
-                            v = session.addTemporaryLob(v2);
-                        }
-                    }
-                    transfer.writeValue(v);
+        Session oldSession = lazy ? session.setThreadLocalSession() : null;
+        try {
+            while (count-- > 0L) {
+                boolean hasNext;
+                try {
+                    hasNext = result.next();
+                } catch (Exception e) {
+                    transfer.writeByte((byte) -1);
+                    sendError(e, false);
+                    break;
                 }
-            } else {
-                transfer.writeByte((byte) 0);
-                break;
+                if (hasNext) {
+                    transfer.writeByte((byte) 1);
+                    Value[] values = result.currentRow();
+                    for (int i = 0; i < columnCount; i++) {
+                        Value v = values[i];
+                        if (lazy && v instanceof ValueLob) {
+                            ValueLob v2 = ((ValueLob) v).copyToResult();
+                            if (v2 != v) {
+                                v = session.addTemporaryLob(v2);
+                            }
+                        }
+                        transfer.writeValue(v);
+                    }
+                } else {
+                    transfer.writeByte((byte) 0);
+                    break;
+                }
+            }
+        } finally {
+            if (lazy) {
+                session.resetThreadLocalSession(oldSession);
             }
         }
     }

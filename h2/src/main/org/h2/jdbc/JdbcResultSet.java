@@ -31,6 +31,7 @@ import java.util.Map;
 
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
+import org.h2.engine.Session;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.message.TraceObject;
@@ -3584,12 +3585,24 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
     }
 
     private boolean nextRow() {
-        if (result.isLazy() && stat.isCancelled()) {
-            throw DbException.get(ErrorCode.STATEMENT_WAS_CANCELED);
-        }
-        boolean next = result.next();
+        boolean next = result.isLazy() ? nextLazyRow() : result.next();
         if (!next && !scrollable) {
             result.close();
+        }
+        return next;
+    }
+
+    private boolean nextLazyRow() {
+        Session session;
+        if (stat.isCancelled() || conn == null || (session = conn.getSession()) == null) {
+            throw DbException.get(ErrorCode.STATEMENT_WAS_CANCELED);
+        }
+        Session oldSession = session.setThreadLocalSession();
+        boolean next;
+        try {
+            next = result.next();
+        } finally {
+            session.resetThreadLocalSession(oldSession);
         }
         return next;
     }

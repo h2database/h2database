@@ -124,6 +124,19 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
     private static final String SYSTEM_IDENTIFIER_PREFIX = "_";
     private static int nextSerialId;
 
+    /**
+     * Thread local session for comparison operations between different data types.
+     */
+    private static final ThreadLocal<Session> THREAD_LOCAL_SESSION = new ThreadLocal<>();
+
+    static Session getThreadLocalSession() {
+        Session session = THREAD_LOCAL_SESSION.get();
+        if (session == null) {
+            THREAD_LOCAL_SESSION.remove();
+        }
+        return session;
+    }
+
     private final int serialId = nextSerialId++;
     private final Database database;
     private final User user;
@@ -2085,6 +2098,22 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
      */
     public boolean isQuirksMode() {
         return quirksMode || database.isStarting();
+    }
+
+    @Override
+    public Session setThreadLocalSession() {
+        Session oldSession = THREAD_LOCAL_SESSION.get();
+        THREAD_LOCAL_SESSION.set(this);
+        return oldSession;
+    }
+
+    @Override
+    public void resetThreadLocalSession(Session oldSession) {
+        if (oldSession == null) {
+            THREAD_LOCAL_SESSION.remove();
+        } else {
+            THREAD_LOCAL_SESSION.set(oldSession);
+        }
     }
 
 }

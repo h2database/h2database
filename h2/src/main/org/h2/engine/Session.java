@@ -288,4 +288,23 @@ public abstract class Session implements CastDataProvider, AutoCloseable {
         }
     }
 
+    /**
+     * Sets this session as thread local session, if this session is a local
+     * session.
+     *
+     * @return old thread local session, or {@code null}
+     */
+    public Session setThreadLocalSession() {
+        return null;
+    }
+
+    /**
+     * Resets old thread local session.
+     *
+     * @param oldSession
+     *            the old thread local session, or {@code null}
+     */
+    public void resetThreadLocalSession(Session oldSession) {
+    }
+
 }

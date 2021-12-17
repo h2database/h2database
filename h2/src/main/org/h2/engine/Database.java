@@ -2441,13 +2441,19 @@ public final class Database implements DataHandler, CastDataProvider {
 
     @Override
     public ValueTimestampTimeZone currentTimestamp() {
-        // This method should not be reachable
+        Session session = SessionLocal.getThreadLocalSession();
+        if (session != null) {
+            return session.currentTimestamp();
+        }
         throw DbException.getUnsupportedException("Unsafe comparison or cast");
     }
 
     @Override
     public TimeZoneProvider currentTimeZone() {
-        // This method should not be reachable
+        Session session = SessionLocal.getThreadLocalSession();
+        if (session != null) {
+            return session.currentTimeZone();
+        }
         throw DbException.getUnsupportedException("Unsafe comparison or cast");
     }
 

@@ -13,7 +13,6 @@ import org.h2.expression.ExpressionWithVariableParameters;
 import org.h2.expression.function.NamedExpression;
 import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
-import org.h2.table.ColumnResolver;
 import org.h2.util.HasSQL;
 
 /**
@@ -62,23 +61,6 @@ public abstract class TableFunction implements HasSQL, NamedExpression, Expressi
      * @return the empty result
      */
     public abstract ResultInterface getValueTemplate(SessionLocal session);
-
-    /**
-     * Map the columns of the resolver to expression columns.
-     *
-     * @param resolver
-     *            the column resolver
-     * @param level
-     *            the subquery nesting level
-     * @param state
-     *            current state for nesting checks, initial value is
-     *            {@link Expression#MAP_INITIAL}
-     */
-    public void mapColumns(ColumnResolver resolver, int level, int state) {
-        for (Expression arg : args) {
-            arg.mapColumns(resolver, level, state);
-        }
-    }
 
     /**
      * Try to optimize this table function

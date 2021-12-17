@@ -188,15 +188,15 @@ public class ConditionAndOr extends Condition {
         }
         Expression e = optimizeIfConstant(session, andOrType, left, right);
         if (e == null) {
-            return optimizeN(session, this);
+            return optimizeN(this);
         }
         if (e instanceof ConditionAndOr) {
-            return optimizeN(session, (ConditionAndOr) e);
+            return optimizeN((ConditionAndOr) e);
         }
         return e;
     }
 
-    private static Expression optimizeN(SessionLocal session, ConditionAndOr condition) {
+    private static Expression optimizeN(ConditionAndOr condition) {
         if (condition.right instanceof ConditionAndOr) {
             ConditionAndOr rightCondition = (ConditionAndOr) condition.right;
             if (rightCondition.andOrType == condition.andOrType) {

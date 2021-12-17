@@ -2168,24 +2168,23 @@ public final class InformationSchemaTable extends MetaTable {
     }
 
     private void tables(SessionLocal session, Value indexFrom, Value indexTo, ArrayList<Row> rows, String catalog) {
-        boolean admin = session.getUser().isAdmin();
         for (Schema schema : database.getAllSchemas()) {
             for (Table table : schema.getAllTablesAndViews(session)) {
                 String tableName = table.getName();
                 if (checkIndex(session, tableName, indexFrom, indexTo)) {
-                    tables(session, rows, catalog, admin, table, tableName);
+                    tables(session, rows, catalog, table, tableName);
                 }
             }
         }
         for (Table table : session.getLocalTempTables()) {
             String tableName = table.getName();
             if (checkIndex(session, tableName, indexFrom, indexTo)) {
-                tables(session, rows, catalog, admin, table, tableName);
+                tables(session, rows, catalog, table, tableName);
             }
         }
     }
 
-    private void tables(SessionLocal session, ArrayList<Row> rows, String catalog, boolean admin, Table table,
+    private void tables(SessionLocal session, ArrayList<Row> rows, String catalog, Table table,
             String tableName) {
         if (hideTable(table, session)) {
             return;

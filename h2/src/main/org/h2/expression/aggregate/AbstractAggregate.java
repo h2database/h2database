@@ -155,7 +155,7 @@ public abstract class AbstractAggregate extends DataAnalysisOperation {
                 updateFromExpressions(session, aggregateData, iter.next());
             }
             Value r = getAggregatedValue(session, aggregateData);
-            i = processGroup(session, result, r, ordered, rowIdColumn, i, size, aggregateData, grouped);
+            i = processGroup(result, r, ordered, rowIdColumn, i, size, grouped);
         }
     }
 
@@ -202,7 +202,7 @@ public abstract class AbstractAggregate extends DataAnalysisOperation {
             } else if (r == null) {
                 r = getAggregatedValue(session, aggregateData);
             }
-            i = processGroup(session, result, r, ordered, rowIdColumn, i, size, aggregateData, grouped);
+            i = processGroup(result, r, ordered, rowIdColumn, i, size, grouped);
         }
     }
 
@@ -231,8 +231,8 @@ public abstract class AbstractAggregate extends DataAnalysisOperation {
         }
     }
 
-    private int processGroup(SessionLocal session, HashMap<Integer, Value> result, Value r, ArrayList<Value[]> ordered,
-            int rowIdColumn, int i, int size, Object aggregateData, boolean grouped) {
+    private int processGroup(HashMap<Integer, Value> result, Value r, ArrayList<Value[]> ordered,
+            int rowIdColumn, int i, int size, boolean grouped) {
         Value[] firstRowInGroup = ordered.get(i), currentRowInGroup = firstRowInGroup;
         do {
             result.put(currentRowInGroup[rowIdColumn].getInt(), r);

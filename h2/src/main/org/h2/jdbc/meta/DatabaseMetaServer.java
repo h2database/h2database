@@ -68,7 +68,7 @@ public final class DatabaseMetaServer {
         DatabaseMeta meta = session.getDatabaseMeta();
         switch (code) {
         case DEFAULT_NULL_ORDERING:
-            return result(session, meta.defaultNullOrdering().ordinal());
+            return result(meta.defaultNullOrdering().ordinal());
         case GET_DATABASE_PRODUCT_VERSION:
             return result(session, meta.getDatabaseProductVersion());
         case GET_SQL_KEYWORDS:
@@ -133,9 +133,9 @@ public final class DatabaseMetaServer {
             return meta.getAttributes(args[0].getString(), args[1].getString(), args[2].getString(),
                     args[3].getString());
         case GET_DATABASE_MAJOR_VERSION:
-            return result(session, meta.getDatabaseMajorVersion());
+            return result(meta.getDatabaseMajorVersion());
         case GET_DATABASE_MINOR_VERSION:
-            return result(session, meta.getDatabaseMinorVersion());
+            return result(meta.getDatabaseMinorVersion());
         case GET_SCHEMAS_2:
             return meta.getSchemas(args[0].getString(), args[1].getString());
         case GET_FUNCTIONS_3:
@@ -177,15 +177,15 @@ public final class DatabaseMetaServer {
         return result;
     }
 
-    private static ResultInterface result(SessionLocal session, int value) {
-        return result(session, ValueInteger.get(value));
+    private static ResultInterface result(int value) {
+        return result(ValueInteger.get(value));
     }
 
     private static ResultInterface result(SessionLocal session, String value) {
-        return result(session, ValueVarchar.get(value, session));
+        return result(ValueVarchar.get(value, session));
     }
 
-    private static ResultInterface result(SessionLocal session, Value v) {
+    private static ResultInterface result(Value v) {
         SimpleResult result = new SimpleResult();
         result.addColumn("RESULT", v.getType());
         result.addRow(v);

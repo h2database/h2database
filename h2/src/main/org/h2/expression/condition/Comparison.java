@@ -534,24 +534,24 @@ public final class Comparison extends Condition {
             if (left.isEverything(ExpressionVisitor.DETERMINISTIC_VISITOR)) {
                 String l = left.getSQL(DEFAULT_SQL_FLAGS);
                 if (l.equals(l2)) {
-                    return getConditionIn(session, left, right, right2);
+                    return getConditionIn(left, right, right2);
                 } else if (l.equals(r2)) {
-                    return getConditionIn(session, left, right, left2);
+                    return getConditionIn(left, right, left2);
                 }
             }
             if (right.isEverything(ExpressionVisitor.DETERMINISTIC_VISITOR)) {
                 String r = right.getSQL(DEFAULT_SQL_FLAGS);
                 if (r.equals(l2)) {
-                    return getConditionIn(session, right, left, right2);
+                    return getConditionIn(right, left, right2);
                 } else if (r.equals(r2)) {
-                    return getConditionIn(session, right, left, left2);
+                    return getConditionIn(right, left, left2);
                 }
             }
         }
         return null;
     }
 
-    private static ConditionIn getConditionIn(SessionLocal session, Expression left, Expression value1,
+    private static ConditionIn getConditionIn(Expression left, Expression value1,
             Expression value2) {
         ArrayList<Expression> right = new ArrayList<>(2);
         right.add(value1);

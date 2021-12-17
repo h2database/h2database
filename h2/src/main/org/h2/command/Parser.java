@@ -9629,8 +9629,7 @@ public class Parser {
             command.setSelectivity(readExpression());
             return command;
         }
-        Prepared command = parseAlterTableAlterColumnIdentity(schema, tableName, ifTableExists, ifExists, columnName,
-                column);
+        Prepared command = parseAlterTableAlterColumnIdentity(schema, tableName, ifTableExists, column);
         if (command != null) {
             return command;
         }
@@ -9652,7 +9651,7 @@ public class Parser {
     }
 
     private Prepared parseAlterTableAlterColumnIdentity(Schema schema, String tableName, boolean ifTableExists,
-            boolean ifExists, String columnName, Column column) {
+            Column column) {
         int index = lastParseIndex;
         Boolean always = null;
         if (readIf(SET) && readIf("GENERATED")) {

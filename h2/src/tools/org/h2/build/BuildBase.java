@@ -436,24 +436,6 @@ public class BuildBase {
     }
 
     /**
-     * Reads the value from a static method of a class using reflection.
-     *
-     * @param className the name of the class
-     * @param methodName the field name
-     * @return the value as a string
-     */
-    protected static String getStaticValue(String className, String methodName) {
-        try {
-            Class<?> clazz = Class.forName(className);
-            Method method = clazz.getMethod(methodName);
-            return method.invoke(null).toString();
-        } catch (Exception e) {
-            throw new RuntimeException("Can not read value " + className + "."
-                    + methodName + "()", e);
-        }
-    }
-
-    /**
      * Copy files to the specified target directory.
      *
      * @param targetDir the target directory

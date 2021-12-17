@@ -1394,18 +1394,6 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
     }
 
     /**
-     * INTERNAL
-     */
-    JdbcResultSet getGeneratedKeys(JdbcStatement stat, int id) {
-        getGeneratedKeys = prepareCommand(
-                "SELECT SCOPE_IDENTITY() "
-                        + "WHERE SCOPE_IDENTITY() IS NOT NULL",
-                getGeneratedKeys);
-        ResultInterface result = getGeneratedKeys.executeQuery(0, false);
-        return new JdbcResultSet(this, stat, getGeneratedKeys, result, id, true, false);
-    }
-
-    /**
      * Create a new empty Clob object.
      *
      * @return the object

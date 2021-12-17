@@ -204,11 +204,6 @@ public class Constants {
     public static final int DEFAULT_MAX_LENGTH_INPLACE_LOB = 256;
 
     /**
-     * The default value for the MAX_MEMORY_UNDO setting.
-     */
-    public static final int DEFAULT_MAX_MEMORY_UNDO = 50_000;
-
-    /**
      * The default for the setting MAX_OPERATION_MEMORY.
      */
     public static final int DEFAULT_MAX_OPERATION_MEMORY = 100_000;

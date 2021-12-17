@@ -21,10 +21,6 @@ class RangeCursor implements Cursor {
     private Row currentRow;
     private final long start, end, step;
 
-    RangeCursor(long start, long end) {
-        this(start, end, 1);
-    }
-
     RangeCursor(long start, long end, long step) {
         this.start = start;
         this.end = end;

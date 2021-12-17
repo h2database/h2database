@@ -679,20 +679,6 @@ public abstract class Table extends SchemaObject {
         return rowFactory.createRow(data, memory);
     }
 
-    /**
-     * Create a new row for this table.
-     *
-     * @param data the values
-     * @param memory the estimated memory usage in bytes
-     * @param key the key
-     * @return the created row
-     */
-    public Row createRow(Value[] data, int memory, long key) {
-        Row row = rowFactory.createRow(data, memory);
-        row.setKey(key);
-        return row;
-    }
-
     public Row getTemplateRow() {
         return createRow(new Value[getColumns().length], DefaultRow.MEMORY_CALCULATE);
     }

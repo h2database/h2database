@@ -9,7 +9,6 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
-import org.h2.util.IOUtils;
 
 /**
  * This class is backed by an input stream and supports reading values and
@@ -69,79 +68,6 @@ public class DataReader extends Reader {
             return x | b << 21;
         }
         return x | ((b & 0x7f) << 21) | (readByte() << 28);
-    }
-
-    /**
-     * Read a variable size long.
-     *
-     * @return the value
-     * @throws IOException on failure
-     */
-    public long readVarLong() throws IOException {
-        long x = readByte();
-        if (x >= 0) {
-            return x;
-        }
-        x &= 0x7f;
-        for (int s = 7;; s += 7) {
-            long b = readByte();
-            x |= (b & 0x7f) << s;
-            if (b >= 0) {
-                return x;
-            }
-        }
-    }
-
-    /**
-     * Read an integer.
-     *
-     * @return the value
-     */
-    // public int readInt() throws IOException {
-    //     return (read() << 24) + ((read() & 0xff) << 16) +
-    //             ((read() & 0xff) << 8) + (read() & 0xff);
-    //}
-
-    /**
-     * Read a long.
-     *
-     * @return the value
-     */
-    // public long readLong() throws IOException {
-    //    return ((long) (readInt()) << 32) + (readInt() & 0xffffffffL);
-    // }
-
-    /**
-     * Read a number of bytes.
-     *
-     * @param buff the target buffer
-     * @param len the number of bytes to read
-     * @throws IOException on failure
-     */
-    public void readFully(byte[] buff, int len) throws IOException {
-        int got = IOUtils.readFully(in, buff, len);
-        if (got < len) {
-            throw new FastEOFException();
-        }
-    }
-
-    /**
-     * Read a string from the stream.
-     *
-     * @return the string
-     * @throws IOException on failure
-     */
-    public String readString() throws IOException {
-        int len = readVarInt();
-        return readString(len);
-    }
-
-    private String readString(int len) throws IOException {
-        char[] chars = new char[len];
-        for (int i = 0; i < len; i++) {
-            chars[i] = readChar();
-        }
-        return new String(chars);
     }
 
     /**

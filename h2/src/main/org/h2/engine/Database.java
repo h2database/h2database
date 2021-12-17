@@ -5,7 +5,6 @@
  */
 package org.h2.engine;
 
-import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -1538,24 +1537,6 @@ public final class Database implements DataHandler, CastDataProvider {
         obj.rename(newName);
         map.put(newName, obj);
         updateMetaAndFirstLevelChildren(session, obj);
-    }
-
-    /**
-     * Create a temporary file in the database folder.
-     *
-     * @return the file name
-     */
-    public String createTempFile() {
-        try {
-            boolean inTempDir = readOnly;
-            String name = databaseName;
-            if (!persistent) {
-                name = "memFS:" + name;
-            }
-            return FileUtils.createTempFile(name, Constants.SUFFIX_TEMP_FILE, inTempDir);
-        } catch (IOException e) {
-            throw DbException.convertIOException(e, databaseName);
-        }
     }
 
     private void deleteOldTempFiles() {

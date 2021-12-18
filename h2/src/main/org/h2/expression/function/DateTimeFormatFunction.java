@@ -16,7 +16,9 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoField;
 import java.time.temporal.TemporalAccessor;
 import java.time.temporal.TemporalQueries;
+import java.util.LinkedHashMap;
 import java.util.Locale;
+import java.util.Objects;
 
 import org.h2.api.ErrorCode;
 import org.h2.engine.SessionLocal;
@@ -34,6 +36,57 @@ import org.h2.value.ValueVarchar;
  */
 public final class DateTimeFormatFunction extends FunctionN {
 
+    private static final class CacheKey {
+
+        private final String format;
+
+        private final String locale;
+
+        private final String timeZone;
+
+        CacheKey(String format, String locale, String timeZone) {
+            this.format = format;
+            this.locale = locale;
+            this.timeZone = timeZone;
+        }
+
+        @Override
+        public int hashCode() {
+            final int prime = 31;
+            int result = 1;
+            result = prime * result + format.hashCode();
+            result = prime * result + ((locale == null) ? 0 : locale.hashCode());
+            result = prime * result + ((timeZone == null) ? 0 : timeZone.hashCode());
+            return result;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj)
+                return true;
+            if (!(obj instanceof CacheKey)) {
+                return false;
+            }
+            CacheKey other = (CacheKey) obj;
+            return format.equals(other.format) && Objects.equals(locale, other.locale)
+                    && Objects.equals(timeZone, other.timeZone);
+        }
+
+    }
+
+    private static final class CacheValue {
+
+        final DateTimeFormatter formatter;
+
+        final ZoneId zoneId;
+
+        CacheValue(DateTimeFormatter formatter, ZoneId zoneId) {
+            this.formatter = formatter;
+            this.zoneId = zoneId;
+        }
+
+    }
+
     /**
      * FORMATDATETIME() (non-standard).
      */
@@ -46,6 +99,17 @@ public final class DateTimeFormatFunction extends FunctionN {
 
     private static final String[] NAMES = { //
             "FORMATDATETIME", "PARSEDATETIME" //
+    };
+
+    private static final LinkedHashMap<CacheKey, CacheValue> CACHE = new LinkedHashMap<CacheKey, CacheValue>() {
+
+        private static final long serialVersionUID = 1L;
+
+        @Override
+        protected boolean removeEldestEntry(java.util.Map.Entry<CacheKey, CacheValue> eldest) {
+            return size() > 100;
+        }
+
     };
 
     private final int function;
@@ -94,7 +158,8 @@ public final class DateTimeFormatFunction extends FunctionN {
      */
     public static String formatDateTime(SessionLocal session, Value date, String format, String locale,
             String timeZone) {
-        ZoneId zoneId = timeZone != null ? getZoneId(timeZone) : null;
+        CacheValue formatAndZone = getDateFormat(format, locale, timeZone);
+        ZoneId zoneId = formatAndZone.zoneId;
         TemporalAccessor value;
         if (date instanceof ValueTimestampTimeZone) {
             OffsetDateTime dateTime = JSR310Utils.valueToOffsetDateTime(date, session);
@@ -110,7 +175,7 @@ public final class DateTimeFormatFunction extends FunctionN {
             LocalDateTime dateTime = JSR310Utils.valueToLocalDateTime(date, session);
             value = dateTime.atZone(zoneId != null ? zoneId : ZoneId.of(session.currentTimeZone().getId()));
         }
-        return getDateFormat(format, locale, zoneId).format(value);
+        return formatAndZone.formatter.format(value);
     }
 
     /**
@@ -130,18 +195,18 @@ public final class DateTimeFormatFunction extends FunctionN {
      */
     public static ValueTimestampTimeZone parseDateTime(SessionLocal session, String date, String format, String locale,
             String timeZone) {
-        ZoneId zoneId = timeZone != null ? getZoneId(timeZone) : null;
+        CacheValue formatAndZone = getDateFormat(format, locale, timeZone);
         try {
             ValueTimestampTimeZone result;
-            TemporalAccessor parsed = getDateFormat(format, locale, zoneId).parse(date);
+            TemporalAccessor parsed = formatAndZone.formatter.parse(date);
             ZoneId parsedZoneId = parsed.query(TemporalQueries.zoneId());
             if (parsed.isSupported(ChronoField.OFFSET_SECONDS)) {
                 result = JSR310Utils.offsetDateTimeToValue(OffsetDateTime.from(parsed));
             } else {
                 if (parsed.isSupported(ChronoField.INSTANT_SECONDS)) {
                     Instant instant = Instant.from(parsed);
-                    if (parsedZoneId == null && zoneId != null) {
-                        parsedZoneId = zoneId;
+                    if (parsedZoneId == null) {
+                        parsedZoneId = formatAndZone.zoneId;
                     }
                     if (parsedZoneId != null) {
                         result = JSR310Utils.zonedDateTimeToValue(instant.atZone(parsedZoneId));
@@ -154,8 +219,8 @@ public final class DateTimeFormatFunction extends FunctionN {
                     LocalTime localTime = parsed.query(TemporalQueries.localTime());
                     LocalDateTime localDateTime = localTime != null ? LocalDateTime.of(localDate, localTime)
                             : localDate.atStartOfDay();
-                    if (parsedZoneId == null && zoneId != null) {
-                        parsedZoneId = zoneId;
+                    if (parsedZoneId == null) {
+                        parsedZoneId = formatAndZone.zoneId;
                     }
                     result = parsedZoneId != null ? JSR310Utils.zonedDateTimeToValue(localDateTime.atZone(parsedZoneId))
                             : (ValueTimestampTimeZone) JSR310Utils.localDateTimeToValue(localDateTime)
@@ -168,26 +233,38 @@ public final class DateTimeFormatFunction extends FunctionN {
         }
     }
 
-    private static DateTimeFormatter getDateFormat(String format, String locale, ZoneId zoneId) {
-        if (format.length() > 100) {
-            throw DbException.get(ErrorCode.PARSE_ERROR_1, format);
-        }
-        try {
-            // currently, a new instance is create for each call
-            // however, could cache the last few instances
-            DateTimeFormatter df;
-            if (locale == null) {
-                df = DateTimeFormatter.ofPattern(format);
-            } else {
-                df = DateTimeFormatter.ofPattern(format, new Locale(locale));
+    private static CacheValue getDateFormat(String format, String locale, String timeZone) {
+        Exception ex = null;
+        if (format.length() <= 100) {
+            try {
+                CacheValue value;
+                CacheKey key = new CacheKey(format, locale, timeZone);
+                synchronized (CACHE) {
+                    value = CACHE.get(key);
+                    if (value == null) {
+                        DateTimeFormatter df;
+                        if (locale == null) {
+                            df = DateTimeFormatter.ofPattern(format);
+                        } else {
+                            df = DateTimeFormatter.ofPattern(format, new Locale(locale));
+                        }
+                        ZoneId zoneId;
+                        if (timeZone != null) {
+                            zoneId = getZoneId(timeZone);
+                            df.withZone(zoneId);
+                        } else {
+                            zoneId = null;
+                        }
+                        value = new CacheValue(df, zoneId);
+                        CACHE.put(key, value);
+                    }
+                }
+                return value;
+            } catch (Exception e) {
+                ex = e;
             }
-            if (zoneId != null) {
-                df.withZone(zoneId);
-            }
-            return df;
-        } catch (Exception e) {
-            throw DbException.get(ErrorCode.PARSE_ERROR_1, e, format + '/' + locale);
         }
+        throw DbException.get(ErrorCode.PARSE_ERROR_1, ex, format + '/' + locale);
     }
 
     private static ZoneId getZoneId(String timeZone) {

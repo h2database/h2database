@@ -20,6 +20,7 @@ import org.h2.message.DbException;
 import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
+import org.h2.value.DataType;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueBoolean;
@@ -137,7 +138,26 @@ public final class Comparison extends Condition {
     public Expression optimize(SessionLocal session) {
         left = left.optimize(session);
         right = right.optimize(session);
-        TypeInfo.checkComparable(left.getType(), right.getType());
+        check: {
+            TypeInfo leftType = left.getType(), rightType = right.getType();
+            if (session.getMode().numericWithBooleanComparison) {
+                switch (compareType) {
+                case EQUAL:
+                case NOT_EQUAL:
+                case EQUAL_NULL_SAFE:
+                case NOT_EQUAL_NULL_SAFE:
+                    int lValueType = leftType.getValueType();
+                    if (lValueType == Value.BOOLEAN) {
+                        if (DataType.isNumericType(rightType.getValueType())) {
+                            break check;
+                        }
+                    } else if (DataType.isNumericType(lValueType) && rightType.getValueType() == Value.BOOLEAN) {
+                        break check;
+                    }
+                }
+            }
+            TypeInfo.checkComparable(leftType, rightType);
+        }
         if (whenOperand) {
             return this;
         }

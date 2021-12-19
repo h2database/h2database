@@ -2084,18 +2084,6 @@ This setting can be appended to the database URL: ""jdbc:h2:./test;TRUNCATE_LARG
 SET TRUNCATE_LARGE_LENGTH TRUE
 "
 
-"Commands (Other)","SET UNDO_LOG","
-@h2@ SET UNDO_LOG int
-","
-Enables (1) or disables (0) the per session undo log. The undo log is enabled by
-default. When disabled, transactions can not be rolled back. This setting should
-only be used for bulk operations that don't need to be atomic.
-
-This command commits an open transaction in this connection.
-","
-SET UNDO_LOG 0
-"
-
 "Commands (Other)","SET VARIABLE_BINARY","
 @h2@ SET VARIABLE_BINARY { TRUE | FALSE }
 ","

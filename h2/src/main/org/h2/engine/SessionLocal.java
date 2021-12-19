@@ -167,7 +167,6 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
     private HashMap<String, ValueLob> removeLobMap;
     private int systemIdentifier;
     private HashMap<String, Procedure> procedures;
-    private boolean undoLogEnabled = true;
     private boolean autoCommitAtTransactionEnd;
     private String currentTransactionName;
     private volatile long cancelAtNs;
@@ -1416,14 +1415,6 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
     @Override
     public String toString() {
         return "#" + serialId + " (user: " + (user == null ? "<null>" : user.getName()) + ", " + state.get() + ")";
-    }
-
-    public void setUndoLogEnabled(boolean b) {
-        this.undoLogEnabled = b;
-    }
-
-    public boolean isUndoLogEnabled() {
-        return undoLogEnabled;
     }
 
     /**

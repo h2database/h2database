@@ -162,9 +162,7 @@ public class CreateTable extends CommandWithColumns {
                         }
                     }
                 }
-                boolean old = session.isUndoLogEnabled();
                 try {
-                    session.setUndoLogEnabled(false);
                     session.startStatementWithinTransaction(null);
                     Insert insert = new Insert(session);
                     insert.setQuery(asQuery);
@@ -174,7 +172,6 @@ public class CreateTable extends CommandWithColumns {
                     insert.update();
                 } finally {
                     session.endStatement();
-                    session.setUndoLogEnabled(old);
                 }
                 if (flushSequences) {
                     db.lockMeta(session);

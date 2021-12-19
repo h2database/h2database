@@ -7,7 +7,6 @@ package org.h2.expression.condition;
 
 import org.h2.command.query.Query;
 import org.h2.engine.SessionLocal;
-import org.h2.result.ResultInterface;
 import org.h2.value.Value;
 import org.h2.value.ValueBoolean;
 
@@ -23,9 +22,7 @@ public class ExistsPredicate extends PredicateWithSubquery {
     @Override
     public Value getValue(SessionLocal session) {
         query.setSession(session);
-        ResultInterface result = query.query(1);
-        session.addTemporaryResult(result);
-        return ValueBoolean.get(result.hasNext());
+        return ValueBoolean.get(query.exists());
     }
 
     @Override

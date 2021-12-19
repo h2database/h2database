@@ -138,14 +138,9 @@ public class SetTypes {
     public static final int SCHEMA_SEARCH_PATH = OPTIMIZE_REUSE_RESULTS + 1;
 
     /**
-     * The type of a SET UNDO_LOG statement.
-     */
-    public static final int UNDO_LOG = SCHEMA_SEARCH_PATH + 1;
-
-    /**
      * The type of a SET REFERENTIAL_INTEGRITY statement.
      */
-    public static final int REFERENTIAL_INTEGRITY = UNDO_LOG + 1;
+    public static final int REFERENTIAL_INTEGRITY = SCHEMA_SEARCH_PATH + 1;
 
     /**
      * The type of a SET MAX_OPERATION_MEMORY statement.
@@ -287,7 +282,6 @@ public class SetTypes {
         list.add("SCHEMA");
         list.add("OPTIMIZE_REUSE_RESULTS");
         list.add("SCHEMA_SEARCH_PATH");
-        list.add("UNDO_LOG");
         list.add("REFERENTIAL_INTEGRITY");
         list.add("MAX_OPERATION_MEMORY");
         list.add("EXCLUSIVE");

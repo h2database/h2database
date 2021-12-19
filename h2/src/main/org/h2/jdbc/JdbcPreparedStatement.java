@@ -1332,7 +1332,8 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
                 int id = getNextId(TraceObject.RESULT_SET);
                 debugCodeAssign("ResultSet", TraceObject.RESULT_SET, id, "getGeneratedKeys()");
                 checkClosed();
-                generatedKeys = new JdbcResultSet(conn, this, null, batchIdentities.getResult(), id, true, false, false);
+                generatedKeys = new JdbcResultSet(conn, this, null, batchIdentities.getResult(), id, true, false,
+                        false);
             } catch (Exception e) {
                 throw logAndConvert(e);
             }

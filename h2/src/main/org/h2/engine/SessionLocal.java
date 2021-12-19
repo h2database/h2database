@@ -41,7 +41,6 @@ import org.h2.mvstore.db.MVTable;
 import org.h2.mvstore.db.Store;
 import org.h2.mvstore.tx.Transaction;
 import org.h2.mvstore.tx.TransactionStore;
-import org.h2.result.ResultInterface;
 import org.h2.result.Row;
 import org.h2.schema.Schema;
 import org.h2.schema.Sequence;
@@ -167,7 +166,6 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
     private HashMap<String, ValueLob> removeLobMap;
     private int systemIdentifier;
     private HashMap<String, Procedure> procedures;
-    private boolean undoLogEnabled = true;
     private boolean autoCommitAtTransactionEnd;
     private String currentTransactionName;
     private volatile long cancelAtNs;
@@ -175,7 +173,6 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
     private Instant commandStartOrEnd;
     private ValueTimestampTimeZone currentTimestamp;
     private HashMap<String, Value> variables;
-    private HashSet<ResultInterface> temporaryResults;
     private int queryTimeout;
     private boolean commitOrRollbackDisabled;
     private Table waitForLock;
@@ -1418,14 +1415,6 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
         return "#" + serialId + " (user: " + (user == null ? "<null>" : user.getName()) + ", " + state.get() + ")";
     }
 
-    public void setUndoLogEnabled(boolean b) {
-        this.undoLogEnabled = b;
-    }
-
-    public boolean isUndoLogEnabled() {
-        return undoLogEnabled;
-    }
-
     /**
      * Begin a transaction.
      */
@@ -1527,35 +1516,6 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
             viewIndexCache = cache = SmallLRUCache.newInstance(Constants.VIEW_INDEX_CACHE_SIZE);
         }
         return cache;
-    }
-
-    /**
-     * Remember the result set and close it as soon as the transaction is
-     * committed (if it needs to be closed). This is done to delete temporary
-     * files as soon as possible, and free object ids of temporary tables.
-     *
-     * @param result the temporary result set
-     */
-    public void addTemporaryResult(ResultInterface result) {
-        if (!result.needToClose()) {
-            return;
-        }
-        if (temporaryResults == null) {
-            temporaryResults = new HashSet<>();
-        }
-        if (temporaryResults.size() < 100) {
-            // reference at most 100 result sets to avoid memory problems
-            temporaryResults.add(result);
-        }
-    }
-
-    private void closeTemporaryResults() {
-        if (temporaryResults != null) {
-            for (ResultInterface result : temporaryResults) {
-                result.close();
-            }
-            temporaryResults = null;
-        }
     }
 
     public void setQueryTimeout(int queryTimeout) {
@@ -1727,7 +1687,6 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
             transaction.markStatementEnd();
         }
         startStatement = -1;
-        closeTemporaryResults();
     }
 
     /**

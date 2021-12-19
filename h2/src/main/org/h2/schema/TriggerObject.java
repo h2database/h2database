@@ -328,6 +328,7 @@ public final class TriggerObject extends SchemaObject {
         resultSet.next();
         return resultSet;
     }
+
     private DbException getErrorExecutingTrigger(Throwable e) {
         if (e instanceof DbException) {
             return (DbException) e;

@@ -28,6 +28,7 @@ import org.h2.message.DbException;
 import org.h2.util.JSR310Utils;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
+import org.h2.value.ValueTime;
 import org.h2.value.ValueTimestampTimeZone;
 import org.h2.value.ValueVarchar;
 
@@ -217,14 +218,24 @@ public final class DateTimeFormatFunction extends FunctionN {
                 } else {
                     LocalDate localDate = parsed.query(TemporalQueries.localDate());
                     LocalTime localTime = parsed.query(TemporalQueries.localTime());
-                    LocalDateTime localDateTime = localTime != null ? LocalDateTime.of(localDate, localTime)
-                            : localDate.atStartOfDay();
                     if (parsedZoneId == null) {
                         parsedZoneId = formatAndZone.zoneId;
                     }
-                    result = parsedZoneId != null ? JSR310Utils.zonedDateTimeToValue(localDateTime.atZone(parsedZoneId))
-                            : (ValueTimestampTimeZone) JSR310Utils.localDateTimeToValue(localDateTime)
-                                    .convertTo(Value.TIMESTAMP_TZ, session);
+                    if (localDate != null) {
+                        LocalDateTime localDateTime = localTime != null ? LocalDateTime.of(localDate, localTime)
+                                : localDate.atStartOfDay();
+                        result = parsedZoneId != null
+                                ? JSR310Utils.zonedDateTimeToValue(localDateTime.atZone(parsedZoneId))
+                                : (ValueTimestampTimeZone) JSR310Utils.localDateTimeToValue(localDateTime)
+                                        .convertTo(Value.TIMESTAMP_TZ, session);
+                    } else {
+                        result = parsedZoneId != null
+                                ? JSR310Utils.zonedDateTimeToValue(
+                                        JSR310Utils.valueToInstant(session.currentTimestamp(), session)
+                                                .atZone(parsedZoneId).with(localTime))
+                                : (ValueTimestampTimeZone) ValueTime.fromNanos(localTime.toNanoOfDay())
+                                        .convertTo(Value.TIMESTAMP_TZ, session);
+                    }
                 }
             }
             return result;

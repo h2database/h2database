@@ -258,11 +258,16 @@ public final class TriggerObject extends SchemaObject {
                 throw getErrorExecutingTrigger(e);
             }
             if (newListBackup != null) {
+                boolean modified = false;
                 for (int i = 0; i < newList.length; i++) {
                     Object o = newList[i];
                     if (o != newListBackup[i]) {
+                        modified = true;
                         newRow.setValue(i, ValueToObjectConverter.objectToValue(session, o, Value.UNKNOWN));
                     }
+                }
+                if (modified) {
+                    table.convertUpdateRow(session, newRow, true);
                 }
             }
         } catch (Exception e) {

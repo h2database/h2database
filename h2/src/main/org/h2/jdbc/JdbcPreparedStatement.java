@@ -211,7 +211,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
                 ResultInterface gk = result.getGeneratedKeys();
                 if (gk != null) {
                     int id = getNextId(TraceObject.RESULT_SET);
-                    generatedKeys = new JdbcResultSet(conn, this, command, gk, id, true, false);
+                    generatedKeys = new JdbcResultSet(conn, this, command, gk, id, true, false, false);
                 }
             } finally {
                 setExecutingStatement(null);
@@ -255,7 +255,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
                         updateCount = result.getUpdateCount();
                         ResultInterface gk = result.getGeneratedKeys();
                         if (gk != null) {
-                            generatedKeys = new JdbcResultSet(conn, this, command, gk, id, true, false);
+                            generatedKeys = new JdbcResultSet(conn, this, command, gk, id, true, false, false);
                         }
                     }
                 } finally {
@@ -1332,7 +1332,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
                 int id = getNextId(TraceObject.RESULT_SET);
                 debugCodeAssign("ResultSet", TraceObject.RESULT_SET, id, "getGeneratedKeys()");
                 checkClosed();
-                generatedKeys = new JdbcResultSet(conn, this, null, batchIdentities.getResult(), id, true, false);
+                generatedKeys = new JdbcResultSet(conn, this, null, batchIdentities.getResult(), id, true, false, false);
             } catch (Exception e) {
                 throw logAndConvert(e);
             }

@@ -7,6 +7,7 @@ package org.h2.schema;
 
 import java.lang.reflect.Method;
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Arrays;
 
@@ -16,10 +17,14 @@ import org.h2.engine.Constants;
 import org.h2.engine.DbObject;
 import org.h2.engine.SessionLocal;
 import org.h2.jdbc.JdbcConnection;
+import org.h2.jdbc.JdbcResultSet;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.result.Row;
+import org.h2.result.SimpleResult;
+import org.h2.table.Column;
 import org.h2.table.Table;
+import org.h2.tools.TriggerAdapter;
 import org.h2.util.JdbcUtils;
 import org.h2.util.SourceCompiler;
 import org.h2.util.StringUtils;
@@ -170,7 +175,11 @@ public final class TriggerObject extends SchemaObject {
         }
         Value identity = session.getLastIdentity();
         try {
-            triggerCallback.fire(c2, null, null);
+            if (triggerCallback instanceof TriggerAdapter) {
+                ((TriggerAdapter) triggerCallback).fire(c2, (ResultSet) null, (ResultSet) null);
+            } else {
+                triggerCallback.fire(c2, null, null);
+            }
         } catch (Throwable e) {
             throw getErrorExecutingTrigger(e);
         } finally {
@@ -217,8 +226,6 @@ public final class TriggerObject extends SchemaObject {
             return false;
         }
         load();
-        Object[] oldList;
-        Object[] newList;
         boolean fire = false;
         if ((typeMask & Trigger.INSERT) != 0) {
             if (oldRow == null && newRow != null) {
@@ -239,35 +246,56 @@ public final class TriggerObject extends SchemaObject {
             return false;
         }
         JdbcConnection c2 = session.createConnection(false);
-        oldList = convertToObjectList(oldRow, c2);
-        newList = convertToObjectList(newRow, c2);
-        Object[] newListBackup;
-        if (before && newList != null) {
-            newListBackup = Arrays.copyOf(newList, newList.length);
-        } else {
-            newListBackup = null;
-        }
         boolean old = session.getAutoCommit();
         boolean oldDisabled = session.setCommitOrRollbackDisabled(true);
         Value identity = session.getLastIdentity();
         try {
             session.setAutoCommit(false);
-            try {
-                triggerCallback.fire(c2, oldList, newList);
-            } catch (Throwable e) {
-                throw getErrorExecutingTrigger(e);
-            }
-            if (newListBackup != null) {
-                boolean modified = false;
-                for (int i = 0; i < newList.length; i++) {
-                    Object o = newList[i];
-                    if (o != newListBackup[i]) {
-                        modified = true;
-                        newRow.setValue(i, ValueToObjectConverter.objectToValue(session, o, Value.UNKNOWN));
+            if (triggerCallback instanceof TriggerAdapter) {
+                JdbcResultSet oldResultSet = oldRow != null ? createResultSet(c2, table, oldRow, false) : null;
+                JdbcResultSet newResultSet = newRow != null ? createResultSet(c2, table, newRow, before) : null;
+                try {
+                    ((TriggerAdapter) triggerCallback).fire(c2, oldResultSet, newResultSet);
+                } catch (Throwable e) {
+                    throw getErrorExecutingTrigger(e);
+                }
+                if (newResultSet != null) {
+                    Value[] updatedList = newResultSet.getUpdateRow();
+                    if (updatedList != null) {
+                        boolean modified = false;
+                        for (int i = 0, l = updatedList.length; i < l; i++) {
+                            Value v = updatedList[i];
+                            if (v != null) {
+                                modified = true;
+                                newRow.setValue(i, v);
+                            }
+                        }
+                        if (modified) {
+                            table.convertUpdateRow(session, newRow, true);
+                        }
                     }
                 }
-                if (modified) {
-                    table.convertUpdateRow(session, newRow, true);
+            } else {
+                Object[] oldList = convertToObjectList(oldRow, c2);
+                Object[] newList = convertToObjectList(newRow, c2);
+                Object[] newListBackup = before && newList != null ? Arrays.copyOf(newList, newList.length) : null;
+                try {
+                    triggerCallback.fire(c2, oldList, newList);
+                } catch (Throwable e) {
+                    throw getErrorExecutingTrigger(e);
+                }
+                if (newListBackup != null) {
+                    boolean modified = false;
+                    for (int i = 0; i < newList.length; i++) {
+                        Object o = newList[i];
+                        if (o != newListBackup[i]) {
+                            modified = true;
+                            newRow.setValue(i, ValueToObjectConverter.objectToValue(session, o, Value.UNKNOWN));
+                        }
+                    }
+                    if (modified) {
+                        table.convertUpdateRow(session, newRow, true);
+                    }
                 }
             }
         } catch (Exception e) {
@@ -284,6 +312,22 @@ public final class TriggerObject extends SchemaObject {
         return insteadOf;
     }
 
+    private static JdbcResultSet createResultSet(JdbcConnection conn, Table table, Row row, boolean updatable)
+            throws SQLException {
+        SimpleResult result = new SimpleResult(table.getSchema().getName(), table.getName());
+        for (Column c : table.getColumns()) {
+            result.addColumn(c.getName(), c.getType());
+        }
+        /*
+         * Old implementation works with and without next() invocation, so add
+         * the row twice for compatibility.
+         */
+        result.addRow(row.getValueList());
+        result.addRow(row.getValueList());
+        JdbcResultSet resultSet = new JdbcResultSet(conn, null, null, result, -1, false, false, updatable);
+        resultSet.next();
+        return resultSet;
+    }
     private DbException getErrorExecutingTrigger(Throwable e) {
         if (e instanceof DbException) {
             return (DbException) e;

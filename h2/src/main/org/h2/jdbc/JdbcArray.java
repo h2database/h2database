@@ -267,7 +267,7 @@ public final class JdbcArray extends TraceObject implements Array {
         for (int i = (int) index; i < index + count; i++) {
             rs.addRow(ValueBigint.get(i), values[i - 1]);
         }
-        return new JdbcResultSet(conn, null, null, rs, id, true, false);
+        return new JdbcResultSet(conn, null, null, rs, id, true, false, false);
     }
 
     private void checkClosed() {

@@ -5,19 +5,30 @@
  */
 package org.h2.expression.function;
 
-import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoField;
+import java.time.temporal.TemporalAccessor;
+import java.time.temporal.TemporalQueries;
+import java.util.LinkedHashMap;
 import java.util.Locale;
-import java.util.TimeZone;
+import java.util.Objects;
 
 import org.h2.api.ErrorCode;
 import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.TypedValueExpression;
 import org.h2.message.DbException;
-import org.h2.util.DateTimeUtils;
-import org.h2.util.LegacyDateTimeUtils;
+import org.h2.util.JSR310Utils;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
+import org.h2.value.ValueTime;
 import org.h2.value.ValueTimestampTimeZone;
 import org.h2.value.ValueVarchar;
 
@@ -25,6 +36,57 @@ import org.h2.value.ValueVarchar;
  * A date-time format function.
  */
 public final class DateTimeFormatFunction extends FunctionN {
+
+    private static final class CacheKey {
+
+        private final String format;
+
+        private final String locale;
+
+        private final String timeZone;
+
+        CacheKey(String format, String locale, String timeZone) {
+            this.format = format;
+            this.locale = locale;
+            this.timeZone = timeZone;
+        }
+
+        @Override
+        public int hashCode() {
+            final int prime = 31;
+            int result = 1;
+            result = prime * result + format.hashCode();
+            result = prime * result + ((locale == null) ? 0 : locale.hashCode());
+            result = prime * result + ((timeZone == null) ? 0 : timeZone.hashCode());
+            return result;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj)
+                return true;
+            if (!(obj instanceof CacheKey)) {
+                return false;
+            }
+            CacheKey other = (CacheKey) obj;
+            return format.equals(other.format) && Objects.equals(locale, other.locale)
+                    && Objects.equals(timeZone, other.timeZone);
+        }
+
+    }
+
+    private static final class CacheValue {
+
+        final DateTimeFormatter formatter;
+
+        final ZoneId zoneId;
+
+        CacheValue(DateTimeFormatter formatter, ZoneId zoneId) {
+            this.formatter = formatter;
+            this.zoneId = zoneId;
+        }
+
+    }
 
     /**
      * FORMATDATETIME() (non-standard).
@@ -38,6 +100,17 @@ public final class DateTimeFormatFunction extends FunctionN {
 
     private static final String[] NAMES = { //
             "FORMATDATETIME", "PARSEDATETIME" //
+    };
+
+    private static final LinkedHashMap<CacheKey, CacheValue> CACHE = new LinkedHashMap<CacheKey, CacheValue>() {
+
+        private static final long serialVersionUID = 1L;
+
+        @Override
+        protected boolean removeEldestEntry(java.util.Map.Entry<CacheKey, CacheValue> eldest) {
+            return size() > 100;
+        }
+
     };
 
     private final int function;
@@ -57,20 +130,12 @@ public final class DateTimeFormatFunction extends FunctionN {
             tz = locale = null;
         }
         switch (function) {
-        case FORMATDATETIME: {
-            if (v1 instanceof ValueTimestampTimeZone) {
-                tz = DateTimeUtils
-                        .timeZoneNameFromOffsetSeconds(((ValueTimestampTimeZone) v1).getTimeZoneOffsetSeconds());
-            }
-            v1 = ValueVarchar.get(
-                    formatDateTime(LegacyDateTimeUtils.toTimestamp(session, null, v1), format, locale, tz), session);
+        case FORMATDATETIME:
+            v1 = ValueVarchar.get(formatDateTime(session, v1, format, locale, tz));
             break;
-        }
-        case PARSEDATETIME: {
-            v1 = LegacyDateTimeUtils.fromTimestamp(session, parseDateTime(v1.getString(), format, locale, tz) //
-                    .getTime(), 0);
+        case PARSEDATETIME:
+            v1 = parseDateTime(session, v1.getString(), format, locale, tz);
             break;
-        }
         default:
             throw DbException.getInternalError("function=" + function);
         }
@@ -80,6 +145,8 @@ public final class DateTimeFormatFunction extends FunctionN {
     /**
      * Formats a date using a format string.
      *
+     * @param session
+     *            the session
      * @param date
      *            the date to format
      * @param format
@@ -87,19 +154,36 @@ public final class DateTimeFormatFunction extends FunctionN {
      * @param locale
      *            the locale
      * @param timeZone
-     *            the timezone
+     *            the time zone
      * @return the formatted date
      */
-    public static String formatDateTime(java.util.Date date, String format, String locale, String timeZone) {
-        SimpleDateFormat dateFormat = getDateFormat(format, locale, timeZone);
-        synchronized (dateFormat) {
-            return dateFormat.format(date);
+    public static String formatDateTime(SessionLocal session, Value date, String format, String locale,
+            String timeZone) {
+        CacheValue formatAndZone = getDateFormat(format, locale, timeZone);
+        ZoneId zoneId = formatAndZone.zoneId;
+        TemporalAccessor value;
+        if (date instanceof ValueTimestampTimeZone) {
+            OffsetDateTime dateTime = JSR310Utils.valueToOffsetDateTime(date, session);
+            ZoneId zoneToSet;
+            if (zoneId != null) {
+                zoneToSet = zoneId;
+            } else {
+                ZoneOffset offset = dateTime.getOffset();
+                zoneToSet = ZoneId.ofOffset(offset.getTotalSeconds() == 0 ? "UTC" : "GMT", offset);
+            }
+            value = dateTime.atZoneSameInstant(zoneToSet);
+        } else {
+            LocalDateTime dateTime = JSR310Utils.valueToLocalDateTime(date, session);
+            value = dateTime.atZone(zoneId != null ? zoneId : ZoneId.of(session.currentTimeZone().getId()));
         }
+        return formatAndZone.formatter.format(value);
     }
 
     /**
      * Parses a date using a format string.
      *
+     * @param session
+     *            the session
      * @param date
      *            the date to parse
      * @param format
@@ -107,38 +191,98 @@ public final class DateTimeFormatFunction extends FunctionN {
      * @param locale
      *            the locale
      * @param timeZone
-     *            the timeZone
+     *            the time zone
      * @return the parsed date
      */
-    public static java.util.Date parseDateTime(String date, String format, String locale, String timeZone) {
-        SimpleDateFormat dateFormat = getDateFormat(format, locale, timeZone);
+    public static ValueTimestampTimeZone parseDateTime(SessionLocal session, String date, String format, String locale,
+            String timeZone) {
+        CacheValue formatAndZone = getDateFormat(format, locale, timeZone);
         try {
-            synchronized (dateFormat) {
-                return dateFormat.parse(date);
+            ValueTimestampTimeZone result;
+            TemporalAccessor parsed = formatAndZone.formatter.parse(date);
+            ZoneId parsedZoneId = parsed.query(TemporalQueries.zoneId());
+            if (parsed.isSupported(ChronoField.OFFSET_SECONDS)) {
+                result = JSR310Utils.offsetDateTimeToValue(OffsetDateTime.from(parsed));
+            } else {
+                if (parsed.isSupported(ChronoField.INSTANT_SECONDS)) {
+                    Instant instant = Instant.from(parsed);
+                    if (parsedZoneId == null) {
+                        parsedZoneId = formatAndZone.zoneId;
+                    }
+                    if (parsedZoneId != null) {
+                        result = JSR310Utils.zonedDateTimeToValue(instant.atZone(parsedZoneId));
+                    } else {
+                        result = JSR310Utils.offsetDateTimeToValue(instant.atOffset(ZoneOffset.ofTotalSeconds( //
+                                session.currentTimeZone().getTimeZoneOffsetUTC(instant.getEpochSecond()))));
+                    }
+                } else {
+                    LocalDate localDate = parsed.query(TemporalQueries.localDate());
+                    LocalTime localTime = parsed.query(TemporalQueries.localTime());
+                    if (parsedZoneId == null) {
+                        parsedZoneId = formatAndZone.zoneId;
+                    }
+                    if (localDate != null) {
+                        LocalDateTime localDateTime = localTime != null ? LocalDateTime.of(localDate, localTime)
+                                : localDate.atStartOfDay();
+                        result = parsedZoneId != null
+                                ? JSR310Utils.zonedDateTimeToValue(localDateTime.atZone(parsedZoneId))
+                                : (ValueTimestampTimeZone) JSR310Utils.localDateTimeToValue(localDateTime)
+                                        .convertTo(Value.TIMESTAMP_TZ, session);
+                    } else {
+                        result = parsedZoneId != null
+                                ? JSR310Utils.zonedDateTimeToValue(
+                                        JSR310Utils.valueToInstant(session.currentTimestamp(), session)
+                                                .atZone(parsedZoneId).with(localTime))
+                                : (ValueTimestampTimeZone) ValueTime.fromNanos(localTime.toNanoOfDay())
+                                        .convertTo(Value.TIMESTAMP_TZ, session);
+                    }
+                }
             }
-        } catch (Exception e) {
-            // ParseException
+            return result;
+        } catch (RuntimeException e) {
             throw DbException.get(ErrorCode.PARSE_ERROR_1, e, date);
         }
     }
 
-    private static SimpleDateFormat getDateFormat(String format, String locale, String timeZone) {
+    private static CacheValue getDateFormat(String format, String locale, String timeZone) {
+        Exception ex = null;
+        if (format.length() <= 100) {
+            try {
+                CacheValue value;
+                CacheKey key = new CacheKey(format, locale, timeZone);
+                synchronized (CACHE) {
+                    value = CACHE.get(key);
+                    if (value == null) {
+                        DateTimeFormatter df;
+                        if (locale == null) {
+                            df = DateTimeFormatter.ofPattern(format);
+                        } else {
+                            df = DateTimeFormatter.ofPattern(format, new Locale(locale));
+                        }
+                        ZoneId zoneId;
+                        if (timeZone != null) {
+                            zoneId = getZoneId(timeZone);
+                            df.withZone(zoneId);
+                        } else {
+                            zoneId = null;
+                        }
+                        value = new CacheValue(df, zoneId);
+                        CACHE.put(key, value);
+                    }
+                }
+                return value;
+            } catch (Exception e) {
+                ex = e;
+            }
+        }
+        throw DbException.get(ErrorCode.PARSE_ERROR_1, ex, format + '/' + locale);
+    }
+
+    private static ZoneId getZoneId(String timeZone) {
         try {
-            // currently, a new instance is create for each call
-            // however, could cache the last few instances
-            SimpleDateFormat df;
-            if (locale == null) {
-                df = new SimpleDateFormat(format);
-            } else {
-                Locale l = new Locale(locale);
-                df = new SimpleDateFormat(format, l);
-            }
-            if (timeZone != null) {
-                df.setTimeZone(TimeZone.getTimeZone(timeZone));
-            }
-            return df;
-        } catch (Exception e) {
-            throw DbException.get(ErrorCode.PARSE_ERROR_1, e, format + '/' + locale + '/' + timeZone);
+            return ZoneId.of(timeZone, ZoneId.SHORT_IDS);
+        } catch (RuntimeException e) {
+            throw DbException.getInvalidValueException("TIME ZONE", timeZone);
         }
     }
 
@@ -150,7 +294,7 @@ public final class DateTimeFormatFunction extends FunctionN {
             type = TypeInfo.TYPE_VARCHAR;
             break;
         case PARSEDATETIME:
-            type = TypeInfo.TYPE_TIMESTAMP;
+            type = TypeInfo.TYPE_TIMESTAMP_TZ;
             break;
         default:
             throw DbException.getInternalError("function=" + function);

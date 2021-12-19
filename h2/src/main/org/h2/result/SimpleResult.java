@@ -74,20 +74,38 @@ public class SimpleResult implements ResultInterface, ResultTarget {
 
     private final ArrayList<Value[]> rows;
 
+    private final String schemaName, tableName;
+
     private int rowId;
 
     /**
      * Creates new instance of simple result.
      */
     public SimpleResult() {
+        this("", "");
+    }
+
+    /**
+     * Creates new instance of simple result.
+     *
+     * @param schemaName
+     *            the name of the schema
+     * @param tableName
+     *            the name of the table
+     */
+    public SimpleResult(String schemaName, String tableName) {
         this.columns = Utils.newSmallArrayList();
         this.rows = new ArrayList<>();
+        this.schemaName = schemaName;
+        this.tableName = tableName;
         this.rowId = -1;
     }
 
-    private SimpleResult(ArrayList<Column> columns, ArrayList<Value[]> rows) {
+    private SimpleResult(ArrayList<Column> columns, ArrayList<Value[]> rows, String schemaName, String tableName) {
         this.columns = columns;
         this.rows = rows;
+        this.schemaName = schemaName;
+        this.tableName = tableName;
         this.rowId = -1;
     }
 
@@ -213,12 +231,12 @@ public class SimpleResult implements ResultInterface, ResultTarget {
 
     @Override
     public String getSchemaName(int i) {
-        return "";
+        return schemaName;
     }
 
     @Override
     public String getTableName(int i) {
-        return "";
+        return tableName;
     }
 
     @Override
@@ -263,7 +281,7 @@ public class SimpleResult implements ResultInterface, ResultTarget {
 
     @Override
     public SimpleResult createShallowCopy(Session targetSession) {
-        return new SimpleResult(columns, rows);
+        return new SimpleResult(columns, rows, schemaName, tableName);
     }
 
     @Override

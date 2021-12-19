@@ -938,16 +938,20 @@ public abstract class Table extends SchemaObject {
      *
      * @param session the session
      * @param row the row
+     * @param fromTrigger {@code true} if row was modified by INSERT or UPDATE trigger
      */
-    public void convertUpdateRow(SessionLocal session, Row row) {
+    public void convertUpdateRow(SessionLocal session, Row row, boolean fromTrigger) {
         int length = columns.length, generated = 0;
         for (int i = 0; i < length; i++) {
             Value value = row.getValue(i);
             Column column = columns[i];
             if (column.isGenerated()) {
                 if (value != null) {
-                    throw DbException.get(ErrorCode.GENERATED_COLUMN_CANNOT_BE_ASSIGNED_1,
-                            column.getSQLWithTable(new StringBuilder(), TRACE_SQL_FLAGS).toString());
+                    if (!fromTrigger) {
+                        throw DbException.get(ErrorCode.GENERATED_COLUMN_CANNOT_BE_ASSIGNED_1,
+                                column.getSQLWithTable(new StringBuilder(), TRACE_SQL_FLAGS).toString());
+                    }
+                    row.setValue(i, null);
                 }
                 generated++;
                 continue;

@@ -370,7 +370,7 @@ public final class ValueToObjectConverter extends TraceObject {
             return new JdbcSQLXML(conn, value, JdbcLob.State.WITH_VALUE, getNextId(TraceObject.SQLXML));
         } else if (type == ResultSet.class) {
             return new JdbcResultSet(conn, null, null, value.convertToAnyRow().getResult(),
-                    getNextId(TraceObject.RESULT_SET), true, false);
+                    getNextId(TraceObject.RESULT_SET), true, false, false);
         } else {
             Object obj = LegacyDateTimeUtils.valueToLegacyType(type, value, conn);
             if (obj != null) {
@@ -575,7 +575,7 @@ public final class ValueToObjectConverter extends TraceObject {
         case Value.ROW:
             if (forJdbc) {
                 return new JdbcResultSet(conn, null, null, ((ValueRow) value).getResult(),
-                        getNextId(TraceObject.RESULT_SET), true, false);
+                        getNextId(TraceObject.RESULT_SET), true, false, false);
             }
             return valueToDefaultArray(value, conn, forJdbc);
         default:

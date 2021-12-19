@@ -137,7 +137,7 @@ public final class SetClauseList implements HasSQL {
             newRow.setValue(i, newValue);
         }
         newRow.setKey(oldRow.getKey());
-        table.convertUpdateRow(session, newRow);
+        table.convertUpdateRow(session, newRow, false);
         boolean result = true;
         if (onUpdate) {
             if (!oldRow.hasSameValues(newRow)) {
@@ -150,7 +150,7 @@ public final class SetClauseList implements HasSQL {
                 }
                 // Convert on update expressions and reevaluate
                 // generated columns
-                table.convertUpdateRow(session, newRow);
+                table.convertUpdateRow(session, newRow, false);
             } else if (updateToCurrentValuesReturnsZero) {
                 result = false;
             }

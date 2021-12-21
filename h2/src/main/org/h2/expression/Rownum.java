@@ -19,6 +19,8 @@ public final class Rownum extends Operation0 {
 
     private final Prepared prepared;
 
+    private boolean singleRow;
+
     public Rownum(Prepared prepared) {
         if (prepared == null) {
             throw DbException.getInternalError();
@@ -42,6 +44,11 @@ public final class Rownum extends Operation0 {
     }
 
     @Override
+    public Expression optimize(SessionLocal session) {
+        return singleRow ? ValueExpression.get(ValueBigint.get(1L)) : this;
+    }
+
+    @Override
     public boolean isEverything(ExpressionVisitor visitor) {
         switch (visitor.getType()) {
         case ExpressionVisitor.QUERY_COMPARABLE:
@@ -49,8 +56,12 @@ public final class Rownum extends Operation0 {
         case ExpressionVisitor.DETERMINISTIC:
         case ExpressionVisitor.INDEPENDENT:
         case ExpressionVisitor.EVALUATABLE:
-        case ExpressionVisitor.DECREMENT_QUERY_LEVEL:
             return false;
+        case ExpressionVisitor.DECREMENT_QUERY_LEVEL:
+            if (visitor.getQueryLevel() > 0) {
+                singleRow = true;
+            }
+            //$FALL-THROUGH$
         default:
             return true;
         }

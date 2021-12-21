@@ -142,7 +142,7 @@ function editKeyDown(row, object, event) {
 
 function getInnerText(el) {
     if (typeof el == "string") return el;
-    if (typeof el == "undefined") { return el };
+    if (typeof el == "undefined") return el;
     if (el.innerText) {
         // not needed but it is faster
         return el.innerText;
@@ -175,7 +175,6 @@ function resortTable(link) {
             span = link.childNodes[ci];
         }
     }
-    var spantext = getInnerText(span);
     var td = link.parentNode;
     var column = td.cellIndex;
     var table = getParent(td,'TABLE');

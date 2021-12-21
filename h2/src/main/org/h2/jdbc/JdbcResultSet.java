@@ -31,6 +31,7 @@ import java.util.Map;
 
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
+import org.h2.engine.Session;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.message.TraceObject;
@@ -77,6 +78,7 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
 
     private final boolean scrollable;
     private final boolean updatable;
+    private final boolean triggerUpdatable;
     ResultInterface result;
     private JdbcConnection conn;
     private JdbcStatement stat;
@@ -90,7 +92,7 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
     private final CommandInterface command;
 
     public JdbcResultSet(JdbcConnection conn, JdbcStatement stat, CommandInterface command, ResultInterface result,
-            int id, boolean scrollable, boolean updatable) {
+            int id, boolean scrollable, boolean updatable, boolean triggerUpdatable) {
         setTrace(conn.getSession().getTrace(), TraceObject.RESULT_SET, id);
         this.conn = conn;
         this.stat = stat;
@@ -99,12 +101,13 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
         this.columnCount = result.getVisibleColumnCount();
         this.scrollable = scrollable;
         this.updatable = updatable;
+        this.triggerUpdatable = triggerUpdatable;
     }
 
     JdbcResultSet(JdbcConnection conn, JdbcPreparedStatement preparedStatement, CommandInterface command,
             ResultInterface result, int id, boolean scrollable, boolean updatable,
             HashMap<String, Integer> columnLabelMap) {
-        this(conn, preparedStatement, command, result, id, scrollable, updatable);
+        this(conn, preparedStatement, command, result, id, scrollable, updatable, false);
         this.columnLabelMap = columnLabelMap;
         this.preparedStatement = preparedStatement;
     }
@@ -1800,8 +1803,7 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
             if (isDebugEnabled()) {
                 debugCode("updateBigDecimal(" + columnIndex + ", " + quoteBigDecimal(x) + ')');
             }
-            update(checkColumnIndex(columnIndex), x == null ? ValueNull.INSTANCE
-            : ValueNumeric.get(x));
+            update(checkColumnIndex(columnIndex), x == null ? ValueNull.INSTANCE : ValueNumeric.getAnyScale(x));
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -1820,7 +1822,7 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
             if (isDebugEnabled()) {
                 debugCode("updateBigDecimal(" + quote(columnLabel) + ", " + quoteBigDecimal(x) + ')');
             }
-            update(getColumnIndex(columnLabel), x == null ? ValueNull.INSTANCE : ValueNumeric.get(x));
+            update(getColumnIndex(columnLabel), x == null ? ValueNull.INSTANCE : ValueNumeric.getAnyScale(x));
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -3573,7 +3575,9 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
     }
 
     private void update(int columnIndex, Value v) {
-        checkUpdatable();
+        if (!triggerUpdatable) {
+            checkUpdatable();
+        }
         if (insertRow != null) {
             insertRow[columnIndex - 1] = v;
         } else {
@@ -3585,12 +3589,24 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
     }
 
     private boolean nextRow() {
-        if (result.isLazy() && stat.isCancelled()) {
-            throw DbException.get(ErrorCode.STATEMENT_WAS_CANCELED);
-        }
-        boolean next = result.next();
+        boolean next = result.isLazy() ? nextLazyRow() : result.next();
         if (!next && !scrollable) {
             result.close();
+        }
+        return next;
+    }
+
+    private boolean nextLazyRow() {
+        Session session;
+        if (stat.isCancelled() || conn == null || (session = conn.getSession()) == null) {
+            throw DbException.get(ErrorCode.STATEMENT_WAS_CANCELED);
+        }
+        Session oldSession = session.setThreadLocalSession();
+        boolean next;
+        try {
+            next = result.next();
+        } finally {
+            session.resetThreadLocalSession(oldSession);
         }
         return next;
     }
@@ -4250,6 +4266,13 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
         if (!updatable) {
             throw DbException.get(ErrorCode.RESULT_SET_READONLY);
         }
+    }
+
+    /**
+     * INTERNAL
+     */
+    public Value[] getUpdateRow() {
+        return updateRow;
     }
 
 }

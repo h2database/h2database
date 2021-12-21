@@ -791,12 +791,12 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
         String separator = arguments.getEffectiveSeparator();
         return ValueVarchar
                 .get((arguments.getOnOverflowTruncate()
-                        ? getListaggTruncate(session, array, separator, arguments.getEffectiveFilter(),
+                        ? getListaggTruncate(array, separator, arguments.getEffectiveFilter(),
                                 arguments.isWithoutCount())
-                        : getListaggError(session, array, separator)).toString(), session);
+                        : getListaggError(array, separator)).toString(), session);
     }
 
-    private StringBuilder getListaggError(SessionLocal session, Value[] array, String separator) {
+    private StringBuilder getListaggError(Value[] array, String separator) {
         StringBuilder builder = new StringBuilder(getListaggItem(array[0]));
         for (int i = 1, count = array.length; i < count; i++) {
             builder.append(separator).append(getListaggItem(array[i]));
@@ -807,7 +807,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
         return builder;
     }
 
-    private StringBuilder getListaggTruncate(SessionLocal session, Value[] array, String separator, String filter,
+    private StringBuilder getListaggTruncate(Value[] array, String separator, String filter,
             boolean withoutCount) {
         int count = array.length;
         String[] strings = new String[count];

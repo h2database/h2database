@@ -450,14 +450,6 @@ public class Set extends Prepared {
             session.setThrottle(value);
             break;
         }
-        case SetTypes.UNDO_LOG: {
-            int value = getIntValue();
-            if (value < 0 || value > 1) {
-                throw DbException.getInvalidValueException("UNDO_LOG", value);
-            }
-            session.setUndoLogEnabled(value == 1);
-            break;
-        }
         case SetTypes.VARIABLE: {
             Expression expr = expression.optimize(session);
             session.setVariable(stringValue, expr.getValue(session));
@@ -590,7 +582,7 @@ public class Set extends Prepared {
             try {
                 timeZone = TimeZoneProvider.ofId(v.getString());
             } catch (IllegalArgumentException ex) {
-                throw DbException.getInvalidValueException("time zone", v.getTraceSQL());
+                throw DbException.getInvalidValueException("TIME ZONE", v.getTraceSQL());
             }
             return timeZone;
         } else if (v == ValueNull.INSTANCE) {

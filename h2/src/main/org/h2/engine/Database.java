@@ -5,7 +5,6 @@
  */
 package org.h2.engine;
 
-import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -466,9 +465,12 @@ public final class Database implements DataHandler, CastDataProvider {
 
     @Override
     public void checkPowerOff() {
-        if (powerOffCount == 0) {
-            return;
+        if (powerOffCount != 0) {
+            checkPowerOff2();
         }
+    }
+
+    private void checkPowerOff2() {
         if (powerOffCount > 1) {
             powerOffCount--;
             return;
@@ -1540,24 +1542,6 @@ public final class Database implements DataHandler, CastDataProvider {
         updateMetaAndFirstLevelChildren(session, obj);
     }
 
-    /**
-     * Create a temporary file in the database folder.
-     *
-     * @return the file name
-     */
-    public String createTempFile() {
-        try {
-            boolean inTempDir = readOnly;
-            String name = databaseName;
-            if (!persistent) {
-                name = "memFS:" + name;
-            }
-            return FileUtils.createTempFile(name, Constants.SUFFIX_TEMP_FILE, inTempDir);
-        } catch (IOException e) {
-            throw DbException.convertIOException(e, databaseName);
-        }
-    }
-
     private void deleteOldTempFiles() {
         String path = FileUtils.getParent(databaseName);
         for (String name : FileUtils.newDirectoryStream(path)) {
@@ -2460,13 +2444,19 @@ public final class Database implements DataHandler, CastDataProvider {
 
     @Override
     public ValueTimestampTimeZone currentTimestamp() {
-        // This method should not be reachable
+        Session session = SessionLocal.getThreadLocalSession();
+        if (session != null) {
+            return session.currentTimestamp();
+        }
         throw DbException.getUnsupportedException("Unsafe comparison or cast");
     }
 
     @Override
     public TimeZoneProvider currentTimeZone() {
-        // This method should not be reachable
+        Session session = SessionLocal.getThreadLocalSession();
+        if (session != null) {
+            return session.currentTimeZone();
+        }
         throw DbException.getUnsupportedException("Unsafe comparison or cast");
     }
 

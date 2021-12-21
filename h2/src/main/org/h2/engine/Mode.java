@@ -435,6 +435,11 @@ public class Mode {
      */
     public boolean groupByColumnIndex;
 
+    /**
+     * Allow to compare numeric with BOOLEAN.
+     */
+    public boolean numericWithBooleanComparison;
+
     private final String name;
 
     private final ModeEnum modeEnum;
@@ -465,6 +470,7 @@ public class Mode {
         mode.expressionNames = ExpressionNames.NUMBER;
         mode.viewExpressionNames = ViewExpressionNames.EXCEPTION;
         mode.limit = true;
+        mode.numericWithBooleanComparison = true;
         add(mode);
 
         mode = new Mode(ModeEnum.Derby);
@@ -489,6 +495,7 @@ public class Mode {
         mode.expressionNames = ExpressionNames.C_NUMBER;
         mode.topInSelect = true;
         mode.limit = true;
+        mode.numericWithBooleanComparison = true;
         add(mode);
 
         mode = new Mode(ModeEnum.MSSQLServer);
@@ -523,6 +530,7 @@ public class Mode {
         mode.topInSelect = true;
         mode.topInDML = true;
         mode.identityClause = true;
+        mode.numericWithBooleanComparison = true;
         add(mode);
 
         mode = new Mode(ModeEnum.MariaDB);
@@ -548,6 +556,7 @@ public class Mode {
         mode.autoIncrementClause = true;
         mode.typeByNameMap.put("YEAR", DataType.getDataType(Value.SMALLINT));
         mode.groupByColumnIndex = true;
+        mode.numericWithBooleanComparison = true;
         add(mode);
 
         mode = new Mode(ModeEnum.MySQL);
@@ -576,6 +585,7 @@ public class Mode {
         mode.autoIncrementClause = true;
         mode.typeByNameMap.put("YEAR", DataType.getDataType(Value.SMALLINT));
         mode.groupByColumnIndex = true;
+        mode.numericWithBooleanComparison = true;
         add(mode);
 
         mode = new Mode(ModeEnum.Oracle);

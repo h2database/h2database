@@ -7235,6 +7235,14 @@ public class Parser {
                 original = "NCHAR LARGE OBJECT";
             }
             break;
+        case "NUMBER":
+            if (database.getMode().disallowedTypes.contains("NUMBER")) {
+                throw DbException.get(ErrorCode.UNKNOWN_DATA_TYPE_1, "NUMBER");
+            }
+            if (!isToken(OPEN_PAREN)) {
+                return TypeInfo.getTypeInfo(Value.DECFLOAT, 40, -1, null);
+            }
+            //$FALL-THROUGH$
         case "NUMERIC":
             return parseNumericType(false);
         case "SMALLDATETIME":
@@ -9621,8 +9629,7 @@ public class Parser {
             command.setSelectivity(readExpression());
             return command;
         }
-        Prepared command = parseAlterTableAlterColumnIdentity(schema, tableName, ifTableExists, ifExists, columnName,
-                column);
+        Prepared command = parseAlterTableAlterColumnIdentity(schema, tableName, ifTableExists, column);
         if (command != null) {
             return command;
         }
@@ -9644,7 +9651,7 @@ public class Parser {
     }
 
     private Prepared parseAlterTableAlterColumnIdentity(Schema schema, String tableName, boolean ifTableExists,
-            boolean ifExists, String columnName, Column column) {
+            Column column) {
         int index = lastParseIndex;
         Boolean always = null;
         if (readIf(SET) && readIf("GENERATED")) {

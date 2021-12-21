@@ -2613,7 +2613,7 @@ public final class JdbcDatabaseMetaData extends TraceObject
         }
         int id = getNextId(TraceObject.RESULT_SET);
         debugCodeAssign("ResultSet", TraceObject.RESULT_SET, id, "getClientInfoProperties()");
-        return new JdbcResultSet(conn, null, null, result, id, true, false);
+        return new JdbcResultSet(conn, null, null, result, id, true, false, false);
     }
 
     /**
@@ -2746,7 +2746,7 @@ public final class JdbcDatabaseMetaData extends TraceObject
     }
 
     private JdbcResultSet getResultSet(ResultInterface result) {
-        return new JdbcResultSet(conn, null, null, result, getNextId(TraceObject.RESULT_SET), false, false);
+        return new JdbcResultSet(conn, null, null, result, getNextId(TraceObject.RESULT_SET), true, false, false);
     }
 
 }

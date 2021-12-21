@@ -5,7 +5,6 @@
  */
 package org.h2.mvstore.db;
 
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicLong;
@@ -21,6 +20,7 @@ import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStoreException;
 import org.h2.mvstore.tx.Transaction;
 import org.h2.mvstore.tx.TransactionMap;
+import org.h2.mvstore.tx.TransactionMap.TMIterator;
 import org.h2.mvstore.type.LongDataType;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
@@ -314,13 +314,9 @@ public class MVPrimaryIndex extends MVIndex<Long, SearchRow> {
 
     @Override
     public Cursor findFirstOrLast(SessionLocal session, boolean first) {
-        TransactionMap<Long,SearchRow> map = getMap(session);
-        Long rowId = first ? map.firstKey() : map.lastKey();
-        Row row = null;
-        if (rowId != null) {
-            row = setRowKey((Row) map.getFromSnapshot(rowId), rowId);
-        }
-        return new SingleRowCursor(row);
+        TransactionMap<Long, SearchRow> map = getMap(session);
+        Entry<Long, SearchRow> entry = first ? map.firstEntry() : map.lastEntry();
+        return new SingleRowCursor(entry != null ? setRowKey((Row) entry.getValue(), entry.getKey()) : null);
     }
 
     @Override
@@ -410,11 +406,11 @@ public class MVPrimaryIndex extends MVIndex<Long, SearchRow> {
      */
     static final class MVStoreCursor implements Cursor {
 
-        private final Iterator<Entry<Long,SearchRow>> it;
-        private Entry<Long,SearchRow> current;
+        private final TMIterator<Long, SearchRow, Entry<Long, SearchRow>> it;
+        private Entry<Long, SearchRow> current;
         private Row row;
 
-        public MVStoreCursor(Iterator<Entry<Long,SearchRow>> it) {
+        public MVStoreCursor(TMIterator<Long, SearchRow, Entry<Long, SearchRow>> it) {
             this.it = it;
         }
 
@@ -438,7 +434,7 @@ public class MVPrimaryIndex extends MVIndex<Long, SearchRow> {
 
         @Override
         public boolean next() {
-            current = it.hasNext() ? it.next() : null;
+            current = it.fetchNext();
             row = null;
             return current != null;
         }

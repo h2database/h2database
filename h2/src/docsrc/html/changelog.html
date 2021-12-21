@@ -21,11 +21,37 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul>
+<li>Issue #3287: SELECT statement works on 1.4.200 but fails on 2.0.202 with "Column XYZ must be in the GROUP BY list"
+</li>
+<li>PR #3284: Remove unused UNDO_LOG setting
+</li>
+<li>Issue #3251: Table with GEOMETRY column can't have a TriggerAdapter-based trigger any more
+</li>
+<li>PR #3281: DateTimeFormatter-based FORMATDATETIME and PARSEDATETIME and other changes
+</li>
+<li>Issue #3246: Spatial predicates with comparison are broken in MySQL compatibility mode
+</li>
+<li>Issue #3270: org.h2.jdbc.JdbcSQLFeatureNotSupportedException: Feature not supported: "Unsafe comparison or cast"
+</li>
+<li>Issue #3268 / PR #3275: Add TO_DATE and TO_TIMESTAMP to PostgreSQL compatibility mode
+</li>
+<li>PR #3274: Remove some dead code and unused params
+</li>
+<li>Issue #3266: Oracle compatibility NUMBER without precision and scale should have variable scale
+</li>
+<li>Issue #3263: Unable to store BigDecimal with negative scale in NUMERIC(19,6) column
+</li>
+<li>PR #3261: Small optimization for MIN and MAX
+</li>
+<li>Issue #3258 / PR #3259: Prevent incorrect optimization of COUNT(*) and other changes
+</li>
+<li>PR #3255: Throw proper exception when type of argument isn't known
+</li>
 <li>Issue #3249: Multi-column assignment with subquery throws exception when subquery doesn't return any rows
 </li>
 <li>PR #3248: Remove redundant uniqueness check, correct version in pom
 </li>
-<li>PR #3247: Avoid AIOB exception in TestCrashAPI and in Transaction
+<li>PR #3247: Avoid AIOBE exception in TestCrashAPI and in Transaction
 </li>
 <li>Issue #3241: ResultSetMetaData::getColumnTypeName should produce the correct ARRAY type
 </li>

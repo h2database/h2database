@@ -46,6 +46,7 @@ public class TestTriggersConstraints extends TestDb implements Trigger {
     @Override
     public void test() throws Exception {
         deleteDb("trigger");
+        testWrongDataType();
         testTriggerDeadlock();
         testTriggerAdapter();
         testTriggerSelectEachRow();
@@ -71,6 +72,76 @@ public class TestTriggersConstraints extends TestDb implements Trigger {
         public void fire(Connection conn, ResultSet oldRow, ResultSet newRow)
                 throws SQLException {
             conn.createStatement().execute("delete from test");
+        }
+    }
+
+    /**
+     * Trigger that sets value of the wrong data type.
+     */
+    public static class WrongTrigger implements Trigger {
+        @Override
+        public void fire(Connection conn, Object[] oldRow, Object[] newRow) throws SQLException {
+            newRow[1] = "Wrong value";
+        }
+    }
+
+    /**
+     * Trigger that sets value of the wrong data type.
+     */
+    public static class WrongTriggerAdapter extends TriggerAdapter {
+        @Override
+        public void fire(Connection conn, ResultSet oldRow, ResultSet newRow) throws SQLException {
+            newRow.updateString(2, "Wrong value");
+        }
+    }
+
+    /**
+     * Trigger that sets null value.
+     */
+    public static class NullTrigger implements Trigger {
+        @Override
+        public void fire(Connection conn, Object[] oldRow, Object[] newRow) throws SQLException {
+            newRow[1] = null;
+        }
+    }
+
+    /**
+     * Trigger that sets null value.
+     */
+    public static class NullTriggerAdapter extends TriggerAdapter {
+        @Override
+        public void fire(Connection conn, ResultSet oldRow, ResultSet newRow) throws SQLException {
+            newRow.updateNull(2);
+        }
+    }
+
+    private void testWrongDataType() throws Exception {
+        try (Connection conn = getConnection("trigger")) {
+            Statement stat = conn.createStatement();
+            stat.executeUpdate("CREATE TABLE TEST(A INTEGER, B INTEGER NOT NULL)");
+            PreparedStatement prep = conn.prepareStatement("INSERT INTO TEST VALUES (1, 2)");
+
+            stat.executeUpdate("CREATE TRIGGER TEST_TRIGGER BEFORE INSERT ON TEST FOR EACH ROW CALL '"
+                    + WrongTrigger.class.getName() + '\'');
+            assertThrows(ErrorCode.DATA_CONVERSION_ERROR_1, prep).executeUpdate();
+            stat.executeUpdate("DROP TRIGGER TEST_TRIGGER");
+
+            stat.executeUpdate("CREATE TRIGGER TEST_TRIGGER BEFORE INSERT ON TEST FOR EACH ROW CALL '"
+                    + WrongTriggerAdapter.class.getName() + '\'');
+            assertThrows(ErrorCode.DATA_CONVERSION_ERROR_1, prep).executeUpdate();
+            stat.executeUpdate("DROP TRIGGER TEST_TRIGGER");
+
+            stat.executeUpdate("CREATE TRIGGER TEST_TRIGGER BEFORE INSERT ON TEST FOR EACH ROW CALL '"
+                    + NullTrigger.class.getName() + '\'');
+            assertThrows(ErrorCode.NULL_NOT_ALLOWED, prep).executeUpdate();
+            stat.executeUpdate("DROP TRIGGER TEST_TRIGGER");
+
+            stat.executeUpdate("CREATE TRIGGER TEST_TRIGGER BEFORE INSERT ON TEST FOR EACH ROW CALL '"
+                    + NullTriggerAdapter.class.getName() + '\'');
+            assertThrows(ErrorCode.NULL_NOT_ALLOWED, prep).executeUpdate();
+            stat.executeUpdate("DROP TRIGGER TEST_TRIGGER");
+
+            stat.executeUpdate("DROP TABLE TEST");
         }
     }
 

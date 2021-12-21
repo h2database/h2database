@@ -142,6 +142,7 @@ public abstract class Query extends Prepared {
     private long lastLimit;
     private long lastEvaluated;
     private ResultInterface lastResult;
+    private Boolean lastExists;
     private Value[] lastParameters;
     private boolean cacheableChecked;
     private boolean neverLazy;
@@ -492,7 +493,8 @@ public abstract class Query extends Prepared {
         closeLastResult();
         ResultInterface r = queryWithoutCacheLazyCheck(limit, target);
         lastResult = r;
-        this.lastEvaluated = now;
+        lastExists = null;
+        lastEvaluated = now;
         lastLimit = limit;
         return r;
     }
@@ -501,6 +503,45 @@ public abstract class Query extends Prepared {
         if (lastResult != null) {
             lastResult.close();
         }
+    }
+
+    /**
+     * Execute the EXISTS predicate over the query.
+     *
+     * @return EXISTS predicate result
+     */
+    public final boolean exists() {
+        if (isUnion()) {
+            // union doesn't always know the parameter list of the left and
+            // right queries
+            return executeExists();
+        }
+        fireBeforeSelectTriggers();
+        if (noCache || !session.getDatabase().getOptimizeReuseResults()) {
+            return executeExists();
+        }
+        Value[] params = getParameterValues();
+        long now = session.getDatabase().getModificationDataId();
+        if (isEverything(ExpressionVisitor.DETERMINISTIC_VISITOR)) {
+            if (lastExists != null) {
+                if (sameResultAsLast(params, lastParameters, lastEvaluated)) {
+                    return lastExists;
+                }
+            }
+        }
+        lastParameters = params;
+        boolean exists = executeExists();
+        lastExists = exists;
+        lastResult = null;
+        lastEvaluated = now;
+        return exists;
+    }
+
+    private boolean executeExists() {
+        ResultInterface r = queryWithoutCacheLazyCheck(1L, null);
+        boolean exists = r.hasNext();
+        r.close();
+        return exists;
     }
 
     /**

@@ -117,26 +117,26 @@ public final class ValueToObjectConverter extends TraceObject {
         } else if (clazz == Character.class) {
             return ValueChar.get(((Character) x).toString());
         } else if (clazz == LocalDate.class) {
-            return JSR310Utils.localDateToValue(x);
+            return JSR310Utils.localDateToValue((LocalDate) x);
         } else if (clazz == LocalTime.class) {
-            return JSR310Utils.localTimeToValue(x);
+            return JSR310Utils.localTimeToValue((LocalTime) x);
         } else if (clazz == LocalDateTime.class) {
-            return JSR310Utils.localDateTimeToValue(x);
+            return JSR310Utils.localDateTimeToValue((LocalDateTime) x);
         } else if (clazz == Instant.class) {
-            return JSR310Utils.instantToValue(x);
+            return JSR310Utils.instantToValue((Instant) x);
         } else if (clazz == OffsetTime.class) {
-            return JSR310Utils.offsetTimeToValue(x);
+            return JSR310Utils.offsetTimeToValue((OffsetTime) x);
         } else if (clazz == OffsetDateTime.class) {
-            return JSR310Utils.offsetDateTimeToValue(x);
+            return JSR310Utils.offsetDateTimeToValue((OffsetDateTime) x);
         } else if (clazz == ZonedDateTime.class) {
-            return JSR310Utils.zonedDateTimeToValue(x);
+            return JSR310Utils.zonedDateTimeToValue((ZonedDateTime) x);
         } else if (clazz == Interval.class) {
             Interval i = (Interval) x;
             return ValueInterval.from(i.getQualifier(), i.isNegative(), i.getLeading(), i.getRemaining());
         } else if (clazz == Period.class) {
-            return JSR310Utils.periodToValue(x);
+            return JSR310Utils.periodToValue((Period) x);
         } else if (clazz == Duration.class) {
-            return JSR310Utils.durationToValue(x);
+            return JSR310Utils.durationToValue((Duration) x);
         }
         if (x instanceof Object[]) {
             return arrayToValue(session, x);
@@ -145,7 +145,7 @@ public final class ValueToObjectConverter extends TraceObject {
         } else if (x instanceof BigInteger) {
             return ValueNumeric.get((BigInteger) x);
         } else if (x instanceof BigDecimal) {
-            return ValueNumeric.get((BigDecimal) x);
+            return ValueNumeric.getAnyScale((BigDecimal) x);
         } else {
             return otherToValue(session, x);
         }
@@ -370,7 +370,7 @@ public final class ValueToObjectConverter extends TraceObject {
             return new JdbcSQLXML(conn, value, JdbcLob.State.WITH_VALUE, getNextId(TraceObject.SQLXML));
         } else if (type == ResultSet.class) {
             return new JdbcResultSet(conn, null, null, value.convertToAnyRow().getResult(),
-                    getNextId(TraceObject.RESULT_SET), true, false);
+                    getNextId(TraceObject.RESULT_SET), true, false, false);
         } else {
             Object obj = LegacyDateTimeUtils.valueToLegacyType(type, value, conn);
             if (obj != null) {
@@ -575,7 +575,7 @@ public final class ValueToObjectConverter extends TraceObject {
         case Value.ROW:
             if (forJdbc) {
                 return new JdbcResultSet(conn, null, null, ((ValueRow) value).getResult(),
-                        getNextId(TraceObject.RESULT_SET), true, false);
+                        getNextId(TraceObject.RESULT_SET), true, false, false);
             }
             return valueToDefaultArray(value, conn, forJdbc);
         default:

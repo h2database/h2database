@@ -17,7 +17,7 @@ import org.h2.table.TableFilter;
  * The visitor pattern is used to iterate through all expressions of a query
  * to optimize a statement.
  */
-public class ExpressionVisitor {
+public final class ExpressionVisitor {
 
     /**
      * Is the value independent on unset parameters or on columns of a higher
@@ -148,42 +148,33 @@ public class ExpressionVisitor {
     public static final ExpressionVisitor QUERY_COMPARABLE_VISITOR =
             new ExpressionVisitor(QUERY_COMPARABLE);
 
-    /**
-     * The visitor singleton for the type DECREMENT_QUERY_LEVEL.
-     */
-    public static final ExpressionVisitor DECREMENT_QUERY_LEVEL_VISITOR = new ExpressionVisitor(DECREMENT_QUERY_LEVEL);
-
     private final int type;
     private final int queryLevel;
-    private final HashSet<DbObject> dependencies;
+    private final HashSet<?> set;
     private final AllColumnsForPlan columns1;
     private final Table table;
     private final long[] maxDataModificationId;
     private final ColumnResolver resolver;
-    private final HashSet<Column> columns2;
 
     private ExpressionVisitor(int type,
             int queryLevel,
-            HashSet<DbObject> dependencies,
+            HashSet<?> set,
             AllColumnsForPlan columns1, Table table, ColumnResolver resolver,
-            long[] maxDataModificationId,
-            HashSet<Column> columns2) {
+            long[] maxDataModificationId) {
         this.type = type;
         this.queryLevel = queryLevel;
-        this.dependencies = dependencies;
+        this.set = set;
         this.columns1 = columns1;
         this.table = table;
         this.resolver = resolver;
         this.maxDataModificationId = maxDataModificationId;
-        this.columns2 = columns2;
     }
 
     private ExpressionVisitor(int type) {
         this.type = type;
         this.queryLevel = 0;
-        this.dependencies = null;
+        this.set = null;
         this.columns1 = null;
-        this.columns2 = null;
         this.table = null;
         this.resolver = null;
         this.maxDataModificationId = null;
@@ -192,9 +183,8 @@ public class ExpressionVisitor {
     private ExpressionVisitor(int type, int queryLevel) {
         this.type = type;
         this.queryLevel = queryLevel;
-        this.dependencies = null;
+        this.set = null;
         this.columns1 = null;
-        this.columns2 = null;
         this.table = null;
         this.resolver = null;
         this.maxDataModificationId = null;
@@ -209,7 +199,7 @@ public class ExpressionVisitor {
     public static ExpressionVisitor getDependenciesVisitor(
             HashSet<DbObject> dependencies) {
         return new ExpressionVisitor(GET_DEPENDENCIES, 0, dependencies, null,
-                null, null, null, null);
+                null, null, null);
     }
 
     /**
@@ -220,7 +210,7 @@ public class ExpressionVisitor {
      */
     public static ExpressionVisitor getOptimizableVisitor(Table table) {
         return new ExpressionVisitor(OPTIMIZABLE_AGGREGATE, 0, null,
-                null, table, null, null, null);
+                null, table, null, null);
     }
 
     /**
@@ -232,7 +222,7 @@ public class ExpressionVisitor {
      */
     public static ExpressionVisitor getNotFromResolverVisitor(ColumnResolver resolver) {
         return new ExpressionVisitor(NOT_FROM_RESOLVER, 0, null, null, null,
-                resolver, null, null);
+                resolver, null);
     }
 
     /**
@@ -242,7 +232,7 @@ public class ExpressionVisitor {
      * @return the new visitor
      */
     public static ExpressionVisitor getColumnsVisitor(AllColumnsForPlan columns) {
-        return new ExpressionVisitor(GET_COLUMNS1, 0, null, columns, null, null, null, null);
+        return new ExpressionVisitor(GET_COLUMNS1, 0, null, columns, null, null, null);
     }
 
     /**
@@ -253,12 +243,28 @@ public class ExpressionVisitor {
      * @return the new visitor
      */
     public static ExpressionVisitor getColumnsVisitor(HashSet<Column> columns, Table table) {
-        return new ExpressionVisitor(GET_COLUMNS2, 0, null, null, table, null, null, columns);
+        return new ExpressionVisitor(GET_COLUMNS2, 0, columns, null, table, null, null);
     }
 
     public static ExpressionVisitor getMaxModificationIdVisitor() {
         return new ExpressionVisitor(SET_MAX_DATA_MODIFICATION_ID, 0, null,
-                null, null, null, new long[1], null);
+                null, null, null, new long[1]);
+    }
+
+    /**
+     * Create a new visitor to decrement query level in columns with the
+     * specified resolvers.
+     *
+     * @param columnResolvers
+     *            column resolvers
+     * @param queryDecrement
+     *            0 to check whether operation is allowed, 1 to actually perform
+     *            the decrement
+     * @return the new visitor
+     */
+    public static ExpressionVisitor getDecrementQueryLevelVisitor(HashSet<ColumnResolver> columnResolvers,
+            int queryDecrement) {
+        return new ExpressionVisitor(DECREMENT_QUERY_LEVEL, queryDecrement, columnResolvers, null, null, null, null);
     }
 
     /**
@@ -267,8 +273,9 @@ public class ExpressionVisitor {
      *
      * @param obj the additional dependency.
      */
+    @SuppressWarnings("unchecked")
     public void addDependency(DbObject obj) {
-        dependencies.add(obj);
+        ((HashSet<DbObject>) set).add(obj);
     }
 
     /**
@@ -287,9 +294,10 @@ public class ExpressionVisitor {
      *
      * @param column the additional column.
      */
+    @SuppressWarnings("unchecked")
     void addColumn2(Column column) {
         if (table == null || table == column.getTable()) {
-            columns2.add(column);
+            ((HashSet<Column>) set).add(column);
         }
     }
 
@@ -299,8 +307,9 @@ public class ExpressionVisitor {
      *
      * @return the set
      */
+    @SuppressWarnings("unchecked")
     public HashSet<DbObject> getDependencies() {
-        return dependencies;
+        return (HashSet<DbObject>) set;
     }
 
     /**
@@ -332,6 +341,17 @@ public class ExpressionVisitor {
     }
 
     /**
+     * Get the set of column resolvers.
+     * This is used for {@link #DECREMENT_QUERY_LEVEL} visitors.
+     *
+     * @return the set
+     */
+    @SuppressWarnings("unchecked")
+    public HashSet<ColumnResolver> getColumnResolvers() {
+        return (HashSet<ColumnResolver>) set;
+    }
+
+    /**
      * Update the field maxDataModificationId if this value is higher
      * than the current value.
      * This is used for SET_MAX_DATA_MODIFICATION_ID visitors.
@@ -356,7 +376,7 @@ public class ExpressionVisitor {
     }
 
     int getQueryLevel() {
-        assert type == INDEPENDENT || type == EVALUATABLE;
+        assert type == INDEPENDENT || type == EVALUATABLE || type == DECREMENT_QUERY_LEVEL;
         return queryLevel;
     }
 

@@ -871,7 +871,6 @@ public class FullText {
         private FullTextSettings          setting;
         private IndexInfo                 index;
         private int[]                     columnTypes;
-        private final PreparedStatement[] prepStatements = new PreparedStatement[SQL.length];
 
         private static final int INSERT_WORD = 0;
         private static final int INSERT_ROW  = 1;
@@ -1140,7 +1139,7 @@ public class FullText {
             return builder.toString();
         }
 
-        private PreparedStatement getStatement(Connection conn, int index) throws SQLException {
+        private static PreparedStatement getStatement(Connection conn, int index) throws SQLException {
             return conn.prepareStatement(SQL[index], Statement.RETURN_GENERATED_KEYS);
         }
 

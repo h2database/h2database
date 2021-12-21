@@ -11,6 +11,7 @@ import java.io.InputStream;
 import java.io.StringReader;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.math.RoundingMode;
 import java.net.URL;
 import java.sql.Array;
 import java.sql.Connection;
@@ -88,6 +89,7 @@ public class TestPreparedStatement extends TestDb {
         testCancelReuse(conn);
         testCoalesce(conn);
         testPreparedStatementMetaData(conn);
+        testBigDecimal(conn);
         testDate(conn);
         testDate8(conn);
         testTime8(conn);
@@ -646,6 +648,21 @@ public class TestPreparedStatement extends TestDb {
         case 6:
             prep.setObject(1, value, H2Type.INTEGER, 0);
         }
+    }
+
+    private void testBigDecimal(Connection conn) throws SQLException {
+        PreparedStatement prep = conn.prepareStatement("SELECT ?, ?");
+        BigDecimal bd = new BigDecimal("12300").setScale(-2, RoundingMode.UNNECESSARY);
+        prep.setBigDecimal(1, bd);
+        prep.setObject(2, bd);
+        ResultSet rs = prep.executeQuery();
+        rs.next();
+        bd = rs.getBigDecimal(1);
+        assertEquals(12300, bd.intValue());
+        assertEquals(0, bd.scale());
+        bd = rs.getBigDecimal(2);
+        assertEquals(12300, bd.intValue());
+        assertEquals(0, bd.scale());
     }
 
     private void testDate(Connection conn) throws SQLException {

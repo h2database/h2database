@@ -229,7 +229,7 @@ public final class ValueToObjectConverter2 extends TraceObject {
         }
         case Value.NUMERIC: {
             BigDecimal value = rs.getBigDecimal(columnIndex);
-            v = value == null ? ValueNull.INSTANCE : ValueNumeric.get(value);
+            v = value == null ? ValueNull.INSTANCE : ValueNumeric.getAnyScale(value);
             break;
         }
         case Value.REAL: {
@@ -305,7 +305,7 @@ public final class ValueToObjectConverter2 extends TraceObject {
                 if (obj == null) {
                     v = ValueNull.INSTANCE;
                 } else if (obj instanceof ZonedDateTime) {
-                    v = JSR310Utils.zonedDateTimeToValue(obj);
+                    v = JSR310Utils.zonedDateTimeToValue((ZonedDateTime) obj);
                 } else {
                     v = ValueTimestampTimeZone.parse(obj.toString(), session);
                 }

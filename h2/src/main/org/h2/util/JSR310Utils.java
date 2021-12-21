@@ -5,6 +5,17 @@
  */
 package org.h2.util;
 
+import static org.h2.util.DateTimeUtils.NANOS_PER_SECOND;
+import static org.h2.util.DateTimeUtils.SECONDS_PER_DAY;
+import static org.h2.util.DateTimeUtils.SHIFT_MONTH;
+import static org.h2.util.DateTimeUtils.SHIFT_YEAR;
+import static org.h2.util.DateTimeUtils.absoluteDayFromDateValue;
+import static org.h2.util.DateTimeUtils.dateValue;
+import static org.h2.util.DateTimeUtils.dateValueFromAbsoluteDay;
+import static org.h2.util.DateTimeUtils.dayFromDateValue;
+import static org.h2.util.DateTimeUtils.monthFromDateValue;
+import static org.h2.util.DateTimeUtils.yearFromDateValue;
+
 import java.math.BigInteger;
 import java.time.Duration;
 import java.time.Instant;
@@ -36,11 +47,11 @@ import org.h2.value.ValueTimestampTimeZone;
  */
 public class JSR310Utils {
 
-    private static final long MIN_DATE_VALUE = (-999_999_999L << DateTimeUtils.SHIFT_YEAR)
-            + (1 << DateTimeUtils.SHIFT_MONTH) + 1;
+    private static final long MIN_DATE_VALUE = (-999_999_999L << SHIFT_YEAR)
+            + (1 << SHIFT_MONTH) + 1;
 
-    private static final long MAX_DATE_VALUE = (999_999_999L << DateTimeUtils.SHIFT_YEAR)
-            + (12 << DateTimeUtils.SHIFT_MONTH) + 31;
+    private static final long MAX_DATE_VALUE = (999_999_999L << SHIFT_YEAR)
+            + (12 << SHIFT_MONTH) + 31;
 
     private static final long MIN_INSTANT_SECOND = -31_557_014_167_219_200L;
 
@@ -61,15 +72,15 @@ public class JSR310Utils {
      *            the cast information provider
      * @return the LocalDate
      */
-    public static Object valueToLocalDate(Value value, CastDataProvider provider) {
+    public static LocalDate valueToLocalDate(Value value, CastDataProvider provider) {
         long dateValue = value.convertToDate(provider).getDateValue();
         if (dateValue > MAX_DATE_VALUE) {
-            dateValue = MAX_DATE_VALUE;
+            return LocalDate.MAX;
         } else if (dateValue < MIN_DATE_VALUE) {
-            dateValue = MIN_DATE_VALUE;
+            return LocalDate.MIN;
         }
-        return LocalDate.of(DateTimeUtils.yearFromDateValue(dateValue), DateTimeUtils.monthFromDateValue(dateValue),
-                DateTimeUtils.dayFromDateValue(dateValue));
+        return LocalDate.of(yearFromDateValue(dateValue), monthFromDateValue(dateValue),
+                dayFromDateValue(dateValue));
     }
 
     /**
@@ -83,7 +94,7 @@ public class JSR310Utils {
      *            the cast information provider
      * @return the LocalTime
      */
-    public static Object valueToLocalTime(Value value, CastDataProvider provider) {
+    public static LocalTime valueToLocalTime(Value value, CastDataProvider provider) {
         return LocalTime.ofNanoOfDay(((ValueTime) value.convertTo(TypeInfo.TYPE_TIME, provider)).getNanos());
     }
 
@@ -98,7 +109,7 @@ public class JSR310Utils {
      *            the cast information provider
      * @return the LocalDateTime
      */
-    public static Object valueToLocalDateTime(Value value, CastDataProvider provider) {
+    public static LocalDateTime valueToLocalDateTime(Value value, CastDataProvider provider) {
         ValueTimestamp valueTimestamp = (ValueTimestamp) value.convertTo(TypeInfo.TYPE_TIMESTAMP, provider);
         return localDateTimeFromDateNanos(valueTimestamp.getDateValue(), valueTimestamp.getTimeNanos());
     }
@@ -114,23 +125,20 @@ public class JSR310Utils {
      *            the cast information provider
      * @return the Instant
      */
-    public static Object valueToInstant(Value value, CastDataProvider provider) {
+    public static Instant valueToInstant(Value value, CastDataProvider provider) {
         ValueTimestampTimeZone valueTimestampTimeZone = (ValueTimestampTimeZone) value
                 .convertTo(TypeInfo.TYPE_TIMESTAMP_TZ, provider);
         long timeNanos = valueTimestampTimeZone.getTimeNanos();
-        long epochSecond = DateTimeUtils.absoluteDayFromDateValue( //
-                valueTimestampTimeZone.getDateValue()) * DateTimeUtils.SECONDS_PER_DAY //
-                + timeNanos / DateTimeUtils.NANOS_PER_SECOND //
+        long epochSecond = absoluteDayFromDateValue(valueTimestampTimeZone.getDateValue())
+                * SECONDS_PER_DAY //
+                + timeNanos / NANOS_PER_SECOND //
                 - valueTimestampTimeZone.getTimeZoneOffsetSeconds();
-        timeNanos %= DateTimeUtils.NANOS_PER_SECOND;
         if (epochSecond > MAX_INSTANT_SECOND) {
-            epochSecond = MAX_INSTANT_SECOND;
-            timeNanos = DateTimeUtils.NANOS_PER_SECOND - 1;
+            return Instant.MAX;
         } else if (epochSecond < MIN_INSTANT_SECOND) {
-            epochSecond = MIN_INSTANT_SECOND;
-            timeNanos = 0;
+            return Instant.MIN;
         }
-        return Instant.ofEpochSecond(epochSecond, timeNanos);
+        return Instant.ofEpochSecond(epochSecond, timeNanos % NANOS_PER_SECOND);
     }
 
     /**
@@ -144,8 +152,10 @@ public class JSR310Utils {
      *            the cast information provider
      * @return the OffsetDateTime
      */
-    public static Object valueToOffsetDateTime(Value value, CastDataProvider provider) {
-        return valueToOffsetDateTime(value, provider, false);
+    public static OffsetDateTime valueToOffsetDateTime(Value value, CastDataProvider provider) {
+        ValueTimestampTimeZone v = (ValueTimestampTimeZone) value.convertTo(TypeInfo.TYPE_TIMESTAMP_TZ, provider);
+        return OffsetDateTime.of(localDateTimeFromDateNanos(v.getDateValue(), v.getTimeNanos()),
+                ZoneOffset.ofTotalSeconds(v.getTimeZoneOffsetSeconds()));
     }
 
     /**
@@ -159,22 +169,10 @@ public class JSR310Utils {
      *            the cast information provider
      * @return the ZonedDateTime
      */
-    public static Object valueToZonedDateTime(Value value, CastDataProvider provider) {
-        return valueToOffsetDateTime(value, provider, true);
-    }
-
-    private static Object valueToOffsetDateTime(Value value, CastDataProvider provider, boolean zoned) {
-        ValueTimestampTimeZone valueTimestampTimeZone = (ValueTimestampTimeZone) value
-                .convertTo(TypeInfo.TYPE_TIMESTAMP_TZ, provider);
-        long dateValue = valueTimestampTimeZone.getDateValue();
-        long timeNanos = valueTimestampTimeZone.getTimeNanos();
-        LocalDateTime localDateTime = (LocalDateTime) localDateTimeFromDateNanos(dateValue, timeNanos);
-
-        int timeZoneOffsetSeconds = valueTimestampTimeZone.getTimeZoneOffsetSeconds();
-
-        ZoneOffset offset = ZoneOffset.ofTotalSeconds(timeZoneOffsetSeconds);
-
-        return zoned ? ZonedDateTime.of(localDateTime, offset) : OffsetDateTime.of(localDateTime, offset);
+    public static ZonedDateTime valueToZonedDateTime(Value value, CastDataProvider provider) {
+        ValueTimestampTimeZone v = (ValueTimestampTimeZone) value.convertTo(TypeInfo.TYPE_TIMESTAMP_TZ, provider);
+        return ZonedDateTime.of(localDateTimeFromDateNanos(v.getDateValue(), v.getTimeNanos()),
+                ZoneOffset.ofTotalSeconds(v.getTimeZoneOffsetSeconds()));
     }
 
     /**
@@ -188,7 +186,7 @@ public class JSR310Utils {
      *            the cast information provider
      * @return the OffsetTime
      */
-    public static Object valueToOffsetTime(Value value, CastDataProvider provider) {
+    public static OffsetTime valueToOffsetTime(Value value, CastDataProvider provider) {
         ValueTimeTimeZone valueTimeTimeZone = (ValueTimeTimeZone) value.convertTo(TypeInfo.TYPE_TIME_TZ, provider);
         return OffsetTime.of(LocalTime.ofNanoOfDay(valueTimeTimeZone.getNanos()),
                 ZoneOffset.ofTotalSeconds(valueTimeTimeZone.getTimeZoneOffsetSeconds()));
@@ -203,7 +201,7 @@ public class JSR310Utils {
      *            the value to convert
      * @return the Period
      */
-    public static Object valueToPeriod(Value value) {
+    public static Period valueToPeriod(Value value) {
         if (!(value instanceof ValueInterval)) {
             value = value.convertTo(TypeInfo.TYPE_INTERVAL_YEAR_TO_MONTH);
         }
@@ -229,7 +227,7 @@ public class JSR310Utils {
      *            the value to convert
      * @return the Duration
      */
-    public static Object valueToDuration(Value value) {
+    public static Duration valueToDuration(Value value) {
         if (!(value instanceof ValueInterval)) {
             value = value.convertTo(TypeInfo.TYPE_INTERVAL_DAY_TO_SECOND);
         }
@@ -248,9 +246,9 @@ public class JSR310Utils {
      *            the LocalDate to convert, not {@code null}
      * @return the value
      */
-    public static Value localDateToValue(Object localDate) {
-        LocalDate ld = (LocalDate) localDate;
-        return ValueDate.fromDateValue(DateTimeUtils.dateValue(ld.getYear(), ld.getMonthValue(), ld.getDayOfMonth()));
+    public static ValueDate localDateToValue(LocalDate localDate) {
+        return ValueDate.fromDateValue(
+                dateValue(localDate.getYear(), localDate.getMonthValue(), localDate.getDayOfMonth()));
     }
 
     /**
@@ -260,8 +258,8 @@ public class JSR310Utils {
      *            the LocalTime to convert, not {@code null}
      * @return the value
      */
-    public static Value localTimeToValue(Object localTime) {
-        return ValueTime.fromNanos(((LocalTime) localTime).toNanoOfDay());
+    public static ValueTime localTimeToValue(LocalTime localTime) {
+        return ValueTime.fromNanos(localTime.toNanoOfDay());
     }
 
     /**
@@ -271,13 +269,11 @@ public class JSR310Utils {
      *            the LocalDateTime to convert, not {@code null}
      * @return the value
      */
-    public static Value localDateTimeToValue(Object localDateTime) {
-        LocalDateTime ldt = (LocalDateTime) localDateTime;
-        LocalDate localDate = ldt.toLocalDate();
-        long dateValue = DateTimeUtils.dateValue(localDate.getYear(), localDate.getMonthValue(),
-                localDate.getDayOfMonth());
-        long timeNanos = ldt.toLocalTime().toNanoOfDay();
-        return ValueTimestamp.fromDateValueAndNanos(dateValue, timeNanos);
+    public static ValueTimestamp localDateTimeToValue(LocalDateTime localDateTime) {
+        LocalDate localDate = localDateTime.toLocalDate();
+        return ValueTimestamp.fromDateValueAndNanos(
+                dateValue(localDate.getYear(), localDate.getMonthValue(), localDate.getDayOfMonth()),
+                localDateTime.toLocalTime().toNanoOfDay());
     }
 
     /**
@@ -287,17 +283,16 @@ public class JSR310Utils {
      *            the Instant to convert, not {@code null}
      * @return the value
      */
-    public static Value instantToValue(Object instant) {
-        Instant i = (Instant) instant;
-        long epochSecond = i.getEpochSecond();
-        int nano = i.getNano();
+    public static ValueTimestampTimeZone instantToValue(Instant instant) {
+        long epochSecond = instant.getEpochSecond();
+        int nano = instant.getNano();
         long absoluteDay = epochSecond / 86_400;
         // Round toward negative infinity
         if (epochSecond < 0 && (absoluteDay * 86_400 != epochSecond)) {
             absoluteDay--;
         }
         long timeNanos = (epochSecond - absoluteDay * 86_400) * 1_000_000_000 + nano;
-        return ValueTimestampTimeZone.fromDateValueAndNanos(DateTimeUtils.dateValueFromAbsoluteDay(absoluteDay),
+        return ValueTimestampTimeZone.fromDateValueAndNanos(dateValueFromAbsoluteDay(absoluteDay),
                 timeNanos, 0);
     }
 
@@ -308,14 +303,13 @@ public class JSR310Utils {
      *            the OffsetDateTime to convert, not {@code null}
      * @return the value
      */
-    public static ValueTimestampTimeZone offsetDateTimeToValue(Object offsetDateTime) {
-        OffsetDateTime o = (OffsetDateTime) offsetDateTime;
-        LocalDateTime localDateTime = o.toLocalDateTime();
+    public static ValueTimestampTimeZone offsetDateTimeToValue(OffsetDateTime offsetDateTime) {
+        LocalDateTime localDateTime = offsetDateTime.toLocalDateTime();
         LocalDate localDate = localDateTime.toLocalDate();
-        long dateValue = DateTimeUtils.dateValue(localDate.getYear(), localDate.getMonthValue(),
-                localDate.getDayOfMonth());
-        return ValueTimestampTimeZone.fromDateValueAndNanos(dateValue, localDateTime.toLocalTime().toNanoOfDay(),
-                o.getOffset().getTotalSeconds());
+        return ValueTimestampTimeZone.fromDateValueAndNanos(
+                dateValue(localDate.getYear(), localDate.getMonthValue(), localDate.getDayOfMonth()),
+                localDateTime.toLocalTime().toNanoOfDay(), //
+                offsetDateTime.getOffset().getTotalSeconds());
     }
 
     /**
@@ -325,14 +319,13 @@ public class JSR310Utils {
      *            the ZonedDateTime to convert, not {@code null}
      * @return the value
      */
-    public static ValueTimestampTimeZone zonedDateTimeToValue(Object zonedDateTime) {
-        ZonedDateTime z = (ZonedDateTime) zonedDateTime;
-        LocalDateTime localDateTime = z.toLocalDateTime();
+    public static ValueTimestampTimeZone zonedDateTimeToValue(ZonedDateTime zonedDateTime) {
+        LocalDateTime localDateTime = zonedDateTime.toLocalDateTime();
         LocalDate localDate = localDateTime.toLocalDate();
-        long dateValue = DateTimeUtils.dateValue(localDate.getYear(), localDate.getMonthValue(),
-                localDate.getDayOfMonth());
-        return ValueTimestampTimeZone.fromDateValueAndNanos(dateValue, localDateTime.toLocalTime().toNanoOfDay(),
-                z.getOffset().getTotalSeconds());
+        return ValueTimestampTimeZone.fromDateValueAndNanos(
+                dateValue(localDate.getYear(), localDate.getMonthValue(), localDate.getDayOfMonth()),
+                localDateTime.toLocalTime().toNanoOfDay(), //
+                zonedDateTime.getOffset().getTotalSeconds());
     }
 
     /**
@@ -342,21 +335,19 @@ public class JSR310Utils {
      *            the OffsetTime to convert, not {@code null}
      * @return the value
      */
-    public static ValueTimeTimeZone offsetTimeToValue(Object offsetTime) {
-        OffsetTime o = (OffsetTime) offsetTime;
-        return ValueTimeTimeZone.fromNanos(o.toLocalTime().toNanoOfDay(), o.getOffset().getTotalSeconds());
+    public static ValueTimeTimeZone offsetTimeToValue(OffsetTime offsetTime) {
+        return ValueTimeTimeZone.fromNanos(offsetTime.toLocalTime().toNanoOfDay(),
+                offsetTime.getOffset().getTotalSeconds());
     }
 
-    private static Object localDateTimeFromDateNanos(long dateValue, long timeNanos) {
+    private static LocalDateTime localDateTimeFromDateNanos(long dateValue, long timeNanos) {
         if (dateValue > MAX_DATE_VALUE) {
-            dateValue = MAX_DATE_VALUE;
-            timeNanos = DateTimeUtils.NANOS_PER_DAY - 1;
+            return LocalDateTime.MAX;
         } else if (dateValue < MIN_DATE_VALUE) {
-            dateValue = MIN_DATE_VALUE;
-            timeNanos = 0;
+            return LocalDateTime.MIN;
         }
-        return LocalDateTime.of(LocalDate.of(DateTimeUtils.yearFromDateValue(dateValue),
-                DateTimeUtils.monthFromDateValue(dateValue), DateTimeUtils.dayFromDateValue(dateValue)),
+        return LocalDateTime.of(LocalDate.of(yearFromDateValue(dateValue),
+                monthFromDateValue(dateValue), dayFromDateValue(dateValue)),
                 LocalTime.ofNanoOfDay(timeNanos));
     }
 
@@ -367,14 +358,13 @@ public class JSR310Utils {
      *            the Period to convert, not {@code null}
      * @return the value
      */
-    public static ValueInterval periodToValue(Object period) {
-        Period p = (Period) period;
-        int days = p.getDays();
+    public static ValueInterval periodToValue(Period period) {
+        int days = period.getDays();
         if (days != 0) {
             throw DbException.getInvalidValueException("Period.days", days);
         }
-        int years = p.getYears();
-        int months = p.getMonths();
+        int years = period.getYears();
+        int months = period.getMonths();
         IntervalQualifier qualifier;
         boolean negative = false;
         long leading = 0L, remaining = 0L;
@@ -419,10 +409,9 @@ public class JSR310Utils {
      *            the Duration to convert, not {@code null}
      * @return the value
      */
-    public static ValueInterval durationToValue(Object duration) {
-        Duration d = (Duration) duration;
-        long seconds = d.getSeconds();
-        int nano = d.getNano();
+    public static ValueInterval durationToValue(Duration duration) {
+        long seconds = duration.getSeconds();
+        int nano = duration.getNano();
         boolean negative = seconds < 0;
         seconds = Math.abs(seconds);
         if (negative && nano != 0) {

@@ -218,6 +218,12 @@ public class DbSettings extends SettingsBase {
     public final boolean optimizeTwoEquals = get("OPTIMIZE_TWO_EQUALS", true);
 
     /**
+     * Database setting <code>OPTIMIZE_SIMPLE_SINGLE_ROW_SUBQUERIES</code> (default: true).
+     * Optimize expressions of the form (SELECT A) to A.
+     */
+    public final boolean optimizeSimpleSingleRowSubqueries = get("OPTIMIZE_SIMPLE_SINGLE_ROW_SUBQUERIES", true);
+
+    /**
      * Database setting <code>QUERY_CACHE_SIZE</code> (default: 8).
      * The size of the query cache, in number of cached statements. Each session
      * has it's own cache with the given size. The cache is only used if the SQL

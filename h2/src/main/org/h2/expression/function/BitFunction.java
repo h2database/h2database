@@ -121,28 +121,28 @@ public final class BitFunction extends Function1_2 {
     public Value getValue(SessionLocal session, Value v1, Value v2) {
         switch (function) {
         case BITGET:
-            return bitGet(session, v1, v2);
+            return bitGet(v1, v2);
         case BITCOUNT:
-            return bitCount(session, v1);
+            return bitCount(v1);
         case LSHIFT:
-            return shift(session, v1, v2.getLong(), false);
+            return shift(v1, v2.getLong(), false);
         case RSHIFT: {
             long offset = v2.getLong();
-            return shift(session, v1, offset != Long.MIN_VALUE ? -offset : Long.MAX_VALUE, false);
+            return shift(v1, offset != Long.MIN_VALUE ? -offset : Long.MAX_VALUE, false);
         }
         case ULSHIFT:
-            return shift(session, v1, v2.getLong(), true);
+            return shift(v1, v2.getLong(), true);
         case URSHIFT:
-            return shift(session, v1, -v2.getLong(), true);
+            return shift(v1, -v2.getLong(), true);
         case ROTATELEFT:
-            return rotate(session, v1, v2.getLong(), false);
+            return rotate(v1, v2.getLong(), false);
         case ROTATERIGHT:
-            return rotate(session, v1, v2.getLong(), true);
+            return rotate(v1, v2.getLong(), true);
         }
         return getBitwise(function, type, v1, v2);
     }
 
-    private static ValueBoolean bitGet(SessionLocal session, Value v1, Value v2) {
+    private static ValueBoolean bitGet(Value v1, Value v2) {
         long offset = v2.getLong();
         boolean b;
         if (offset >= 0L) {
@@ -176,7 +176,7 @@ public final class BitFunction extends Function1_2 {
         return ValueBoolean.get(b);
     }
 
-    private static ValueBigint bitCount(SessionLocal session, Value v1) {
+    private static ValueBigint bitCount(Value v1) {
         long c;
         switch (v1.getValueType()) {
         case Value.BINARY:
@@ -211,7 +211,7 @@ public final class BitFunction extends Function1_2 {
         return ValueBigint.get(c);
     }
 
-    private static Value shift(SessionLocal session, Value v1, long offset, boolean unsigned) {
+    private static Value shift(Value v1, long offset, boolean unsigned) {
         if (offset == 0L) {
             return v1;
         }
@@ -353,7 +353,7 @@ public final class BitFunction extends Function1_2 {
         }
     }
 
-    private static Value rotate(SessionLocal session, Value v1, long offset, boolean right) {
+    private static Value rotate(Value v1, long offset, boolean right) {
         int vt = v1.getValueType();
         switch (vt) {
         case Value.BINARY:

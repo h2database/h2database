@@ -410,15 +410,23 @@ public final class ExpressionColumn extends Expression {
             }
             visitor.addColumn2(column);
             return true;
-        case ExpressionVisitor.DECREMENT_QUERY_LEVEL:
+        case ExpressionVisitor.DECREMENT_QUERY_LEVEL: {
             if (column == null) {
                 throw DbException.get(ErrorCode.COLUMN_NOT_FOUND_1, getTraceSQL());
             }
-            if (queryLevel > 0) {
-                queryLevel--;
-                return true;
+            if (visitor.getColumnResolvers().contains(columnResolver)) {
+                int decrement = visitor.getQueryLevel();
+                if (decrement > 0) {
+                    if (queryLevel > 0) {
+                        queryLevel--;
+                        return true;
+                    }
+                    throw DbException.getInternalError("queryLevel=0");
+                }
+                return queryLevel > 0;
             }
-            throw DbException.getInternalError("queryLevel=0");
+        }
+        //$FALL-THROUGH$
         default:
             return true;
         }

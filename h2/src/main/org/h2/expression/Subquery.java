@@ -7,6 +7,8 @@ package org.h2.expression;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
+
 import org.h2.api.ErrorCode;
 import org.h2.command.query.Query;
 import org.h2.engine.SessionLocal;
@@ -31,6 +33,8 @@ public final class Subquery extends Expression {
     private Expression expression;
 
     private Value nullValue;
+
+    private HashSet<ColumnResolver> outerResolvers = new HashSet<>();
 
     public Subquery(Query query) {
         this.query = query;
@@ -85,6 +89,7 @@ public final class Subquery extends Expression {
 
     @Override
     public void mapColumns(ColumnResolver resolver, int level, int state) {
+        outerResolvers.add(resolver);
         query.mapColumns(resolver, level + 1);
     }
 
@@ -95,10 +100,14 @@ public final class Subquery extends Expression {
             setType();
             return ValueExpression.get(getValue(session));
         }
-        Expression e = query.getIfSingleRow();
-        if (e != null && e.isEverything(ExpressionVisitor.DECREMENT_QUERY_LEVEL_VISITOR)) {
-            return e.optimize(session);
+        if (outerResolvers != null && session.getDatabase().getSettings().optimizeSimpleSingleRowSubqueries) {
+            Expression e = query.getIfSingleRow();
+            if (e != null && e.isEverything(ExpressionVisitor.getDecrementQueryLevelVisitor(outerResolvers, 0))) {
+                e.isEverything(ExpressionVisitor.getDecrementQueryLevelVisitor(outerResolvers, 1));
+                return e.optimize(session);
+            }
         }
+        outerResolvers = null;
         setType();
         return this;
     }

@@ -4270,6 +4270,8 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
 
     /**
      * INTERNAL
+     *
+     * @return array of column values for the current row
      */
     public Value[] getUpdateRow() {
         return updateRow;

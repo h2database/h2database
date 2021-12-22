@@ -20,23 +20,23 @@ public class Constants {
     /**
      * The build date of the last stable release.
      */
-    public static final String BUILD_DATE_STABLE = "2021-11-25";
+    public static final String BUILD_DATE_STABLE = "2021-12-21";
 
     /**
      * Sequential version number. Even numbers are used for official releases,
      * odd numbers are used for development builds.
      */
-    public static final int BUILD_ID = 204;
+    public static final int BUILD_ID = 210;
 
     /**
      * The build id of the last stable release.
      */
-    public static final int BUILD_ID_STABLE = 202;
+    public static final int BUILD_ID_STABLE = 204;
 
     /**
      * Whether this is a snapshot version.
      */
-    public static final boolean BUILD_SNAPSHOT = false;
+    public static final boolean BUILD_SNAPSHOT = true;
 
     /**
      * If H2 is compiled to be included in a product, this should be set to
@@ -88,7 +88,7 @@ public class Constants {
     /**
      * The minor version of this database.
      */
-    public static final int VERSION_MINOR = 0;
+    public static final int VERSION_MINOR = 1;
 
     /**
      * The lock mode that means no locking is used at all.
@@ -493,7 +493,7 @@ public class Constants {
     /**
      * The last stable version name.
      */
-    public static final String VERSION_STABLE = "1.4." + BUILD_ID_STABLE;
+    public static final String VERSION_STABLE = "2.0." + BUILD_ID_STABLE;
 
     /**
      * The complete version number of this database, consisting of

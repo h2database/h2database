@@ -71,10 +71,8 @@ public class Csv implements SimpleRowSource {
             ResultSetMetaData meta = rs.getMetaData();
             int columnCount = meta.getColumnCount();
             String[] row = new String[columnCount];
-            int[] sqlTypes = new int[columnCount];
             for (int i = 0; i < columnCount; i++) {
                 row[i] = meta.getColumnLabel(i + 1);
-                sqlTypes[i] = meta.getColumnType(i + 1);
             }
             if (writeColumnHeader) {
                 writeRow(row);

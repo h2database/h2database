@@ -345,7 +345,7 @@ public class NetUtils {
                     .append(address[0] & 0xff).append('.') //
                     .append(address[1] & 0xff).append('.') //
                     .append(address[2] & 0xff).append('.') //
-                    .append(address[3] & 0xff).toString();
+                    .append(address[3] & 0xff);
             break;
         case 16:
             short[] a = new short[8];

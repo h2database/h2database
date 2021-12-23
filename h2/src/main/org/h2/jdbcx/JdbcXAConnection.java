@@ -426,7 +426,7 @@ public final class JdbcXAConnection extends TraceObject implements XAConnection,
         if (buff.length() == 0) {
             buff.append("|XAResource.TMNOFLAGS");
         }
-        return buff.toString().substring(1);
+        return buff.substring(1);
     }
 
     private void checkOpen() throws XAException {

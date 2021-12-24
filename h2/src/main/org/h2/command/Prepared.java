@@ -444,7 +444,7 @@ public abstract class Prepared {
         this.cteCleanups = cteCleanups;
     }
 
-    public SessionLocal getSession() {
+    public final SessionLocal getSession() {
         return session;
     }
 

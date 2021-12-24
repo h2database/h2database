@@ -1359,30 +1359,35 @@ Rolling back a transaction does not affect the value of a user-defined variable.
 
 <h2 id="date_time">Date and Time</h2>
 <p>
-Date, time and timestamp values support ISO 8601 formatting, including time zone:
+Date, time and timestamp values support standard literals:
 </p>
 <pre>
-CALL TIMESTAMP '2008-01-01 12:00:00+01:00';
+VALUES (
+    DATE '2008-01-01',
+    TIME '12:00:00',
+    TIME WITH TIME ZONE '12:00:00+01:00',
+    TIMESTAMP '2008-01-01 12:00:00',
+    TIMESTAMP WITH TIME ZONE '2008-01-01 12:00:00+01:00'
+);
 </pre>
 <p>
-If the time zone is not set, the value is parsed using the current time zone setting of the system.
-Date and time information is stored in H2 database files with or without time zone information depending on used data type.
+ISO 8601-style datetime formats with T instead of space between date and time parts are also supported.
 </p>
-<ul>
-<li>
-With TIMESTAMP data type if the database is opened using another system time zone, the date and time will be the same.
-That means if you store the value '2000-01-01 12:00:00' in one time zone, then close the database
-and open the database again in a different time zone, you will also get '2000-01-01 12:00:00'.
-Please note that changing the time zone after the H2 driver is loaded is not supported.
-</li>
-<li>
-With TIMESTAMP WITH TIME ZONE data type time zone offset is stored and if you store the value
-'2008-01-01 12:00:00+01:00' it remains the same even if you close and reopen the database with a different time zone.
-If you store the value with specified time zone name like '2008-01-01 12:00:00 Europe/Berlin' this name will be
-converted to time zone offset.
+<p>
+TIME and TIMESTAMP values are preserved without time zone information as local time.
+That means if you store the value '2000-01-01 12:00:00' in one time zone, then change time zone of the session
+you will also get '2000-01-01 12:00:00', the value will not be adjusted to the new time zone,
+therefore its absolute value in UTC may be different.
+</p>
+<p>
+TIME WITH TIME ZONE and TIMESTAMP WITH TIME ZONE values preserve the specified time zone offset
+and if you store the value '2008-01-01 12:00:00+01:00' it also remains the same
+even if you change time zone of the session,
+and because it has a time zone offset its absolute value in UTC will be the same.
+TIMESTAMP WITH TIME ZONE values may be also specified with time zone name like '2008-01-01 12:00:00 Europe/Berlin'.
+It that case this name will be converted into time zone offset.
 Names of time zones are not stored.
-</li>
-</ul>
+</p>
 
 <h2 id="spring">Using Spring</h2>
 <h3>Using the TCP Server</h3>

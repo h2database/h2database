@@ -10,7 +10,10 @@ Initial Developer: H2 Group
 // <!--
 
 function getPath(build) {
-    if (build >= 177) {
+    if (build > 200) {
+        var b = build + 1;
+        return 'version-' + Math.floor(b / 100) + '.' + Math.floor(b % 100 / 10) + '.' + build + '/h2';
+    } else if (build >= 177) {
         return 'version-1.4.' + build + '/h2';
     } else if (build >= 146 && build != 147) {
         return 'version-1.3/version-1.3.' + build + '/h2';
@@ -36,7 +39,7 @@ for (var i = 0; i<params.length; i++) {
     } else if (key == 'file') {
         file = value;
     } else if (key == 'build') {
-        path = getPath(value);
+        path = getPath(parseInt(value));
     }
 }
 

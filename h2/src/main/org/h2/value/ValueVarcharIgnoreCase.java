@@ -37,8 +37,8 @@ public final class ValueVarcharIgnoreCase extends ValueStringBase {
 
     @Override
     public boolean equals(Object other) {
-        return other instanceof ValueVarchar
-                && value.equalsIgnoreCase(((ValueVarchar) other).value);
+        return other instanceof ValueVarcharIgnoreCase
+                && value.equalsIgnoreCase(((ValueVarcharIgnoreCase) other).value);
     }
 
     @Override

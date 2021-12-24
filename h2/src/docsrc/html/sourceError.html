@@ -40,6 +40,9 @@ input {
 function getVersion(build) {
     if (build == 64) {
         return '1.0/version-1.0.' + build;
+    } else if (build > 200) {
+        var b = build + 1;
+        return Math.floor(b / 100) + '.' + Math.floor(b % 100 / 10) + '.' + build;
     } else if (build >= 177) {
         return '1.4.' + build;
     } else if (build >= 146 && build != 147) {
@@ -84,7 +87,7 @@ function go(file, line) {
     } else {
         url = 'https://github.com/h2database/h2database/tree/'
         if (build && build > 0) {
-            url += 'version-' + getVersion(build) + '/h2';
+            url += 'version-' + getVersion(parseInt(build)) + '/h2';
         } else {
             var tag = 'master/h2';
         }
@@ -114,7 +117,7 @@ function convert() {
             hasData = true;
             idx = errorCode.indexOf("-");
             build = parseInt(errorCode.substring(idx + 1));
-            get('version').innerHTML = getVersion(build);
+            get('version').innerHTML = getVersion(parseInt(build));
             errorCode = errorCode.substring(0, idx);
             while (errorCode.length > 1 && errorCode.charAt(0) == '0') {
                 errorCode = errorCode.substring(1);

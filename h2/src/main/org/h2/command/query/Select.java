@@ -1884,9 +1884,10 @@ public class Select extends Query {
                 setCurrentRowNumber(rowNumber + 1);
                 if (isConditionMet()) {
                     rowNumber++;
-                    Value[] keyValues = new Value[groupIndex.length];
+                    int groupSize = groupIndex.length;
+                    Value[] keyValues = new Value[groupSize];
                     // update group
-                    for (int i = 0; i < groupIndex.length; i++) {
+                    for (int i = 0; i < groupSize; i++) {
                         int idx = groupIndex[i];
                         Expression expr = expressions.get(idx);
                         keyValues[i] = expr.getValue(getSession());
@@ -1896,10 +1897,16 @@ public class Select extends Query {
                     if (previousKeyValues == null) {
                         previousKeyValues = keyValues;
                         groupData.nextLazyGroup();
-                    } else if (!Arrays.equals(previousKeyValues, keyValues)) {
-                        row = createGroupSortedRow(previousKeyValues, columnCount);
-                        previousKeyValues = keyValues;
-                        groupData.nextLazyGroup();
+                    } else {
+                        SessionLocal session = getSession();
+                        for (int i = 0; i < groupSize; i++) {
+                            if (session.compare(previousKeyValues[i], keyValues[i]) != 0) {
+                                row = createGroupSortedRow(previousKeyValues, columnCount);
+                                previousKeyValues = keyValues;
+                                groupData.nextLazyGroup();
+                                break;
+                            }
+                        }
                     }
                     groupData.nextLazyRow();
                     updateAgg(columnCount, DataAnalysisOperation.STAGE_GROUP);

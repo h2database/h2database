@@ -51,7 +51,6 @@ import static org.h2.util.ParserUtil.IF;
 import static org.h2.util.ParserUtil.IN;
 import static org.h2.util.ParserUtil.INNER;
 import static org.h2.util.ParserUtil.INTERSECT;
-import static org.h2.util.ParserUtil.INTERSECTS;
 import static org.h2.util.ParserUtil.INTERVAL;
 import static org.h2.util.ParserUtil.IS;
 import static org.h2.util.ParserUtil.JOIN;
@@ -650,8 +649,6 @@ public class Parser {
             "INNER",
             // INTERSECT
             "INTERSECT",
-            // INTERSECTS
-            "INTERSECTS",
             // INTERVAL
             "INTERVAL",
             // IS
@@ -3437,15 +3434,6 @@ public class Parser {
             read(CLOSE_PAREN);
             return new ExistsPredicate(query);
         }
-        case INTERSECTS: {
-            read();
-            read(OPEN_PAREN);
-            Expression r1 = readConcat();
-            read(COMMA);
-            Expression r2 = readConcat();
-            read(CLOSE_PAREN);
-            return new Comparison(Comparison.SPATIAL_INTERSECTS, r1, r2, false);
-        }
         case UNIQUE: {
             read();
             read(OPEN_PAREN);
@@ -3454,8 +3442,21 @@ public class Parser {
             return new UniquePredicate(query);
         }
         default:
+            int index = lastParseIndex;
+            if (readIf("INTERSECTS")) {
+                if (readIf(OPEN_PAREN)) {
+                    Expression r1 = readConcat();
+                    read(COMMA);
+                    Expression r2 = readConcat();
+                    read(CLOSE_PAREN);
+                    return new Comparison(Comparison.SPATIAL_INTERSECTS, r1, r2, false);
+                } else {
+                    reread(index);
+                }
+            }
             if (expectedList != null) {
-                addMultipleExpected(NOT, EXISTS, INTERSECTS, UNIQUE);
+                addMultipleExpected(NOT, EXISTS, UNIQUE);
+                addExpected("INTERSECTS");
             }
         }
         Expression l, c = readConcat();

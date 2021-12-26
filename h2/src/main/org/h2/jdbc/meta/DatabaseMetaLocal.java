@@ -135,11 +135,11 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
 
     @Override
     public String getSQLKeywords() {
-        StringBuilder builder = new StringBuilder(114).append( //
+        StringBuilder builder = new StringBuilder(103).append( //
                 "CURRENT_CATALOG," //
                         + "CURRENT_SCHEMA," //
                         + "GROUPS," //
-                        + "IF,ILIKE,INTERSECTS," //
+                        + "IF,ILIKE," //
                         + "KEY,");
         Mode mode = session.getMode();
         if (mode.limit) {

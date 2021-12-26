@@ -720,6 +720,7 @@ public class TestKeywords extends TestBase {
             set2.removeAll(STRICT_MODE_NON_KEYWORDS);
             assertEquals(setToString(set2), conn.getMetaData().getSQLKeywords());
         }
+        set.add("INTERSECTS");
         set.add("SYSDATE");
         set.add("SYSTIME");
         set.add("SYSTIMESTAMP");

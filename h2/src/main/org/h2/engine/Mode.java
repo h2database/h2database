@@ -399,6 +399,11 @@ public class Mode {
     public boolean limit;
 
     /**
+     * Whether MINUS can be used as EXCEPT.
+     */
+    public boolean minusIsExcept;
+
+    /**
      * Whether IDENTITY pseudo data type is supported.
      */
     public boolean identityDataType;
@@ -450,6 +455,7 @@ public class Mode {
         mode.dateTimeValueWithinTransaction = true;
         mode.topInSelect = true;
         mode.limit = true;
+        mode.minusIsExcept = true;
         mode.identityDataType = true;
         mode.serialDataTypes = true;
         mode.autoIncrementClause = true;
@@ -465,6 +471,7 @@ public class Mode {
         mode.dateTimeValueWithinTransaction = true;
         mode.topInSelect = true;
         mode.limit = true;
+        mode.minusIsExcept = true;
         mode.identityDataType = true;
         mode.serialDataTypes = true;
         mode.autoIncrementClause = true;
@@ -498,6 +505,7 @@ public class Mode {
         mode.expressionNames = ExpressionNames.NUMBER;
         mode.viewExpressionNames = ViewExpressionNames.EXCEPTION;
         mode.limit = true;
+        mode.minusIsExcept = true;
         mode.numericWithBooleanComparison = true;
         add(mode);
 
@@ -523,6 +531,7 @@ public class Mode {
         mode.expressionNames = ExpressionNames.C_NUMBER;
         mode.topInSelect = true;
         mode.limit = true;
+        mode.minusIsExcept = true;
         mode.numericWithBooleanComparison = true;
         add(mode);
 
@@ -632,6 +641,7 @@ public class Mode {
         mode.charAndByteLengthUnits = true;
         mode.nextvalAndCurrvalPseudoColumns = true;
         mode.mergeWhere = true;
+        mode.minusIsExcept = true;
         mode.expressionNames = ExpressionNames.ORIGINAL_SQL;
         mode.viewExpressionNames = ViewExpressionNames.EXCEPTION;
         mode.typeByNameMap.put("BINARY_FLOAT", DataType.getDataType(Value.REAL));

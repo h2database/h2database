@@ -12,7 +12,7 @@ selectExpression [,...]
 [ GROUP BY groupingElement [,...] ] [ HAVING expression ]
 [ WINDOW { { windowName AS windowSpecification } [,...] } ]
 @h2@ [ QUALIFY expression ]
-[ { UNION [ ALL ] | EXCEPT | @c@ { MINUS } | INTERSECT } query ]
+[ { UNION [ ALL ] | EXCEPT | INTERSECT } query ]
 [ ORDER BY selectOrder [,...] ]
 [ OFFSET expression { ROW | ROWS } ]
 [ FETCH { FIRST | NEXT } [ expression [ PERCENT ] ] { ROW | ROWS }
@@ -48,8 +48,8 @@ ORDER BY clause, if any, is used to determine preserved rows.
 First row is each DISTINCT ON group is preserved.
 In absence of ORDER BY preserved rows are not determined, database may choose any row from each DISTINCT ON group.
 
-9. UNION, EXCEPT (MINUS), and INTERSECT combine the result of this query with the results of another query.
-Multiple set operators (UNION, INTERSECT, MINUS, EXCEPT) are evaluated from left to right.
+9. UNION, EXCEPT, and INTERSECT combine the result of this query with the results of another query.
+Multiple set operators (UNION, INTERSECT, EXCEPT) are evaluated from left to right.
 For compatibility with other databases and future versions of H2 please use parentheses.
 
 10. ORDER BY sorts the result by the given column(s) or expression(s).

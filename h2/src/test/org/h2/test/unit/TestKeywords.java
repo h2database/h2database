@@ -457,6 +457,8 @@ public class TestKeywords extends TestBase {
 
     });
 
+    private static final HashSet<String> STRICT_MODE_NON_KEYWORDS = toSet(new String[] { "LIMIT", "MINUS", "TOP" });
+
     private static final HashSet<String> ALL_RESEVED_WORDS;
 
     private static final HashMap<String, TokenType> TOKENS;
@@ -556,11 +558,20 @@ public class TestKeywords extends TestBase {
     }
 
     private void testParser() throws Exception {
-        try (Connection conn = DriverManager.getConnection("jdbc:h2:mem:keywords")) {
+        testParser(false);
+        testParser(true);
+    }
+
+    private void testParser(boolean strictMode) throws Exception {
+        try (Connection conn = DriverManager
+                .getConnection("jdbc:h2:mem:keywords;MODE=" + (strictMode ? "STRICT" : "REGULAR"))) {
             Statement stat = conn.createStatement();
             for (Entry<String, TokenType> entry : TOKENS.entrySet()) {
                 String s = entry.getKey();
                 TokenType type = entry.getValue();
+                if (strictMode && STRICT_MODE_NON_KEYWORDS.contains(s)) {
+                    type = TokenType.IDENTIFIER;
+                }
                 Throwable exception1 = null, exception2 = null;
                 try {
                     stat.execute("CREATE TABLE " + s + '(' + s + " INT)");
@@ -703,6 +714,11 @@ public class TestKeywords extends TestBase {
         }
         try (Connection conn = DriverManager.getConnection("jdbc:h2:mem:")) {
             assertEquals(setToString(set), conn.getMetaData().getSQLKeywords());
+        }
+        try (Connection conn = DriverManager.getConnection("jdbc:h2:mem:;MODE=STRICT")) {
+            TreeSet<String> set2 = new TreeSet<>(set);
+            set2.removeAll(STRICT_MODE_NON_KEYWORDS);
+            assertEquals(setToString(set2), conn.getMetaData().getSQLKeywords());
         }
         set.add("SYSDATE");
         set.add("SYSTIME");

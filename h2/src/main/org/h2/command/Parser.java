@@ -6257,6 +6257,17 @@ public class Parser {
                 i++;
             }
             currentTokenType = ParserUtil.getTokenType(sqlCommand, !identifiersToUpper, start, i - start, false);
+            switch (currentTokenType) {
+            case LIMIT:
+                if (!database.getMode().limit) {
+                    currentTokenType = IDENTIFIER;
+                }
+                break;
+            case MINUS:
+                if (!database.getMode().minusIsExcept) {
+                    currentTokenType = IDENTIFIER;
+                }
+            }
             if (isIdentifier()) {
                 currentToken = StringUtils.cache(checkIdentifierLength(start, i));
             } else {

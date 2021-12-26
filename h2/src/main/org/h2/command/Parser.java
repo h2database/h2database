@@ -9538,7 +9538,7 @@ public class Parser {
         String tableName = readIdentifierWithSchema();
         Schema schema = getSchema();
         if (readIf("ADD")) {
-            Prepared command = parseAlterTableAddConstraintIf(tableName, schema, ifTableExists);
+            Prepared command = parseTableConstraintIf(tableName, schema, ifTableExists);
             if (command != null) {
                 return command;
             }
@@ -10118,7 +10118,7 @@ public class Parser {
         }
     }
 
-    private DefineCommand parseAlterTableAddConstraintIf(String tableName, Schema schema, boolean ifTableExists) {
+    private DefineCommand parseTableConstraintIf(String tableName, Schema schema, boolean ifTableExists) {
         String constraintName = null, comment = null;
         boolean ifNotExists = false;
         if (readIf(CONSTRAINT)) {
@@ -10159,7 +10159,12 @@ public class Parser {
             read(OPEN_PAREN);
             command = new AlterTableAddConstraint(session, schema, CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_UNIQUE,
                     ifNotExists);
-            command.setIndexColumns(parseIndexColumnList());
+            if (readIf(VALUE)) {
+                read(CLOSE_PAREN);
+                command.setIndexColumns(null);
+            } else {
+                command.setIndexColumns(parseIndexColumnList());
+            }
             if (readIf("INDEX")) {
                 String indexName = readIdentifierWithSchema();
                 command.setIndex(getSchema().findIndex(session, indexName));
@@ -10392,7 +10397,7 @@ public class Parser {
 
     private void parseTableColumnDefinition(CommandWithColumns command, Schema schema, String tableName,
             boolean forCreateTable) {
-        DefineCommand c = parseAlterTableAddConstraintIf(tableName, schema, false);
+        DefineCommand c = parseTableConstraintIf(tableName, schema, false);
         if (c != null) {
             command.addConstraintCommand(c);
             return;

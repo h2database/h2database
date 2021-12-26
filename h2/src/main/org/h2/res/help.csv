@@ -3150,18 +3150,21 @@ REGEXP '[a-z]'
 "Other Grammar","Table Constraint Definition","
 [ constraintNameDefinition ]
 { PRIMARY KEY @h2@ [ HASH ] ( columnName [,...] ) }
-    | UNIQUE ( columnName [,...] )
+    | UNIQUE ( { columnName [,...] | VALUE } )
     | referentialConstraint
     | CHECK (condition)
 ","
 Defines a constraint.
 
 PRIMARY KEY and UNIQUE require unique values.
-PRIMARY KEY also disallows NULL values and marks the column as a primary key.
+PRIMARY KEY also disallows NULL values and marks the column as a primary key, a table can have only one primary key.
+UNIQUE constraint supports NULL values and rows with NULL value in any column are considered as unique.
+UNIQUE (VALUE) creates a unique constraint on entire row, excluding invisible columns;
+but if new columns will be added to the table, they will not be included into this constraint.
 
 Referential constraint requires values that exist in other column(s) (usually in another table).
 
-Check constraint require a specified condition to return TRUE or UNKNOWN (NULL).
+Check constraint requires a specified condition to return TRUE or UNKNOWN (NULL).
 It can reference columns of the table, and can reference objects that exist while the statement is executed.
 Conditions are only checked when a row is added or modified in the table where the constraint exists.
 ","

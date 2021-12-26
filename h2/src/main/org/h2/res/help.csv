@@ -1834,10 +1834,10 @@ SET MAX_OPERATION_MEMORY 0
 "
 
 "Commands (Other)","SET MODE","
-@h2@ SET MODE { REGULAR | DB2 | DERBY | HSQLDB | MSSQLSERVER | MYSQL | ORACLE | POSTGRESQL }
+@h2@ SET MODE { REGULAR | STRICT | LEGACY | DB2 | DERBY | HSQLDB | MSSQLSERVER | MYSQL | ORACLE | POSTGRESQL }
 ","
-Changes to another database compatibility mode. For details, see Compatibility
-Modes in the feature section.
+Changes to another database compatibility mode. For details, see
+[Compatibility Modes](https://h2database.com/html/features.html#compatibility_modes).
 
 This setting is not persistent.
 Admin rights are required to execute this command, as it affects all connections.

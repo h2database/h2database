@@ -14,7 +14,6 @@ import org.h2.util.Tool;
 
 /**
  * Creates a SQL script file by extracting the schema and data of a database.
- * @h2.resource
  */
 public class Script extends Tool {
 
@@ -37,7 +36,6 @@ public class Script extends Tool {
      * <tr><td>[-quiet]</td>
      * <td>Do not print progress information</td></tr>
      * </table>
-     * @h2.resource
      *
      * @param args the command line arguments
      * @throws SQLException on failure

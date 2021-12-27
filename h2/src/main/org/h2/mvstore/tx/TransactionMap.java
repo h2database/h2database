@@ -526,10 +526,12 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
     }
 
     /**
-     * Create a new snapshot for this map.
+     * Gets a coherent picture of committing transactions and root reference,
+     * passes it to the specified function, and returns its result.
      *
-     * @param snapshotConsumer BiFunction<RootReference<K,VersionedValue<V>>, BitSet, R>
-     * @return the snapshot
+     * @param snapshotConsumer
+     *            function to invoke
+     * @return function's result
      */
     <R> R useSnapshot(BiFunction<RootReference<K,VersionedValue<V>>, BitSet, R> snapshotConsumer) {
         // The purpose of the following loop is to get a coherent picture

@@ -16,7 +16,6 @@ import org.h2.util.Utils;
 
 /**
  * Starts the H2 Console (web-) server, as well as the TCP and PG server.
- * @h2.resource
  *
  * @author Thomas Mueller, Ridvan Agar
  */
@@ -59,7 +58,6 @@ public class Console extends Tool implements ShutdownHandler {
      * for details, see the Server tool.
      * If a service can not be started, the program
      * terminates with an exit code of 1.
-     * @h2.resource
      *
      * @param args the command line arguments
      * @throws SQLException on failure

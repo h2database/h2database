@@ -522,7 +522,12 @@ public class BuildBase {
                         "Generating ",
                 }));
             }
-            Class<?> clazz = Class.forName("com.sun.tools.javadoc.Main");
+            Class<?> clazz;
+            try {
+                clazz = Class.forName("jdk.javadoc.internal.tool.Main");
+            } catch (Exception e) {
+                clazz = Class.forName("com.sun.tools.javadoc.Main");
+            }
             Method execute = clazz.getMethod("execute", String[].class);
             result = (Integer) invoke(execute, null, new Object[] { args });
         } catch (Exception e) {

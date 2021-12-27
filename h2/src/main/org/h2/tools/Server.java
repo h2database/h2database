@@ -23,7 +23,6 @@ import org.h2.util.Utils;
 
 /**
  * Starts the H2 Console (web-) server, TCP, and PG server.
- * @h2.resource
  */
 public class Server extends Tool implements Runnable, ShutdownHandler {
 
@@ -116,7 +115,6 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
      * The options -xAllowOthers are potentially risky.
      *
      * For details, see Advanced Topics / Protection against Remote Access.
-     * @h2.resource
      *
      * @param args the command line arguments
      * @throws SQLException on failure

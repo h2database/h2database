@@ -21,6 +21,7 @@ import org.h2.constraint.ConstraintReferential;
 import org.h2.constraint.ConstraintUnique;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
+import org.h2.engine.Mode;
 import org.h2.engine.Right;
 import org.h2.engine.SessionLocal;
 import org.h2.engine.User;
@@ -134,18 +135,28 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
 
     @Override
     public String getSQLKeywords() {
-        return "CURRENT_CATALOG," //
-                + "CURRENT_SCHEMA," //
-                + "GROUPS," //
-                + "IF,ILIKE,INTERSECTS," //
-                + "KEY," //
-                + "LIMIT," //
-                + "MINUS," //
-                + "OFFSET," //
-                + "QUALIFY," //
-                + "REGEXP,ROWNUM," //
-                + "TOP,"//
-                + "_ROWID_";
+        StringBuilder builder = new StringBuilder(103).append( //
+                "CURRENT_CATALOG," //
+                        + "CURRENT_SCHEMA," //
+                        + "GROUPS," //
+                        + "IF,ILIKE," //
+                        + "KEY,");
+        Mode mode = session.getMode();
+        if (mode.limit) {
+            builder.append("LIMIT,");
+        }
+        if (mode.minusIsExcept) {
+            builder.append("MINUS,");
+        }
+        builder.append( //
+                "OFFSET," //
+                        + "QUALIFY," //
+                        + "REGEXP,ROWNUM,");
+        if (mode.topInSelect || mode.topInDML) {
+            builder.append("TOP,");
+        }
+        return builder.append("_ROWID_") //
+                .toString();
     }
 
     @Override

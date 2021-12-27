@@ -12,7 +12,7 @@ selectExpression [,...]
 [ GROUP BY groupingElement [,...] ] [ HAVING expression ]
 [ WINDOW { { windowName AS windowSpecification } [,...] } ]
 @h2@ [ QUALIFY expression ]
-[ { UNION [ ALL ] | EXCEPT | @c@ { MINUS } | INTERSECT } query ]
+[ { UNION [ ALL ] | EXCEPT | INTERSECT } query ]
 [ ORDER BY selectOrder [,...] ]
 [ OFFSET expression { ROW | ROWS } ]
 [ FETCH { FIRST | NEXT } [ expression [ PERCENT ] ] { ROW | ROWS }
@@ -48,8 +48,8 @@ ORDER BY clause, if any, is used to determine preserved rows.
 First row is each DISTINCT ON group is preserved.
 In absence of ORDER BY preserved rows are not determined, database may choose any row from each DISTINCT ON group.
 
-9. UNION, EXCEPT (MINUS), and INTERSECT combine the result of this query with the results of another query.
-Multiple set operators (UNION, INTERSECT, MINUS, EXCEPT) are evaluated from left to right.
+9. UNION, EXCEPT, and INTERSECT combine the result of this query with the results of another query.
+Multiple set operators (UNION, INTERSECT, EXCEPT) are evaluated from left to right.
 For compatibility with other databases and future versions of H2 please use parentheses.
 
 10. ORDER BY sorts the result by the given column(s) or expression(s).
@@ -1834,10 +1834,10 @@ SET MAX_OPERATION_MEMORY 0
 "
 
 "Commands (Other)","SET MODE","
-@h2@ SET MODE { REGULAR | DB2 | DERBY | HSQLDB | MSSQLSERVER | MYSQL | ORACLE | POSTGRESQL }
+@h2@ SET MODE { REGULAR | STRICT | LEGACY | DB2 | DERBY | HSQLDB | MSSQLSERVER | MYSQL | ORACLE | POSTGRESQL }
 ","
-Changes to another database compatibility mode. For details, see Compatibility
-Modes in the feature section.
+Changes to another database compatibility mode. For details, see
+[Compatibility Modes](https://h2database.com/html/features.html#compatibility_modes).
 
 This setting is not persistent.
 Admin rights are required to execute this command, as it affects all connections.
@@ -3150,18 +3150,21 @@ REGEXP '[a-z]'
 "Other Grammar","Table Constraint Definition","
 [ constraintNameDefinition ]
 { PRIMARY KEY @h2@ [ HASH ] ( columnName [,...] ) }
-    | UNIQUE ( columnName [,...] )
+    | UNIQUE ( { columnName [,...] | VALUE } )
     | referentialConstraint
     | CHECK (condition)
 ","
 Defines a constraint.
 
 PRIMARY KEY and UNIQUE require unique values.
-PRIMARY KEY also disallows NULL values and marks the column as a primary key.
+PRIMARY KEY also disallows NULL values and marks the column as a primary key, a table can have only one primary key.
+UNIQUE constraint supports NULL values and rows with NULL value in any column are considered as unique.
+UNIQUE (VALUE) creates a unique constraint on entire row, excluding invisible columns;
+but if new columns will be added to the table, they will not be included into this constraint.
 
 Referential constraint requires values that exist in other column(s) (usually in another table).
 
-Check constraint require a specified condition to return TRUE or UNKNOWN (NULL).
+Check constraint requires a specified condition to return TRUE or UNKNOWN (NULL).
 It can reference columns of the table, and can reference objects that exist while the statement is executed.
 Conditions are only checked when a row is added or modified in the table where the constraint exists.
 ","

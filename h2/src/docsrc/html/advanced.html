@@ -453,14 +453,17 @@ The following tokens are keywords in H2:
 <table class="main">
 <thead>
 <tr>
-<th>Keyword</th>
-<th>H2</th>
-<th>SQL:&#8203;2016</th>
-<th>SQL:&#8203;2011</th>
-<th>SQL:&#8203;2008</th>
-<th>SQL:&#8203;2003</th>
-<th>SQL:&#8203;1999</th>
-<th>SQL-92</th>
+<th rowspan="2">Keyword</th>
+<th rowspan="2">H2</th>
+<th colspan="6" style="text-align: center">SQL Standard</th>
+</tr>
+<tr>
+<th>2016</th>
+<th>2011</th>
+<th>2008</th>
+<th>2003</th>
+<th>1999</th>
+<th>92</th>
 </tr>
 </thead>
 <tbody>
@@ -554,8 +557,6 @@ The following tokens are keywords in H2:
 <td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
 <tr><td>INTERSECT</td>
 <td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
-<tr><td>INTERSECTS</td>
-<td>+</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
 <tr><td>INTERVAL</td>
 <td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
 <tr><td>IS</td>
@@ -571,13 +572,13 @@ The following tokens are keywords in H2:
 <tr><td>LIKE</td>
 <td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
 <tr><td>LIMIT</td>
-<td>+</td><td></td><td></td><td></td><td></td><td>+</td><td></td></tr>
+<td>MS</td><td></td><td></td><td></td><td></td><td>+</td><td></td></tr>
 <tr><td>LOCALTIME</td>
 <td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td></td></tr>
 <tr><td>LOCALTIMESTAMP</td>
 <td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td></td></tr>
 <tr><td>MINUS</td>
-<td>+</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+<td>MS</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
 <tr><td>MINUTE</td>
 <td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
 <tr><td>MONTH</td>
@@ -635,13 +636,13 @@ The following tokens are keywords in H2:
 <tr><td>TO</td>
 <td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
 <tr><td>TOP</td>
-<td>CS</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+<td>MS<br/>CS</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
 <tr><td>TRAILING</td>
 <td>CS</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
 <tr><td>TRUE</td>
 <td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
 <tr><td>UESCAPE</td>
-<td>+</td><td></td><td></td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
+<td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td></td><td></td></tr>
 <tr><td>UNION</td>
 <td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td><td>+</td></tr>
 <tr><td>UNIQUE</td>
@@ -671,15 +672,30 @@ The following tokens are keywords in H2:
 </tbody>
 </table>
 <p>
-Some keywords in H2 are context-sensitive (CS), such keywords may be used as identifiers in some places,
+Mode-sensitive keywords (MS) are keywords only in some compatibility modes.
+</p>
+<ul><li>LIMIT is a keywords only in Regular, Legacy, DB2, HSQLDB, MariaDB, MySQL, and PostgreSQL compatibility modes.
+It is an identifier in Strict, Derby, MSSQLServer, and Oracle compatibility modes.
+</li><li>MINUS is a keyword only in Regular, Legacy, DB2, HSQLDB, and Oracle compatibility modes.
+It is an identifier in Strict, Derby, MSSQLServer, MariaDB, MySQL, and PostgreSQL compatibility modes.
+</li><li>TOP is a context-sensitive keyword (can be either keyword or identifier)
+only in Regular, Legacy, HSQLDB, and MSSQLServer compatibility modes.
+It is an identifier unconditionally in Strict, Derby, DB2, MariaDB, MySQL, Oracle, and PostgreSQL compatibility modes.
+</li></ul>
+<p>
+Context-sensitive keywords (CS) can be used as identifiers in some places,
 but cannot be used as identifiers in others.
+Normal keywords (+) are always treated as keywords.
+</p>
+<p>
 Most keywords in H2 are also reserved (+) or non-reserved (NR) words in the SQL Standard.
 Newer versions of H2 may have more keywords than older ones.
+Reserved words from the SQL Standard are potential candidates for keywords in future versions.
 </p>
 
 <p>There is a compatibility setting
 <a href="commands.html#set_non_keywords"><code>SET NON_KEYWORDS</code></a>
-that can be used as a temporary workaround for applications that use keywords as unquoted identifiers.</p>.
+that can be used as a temporary workaround for applications that use keywords as unquoted identifiers.</p>
 
 <h2 id="standards_compliance">Standards Compliance</h2>
 <p>

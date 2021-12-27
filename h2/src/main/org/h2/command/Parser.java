@@ -51,7 +51,6 @@ import static org.h2.util.ParserUtil.IF;
 import static org.h2.util.ParserUtil.IN;
 import static org.h2.util.ParserUtil.INNER;
 import static org.h2.util.ParserUtil.INTERSECT;
-import static org.h2.util.ParserUtil.INTERSECTS;
 import static org.h2.util.ParserUtil.INTERVAL;
 import static org.h2.util.ParserUtil.IS;
 import static org.h2.util.ParserUtil.JOIN;
@@ -650,8 +649,6 @@ public class Parser {
             "INNER",
             // INTERSECT
             "INTERSECT",
-            // INTERSECTS
-            "INTERSECTS",
             // INTERVAL
             "INTERVAL",
             // IS
@@ -3437,15 +3434,6 @@ public class Parser {
             read(CLOSE_PAREN);
             return new ExistsPredicate(query);
         }
-        case INTERSECTS: {
-            read();
-            read(OPEN_PAREN);
-            Expression r1 = readConcat();
-            read(COMMA);
-            Expression r2 = readConcat();
-            read(CLOSE_PAREN);
-            return new Comparison(Comparison.SPATIAL_INTERSECTS, r1, r2, false);
-        }
         case UNIQUE: {
             read();
             read(OPEN_PAREN);
@@ -3454,8 +3442,21 @@ public class Parser {
             return new UniquePredicate(query);
         }
         default:
+            int index = lastParseIndex;
+            if (readIf("INTERSECTS")) {
+                if (readIf(OPEN_PAREN)) {
+                    Expression r1 = readConcat();
+                    read(COMMA);
+                    Expression r2 = readConcat();
+                    read(CLOSE_PAREN);
+                    return new Comparison(Comparison.SPATIAL_INTERSECTS, r1, r2, false);
+                } else {
+                    reread(index);
+                }
+            }
             if (expectedList != null) {
-                addMultipleExpected(NOT, EXISTS, INTERSECTS, UNIQUE);
+                addMultipleExpected(NOT, EXISTS, UNIQUE);
+                addExpected("INTERSECTS");
             }
         }
         Expression l, c = readConcat();
@@ -6257,6 +6258,17 @@ public class Parser {
                 i++;
             }
             currentTokenType = ParserUtil.getTokenType(sqlCommand, !identifiersToUpper, start, i - start, false);
+            switch (currentTokenType) {
+            case LIMIT:
+                if (!database.getMode().limit) {
+                    currentTokenType = IDENTIFIER;
+                }
+                break;
+            case MINUS:
+                if (!database.getMode().minusIsExcept) {
+                    currentTokenType = IDENTIFIER;
+                }
+            }
             if (isIdentifier()) {
                 currentToken = StringUtils.cache(checkIdentifierLength(start, i));
             } else {
@@ -9538,7 +9550,7 @@ public class Parser {
         String tableName = readIdentifierWithSchema();
         Schema schema = getSchema();
         if (readIf("ADD")) {
-            Prepared command = parseAlterTableAddConstraintIf(tableName, schema, ifTableExists);
+            Prepared command = parseTableConstraintIf(tableName, schema, ifTableExists);
             if (command != null) {
                 return command;
             }
@@ -10118,7 +10130,7 @@ public class Parser {
         }
     }
 
-    private DefineCommand parseAlterTableAddConstraintIf(String tableName, Schema schema, boolean ifTableExists) {
+    private DefineCommand parseTableConstraintIf(String tableName, Schema schema, boolean ifTableExists) {
         String constraintName = null, comment = null;
         boolean ifNotExists = false;
         if (readIf(CONSTRAINT)) {
@@ -10159,7 +10171,12 @@ public class Parser {
             read(OPEN_PAREN);
             command = new AlterTableAddConstraint(session, schema, CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_UNIQUE,
                     ifNotExists);
-            command.setIndexColumns(parseIndexColumnList());
+            if (readIf(VALUE)) {
+                read(CLOSE_PAREN);
+                command.setIndexColumns(null);
+            } else {
+                command.setIndexColumns(parseIndexColumnList());
+            }
             if (readIf("INDEX")) {
                 String indexName = readIdentifierWithSchema();
                 command.setIndex(getSchema().findIndex(session, indexName));
@@ -10392,7 +10409,7 @@ public class Parser {
 
     private void parseTableColumnDefinition(CommandWithColumns command, Schema schema, String tableName,
             boolean forCreateTable) {
-        DefineCommand c = parseAlterTableAddConstraintIf(tableName, schema, false);
+        DefineCommand c = parseTableConstraintIf(tableName, schema, false);
         if (c != null) {
             command.addConstraintCommand(c);
             return;

@@ -32,7 +32,6 @@ import org.h2.util.Utils;
 
 /**
  * Interactive command line tool to access a database using JDBC.
- * @h2.resource
  */
 public class Shell extends Tool implements Runnable {
 
@@ -73,7 +72,6 @@ public class Shell extends Tool implements Runnable {
      * </table>
      * If special characters don't work as expected, you may need to use
      * -Dfile.encoding=UTF-8 (Mac OS X) or CP850 (Windows).
-     * @h2.resource
      *
      * @param args the command line arguments
      * @throws SQLException on failure

@@ -22,7 +22,6 @@ import org.h2.util.Tool;
  * Creates a cluster from a stand-alone database.
  *
  * Copies a database to another location if required.
- * @h2.resource
  */
 public class CreateCluster extends Tool {
 
@@ -43,7 +42,6 @@ public class CreateCluster extends Tool {
      * <tr><td>[-serverList &lt;list&gt;]</td>
      * <td>The comma separated list of host names or IP addresses</td></tr>
      * </table>
-     * @h2.resource
      *
      * @param args the command line arguments
      * @throws SQLException on failure

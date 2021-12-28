@@ -3879,7 +3879,7 @@ public class MVStore implements AutoCloseable {
          * stops if the target fill rate is reached.
          * <p>
          * The default value is 90 (90%). The value 0 disables auto-compacting.
-         * <p>
+         * </p>
          *
          * @param percent the target fill rate
          * @return this

@@ -20,7 +20,6 @@ import org.h2.util.Tool;
 
 /**
  * Restores a H2 database by extracting the database files from a .zip file.
- * @h2.resource
  */
 public class Restore extends Tool {
 
@@ -39,7 +38,6 @@ public class Restore extends Tool {
      * <tr><td>[-quiet]</td>
      * <td>Do not print progress information</td></tr>
      * </table>
-     * @h2.resource
      *
      * @param args the command line arguments
      * @throws SQLException on failure

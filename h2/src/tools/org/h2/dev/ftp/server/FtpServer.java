@@ -146,7 +146,6 @@ public class FtpServer extends Tool implements Service {
      * <tr><td>[-trace]</td>
      * <td>Print additional trace information; for all servers</td></tr>
      * </table>
-     * @h2.resource
      *
      * @param args the command line arguments
      */

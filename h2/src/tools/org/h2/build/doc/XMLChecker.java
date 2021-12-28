@@ -45,6 +45,15 @@ public class XMLChecker {
     private static void process(Path path) throws Exception {
         Files.walkFileTree(path, new SimpleFileVisitor<Path>() {
             @Override
+            public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+                // For Javadoc 8
+                if (dir.getFileName().toString().equals("javadoc")) {
+                    return FileVisitResult.SKIP_SUBTREE;
+                }
+                return FileVisitResult.CONTINUE;
+            }
+
+            @Override
             public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
                 processFile(file);
                 return FileVisitResult.CONTINUE;
@@ -85,11 +94,11 @@ public class XMLChecker {
         // String lastElement = null;
         // <li>: replace <li>([^\r]*[^<]*) with <li>$1</li>
         // use this for html file, for example if <li> is not closed
-        String[] noClose = {};
+        String[] noClose = {"br", "hr", "input", "link", "meta", "wbr"};
         XMLParser parser = new XMLParser(xml);
         Stack<Object[]> stack = new Stack<>();
         boolean rootElement = false;
-        while (true) {
+        loop: for (;;) {
             int event = parser.next();
             if (event == XMLParser.END_DOCUMENT) {
                 break;
@@ -117,8 +126,7 @@ public class XMLChecker {
                 if (html) {
                     for (String n : noClose) {
                         if (name.equals(n)) {
-                            throw new Exception("Unnecessary closing element "
-                                    + name + " at " + parser.getRemaining());
+                            continue loop;
                         }
                     }
                 }

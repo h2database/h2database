@@ -22,7 +22,6 @@ import org.h2.util.Tool;
  * Converts a .trace.db file to a SQL script and Java source code.
  *
  * SQL statement statistics are listed as well.
- * @h2.resource
  */
 public class ConvertTraceFile extends Tool {
 
@@ -67,7 +66,6 @@ public class ConvertTraceFile extends Tool {
      * <tr><td>[-javaClass &lt;file&gt;]</td>
      * <td>The Java directory and class file name (default: Test)</td></tr>
      * </table>
-     * @h2.resource
      *
      * @param args the command line arguments
      * @throws SQLException on failure

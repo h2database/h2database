@@ -22,7 +22,7 @@ import org.h2.value.Value;
 public class Mode {
 
     public enum ModeEnum {
-        REGULAR, DB2, Derby, MariaDB, MSSQLServer, HSQLDB, MySQL, Oracle, PostgreSQL
+        REGULAR, STRICT, LEGACY, DB2, Derby, MariaDB, MSSQLServer, HSQLDB, MySQL, Oracle, PostgreSQL
     }
 
     /**
@@ -399,6 +399,11 @@ public class Mode {
     public boolean limit;
 
     /**
+     * Whether MINUS can be used as EXCEPT.
+     */
+    public boolean minusIsExcept;
+
+    /**
      * Whether IDENTITY pseudo data type is supported.
      */
     public boolean identityDataType;
@@ -450,8 +455,38 @@ public class Mode {
         mode.dateTimeValueWithinTransaction = true;
         mode.topInSelect = true;
         mode.limit = true;
+        mode.minusIsExcept = true;
         mode.identityDataType = true;
+        mode.serialDataTypes = true;
         mode.autoIncrementClause = true;
+        add(mode);
+
+        mode = new Mode(ModeEnum.STRICT);
+        mode.dateTimeValueWithinTransaction = true;
+        add(mode);
+
+        mode = new Mode(ModeEnum.LEGACY);
+        // Features of REGULAR mode
+        mode.allowEmptyInPredicate = true;
+        mode.dateTimeValueWithinTransaction = true;
+        mode.topInSelect = true;
+        mode.limit = true;
+        mode.minusIsExcept = true;
+        mode.identityDataType = true;
+        mode.serialDataTypes = true;
+        mode.autoIncrementClause = true;
+        // Legacy identity and sequence features
+        mode.identityClause = true;
+        mode.updateSequenceOnManualIdentityInsertion = true;
+        mode.identityColumnsHaveDefaultOnNull = true;
+        mode.nextvalAndCurrvalPseudoColumns = true;
+        // Legacy DML features
+        mode.topInDML = true;
+        mode.mergeWhere = true;
+        // Legacy DDL features
+        mode.createUniqueConstraintForReferencedColumns = true;
+        // Legacy numeric with boolean comparison
+        mode.numericWithBooleanComparison = true;
         add(mode);
 
         mode = new Mode(ModeEnum.DB2);
@@ -470,6 +505,7 @@ public class Mode {
         mode.expressionNames = ExpressionNames.NUMBER;
         mode.viewExpressionNames = ViewExpressionNames.EXCEPTION;
         mode.limit = true;
+        mode.minusIsExcept = true;
         mode.numericWithBooleanComparison = true;
         add(mode);
 
@@ -495,6 +531,7 @@ public class Mode {
         mode.expressionNames = ExpressionNames.C_NUMBER;
         mode.topInSelect = true;
         mode.limit = true;
+        mode.minusIsExcept = true;
         mode.numericWithBooleanComparison = true;
         add(mode);
 
@@ -604,6 +641,7 @@ public class Mode {
         mode.charAndByteLengthUnits = true;
         mode.nextvalAndCurrvalPseudoColumns = true;
         mode.mergeWhere = true;
+        mode.minusIsExcept = true;
         mode.expressionNames = ExpressionNames.ORIGINAL_SQL;
         mode.viewExpressionNames = ViewExpressionNames.EXCEPTION;
         mode.typeByNameMap.put("BINARY_FLOAT", DataType.getDataType(Value.REAL));
@@ -636,7 +674,6 @@ public class Mode {
         // Enumerate all H2 types NOT supported by PostgreSQL:
         Set<String> disallowedTypes = new java.util.HashSet<>();
         disallowedTypes.add("NUMBER");
-        disallowedTypes.add("IDENTITY");
         disallowedTypes.add("TINYINT");
         disallowedTypes.add("BLOB");
         disallowedTypes.add("VARCHAR_IGNORECASE");

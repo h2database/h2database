@@ -37,8 +37,6 @@ class VirtualTableCursor implements Cursor {
      *            first row
      * @param last
      *            last row
-     * @param session
-     *            session
      * @param result
      *            the result
      */

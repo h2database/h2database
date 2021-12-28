@@ -137,10 +137,10 @@ public class DataType {
         add(Value.TINYINT, Types.TINYINT, createNumeric(ValueTinyint.PRECISION, 0), "TINYINT");
         add(Value.SMALLINT, Types.SMALLINT, createNumeric(ValueSmallint.PRECISION, 0), "SMALLINT", "INT2");
         add(Value.INTEGER, Types.INTEGER, createNumeric(ValueInteger.PRECISION, 0),
-                "INTEGER", "INT", "MEDIUMINT", "INT4", "SIGNED", "SERIAL"
+                "INTEGER", "INT", "MEDIUMINT", "INT4", "SIGNED"
         );
         add(Value.BIGINT, Types.BIGINT, createNumeric(ValueBigint.PRECISION, 0),
-                "BIGINT", "INT8", "LONG", "IDENTITY", "BIGSERIAL");
+                "BIGINT", "INT8", "LONG");
         dataType = new DataType();
         dataType.minPrecision = 1;
         dataType.defaultPrecision = dataType.maxPrecision = Constants.MAX_NUMERIC_PRECISION;

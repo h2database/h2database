@@ -225,14 +225,9 @@ public class ParserUtil {
     public static final int INTERSECT = INNER + 1;
 
     /**
-     * The token "INTERSECTS".
-     */
-    public static final int INTERSECTS = INTERSECT + 1;
-
-    /**
      * The token "INTERVAL".
      */
-    public static final int INTERVAL = INTERSECTS + 1;
+    public static final int INTERVAL = INTERSECT + 1;
 
     /**
      * The token "IS".
@@ -724,8 +719,6 @@ public class ParserUtil {
                 return INNER;
             } else if (eq("INTERSECT", s, ignoreCase, start, length)) {
                 return INTERSECT;
-            } else if (eq("INTERSECTS", s, ignoreCase, start, length)) {
-                return INTERSECTS;
             } else if (eq("INTERVAL", s, ignoreCase, start, length)) {
                 return INTERVAL;
             }

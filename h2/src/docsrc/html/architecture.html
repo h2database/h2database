@@ -50,6 +50,7 @@ in time replace the B-tree based storage engine.
 <h2 id="top_down">Top-down Overview</h2>
 <p>
 Working from the top down, the layers look like this:
+</p>
 <ul><li>JDBC driver.
 </li><li>Connection/session management.
 </li><li>SQL Parser.
@@ -59,7 +60,6 @@ Working from the top down, the layers look like this:
 </li><li>B-tree engine and page-based storage allocation.
 </li><li>Filesystem abstraction.
 </li></ul>
-</p>
 
 <h2 id="jdbc">JDBC Driver</h2>
 <p>
@@ -69,6 +69,7 @@ The JDBC driver implementation lives in <code>org.h2.jdbc, org.h2.jdbcx</code>
 <h2 id="connection">Connection/session management</h2>
 <p>
 The primary classes of interest are:
+</p>
 <table class="main">
 <tr><th>Package</th><th>Description</th></tr>
 <tr><td>org.h2.engine.Database</td><td>the root/global class</td></tr>
@@ -79,7 +80,6 @@ The primary classes of interest are:
 <tr><td>org.h2.engine.SessionRemote</td>
     <td>remote session</td></tr>
 </table>
-</p>
 
 <h2 id="jdbc">Parser</h2>
 <p>
@@ -95,14 +95,15 @@ See Wikipedia <a href="https://en.wikipedia.org/wiki/Recursive_descent_parser">R
 Unlike other databases, we do not have an intermediate step where we generate some kind of IR (intermediate representation) of the query.
 The parser class directly generates a command execution object.
 Then we run some optimisation steps over the command to possibly generate a more efficient command.
-
+</p>
+<p>
 The primary packages of interest are:
+</p>
 <table class="main">
 <tr><th>Package</th><th>Description</th></tr>
 <tr><td>org.h2.command.ddl</td><td>Commands that modify schema data structures</td></tr>
 <tr><td>org.h2.command.dml</td><td>Commands that modify data</td></tr>
 </table>
-</p>
 
 <h2 id="table">Table/Index/Constraints</h2>
 <p>
@@ -110,12 +111,12 @@ One thing to note here is that indexes are simply stored as special kinds of tab
 </p>
 <p>
 The primary packages of interest are:
+</p>
 <table class="main">
 <tr><th>Package</th><th>Description</th></tr>
 <tr><td>org.h2.table</td><td>Implementations of different kinds of tables</td></tr>
 <tr><td>org.h2.index</td><td>Implementations of different kinds of indices</td></tr>
 </table>
-</p>
 
 <h2 id="transaction">Undo log, redo log, and transactions layer</h2>
 <p>

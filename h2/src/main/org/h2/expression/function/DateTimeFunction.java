@@ -373,7 +373,7 @@ public final class DateTimeFunction extends Function1_2 {
      * @param date
      *            the date value
      * @param field
-     *            the field type, see {@link Function} for constants
+     *            the field type
      * @return the value
      */
     private static int extractInteger(SessionLocal session, Value date, int field) {

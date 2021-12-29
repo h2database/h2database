@@ -77,7 +77,7 @@ class Optimizer {
 
     private void calculateBestPlan() {
         cost = -1;
-        if (filters.length == 1 || session.isForceJoinOrder()) {
+        if (filters.length == 1) {
             testPlan(filters);
         } else {
             startNs = System.nanoTime();

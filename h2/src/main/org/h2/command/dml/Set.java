@@ -479,15 +479,6 @@ public class Set extends Prepared {
             }
             break;
         }
-        case SetTypes.FORCE_JOIN_ORDER: {
-            int value = getIntValue();
-            if (value != 0 && value != 1) {
-                throw DbException.getInvalidValueException("FORCE_JOIN_ORDER",
-                        value);
-            }
-            session.setForceJoinOrder(value == 1);
-            break;
-        }
         case SetTypes.LAZY_QUERY_EXECUTION: {
             int value = getIntValue();
             if (value != 0 && value != 1) {

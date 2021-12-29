@@ -110,7 +110,6 @@ import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -808,13 +807,6 @@ public class Parser {
             // NOT_TILDE
             "!~",
             // End
-    };
-
-    private static final Comparator<TableFilter> TABLE_FILTER_COMPARATOR = (o1, o2) -> {
-        if (o1 == o2)
-            return 0;
-        assert o1.getOrderInFrom() != o2.getOrderInFrom();
-        return o1.getOrderInFrom() > o2.getOrderInFrom() ? 1 : -1;
     };
 
     private final Database database;
@@ -3118,12 +3110,6 @@ public class Parser {
                 top = join;
             }
         } while (readIf(COMMA));
-
-        // Parser can reorder joined table filters, need to explicitly sort them
-        // to get the order as it was in the original query.
-        if (session.isForceJoinOrder()) {
-            command.getTopFilters().sort(TABLE_FILTER_COMPARATOR);
-        }
     }
 
     private void parseSelectExpressions(Select command) {

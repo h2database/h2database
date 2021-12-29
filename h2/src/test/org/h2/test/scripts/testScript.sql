@@ -2971,7 +2971,7 @@ drop table test;
 create table test(id int primary key);
 > ok
 
--- Column A cannot be referenced here
+-- Column A.ID cannot be referenced here
 explain select * from test a inner join test b left outer join test c on c.id = a.id;
 > exception COLUMN_NOT_FOUND_1
 

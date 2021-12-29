@@ -2971,8 +2971,9 @@ drop table test;
 create table test(id int primary key);
 > ok
 
+-- Column A.ID cannot be referenced here
 explain select * from test a inner join test b left outer join test c on c.id = a.id;
->> SELECT "A"."ID", "B"."ID", "C"."ID" FROM "PUBLIC"."TEST" "A" /* PUBLIC.TEST.tableScan */ LEFT OUTER JOIN "PUBLIC"."TEST" "C" /* PUBLIC.PRIMARY_KEY_2: ID = A.ID */ ON "C"."ID" = "A"."ID" INNER JOIN "PUBLIC"."TEST" "B" /* PUBLIC.TEST.tableScan */ ON 1=1
+> exception COLUMN_NOT_FOUND_1
 
 SELECT T.ID FROM TEST "T";
 > ID

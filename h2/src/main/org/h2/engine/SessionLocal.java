@@ -185,7 +185,6 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
     private int createViewLevel;
     private volatile SmallLRUCache<Object, ViewIndex> viewIndexCache;
     private HashMap<Object, ViewIndex> subQueryIndexCache;
-    private boolean forceJoinOrder;
     private boolean lazyQueryExecution;
 
     private BitSet nonKeywords;
@@ -276,14 +275,6 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
 
     public boolean isLazyQueryExecution() {
         return lazyQueryExecution;
-    }
-
-    public void setForceJoinOrder(boolean forceJoinOrder) {
-        this.forceJoinOrder = forceJoinOrder;
-    }
-
-    public boolean isForceJoinOrder() {
-        return forceJoinOrder;
     }
 
     /**

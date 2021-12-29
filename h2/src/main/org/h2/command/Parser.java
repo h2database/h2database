@@ -110,7 +110,6 @@ import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -808,13 +807,6 @@ public class Parser {
             // NOT_TILDE
             "!~",
             // End
-    };
-
-    private static final Comparator<TableFilter> TABLE_FILTER_COMPARATOR = (o1, o2) -> {
-        if (o1 == o2)
-            return 0;
-        assert o1.getOrderInFrom() != o2.getOrderInFrom();
-        return o1.getOrderInFrom() > o2.getOrderInFrom() ? 1 : -1;
     };
 
     private final Database database;
@@ -2123,19 +2115,17 @@ public class Parser {
             if (isQuery()) {
                 return readQueryTableFilter();
             } else {
-                TableFilter top;
-                top = readTableFilter();
-                top = readJoin(top);
+                TableFilter tableFilter = readTableReference();
                 read(CLOSE_PAREN);
                 alias = readFromAlias(null);
                 if (alias != null) {
-                    top.setAlias(alias);
+                    tableFilter.setAlias(alias);
                     ArrayList<String> derivedColumnNames = readDerivedColumnNames();
                     if (derivedColumnNames != null) {
-                        top.setDerivedColumns(derivedColumnNames);
+                        tableFilter.setDerivedColumns(derivedColumnNames);
                     }
                 }
-                return top;
+                return tableFilter;
             }
         } else if (readIf(VALUES)) {
             TableValueConstructor query = parseValues();
@@ -2655,16 +2645,15 @@ public class Parser {
         return command;
     }
 
-    private TableFilter readJoin(TableFilter top) {
-        for (TableFilter last = top, join;; last = join) {
+    private TableFilter readTableReference() {
+        for (TableFilter top, last = top = readTableFilter(), join;; last = join) {
             switch (currentTokenType) {
             case RIGHT: {
                 read();
                 readIf("OUTER");
                 read(JOIN);
                 // the right hand side is the 'inner' table usually
-                join = readTableFilter();
-                join = readJoin(join);
+                join = readTableReference();
                 Expression on = readJoinSpecification(top, join, true);
                 addJoin(join, top, true, on);
                 top = join;
@@ -2674,8 +2663,7 @@ public class Parser {
                 read();
                 readIf("OUTER");
                 read(JOIN);
-                join = readTableFilter();
-                join = readJoin(join);
+                join = readTableReference();
                 Expression on = readJoinSpecification(top, join, false);
                 addJoin(top, join, true, on);
                 break;
@@ -2686,16 +2674,14 @@ public class Parser {
             case INNER: {
                 read();
                 read(JOIN);
-                join = readTableFilter();
-                top = readJoin(top);
+                join = readTableReference();
                 Expression on = readJoinSpecification(top, join, false);
                 addJoin(top, join, false, on);
                 break;
             }
             case JOIN: {
                 read();
-                join = readTableFilter();
-                top = readJoin(top);
+                join = readTableReference();
                 Expression on = readJoinSpecification(top, join, false);
                 addJoin(top, join, false, on);
                 break;
@@ -3096,45 +3082,34 @@ public class Parser {
 
     private void parseSelectFromPart(Select command) {
         do {
-            TableFilter filter = readTableFilter();
-            parseJoinTableFilter(filter, command);
-        } while (readIf(COMMA));
-
-        // Parser can reorder joined table filters, need to explicitly sort them
-        // to get the order as it was in the original query.
-        if (session.isForceJoinOrder()) {
-            command.getTopFilters().sort(TABLE_FILTER_COMPARATOR);
-        }
-    }
-
-    private void parseJoinTableFilter(TableFilter top, final Select command) {
-        top = readJoin(top);
-        command.addTableFilter(top, true);
-        boolean isOuter = false;
-        while (true) {
-            TableFilter n = top.getNestedJoin();
-            if (n != null) {
-                n.visit(f -> command.addTableFilter(f, false));
-            }
-            TableFilter join = top.getJoin();
-            if (join == null) {
-                break;
-            }
-            isOuter = isOuter | join.isJoinOuter();
-            if (isOuter) {
-                command.addTableFilter(join, false);
-            } else {
-                // make flat so the optimizer can work better
-                Expression on = join.getJoinCondition();
-                if (on != null) {
-                    command.addCondition(on);
+            TableFilter top = readTableReference();
+            command.addTableFilter(top, true);
+            boolean isOuter = false;
+            for (;;) {
+                TableFilter n = top.getNestedJoin();
+                if (n != null) {
+                    n.visit(f -> command.addTableFilter(f, false));
                 }
-                join.removeJoinCondition();
-                top.removeJoin();
-                command.addTableFilter(join, true);
+                TableFilter join = top.getJoin();
+                if (join == null) {
+                    break;
+                }
+                isOuter = isOuter | join.isJoinOuter();
+                if (isOuter) {
+                    command.addTableFilter(join, false);
+                } else {
+                    // make flat so the optimizer can work better
+                    Expression on = join.getJoinCondition();
+                    if (on != null) {
+                        command.addCondition(on);
+                    }
+                    join.removeJoinCondition();
+                    top.removeJoin();
+                    command.addTableFilter(join, true);
+                }
+                top = join;
             }
-            top = join;
-        }
+        } while (readIf(COMMA));
     }
 
     private void parseSelectExpressions(Select command) {

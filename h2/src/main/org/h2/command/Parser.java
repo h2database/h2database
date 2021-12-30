@@ -1496,7 +1496,7 @@ public class Parser {
         command.setTableFilter(filter);
         command.setSetClauseList(readUpdateSetClause(filter));
         if (database.getMode().allowUsingFromClauseInUpdateStatement && readIf(FROM)) {
-            TableFilter fromTable = readTableFilter();
+            TableFilter fromTable = readTablePrimary();
             command.setFromTableFilter(fromTable);
         }
         if (readIf(WHERE)) {
@@ -1777,6 +1777,82 @@ public class Parser {
         return prep;
     }
 
+    private boolean isDerivedTable() {
+        int start = lastParseIndex;
+        int level = 0;
+        while (readIf(OPEN_PAREN)) {
+            level++;
+        }
+        boolean query;
+        switch (currentTokenType) {
+        case SELECT:
+        case VALUES:
+        case WITH:
+            query = true;
+            break;
+        case TABLE:
+            read();
+            query = !readIf(OPEN_PAREN);
+            break;
+        default:
+            query = false;
+        }
+        s: if (query && level > 0) {
+            read();
+            if (!scanToCloseParen()) {
+                query = false;
+                break s;
+            }
+            for (;;) {
+                switch (currentTokenType) {
+                case SEMICOLON:
+                case END_OF_INPUT:
+                    query = false;
+                    break s;
+                case OPEN_PAREN:
+                    read();
+                    if (!scanToCloseParen()) {
+                        query = false;
+                        break s;
+                    }
+                    break;
+                case CLOSE_PAREN:
+                    if (--level == 0) {
+                        break s;
+                    }
+                    read();
+                    break;
+                case JOIN:
+                    query = false;
+                    break s;
+                default:
+                    read();
+                }
+            }
+        }
+        reread(start);
+        return query;
+    }
+
+    private boolean scanToCloseParen() {
+        for (int level = 0;;) {
+            switch (currentTokenType) {
+            case SEMICOLON:
+            case END_OF_INPUT:
+                return false;
+            case OPEN_PAREN:
+                level++;
+                break;
+            case CLOSE_PAREN:
+                if (--level < 0) {
+                    read();
+                    return true;
+                }
+            }
+            read();
+        }
+    }
+
     private boolean isQuery() {
         int start = lastParseIndex;
         while (readIf(OPEN_PAREN)) {
@@ -1870,7 +1946,7 @@ public class Parser {
             }
             cteCleanups.add(temporarySourceTableView);
         } else {
-            command.setSourceTableFilter(readTableFilter());
+            command.setSourceTableFilter(readTablePrimary());
         }
         read(ON);
         Expression condition = readExpression();
@@ -2108,30 +2184,25 @@ public class Parser {
         } while (readIf(COMMA));
     }
 
-    private TableFilter readTableFilter() {
+    private TableFilter readTablePrimary() {
         Table table;
         String alias = null;
         label: if (readIf(OPEN_PAREN)) {
-            if (isQuery()) {
-                return readQueryTableFilter();
+            if (isDerivedTable()) {
+                // Derived table
+                return readDerivedTableWithCorrelation();
             } else {
+                // Parenthesized joined table
                 TableFilter tableFilter = readTableReference();
                 read(CLOSE_PAREN);
-                alias = readFromAlias(null);
-                if (alias != null) {
-                    tableFilter.setAlias(alias);
-                    ArrayList<String> derivedColumnNames = readDerivedColumnNames();
-                    if (derivedColumnNames != null) {
-                        tableFilter.setDerivedColumns(derivedColumnNames);
-                    }
-                }
-                return tableFilter;
+                return readCorrelation(tableFilter);
             }
         } else if (readIf(VALUES)) {
             TableValueConstructor query = parseValues();
             alias = session.getNextSystemIdentifier(sqlCommand);
             table = query.toTable(alias, null, parameters, createView != null, currentSelect);
         } else if (readIf(TABLE)) {
+            // Table function derived table
             read(OPEN_PAREN);
             ArrayTableFunction function = readTableFunction(ArrayTableFunction.TABLE);
             table = new FunctionTable(database.getMainSchema(), session, function);
@@ -2205,8 +2276,20 @@ public class Parser {
         return buildTableFilter(table, alias, derivedColumnNames, indexHints);
     }
 
-    private TableFilter readQueryTableFilter() {
-        Query query = parseSelectUnion();
+    private TableFilter readCorrelation(TableFilter tableFilter) {
+        String alias = readFromAlias(null);
+        if (alias != null) {
+            tableFilter.setAlias(alias);
+            ArrayList<String> derivedColumnNames = readDerivedColumnNames();
+            if (derivedColumnNames != null) {
+                tableFilter.setDerivedColumns(derivedColumnNames);
+            }
+        }
+        return tableFilter;
+    }
+
+    private TableFilter readDerivedTableWithCorrelation() {
+        Query query = parseQueryExpression();
         read(CLOSE_PAREN);
         Table table;
         String alias;
@@ -2646,7 +2729,7 @@ public class Parser {
     }
 
     private TableFilter readTableReference() {
-        for (TableFilter top, last = top = readTableFilter(), join;; last = join) {
+        for (TableFilter top, last = top = readTablePrimary(), join;; last = join) {
             switch (currentTokenType) {
             case RIGHT: {
                 read();
@@ -2689,14 +2772,14 @@ public class Parser {
             case CROSS: {
                 read();
                 read(JOIN);
-                join = readTableFilter();
+                join = readTablePrimary();
                 addJoin(top, join, false, null);
                 break;
             }
             case NATURAL: {
                 read();
                 read(JOIN);
-                join = readTableFilter();
+                join = readTablePrimary();
                 Expression on = null;
                 for (Column column1 : last.getTable().getColumns()) {
                     Column column2 = join.getColumn(last.getColumnName(column1), true);
@@ -2880,7 +2963,7 @@ public class Parser {
 
     private Query parseQuery() {
         int paramIndex = parameters.size();
-        Query command = parseSelectUnion();
+        Query command = parseQueryExpression();
         int size = parameters.size();
         ArrayList<Parameter> params = new ArrayList<>(size);
         for (int i = paramIndex; i < size; i++) {
@@ -2908,9 +2991,32 @@ public class Parser {
         return command;
     }
 
-    private Query parseSelectUnion() {
+    private Query parseQueryExpression() {
+        Query query;
+        if (readIf(WITH)) {
+            try {
+                query = (Query) parseWith();
+            } catch (ClassCastException e) {
+                throw DbException.get(ErrorCode.SYNTAX_ERROR_1, "WITH statement supports only query in this context");
+            }
+            // recursive can not be lazy
+            query.setNeverLazy(true);
+        } else {
+            query = parseQueryExpressionBodyAndEndOfQuery();
+        }
+        return query;
+    }
+
+    private Query parseQueryExpressionBodyAndEndOfQuery() {
         int start = lastParseIndex;
-        Query command = parseQuerySub();
+        Query command = parseQueryExpressionBody();
+        parseEndOfQuery(command);
+        setSQL(command, start);
+        return command;
+    }
+
+    private Query parseQueryExpressionBody() {
+        Query command = parseQueryTerm();
         for (;;) {
             SelectUnion.UnionType type;
             if (readIf(UNION)) {
@@ -2922,15 +3028,19 @@ public class Parser {
                 }
             } else if (readIf(EXCEPT) || readIf(MINUS)) {
                 type = SelectUnion.UnionType.EXCEPT;
-            } else if (readIf(INTERSECT)) {
-                type = SelectUnion.UnionType.INTERSECT;
             } else {
                 break;
             }
-            command = new SelectUnion(session, type, command, parseQuerySub());
+            command = new SelectUnion(session, type, command, parseQueryTerm());
         }
-        parseEndOfQuery(command);
-        setSQL(command, start);
+        return command;
+    }
+
+    private Query parseQueryTerm() {
+        Query command = parseQueryPrimary();
+        while (readIf(INTERSECT)) {
+            command = new SelectUnion(session, SelectUnion.UnionType.INTERSECT, command, parseQueryPrimary());
+        }
         return command;
     }
 
@@ -3052,23 +3162,11 @@ public class Parser {
         }
     }
 
-    private Query parseQuerySub() {
+    private Query parseQueryPrimary() {
         if (readIf(OPEN_PAREN)) {
-            Query command = parseSelectUnion();
+            Query command = parseQueryExpressionBodyAndEndOfQuery();
             read(CLOSE_PAREN);
             return command;
-        }
-        if (readIf(WITH)) {
-            Query query;
-            try {
-                query = (Query) parseWith();
-            } catch (ClassCastException e) {
-                throw DbException.get(ErrorCode.SYNTAX_ERROR_1,
-                        "WITH statement supports only SELECT (query) in this context");
-            }
-            // recursive can not be lazy
-            query.setNeverLazy(true);
-            return query;
         }
         int start = lastParseIndex;
         if (readIf(SELECT)) {
@@ -8407,7 +8505,7 @@ public class Parser {
     }
 
     private Prepared parseWithQuery() {
-        Query query = parseSelectUnion();
+        Query query = parseQueryExpressionBodyAndEndOfQuery();
         query.setPrepareAlways(true);
         query.setNeverLazy(true);
         return query;

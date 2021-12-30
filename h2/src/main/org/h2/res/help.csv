@@ -49,8 +49,8 @@ First row is each DISTINCT ON group is preserved.
 In absence of ORDER BY preserved rows are not determined, database may choose any row from each DISTINCT ON group.
 
 9. UNION, EXCEPT, and INTERSECT combine the result of this query with the results of another query.
-Multiple set operators (UNION, INTERSECT, EXCEPT) are evaluated from left to right.
-For compatibility with other databases and future versions of H2 please use parentheses.
+INTERSECT has higher precedence than UNION and EXCEPT.
+Operators with equal precedence are evaluated from left to right.
 
 10. ORDER BY sorts the result by the given column(s) or expression(s).
 

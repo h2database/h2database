@@ -382,7 +382,7 @@ public class WebApp {
                 if (query.endsWith("\n") || tQuery.endsWith(";")) {
                     list.add(0, "1#(Newline)#\n");
                 }
-                result = StringUtils.join(new StringBuilder(), list, "|").toString();
+                result = String.join("|", list);
             }
             session.put("autoCompleteList", result);
         } catch (Throwable e) {

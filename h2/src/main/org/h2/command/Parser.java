@@ -1272,8 +1272,7 @@ public class Parser {
         if (expectedList == null || expectedList.isEmpty()) {
             return DbException.getSyntaxError(sqlCommand, parseIndex);
         }
-        return DbException.getSyntaxError(sqlCommand, parseIndex,
-                StringUtils.join(new StringBuilder(), expectedList, ", ").toString());
+        return DbException.getSyntaxError(sqlCommand, parseIndex, String.join(", ", expectedList));
     }
 
     private Prepared parseBackup() {

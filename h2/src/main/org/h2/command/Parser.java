@@ -3051,7 +3051,7 @@ public class Parser {
             }
             ArrayList<QueryOrderBy> orderList = Utils.newSmallArrayList();
             do {
-                boolean canBeNumber = !readIf(EQUAL);
+                boolean canBeNumber = currentTokenType == LITERAL;
                 QueryOrderBy order = new QueryOrderBy();
                 Expression expr = readExpression();
                 if (canBeNumber && expr instanceof ValueExpression && expr.getType().getValueType() == Value.INTEGER) {

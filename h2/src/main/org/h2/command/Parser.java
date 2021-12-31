@@ -1076,9 +1076,8 @@ public class Parser {
             return c;
         case PARAMETER:
             // read the ? as a parameter
-            readTerm();
             // this is an 'out' parameter - set a dummy value
-            parameters.get(0).setValue(ValueNull.INSTANCE);
+            readParameter().setValue(ValueNull.INSTANCE);
             read(EQUAL);
             read("CALL");
             c = parseCall();
@@ -3210,10 +3209,10 @@ public class Parser {
     }
 
     private void parseSelectExpressions(Select command) {
-        Select temp = currentSelect;
-        // make sure aggregate functions will not work in TOP and LIMIT
-        currentSelect = null;
         if (database.getMode().topInSelect && readIf("TOP")) {
+            Select temp = currentSelect;
+            // make sure aggregate functions will not work in TOP and LIMIT
+            currentSelect = null;
             // can't read more complex expressions here because
             // SELECT TOP 1 +? A FROM TEST could mean
             // SELECT TOP (1+?) A FROM TEST or
@@ -3226,8 +3225,8 @@ public class Parser {
                 read("TIES");
                 command.setWithTies(true);
             }
+            currentSelect = temp;
         }
-        currentSelect = temp;
         if (readIf(DISTINCT)) {
             if (readIf(ON)) {
                 read(OPEN_PAREN);

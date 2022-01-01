@@ -316,7 +316,7 @@ public class ConstraintReferential extends Constraint {
     private boolean existsRow(SessionLocal session, Index searchIndex,
             SearchRow check, Row excluding) {
         Table searchTable = searchIndex.getTable();
-        searchTable.lock(session, false, false);
+        searchTable.lock(session, Table.READ_LOCK);
         Cursor cursor = searchIndex.find(session, check, check);
         while (cursor.next()) {
             SearchRow found;

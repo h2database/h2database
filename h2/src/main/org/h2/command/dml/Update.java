@@ -59,7 +59,7 @@ public final class Update extends FilteredDataChangeStatement {
         try (LocalResult rows = LocalResult.forTable(session, table)) {
             session.getUser().checkTableRight(table, Right.UPDATE);
             table.fire(session, Trigger.UPDATE, true);
-            table.lock(session, true, false);
+            table.lock(session, Table.WRITE_LOCK);
             // get the old rows, compute the new rows
             setCurrentRowNumber(0);
             long count = 0;

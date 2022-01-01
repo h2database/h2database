@@ -8544,7 +8544,7 @@ public class Parser {
                         cteViewName);
             }
             if (!isTemporary) {
-                oldViewFound.lock(session, true, true);
+                oldViewFound.lock(session, Table.EXCLUSIVE_LOCK);
                 database.removeSchemaObject(session, oldViewFound);
 
             } else {
@@ -8601,7 +8601,7 @@ public class Parser {
             if (!view.isRecursiveQueryDetected() && allowRecursiveQueryDetection) {
                 if (!isTemporary) {
                     database.addSchemaObject(session, view);
-                    view.lock(session, true, true);
+                    view.lock(session, Table.EXCLUSIVE_LOCK);
                     database.removeSchemaObject(session, view);
                 } else {
                     session.removeLocalTempTable(view);

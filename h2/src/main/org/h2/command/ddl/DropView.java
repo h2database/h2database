@@ -73,7 +73,7 @@ public class DropView extends SchemaCommand {
             TableView tableView = (TableView) view;
             ArrayList<Table> copyOfDependencies = new ArrayList<>(tableView.getTables());
 
-            view.lock(session, true, true);
+            view.lock(session, Table.EXCLUSIVE_LOCK);
             session.getDatabase().removeSchemaObject(session, view);
 
             // remove dependent table expressions

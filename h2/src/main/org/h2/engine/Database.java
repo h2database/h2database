@@ -769,7 +769,7 @@ public final class Database implements DataHandler, CastDataProvider {
         if (ASSERT) {
             lockMetaAssertion(session);
         }
-        return meta.lock(session, true, true);
+        return meta.lock(session, Table.EXCLUSIVE_LOCK);
     }
 
     private void lockMetaAssertion(SessionLocal session) {

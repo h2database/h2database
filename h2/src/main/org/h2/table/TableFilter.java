@@ -194,7 +194,7 @@ public class TableFilter implements ColumnResolver {
      * @param s the session
      */
     public void lock(SessionLocal s) {
-        table.lock(s, false, false);
+        table.lock(s, Table.READ_LOCK);
         if (join != null) {
             join.lock(s);
         }

@@ -181,7 +181,7 @@ public class Analyze extends DefineCommand {
                 || session.getCancel() != 0) {
             return;
         }
-        table.lock(session, false, false);
+        table.lock(session, Table.READ_LOCK);
         Column[] columns = table.getColumns();
         int columnCount = columns.length;
         if (columnCount == 0) {

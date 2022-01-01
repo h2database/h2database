@@ -169,7 +169,7 @@ public final class Insert extends CommandWithValues implements ResultTarget {
                     deltaChangeCollector.addRow(newRow.getValueList().clone());
                 }
                 if (!table.fireBeforeRow(session, null, newRow)) {
-                    table.lock(session, true, false);
+                    table.lock(session, Table.WRITE_LOCK);
                     try {
                         table.addRow(session, newRow);
                     } catch (DbException de) {
@@ -192,7 +192,7 @@ public final class Insert extends CommandWithValues implements ResultTarget {
                 }
             }
         } else {
-            table.lock(session, true, false);
+            table.lock(session, Table.WRITE_LOCK);
             if (insertFromSelect) {
                 query.query(0, this);
             } else {

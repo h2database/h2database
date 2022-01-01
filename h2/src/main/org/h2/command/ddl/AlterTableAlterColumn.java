@@ -117,7 +117,7 @@ public class AlterTableAlterColumn extends CommandWithColumns {
         }
         session.getUser().checkTableRight(table, Right.SCHEMA_OWNER);
         table.checkSupportAlter();
-        table.lock(session, true, true);
+        table.lock(session, Table.EXCLUSIVE_LOCK);
         if (newColumn != null) {
             checkDefaultReferencesTable(table, newColumn.getDefaultExpression());
             checkClustering(newColumn);

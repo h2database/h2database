@@ -113,7 +113,7 @@ public final class Merge extends CommandWithValues {
             query.setNeverLazy(true);
             ResultInterface rows = query.query(0);
             table.fire(session, Trigger.UPDATE | Trigger.INSERT, true);
-            table.lock(session, true, false);
+            table.lock(session, Table.WRITE_LOCK);
             while (rows.next()) {
                 Value[] r = rows.currentRow();
                 Row newRow = table.getTemplateRow();
@@ -182,7 +182,7 @@ public final class Merge extends CommandWithValues {
                     deltaChangeCollector.addRow(row.getValueList().clone());
                 }
                 if (!table.fireBeforeRow(session, null, row)) {
-                    table.lock(session, true, false);
+                    table.lock(session, Table.WRITE_LOCK);
                     table.addRow(session, row);
                     DataChangeDeltaTable.collectInsertedFinalRow(session, table, deltaChangeCollector,
                             deltaChangeCollectionMode, row);

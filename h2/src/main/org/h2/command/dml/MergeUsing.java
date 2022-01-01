@@ -79,7 +79,7 @@ public final class MergeUsing extends DataChangeStatement {
         sourceTableFilter.reset();
         Table table = targetTableFilter.getTable();
         table.fire(session, evaluateTriggerMasks(), true);
-        table.lock(session, true, false);
+        table.lock(session, Table.WRITE_LOCK);
         setCurrentRowNumber(0);
         long count = 0;
         Row previousSource = null, missedSource = null;

@@ -247,7 +247,7 @@ public class ScriptCommand extends ScriptBase {
                 if (table.isHidden()) {
                     continue;
                 }
-                table.lock(session, false, false);
+                table.lock(session, Table.READ_LOCK);
                 String sql = table.getCreateSQL();
                 if (sql == null) {
                     // null for metadata tables
@@ -290,7 +290,7 @@ public class ScriptCommand extends ScriptBase {
                 if (table.isHidden()) {
                     continue;
                 }
-                table.lock(session, false, false);
+                table.lock(session, Table.READ_LOCK);
                 String createTableSql = table.getCreateSQL();
                 if (createTableSql == null) {
                     // null for metadata tables

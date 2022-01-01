@@ -20,7 +20,6 @@ import org.h2.message.DbException;
 import org.h2.schema.Schema;
 import org.h2.table.Table;
 import org.h2.table.TableView;
-import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 
 /**
@@ -95,11 +94,10 @@ public class DropTable extends DefineCommand {
                     }
                 }
                 if (!dependencies.isEmpty()) {
-                    throw DbException.get(ErrorCode.CANNOT_DROP_2, table.getName(),
-                            StringUtils.join(new StringBuilder(), dependencies, ", ").toString());
+                    throw DbException.get(ErrorCode.CANNOT_DROP_2, table.getName(), String.join(", ", dependencies));
                 }
             }
-            table.lock(session, true, true);
+            table.lock(session, Table.EXCLUSIVE_LOCK);
         }
         return true;
     }

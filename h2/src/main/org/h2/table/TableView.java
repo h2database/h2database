@@ -705,7 +705,7 @@ public class TableView extends Table {
         if (!view.isRecursiveQueryDetected()) {
             if (!isTemporary) {
                 db.addSchemaObject(session, view);
-                view.lock(session, true, true);
+                view.lock(session, Table.EXCLUSIVE_LOCK);
                 session.getDatabase().removeSchemaObject(session, view);
 
                 // during database startup - this method does not normally get called - and it
@@ -807,7 +807,7 @@ public class TableView extends Table {
             Table recursiveTable) {
         if (recursiveTable != null) {
             if (!isTemporary) {
-                recursiveTable.lock(targetSession, true, true);
+                recursiveTable.lock(targetSession, Table.EXCLUSIVE_LOCK);
                 targetSession.getDatabase().removeSchemaObject(targetSession, recursiveTable);
 
             } else {

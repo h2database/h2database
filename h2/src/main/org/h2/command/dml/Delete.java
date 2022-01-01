@@ -44,7 +44,7 @@ public final class Delete extends FilteredDataChangeStatement {
         Table table = targetTableFilter.getTable();
         session.getUser().checkTableRight(table, Right.DELETE);
         table.fire(session, Trigger.DELETE, true);
-        table.lock(session, true, false);
+        table.lock(session, Table.WRITE_LOCK);
         long limitRows = -1;
         if (fetchExpr != null) {
             Value v = fetchExpr.getValue(session);

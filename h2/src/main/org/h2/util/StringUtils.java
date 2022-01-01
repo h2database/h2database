@@ -542,24 +542,6 @@ public class StringUtils {
     }
 
     /**
-     * Join specified strings and add them to the specified string builder.
-     *
-     * @param builder string builder
-     * @param strings strings to join
-     * @param separator separator
-     * @return the specified string builder
-     */
-    public static StringBuilder join(StringBuilder builder, ArrayList<String> strings, String separator) {
-        for (int i = 0, l = strings.size(); i < l; i++) {
-            if (i > 0) {
-                builder.append(separator);
-            }
-            builder.append(strings.get(i));
-        }
-        return builder;
-    }
-
-    /**
      * Creates an XML attribute of the form name="value".
      * A single space is prepended to the name,
      * so that multiple attributes can be concatenated.

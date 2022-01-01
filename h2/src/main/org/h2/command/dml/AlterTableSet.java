@@ -60,7 +60,7 @@ public class AlterTableSet extends SchemaCommand {
             throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, tableName);
         }
         session.getUser().checkTableRight(table, Right.SCHEMA_OWNER);
-        table.lock(session, true, true);
+        table.lock(session, Table.EXCLUSIVE_LOCK);
         switch (type) {
         case CommandInterface.ALTER_TABLE_SET_REFERENTIAL_INTEGRITY:
             table.setCheckForeignKeyConstraints(session, value, value ?

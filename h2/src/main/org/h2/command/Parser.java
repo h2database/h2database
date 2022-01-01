@@ -1076,9 +1076,8 @@ public class Parser {
             return c;
         case PARAMETER:
             // read the ? as a parameter
-            readTerm();
             // this is an 'out' parameter - set a dummy value
-            parameters.get(0).setValue(ValueNull.INSTANCE);
+            readParameter().setValue(ValueNull.INSTANCE);
             read(EQUAL);
             read("CALL");
             c = parseCall();
@@ -1272,8 +1271,7 @@ public class Parser {
         if (expectedList == null || expectedList.isEmpty()) {
             return DbException.getSyntaxError(sqlCommand, parseIndex);
         }
-        return DbException.getSyntaxError(sqlCommand, parseIndex,
-                StringUtils.join(new StringBuilder(), expectedList, ", ").toString());
+        return DbException.getSyntaxError(sqlCommand, parseIndex, String.join(", ", expectedList));
     }
 
     private Prepared parseBackup() {
@@ -3053,7 +3051,7 @@ public class Parser {
             }
             ArrayList<QueryOrderBy> orderList = Utils.newSmallArrayList();
             do {
-                boolean canBeNumber = !readIf(EQUAL);
+                boolean canBeNumber = currentTokenType == LITERAL;
                 QueryOrderBy order = new QueryOrderBy();
                 Expression expr = readExpression();
                 if (canBeNumber && expr instanceof ValueExpression && expr.getType().getValueType() == Value.INTEGER) {
@@ -3211,10 +3209,10 @@ public class Parser {
     }
 
     private void parseSelectExpressions(Select command) {
-        Select temp = currentSelect;
-        // make sure aggregate functions will not work in TOP and LIMIT
-        currentSelect = null;
         if (database.getMode().topInSelect && readIf("TOP")) {
+            Select temp = currentSelect;
+            // make sure aggregate functions will not work in TOP and LIMIT
+            currentSelect = null;
             // can't read more complex expressions here because
             // SELECT TOP 1 +? A FROM TEST could mean
             // SELECT TOP (1+?) A FROM TEST or
@@ -3227,8 +3225,8 @@ public class Parser {
                 read("TIES");
                 command.setWithTies(true);
             }
+            currentSelect = temp;
         }
-        currentSelect = temp;
         if (readIf(DISTINCT)) {
             if (readIf(ON)) {
                 read(OPEN_PAREN);
@@ -8546,7 +8544,7 @@ public class Parser {
                         cteViewName);
             }
             if (!isTemporary) {
-                oldViewFound.lock(session, true, true);
+                oldViewFound.lock(session, Table.EXCLUSIVE_LOCK);
                 database.removeSchemaObject(session, oldViewFound);
 
             } else {
@@ -8603,7 +8601,7 @@ public class Parser {
             if (!view.isRecursiveQueryDetected() && allowRecursiveQueryDetection) {
                 if (!isTemporary) {
                     database.addSchemaObject(session, view);
-                    view.lock(session, true, true);
+                    view.lock(session, Table.EXCLUSIVE_LOCK);
                     database.removeSchemaObject(session, view);
                 } else {
                     session.removeLocalTempTable(view);

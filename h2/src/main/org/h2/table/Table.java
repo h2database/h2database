@@ -60,6 +60,21 @@ public abstract class Table extends SchemaObject {
     public static final int TYPE_MEMORY = 1;
 
     /**
+     * Read lock.
+     */
+    public static final int READ_LOCK = 0;
+
+    /**
+     * Write lock.
+     */
+    public static final int WRITE_LOCK = 1;
+
+    /**
+     * Exclusive lock.
+     */
+    public static final int EXCLUSIVE_LOCK = 2;
+
+    /**
      * The columns of this table.
      */
     protected Column[] columns;
@@ -120,12 +135,11 @@ public abstract class Table extends SchemaObject {
      * This method waits until the lock is granted.
      *
      * @param session the session
-     * @param exclusive true for write locks, false for read locks
-     * @param forceLockEvenInMvcc lock even in the MVCC mode
+     * @param lockType the type of lock
      * @return true if the table was already exclusively locked by this session.
      * @throws DbException if a lock timeout occurred
      */
-    public boolean lock(SessionLocal session, boolean exclusive, boolean forceLockEvenInMvcc) {
+    public boolean lock(SessionLocal session, int lockType) {
         return false;
     }
 

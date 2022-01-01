@@ -112,7 +112,7 @@ public class AlterTableAddConstraint extends AlterTable {
         }
         Database db = session.getDatabase();
         db.lockMeta(session);
-        table.lock(session, true, true);
+        table.lock(session, Table.EXCLUSIVE_LOCK);
         Constraint constraint;
         switch (type) {
         case CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_PRIMARY_KEY: {

@@ -205,7 +205,7 @@ public class MVTable extends TableBase {
         boolean checkDeadlock = false;
         while (true) {
             // if I'm the next one in the queue
-            if (waitingSessions.getFirst() == session) {
+            if (waitingSessions.getFirst() == session && lockExclusiveSession == null) {
                 if (doLock2(session, lockType)) {
                     return;
                 }
@@ -226,7 +226,7 @@ public class MVTable extends TableBase {
                 max = Utils.nanoTimePlusMillis(now, session.getLockTimeout());
             } else if (now - max >= 0L) {
                 traceLock(session, lockType,
-                        TraceLockEvent.TRACE_LOCK_TIMEOUT_AFTER, NO_EXTRA_INFO+session.getLockTimeout());
+                        TraceLockEvent.TRACE_LOCK_TIMEOUT_AFTER, Integer.toString(session.getLockTimeout()));
                 throw DbException.get(ErrorCode.LOCK_TIMEOUT_1, getName());
             }
             try {
@@ -244,48 +244,41 @@ public class MVTable extends TableBase {
     }
 
     private boolean doLock2(SessionLocal session, int lockType) {
-        if (lockExclusiveSession == null) {
-            if (lockType == Table.EXCLUSIVE_LOCK) {
-                if (lockSharedSessions.isEmpty()) {
-                    traceLock(session, lockType, TraceLockEvent.TRACE_LOCK_ADDED_FOR, NO_EXTRA_INFO);
-                    session.registerTableAsLocked(this);
-                    lockExclusiveSession = session;
-                    if (SysProperties.THREAD_DEADLOCK_DETECTOR) {
-                        if (EXCLUSIVE_LOCKS.get() == null) {
-                            EXCLUSIVE_LOCKS.set(new ArrayList<>());
-                        }
-                        EXCLUSIVE_LOCKS.get().add(getName());
-                    }
-                    return true;
-                } else if (lockSharedSessions.size() == 1 &&
-                        lockSharedSessions.containsKey(session)) {
-                    traceLock(session, lockType, TraceLockEvent.TRACE_LOCK_ADD_UPGRADED_FOR, NO_EXTRA_INFO);
-                    lockExclusiveSession = session;
-                    if (SysProperties.THREAD_DEADLOCK_DETECTOR) {
-                        if (EXCLUSIVE_LOCKS.get() == null) {
-                            EXCLUSIVE_LOCKS.set(new ArrayList<>());
-                        }
-                        EXCLUSIVE_LOCKS.get().add(getName());
-                    }
-                    return true;
-                }
+        switch (lockType) {
+        case Table.EXCLUSIVE_LOCK:
+            int size = lockSharedSessions.size();
+            if (size == 0) {
+                traceLock(session, lockType, TraceLockEvent.TRACE_LOCK_ADDED_FOR, NO_EXTRA_INFO);
+                session.registerTableAsLocked(this);
+            } else if (size == 1 && lockSharedSessions.containsKey(session)) {
+                traceLock(session, lockType, TraceLockEvent.TRACE_LOCK_ADD_UPGRADED_FOR, NO_EXTRA_INFO);
             } else {
-                if (lockSharedSessions.putIfAbsent(session, session) == null) {
-                    traceLock(session, lockType, TraceLockEvent.TRACE_LOCK_OK, NO_EXTRA_INFO);
-                    session.registerTableAsLocked(this);
-                    if (SysProperties.THREAD_DEADLOCK_DETECTOR) {
-                        ArrayList<String> list = SHARED_LOCKS.get();
-                        if (list == null) {
-                            list = new ArrayList<>();
-                            SHARED_LOCKS.set(list);
-                        }
-                        list.add(getName());
-                    }
+                return false;
+            }
+            lockExclusiveSession = session;
+            if (SysProperties.THREAD_DEADLOCK_DETECTOR) {
+                addLockToDebugList(EXCLUSIVE_LOCKS);
+            }
+            break;
+        case Table.WRITE_LOCK:
+            if (lockSharedSessions.putIfAbsent(session, session) == null) {
+                traceLock(session, lockType, TraceLockEvent.TRACE_LOCK_OK, NO_EXTRA_INFO);
+                session.registerTableAsLocked(this);
+                if (SysProperties.THREAD_DEADLOCK_DETECTOR) {
+                    addLockToDebugList(SHARED_LOCKS);
                 }
-                return true;
             }
         }
-        return false;
+        return true;
+    }
+
+    private void addLockToDebugList(DebuggingThreadLocal<ArrayList<String>> locks) {
+        ArrayList<String> list = locks.get();
+        if (list == null) {
+            list = new ArrayList<>();
+            locks.set(list);
+        }
+        list.add(getName());
     }
 
     private void traceLock(SessionLocal session, int lockType, TraceLockEvent eventEnum, String extraInfo) {

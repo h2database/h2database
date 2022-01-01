@@ -1178,3 +1178,9 @@ SELECT X FROM SYSTEM_RANGE(1, 2) ORDER BY X DESC FETCH FIRST 0xFFFFFFFF ROWS ONL
 > 2
 > 1
 > rows (ordered): 2
+
+SELECT ((SELECT 1 X) EXCEPT (SELECT 1 Y)) T;
+> T
+> ----
+> null
+> rows: 1

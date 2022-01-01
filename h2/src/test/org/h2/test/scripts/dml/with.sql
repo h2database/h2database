@@ -234,3 +234,12 @@ TABLE T;
 
 DROP TABLE T;
 > ok
+
+WITH T(X) AS (SELECT 1)
+(SELECT 2 Y) UNION (SELECT 3 Z) UNION (SELECT * FROM T);
+> Y
+> -
+> 1
+> 2
+> 3
+> rows: 3

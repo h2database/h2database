@@ -1781,20 +1781,7 @@ public class Parser {
         while (readIf(OPEN_PAREN)) {
             level++;
         }
-        boolean query;
-        switch (currentTokenType) {
-        case SELECT:
-        case VALUES:
-        case WITH:
-            query = true;
-            break;
-        case TABLE:
-            read();
-            query = !readIf(OPEN_PAREN);
-            break;
-        default:
-            query = false;
-        }
+        boolean query = isDirectQuery();
         s: if (query && level > 0) {
             read();
             if (!scanToCloseParen()) {
@@ -1832,6 +1819,42 @@ public class Parser {
         return query;
     }
 
+    private boolean isQuery() {
+        int start = lastParseIndex;
+        int level = 0;
+        while (readIf(OPEN_PAREN)) {
+            level++;
+        }
+        boolean query = isDirectQuery();
+        s: if (query && level > 0) {
+            read();
+            do {
+                if (!scanToCloseParen()) {
+                    query = false;
+                    break s;
+                }
+                switch (currentTokenType) {
+                default:
+                    query = false;
+                    break s;
+                case END_OF_INPUT:
+                case SEMICOLON:
+                case CLOSE_PAREN:
+                case ORDER:
+                case OFFSET:
+                case FETCH:
+                case LIMIT:
+                case UNION:
+                case EXCEPT:
+                case MINUS:
+                case INTERSECT:
+                }
+            } while (--level > 0);
+        }
+        reread(start);
+        return query;
+    }
+
     private boolean scanToCloseParen() {
         for (int level = 0;;) {
             switch (currentTokenType) {
@@ -1851,12 +1874,18 @@ public class Parser {
         }
     }
 
-    private boolean isQuery() {
+    private boolean isQueryQuick() {
         int start = lastParseIndex;
         while (readIf(OPEN_PAREN)) {
             // need to read ahead, it could be a nested union:
             // ((select 1) union (select 1))
         }
+        boolean query = isDirectQuery();
+        reread(start);
+        return query;
+    }
+
+    private boolean isDirectQuery() {
         boolean query;
         switch (currentTokenType) {
         case SELECT:
@@ -1871,7 +1900,6 @@ public class Parser {
         default:
             query = false;
         }
-        reread(start);
         return query;
     }
 
@@ -1890,7 +1918,7 @@ public class Parser {
         command.setTable(targetTableFilter.getTable());
         Table table = command.getTable();
         if (readIf(OPEN_PAREN)) {
-            if (isQuery()) {
+            if (isQueryQuick()) {
                 command.setQuery(parseQuery());
                 read(CLOSE_PAREN);
                 return command;
@@ -1913,39 +1941,7 @@ public class Parser {
     private MergeUsing parseMergeUsing(TableFilter targetTableFilter, int start) {
         MergeUsing command = new MergeUsing(session, targetTableFilter);
         currentPrepared = command;
-
-        if (isQuery()) {
-            Query query = parseQuery();
-            String queryAlias = readFromAlias(null);
-            ArrayList<String> derivedColumnNames = null;
-            if (queryAlias == null) {
-                queryAlias = Constants.PREFIX_QUERY_ALIAS + parseIndex;
-            } else {
-                derivedColumnNames = readDerivedColumnNames();
-            }
-
-            String[] querySQLOutput = new String[1];
-            List<Column> columnTemplateList = TableView.createQueryColumnTemplateList(null, query, querySQLOutput);
-            TableView temporarySourceTableView = createCTEView(
-                    queryAlias, querySQLOutput[0],
-                    columnTemplateList, false/* no recursion */,
-                    false/* do not add to session */,
-                    true /* isTemporary */
-            );
-            TableFilter sourceTableFilter = new TableFilter(session,
-                    temporarySourceTableView, queryAlias,
-                    rightsChecked, null, 0, null);
-            if (derivedColumnNames != null) {
-                sourceTableFilter.setDerivedColumns(derivedColumnNames);
-            }
-            command.setSourceTableFilter(sourceTableFilter);
-            if (cteCleanups == null) {
-                cteCleanups = new ArrayList<>(1);
-            }
-            cteCleanups.add(temporarySourceTableView);
-        } else {
-            command.setSourceTableFilter(readTablePrimary());
-        }
+        command.setSourceTableFilter(readTableReference());
         read(ON);
         Expression condition = readExpression();
         command.setOnCondition(condition);
@@ -2017,7 +2013,7 @@ public class Parser {
         command.setTable(table);
         Column[] columns = null;
         if (readIf(OPEN_PAREN)) {
-            if (isQuery()) {
+            if (isQueryQuick()) {
                 command.setQuery(parseQuery());
                 read(CLOSE_PAREN);
                 return command;
@@ -2142,7 +2138,7 @@ public class Parser {
         Table table = readTableOrView();
         command.setTable(table);
         if (readIf(OPEN_PAREN)) {
-            if (isQuery()) {
+            if (isQueryQuick()) {
                 command.setQuery(parseQuery());
                 read(CLOSE_PAREN);
                 return command;
@@ -5383,6 +5379,9 @@ public class Parser {
             read();
             if (readIf(CLOSE_PAREN)) {
                 r = ValueExpression.get(ValueRow.EMPTY);
+            } else if (isQuery()) {
+                r = new Subquery(parseQuery());
+                read(CLOSE_PAREN);
             } else {
                 r = readExpression();
                 if (readIfMore()) {
@@ -8447,22 +8446,9 @@ public class Parser {
         // used in setCteCleanups.
         Collections.reverse(viewsCreated);
 
-        int parentheses = 0;
-        while (readIf(OPEN_PAREN)) {
-            parentheses++;
-        }
         int start = lastParseIndex;
-        if (isToken(SELECT) || isToken(VALUES)) {
+        if (isQueryQuick()) {
             p = parseWithQuery();
-        } else if (isToken(TABLE)) {
-            int index = lastParseIndex;
-            read();
-            if (!isToken(OPEN_PAREN)) {
-                reread(index);
-                p = parseWithQuery();
-            } else {
-                throw DbException.get(ErrorCode.SYNTAX_ERROR_1, WITH_STATEMENT_SUPPORTS_LIMITED_SUB_STATEMENTS);
-            }
         } else if (readIf("INSERT")) {
             p = parseInsert(start);
             p.setPrepareAlways(true);
@@ -8479,16 +8465,12 @@ public class Parser {
             if (!isToken(TABLE)) {
                 throw DbException.get(ErrorCode.SYNTAX_ERROR_1,
                         WITH_STATEMENT_SUPPORTS_LIMITED_SUB_STATEMENTS);
-
             }
             p = parseCreate();
             p.setPrepareAlways(true);
         } else {
             throw DbException.get(ErrorCode.SYNTAX_ERROR_1,
                     WITH_STATEMENT_SUPPORTS_LIMITED_SUB_STATEMENTS);
-        }
-        for (; parentheses > 0; parentheses--) {
-            read(CLOSE_PAREN);
         }
 
         // Clean up temporary views starting with last to first (in case of

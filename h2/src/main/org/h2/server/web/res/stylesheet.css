@@ -7,7 +7,9 @@
 td, input, select, textarea, body, code, pre {
     font: 12px/1.4 Arial, sans-serif;
 }
-
+#sql_hint_popup td{
+    border:none
+}
 h1, h2, h3, h4, h5 {
     font: 12px/1.4 Arial, sans-serif;
     font-weight: bold;

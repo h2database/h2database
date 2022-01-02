@@ -20,7 +20,34 @@ function addTable(name, columns, i) {
     tables[tables.length] = t;
     tablesByName[name] = t;
 }
+function showSqlHintPopup(obj){
+    var table_id="sql_hint_popup"
+    if(document.getElementById(table_id)) {
+        hideSqlHintPopup()
+        return
+    }else{
+            var table = document.createElement("table");
+            var name=obj.innerHTML;
+            table.id=table_id;
+            var insertSql="INSERT INTO "+name+" VALUES();";
+            var selectSql="SELECT * FROM "+name;
+            var updateSql="UPDATE "+name+" SET sampleColumnName=sampleValue WHERE samplePrimaryKey=samplevalue;";
+            var deleteSql="DELETE FROM  "+name+" WHERE samplePrimaryKey=samplevalue;";
+            table.style="outline-style: solid;outline-color: grey;margin-left: 7px;border-collapse: collapse;position: absolute;"
+            table.innerHTML="<tr><td><button onclick=\"hideSqlHintPopup();ins('"+name+"',false)\">Copy Name</button></td></tr>"+
+            "<tr><td><label>Generate SQL</label></td></tr>"+
+            "<tr><td><button onclick=\"ins('"+selectSql+"',false);hideSqlHintPopup()\">Select</button></td></tr>"+
+            "<tr><td><button onclick=\"ins('"+insertSql+"',false);hideSqlHintPopup()\">Insert</button></td></tr>"+
+            "<tr><td><button onclick=\"ins('"+updateSql+"',false);hideSqlHintPopup()\">Update</button></td></tr>"+
+            "<tr><td><button onclick=\"ins('"+deleteSql+"',false);hideSqlHintPopup()\">Delete</button></td></tr>"
 
+            obj.parentNode.insertBefore(table,obj)
+    }
+}
+function hideSqlHintPopup(){
+    var obj=document.getElementById('sql_hint_popup');
+    if(obj) obj.remove();
+}
 function ins(s, isTable) {
     if (parent.h2query) {
         if (parent.h2query.insertText) {
@@ -97,7 +124,10 @@ function writeTree() {
         if (node.link==null) {
             document.write(node.text);
         } else {
-            document.write("<a id='"+node.text+"' href=\""+node.link+"\" >"+node.text+"</a>");
+            if(node.link.indexOf('javascript:ins(')>0)
+                document.write("<a id='"+node.text+"' href='#' onclick=\"showSqlHintPopup(this)\" >"+node.text+"</a>");
+            else
+                document.write("<a id='"+node.text+"' href=\""+node.link+"\" >"+node.text+"</a>");
         }
         document.write("<br />");
     }

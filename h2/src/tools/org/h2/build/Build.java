@@ -602,7 +602,7 @@ public class Build extends BuildBase {
                 File.pathSeparator + "src/test" +
                 File.pathSeparator + "src/tools",
                 // need to be disabled for java 7
-                "-Xdoclint:all,-missing",
+//                "-Xdoclint:all,-missing",
                 "-noindex",
                 "-tag", "h2.resource",
                 "-d", "docs/javadocImpl2",

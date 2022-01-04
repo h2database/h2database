@@ -117,6 +117,7 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         testPrecision();
         testUser();
         testUserEmptyUsernameAndPassword();
+        testUserUsernameContainingDigits();
         testVarArgs();
         testAggregate();
         testAggregateType();
@@ -503,6 +504,15 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         ResultSet rs = prep.executeQuery();
         assertTrue(rs.next());
         assertEquals("", rs.getString(1));
+        conn.close();
+    }
+
+    private void testUserUsernameContainingDigits() throws SQLException {
+        Connection conn = getConnection("functions_un_with_digits", "abc123", "");
+        PreparedStatement prep = conn.prepareStatement("select user()");
+        ResultSet rs = prep.executeQuery();
+        assertTrue(rs.next());
+        assertEquals("ABC123", rs.getString(1));
         conn.close();
     }
 

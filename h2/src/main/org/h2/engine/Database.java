@@ -2342,7 +2342,7 @@ public final class Database implements DataHandler, CastDataProvider {
         }
         for (int i = 0; i < l; i++) {
             int ch = upperName.charAt(i);
-            if (ch < 'A' || ch > 'Z' && ch != '_') {
+            if ((ch < 'A' || ch > 'Z') && ch != '_' && !Character.isDigit(ch)) {
                 return false;
             }
         }

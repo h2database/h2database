@@ -531,6 +531,13 @@ public class TestTools extends TestDb {
         } catch (SQLException e) {
             assertEquals("08001", e.getSQLState());
         }
+        try {
+            JdbcUtils.getConnection("javax.naming.InitialContext", "ldap://localhost/ds", "sa", "");
+            fail("Expected SQLException: 08001");
+        } catch (SQLException e) {
+            assertEquals("08001", e.getSQLState());
+            assertEquals("Only java scheme is supported for JNDI lookups", e.getMessage());
+        }
     }
 
     private void testWrongServer() throws Exception {

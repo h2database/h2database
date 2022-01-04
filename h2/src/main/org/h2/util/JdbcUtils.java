@@ -315,6 +315,9 @@ public class JdbcUtils {
                     }
                     throw new SQLException("Driver " + driver + " is not suitable for " + url, "08001");
                 } else if (javax.naming.Context.class.isAssignableFrom(d)) {
+                    if (!url.startsWith("java:")) {
+                        throw new SQLException("Only java scheme is supported for JNDI lookups", "08001");
+                    }
                     // JNDI context
                     Context context = (Context) d.getDeclaredConstructor().newInstance();
                     DataSource ds = (DataSource) context.lookup(url);

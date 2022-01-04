@@ -7304,7 +7304,7 @@ public class Parser {
     }
 
     private boolean isReservedFunctionName(String name) {
-        int tokenType = ParserUtil.getTokenType(name, false, 0, name.length(), false);
+        int tokenType = ParserUtil.getTokenType(name, false, false);
         if (tokenType != ParserUtil.IDENTIFIER) {
             if (database.isAllowBuiltinAliasOverride()) {
                 switch (tokenType) {

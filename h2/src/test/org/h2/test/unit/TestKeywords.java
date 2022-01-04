@@ -524,7 +524,7 @@ public class TestKeywords extends TestBase {
                     }
                 }
                 final TokenType type;
-                switch (ParserUtil.getTokenType(s, false, 0, l, true)) {
+                switch (ParserUtil.getTokenType(s, false, true)) {
                 case ParserUtil.IDENTIFIER:
                     type = TokenType.IDENTIFIER;
                     break;

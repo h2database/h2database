@@ -2338,7 +2338,7 @@ public final class Database implements DataHandler, CastDataProvider {
     private static boolean isUpperSysIdentifier(String upperName) {
         int l = upperName.length();
         if (l == 0) {
-            return false;
+            return true;
         }
         for (int i = 0; i < l; i++) {
             int ch = upperName.charAt(i);

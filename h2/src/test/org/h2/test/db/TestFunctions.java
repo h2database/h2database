@@ -115,6 +115,8 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         testDeterministic();
         testTransactionId();
         testPrecision();
+        testUser();
+        testUserEmptyUsernameAndPassword();
         testVarArgs();
         testAggregate();
         testAggregateType();
@@ -483,6 +485,24 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         assertEquals(1, rs.getMetaData().getScale(2));
         assertEquals(ValueNumeric.MAXIMUM_SCALE / 2, rs.getMetaData().getScale(1));
         stat.executeQuery("select * from information_schema.routines");
+        conn.close();
+    }
+
+    private void testUser() throws SQLException {
+        Connection conn = getConnection("functions");
+        PreparedStatement prep = conn.prepareStatement("select user()");
+        ResultSet rs = prep.executeQuery();
+        assertTrue(rs.next());
+        assertEquals("SA", rs.getString(1));
+        conn.close();
+    }
+
+    private void testUserEmptyUsernameAndPassword() throws SQLException {
+        Connection conn = getConnection("functions_empty_un", "", "");
+        PreparedStatement prep = conn.prepareStatement("select user()");
+        ResultSet rs = prep.executeQuery();
+        assertTrue(rs.next());
+        assertEquals("", rs.getString(1));
         conn.close();
     }
 

@@ -437,7 +437,8 @@ public final class Tokenizer {
         }
         if (!keyword) {
             token = new Token.IdentifierToken(tokenStart,
-                    extractIdentifier(sql, identifiersToUpper, identifiersToLower, tokenStart, endIndex), false, false);
+                    extractIdentifier(sql, identifiersToUpper, identifiersToLower, tokenStart, endIndex), //
+                    false, false);
         } else if (nonKeywords != null && nonKeywords.get(type)) {
             token = new Token.KeywordOrIdentifierToken(tokenStart, type,
                     extractIdentifier(sql, identifiersToUpper, identifiersToLower, tokenStart, endIndex));

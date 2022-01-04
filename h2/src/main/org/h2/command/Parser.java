@@ -1398,27 +1398,28 @@ public class Parser {
     }
 
     private boolean isDerivedTable() {
-        int start = tokenIndex;
+        int offset = tokenIndex;
         int level = 0;
-        while (readIf(OPEN_PAREN)) {
+        while (tokens.get(offset).tokenType() == OPEN_PAREN) {
             level++;
+            offset++;
         }
-        boolean query = isDirectQuery();
+        boolean query = isDirectQuery(offset);
         s: if (query && level > 0) {
-            read();
-            if (!scanToCloseParen()) {
+            offset = scanToCloseParen(offset + 1);
+            if (offset < 0) {
                 query = false;
                 break s;
             }
             for (;;) {
-                switch (currentTokenType) {
+                switch (tokens.get(offset).tokenType()) {
                 case SEMICOLON:
                 case END_OF_INPUT:
                     query = false;
                     break s;
                 case OPEN_PAREN:
-                    read();
-                    if (!scanToCloseParen()) {
+                    offset = scanToCloseParen(offset + 1);
+                    if (offset < 0) {
                         query = false;
                         break s;
                     }
@@ -1427,35 +1428,36 @@ public class Parser {
                     if (--level == 0) {
                         break s;
                     }
-                    read();
+                    offset++;
                     break;
                 case JOIN:
                     query = false;
                     break s;
                 default:
-                    read();
+                    offset++;
                 }
             }
         }
-        setTokenIndex(start);
         return query;
     }
 
     private boolean isQuery() {
-        int start = tokenIndex;
+        int offset = tokenIndex;
         int level = 0;
-        while (readIf(OPEN_PAREN)) {
+        while (tokens.get(offset).tokenType() == OPEN_PAREN) {
             level++;
+            offset++;
         }
-        boolean query = isDirectQuery();
+        boolean query = isDirectQuery(offset);
         s: if (query && level > 0) {
-            read();
+            offset++;
             do {
-                if (!scanToCloseParen()) {
+                offset = scanToCloseParen(offset);
+                if (offset < 0) {
                     query = false;
                     break s;
                 }
-                switch (currentTokenType) {
+                switch (tokens.get(offset).tokenType()) {
                 default:
                     query = false;
                     break s;
@@ -1473,51 +1475,45 @@ public class Parser {
                 }
             } while (--level > 0);
         }
-        setTokenIndex(start);
         return query;
     }
 
-    private boolean scanToCloseParen() {
+    private int scanToCloseParen(int offset) {
         for (int level = 0;;) {
-            switch (currentTokenType) {
+            switch (tokens.get(offset).tokenType()) {
             case SEMICOLON:
             case END_OF_INPUT:
-                return false;
+                return -1;
             case OPEN_PAREN:
                 level++;
                 break;
             case CLOSE_PAREN:
                 if (--level < 0) {
-                    read();
-                    return true;
+                    return offset + 1;
                 }
             }
-            read();
+            offset++;
         }
     }
 
     private boolean isQueryQuick() {
-        int start = tokenIndex;
-        while (readIf(OPEN_PAREN)) {
-            // need to read ahead, it could be a nested union:
-            // ((select 1) union (select 1))
+        int offset = tokenIndex;
+        while (tokens.get(offset).tokenType() == OPEN_PAREN) {
+            offset++;
         }
-        boolean query = isDirectQuery();
-        setTokenIndex(start);
-        return query;
+        return isDirectQuery(offset);
     }
 
-    private boolean isDirectQuery() {
+    private boolean isDirectQuery(int offset) {
         boolean query;
-        switch (currentTokenType) {
+        switch (tokens.get(offset).tokenType()) {
         case SELECT:
         case VALUES:
         case WITH:
             query = true;
             break;
         case TABLE:
-            read();
-            query = !readIf(OPEN_PAREN);
+            query = tokens.get(offset + 1).tokenType() != OPEN_PAREN;
             break;
         default:
             query = false;
@@ -2982,26 +2978,12 @@ public class Parser {
      *         grouping set
      */
     private boolean isOrdinaryGroupingSet() {
-        int index = tokenIndex;
-        int level = 1;
-        loop: for (;;) {
-            read();
-            switch (currentTokenType) {
-            case CLOSE_PAREN:
-                if (--level <= 0) {
-                    break loop;
-                }
-                break;
-            case OPEN_PAREN:
-                level++;
-                break;
-            case END_OF_INPUT:
-                addExpected(CLOSE_PAREN);
-                throw getSyntaxError();
-            }
+        int offset = scanToCloseParen(tokenIndex + 1);
+        if (offset < 0) {
+            // Try to parse as expression to get better syntax error
+            return false;
         }
-        read();
-        switch (currentTokenType) {
+        switch (tokens.get(offset).tokenType()) {
         // End of query
         case CLOSE_PAREN:
         case SEMICOLON:
@@ -3023,10 +3005,9 @@ public class Parser {
         case FETCH:
         case LIMIT:
         case FOR:
-            setTokenIndex(index + 1);
+            setTokenIndex(tokenIndex + 1);
             return true;
         default:
-            setTokenIndex(index);
             return false;
         }
     }
@@ -5385,7 +5366,8 @@ public class Parser {
                     read();
                     return v;
                 } else if (t == Value.VARBINARY && equalsToken("GEOMETRY", name)) {
-                    ValueExpression v = ValueExpression.get(ValueGeometry.getFromEWKB(token.value(session).getBytesNoCopy()));
+                    ValueExpression v = ValueExpression
+                            .get(ValueGeometry.getFromEWKB(token.value(session).getBytesNoCopy()));
                     read();
                     return v;
                 }

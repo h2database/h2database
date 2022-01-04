@@ -1107,7 +1107,7 @@ public class StringUtils {
      * @param end the end index, exclusive
      * @return the specified output stream or a new output stream
      */
-    public static ByteArrayOutputStream convertHexWithSpacesToBytes(ByteArrayOutputStream baos, char[] s, int start,
+    public static ByteArrayOutputStream convertHexWithSpacesToBytes(ByteArrayOutputStream baos, String s, int start,
             int end) {
         if (baos == null) {
             baos = new ByteArrayOutputStream((end - start) >>> 1);
@@ -1121,7 +1121,7 @@ public class StringUtils {
                     if (i >= end) {
                         break loop;
                     }
-                    c1 = s[i++];
+                    c1 = s.charAt(i++);
                 } while (c1 == ' ');
                 do {
                     if (i >= end) {
@@ -1130,7 +1130,7 @@ public class StringUtils {
                         }
                         throw getHexStringException(ErrorCode.HEX_STRING_ODD_1, s, start, end);
                     }
-                    c2 = s[i++];
+                    c2 = s.charAt(i++);
                 } while (c2 == ' ');
                 int d = hex[c1] << 4 | hex[c2];
                 mask |= d;
@@ -1145,8 +1145,8 @@ public class StringUtils {
         return baos;
     }
 
-    private static DbException getHexStringException(int code, char[] s, int start, int end) {
-        return DbException.get(code, new String(s, start, end - start));
+    private static DbException getHexStringException(int code, String s, int start, int end) {
+        return DbException.get(code, s.substring(start, end));
     }
 
     /**

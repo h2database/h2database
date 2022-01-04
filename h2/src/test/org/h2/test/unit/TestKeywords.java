@@ -18,6 +18,8 @@ import java.util.Map.Entry;
 import java.util.TreeSet;
 
 import org.h2.command.Parser;
+import org.h2.command.Token;
+import org.h2.command.Tokenizer;
 import org.h2.message.DbException;
 import org.h2.test.TestBase;
 import org.h2.util.ParserUtil;
@@ -473,9 +475,17 @@ public class TestKeywords extends TestBase {
         set.addAll(SQL2016_RESERVED_WORDS);
         ALL_RESEVED_WORDS = set;
         HashMap<String, TokenType> tokens = new HashMap<>();
+        processClass(Parser.class, tokens);
+        processClass(ParserUtil.class, tokens);
+        processClass(Token.class, tokens);
+        processClass(Tokenizer.class, tokens);
+        TOKENS = tokens;
+    }
+
+    private static void processClass(Class<?> clazz, HashMap<String, TokenType> tokens) {
         ClassReader r;
         try {
-            r = new ClassReader(Parser.class.getResourceAsStream("Parser.class"));
+            r = new ClassReader(clazz.getResourceAsStream(clazz.getSimpleName() + ".class"));
         } catch (IOException e) {
             throw DbException.convert(e);
         }
@@ -527,7 +537,6 @@ public class TestKeywords extends TestBase {
                 tokens.put(s, type);
             }
         }, ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
-        TOKENS = tokens;
     }
 
     private static HashSet<String> toSet(String[] array) {

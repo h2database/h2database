@@ -136,9 +136,10 @@ public class CommandContainer extends Command {
             // TODO test with 'always recompile'
             prepared.setModificationMetaId(0);
             String sql = prepared.getSQL();
+            ArrayList<Token> tokens = prepared.getSQLTokens();
             ArrayList<Parameter> oldParams = prepared.getParameters();
             Parser parser = new Parser(session);
-            prepared = parser.parse(sql);
+            prepared = parser.parse(sql, tokens);
             long mod = prepared.getModificationMetaId();
             prepared.setModificationMetaId(0);
             ArrayList<Parameter> newParams = prepared.getParameters();

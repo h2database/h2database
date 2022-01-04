@@ -24,8 +24,10 @@ import org.h2.index.Index;
 import org.h2.index.IndexType;
 import org.h2.index.LinkedIndex;
 import org.h2.jdbc.JdbcConnection;
+import org.h2.jdbc.JdbcResultSet;
 import org.h2.message.DbException;
 import org.h2.result.LocalResult;
+import org.h2.result.ResultInterface;
 import org.h2.result.Row;
 import org.h2.schema.Schema;
 import org.h2.util.JdbcUtils;
@@ -177,10 +179,20 @@ public class TableLink extends Table {
 
         try (Statement stat = conn.getConnection().createStatement();
                 ResultSet rs = stat.executeQuery("SELECT * FROM " + qualifiedTableName + " T WHERE 1=0")) {
-            if (columnList.isEmpty()) {
+            if (rs instanceof JdbcResultSet) {
+                ResultInterface result = ((JdbcResultSet) rs).getResult();
+                columnList.clear();
+                columnMap.clear();
+                for (int i = 0, l = result.getVisibleColumnCount(); i < l;) {
+                    String n = result.getColumnName(i);
+                    Column col = new Column(n, result.getColumnType(i), this, ++i);
+                    columnList.add(col);
+                    columnMap.put(n, col);
+                }
+            } else if (columnList.isEmpty()) {
                 // alternative solution
                 ResultSetMetaData rsMeta = rs.getMetaData();
-                for (int i = 0; i < rsMeta.getColumnCount();) {
+                for (int i = 0, l = rsMeta.getColumnCount(); i < l;) {
                     String n = rsMeta.getColumnName(i + 1);
                     n = convertColumnName(n);
                     int sqlType = rsMeta.getColumnType(i + 1);

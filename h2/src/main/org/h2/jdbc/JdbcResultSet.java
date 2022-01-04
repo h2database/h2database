@@ -4277,4 +4277,13 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
         return updateRow;
     }
 
+    /**
+     * INTERNAL
+     *
+     * @return result
+     */
+    public ResultInterface getResult() {
+        return result;
+    }
+
 }

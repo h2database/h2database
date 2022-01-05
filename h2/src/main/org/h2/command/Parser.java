@@ -8,6 +8,38 @@
  */
 package org.h2.command;
 
+import static org.h2.command.Token.ASTERISK;
+import static org.h2.command.Token.AT;
+import static org.h2.command.Token.BIGGER;
+import static org.h2.command.Token.BIGGER_EQUAL;
+import static org.h2.command.Token.CLOSE_BRACE;
+import static org.h2.command.Token.CLOSE_BRACKET;
+import static org.h2.command.Token.CLOSE_PAREN;
+import static org.h2.command.Token.COLON;
+import static org.h2.command.Token.COLON_COLON;
+import static org.h2.command.Token.COLON_EQ;
+import static org.h2.command.Token.COMMA;
+import static org.h2.command.Token.CONCATENATION;
+import static org.h2.command.Token.DOT;
+import static org.h2.command.Token.END_OF_INPUT;
+import static org.h2.command.Token.EQUAL;
+import static org.h2.command.Token.LITERAL;
+import static org.h2.command.Token.MINUS_SIGN;
+import static org.h2.command.Token.NOT_EQUAL;
+import static org.h2.command.Token.NOT_TILDE;
+import static org.h2.command.Token.OPEN_BRACE;
+import static org.h2.command.Token.OPEN_BRACKET;
+import static org.h2.command.Token.OPEN_PAREN;
+import static org.h2.command.Token.PARAMETER;
+import static org.h2.command.Token.PERCENT;
+import static org.h2.command.Token.PLUS_SIGN;
+import static org.h2.command.Token.SEMICOLON;
+import static org.h2.command.Token.SLASH;
+import static org.h2.command.Token.SMALLER;
+import static org.h2.command.Token.SMALLER_EQUAL;
+import static org.h2.command.Token.SPATIAL_INTERSECTS;
+import static org.h2.command.Token.TILDE;
+import static org.h2.command.Token.TOKENS;
 import static org.h2.util.ParserUtil.ALL;
 import static org.h2.util.ParserUtil.AND;
 import static org.h2.util.ParserUtil.ANY;
@@ -100,9 +132,6 @@ import static org.h2.util.ParserUtil.WITH;
 import static org.h2.util.ParserUtil.YEAR;
 import static org.h2.util.ParserUtil._ROWID_;
 
-import java.io.ByteArrayOutputStream;
-import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.nio.charset.Charset;
 import java.text.Collator;
 import java.util.ArrayList;
@@ -118,9 +147,9 @@ import java.util.TreeSet;
 import org.h2.api.ErrorCode;
 import org.h2.api.IntervalQualifier;
 import org.h2.api.Trigger;
-import org.h2.command.ddl.AlterDomainExpressions;
 import org.h2.command.ddl.AlterDomainAddConstraint;
 import org.h2.command.ddl.AlterDomainDropConstraint;
+import org.h2.command.ddl.AlterDomainExpressions;
 import org.h2.command.ddl.AlterDomainRename;
 import org.h2.command.ddl.AlterDomainRenameConstraint;
 import org.h2.command.ddl.AlterIndexRename;
@@ -360,7 +389,6 @@ import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueBigint;
 import org.h2.value.ValueDate;
-import org.h2.value.ValueDecfloat;
 import org.h2.value.ValueDouble;
 import org.h2.value.ValueGeometry;
 import org.h2.value.ValueInteger;
@@ -374,7 +402,6 @@ import org.h2.value.ValueTimeTimeZone;
 import org.h2.value.ValueTimestamp;
 import org.h2.value.ValueTimestampTimeZone;
 import org.h2.value.ValueUuid;
-import org.h2.value.ValueVarbinary;
 import org.h2.value.ValueVarchar;
 
 /**
@@ -389,425 +416,6 @@ public class Parser {
     private static final String WITH_STATEMENT_SUPPORTS_LIMITED_SUB_STATEMENTS =
             "WITH statement supports only SELECT, TABLE, VALUES, " +
             "CREATE TABLE, INSERT, UPDATE, MERGE or DELETE statements";
-
-    // used during the tokenizer phase
-    private static final int CHAR_END = 1, CHAR_VALUE = 2, CHAR_QUOTED = 3;
-    private static final int CHAR_NAME = 4, CHAR_SPECIAL_1 = 5,
-            CHAR_SPECIAL_2 = 6;
-    private static final int CHAR_STRING = 7, CHAR_DOT = 8,
-            CHAR_DOLLAR_QUOTED_STRING = 9;
-
-    // these are token types, see also types in ParserUtil
-
-    /**
-     * Token with parameter.
-     */
-    private static final int PARAMETER = LAST_KEYWORD + 1;
-
-    /**
-     * End of input.
-     */
-    private static final int END_OF_INPUT = PARAMETER + 1;
-
-    /**
-     * Token with literal.
-     */
-    private static final int LITERAL = END_OF_INPUT + 1;
-
-    /**
-     * The token "=".
-     */
-    private static final int EQUAL = LITERAL + 1;
-
-    /**
-     * The token ">=".
-     */
-    private static final int BIGGER_EQUAL = EQUAL + 1;
-
-    /**
-     * The token ">".
-     */
-    private static final int BIGGER = BIGGER_EQUAL + 1;
-
-    /**
-     * The token "<".
-     */
-    private static final int SMALLER = BIGGER + 1;
-
-    /**
-     * The token "<=".
-     */
-    private static final int SMALLER_EQUAL = SMALLER + 1;
-
-    /**
-     * The token "<>" or "!=".
-     */
-    private static final int NOT_EQUAL = SMALLER_EQUAL + 1;
-
-    /**
-     * The token "@".
-     */
-    private static final int AT = NOT_EQUAL + 1;
-
-    /**
-     * The token "-".
-     */
-    private static final int MINUS_SIGN = AT + 1;
-
-    /**
-     * The token "+".
-     */
-    private static final int PLUS_SIGN = MINUS_SIGN + 1;
-
-    /**
-     * The token "||".
-     */
-    private static final int CONCATENATION = PLUS_SIGN + 1;
-
-    /**
-     * The token "(".
-     */
-    private static final int OPEN_PAREN = CONCATENATION + 1;
-
-    /**
-     * The token ")".
-     */
-    private static final int CLOSE_PAREN = OPEN_PAREN + 1;
-
-    /**
-     * The token &amp;.
-     */
-    private static final int AMPERSAND = CLOSE_PAREN + 1;
-
-    /**
-     * The token "&amp;&amp;".
-     */
-    private static final int SPATIAL_INTERSECTS = AMPERSAND + 1;
-
-    /**
-     * The token "*".
-     */
-    private static final int ASTERISK = SPATIAL_INTERSECTS + 1;
-
-    /**
-     * The token ",".
-     */
-    private static final int COMMA = ASTERISK + 1;
-
-    /**
-     * The token ".".
-     */
-    private static final int DOT = COMMA + 1;
-
-    /**
-     * The token "{".
-     */
-    private static final int OPEN_BRACE = DOT + 1;
-
-    /**
-     * The token "}".
-     */
-    private static final int CLOSE_BRACE = OPEN_BRACE + 1;
-
-    /**
-     * The token "/".
-     */
-    private static final int SLASH = CLOSE_BRACE + 1;
-
-    /**
-     * The token "%".
-     */
-    private static final int PERCENT = SLASH + 1;
-
-    /**
-     * The token ";".
-     */
-    private static final int SEMICOLON = PERCENT + 1;
-
-    /**
-     * The token ":".
-     */
-    private static final int COLON = SEMICOLON + 1;
-
-    /**
-     * The token "[".
-     */
-    private static final int OPEN_BRACKET = COLON + 1;
-
-    /**
-     * The token "]".
-     */
-    private static final int CLOSE_BRACKET = OPEN_BRACKET + 1;
-
-    /**
-     * The token "~".
-     */
-    private static final int TILDE = CLOSE_BRACKET + 1;
-
-    /**
-     * The token "::".
-     */
-    private static final int COLON_COLON = TILDE + 1;
-
-    /**
-     * The token ":=".
-     */
-    private static final int COLON_EQ = COLON_COLON + 1;
-
-    /**
-     * The token "!~".
-     */
-    private static final int NOT_TILDE = COLON_EQ + 1;
-
-    private static final String[] TOKENS = {
-            // Unused
-            null,
-            // KEYWORD
-            null,
-            // IDENTIFIER
-            null,
-            // ALL
-            "ALL",
-            // AND
-            "AND",
-            // ANY
-            "ANY",
-            // ARRAY
-            "ARRAY",
-            // AS
-            "AS",
-            // ASYMMETRIC
-            "ASYMMETRIC",
-            // AUTHORIZATION
-            "AUTHORIZATION",
-            // BETWEEN
-            "BETWEEN",
-            // CASE
-            "CASE",
-            // CAST
-            "CAST",
-            // CHECK
-            "CHECK",
-            // CONSTRAINT
-            "CONSTRAINT",
-            // CROSS
-            "CROSS",
-            // CURRENT_CATALOG
-            "CURRENT_CATALOG",
-            // CURRENT_DATE
-            "CURRENT_DATE",
-            // CURRENT_PATH
-            "CURRENT_PATH",
-            // CURRENT_ROLE
-            "CURRENT_ROLE",
-            // CURRENT_SCHEMA
-            "CURRENT_SCHEMA",
-            // CURRENT_TIME
-            "CURRENT_TIME",
-            // CURRENT_TIMESTAMP
-            "CURRENT_TIMESTAMP",
-            // CURRENT_USER
-            "CURRENT_USER",
-            // DAY
-            "DAY",
-            // DEFAULT
-            "DEFAULT",
-            // DISTINCT
-            "DISTINCT",
-            // ELSE
-            "ELSE",
-            // END
-            "END",
-            // EXCEPT
-            "EXCEPT",
-            // EXISTS
-            "EXISTS",
-            // FALSE
-            "FALSE",
-            // FETCH
-            "FETCH",
-            // FOR
-            "FOR",
-            // FOREIGN
-            "FOREIGN",
-            // FROM
-            "FROM",
-            // FULL
-            "FULL",
-            // GROUP
-            "GROUP",
-            // HAVING
-            "HAVING",
-            // HOUR
-            "HOUR",
-            // IF
-            "IF",
-            // IN
-            "IN",
-            // INNER
-            "INNER",
-            // INTERSECT
-            "INTERSECT",
-            // INTERVAL
-            "INTERVAL",
-            // IS
-            "IS",
-            // JOIN
-            "JOIN",
-            // KEY
-            "KEY",
-            // LEFT
-            "LEFT",
-            // LIKE
-            "LIKE",
-            // LIMIT
-            "LIMIT",
-            // LOCALTIME
-            "LOCALTIME",
-            // LOCALTIMESTAMP
-            "LOCALTIMESTAMP",
-            // MINUS
-            "MINUS",
-            // MINUTE
-            "MINUTE",
-            // MONTH
-            "MONTH",
-            // NATURAL
-            "NATURAL",
-            // NOT
-            "NOT",
-            // NULL
-            "NULL",
-            // OFFSET
-            "OFFSET",
-            // ON
-            "ON",
-            // OR
-            "OR",
-            // ORDER
-            "ORDER",
-            // PRIMARY
-            "PRIMARY",
-            // QUALIFY
-            "QUALIFY",
-            // RIGHT
-            "RIGHT",
-            // ROW
-            "ROW",
-            // ROWNUM
-            "ROWNUM",
-            // SECOND
-            "SECOND",
-            // SELECT
-            "SELECT",
-            // SESSION_USER
-            "SESSION_USER",
-            // SET
-            "SET",
-            // SOME
-            "SOME",
-            // SYMMETRIC
-            "SYMMETRIC",
-            // SYSTEM_USER
-            "SYSTEM_USER",
-            // TABLE
-            "TABLE",
-            // TO
-            "TO",
-            // TRUE
-            "TRUE",
-            // UESCAPE
-            "UESCAPE",
-            // UNION
-            "UNION",
-            // UNIQUE
-            "UNIQUE",
-            // UNKNOWN
-            "UNKNOWN",
-            // USER
-            "USER",
-            // USING
-            "USING",
-            // VALUE
-            "VALUE",
-            // VALUES
-            "VALUES",
-            // WHEN
-            "WHEN",
-            // WHERE
-            "WHERE",
-            // WINDOW
-            "WINDOW",
-            // WITH
-            "WITH",
-            // YEAR
-            "YEAR",
-            // _ROWID_
-            "_ROWID_",
-            // PARAMETER
-            "?",
-            // END
-            null,
-            // VALUE
-            null,
-            // EQUAL
-            "=",
-            // BIGGER_EQUAL
-            ">=",
-            // BIGGER
-            ">",
-            // SMALLER
-            "<",
-            // SMALLER_EQUAL
-            "<=",
-            // NOT_EQUAL
-            "<>",
-            // AT
-            "@",
-            // MINUS_SIGN
-            "-",
-            // PLUS_SIGN
-            "+",
-            // STRING_CONCAT
-            "||",
-            // OPEN_PAREN
-            "(",
-            // CLOSE_PAREN
-            ")",
-            // SPATIAL_INTERSECTS
-            "&&",
-            // ASTERISK
-            "*",
-            // COMMA
-            ",",
-            // DOT
-            ".",
-            // OPEN_BRACE
-            "{",
-            // CLOSE_BRACE
-            "}",
-            // SLASH
-            "/",
-            // PERCENT
-            "%",
-            // SEMICOLON
-            ";",
-            // COLON
-            ":",
-            // OPEN_BRACKET
-            "[",
-            // CLOSE_BRACKET
-            "]",
-            // TILDE
-            "~",
-            // COLON_COLON
-            "::",
-            // COLON_EQ
-            ":=",
-            // NOT_TILDE
-            "!~",
-            // End
-    };
 
     private final Database database;
     private final SessionLocal session;
@@ -828,21 +436,12 @@ public class Parser {
 
     private final BitSet nonKeywords;
 
-    /** indicates character-type for each char in sqlCommand */
-    private int[] characterTypes;
+    ArrayList<Token> tokens;
+    int tokenIndex;
+    Token token;
     private int currentTokenType;
     private String currentToken;
-    private boolean currentTokenQuoted;
-    private Value currentValue;
-    private String originalSQL;
-    /** copy of originalSQL, with comments blanked out */
     private String sqlCommand;
-    /** cached array if chars from sqlCommand */
-    private char[] sqlCommandChars;
-    /** index into sqlCommand of previous token */
-    private int lastParseIndex;
-    /** index into sqlCommand of current token */
-    private int parseIndex;
     private CreateView createView;
     private Prepared currentPrepared;
     private Select currentSelect;
@@ -935,7 +534,7 @@ public class Parser {
      * @return the prepared object
      */
     public Prepared prepare(String sql) {
-        Prepared p = parse(sql);
+        Prepared p = parse(sql, null);
         p.prepare();
         if (currentTokenType != END_OF_INPUT) {
             throw getSyntaxError();
@@ -951,7 +550,7 @@ public class Parser {
      */
     public Command prepareCommand(String sql) {
         try {
-            Prepared p = parse(sql);
+            Prepared p = parse(sql, null);
             if (currentTokenType != SEMICOLON && currentTokenType != END_OF_INPUT) {
                 addExpected(SEMICOLON);
                 throw getSyntaxError();
@@ -962,50 +561,59 @@ public class Parser {
                 CommandContainer.clearCTE(session, p);
                 throw t;
             }
-            if (parseIndex < sql.length()) {
-                sql = sql.substring(0, parseIndex);
+            int sqlIndex = token.start();
+            if (sqlIndex < sql.length()) {
+                sql = sql.substring(0, sqlIndex);
             }
             CommandContainer c = new CommandContainer(session, sql, p);
-            if (currentTokenType == SEMICOLON) {
-                String remaining = originalSQL.substring(parseIndex);
-                if (!StringUtils.isWhitespaceOrEmpty(remaining)) {
-                    return prepareCommandList(c, p, sql, remaining);
-                }
+            while (currentTokenType == SEMICOLON) {
+                read();
+            }
+            if (currentTokenType != END_OF_INPUT) {
+                int offset = token.start();
+                return prepareCommandList(c, p, sql, sqlCommand.substring(offset), getRemainingTokens(offset));
             }
             return c;
         } catch (DbException e) {
-            throw e.addSQL(originalSQL);
+            throw e.addSQL(sqlCommand);
         }
     }
 
-    private CommandList prepareCommandList(CommandContainer command, Prepared p, String sql, String remaining) {
+    private CommandList prepareCommandList(CommandContainer command, Prepared p, String sql, String remainingSql,
+            ArrayList<Token> remainingTokens) {
         try {
             ArrayList<Prepared> list = Utils.newSmallArrayList();
-            do {
+            for (;;) {
                 if (p instanceof DefineCommand) {
                     // Next commands may depend on results of this command.
-                    return new CommandList(session, sql, command, list, parameters, remaining);
+                    return new CommandList(session, sql, command, list, parameters, remainingSql);
                 }
                 suppliedParameters = parameters;
                 suppliedParameterList = indexedParameterList;
                 try {
-                    p = parse(remaining);
+                    p = parse(remainingSql, remainingTokens);
                 } catch (DbException ex) {
                     // This command may depend on results of previous commands.
                     if (ex.getErrorCode() == ErrorCode.CANNOT_MIX_INDEXED_AND_UNINDEXED_PARAMS) {
                         throw ex;
                     }
-                    return new CommandList(session, sql, command, list, parameters, remaining);
+                    return new CommandList(session, sql, command, list, parameters, remainingSql);
                 }
                 list.add(p);
-                if (currentTokenType == END_OF_INPUT) {
-                    break;
-                }
-                if (currentTokenType != SEMICOLON) {
+                if (currentTokenType != SEMICOLON && currentTokenType != END_OF_INPUT) {
                     addExpected(SEMICOLON);
                     throw getSyntaxError();
                 }
-            } while (!StringUtils.isWhitespaceOrEmpty(remaining = originalSQL.substring(parseIndex)));
+                while (currentTokenType == SEMICOLON) {
+                    read();
+                }
+                if (currentTokenType == END_OF_INPUT) {
+                    break;
+                }
+                int offset = token.start();
+                remainingSql = sqlCommand.substring(offset);
+                remainingTokens = getRemainingTokens(offset);
+            }
             return new CommandList(session, sql, command, list, parameters, null);
         } catch (Throwable t) {
             command.clearCTE();
@@ -1013,13 +621,26 @@ public class Parser {
         }
     }
 
+    private ArrayList<Token> getRemainingTokens(int offset) {
+        List<Token> subList = tokens.subList(tokenIndex, tokens.size());
+        ArrayList<Token> remainingTokens = new ArrayList<>(subList);
+        subList.clear();
+        tokens.add(new Token.EndOfInputToken(offset));
+        for (Token token : remainingTokens) {
+            token.subtractFromStart(offset);
+        }
+        return remainingTokens;
+    }
+
     /**
      * Parse the statement, but don't prepare it for execution.
      *
      * @param sql the SQL statement to parse
+     * @param tokens tokens, or null
      * @return the prepared object
      */
-    Prepared parse(String sql) {
+    Prepared parse(String sql, ArrayList<Token> tokens) {
+        initialize(sql, tokens, false);
         Prepared p;
         try {
             // first, try the fast variant
@@ -1027,6 +648,7 @@ public class Parser {
         } catch (DbException e) {
             if (e.getErrorCode() == ErrorCode.SYNTAX_ERROR_1) {
                 // now, get the detailed exception
+                resetTokenIndex();
                 p = parse(sql, true);
             } else {
                 throw e.addSQL(sql);
@@ -1038,7 +660,6 @@ public class Parser {
     }
 
     private Prepared parse(String sql, boolean withExpectedList) {
-        initialize(sql);
         if (withExpectedList) {
             expectedList = new ArrayList<>();
         } else {
@@ -1066,7 +687,7 @@ public class Parser {
     }
 
     private Prepared parsePrepared() {
-        int start = lastParseIndex;
+        int start = tokenIndex;
         Prepared c = null;
         switch (currentTokenType) {
         case END_OF_INPUT:
@@ -1079,6 +700,7 @@ public class Parser {
             // this is an 'out' parameter - set a dummy value
             readParameter().setValue(ValueNull.INSTANCE);
             read(EQUAL);
+            start = tokenIndex;
             read("CALL");
             c = parseCall();
             break;
@@ -1097,7 +719,7 @@ public class Parser {
             c = parseSet();
             break;
         case IDENTIFIER:
-            if (currentTokenQuoted) {
+            if (token.isQuoted()) {
                 break;
             }
             /*
@@ -1269,9 +891,9 @@ public class Parser {
 
     private DbException getSyntaxError() {
         if (expectedList == null || expectedList.isEmpty()) {
-            return DbException.getSyntaxError(sqlCommand, parseIndex);
+            return DbException.getSyntaxError(sqlCommand, token.start());
         }
-        return DbException.getSyntaxError(sqlCommand, parseIndex, String.join(", ", expectedList));
+        return DbException.getSyntaxError(sqlCommand, token.start(), String.join(", ", expectedList));
     }
 
     private Prepared parseBackup() {
@@ -1776,27 +1398,28 @@ public class Parser {
     }
 
     private boolean isDerivedTable() {
-        int start = lastParseIndex;
+        int offset = tokenIndex;
         int level = 0;
-        while (readIf(OPEN_PAREN)) {
+        while (tokens.get(offset).tokenType() == OPEN_PAREN) {
             level++;
+            offset++;
         }
-        boolean query = isDirectQuery();
+        boolean query = isDirectQuery(offset);
         s: if (query && level > 0) {
-            read();
-            if (!scanToCloseParen()) {
+            offset = scanToCloseParen(offset + 1);
+            if (offset < 0) {
                 query = false;
                 break s;
             }
             for (;;) {
-                switch (currentTokenType) {
+                switch (tokens.get(offset).tokenType()) {
                 case SEMICOLON:
                 case END_OF_INPUT:
                     query = false;
                     break s;
                 case OPEN_PAREN:
-                    read();
-                    if (!scanToCloseParen()) {
+                    offset = scanToCloseParen(offset + 1);
+                    if (offset < 0) {
                         query = false;
                         break s;
                     }
@@ -1805,35 +1428,36 @@ public class Parser {
                     if (--level == 0) {
                         break s;
                     }
-                    read();
+                    offset++;
                     break;
                 case JOIN:
                     query = false;
                     break s;
                 default:
-                    read();
+                    offset++;
                 }
             }
         }
-        reread(start);
         return query;
     }
 
     private boolean isQuery() {
-        int start = lastParseIndex;
+        int offset = tokenIndex;
         int level = 0;
-        while (readIf(OPEN_PAREN)) {
+        while (tokens.get(offset).tokenType() == OPEN_PAREN) {
             level++;
+            offset++;
         }
-        boolean query = isDirectQuery();
+        boolean query = isDirectQuery(offset);
         s: if (query && level > 0) {
-            read();
+            offset++;
             do {
-                if (!scanToCloseParen()) {
+                offset = scanToCloseParen(offset);
+                if (offset < 0) {
                     query = false;
                     break s;
                 }
-                switch (currentTokenType) {
+                switch (tokens.get(offset).tokenType()) {
                 default:
                     query = false;
                     break s;
@@ -1851,51 +1475,45 @@ public class Parser {
                 }
             } while (--level > 0);
         }
-        reread(start);
         return query;
     }
 
-    private boolean scanToCloseParen() {
+    private int scanToCloseParen(int offset) {
         for (int level = 0;;) {
-            switch (currentTokenType) {
+            switch (tokens.get(offset).tokenType()) {
             case SEMICOLON:
             case END_OF_INPUT:
-                return false;
+                return -1;
             case OPEN_PAREN:
                 level++;
                 break;
             case CLOSE_PAREN:
                 if (--level < 0) {
-                    read();
-                    return true;
+                    return offset + 1;
                 }
             }
-            read();
+            offset++;
         }
     }
 
     private boolean isQueryQuick() {
-        int start = lastParseIndex;
-        while (readIf(OPEN_PAREN)) {
-            // need to read ahead, it could be a nested union:
-            // ((select 1) union (select 1))
+        int offset = tokenIndex;
+        while (tokens.get(offset).tokenType() == OPEN_PAREN) {
+            offset++;
         }
-        boolean query = isDirectQuery();
-        reread(start);
-        return query;
+        return isDirectQuery(offset);
     }
 
-    private boolean isDirectQuery() {
+    private boolean isDirectQuery(int offset) {
         boolean query;
-        switch (currentTokenType) {
+        switch (tokens.get(offset).tokenType()) {
         case SELECT:
         case VALUES:
         case WITH:
             query = true;
             break;
         case TABLE:
-            read();
-            query = !readIf(OPEN_PAREN);
+            query = tokens.get(offset + 1).tokenType() != OPEN_PAREN;
             break;
         default:
             query = false;
@@ -2201,9 +1819,9 @@ public class Parser {
             ArrayTableFunction function = readTableFunction(ArrayTableFunction.TABLE);
             table = new FunctionTable(database.getMainSchema(), session, function);
         } else {
-            boolean quoted = currentTokenQuoted;
+            boolean quoted = token.isQuoted();
             String tableName = readIdentifier();
-            int backupIndex = parseIndex;
+            int backupIndex = tokenIndex;
             schemaName = null;
             if (readIf(DOT)) {
                 tableName = readIdentifierWithSchema2(tableName);
@@ -2335,7 +1953,7 @@ public class Parser {
 
     private Table readDataChangeDeltaTable(String resultOptionName, int backupIndex) {
         read(OPEN_PAREN);
-        int start = lastParseIndex;
+        int start = tokenIndex;
         DataChangeStatement statement;
         ResultOption resultOption = ResultOption.FINAL;
         switch (resultOptionName) {
@@ -2370,7 +1988,7 @@ public class Parser {
             }
             break;
         default:
-            parseIndex = backupIndex;
+            setTokenIndex(backupIndex);
             addExpected("OLD TABLE");
             addExpected("NEW TABLE");
             addExpected("FINAL TABLE");
@@ -2409,12 +2027,12 @@ public class Parser {
     }
 
     private boolean readIfUseIndex() {
-        int start = lastParseIndex;
+        int start = tokenIndex;
         if (!readIf("USE")) {
             return false;
         }
         if (!readIf("INDEX")) {
-            reread(start);
+            setTokenIndex(start);
             return false;
         }
         return true;
@@ -2554,7 +2172,7 @@ public class Parser {
                 }
             }
             if (columnName == null || objectName == null) {
-                throw DbException.getSyntaxError(sqlCommand, lastParseIndex, "table.column");
+                throw DbException.getSyntaxError(sqlCommand, token.start(), "table.column");
             }
             schemaName = tmpSchemaName != null ? tmpSchemaName : session.getCurrentSchemaName();
             command.setColumn(true);
@@ -2843,7 +2461,7 @@ public class Parser {
      */
     private void addJoin(TableFilter top, TableFilter join, boolean outer, Expression on) {
         if (join.getJoin() != null) {
-            String joinTable = Constants.PREFIX_JOIN + parseIndex;
+            String joinTable = Constants.PREFIX_JOIN + token.start();
             TableFilter n = new TableFilter(session, new DualTable(database),
                     joinTable, rightsChecked, currentSelect, join.getOrderInFrom(),
                     null);
@@ -2939,7 +2557,7 @@ public class Parser {
             command.setCommand(query);
             break;
         default:
-            int start = lastParseIndex;
+            int start = tokenIndex;
             if (readIf("DELETE")) {
                 command.setCommand(parseDelete(start));
             } else if (readIf("UPDATE")) {
@@ -3002,7 +2620,7 @@ public class Parser {
     }
 
     private Query parseQueryExpressionBodyAndEndOfQuery() {
-        int start = lastParseIndex;
+        int start = tokenIndex;
         Query command = parseQueryExpressionBody();
         parseEndOfQuery(command);
         setSQL(command, start);
@@ -3162,7 +2780,7 @@ public class Parser {
             read(CLOSE_PAREN);
             return command;
         }
-        int start = lastParseIndex;
+        int start = tokenIndex;
         if (readIf(SELECT)) {
             return parseSelect(start);
         } else if (readIf(TABLE)) {
@@ -3332,12 +2950,12 @@ public class Parser {
         }
         if (readIf(WINDOW)) {
             do {
-                int index = parseIndex;
+                int sqlIndex = token.start();
                 String name = readIdentifier();
                 read(AS);
                 Window w = readWindowSpecification();
                 if (!currentSelect.addWindow(name, w)) {
-                    throw DbException.getSyntaxError(sqlCommand, index, "unique identifier");
+                    throw DbException.getSyntaxError(sqlCommand, sqlIndex, "unique identifier");
                 }
             } while (readIf(COMMA));
         }
@@ -3360,26 +2978,12 @@ public class Parser {
      *         grouping set
      */
     private boolean isOrdinaryGroupingSet() {
-        int lastIndex = lastParseIndex, index = parseIndex;
-        int level = 1;
-        loop: for (;;) {
-            read();
-            switch (currentTokenType) {
-            case CLOSE_PAREN:
-                if (--level <= 0) {
-                    break loop;
-                }
-                break;
-            case OPEN_PAREN:
-                level++;
-                break;
-            case END_OF_INPUT:
-                addExpected(CLOSE_PAREN);
-                throw getSyntaxError();
-            }
+        int offset = scanToCloseParen(tokenIndex + 1);
+        if (offset < 0) {
+            // Try to parse as expression to get better syntax error
+            return false;
         }
-        read();
-        switch (currentTokenType) {
+        switch (tokens.get(offset).tokenType()) {
         // End of query
         case CLOSE_PAREN:
         case SEMICOLON:
@@ -3401,10 +3005,9 @@ public class Parser {
         case FETCH:
         case LIMIT:
         case FOR:
-            reread(index);
+            setTokenIndex(tokenIndex + 1);
             return true;
         default:
-            reread(lastIndex);
             return false;
         }
     }
@@ -3420,8 +3023,38 @@ public class Parser {
         return command;
     }
 
-    private void setSQL(Prepared command, int startIndex) {
-        command.setSQL(StringUtils.trimSubstring(originalSQL, startIndex, lastParseIndex));
+    private void setSQL(Prepared command, int start) {
+        String s = sqlCommand;
+        int beginIndex = tokens.get(start).start();
+        int endIndex = token.start();
+        while (beginIndex < endIndex && s.charAt(beginIndex) <= ' ') {
+            beginIndex++;
+        }
+        while (beginIndex < endIndex && s.charAt(endIndex - 1) <= ' ') {
+            endIndex--;
+        }
+        s = s.substring(beginIndex, endIndex);
+        ArrayList<Token> commandTokens;
+        if (start == 0 && currentTokenType == END_OF_INPUT) {
+            commandTokens = tokens;
+            if (beginIndex != 0) {
+                for (int i = 0, l = commandTokens.size() - 1; i < l; i++) {
+                    commandTokens.get(i).subtractFromStart(beginIndex);
+                }
+            }
+            token.setStart(s.length());
+            sqlCommand = s;
+        } else {
+            List<Token> subList = tokens.subList(start, tokenIndex);
+            commandTokens = new ArrayList<>(subList.size() + 1);
+            for (int i = start; i < tokenIndex; i++) {
+                Token t = tokens.get(i).clone();
+                t.subtractFromStart(beginIndex);
+                commandTokens.add(t);
+            }
+            commandTokens.add(new Token.EndOfInputToken(s.length()));
+        }
+        command.setSQL(s, commandTokens);
     }
 
     private Expression readExpressionOrDefault() {
@@ -3509,7 +3142,7 @@ public class Parser {
             return new UniquePredicate(query);
         }
         default:
-            int index = lastParseIndex;
+            int index = tokenIndex;
             if (readIf("INTERSECTS")) {
                 if (readIf(OPEN_PAREN)) {
                     Expression r1 = readConcat();
@@ -3518,7 +3151,7 @@ public class Parser {
                     read(CLOSE_PAREN);
                     return new Comparison(Comparison.SPATIAL_INTERSECTS, r1, r2, false);
                 } else {
-                    reread(index);
+                    setTokenIndex(index);
                 }
             }
             if (expectedList != null) {
@@ -3531,13 +3164,11 @@ public class Parser {
             l = c;
             // special case: NOT NULL is not part of an expression (as in CREATE
             // TABLE TEST(ID INT DEFAULT 0 NOT NULL))
-            int backup = parseIndex;
+            int backup = tokenIndex;
             boolean not = readIf(NOT);
             if (not && isToken(NULL)) {
                 // this really only works for NOT NULL!
-                parseIndex = backup;
-                currentToken = "NOT";
-                currentTokenType = NOT;
+                setTokenIndex(backup);
                 break;
             }
             c = readConditionRightHandSide(l, not, false);
@@ -3711,7 +3342,7 @@ public class Parser {
     }
 
     private Expression readComparison(Expression left, int compareType, boolean whenOperand) {
-        int start = lastParseIndex;
+        int start = tokenIndex;
         if (readIf(ALL)) {
             read(OPEN_PAREN);
             if (isQuery()) {
@@ -3719,7 +3350,7 @@ public class Parser {
                 left = new ConditionInQuery(left, false, whenOperand, query, true, compareType);
                 read(CLOSE_PAREN);
             } else {
-                reread(start);
+                setTokenIndex(start);
                 left = new Comparison(compareType, left, readConcat(), whenOperand);
             }
         } else if (readIf(ANY) || readIf(SOME)) {
@@ -3733,7 +3364,7 @@ public class Parser {
                 left = new ConditionInQuery(left, false, whenOperand, query, false, compareType);
                 read(CLOSE_PAREN);
             } else {
-                reread(start);
+                setTokenIndex(start);
                 left = new Comparison(compareType, left, readConcat(), whenOperand);
             }
         } else {
@@ -3815,6 +3446,7 @@ public class Parser {
 
     private Expression readAggregate(AggregateType aggregateType, String aggregateName) {
         if (currentSelect == null) {
+            expectedList = null;
             throw getSyntaxError();
         }
         Aggregate r;
@@ -3889,12 +3521,12 @@ public class Parser {
                 orderByList = null;
             }
             Expression[] args = new Expression[] { arg };
-            int index = lastParseIndex;
+            int index = tokenIndex;
             read(CLOSE_PAREN);
             if (orderByList == null && isToken("WITHIN")) {
                 r = readWithinGroup(aggregateType, args, distinct, extraArguments, false, false);
             } else {
-                reread(index);
+                setTokenIndex(index);
                 r = new Aggregate(AggregateType.LISTAGG, args, currentSelect, distinct);
                 r.setExtraArguments(extraArguments);
                 if (orderByList != null) {
@@ -3942,7 +3574,7 @@ public class Parser {
                     String sql = expr.getSQL(HasSQL.DEFAULT_SQL_FLAGS), sql2 = expr2.getSQL(HasSQL.DEFAULT_SQL_FLAGS);
                     if (!sql.equals(sql2)) {
                         throw DbException.getSyntaxError(ErrorCode.IDENTICAL_EXPRESSIONS_SHOULD_BE_USED, sqlCommand,
-                                lastParseIndex, sql, sql2);
+                                token.start(), sql, sql2);
                     }
                     readAggregateOrder(r, expr, true);
                 } else {
@@ -4109,13 +3741,13 @@ public class Parser {
         read(OPEN_PAREN);
         String parent = null;
         if (currentTokenType == IDENTIFIER) {
-            String token = currentToken;
-            if (currentTokenQuoted || ( //
-                    !equalsToken(token, "PARTITION") //
-                    && !equalsToken(token, "ROWS") //
-                    && !equalsToken(token, "RANGE") //
-                    && !equalsToken(token, "GROUPS"))) {
-                parent = token;
+            String current = currentToken;
+            if (token.isQuoted() || ( //
+                    !equalsToken(current, "PARTITION") //
+                    && !equalsToken(current, "ROWS") //
+                    && !equalsToken(current, "RANGE") //
+                    && !equalsToken(current, "GROUPS"))) {
+                parent = current;
                 read();
             }
         }
@@ -4154,7 +3786,7 @@ public class Parser {
             starting = readWindowFrameStarting();
             following = null;
         }
-        int idx = lastParseIndex;
+        int sqlIndex = token.start();
         WindowFrameExclusion exclusion = WindowFrameExclusion.EXCLUDE_NO_OTHERS;
         if (readIf("EXCLUDE")) {
             if (readIf("CURRENT")) {
@@ -4171,7 +3803,7 @@ public class Parser {
         }
         WindowFrame frame = new WindowFrame(units, starting, following, exclusion);
         if (!frame.isValid()) {
-            throw DbException.getSyntaxError(sqlCommand, idx);
+            throw DbException.getSyntaxError(sqlCommand, sqlIndex);
         }
         return frame;
     }
@@ -4989,13 +4621,13 @@ public class Parser {
         int field = -1;
         switch (currentTokenType) {
         case IDENTIFIER:
-            if (!currentTokenQuoted) {
+            if (!token.isQuoted()) {
                 field = DateTimeFunction.getField(currentToken);
             }
             break;
         case LITERAL:
-            if (currentValue.getValueType() == Value.VARCHAR) {
-                field = DateTimeFunction.getField(currentValue.getString());
+            if (token.value(session).getValueType() == Value.VARCHAR) {
+                field = DateTimeFunction.getField(token.value(session).getString());
             }
             break;
         case YEAR:
@@ -5098,7 +4730,7 @@ public class Parser {
     }
 
     private boolean readJsonObjectFunctionFlags(ExpressionWithFlags function, boolean forArray) {
-        int start = lastParseIndex;
+        int start = tokenIndex;
         boolean result = false;
         int flags = function.getFlags();
         if (readIf(NULL)) {
@@ -5107,7 +4739,7 @@ public class Parser {
                 flags &= ~JsonConstructorUtils.JSON_ABSENT_ON_NULL;
                 result = true;
             } else {
-                reread(start);
+                setTokenIndex(start);
                 return false;
             }
         } else if (readIf("ABSENT")) {
@@ -5116,7 +4748,7 @@ public class Parser {
                 flags |= JsonConstructorUtils.JSON_ABSENT_ON_NULL;
                 result = true;
             } else {
-                reread(start);
+                setTokenIndex(start);
                 return false;
             }
         }
@@ -5134,7 +4766,7 @@ public class Parser {
                 } else if (result) {
                     throw getSyntaxError();
                 } else {
-                    reread(start);
+                    setTokenIndex(start);
                     return false;
                 }
             }
@@ -5286,11 +4918,10 @@ public class Parser {
 
     private Parameter readParameter() {
         // there must be no space between ? and the number
-        boolean indexed = Character.isDigit(sqlCommandChars[parseIndex]);
-
+        int index = ((Token.ParameterToken) token).index();
+        read();
         Parameter p;
-        if (indexed) {
-            readParameterIndex();
+        if (index > 0) {
             if (indexedParameterList == null) {
                 if (parameters == null) {
                     // this can occur when parsing expressions only (for
@@ -5302,11 +4933,11 @@ public class Parser {
                 }
                 indexedParameterList = Utils.newSmallArrayList();
             }
-            int index = currentValue.getInt() - 1;
-            if (index < 0 || index >= Constants.MAX_PARAMETER_INDEX) {
+            if (index > Constants.MAX_PARAMETER_INDEX) {
                 throw DbException.getInvalidValueException(
-                        "parameter index", index + 1);
+                        "parameter index", index);
             }
+            index--;
             if (indexedParameterList.size() <= index) {
                 indexedParameterList.ensureCapacity(index + 1);
                 while (indexedParameterList.size() <= index) {
@@ -5319,9 +4950,7 @@ public class Parser {
                 indexedParameterList.set(index, p);
                 parameters.add(p);
             }
-            read();
         } else {
-            read();
             if (indexedParameterList != null) {
                 throw DbException
                         .get(ErrorCode.CANNOT_MIX_INDEXED_AND_UNINDEXED_PARAMS);
@@ -5353,7 +4982,7 @@ public class Parser {
         case MINUS_SIGN:
             read();
             if (currentTokenType == LITERAL) {
-                r = ValueExpression.get(currentValue.negate());
+                r = ValueExpression.get(token.value(session).negate());
                 int rType = r.getType().getValueType();
                 if (rType == Value.BIGINT &&
                         r.getValue(session).getLong() == Integer.MIN_VALUE) {
@@ -5474,7 +5103,7 @@ public class Parser {
             r = new ExpressionColumn(database, null, null);
             break;
         case LITERAL:
-            r = ValueExpression.get(currentValue);
+            r = ValueExpression.get(token.value(session));
             read();
             break;
         case VALUES:
@@ -5586,7 +5215,7 @@ public class Parser {
             //$FALL-THROUGH$
         case IDENTIFIER:
             String name = currentToken;
-            boolean quoted = currentTokenQuoted;
+            boolean quoted = token.isQuoted();
             read();
             if (readIf(OPEN_PAREN)) {
                 r = readFunction(null, name);
@@ -5622,7 +5251,7 @@ public class Parser {
             if (ti != null) {
                 r = new CastSpecification(r, ti);
             }
-            int index = lastParseIndex;
+            int index = tokenIndex;
             if (readIf("AT")) {
                 if (readIf("TIME")) {
                     read("ZONE");
@@ -5632,14 +5261,14 @@ public class Parser {
                     r = new TimeZoneOperation(r, null);
                     continue;
                 } else {
-                    reread(index);
+                    setTokenIndex(index);
                 }
             } else if (readIf("FORMAT")) {
                 if (readIf("JSON")) {
                     r = new Format(r, FormatEnum.JSON);
                     continue;
                 } else {
-                    reread(index);
+                    setTokenIndex(index);
                 }
             }
             break;
@@ -5698,28 +5327,28 @@ public class Parser {
         switch (name.charAt(0) & 0xffdf) {
         case 'C':
             if (equalsToken("CURRENT", name)) {
-                int index = lastParseIndex;
+                int index = tokenIndex;
                 if (readIf(VALUE) && readIf(FOR)) {
                     return new SequenceValue(readSequence());
                 }
-                reread(index);
+                setTokenIndex(index);
                 if (database.getMode().getEnum() == ModeEnum.DB2) {
                     return parseDB2SpecialRegisters(name);
                 }
             }
             break;
         case 'D':
-            if (currentTokenType == LITERAL && currentValue.getValueType() == Value.VARCHAR &&
+            if (currentTokenType == LITERAL && token.value(session).getValueType() == Value.VARCHAR &&
                     (equalsToken("DATE", name) || equalsToken("D", name))) {
-                String date = currentValue.getString();
+                String date = token.value(session).getString();
                 read();
                 return ValueExpression.get(ValueDate.parse(date));
             }
             break;
         case 'E':
-            if (currentTokenType == LITERAL && currentValue.getValueType() == Value.VARCHAR //
+            if (currentTokenType == LITERAL && token.value(session).getValueType() == Value.VARCHAR //
                     && equalsToken("E", name)) {
-                String text = currentValue.getString();
+                String text = token.value(session).getString();
                 // the PostgreSQL ODBC driver uses
                 // LIKE E'PROJECT\\_DATA' instead of LIKE
                 // 'PROJECT\_DATA'
@@ -5731,13 +5360,14 @@ public class Parser {
             break;
         case 'G':
             if (currentTokenType == LITERAL) {
-                int t = currentValue.getValueType();
+                int t = token.value(session).getValueType();
                 if (t == Value.VARCHAR && equalsToken("GEOMETRY", name)) {
-                    ValueExpression v = ValueExpression.get(ValueGeometry.get(currentValue.getString()));
+                    ValueExpression v = ValueExpression.get(ValueGeometry.get(token.value(session).getString()));
                     read();
                     return v;
                 } else if (t == Value.VARBINARY && equalsToken("GEOMETRY", name)) {
-                    ValueExpression v = ValueExpression.get(ValueGeometry.getFromEWKB(currentValue.getBytesNoCopy()));
+                    ValueExpression v = ValueExpression
+                            .get(ValueGeometry.getFromEWKB(token.value(session).getBytesNoCopy()));
                     read();
                     return v;
                 }
@@ -5745,13 +5375,13 @@ public class Parser {
             break;
         case 'J':
             if (currentTokenType == LITERAL) {
-                int t = currentValue.getValueType();
+                int t = token.value(session).getValueType();
                 if (t == Value.VARCHAR && equalsToken("JSON", name)) {
-                    ValueExpression v = ValueExpression.get(ValueJson.fromJson(currentValue.getString()));
+                    ValueExpression v = ValueExpression.get(ValueJson.fromJson(token.value(session).getString()));
                     read();
                     return v;
                 } else if (t == Value.VARBINARY && equalsToken("JSON", name)) {
-                    ValueExpression v = ValueExpression.get(ValueJson.fromJson(currentValue.getBytesNoCopy()));
+                    ValueExpression v = ValueExpression.get(ValueJson.fromJson(token.value(session).getBytesNoCopy()));
                     read();
                     return v;
                 }
@@ -5759,11 +5389,11 @@ public class Parser {
             break;
         case 'N':
             if (equalsToken("NEXT", name)) {
-                int index = lastParseIndex;
+                int index = tokenIndex;
                 if (readIf(VALUE) && readIf(FOR)) {
                     return new SequenceValue(readSequence(), getCurrentSelectOrPrepared());
                 }
-                reread(index);
+                setTokenIndex(index);
             }
             break;
         case 'T':
@@ -5771,10 +5401,10 @@ public class Parser {
                 if (readIf(WITH)) {
                     read("TIME");
                     read("ZONE");
-                    if (currentTokenType != LITERAL || currentValue.getValueType() != Value.VARCHAR) {
+                    if (currentTokenType != LITERAL || token.value(session).getValueType() != Value.VARCHAR) {
                         throw getSyntaxError();
                     }
-                    String time = currentValue.getString();
+                    String time = token.value(session).getString();
                     read();
                     return ValueExpression.get(ValueTimeTimeZone.parse(time));
                 } else {
@@ -5783,8 +5413,8 @@ public class Parser {
                         read("TIME");
                         read("ZONE");
                     }
-                    if (currentTokenType == LITERAL && currentValue.getValueType() == Value.VARCHAR) {
-                        String time = currentValue.getString();
+                    if (currentTokenType == LITERAL && token.value(session).getValueType() == Value.VARCHAR) {
+                        String time = token.value(session).getString();
                         read();
                         return ValueExpression.get(ValueTime.parse(time));
                     } else if (without) {
@@ -5795,10 +5425,10 @@ public class Parser {
                 if (readIf(WITH)) {
                     read("TIME");
                     read("ZONE");
-                    if (currentTokenType != LITERAL || currentValue.getValueType() != Value.VARCHAR) {
+                    if (currentTokenType != LITERAL || token.value(session).getValueType() != Value.VARCHAR) {
                         throw getSyntaxError();
                     }
-                    String timestamp = currentValue.getString();
+                    String timestamp = token.value(session).getString();
                     read();
                     return ValueExpression.get(ValueTimestampTimeZone.parse(timestamp, session));
                 } else {
@@ -5807,30 +5437,30 @@ public class Parser {
                         read("TIME");
                         read("ZONE");
                     }
-                    if (currentTokenType == LITERAL && currentValue.getValueType() == Value.VARCHAR) {
-                        String timestamp = currentValue.getString();
+                    if (currentTokenType == LITERAL && token.value(session).getValueType() == Value.VARCHAR) {
+                        String timestamp = token.value(session).getString();
                         read();
                         return ValueExpression.get(ValueTimestamp.parse(timestamp, session));
                     } else if (without) {
                         throw getSyntaxError();
                     }
                 }
-            } else if (currentTokenType == LITERAL && currentValue.getValueType() == Value.VARCHAR) {
+            } else if (currentTokenType == LITERAL && token.value(session).getValueType() == Value.VARCHAR) {
                 if (equalsToken("T", name)) {
-                    String time = currentValue.getString();
+                    String time = token.value(session).getString();
                     read();
                     return ValueExpression.get(ValueTime.parse(time));
                 } else if (equalsToken("TS", name)) {
-                    String timestamp = currentValue.getString();
+                    String timestamp = token.value(session).getString();
                     read();
                     return ValueExpression.get(ValueTimestamp.parse(timestamp, session));
                 }
             }
             break;
         case 'U':
-            if (currentTokenType == LITERAL && currentValue.getValueType() == Value.VARCHAR
+            if (currentTokenType == LITERAL && token.value(session).getValueType() == Value.VARCHAR
                     && (equalsToken("UUID", name))) {
-                String uuid = currentValue.getString();
+                String uuid = token.value(session).getString();
                 read();
                 return ValueExpression.get(ValueUuid.get(uuid));
             }
@@ -5848,11 +5478,11 @@ public class Parser {
         if (!negative) {
             readIf(PLUS_SIGN);
         }
-        if (currentTokenType != LITERAL || currentValue.getValueType() != Value.VARCHAR) {
+        if (currentTokenType != LITERAL || token.value(session).getValueType() != Value.VARCHAR) {
             addExpected("string");
             throw getSyntaxError();
         }
-        String s = currentValue.getString();
+        String s = token.value(session).getString();
         read();
         IntervalQualifier qualifier;
         switch (currentTokenType) {
@@ -5998,14 +5628,12 @@ public class Parser {
     }
 
     private Expression readWhenOperand(Expression caseOperand) {
-        int backup = parseIndex;
+        int backup = tokenIndex;
         boolean not = readIf(NOT);
         Expression whenOperand = readConditionRightHandSide(caseOperand, not, true);
         if (whenOperand == null) {
             if (not) {
-                parseIndex = backup;
-                currentToken = "NOT";
-                currentTokenType = NOT;
+                setTokenIndex(backup);
             }
             whenOperand = readExpression();
         }
@@ -6029,13 +5657,14 @@ public class Parser {
             read();
         }
         if (currentTokenType != LITERAL) {
-            throw DbException.getSyntaxError(sqlCommand, parseIndex, "integer");
+            throw DbException.getSyntaxError(sqlCommand, token.start(), "integer");
         }
+        Value value = token.value(session);
         if (minus) {
             // must do that now, otherwise Integer.MIN_VALUE would not work
-            currentValue = currentValue.negate();
+            value = value.negate();
         }
-        int i = currentValue.getInt();
+        int i = value.getInt();
         read();
         return i;
     }
@@ -6057,13 +5686,14 @@ public class Parser {
             read();
         }
         if (currentTokenType != LITERAL) {
-            throw DbException.getSyntaxError(sqlCommand, parseIndex, "long");
+            throw DbException.getSyntaxError(sqlCommand, token.start(), "long");
         }
+        Value value = token.value(session);
         if (minus) {
             // must do that now, otherwise Long.MIN_VALUE would not work
-            currentValue = currentValue.negate();
+            value = value.negate();
         }
-        long i = currentValue.getLong();
+        long i = value.getLong();
         read();
         return i;
     }
@@ -6078,7 +5708,7 @@ public class Parser {
             read();
             return false;
         case LITERAL:
-            boolean result = currentValue.getBoolean();
+            boolean result = token.value(session).getBoolean();
             read();
             return result;
         }
@@ -6093,7 +5723,7 @@ public class Parser {
     }
 
     private String readString() {
-        int index = parseIndex;
+        int sqlIndex = token.start();
         Expression expr = readExpression();
         try {
             String s = expr.optimize(session).getValue(session).getString();
@@ -6102,7 +5732,7 @@ public class Parser {
             }
         } catch (DbException e) {
         }
-        throw DbException.getSyntaxError(sqlCommand, index, "character string");
+        throw DbException.getSyntaxError(sqlCommand, sqlIndex, "character string");
     }
 
     // TODO: why does this function allow defaultSchemaName=null - which resets
@@ -6148,7 +5778,7 @@ public class Parser {
              * allow migration from older versions.
              */
             if (!session.isQuirksMode() || !isKeyword(currentTokenType)) {
-                throw DbException.getSyntaxError(sqlCommand, parseIndex, "identifier");
+                throw DbException.getSyntaxError(sqlCommand, token.start(), "identifier");
             }
         }
         String s = currentToken;
@@ -6157,7 +5787,7 @@ public class Parser {
     }
 
     private void read(String expected) {
-        if (currentTokenQuoted || !equalsToken(expected, currentToken)) {
+        if (token.isQuoted() || !equalsToken(expected, currentToken)) {
             addExpected(expected);
             throw getSyntaxError();
         }
@@ -6172,12 +5802,12 @@ public class Parser {
         read();
     }
 
-    private boolean readIf(String token) {
-        if (!currentTokenQuoted && equalsToken(token, currentToken)) {
+    private boolean readIf(String tokenName) {
+        if (!token.isQuoted() && equalsToken(tokenName, currentToken)) {
             read();
             return true;
         }
-        addExpected(token);
+        addExpected(tokenName);
         return false;
     }
 
@@ -6190,11 +5820,11 @@ public class Parser {
         return false;
     }
 
-    private boolean isToken(String token) {
-        if (!currentTokenQuoted && equalsToken(token, currentToken)) {
+    private boolean isToken(String tokenName) {
+        if (!token.isQuoted() && equalsToken(tokenName, currentToken)) {
             return true;
         }
-        addExpected(token);
+        addExpected(tokenName);
         return false;
     }
 
@@ -6235,786 +5865,66 @@ public class Parser {
         }
     }
 
-    private void reread(int index) {
-        if (lastParseIndex != index) {
-            parseIndex = index;
-            read();
-        }
-    }
-
     private void read() {
-        currentTokenQuoted = false;
         if (expectedList != null) {
             expectedList.clear();
         }
-        int[] types = characterTypes;
-        lastParseIndex = parseIndex;
-        int i = parseIndex;
-        int type;
-        while ((type = types[i]) == 0) {
-            i++;
-        }
-        int start = i;
-        char[] chars = sqlCommandChars;
-        char c = chars[i++];
-        currentToken = "";
-        switch (type) {
-        case CHAR_NAME:
-            switch (c) {
-            case 'N':
-            case 'n':
-                if (chars[i] == '\'') {
-                    readString(i + 1, chars, types);
-                    return;
-                }
-                break;
-            case 'X':
-            case 'x':
-                if (chars[i] == '\'') {
-                    ByteArrayOutputStream result = new ByteArrayOutputStream();
-                    for (;;) {
-                        int begin = ++i;
-                        while (chars[i] != '\'') {
-                            i++;
-                        }
-                        StringUtils.convertHexWithSpacesToBytes(result, sqlCommandChars, begin, i);
-                        begin = ++i;
-                        while ((type = types[i]) == 0) {
-                            i++;
-                        }
-                        if (begin == i || type != CHAR_STRING) {
-                            break;
-                        }
-                    }
-                    currentToken = "X'";
-                    checkLiterals(true);
-                    currentValue = ValueVarbinary.get(result.toByteArray());
-                    parseIndex = i;
-                    currentTokenType = LITERAL;
-                    return;
-                }
-                break;
-            case 'U':
-            case 'u':
-                if (chars[i] == '&') {
-                    switch (chars[i + 1]) {
-                    case '\'': {
-                        String s = readRawString(i + 2, chars, types);
-                        currentValue = ValueVarchar.get(StringUtils.decodeUnicodeStringSQL(s,
-                                readUescape(parseIndex, chars, types)));
-                        return;
-                    }
-                    case '"': {
-                        readQuotedIdentifier(i + 2, '"', chars, false);
-                        String identifier = currentToken;
-                        i = parseIndex;
-                        while (types[i] == 0) {
-                            i++;
-                        }
-                        identifier = StringUtils.decodeUnicodeStringSQL(identifier, readUescape(i, chars, types));
-                        if (identifier.length() > Constants.MAX_IDENTIFIER_LENGTH) {
-                            throw DbException.get(ErrorCode.NAME_TOO_LONG_2, identifier.substring(0, 32),
-                                    "" + Constants.MAX_IDENTIFIER_LENGTH);
-                        }
-                        currentToken = StringUtils.cache(identifier);
-                        currentTokenQuoted = true;
-                        currentTokenType = IDENTIFIER;
-                        return;
-                    }
-                    }
-                }
+        int size = tokens.size();
+        if (tokenIndex + 1 < size) {
+            token = tokens.get(++tokenIndex);
+            currentTokenType = token.tokenType();
+            currentToken = token.asIdentifier();
+            if (currentToken != null && currentToken.length() > Constants.MAX_IDENTIFIER_LENGTH) {
+                throw DbException.get(ErrorCode.NAME_TOO_LONG_2, currentToken.substring(0, 32),
+                        "" + Constants.MAX_IDENTIFIER_LENGTH);
+            } else if (currentTokenType == LITERAL) {
+                checkLiterals();
             }
-            while ((type = types[i]) == CHAR_NAME || type == CHAR_VALUE) {
-                i++;
-            }
-            currentTokenType = ParserUtil.getTokenType(sqlCommand, !identifiersToUpper, start, i - start, false);
-            switch (currentTokenType) {
-            case LIMIT:
-                if (!database.getMode().limit) {
-                    currentTokenType = IDENTIFIER;
-                }
-                break;
-            case MINUS:
-                if (!database.getMode().minusIsExcept) {
-                    currentTokenType = IDENTIFIER;
-                }
-            }
-            if (isIdentifier()) {
-                currentToken = StringUtils.cache(checkIdentifierLength(start, i));
-            } else {
-                currentToken = TOKENS[currentTokenType];
-            }
-            parseIndex = i;
-            return;
-        case CHAR_QUOTED:
-            readQuotedIdentifier(i, c, chars, true);
-            return;
-        case CHAR_SPECIAL_2:
-            if (types[i] == CHAR_SPECIAL_2) {
-                char c1 = chars[i++];
-                currentTokenType = getSpecialType2(c, c1);
-            } else {
-                currentTokenType = getSpecialType1(c);
-            }
-            parseIndex = i;
-            return;
-        case CHAR_SPECIAL_1:
-            currentTokenType = getSpecialType1(c);
-            parseIndex = i;
-            return;
-        case CHAR_VALUE:
-            if (c == '0' && (chars[i] == 'X' || chars[i] == 'x')) {
-                readHexNumber(i + 1, start + 2, chars, types);
-                return;
-            }
-            long number = c - '0';
-            loop: for (;; i++) {
-                c = chars[i];
-                if (c < '0' || c > '9') {
-                    switch (c) {
-                    case '.':
-                        readNumeric(start, i, false, false);
-                        break loop;
-                    case 'E':
-                    case 'e':
-                        readNumeric(start, i, false, true);
-                        break loop;
-                    case 'L':
-                    case 'l':
-                        readNumeric(start, i, true, false);
-                        break loop;
-                    }
-                    checkLiterals(false);
-                    currentValue = ValueInteger.get((int) number);
-                    currentTokenType = LITERAL;
-                    currentToken = "0";
-                    parseIndex = i;
-                    break;
-                }
-                number = number * 10 + (c - '0');
-                if (number > Integer.MAX_VALUE) {
-                    readNumeric(start, i, true, false);
-                    break;
-                }
-            }
-            return;
-        case CHAR_DOT:
-            if (types[i] != CHAR_VALUE) {
-                currentTokenType = DOT;
-                currentToken = ".";
-                parseIndex = i;
-                return;
-            }
-            readNumeric(i - 1, i, false, false);
-            return;
-        case CHAR_STRING:
-            readString(i, chars, types);
-            return;
-        case CHAR_DOLLAR_QUOTED_STRING: {
-            int begin = i - 1;
-            while (types[i] == CHAR_DOLLAR_QUOTED_STRING) {
-                i++;
-            }
-            String result = sqlCommand.substring(begin, i);
-            currentToken = "'";
-            checkLiterals(true);
-            currentValue = ValueVarchar.get(result, database);
-            parseIndex = i;
-            currentTokenType = LITERAL;
-            return;
-        }
-        case CHAR_END:
-            currentTokenType = END_OF_INPUT;
-            parseIndex = i;
-            return;
-        default:
+        } else {
             throw getSyntaxError();
         }
     }
 
-    private void readQuotedIdentifier(int i, char c, char[] chars, boolean checkLength) {
-        int begin = i;
-        while (chars[i] != c) {
-            i++;
-        }
-        String result = checkLength ? checkIdentifierLength(begin, i) : sqlCommand.substring(begin, i);
-        if (chars[++i] == c) {
-            StringBuilder builder = new StringBuilder(result);
-            do {
-                begin = i;
-                while (chars[++i] != c) {}
-                if (checkLength) {
-                    checkIdentifierLength(builder, begin, i);
-                }
-            } while (chars[++i] == c);
-            result = builder.toString();
-        }
-        currentToken = StringUtils.cache(result);
-        parseIndex = i;
-        currentTokenQuoted = true;
-        currentTokenType = IDENTIFIER;
-    }
-
-    private String checkIdentifierLength(int begin, int end) {
-        if (end - begin > Constants.MAX_IDENTIFIER_LENGTH) {
-            throw DbException.get(ErrorCode.NAME_TOO_LONG_2, sqlCommand.substring(begin, begin + 32),
-                    "" + Constants.MAX_IDENTIFIER_LENGTH);
-        }
-        return sqlCommand.substring(begin, end);
-    }
-
-    private void checkIdentifierLength(StringBuilder builder, int begin, int end) {
-        int length = builder.length();
-        if (length + end - begin > Constants.MAX_IDENTIFIER_LENGTH) {
-            if (length < 32) {
-                builder.append(sqlCommand, begin, begin + 32 - length);
-            } else {
-                builder.setLength(32);
-            }
-            throw DbException.get(ErrorCode.NAME_TOO_LONG_2, builder.toString(), "" + Constants.MAX_IDENTIFIER_LENGTH);
-        }
-        builder.append(sqlCommand, begin, end);
-    }
-
-    private void readParameterIndex() {
-        int i = parseIndex;
-        char[] chars = sqlCommandChars;
-        char c = chars[i++];
-        long number = c - '0';
-        for (; (c = chars[i]) >= '0' && c <= '9'; i++) {
-            number = number * 10 + (c - '0');
-            if (number > Integer.MAX_VALUE) {
-                throw DbException.getInvalidValueException(
-                        "parameter index", number);
-            }
-        }
-        currentValue = ValueInteger.get((int) number);
-        currentTokenType = LITERAL;
-        currentToken = "0";
-        parseIndex = i;
-    }
-
-    private void checkLiterals(boolean text) {
+    private void checkLiterals() {
         if (!literalsChecked && session != null && !session.getAllowLiterals()) {
             int allowed = database.getAllowLiterals();
-            if (allowed == Constants.ALLOW_LITERALS_NONE ||
-                    (text && allowed != Constants.ALLOW_LITERALS_ALL)) {
+            if (allowed == Constants.ALLOW_LITERALS_NONE
+                    || ((token instanceof Token.CharacterStringToken || token instanceof Token.BinaryStringToken)
+                            && allowed != Constants.ALLOW_LITERALS_ALL)) {
                 throw DbException.get(ErrorCode.LITERALS_ARE_NOT_ALLOWED);
             }
         }
     }
 
-    private void readString(int i, char[] chars, int[] types) {
-        currentValue = ValueVarchar.get(readRawString(i, chars, types), database);
-    }
-
-    private String readRawString(int i, char[] chars, int[] types) {
-        String result = null;
-        StringBuilder builder = null;
-        for (;; i++) {
-            boolean next = false;
-            for (;; i++) {
-                int begin = i;
-                while (chars[i] != '\'') {
-                    i++;
-                }
-                if (result == null) {
-                    result = sqlCommand.substring(begin, i);
-                } else {
-                    if (builder == null) {
-                        builder = new StringBuilder(result);
-                    }
-                    builder.append(sqlCommand, next ? begin - 1 : begin, i);
-                }
-                if (chars[++i] != '\'') {
-                    break;
-                }
-                next = true;
-            }
-            int type;
-            while ((type = types[i]) == 0) {
-                i++;
-            }
-            if (type != CHAR_STRING) {
-                break;
-            }
-        }
-        checkLiterals(true);
-        parseIndex = i;
-        currentToken = "'";
-        currentTokenType = LITERAL;
-        return builder != null ? builder.toString() : result;
-    }
-
-    private int readUescape(int i, char[] chars, int[] types) {
-        int start = i;
-        while (types[i] == CHAR_NAME) {
-            i++;
-        }
-        if (i - start == 7 && "UESCAPE".regionMatches(!identifiersToUpper, 0, sqlCommand, start, 7)) {
-            int type;
-            while ((type = types[i]) == 0) {
-                i++;
-            }
-            if (type == CHAR_STRING) {
-                String s = readRawString(i + 1, chars, types);
-                if (s.codePointCount(0, s.length()) == 1) {
-                    int escape = s.codePointAt(0);
-                    if (!Character.isWhitespace(escape) && (escape < '0' || escape > '9')
-                            && (escape < 'A' || escape > 'F') && (escape < 'a' || escape > 'f')) {
-                        switch (escape) {
-                        default:
-                            return escape;
-                        case '"':
-                        case '\'':
-                        case '+':
-                        }
-                    }
-                }
-            }
-            addExpected("'<Unicode escape character>'");
-            throw getSyntaxError();
-        }
-        return '\\';
-    }
-
-    private void readHexNumber(int i, int start, char[] chars, int[] types) {
-        if (database.getMode().zeroExLiteralsAreBinaryStrings) {
-            for (char c; (c = chars[i]) >= '0' && c <= '9' || c >= 'A' && c <= 'F' || c >= 'a' && c <= 'z';) {
-                i++;
-            }
-            if (types[i] == CHAR_NAME) {
-                throw DbException.get(ErrorCode.HEX_STRING_WRONG_1, sqlCommand.substring(i, i + 1));
-            }
-            checkLiterals(true);
-            currentValue = ValueVarbinary.getNoCopy(StringUtils.convertHexToBytes(sqlCommand.substring(start, i)));
-            parseIndex = i;
-        } else {
-            long number = 0;
-            for (;; i++) {
-                char c = chars[i];
-                if (c >= '0' && c <= '9') {
-                    number = (number << 4) + c - '0';
-                } else if ((c &= 0xffdf) >= 'A' && c <= 'F') { // Convert a-z to A-Z
-                    number = (number << 4) + c - ('A' - 10);
-                } else if (i == start) {
-                    parseIndex = i;
-                    addExpected("Hex number");
-                    throw getSyntaxError();
-                } else {
-                    currentValue = ValueInteger.get((int) number);
-                    break;
-                }
-                if (number > Integer.MAX_VALUE) {
-                    do {
-                        c = chars[++i];
-                    } while ((c >= '0' && c <= '9') || ((c &= 0xffdf) >= 'A' && c <= 'F')); // Convert a-z to A-Z
-                    String sub = sqlCommand.substring(start, i);
-                    currentValue = ValueNumeric.get(new BigInteger(sub, 16));
-                    break;
-                }
-            }
-            char c = chars[i];
-            if (c == 'L' || c == 'l') {
-                i++;
-            }
-            parseIndex = i;
-            if (types[i] == CHAR_NAME) {
-                addExpected("Hex number");
-                throw getSyntaxError();
-            }
-            checkLiterals(false);
-        }
-        currentTokenType = LITERAL;
-        currentToken = "0";
-    }
-
-    private void readNumeric(int start, int i, boolean integer, boolean approximate) {
-        char[] chars = sqlCommandChars;
-        int[] types = characterTypes;
-        // go until the first non-number
-        for (;; i++) {
-            int t = types[i];
-            if (t == CHAR_DOT) {
-                integer = false;
-            } else if (t != CHAR_VALUE) {
-                break;
-            }
-        }
-        char c = chars[i];
-        if (c == 'E' || c == 'e') {
-            integer = false;
-            approximate = true;
-            c = chars[++i];
-            if (c == '+' || c == '-') {
-                i++;
-            }
-            if (types[i] != CHAR_VALUE) {
-                throw getSyntaxError();
-            }
-            while (types[++i] == CHAR_VALUE) {
-                // go until the first non-number
-            }
-        }
-        parseIndex = i;
-        checkLiterals(false);
-        if (integer && i - start <= 19) {
-            BigInteger bi = new BigInteger(sqlCommand.substring(start, i));
-            if (bi.compareTo(ValueBigint.MAX_BI) <= 0) {
-                // parse constants like "10000000L"
-                c = chars[i];
-                if (c == 'L' || c == 'l') {
-                    parseIndex++;
-                }
-                currentValue = ValueBigint.get(bi.longValue());
-                currentTokenType = LITERAL;
-                return;
-            }
-            currentValue = ValueNumeric.get(bi);
-        } else {
-            BigDecimal bd;
-            try {
-                bd = new BigDecimal(sqlCommandChars, start, i - start);
-            } catch (NumberFormatException e) {
-                throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, e, sqlCommand.substring(start, i));
-            }
-            currentValue = approximate ? ValueDecfloat.get(bd) : ValueNumeric.get(bd);
-        }
-        currentTokenType = LITERAL;
-    }
-
-    private void initialize(String sql) {
+    private void initialize(String sql, ArrayList<Token> tokens, boolean stopOnCloseParen) {
         if (sql == null) {
             sql = "";
         }
-        originalSQL = sql;
         sqlCommand = sql;
-        int len = sql.length() + 1;
-        char[] command = new char[len];
-        int[] types = new int[len];
-        len--;
-        sql.getChars(0, len, command, 0);
-        boolean changed = false;
-        command[len] = ' ';
-        int startLoop = 0;
-        int lastType = 0;
-        for (int i = 0; i < len; i++) {
-            char c = command[i];
-            int type = 0;
-            switch (c) {
-            case '/':
-                if (command[i + 1] == '*') {
-                    // block comment
-                    changed = true;
-                    command[i] = ' ';
-                    command[i + 1] = ' ';
-                    startLoop = i;
-                    i += 2;
-                    for (int level = 1; level > 0;) {
-                        for (;;) {
-                            checkRunOver(i, len, startLoop);
-                            char ch = command[i];
-                            command[i++] = ' ';
-                            if (ch == '*') {
-                                if (command[i] == '/') {
-                                    level--;
-                                    break;
-                                }
-                            } else if (ch == '/' && command[i] == '*') {
-                                level++;
-                                command[i++] = ' ';
-                            }
-                        }
-                        command[i] = ' ';
-                    }
-                } else if (command[i + 1] == '/') {
-                    // single line comment
-                    changed = true;
-                    startLoop = i;
-                    while ((c = command[i]) != '\n' && c != '\r' && i < len - 1) {
-                        command[i++] = ' ';
-                        checkRunOver(i, len, startLoop);
-                    }
-                } else {
-                    type = CHAR_SPECIAL_1;
-                }
-                break;
-            case '-':
-                if (command[i + 1] == '-') {
-                    // single line comment
-                    changed = true;
-                    startLoop = i;
-                    while ((c = command[i]) != '\n' && c != '\r' && i < len - 1) {
-                        command[i++] = ' ';
-                        checkRunOver(i, len, startLoop);
-                    }
-                } else {
-                    type = CHAR_SPECIAL_1;
-                }
-                break;
-            case '$':
-                if (command[i + 1] == '$' && (i == 0 || command[i - 1] <= ' ')) {
-                    // dollar quoted string
-                    changed = true;
-                    command[i] = ' ';
-                    command[i + 1] = ' ';
-                    startLoop = i;
-                    i += 2;
-                    checkRunOver(i, len, startLoop);
-                    while (command[i] != '$' || command[i + 1] != '$') {
-                        types[i++] = CHAR_DOLLAR_QUOTED_STRING;
-                        checkRunOver(i, len, startLoop);
-                    }
-                    command[i] = ' ';
-                    command[i + 1] = ' ';
-                    i++;
-                } else {
-                    if (lastType == CHAR_NAME || lastType == CHAR_VALUE) {
-                        // $ inside an identifier is supported
-                        type = CHAR_NAME;
-                    } else {
-                        // but not at the start, to support PostgreSQL $1
-                        type = CHAR_SPECIAL_1;
-                    }
-                }
-                break;
-            case '(':
-            case ')':
-            case '{':
-            case '}':
-            case '*':
-            case ',':
-            case ';':
-            case '+':
-            case '%':
-            case '@':
-            case ']':
-                type = CHAR_SPECIAL_1;
-                break;
-            case '!':
-            case '<':
-            case '>':
-            case '|':
-            case '=':
-            case ':':
-            case '&':
-            case '~':
-                type = CHAR_SPECIAL_2;
-                break;
-            case '.':
-                type = CHAR_DOT;
-                break;
-            case '\'':
-                type = types[i] = CHAR_STRING;
-                startLoop = i;
-                while (command[++i] != '\'') {
-                    checkRunOver(i, len, startLoop);
-                }
-                break;
-            case '?':
-                type = CHAR_SPECIAL_1;
-                if (command[i + 1] == '?') {
-                    char ch = command[i + 2];
-                    if (ch == '(') {
-                        command[i + 1] = command[i] = ' ';
-                        command[i += 2] = '[';
-                        changed = true;
-                    } else if (ch == ')') {
-                        command[i + 1] = command[i] = ' ';
-                        command[i += 2] = ']';
-                        changed = true;
-                    }
-                }
-                break;
-            case '[':
-                if (database.getMode().squareBracketQuotedNames) {
-                    // SQL Server alias for "
-                    command[i] = '"';
-                    changed = true;
-                    type = types[i] = CHAR_QUOTED;
-                    startLoop = i;
-                    while (command[++i] != ']') {
-                        checkRunOver(i, len, startLoop);
-                    }
-                    command[i] = '"';
-                } else {
-                    type = CHAR_SPECIAL_1;
-                }
-                break;
-            case '`':
-                // MySQL alias for ", but not case sensitive
-                type = types[i] = CHAR_QUOTED;
-                startLoop = i;
-                while (command[++i] != '`') {
-                    checkRunOver(i, len, startLoop);
-                    c = command[i];
-                    if (identifiersToUpper || identifiersToLower) {
-                        char u = identifiersToUpper ? Character.toUpperCase(c) : Character.toLowerCase(c);
-                        if (u != c) {
-                            command[i] = u;
-                            changed = true;
-                        }
-                    }
-                }
-                break;
-            case '"':
-                type = types[i] = CHAR_QUOTED;
-                startLoop = i;
-                while (command[++i] != '"') {
-                    checkRunOver(i, len, startLoop);
-                }
-                break;
-            case '_':
-                type = CHAR_NAME;
-                break;
-            case '#':
-                if (database.getMode().supportPoundSymbolForColumnNames) {
-                    type = CHAR_NAME;
-                } else {
-                    type = CHAR_SPECIAL_1;
-                }
-                break;
-            default:
-                if (c >= 'a' && c <= 'z') {
-                    if (identifiersToUpper) {
-                        command[i] = (char) (c - ('a' - 'A'));
-                        changed = true;
-                    }
-                    type = CHAR_NAME;
-                } else if (c >= 'A' && c <= 'Z') {
-                    if (identifiersToLower) {
-                        command[i] = (char) (c + ('a' - 'A'));
-                        changed = true;
-                    }
-                    type = CHAR_NAME;
-                } else if (c >= '0' && c <= '9') {
-                    type = CHAR_VALUE;
-                } else {
-                    if (c <= ' ' || Character.isSpaceChar(c)) {
-                        // whitespace
-                    } else if (Character.isJavaIdentifierPart(c)) {
-                        type = CHAR_NAME;
-                        if (identifiersToUpper || identifiersToLower) {
-                            char u = identifiersToUpper ? Character.toUpperCase(c) : Character.toLowerCase(c);
-                            if (u != c) {
-                                command[i] = u;
-                                changed = true;
-                            }
-                        }
-                    } else {
-                        type = CHAR_SPECIAL_1;
-                    }
-                }
-            }
-            types[i] = type;
-            lastType = type;
-        }
-        sqlCommandChars = command;
-        types[len] = CHAR_END;
-        characterTypes = types;
-        if (changed) {
-            sqlCommand = new String(command, 0, len);
-        }
-        parseIndex = 0;
+        this.tokens = tokens == null
+                ? Tokenizer.tokenize(sql, database, identifiersToUpper, identifiersToLower, nonKeywords,
+                        stopOnCloseParen)
+                : tokens;
+        resetTokenIndex();
     }
 
-    private void checkRunOver(int i, int len, int startLoop) {
-        if (i >= len) {
-            parseIndex = startLoop;
-            throw getSyntaxError();
-        }
+    private void resetTokenIndex() {
+        tokenIndex = -1;
+        token = null;
+        currentTokenType = -1;
+        currentToken = null;
     }
 
-    private int getSpecialType1(char c0) {
-        switch (c0) {
-        case '?':
-        case '$':
-            return PARAMETER;
-        case '@':
-            return AT;
-        case '+':
-            return PLUS_SIGN;
-        case '-':
-            return MINUS_SIGN;
-        case '*':
-            return ASTERISK;
-        case ',':
-            return COMMA;
-        case '{':
-            return OPEN_BRACE;
-        case '}':
-            return CLOSE_BRACE;
-        case '/':
-            return SLASH;
-        case '%':
-            return PERCENT;
-        case '&':
-            return AMPERSAND;
-        case ';':
-            return SEMICOLON;
-        case ':':
-            return COLON;
-        case '[':
-            return OPEN_BRACKET;
-        case ']':
-            return CLOSE_BRACKET;
-        case '~':
-            return TILDE;
-        case '(':
-            return OPEN_PAREN;
-        case ')':
-            return CLOSE_PAREN;
-        case '<':
-            return SMALLER;
-        case '>':
-            return BIGGER;
-        case '=':
-            return EQUAL;
-        default:
-            throw getSyntaxError();
+    void setTokenIndex(int index) {
+        if (index != tokenIndex) {
+            if (expectedList != null) {
+                expectedList.clear();
+            }
+            token = tokens.get(index);
+            tokenIndex = index;
+            currentTokenType = token.tokenType();
+            currentToken = token.asIdentifier();
         }
-    }
-
-    private int getSpecialType2(char c0, char c1) {
-        switch (c0) {
-        case ':':
-            if (c1 == ':') {
-                return COLON_COLON;
-            } else if (c1 == '=') {
-                return COLON_EQ;
-            }
-            break;
-        case '>':
-            if (c1 == '=') {
-                return BIGGER_EQUAL;
-            }
-            break;
-        case '<':
-            if (c1 == '=') {
-                return SMALLER_EQUAL;
-            } else if (c1 == '>') {
-                return NOT_EQUAL;
-            }
-            break;
-        case '!':
-            if (c1 == '=') {
-                return NOT_EQUAL;
-            } else if (c1 == '~') {
-                return NOT_TILDE;
-            }
-            break;
-        case '|':
-            if (c1 == '|') {
-                return CONCATENATION;
-            }
-            break;
-        case '&':
-            if (c1 == '&') {
-                return SPATIAL_INTERSECTS;
-            }
-            break;
-        }
-        throw getSyntaxError();
     }
 
     private static boolean isKeyword(int tokenType) {
@@ -7198,7 +6108,7 @@ public class Parser {
     private TypeInfo readIfDataType1() {
         switch (currentTokenType) {
         case IDENTIFIER:
-            if (currentTokenQuoted) {
+            if (token.isQuoted()) {
                 return null;
             }
             break;
@@ -7231,11 +6141,11 @@ public class Parser {
             addExpected("data type");
             throw getSyntaxError();
         }
-        int index = lastParseIndex;
+        int index = tokenIndex;
         String originalCase = currentToken;
         read();
         if (currentTokenType == DOT) {
-            reread(index);
+            setTokenIndex(index);
             return null;
         }
         String original = upperName(originalCase);
@@ -7338,7 +6248,7 @@ public class Parser {
         if (originalCase.length() == original.length()) {
             Domain domain = database.getSchema(session.getCurrentSchemaName()).findDomain(originalCase);
             if (domain != null) {
-                reread(index);
+                setTokenIndex(index);
                 return null;
             }
         }
@@ -7737,14 +6647,14 @@ public class Parser {
         ExtTypeInfoGeometry extTypeInfo;
         if (readIf(OPEN_PAREN)) {
             int type = 0;
-            if (currentTokenType != IDENTIFIER || currentTokenQuoted) {
+            if (currentTokenType != IDENTIFIER || token.isQuoted()) {
                 throw getSyntaxError();
             }
             if (!readIf("GEOMETRY")) {
                 try {
                     type = EWKTUtils.parseGeometryType(currentToken);
                     read();
-                    if (type / 1_000 == 0 && currentTokenType == IDENTIFIER && !currentTokenQuoted) {
+                    if (type / 1_000 == 0 && currentTokenType == IDENTIFIER && !token.isQuoted()) {
                         type += EWKTUtils.parseDimensionSystem(currentToken) * 1_000;
                         read();
                     }
@@ -7778,7 +6688,7 @@ public class Parser {
 
     private long readPrecision(int valueType) {
         long p = readPositiveLong();
-        if (currentTokenType != IDENTIFIER || currentTokenQuoted) {
+        if (currentTokenType != IDENTIFIER || token.isQuoted()) {
             return p;
         }
         if ((valueType == Value.BLOB || valueType == Value.CLOB) && currentToken.length() == 1) {
@@ -7811,7 +6721,7 @@ public class Parser {
             }
             p *= mul;
             read();
-            if (currentTokenType != IDENTIFIER || currentTokenQuoted) {
+            if (currentTokenType != IDENTIFIER || token.isQuoted()) {
                 return p;
             }
         }
@@ -8082,7 +6992,7 @@ public class Parser {
     private Call parseCall() {
         Call command = new Call(session);
         currentPrepared = command;
-        int index = lastParseIndex;
+        int index = tokenIndex;
         boolean canBeFunction;
         switch (currentTokenType) {
         case IDENTIFIER:
@@ -8100,7 +7010,7 @@ public class Parser {
             command.setExpression(readExpression());
         } catch (DbException e) {
             if (canBeFunction && e.getErrorCode() == ErrorCode.FUNCTION_NOT_FOUND_1) {
-                reread(index);
+                setTokenIndex(index);
                 String schemaName = null, name = readIdentifier();
                 if (readIf(DOT)) {
                     schemaName = name;
@@ -8394,7 +7304,7 @@ public class Parser {
     }
 
     private boolean isReservedFunctionName(String name) {
-        int tokenType = ParserUtil.getTokenType(name, false, 0, name.length(), false);
+        int tokenType = ParserUtil.getTokenType(name, false, false);
         if (tokenType != ParserUtil.IDENTIFIER) {
             if (database.isAllowBuiltinAliasOverride()) {
                 switch (tokenType) {
@@ -8446,7 +7356,7 @@ public class Parser {
         // used in setCteCleanups.
         Collections.reverse(viewsCreated);
 
-        int start = lastParseIndex;
+        int start = tokenIndex;
         if (isQueryQuick()) {
             p = parseWithQuery();
         } else if (readIf("INSERT")) {
@@ -8628,9 +7538,8 @@ public class Parser {
             String[] cols = parseColumnList();
             command.setColumnNames(cols);
         }
-        String select = StringUtils.cache(sqlCommand
-                .substring(parseIndex));
         read(AS);
+        String select = StringUtils.cache(sqlCommand.substring(token.start()));
         try {
             Query query;
             session.setParsingCreateView(true);
@@ -8888,10 +7797,10 @@ public class Parser {
             } else if (command != null && parseCreateSequenceOption(command)) {
                 //
             } else if (forAlterColumn) {
-                int index = lastParseIndex;
+                int index = tokenIndex;
                 if (readIf(SET)) {
                     if (!parseBasicSequenceOption(options)) {
-                        reread(index);
+                        setTokenIndex(index);
                         break;
                     }
                 } else {
@@ -9717,7 +8626,7 @@ public class Parser {
 
     private Prepared parseAlterTableAlterColumnIdentity(Schema schema, String tableName, boolean ifTableExists,
             Column column) {
-        int index = lastParseIndex;
+        int index = tokenIndex;
         Boolean always = null;
         if (readIf(SET) && readIf("GENERATED")) {
             if (readIf("ALWAYS")) {
@@ -9728,7 +8637,7 @@ public class Parser {
                 always = false;
             }
         } else {
-            reread(index);
+            setTokenIndex(index);
         }
         SequenceOptions options = new SequenceOptions();
         if (!parseSequenceOptions(options, null, false, true) && always == null) {
@@ -10262,7 +9171,7 @@ public class Parser {
             if (constraintName == null) {
                 Mode mode = database.getMode();
                 if (mode.indexDefinitionInCreateTable) {
-                    int start = lastParseIndex;
+                    int start = tokenIndex;
                     if (readIf(KEY) || readIf("INDEX")) {
                         // MySQL
                         // need to read ahead, as it could be a column name
@@ -10283,7 +9192,7 @@ public class Parser {
                             return createIndex;
                         } else {
                             // known data type
-                            reread(start);
+                            setTokenIndex(start);
                         }
                     }
                 }
@@ -10765,7 +9674,7 @@ public class Parser {
      */
     public Expression parseExpression(String sql) {
         parameters = Utils.newSmallArrayList();
-        initialize(sql);
+        initialize(sql, null, false);
         read();
         return readExpression();
     }
@@ -10778,7 +9687,7 @@ public class Parser {
      */
     public Expression parseDomainConstraintExpression(String sql) {
         parameters = Utils.newSmallArrayList();
-        initialize(sql);
+        initialize(sql, null, false);
         read();
         try {
             parseDomainConstraint = true;
@@ -10796,7 +9705,7 @@ public class Parser {
      */
     public Table parseTableName(String sql) {
         parameters = Utils.newSmallArrayList();
-        initialize(sql);
+        initialize(sql, null, false);
         read();
         return readTableOrView();
     }
@@ -10811,9 +9720,13 @@ public class Parser {
      * @throws DbException on syntax error
      */
     public Object parseColumnList(String sql, int offset) {
-        initialize(sql);
-        parseIndex = offset;
-        read();
+        initialize(sql, null, true);
+        for (int i = 0, l = tokens.size(); i < l; i++) {
+            if (tokens.get(i).start() >= offset) {
+                setTokenIndex(i);
+                break;
+            }
+        }
         read(OPEN_PAREN);
         if (readIf(CLOSE_PAREN)) {
             return Utils.EMPTY_INT_ARRAY;
@@ -10850,11 +9763,11 @@ public class Parser {
      * @return the last parse index
      */
     public int getLastParseIndex() {
-        return lastParseIndex;
+        return token.start();
     }
 
     @Override
     public String toString() {
-        return StringUtils.addAsterisk(sqlCommand, parseIndex);
+        return StringUtils.addAsterisk(sqlCommand, token.start());
     }
 }

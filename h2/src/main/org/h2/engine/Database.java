@@ -2340,9 +2340,20 @@ public final class Database implements DataHandler, CastDataProvider {
         if (l == 0) {
             return false;
         }
-        for (int i = 0; i < l; i++) {
-            int ch = upperName.charAt(i);
-            if (ch < 'A' || ch > 'Z' && ch != '_') {
+        char c = upperName.charAt(0);
+        if (c < 'A' || c > 'Z') {
+            return false;
+        }
+        l--;
+        for (int i = 1; i < l; i++) {
+            c = upperName.charAt(i);
+            if ((c < 'A' || c > 'Z') && c != '_') {
+                return false;
+            }
+        }
+        if (l > 0) {
+            c = upperName.charAt(l);
+            if (c < 'A' || c > 'Z') {
                 return false;
             }
         }

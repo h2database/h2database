@@ -247,7 +247,7 @@ public class AlterTableAlterColumn extends CommandWithColumns {
                 throw DbException.get(ErrorCode.CANNOT_DROP_LAST_COLUMN, columnsToRemove.get(0).getTraceSQL());
             }
             table.dropMultipleColumnsConstraintsAndIndexes(session, columnsToRemove);
-            copyData(table);
+            copyData(table, null, false);
             break;
         }
         case CommandInterface.ALTER_TABLE_ALTER_COLUMN_SELECTIVITY: {
@@ -325,10 +325,6 @@ public class AlterTableAlterColumn extends CommandWithColumns {
             Database db = session.getDatabase();
             db.removeSchemaObject(session, sequence);
         }
-    }
-
-    private void copyData(Table table) {
-        copyData(table, null, false);
     }
 
     private void copyData(Table table, ArrayList<Sequence> sequences, boolean createConstraints) {
@@ -458,34 +454,30 @@ public class AlterTableAlterColumn extends CommandWithColumns {
         Table newTable = getSchema().createTable(data);
         newTable.setComment(table.getComment());
         String newTableSQL = newTable.getCreateSQLForMeta();
-        StringBuilder columnList = new StringBuilder();
+        StringBuilder columnNames = new StringBuilder();
+        StringBuilder columnValues = new StringBuilder();
         for (Column nc : newColumns) {
-            if (columnList.length() > 0) {
-                columnList.append(", ");
+            if (nc.isGenerated()) {
+                continue;
             }
             switch (type) {
             case CommandInterface.ALTER_TABLE_ADD_COLUMN:
                 if (columnsToAdd != null && columnsToAdd.contains(nc)) {
                     if (usingExpression != null) {
-                        usingExpression.getUnenclosedSQL(columnList, HasSQL.DEFAULT_SQL_FLAGS);
-                    } else {
-                        Expression def = nc.getDefaultExpression();
-                        if (def == null) {
-                            columnList.append("NULL");
-                        } else {
-                            def.getUnenclosedSQL(columnList, HasSQL.DEFAULT_SQL_FLAGS);
-                        }
+                        usingExpression.getUnenclosedSQL(addColumn(nc, columnNames, columnValues),
+                                HasSQL.DEFAULT_SQL_FLAGS);
                     }
                     continue;
                 }
                 break;
             case CommandInterface.ALTER_TABLE_ALTER_COLUMN_CHANGE_TYPE:
                 if (nc.equals(newColumn) && usingExpression != null) {
-                    usingExpression.getUnenclosedSQL(columnList, HasSQL.DEFAULT_SQL_FLAGS);
+                    usingExpression.getUnenclosedSQL(addColumn(nc, columnNames, columnValues),
+                            HasSQL.DEFAULT_SQL_FLAGS);
                     continue;
                 }
             }
-            nc.getSQL(columnList, HasSQL.DEFAULT_SQL_FLAGS);
+            nc.getSQL(addColumn(nc, columnNames, columnValues), HasSQL.DEFAULT_SQL_FLAGS);
         }
         String newTableName = newTable.getName();
         Schema newTableSchema = newTable.getSchema();
@@ -551,24 +543,22 @@ public class AlterTableAlterColumn extends CommandWithColumns {
                 }
             }
         }
-        StringBuilder buff = new StringBuilder();
-        buff.append("INSERT INTO ");
-        newTable.getSQL(buff, HasSQL.DEFAULT_SQL_FLAGS);
-        buff.append(" SELECT ");
-        if (columnList.length() == 0) {
+        StringBuilder builder = newTable.getSQL(new StringBuilder(128).append("INSERT INTO "), //
+                HasSQL.DEFAULT_SQL_FLAGS)
+            .append('(').append(columnNames).append(") OVERRIDING SYSTEM VALUE SELECT ");
+        if (columnValues.length() == 0) {
             // special case: insert into test select * from
-            buff.append('*');
+            builder.append('*');
         } else {
-            buff.append(columnList);
+            builder.append(columnValues);
         }
-        buff.append(" FROM ");
-        table.getSQL(buff, HasSQL.DEFAULT_SQL_FLAGS);
+        table.getSQL(builder.append(" FROM "), HasSQL.DEFAULT_SQL_FLAGS);
         try {
-            execute(buff.toString());
+            execute(builder.toString());
         } catch (Throwable t) {
             // data was not inserted due to data conversion error or some
             // unexpected reason
-            StringBuilder builder = new StringBuilder("DROP TABLE ");
+            builder = new StringBuilder("DROP TABLE ");
             newTable.getSQL(builder, HasSQL.DEFAULT_SQL_FLAGS);
             execute(builder.toString());
             throw t;
@@ -590,6 +580,17 @@ public class AlterTableAlterColumn extends CommandWithColumns {
             execute(sql);
         }
         return newTable;
+    }
+
+    private static StringBuilder addColumn(Column column, StringBuilder columnNames, StringBuilder columnValues) {
+        if (columnNames.length() > 0) {
+            columnNames.append(", ");
+        }
+        column.getSQL(columnNames, HasSQL.DEFAULT_SQL_FLAGS);
+        if (columnValues.length() > 0) {
+            columnValues.append(", ");
+        }
+        return columnValues;
     }
 
     /**

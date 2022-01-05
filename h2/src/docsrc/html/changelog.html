@@ -21,6 +21,10 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul>
+<li>PR #3323: Tokenize SQL before parsing and preserve tokens for recompilation
+</li>
+<li>PR #3320: Add Servlet 5-compatible servlet for H2 Console
+</li>
 <li>Issue #918: Parser fails recognising set operations in correlated subqueries
 </li>
 <li>Issue #2050: PostgreSQL with recursive fail with union in the final query
@@ -39,11 +43,17 @@ Change Log
 </li>
 <li>PR #3305: Add UNIQUE(VALUE) and remove some non-standard keywords
 </li>
-<li>Issue #3297: Unexpected GROUP BY results with indexed IGNORECASE column
-</li>
 <li>PR #3299: Remove useless StringBuilder.toString() call
 </li>
 <li>PR #3298: Delete unused sqlTypes array
+</li>
+</ul>
+
+<h2>Version 2.0.206 (2022-01-04)</h2>
+<ul>
+<li>Issue #3322: Create linked table fails when the table contains a Geometry with a data type specified
+</li>
+<li>Issue #3297: Unexpected GROUP BY results with indexed IGNORECASE column
 </li>
 </ul>
 

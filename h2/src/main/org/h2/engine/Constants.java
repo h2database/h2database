@@ -20,7 +20,7 @@ public class Constants {
     /**
      * The build date of the last stable release.
      */
-    public static final String BUILD_DATE_STABLE = "2021-12-21";
+    public static final String BUILD_DATE_STABLE = "2022-01-04";
 
     /**
      * Sequential version number. Even numbers are used for official releases,
@@ -31,7 +31,7 @@ public class Constants {
     /**
      * The build id of the last stable release.
      */
-    public static final int BUILD_ID_STABLE = 204;
+    public static final int BUILD_ID_STABLE = 206;
 
     /**
      * Whether this is a snapshot version.

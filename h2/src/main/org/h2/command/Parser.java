@@ -5901,10 +5901,8 @@ public class Parser {
             sql = "";
         }
         sqlCommand = sql;
-        this.tokens = tokens == null
-                ? Tokenizer.tokenize(sql, database, identifiersToUpper, identifiersToLower, nonKeywords,
-                        stopOnCloseParen)
-                : tokens;
+        this.tokens = tokens == null ? new Tokenizer(database, identifiersToUpper, identifiersToLower, nonKeywords)
+                .tokenize(sql, stopOnCloseParen) : tokens;
         resetTokenIndex();
     }
 

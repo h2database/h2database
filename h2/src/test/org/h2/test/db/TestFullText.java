@@ -93,7 +93,7 @@ public class TestFullText extends TestDb {
 
     private Connection getConnection(String name, Collection<Connection> list)
             throws SQLException {
-        Connection conn = getConnection(name);
+        Connection conn = getConnection(name + ";MODE=STRICT");
         list.add(conn);
         return conn;
     }

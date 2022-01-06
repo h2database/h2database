@@ -168,7 +168,7 @@ public class ViewIndex extends Index implements SpatialIndex {
         if (query == null) {
             Parser parser = new Parser(createSession);
             parser.setRightsChecked(true);
-            parser.setSuppliedParameterList(originalParameters);
+            parser.setSuppliedParameters(originalParameters);
             query = (Query) parser.prepare(querySQL);
             query.setNeverLazy(true);
         }
@@ -226,9 +226,11 @@ public class ViewIndex extends Index implements SpatialIndex {
         ArrayList<Parameter> paramList = query.getParameters();
         if (originalParameters != null) {
             for (Parameter orig : originalParameters) {
-                int idx = orig.getIndex();
-                Value value = orig.getValue(session);
-                setParameter(paramList, idx, value);
+                if (orig != null) {
+                    int idx = orig.getIndex();
+                    Value value = orig.getValue(session);
+                    setParameter(paramList, idx, value);
+                }
             }
         }
         int len;

@@ -144,14 +144,26 @@ import org.h2.value.ValueNumeric;
  */
 public final class Tokenizer {
 
-    private Tokenizer() {
+    private final CastDataProvider provider;
+
+    private final boolean identifiersToUpper;
+
+    private final boolean identifiersToLower;
+
+    private final BitSet nonKeywords;
+
+    Tokenizer(CastDataProvider provider, boolean identifiersToUpper, boolean identifiersToLower, BitSet nonKeywords) {
+        this.provider = provider;
+        this.identifiersToUpper = identifiersToUpper;
+        this.identifiersToLower = identifiersToLower;
+        this.nonKeywords = nonKeywords;
     }
 
-    static ArrayList<Token> tokenize(String sql, CastDataProvider provider, boolean identifiersToUpper,
-            boolean identifiersToLower, BitSet nonKeywords, boolean stopOnCloseParen) {
+    ArrayList<Token> tokenize(String sql, boolean stopOnCloseParen) {
         ArrayList<Token> tokens = new ArrayList<>();
         int end = sql.length() - 1;
         boolean foundUnicode = false;
+        int lastParameter = 0;
         loop: for (int i = 0; i <= end;) {
             int tokenStart = i;
             char c = sql.charAt(i);
@@ -172,13 +184,11 @@ public final class Tokenizer {
                 throw DbException.getSyntaxError(sql, tokenStart);
             case '"':
             case '`':
-                i = readQuotedIdentifier(sql, end, identifiersToUpper, identifiersToLower, tokenStart, i, c, false,
-                        tokens);
+                i = readQuotedIdentifier(sql, end, tokenStart, i, c, false, tokens);
                 continue loop;
             case '#':
                 if (provider.getMode().supportPoundSymbolForColumnNames) {
-                    i = readIdentifier(sql, provider, end, identifiersToUpper, identifiersToLower, tokenStart, i, c,
-                            tokens);
+                    i = readIdentifier(sql, end, tokenStart, i, c, tokens);
                     continue loop;
                 }
                 throw DbException.getSyntaxError(sql, tokenStart);
@@ -195,6 +205,7 @@ public final class Tokenizer {
                         i = stringEnd + 1;
                     } else {
                         i = parseParameterIndex(sql, end, i, tokens);
+                        lastParameter = assignParameterIndex(tokens, lastParameter);
                         continue loop;
                     }
                 } else {
@@ -212,7 +223,7 @@ public final class Tokenizer {
                 }
                 throw DbException.getSyntaxError(sql, tokenStart);
             case '\'':
-                i = readCharacterString(sql, provider, tokenStart, end, i, false, tokens);
+                i = readCharacterString(sql, tokenStart, end, i, false, tokens);
                 continue loop;
             case '(':
                 token = new Token.KeywordToken(tokenStart, OPEN_PAREN);
@@ -330,7 +341,7 @@ public final class Tokenizer {
                 }
                 token = new Token.KeywordToken(tokenStart, BIGGER);
                 break;
-            case '?':
+            case '?': {
                 if (i + 1 < end && sql.charAt(i + 1) == '?') {
                     char c3 = sql.charAt(i + 2);
                     if (c3 == '(') {
@@ -345,160 +356,135 @@ public final class Tokenizer {
                     }
                 }
                 i = parseParameterIndex(sql, end, i, tokens);
+                lastParameter = assignParameterIndex(tokens, lastParameter);
                 continue loop;
+            }
             case '@':
                 token = new Token.KeywordToken(tokenStart, AT);
                 break;
             case 'A':
             case 'a':
-                i = readA(sql, provider, end, identifiersToUpper, identifiersToLower, nonKeywords, tokenStart, i,
-                        tokens);
+                i = readA(sql, end, tokenStart, i, tokens);
                 continue loop;
             case 'B':
             case 'b':
-                i = readB(sql, provider, end, identifiersToUpper, identifiersToLower, nonKeywords, tokenStart, i,
-                        tokens);
+                i = readB(sql, end, tokenStart, i, tokens);
                 continue loop;
             case 'C':
             case 'c':
-                i = readC(sql, provider, end, identifiersToUpper, identifiersToLower, nonKeywords, tokenStart, i,
-                        tokens);
+                i = readC(sql, end, tokenStart, i, tokens);
                 continue loop;
             case 'D':
             case 'd':
-                i = readD(sql, provider, end, identifiersToUpper, identifiersToLower, nonKeywords, tokenStart, i,
-                        tokens);
+                i = readD(sql, end, tokenStart, i, tokens);
                 continue loop;
             case 'E':
             case 'e':
-                i = readE(sql, provider, end, identifiersToUpper, identifiersToLower, nonKeywords, tokenStart, i,
-                        tokens);
+                i = readE(sql, end, tokenStart, i, tokens);
                 continue loop;
             case 'F':
             case 'f':
-                i = readF(sql, provider, end, identifiersToUpper, identifiersToLower, nonKeywords, tokenStart, i,
-                        tokens);
+                i = readF(sql, end, tokenStart, i, tokens);
                 continue loop;
             case 'G':
             case 'g':
-                i = readG(sql, provider, end, identifiersToUpper, identifiersToLower, nonKeywords, tokenStart, i,
-                        tokens);
+                i = readG(sql, end, tokenStart, i, tokens);
                 continue loop;
             case 'H':
             case 'h':
-                i = readH(sql, provider, end, identifiersToUpper, identifiersToLower, nonKeywords, tokenStart, i,
-                        tokens);
+                i = readH(sql, end, tokenStart, i, tokens);
                 continue loop;
             case 'I':
             case 'i':
-                i = readI(sql, provider, end, identifiersToUpper, identifiersToLower, nonKeywords, tokenStart, i,
-                        tokens);
+                i = readI(sql, end, tokenStart, i, tokens);
                 continue loop;
             case 'J':
             case 'j':
-                i = readJ(sql, provider, end, identifiersToUpper, identifiersToLower, nonKeywords, tokenStart, i,
-                        tokens);
+                i = readJ(sql, end, tokenStart, i, tokens);
                 continue loop;
             case 'K':
             case 'k':
-                i = readK(sql, provider, end, identifiersToUpper, identifiersToLower, nonKeywords, tokenStart, i,
-                        tokens);
+                i = readK(sql, end, tokenStart, i, tokens);
                 continue loop;
             case 'L':
             case 'l':
-                i = readL(sql, provider, end, identifiersToUpper, identifiersToLower, nonKeywords, tokenStart, i,
-                        tokens);
+                i = readL(sql, end, tokenStart, i, tokens);
                 continue loop;
             case 'M':
             case 'm':
-                i = readM(sql, provider, end, identifiersToUpper, identifiersToLower, nonKeywords, tokenStart, i,
-                        tokens);
+                i = readM(sql, end, tokenStart, i, tokens);
                 continue loop;
             case 'N':
             case 'n':
                 if (i < end && sql.charAt(i + 1) == '\'') {
-                    i = readCharacterString(sql, provider, tokenStart, end, i + 1, false, tokens);
+                    i = readCharacterString(sql, tokenStart, end, i + 1, false, tokens);
                 } else {
-                    i = readN(sql, provider, end, identifiersToUpper, identifiersToLower, nonKeywords, tokenStart, i,
-                            tokens);
+                    i = readN(sql, end, tokenStart, i, tokens);
                 }
                 continue loop;
             case 'O':
             case 'o':
-                i = readO(sql, provider, end, identifiersToUpper, identifiersToLower, nonKeywords, tokenStart, i,
-                        tokens);
+                i = readO(sql, end, tokenStart, i, tokens);
                 continue loop;
             case 'P':
             case 'p':
-                i = readP(sql, provider, end, identifiersToUpper, identifiersToLower, nonKeywords, tokenStart, i,
-                        tokens);
+                i = readP(sql, end, tokenStart, i, tokens);
                 continue loop;
             case 'Q':
             case 'q':
-                i = readQ(sql, provider, end, identifiersToUpper, identifiersToLower, nonKeywords, tokenStart, i,
-                        tokens);
+                i = readQ(sql, end, tokenStart, i, tokens);
                 continue loop;
             case 'R':
             case 'r':
-                i = readR(sql, provider, end, identifiersToUpper, identifiersToLower, nonKeywords, tokenStart, i,
-                        tokens);
+                i = readR(sql, end, tokenStart, i, tokens);
                 continue loop;
             case 'S':
             case 's':
-                i = readS(sql, provider, end, identifiersToUpper, identifiersToLower, nonKeywords, tokenStart, i,
-                        tokens);
+                i = readS(sql, end, tokenStart, i, tokens);
                 continue loop;
             case 'T':
             case 't':
-                i = readT(sql, provider, end, identifiersToUpper, identifiersToLower, nonKeywords, tokenStart, i,
-                        tokens);
+                i = readT(sql, end, tokenStart, i, tokens);
                 continue loop;
             case 'U':
             case 'u':
                 if (i + 1 < end && sql.charAt(i + 1) == '&') {
                     char c3 = sql.charAt(i + 2);
                     if (c3 == '"') {
-                        i = readQuotedIdentifier(sql, end, identifiersToUpper, identifiersToLower, tokenStart, //
-                                i + 2, '"', true, tokens);
+                        i = readQuotedIdentifier(sql, end, tokenStart, i + 2, '"', true, tokens);
                         foundUnicode = true;
                         continue loop;
                     } else if (c3 == '\'') {
-                        i = readCharacterString(sql, provider, tokenStart, end, i + 2, true, tokens);
+                        i = readCharacterString(sql, tokenStart, end, i + 2, true, tokens);
                         foundUnicode = true;
                         continue loop;
                     }
                 }
-                i = readU(sql, provider, end, identifiersToUpper, identifiersToLower, nonKeywords, tokenStart, i,
-                        tokens);
+                i = readU(sql, end, tokenStart, i, tokens);
                 continue loop;
             case 'V':
             case 'v':
-                i = readV(sql, provider, end, identifiersToUpper, identifiersToLower, nonKeywords, tokenStart, i,
-                        tokens);
+                i = readV(sql, end, tokenStart, i, tokens);
                 continue loop;
             case 'W':
             case 'w':
-                i = readW(sql, provider, end, identifiersToUpper, identifiersToLower, nonKeywords, tokenStart, i,
-                        tokens);
+                i = readW(sql, end, tokenStart, i, tokens);
                 continue loop;
             case 'X':
             case 'x':
                 if (i < end && sql.charAt(i + 1) == '\'') {
-                    i = readBinaryString(sql, provider, tokenStart, end, i + 1, tokens);
+                    i = readBinaryString(sql, tokenStart, end, i + 1, tokens);
                 } else {
-                    i = readIdentifier(sql, provider, end, identifiersToUpper, identifiersToLower, tokenStart, i, c,
-                            tokens);
+                    i = readIdentifier(sql, end, tokenStart, i, c, tokens);
                 }
                 continue loop;
             case 'Y':
             case 'y':
-                i = readY(sql, provider, end, identifiersToUpper, identifiersToLower, nonKeywords, tokenStart, i,
-                        tokens);
+                i = readY(sql, end, tokenStart, i, tokens);
                 continue loop;
             case 'Z':
             case 'z':
-                i = readIdentifier(sql, provider, end, identifiersToUpper, identifiersToLower, tokenStart, i, c,
-                        tokens);
+                i = readIdentifier(sql, end, tokenStart, i, c, tokens);
                 continue loop;
             case '[':
                 if (provider.getMode().squareBracketQuotedNames) {
@@ -516,8 +502,7 @@ public final class Tokenizer {
                 token = new Token.KeywordToken(tokenStart, CLOSE_BRACKET);
                 break;
             case '_':
-                i = read_(sql, provider, end, identifiersToUpper, identifiersToLower, nonKeywords, tokenStart, i,
-                        tokens);
+                i = read_(sql, end, tokenStart, i, tokens);
                 continue loop;
             case '{':
                 token = new Token.KeywordToken(tokenStart, OPEN_BRACE);
@@ -544,8 +529,7 @@ public final class Tokenizer {
                         continue loop;
                     }
                     if (Character.isJavaIdentifierStart(cp)) {
-                        i = readIdentifier(sql, provider, end, identifiersToUpper, identifiersToLower, tokenStart, i,
-                                cp, tokens);
+                        i = readIdentifier(sql, end, tokenStart, i, cp, tokens);
                         continue loop;
                     }
                     throw DbException.getSyntaxError(sql, tokenStart);
@@ -561,20 +545,17 @@ public final class Tokenizer {
         return tokens;
     }
 
-    private static int readIdentifier(String sql, CastDataProvider provider, int end, boolean identifiersToUpper, //
-            boolean identifiersToLower, int tokenStart, int i, int cp, ArrayList<Token> tokens) {
+    private int readIdentifier(String sql, int end, int tokenStart, int i, int cp, ArrayList<Token> tokens) {
         if (cp >= Character.MIN_SUPPLEMENTARY_CODE_POINT) {
             i++;
         }
-        int endIndex = findIdentifierEnd(sql, provider, end, i + Character.charCount(cp) - 1);
-        tokens.add(new Token.IdentifierToken(tokenStart,
-                extractIdentifier(sql, identifiersToUpper, identifiersToLower, tokenStart, endIndex), false, false));
+        int endIndex = findIdentifierEnd(sql, end, i + Character.charCount(cp) - 1);
+        tokens.add(new Token.IdentifierToken(tokenStart, extractIdentifier(sql, tokenStart, endIndex), false, false));
         return endIndex;
     }
 
-    private static int readA(String sql, CastDataProvider provider, int end, boolean identifiersToUpper,
-            boolean identifiersToLower, BitSet nonKeywords, int tokenStart, int i, ArrayList<Token> tokens) {
-        int endIndex = findIdentifierEnd(sql, provider, end, i);
+    private int readA(String sql, int end, int tokenStart, int i, ArrayList<Token> tokens) {
+        int endIndex = findIdentifierEnd(sql, end, i);
         int length = endIndex - tokenStart;
         int type;
         if (length == 2) {
@@ -596,22 +577,18 @@ public final class Tokenizer {
                 type = IDENTIFIER;
             }
         }
-        return readIdentifierOrKeyword(sql, identifiersToUpper, identifiersToLower, nonKeywords, tokenStart, tokens,
-                endIndex, type);
+        return readIdentifierOrKeyword(sql, tokenStart, tokens, endIndex, type);
     }
 
-    private static int readB(String sql, CastDataProvider provider, int end, boolean identifiersToUpper,
-            boolean identifiersToLower, BitSet nonKeywords, int tokenStart, int i, ArrayList<Token> tokens) {
-        int endIndex = findIdentifierEnd(sql, provider, end, i);
+    private int readB(String sql, int end, int tokenStart, int i, ArrayList<Token> tokens) {
+        int endIndex = findIdentifierEnd(sql, end, i);
         int length = endIndex - tokenStart;
         int type = eq("BETWEEN", sql, tokenStart, length) ? BETWEEN : IDENTIFIER;
-        return readIdentifierOrKeyword(sql, identifiersToUpper, identifiersToLower, nonKeywords, tokenStart, tokens,
-                endIndex, type);
+        return readIdentifierOrKeyword(sql, tokenStart, tokens, endIndex, type);
     }
 
-    private static int readC(String sql, CastDataProvider provider, int end, boolean identifiersToUpper,
-            boolean identifiersToLower, BitSet nonKeywords, int tokenStart, int i, ArrayList<Token> tokens) {
-        int endIndex = findIdentifierEnd(sql, provider, end, i);
+    private int readC(String sql, int end, int tokenStart, int i, ArrayList<Token> tokens) {
+        int endIndex = findIdentifierEnd(sql, end, i);
         int length = endIndex - tokenStart;
         int type;
         if (eq("CASE", sql, tokenStart, length)) {
@@ -629,8 +606,7 @@ public final class Tokenizer {
         } else {
             type = IDENTIFIER;
         }
-        return readIdentifierOrKeyword(sql, identifiersToUpper, identifiersToLower, nonKeywords, tokenStart, tokens,
-                endIndex, type);
+        return readIdentifierOrKeyword(sql, tokenStart, tokens, endIndex, type);
     }
 
     private static int getTokenTypeCurrent(String s, int tokenStart, int length) {
@@ -676,9 +652,8 @@ public final class Tokenizer {
         return true;
     }
 
-    private static int readD(String sql, CastDataProvider provider, int end, boolean identifiersToUpper,
-            boolean identifiersToLower, BitSet nonKeywords, int tokenStart, int i, ArrayList<Token> tokens) {
-        int endIndex = findIdentifierEnd(sql, provider, end, i);
+    private int readD(String sql, int end, int tokenStart, int i, ArrayList<Token> tokens) {
+        int endIndex = findIdentifierEnd(sql, end, i);
         int length = endIndex - tokenStart;
         int type;
         if (eq("DAY", sql, tokenStart, length)) {
@@ -690,13 +665,11 @@ public final class Tokenizer {
         } else {
             type = IDENTIFIER;
         }
-        return readIdentifierOrKeyword(sql, identifiersToUpper, identifiersToLower, nonKeywords, tokenStart, tokens,
-                endIndex, type);
+        return readIdentifierOrKeyword(sql, tokenStart, tokens, endIndex, type);
     }
 
-    private static int readE(String sql, CastDataProvider provider, int end, boolean identifiersToUpper,
-            boolean identifiersToLower, BitSet nonKeywords, int tokenStart, int i, ArrayList<Token> tokens) {
-        int endIndex = findIdentifierEnd(sql, provider, end, i);
+    private int readE(String sql, int end, int tokenStart, int i, ArrayList<Token> tokens) {
+        int endIndex = findIdentifierEnd(sql, end, i);
         int length = endIndex - tokenStart;
         int type;
         if (eq("ELSE", sql, tokenStart, length)) {
@@ -710,13 +683,11 @@ public final class Tokenizer {
         } else {
             type = IDENTIFIER;
         }
-        return readIdentifierOrKeyword(sql, identifiersToUpper, identifiersToLower, nonKeywords, tokenStart, tokens,
-                endIndex, type);
+        return readIdentifierOrKeyword(sql, tokenStart, tokens, endIndex, type);
     }
 
-    private static int readF(String sql, CastDataProvider provider, int end, boolean identifiersToUpper,
-            boolean identifiersToLower, BitSet nonKeywords, int tokenStart, int i, ArrayList<Token> tokens) {
-        int endIndex = findIdentifierEnd(sql, provider, end, i);
+    private int readF(String sql, int end, int tokenStart, int i, ArrayList<Token> tokens) {
+        int endIndex = findIdentifierEnd(sql, end, i);
         int length = endIndex - tokenStart;
         int type;
         if (eq("FETCH", sql, tokenStart, length)) {
@@ -734,22 +705,18 @@ public final class Tokenizer {
         } else {
             type = IDENTIFIER;
         }
-        return readIdentifierOrKeyword(sql, identifiersToUpper, identifiersToLower, nonKeywords, tokenStart, tokens,
-                endIndex, type);
+        return readIdentifierOrKeyword(sql, tokenStart, tokens, endIndex, type);
     }
 
-    private static int readG(String sql, CastDataProvider provider, int end, boolean identifiersToUpper,
-            boolean identifiersToLower, BitSet nonKeywords, int tokenStart, int i, ArrayList<Token> tokens) {
-        int endIndex = findIdentifierEnd(sql, provider, end, i);
+    private int readG(String sql, int end, int tokenStart, int i, ArrayList<Token> tokens) {
+        int endIndex = findIdentifierEnd(sql, end, i);
         int length = endIndex - tokenStart;
         int type = eq("GROUP", sql, tokenStart, length) ? GROUP : IDENTIFIER;
-        return readIdentifierOrKeyword(sql, identifiersToUpper, identifiersToLower, nonKeywords, tokenStart, tokens,
-                endIndex, type);
+        return readIdentifierOrKeyword(sql, tokenStart, tokens, endIndex, type);
     }
 
-    private static int readH(String sql, CastDataProvider provider, int end, boolean identifiersToUpper,
-            boolean identifiersToLower, BitSet nonKeywords, int tokenStart, int i, ArrayList<Token> tokens) {
-        int endIndex = findIdentifierEnd(sql, provider, end, i);
+    private int readH(String sql, int end, int tokenStart, int i, ArrayList<Token> tokens) {
+        int endIndex = findIdentifierEnd(sql, end, i);
         int length = endIndex - tokenStart;
         int type;
         if (eq("HAVING", sql, tokenStart, length)) {
@@ -759,13 +726,11 @@ public final class Tokenizer {
         } else {
             type = IDENTIFIER;
         }
-        return readIdentifierOrKeyword(sql, identifiersToUpper, identifiersToLower, nonKeywords, tokenStart, tokens,
-                endIndex, type);
+        return readIdentifierOrKeyword(sql, tokenStart, tokens, endIndex, type);
     }
 
-    private static int readI(String sql, CastDataProvider provider, int end, boolean identifiersToUpper,
-            boolean identifiersToLower, BitSet nonKeywords, int tokenStart, int i, ArrayList<Token> tokens) {
-        int endIndex = findIdentifierEnd(sql, provider, end, i);
+    private int readI(String sql, int end, int tokenStart, int i, ArrayList<Token> tokens) {
+        int endIndex = findIdentifierEnd(sql, end, i);
         int length = endIndex - tokenStart;
         int type;
         if (length == 2) {
@@ -793,31 +758,25 @@ public final class Tokenizer {
                 type = IDENTIFIER;
             }
         }
-        return readIdentifierOrKeyword(sql, identifiersToUpper, identifiersToLower, nonKeywords, tokenStart, tokens,
-                endIndex, type);
+        return readIdentifierOrKeyword(sql, tokenStart, tokens, endIndex, type);
     }
 
-    private static int readJ(String sql, CastDataProvider provider, int end, boolean identifiersToUpper,
-            boolean identifiersToLower, BitSet nonKeywords, int tokenStart, int i, ArrayList<Token> tokens) {
-        int endIndex = findIdentifierEnd(sql, provider, end, i);
+    private int readJ(String sql, int end, int tokenStart, int i, ArrayList<Token> tokens) {
+        int endIndex = findIdentifierEnd(sql, end, i);
         int length = endIndex - tokenStart;
         int type = eq("JOIN", sql, tokenStart, length) ? JOIN : IDENTIFIER;
-        return readIdentifierOrKeyword(sql, identifiersToUpper, identifiersToLower, nonKeywords, tokenStart, tokens,
-                endIndex, type);
+        return readIdentifierOrKeyword(sql, tokenStart, tokens, endIndex, type);
     }
 
-    private static int readK(String sql, CastDataProvider provider, int end, boolean identifiersToUpper,
-            boolean identifiersToLower, BitSet nonKeywords, int tokenStart, int i, ArrayList<Token> tokens) {
-        int endIndex = findIdentifierEnd(sql, provider, end, i);
+    private int readK(String sql, int end, int tokenStart, int i, ArrayList<Token> tokens) {
+        int endIndex = findIdentifierEnd(sql, end, i);
         int length = endIndex - tokenStart;
         int type = eq("KEY", sql, tokenStart, length) ? KEY : IDENTIFIER;
-        return readIdentifierOrKeyword(sql, identifiersToUpper, identifiersToLower, nonKeywords, tokenStart, tokens,
-                endIndex, type);
+        return readIdentifierOrKeyword(sql, tokenStart, tokens, endIndex, type);
     }
 
-    private static int readL(String sql, CastDataProvider provider, int end, boolean identifiersToUpper,
-            boolean identifiersToLower, BitSet nonKeywords, int tokenStart, int i, ArrayList<Token> tokens) {
-        int endIndex = findIdentifierEnd(sql, provider, end, i);
+    private int readL(String sql, int end, int tokenStart, int i, ArrayList<Token> tokens) {
+        int endIndex = findIdentifierEnd(sql, end, i);
         int length = endIndex - tokenStart;
         int type;
         if (eq("LEFT", sql, tokenStart, length)) {
@@ -833,13 +792,11 @@ public final class Tokenizer {
         } else {
             type = IDENTIFIER;
         }
-        return readIdentifierOrKeyword(sql, identifiersToUpper, identifiersToLower, nonKeywords, tokenStart, tokens,
-                endIndex, type);
+        return readIdentifierOrKeyword(sql, tokenStart, tokens, endIndex, type);
     }
 
-    private static int readM(String sql, CastDataProvider provider, int end, boolean identifiersToUpper,
-            boolean identifiersToLower, BitSet nonKeywords, int tokenStart, int i, ArrayList<Token> tokens) {
-        int endIndex = findIdentifierEnd(sql, provider, end, i);
+    private int readM(String sql, int end, int tokenStart, int i, ArrayList<Token> tokens) {
+        int endIndex = findIdentifierEnd(sql, end, i);
         int length = endIndex - tokenStart;
         int type;
         if (eq("MINUS", sql, tokenStart, length)) {
@@ -851,13 +808,11 @@ public final class Tokenizer {
         } else {
             type = IDENTIFIER;
         }
-        return readIdentifierOrKeyword(sql, identifiersToUpper, identifiersToLower, nonKeywords, tokenStart, tokens,
-                endIndex, type);
+        return readIdentifierOrKeyword(sql, tokenStart, tokens, endIndex, type);
     }
 
-    private static int readN(String sql, CastDataProvider provider, int end, boolean identifiersToUpper,
-            boolean identifiersToLower, BitSet nonKeywords, int tokenStart, int i, ArrayList<Token> tokens) {
-        int endIndex = findIdentifierEnd(sql, provider, end, i);
+    private int readN(String sql, int end, int tokenStart, int i, ArrayList<Token> tokens) {
+        int endIndex = findIdentifierEnd(sql, end, i);
         int length = endIndex - tokenStart;
         int type;
         if (eq("NOT", sql, tokenStart, length)) {
@@ -869,13 +824,11 @@ public final class Tokenizer {
         } else {
             type = IDENTIFIER;
         }
-        return readIdentifierOrKeyword(sql, identifiersToUpper, identifiersToLower, nonKeywords, tokenStart, tokens,
-                endIndex, type);
+        return readIdentifierOrKeyword(sql, tokenStart, tokens, endIndex, type);
     }
 
-    private static int readO(String sql, CastDataProvider provider, int end, boolean identifiersToUpper,
-            boolean identifiersToLower, BitSet nonKeywords, int tokenStart, int i, ArrayList<Token> tokens) {
-        int endIndex = findIdentifierEnd(sql, provider, end, i);
+    private int readO(String sql, int end, int tokenStart, int i, ArrayList<Token> tokens) {
+        int endIndex = findIdentifierEnd(sql, end, i);
         int length = endIndex - tokenStart;
         int type;
         if (length == 2) {
@@ -898,31 +851,25 @@ public final class Tokenizer {
                 type = IDENTIFIER;
             }
         }
-        return readIdentifierOrKeyword(sql, identifiersToUpper, identifiersToLower, nonKeywords, tokenStart, tokens,
-                endIndex, type);
+        return readIdentifierOrKeyword(sql, tokenStart, tokens, endIndex, type);
     }
 
-    private static int readP(String sql, CastDataProvider provider, int end, boolean identifiersToUpper,
-            boolean identifiersToLower, BitSet nonKeywords, int tokenStart, int i, ArrayList<Token> tokens) {
-        int endIndex = findIdentifierEnd(sql, provider, end, i);
+    private int readP(String sql, int end, int tokenStart, int i, ArrayList<Token> tokens) {
+        int endIndex = findIdentifierEnd(sql, end, i);
         int length = endIndex - tokenStart;
         int type = eq("PRIMARY", sql, tokenStart, length) ? PRIMARY : IDENTIFIER;
-        return readIdentifierOrKeyword(sql, identifiersToUpper, identifiersToLower, nonKeywords, tokenStart, tokens,
-                endIndex, type);
+        return readIdentifierOrKeyword(sql, tokenStart, tokens, endIndex, type);
     }
 
-    private static int readQ(String sql, CastDataProvider provider, int end, boolean identifiersToUpper,
-            boolean identifiersToLower, BitSet nonKeywords, int tokenStart, int i, ArrayList<Token> tokens) {
-        int endIndex = findIdentifierEnd(sql, provider, end, i);
+    private int readQ(String sql, int end, int tokenStart, int i, ArrayList<Token> tokens) {
+        int endIndex = findIdentifierEnd(sql, end, i);
         int length = endIndex - tokenStart;
         int type = eq("QUALIFY", sql, tokenStart, length) ? QUALIFY : IDENTIFIER;
-        return readIdentifierOrKeyword(sql, identifiersToUpper, identifiersToLower, nonKeywords, tokenStart, tokens,
-                endIndex, type);
+        return readIdentifierOrKeyword(sql, tokenStart, tokens, endIndex, type);
     }
 
-    private static int readR(String sql, CastDataProvider provider, int end, boolean identifiersToUpper,
-            boolean identifiersToLower, BitSet nonKeywords, int tokenStart, int i, ArrayList<Token> tokens) {
-        int endIndex = findIdentifierEnd(sql, provider, end, i);
+    private int readR(String sql, int end, int tokenStart, int i, ArrayList<Token> tokens) {
+        int endIndex = findIdentifierEnd(sql, end, i);
         int length = endIndex - tokenStart;
         int type;
         if (eq("RIGHT", sql, tokenStart, length)) {
@@ -934,13 +881,11 @@ public final class Tokenizer {
         } else {
             type = IDENTIFIER;
         }
-        return readIdentifierOrKeyword(sql, identifiersToUpper, identifiersToLower, nonKeywords, tokenStart, tokens,
-                endIndex, type);
+        return readIdentifierOrKeyword(sql, tokenStart, tokens, endIndex, type);
     }
 
-    private static int readS(String sql, CastDataProvider provider, int end, boolean identifiersToUpper,
-            boolean identifiersToLower, BitSet nonKeywords, int tokenStart, int i, ArrayList<Token> tokens) {
-        int endIndex = findIdentifierEnd(sql, provider, end, i);
+    private int readS(String sql, int end, int tokenStart, int i, ArrayList<Token> tokens) {
+        int endIndex = findIdentifierEnd(sql, end, i);
         int length = endIndex - tokenStart;
         int type;
         if (eq("SECOND", sql, tokenStart, length)) {
@@ -960,13 +905,11 @@ public final class Tokenizer {
         } else {
             type = IDENTIFIER;
         }
-        return readIdentifierOrKeyword(sql, identifiersToUpper, identifiersToLower, nonKeywords, tokenStart, tokens,
-                endIndex, type);
+        return readIdentifierOrKeyword(sql, tokenStart, tokens, endIndex, type);
     }
 
-    private static int readT(String sql, CastDataProvider provider, int end, boolean identifiersToUpper,
-            boolean identifiersToLower, BitSet nonKeywords, int tokenStart, int i, ArrayList<Token> tokens) {
-        int endIndex = findIdentifierEnd(sql, provider, end, i);
+    private int readT(String sql, int end, int tokenStart, int i, ArrayList<Token> tokens) {
+        int endIndex = findIdentifierEnd(sql, end, i);
         int length = endIndex - tokenStart;
         int type;
         if (length == 2) {
@@ -980,13 +923,11 @@ public final class Tokenizer {
                 type = IDENTIFIER;
             }
         }
-        return readIdentifierOrKeyword(sql, identifiersToUpper, identifiersToLower, nonKeywords, tokenStart, tokens,
-                endIndex, type);
+        return readIdentifierOrKeyword(sql, tokenStart, tokens, endIndex, type);
     }
 
-    private static int readU(String sql, CastDataProvider provider, int end, boolean identifiersToUpper,
-            boolean identifiersToLower, BitSet nonKeywords, int tokenStart, int i, ArrayList<Token> tokens) {
-        int endIndex = findIdentifierEnd(sql, provider, end, i);
+    private int readU(String sql, int end, int tokenStart, int i, ArrayList<Token> tokens) {
+        int endIndex = findIdentifierEnd(sql, end, i);
         int length = endIndex - tokenStart;
         int type;
         if (eq("UESCAPE", sql, tokenStart, length)) {
@@ -1004,13 +945,11 @@ public final class Tokenizer {
         } else {
             type = IDENTIFIER;
         }
-        return readIdentifierOrKeyword(sql, identifiersToUpper, identifiersToLower, nonKeywords, tokenStart, tokens,
-                endIndex, type);
+        return readIdentifierOrKeyword(sql, tokenStart, tokens, endIndex, type);
     }
 
-    private static int readV(String sql, CastDataProvider provider, int end, boolean identifiersToUpper,
-            boolean identifiersToLower, BitSet nonKeywords, int tokenStart, int i, ArrayList<Token> tokens) {
-        int endIndex = findIdentifierEnd(sql, provider, end, i);
+    private int readV(String sql, int end, int tokenStart, int i, ArrayList<Token> tokens) {
+        int endIndex = findIdentifierEnd(sql, end, i);
         int length = endIndex - tokenStart;
         int type;
         if (eq("VALUE", sql, tokenStart, length)) {
@@ -1020,13 +959,11 @@ public final class Tokenizer {
         } else {
             type = IDENTIFIER;
         }
-        return readIdentifierOrKeyword(sql, identifiersToUpper, identifiersToLower, nonKeywords, tokenStart, tokens,
-                endIndex, type);
+        return readIdentifierOrKeyword(sql, tokenStart, tokens, endIndex, type);
     }
 
-    private static int readW(String sql, CastDataProvider provider, int end, boolean identifiersToUpper,
-            boolean identifiersToLower, BitSet nonKeywords, int tokenStart, int i, ArrayList<Token> tokens) {
-        int endIndex = findIdentifierEnd(sql, provider, end, i);
+    private int readW(String sql, int end, int tokenStart, int i, ArrayList<Token> tokens) {
+        int endIndex = findIdentifierEnd(sql, end, i);
         int length = endIndex - tokenStart;
         int type;
         if (eq("WHEN", sql, tokenStart, length)) {
@@ -1040,38 +977,29 @@ public final class Tokenizer {
         } else {
             type = IDENTIFIER;
         }
-        return readIdentifierOrKeyword(sql, identifiersToUpper, identifiersToLower, nonKeywords, tokenStart, tokens,
-                endIndex, type);
+        return readIdentifierOrKeyword(sql, tokenStart, tokens, endIndex, type);
     }
 
-    private static int readY(String sql, CastDataProvider provider, int end, boolean identifiersToUpper,
-            boolean identifiersToLower, BitSet nonKeywords, int tokenStart, int i, ArrayList<Token> tokens) {
-        int endIndex = findIdentifierEnd(sql, provider, end, i);
+    private int readY(String sql, int end, int tokenStart, int i, ArrayList<Token> tokens) {
+        int endIndex = findIdentifierEnd(sql, end, i);
         int length = endIndex - tokenStart;
         int type = eq("YEAR", sql, tokenStart, length) ? YEAR : IDENTIFIER;
-        return readIdentifierOrKeyword(sql, identifiersToUpper, identifiersToLower, nonKeywords, tokenStart, tokens,
-                endIndex, type);
+        return readIdentifierOrKeyword(sql, tokenStart, tokens, endIndex, type);
     }
 
-    private static int read_(String sql, CastDataProvider provider, int end, boolean identifiersToUpper,
-            boolean identifiersToLower, BitSet nonKeywords, int tokenStart, int i, ArrayList<Token> tokens) {
-        int endIndex = findIdentifierEnd(sql, provider, end, i);
+    private int read_(String sql, int end, int tokenStart, int i, ArrayList<Token> tokens) {
+        int endIndex = findIdentifierEnd(sql, end, i);
         int type = endIndex - tokenStart == 7 && "_ROWID_".regionMatches(true, 1, sql, tokenStart + 1, 6) ? _ROWID_
                 : IDENTIFIER;
-        return readIdentifierOrKeyword(sql, identifiersToUpper, identifiersToLower, nonKeywords, tokenStart, tokens,
-                endIndex, type);
+        return readIdentifierOrKeyword(sql, tokenStart, tokens, endIndex, type);
     }
 
-    private static int readIdentifierOrKeyword(String sql, boolean identifiersToUpper, boolean identifiersToLower,
-            BitSet nonKeywords, int tokenStart, ArrayList<Token> tokens, int endIndex, int type) {
+    private int readIdentifierOrKeyword(String sql, int tokenStart, ArrayList<Token> tokens, int endIndex, int type) {
         Token token;
         if (type == IDENTIFIER) {
-            token = new Token.IdentifierToken(tokenStart,
-                    extractIdentifier(sql, identifiersToUpper, identifiersToLower, tokenStart, endIndex), //
-                    false, false);
+            token = new Token.IdentifierToken(tokenStart, extractIdentifier(sql, tokenStart, endIndex), false, false);
         } else if (nonKeywords != null && nonKeywords.get(type)) {
-            token = new Token.KeywordOrIdentifierToken(tokenStart, type,
-                    extractIdentifier(sql, identifiersToUpper, identifiersToLower, tokenStart, endIndex));
+            token = new Token.KeywordOrIdentifierToken(tokenStart, type, extractIdentifier(sql, tokenStart, endIndex));
         } else {
             token = new Token.KeywordToken(tokenStart, type);
         }
@@ -1091,7 +1019,7 @@ public final class Tokenizer {
         return true;
     }
 
-    private static int findIdentifierEnd(String sql, CastDataProvider provider, int end, int i) {
+    private int findIdentifierEnd(String sql, int end, int i) {
         i++;
         for (;;) {
             int cp;
@@ -1104,13 +1032,12 @@ public final class Tokenizer {
         return i;
     }
 
-    private static String extractIdentifier(String sql, boolean identifiersToUpper, boolean identifiersToLower,
-            int beginIndex, int endIndex) {
-        return convertCase(identifiersToUpper, identifiersToLower, sql.substring(beginIndex, endIndex));
+    private String extractIdentifier(String sql, int beginIndex, int endIndex) {
+        return convertCase(sql.substring(beginIndex, endIndex));
     }
 
-    private static int readQuotedIdentifier(String sql, int end, boolean identifiersToUpper, //
-            boolean identifiersToLower, int tokenStart, int i, char c, boolean unicode, ArrayList<Token> tokens) {
+    private int readQuotedIdentifier(String sql, int end, int tokenStart, int i, char c, boolean unicode,
+            ArrayList<Token> tokens) {
         int identifierEnd = sql.indexOf(c, ++i);
         if (identifierEnd < 0) {
             throw DbException.getSyntaxError(sql, tokenStart);
@@ -1130,13 +1057,13 @@ public final class Tokenizer {
             s = builder.toString();
         }
         if (c == '`') {
-            s = convertCase(identifiersToUpper, identifiersToLower, s);
+            s = convertCase(s);
         }
         tokens.add(new Token.IdentifierToken(tokenStart, s, true, unicode));
         return i;
     }
 
-    private static String convertCase(boolean identifiersToUpper, boolean identifiersToLower, String s) {
+    private String convertCase(String s) {
         if (identifiersToUpper) {
             s = StringUtils.toUpperEnglish(s);
         } else if (identifiersToLower) {
@@ -1145,8 +1072,7 @@ public final class Tokenizer {
         return s;
     }
 
-    private static int readBinaryString(String sql, CastDataProvider provider, int tokenStart, int end, int i,
-            ArrayList<Token> tokens) {
+    private static int readBinaryString(String sql, int tokenStart, int end, int i, ArrayList<Token> tokens) {
         ByteArrayOutputStream result = new ByteArrayOutputStream();
         int stringEnd;
         do {
@@ -1161,8 +1087,8 @@ public final class Tokenizer {
         return i;
     }
 
-    private static int readCharacterString(String sql, CastDataProvider provider, int tokenStart, int end, int i,
-            boolean unicode, ArrayList<Token> tokens) {
+    private static int readCharacterString(String sql, int tokenStart, int end, int i, boolean unicode,
+            ArrayList<Token> tokens) {
         String s = null;
         StringBuilder builder = null;
         int stringEnd;
@@ -1415,6 +1341,21 @@ public final class Tokenizer {
         }
         tokens.add(new Token.ParameterToken(tokenStart, (int) number));
         return i;
+    }
+
+    private static int assignParameterIndex(ArrayList<Token> tokens, int lastParameter) {
+        Token.ParameterToken parameter = (Token.ParameterToken) tokens.get(tokens.size() - 1);
+        if (parameter.index == 0) {
+            if (lastParameter < 0) {
+                throw DbException.get(ErrorCode.CANNOT_MIX_INDEXED_AND_UNINDEXED_PARAMS);
+            }
+            parameter.index = ++lastParameter;
+        } else if (lastParameter > 0) {
+            throw DbException.get(ErrorCode.CANNOT_MIX_INDEXED_AND_UNINDEXED_PARAMS);
+        } else {
+            lastParameter = -1;
+        }
+        return lastParameter;
     }
 
     private static void processUescape(String sql, ArrayList<Token> tokens) {

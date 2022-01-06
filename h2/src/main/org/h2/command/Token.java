@@ -664,7 +664,7 @@ public abstract class Token implements Cloneable {
 
     static final class ParameterToken extends Token {
 
-        private final int index;
+        int index;
 
         ParameterToken(int start, int index) {
             super(start);

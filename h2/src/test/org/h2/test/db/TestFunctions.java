@@ -155,8 +155,16 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         Statement stat = conn.createStatement();
         stat.execute("create alias simple_function_table for '" +
                 TestFunctions.class.getName() + ".simpleFunctionTable'");
+        stat.execute("create alias function_table_with_parameter for '" +
+                TestFunctions.class.getName() + ".functionTableWithParameter'");
         stat.execute("select * from simple_function_table() " +
                 "where a>0 and b in ('x', 'y')");
+        PreparedStatement prep = conn.prepareStatement("call function_table_with_parameter(?)");
+        prep.setInt(1, 10);
+        ResultSet rs = prep.executeQuery();
+        assertTrue(rs.next());
+        assertEquals(10, rs.getInt(1));
+        assertEquals("X", rs.getString(2));
         conn.close();
     }
 
@@ -185,6 +193,21 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         result.addColumn("A", Types.INTEGER, 0, 0);
         result.addColumn("B", Types.CHAR, 0, 0);
         result.addRow(42, 'X');
+        return result;
+    }
+
+    /**
+     * This method is called via reflection from the database.
+     *
+     * @param conn the connection
+     * @param p the parameter
+     * @return a result set
+     */
+    public static ResultSet functionTableWithParameter(@SuppressWarnings("unused") Connection conn, int p) {
+        SimpleResultSet result = new SimpleResultSet();
+        result.addColumn("A", Types.INTEGER, 0, 0);
+        result.addColumn("B", Types.CHAR, 0, 0);
+        result.addRow(p, 'X');
         return result;
     }
 

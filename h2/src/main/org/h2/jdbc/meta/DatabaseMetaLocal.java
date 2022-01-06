@@ -106,8 +106,6 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
     private static final ValueSmallint PROCEDURE_RETURNS_RESULT = ValueSmallint
             .get((short) DatabaseMetaData.procedureReturnsResult);
 
-    private static final ValueSmallint TABLE_INDEX_STATISTIC = ValueSmallint.get(DatabaseMetaData.tableIndexStatistic);
-
     private static final ValueSmallint TABLE_INDEX_HASHED = ValueSmallint.get(DatabaseMetaData.tableIndexHashed);
 
     private static final ValueSmallint TABLE_INDEX_OTHER = ValueSmallint.get(DatabaseMetaData.tableIndexOther);
@@ -1269,15 +1267,7 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
                 Value tableValue = getString(table.getName());
                 Value indexValue = getString(index.getName());
                 IndexColumn[] cols = index.getIndexColumns();
-                ValueSmallint type = TABLE_INDEX_STATISTIC;
-                type: if (uniqueColumnCount == cols.length) {
-                    for (IndexColumn c : cols) {
-                        if (c.column.isNullable()) {
-                            break type;
-                        }
-                    }
-                    type = index.getIndexType().isHash() ? TABLE_INDEX_HASHED : TABLE_INDEX_OTHER;
-                }
+                ValueSmallint type = index.getIndexType().isHash() ? TABLE_INDEX_HASHED : TABLE_INDEX_OTHER;
                 for (int i = 0, l = cols.length; i < l; i++) {
                     IndexColumn c = cols[i];
                     boolean nonUnique = i >= uniqueColumnCount;

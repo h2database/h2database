@@ -163,6 +163,7 @@ public final class Tokenizer {
         ArrayList<Token> tokens = new ArrayList<>();
         int end = sql.length() - 1;
         boolean foundUnicode = false;
+        int lastParameter = 0;
         loop: for (int i = 0; i <= end;) {
             int tokenStart = i;
             char c = sql.charAt(i);
@@ -204,6 +205,7 @@ public final class Tokenizer {
                         i = stringEnd + 1;
                     } else {
                         i = parseParameterIndex(sql, end, i, tokens);
+                        lastParameter = assignParameterIndex(tokens, lastParameter);
                         continue loop;
                     }
                 } else {
@@ -339,7 +341,7 @@ public final class Tokenizer {
                 }
                 token = new Token.KeywordToken(tokenStart, BIGGER);
                 break;
-            case '?':
+            case '?': {
                 if (i + 1 < end && sql.charAt(i + 1) == '?') {
                     char c3 = sql.charAt(i + 2);
                     if (c3 == '(') {
@@ -354,7 +356,9 @@ public final class Tokenizer {
                     }
                 }
                 i = parseParameterIndex(sql, end, i, tokens);
+                lastParameter = assignParameterIndex(tokens, lastParameter);
                 continue loop;
+            }
             case '@':
                 token = new Token.KeywordToken(tokenStart, AT);
                 break;
@@ -1337,6 +1341,21 @@ public final class Tokenizer {
         }
         tokens.add(new Token.ParameterToken(tokenStart, (int) number));
         return i;
+    }
+
+    private static int assignParameterIndex(ArrayList<Token> tokens, int lastParameter) {
+        Token.ParameterToken parameter = (Token.ParameterToken) tokens.get(tokens.size() - 1);
+        if (parameter.index == 0) {
+            if (lastParameter < 0) {
+                throw DbException.get(ErrorCode.CANNOT_MIX_INDEXED_AND_UNINDEXED_PARAMS);
+            }
+            parameter.index = ++lastParameter;
+        } else if (lastParameter > 0) {
+            throw DbException.get(ErrorCode.CANNOT_MIX_INDEXED_AND_UNINDEXED_PARAMS);
+        } else {
+            lastParameter = -1;
+        }
+        return lastParameter;
     }
 
     private static void processUescape(String sql, ArrayList<Token> tokens) {

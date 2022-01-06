@@ -541,7 +541,9 @@ public class TableView extends Table {
     private static int getMaxParameterIndex(ArrayList<Parameter> parameters) {
         int result = -1;
         for (Parameter p : parameters) {
-            result = Math.max(result, p.getIndex());
+            if (p != null) {
+                result = Math.max(result, p.getIndex());
+            }
         }
         return result;
     }

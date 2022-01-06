@@ -447,9 +447,7 @@ public class Parser {
     private Select currentSelect;
     private List<TableView> cteCleanups;
     private ArrayList<Parameter> parameters;
-    private ArrayList<Parameter> indexedParameterList;
     private ArrayList<Parameter> suppliedParameters;
-    private ArrayList<Parameter> suppliedParameterList;
     private String schemaName;
     private ArrayList<String> expectedList;
     private boolean rightsChecked;
@@ -589,7 +587,6 @@ public class Parser {
                     return new CommandList(session, sql, command, list, parameters, remainingSql);
                 }
                 suppliedParameters = parameters;
-                suppliedParameterList = indexedParameterList;
                 try {
                     p = parse(remainingSql, remainingTokens);
                 } catch (DbException ex) {
@@ -666,7 +663,6 @@ public class Parser {
             expectedList = null;
         }
         parameters = suppliedParameters != null ? suppliedParameters : Utils.newSmallArrayList();
-        indexedParameterList = suppliedParameterList;
         currentSelect = null;
         currentPrepared = null;
         createView = null;
@@ -852,14 +848,12 @@ public class Parser {
         if (c == null) {
             throw getSyntaxError();
         }
-        if (indexedParameterList != null) {
-            for (int i = 0, size = indexedParameterList.size();
-                    i < size; i++) {
-                if (indexedParameterList.get(i) == null) {
-                    indexedParameterList.set(i, new Parameter(i));
+        if (parameters != null) {
+            for (int i = 0, size = parameters.size(); i < size; i++) {
+                if (parameters.get(i) == null) {
+                    parameters.set(i, new Parameter(i));
                 }
             }
-            parameters = indexedParameterList;
         }
         boolean withParamValues = readIf(OPEN_BRACE);
         if (withParamValues) {
@@ -4917,46 +4911,26 @@ public class Parser {
     }
 
     private Parameter readParameter() {
-        // there must be no space between ? and the number
         int index = ((Token.ParameterToken) token).index();
         read();
         Parameter p;
-        if (index > 0) {
-            if (indexedParameterList == null) {
-                if (parameters == null) {
-                    // this can occur when parsing expressions only (for
-                    // example check constraints)
-                    throw getSyntaxError();
-                } else if (!parameters.isEmpty()) {
-                    throw DbException
-                            .get(ErrorCode.CANNOT_MIX_INDEXED_AND_UNINDEXED_PARAMS);
-                }
-                indexedParameterList = Utils.newSmallArrayList();
+        if (parameters == null) {
+            parameters = Utils.newSmallArrayList();
+        }
+        if (index > Constants.MAX_PARAMETER_INDEX) {
+            throw DbException.getInvalidValueException("parameter index", index);
+        }
+        index--;
+        if (parameters.size() <= index) {
+            parameters.ensureCapacity(index + 1);
+            while (parameters.size() < index) {
+                parameters.add(null);
             }
-            if (index > Constants.MAX_PARAMETER_INDEX) {
-                throw DbException.getInvalidValueException(
-                        "parameter index", index);
-            }
-            index--;
-            if (indexedParameterList.size() <= index) {
-                indexedParameterList.ensureCapacity(index + 1);
-                while (indexedParameterList.size() <= index) {
-                    indexedParameterList.add(null);
-                }
-            }
-            p = indexedParameterList.get(index);
-            if (p == null) {
-                p = new Parameter(index);
-                indexedParameterList.set(index, p);
-                parameters.add(p);
-            }
-        } else {
-            if (indexedParameterList != null) {
-                throw DbException
-                        .get(ErrorCode.CANNOT_MIX_INDEXED_AND_UNINDEXED_PARAMS);
-            }
-            p = new Parameter(parameters.size());
+            p = new Parameter(index);
             parameters.add(p);
+        } else if ((p = parameters.get(index)) == null) {
+            p = new Parameter(index);
+            parameters.set(index, p);
         }
         return p;
     }
@@ -9660,8 +9634,8 @@ public class Parser {
         this.rightsChecked = rightsChecked;
     }
 
-    public void setSuppliedParameterList(ArrayList<Parameter> suppliedParameterList) {
-        this.suppliedParameterList = suppliedParameterList;
+    public void setSuppliedParameters(ArrayList<Parameter> suppliedParameters) {
+        this.suppliedParameters = suppliedParameters;
     }
 
     /**

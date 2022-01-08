@@ -156,6 +156,12 @@ public class WebSite {
                 page = StringUtils.replaceAll(page, "<pre>", "<pre class=\"notranslate\">");
                 page = StringUtils.replaceAll(page, "<code>", "<code class=\"notranslate\">");
             }
+            if (name.endsWith("changelog.html")) {
+                page = page.replaceAll("Issue\\s+#?(\\d+)",
+                        "<a href=\"https://github.com/h2database/h2database/issues/$1\">Issue #$1</a>");
+                page = page.replaceAll("PR\\s+#?(\\d+)",
+                        "<a href=\"https://github.com/h2database/h2database/pull/$1\">PR #$1</a>");
+            }
             bytes = page.getBytes(StandardCharsets.UTF_8);
         }
         Files.write(target, bytes);

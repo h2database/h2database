@@ -546,6 +546,8 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
     /**
      * Check whether the two values are equal.
      *
+     * @param <X> type of values to compare
+     *
      * @param a the first value
      * @param b the second value
      * @param datatype to use for comparison

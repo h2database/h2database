@@ -189,6 +189,7 @@ public class WebServer implements Service {
      *
      * @param file the file name
      * @return the data
+     * @throws IOException on failure
      */
     byte[] getFile(String file) throws IOException {
         trace("getFile <" + file + ">");

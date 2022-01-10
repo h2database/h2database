@@ -387,6 +387,7 @@ public final class Chunk {
      * Read a page of data into a ByteBuffer.
      *
      * @param fileStore to use
+     * @param offset of the page data
      * @param pos page pos
      * @return ByteBuffer containing page data.
      */

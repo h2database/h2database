@@ -155,8 +155,12 @@ public final class Cursor<K,V> implements Iterator<K> {
      * Fetch the next entry that is equal or larger than the given key, starting
      * from the given page. This method retains the stack.
      *
+     * @param <K> key type
+     * @param <V> value type
+     *
      * @param page to start from as a root
      * @param key to search for, null means search for the first available key
+     * @param reverse true if traversal is in reverse direction, false otherwise
      */
     static <K,V> CursorPos<K,V> traverseDown(Page<K,V> page, K key, boolean reverse) {
         CursorPos<K,V> cursorPos = key != null ? CursorPos.traverseDown(page, key) :

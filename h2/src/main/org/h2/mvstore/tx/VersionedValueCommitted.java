@@ -24,6 +24,9 @@ class VersionedValueCommitted<T> extends VersionedValue<T> {
 
     /**
      * Either cast to VersionedValue, or wrap in VersionedValueCommitted
+     *
+     * @param <X> type of the value to get the VersionedValue for
+     *
      * @param value the object to cast/wrap
      * @return VersionedValue instance
      */

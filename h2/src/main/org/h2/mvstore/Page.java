@@ -145,6 +145,9 @@ public abstract class Page<K,V> implements Cloneable {
     /**
      * Create a new, empty leaf page.
      *
+     * @param <K> key type
+     * @param <V> value type
+     *
      * @param map the map
      * @return the new page
      */
@@ -155,6 +158,9 @@ public abstract class Page<K,V> implements Cloneable {
 
     /**
      * Create a new, empty internal node page.
+     *
+     * @param <K> key type
+     * @param <V> value type
      *
      * @param map the map
      * @return the new page
@@ -188,6 +194,9 @@ public abstract class Page<K,V> implements Cloneable {
     /**
      * Create a new leaf page. The arrays are not cloned.
      *
+     * @param <K> key type
+     * @param <V> value type
+     *
      * @param map the map
      * @param keys the keys
      * @param values the values
@@ -216,6 +225,9 @@ public abstract class Page<K,V> implements Cloneable {
      * Get the value for the given key, or null if not found.
      * Search is done in the tree rooted at given page.
      *
+     * @param <K> key type
+     * @param <V> value type
+     *
      * @param key the key
      * @param p the root page
      * @return the value, or null if not found
@@ -235,6 +247,9 @@ public abstract class Page<K,V> implements Cloneable {
     /**
      * Read a page.
      *
+     * @param <K> key type
+     * @param <V> value type
+     *
      * @param buff ByteBuffer containing serialized page info
      * @param pos the position
      * @param map the map
@@ -247,10 +262,6 @@ public abstract class Page<K,V> implements Cloneable {
         p.read(buff);
         return p;
     }
-
-//    static <K> int getMemory(DataType<K> keyType, K key) {
-//        return keyType.getMemory(key);
-//    }
 
     /**
      * Get the id of the page's owner map

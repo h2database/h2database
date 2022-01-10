@@ -43,6 +43,9 @@ public final class CursorPos<K,V> {
      * rooted at a given Page. Resulting path starts at "insertion point" for a
      * given key and goes back to the root.
      *
+     * @param <K> key type
+     * @param <V> value type
+     *
      * @param page      root of the tree
      * @param key       the key to search for
      * @return head of the CursorPos chain (insertion point)

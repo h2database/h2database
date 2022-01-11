@@ -13,6 +13,13 @@ select rownum() as rnum, str from test where str = 'A';
 > 1    A
 > rows: 1
 
+----- Issue#3353 -----
+SELECT str FROM FINAL TABLE (UPDATE test SET str = char(rownum + 48) WHERE str = '0');
+> STR
+> ---
+> 1
+> rows: 1
+
 drop table test;
 > ok
 
@@ -21,3 +28,4 @@ SELECT * FROM (VALUES 1, 2) AS T1(X), (VALUES 1, 2) AS T2(X) WHERE ROWNUM = 1;
 > - -
 > 1 1
 > rows: 1
+

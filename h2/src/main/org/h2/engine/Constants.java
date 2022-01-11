@@ -18,20 +18,10 @@ public class Constants {
     public static final String BUILD_DATE = "2021-12-21";
 
     /**
-     * The build date of the last stable release.
-     */
-    public static final String BUILD_DATE_STABLE = "2022-01-04";
-
-    /**
      * Sequential version number. Even numbers are used for official releases,
      * odd numbers are used for development builds.
      */
     public static final int BUILD_ID = 209;
-
-    /**
-     * The build id of the last stable release.
-     */
-    public static final int BUILD_ID_STABLE = 206;
 
     /**
      * Whether this is a snapshot version.
@@ -489,11 +479,6 @@ public class Constants {
      * version, and build id.
      */
     public static final String VERSION;
-
-    /**
-     * The last stable version name.
-     */
-    public static final String VERSION_STABLE = "2.0." + BUILD_ID_STABLE;
 
     /**
      * The complete version number of this database, consisting of

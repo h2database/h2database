@@ -34,9 +34,8 @@ Update org.h2.engine.Constants.java:
         set VERSION_MAJOR / VERSION_MINOR to the new version number
     if the last TCP_PROTOCOL_VERSION_##
         doesn't have a release date set it to current BUILD_DATE
-    set BUILD_DATE_STABLE to BUILD_DATE of the latest stable release
-    set BUILD_ID_STABLE to BUILD_ID of the latest stable release
-    check prefix in VERSION_STABLE and update if necessary
+    check and update if necessary links to the latest releases in previous
+    series of releases and their checksums in download.html
 
 Update README.md.
     set version to the new version

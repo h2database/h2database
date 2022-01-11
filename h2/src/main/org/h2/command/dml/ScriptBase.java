@@ -5,11 +5,13 @@
  */
 package org.h2.command.dml;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.nio.charset.Charset;
 import org.h2.api.ErrorCode;
 import org.h2.command.Prepared;
 import org.h2.engine.Constants;
@@ -43,9 +45,9 @@ abstract class ScriptBase extends Prepared {
     protected OutputStream out;
 
     /**
-     * The input stream.
+     * The input reader.
      */
-    protected InputStream in;
+    protected BufferedReader reader;
 
     /**
      * The file name (if set).
@@ -147,28 +149,30 @@ abstract class ScriptBase extends Prepared {
 
     /**
      * Open the input stream.
+     *
+     * @param charset the charset to use
      */
-    void openInput() {
+    void openInput(Charset charset) {
         String file = getFileName();
         if (file == null) {
             return;
         }
+        InputStream in;
         if (isEncrypted()) {
             initStore();
             in = new FileStoreInputStream(store, compressionAlgorithm != null, false);
         } else {
-            InputStream inStream;
             try {
-                inStream = FileUtils.newInputStream(file);
+                in = FileUtils.newInputStream(file);
             } catch (IOException e) {
                 throw DbException.convertIOException(e, file);
             }
-            in = new BufferedInputStream(inStream, Constants.IO_BUFFER_SIZE);
             in = CompressTool.wrapInputStream(in, compressionAlgorithm, SCRIPT_SQL);
             if (in == null) {
                 throw DbException.get(ErrorCode.FILE_NOT_FOUND_1, SCRIPT_SQL + " in " + file);
             }
         }
+        reader = new BufferedReader(new InputStreamReader(in, charset), Constants.IO_BUFFER_SIZE);
     }
 
     /**
@@ -177,8 +181,8 @@ abstract class ScriptBase extends Prepared {
     void closeIO() {
         IOUtils.closeSilently(out);
         out = null;
-        IOUtils.closeSilently(in);
-        in = null;
+        IOUtils.closeSilently(reader);
+        reader = null;
         if (store != null) {
             store.closeSilently();
             store = null;

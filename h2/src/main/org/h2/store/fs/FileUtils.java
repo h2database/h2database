@@ -5,13 +5,16 @@
  */
 package org.h2.store.fs;
 
+import java.io.BufferedReader;
 import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.charset.Charset;
 import java.nio.file.OpenOption;
 import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.FileAttribute;
@@ -20,6 +23,8 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
+
+import org.h2.engine.Constants;
 
 /**
  * This utility class contains utility functions that use the file system
@@ -252,21 +257,34 @@ public class FileUtils {
     /**
      * Create an input stream to read from the file.
      * This method is similar to Java 7
-     * <code>java.nio.file.Path.newInputStream</code>.
+     * <code>java.nio.file.Files.newInputStream()</code>.
      *
      * @param fileName the file name
      * @return the input stream
      * @throws IOException on failure
      */
-    public static InputStream newInputStream(String fileName)
-            throws IOException {
+    public static InputStream newInputStream(String fileName) throws IOException {
         return FilePath.get(fileName).newInputStream();
     }
 
     /**
+     * Create a buffered reader to read from the file.
+     * This method is similar to
+     * <code>java.nio.file.Files.newBufferedReader()</code>.
+     *
+     * @param fileName the file name
+     * @param charset the charset
+     * @return the buffered reader
+     * @throws IOException on failure
+     */
+    public static BufferedReader newBufferedReader(String fileName, Charset charset) throws IOException {
+        return new BufferedReader(new InputStreamReader(newInputStream(fileName), charset), Constants.IO_BUFFER_SIZE);
+    }
+
+    /**
      * Create an output stream to write into the file.
-     * This method is similar to Java 7
-     * <code>java.nio.file.Path.newOutputStream</code>.
+     * This method is similar to
+     * <code>java.nio.file.Files.newOutputStream()</code>.
      *
      * @param fileName the file name
      * @param append if true, the file will grow, if false, the file will be
@@ -274,8 +292,7 @@ public class FileUtils {
      * @return the output stream
      * @throws IOException on failure
      */
-    public static OutputStream newOutputStream(String fileName, boolean append)
-            throws IOException {
+    public static OutputStream newOutputStream(String fileName, boolean append) throws IOException {
         return FilePath.get(fileName).newOutputStream(append);
     }
 

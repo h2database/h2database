@@ -5,11 +5,9 @@
  */
 package org.h2.tools;
 
-import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -19,7 +17,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.concurrent.TimeUnit;
 
-import org.h2.engine.Constants;
 import org.h2.message.DbException;
 import org.h2.store.fs.FileUtils;
 import org.h2.util.IOUtils;
@@ -184,14 +181,11 @@ public class RunScript extends Tool {
     private void process(Connection conn, String fileName,
             boolean continueOnError, Charset charset) throws SQLException,
             IOException {
-        InputStream in = FileUtils.newInputStream(fileName);
-        String path = FileUtils.getParent(fileName);
+        BufferedReader reader = FileUtils.newBufferedReader(fileName, charset);
         try {
-            in = new BufferedInputStream(in, Constants.IO_BUFFER_SIZE);
-            Reader reader = new InputStreamReader(in, charset);
-            process(conn, continueOnError, path, reader, charset);
+            process(conn, continueOnError, FileUtils.getParent(fileName), reader, charset);
         } finally {
-            IOUtils.closeSilently(in);
+            IOUtils.closeSilently(reader);
         }
     }
 

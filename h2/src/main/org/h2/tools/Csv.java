@@ -5,17 +5,16 @@
  */
 package org.h2.tools;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.Writer;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -57,7 +56,7 @@ public class Csv implements SimpleRowSource {
     private String nullString = "";
 
     private String fileName;
-    private Reader input;
+    private BufferedReader input;
     private char[] inputBuffer;
     private int inputBufferPos;
     private int inputBufferStart = -1;
@@ -196,7 +195,8 @@ public class Csv implements SimpleRowSource {
      */
     public ResultSet read(Reader reader, String[] colNames) throws IOException {
         init(null, null);
-        this.input = reader;
+        this.input = reader instanceof BufferedReader ? (BufferedReader) reader
+                : new BufferedReader(reader, Constants.IO_BUFFER_SIZE);
         return readResultSet(colNames);
     }
 
@@ -298,16 +298,12 @@ public class Csv implements SimpleRowSource {
     private void initRead() throws IOException {
         if (input == null) {
             try {
-                InputStream in = FileUtils.newInputStream(fileName);
-                in = new BufferedInputStream(in, Constants.IO_BUFFER_SIZE);
-                input = characterSet != null ? new InputStreamReader(in, characterSet) : new InputStreamReader(in);
+                input = FileUtils.newBufferedReader(fileName,
+                        characterSet != null ? Charset.forName(characterSet) : StandardCharsets.UTF_8);
             } catch (IOException e) {
                 close();
                 throw e;
             }
-        }
-        if (!input.markSupported()) {
-            input = new BufferedReader(input);
         }
         input.mark(1);
         int bom = input.read();

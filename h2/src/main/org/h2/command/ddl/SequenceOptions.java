@@ -280,6 +280,9 @@ public class SequenceOptions {
             max = 0x20_0000_0000_0000L;
             break;
         case Value.NUMERIC: {
+            if (dataType.getScale() != 0) {
+                throw DbException.getUnsupportedException(dataType.getTraceSQL());
+            }
             long p = (dataType.getPrecision() - dataType.getScale());
             if (p <= 0) {
                 throw DbException.getUnsupportedException(dataType.getTraceSQL());

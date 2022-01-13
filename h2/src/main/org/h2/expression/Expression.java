@@ -8,6 +8,7 @@ package org.h2.expression;
 import java.util.List;
 
 import org.h2.api.ErrorCode;
+import org.h2.engine.Constants;
 import org.h2.engine.SessionLocal;
 import org.h2.expression.function.NamedExpression;
 import org.h2.message.DbException;
@@ -400,14 +401,19 @@ public abstract class Expression implements HasSQL, Typed {
      */
     public String getAlias(SessionLocal session, int columnIndex) {
         switch (session.getMode().expressionNames) {
-        default:
-            return getSQL(QUOTE_ONLY_WHEN_REQUIRED | NO_CASTS, WITHOUT_PARENTHESES);
+        default: {
+            String sql = getSQL(QUOTE_ONLY_WHEN_REQUIRED | NO_CASTS, WITHOUT_PARENTHESES);
+            if (sql.length() <= Constants.MAX_IDENTIFIER_LENGTH) {
+                return sql;
+            }
+        }
+        //$FALL-THROUGH$
+        case C_NUMBER:
+            return "C" + (columnIndex + 1);
         case EMPTY:
             return "";
         case NUMBER:
             return Integer.toString(columnIndex + 1);
-        case C_NUMBER:
-            return "C" + (columnIndex + 1);
         case POSTGRESQL_STYLE:
             if (this instanceof NamedExpression) {
                 return StringUtils.toLowerEnglish(((NamedExpression) this).getName());

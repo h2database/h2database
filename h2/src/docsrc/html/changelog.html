@@ -19,7 +19,59 @@ Change Log
 
 <h1>Change Log</h1>
 
-<h2>Version 2.0.206 (unreleased)</h2>
+<h2>Next Version (unreleased)</h2>
+<ul>
+<li>PR #3367: Use faster checks of dimension systems of geometries
+</li>
+<li>PR #3369: Added v2 changes in migration docs
+</li>
+<li>Issue #3361: MemoryEstimator.estimateMemory() can return negative size
+</li>
+<li>PR #3362: Use BufferedReader instead of BufferedInputStream to avoid Illegal seek exception
+</li>
+<li>Issue #3353: Wrong rownum() scope for DML with change delta table
+</li>
+<li>PR #3352: make Javadoc happier
+</li>
+<li>Issue #3344: Changelog could link to github issue
+</li>
+<li>Issue #3340: JDBC index type seems wrong
+</li>
+<li>Issue #3336: FT_INIT error when mode=MySQL
+</li>
+<li>Issue #3334: Regression with CREATE ALIAS - Parameter "#2" is not set
+</li>
+<li>Issue #3321: Insert Primary Key after import CSV Data does not work
+</li>
+<li>PR #3323: Tokenize SQL before parsing and preserve tokens for recompilation
+</li>
+<li>PR #3320: Add Servlet 5-compatible servlet for H2 Console
+</li>
+<li>Issue #918: Parser fails recognising set operations in correlated subqueries
+</li>
+<li>Issue #2050: PostgreSQL with recursive fail with union in the final query
+</li>
+<li>PR #3316: Update copyright years
+</li>
+<li>PR #3315: Never put read locks into lockSharedSessions and other minor changes
+</li>
+<li>Issue #492: H2 does not correctly parse &lt;parenthesized joined table&gt;
+</li>
+<li>Issue #3311: Parser creates wrong join graph in some cases and uses wrong tables for column mapping
+</li>
+<li>FORCE_JOIN_ORDER setting is removed
+</li>
+<li>Issue #1983: Official build script is not compatible with Java 13
+</li>
+<li>PR #3305: Add UNIQUE(VALUE) and remove some non-standard keywords
+</li>
+<li>PR #3299: Remove useless StringBuilder.toString() call
+</li>
+<li>PR #3298: Delete unused sqlTypes array
+</li>
+</ul>
+
+<h2>Version 2.0.206 (2022-01-04)</h2>
 <ul>
 <li>Issue #3322: Create linked table fails when the table contains a Geometry with a data type specified
 </li>

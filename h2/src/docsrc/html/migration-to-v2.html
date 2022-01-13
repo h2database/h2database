@@ -39,7 +39,10 @@ not possible.
 
 <p>
 It would have been nice to write some kind of migration tool, or auto-detect the file and upgrade. Unfortunately, this
-is purely a volunteer-run project, so this is just the way it has to be.
+is purely a volunteer-run project, so this is just the way it has to be. There exists a migration tool <a
+href="https://github.com/manticore-projects/H2MigrationTool">H2MigrationTool</a> available
+in GitHub, but it hasn't been tested by our team. Use at
+your own risk.
 </p>
 
 <h2 id="upgrade">Upgrading</h2>
@@ -72,5 +75,18 @@ TODO - Correctness.
 There are a lot more SQL keywords now. Many SQL statements feature far better support of SQL-Standard behaviour.
 Some old non-standard SQL syntax support has been removed.
 </p>
+
+<p>
+Migrating an old database to the new version works most of the times. However, there are a couple of important changes in the new version to keep in mind:
+</p>
+
+<ul>
+<li>Restricted maximum allowed length limits: there are new length limits for for non-LOB data types. For example, for the VARBINARY type the maximum allowed size is now 1048576 instead of the previous 2^31-1. Adjust the tables before migration.
+</li><li>Oracle-style units were never supported officially without being in Oracle compatibility mode, altough some worked before. For example, the length of the VARCHAR datatype cannot be more specified using CHAR but CHARACTERS or OCTETS. CHAR and BYTE need to be used in Oracle compatibility mode.
+</li><li>IDENTITY syntax changed when type is specified: if the type for IDENTITY is specified, then the clause needs to be expanded as INTEGER GENERATED ALWAYS AS IDENTITY. Using just INTEGER IDENTITY is no more working.
+</li><li>IDENTITY() and SCOPE_IDENTITY() functions are removed: statements like CALL IDENTITY(); aren't working anymore. Use data change delta tables or Statement.getGeneratedKeys() instead.
+<li>LOG connection setting removed: PageStore was removed from H2 so the "LOG=0" setting at the end of the URL (like
+"jdbc:h2:file:/tmp/test;LOG=0") is no longer available.
+</li></ul>
 
 <!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>

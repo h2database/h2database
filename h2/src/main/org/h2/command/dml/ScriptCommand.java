@@ -573,7 +573,7 @@ public class ScriptCommand extends ScriptBase {
 
     private int writeLobStream(Value v) throws IOException {
         if (!tempLobTableCreated) {
-            add("CREATE TABLE IF NOT EXISTS SYSTEM_LOB_STREAM" +
+            add("CREATE CACHED LOCAL TEMPORARY TABLE IF NOT EXISTS SYSTEM_LOB_STREAM" +
                     "(ID INT NOT NULL, PART INT NOT NULL, " +
                     "CDATA VARCHAR, BDATA VARBINARY)",
                     true);

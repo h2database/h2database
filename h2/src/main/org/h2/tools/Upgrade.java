@@ -163,7 +163,7 @@ public final class Upgrade {
             unloadH2(driver);
         }
         rename(name, false);
-        try (JdbcConnection conn = new JdbcConnection(url, info, null, null)) {
+        try (JdbcConnection conn = new JdbcConnection(url, info, null, null, false)) {
             StringBuilder builder = StringUtils.quoteStringSQL(new StringBuilder("RUNSCRIPT FROM "), script)
                     .append(scriptCommandSuffix);
             if (version <= 200) {

@@ -267,7 +267,7 @@ public class JdbcUtils {
      */
     public static Connection getConnection(String driver, String url,
             String user, String password) throws SQLException {
-        return getConnection(driver, url, user, password, null);
+        return getConnection(driver, url, user, password, null, false);
     }
 
     /**
@@ -278,13 +278,14 @@ public class JdbcUtils {
      * @param user the user name or {@code null}
      * @param password the password or {@code null}
      * @param networkConnectionInfo the network connection information, or {@code null}
+     * @param forbidCreation whether database creation is forbidden
      * @return the database connection
      * @throws SQLException on failure
      */
     public static Connection getConnection(String driver, String url, String user, String password,
-            NetworkConnectionInfo networkConnectionInfo) throws SQLException {
+            NetworkConnectionInfo networkConnectionInfo, boolean forbidCreation) throws SQLException {
         if (url.startsWith(Constants.START_URL)) {
-            JdbcConnection connection = new JdbcConnection(url, null, user, password);
+            JdbcConnection connection = new JdbcConnection(url, null, user, password, forbidCreation);
             if (networkConnectionInfo != null) {
                 connection.getSession().setNetworkConnectionInfo(networkConnectionInfo);
             }

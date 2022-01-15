@@ -102,7 +102,7 @@ public class CreateCluster extends Tool {
             String user, String password, String serverList) throws SQLException {
         // use cluster='' so connecting is possible
         // even if the cluster is enabled
-        try (JdbcConnection connSource = new JdbcConnection(urlSource + ";CLUSTER=''", null, user, password);
+        try (JdbcConnection connSource = new JdbcConnection(urlSource + ";CLUSTER=''", null, user, password, false);
                 Statement statSource = connSource.createStatement()) {
             // enable the exclusive mode and close other connections,
             // so that data can't change while restoring the second database
@@ -120,7 +120,7 @@ public class CreateCluster extends Tool {
             String serverList) throws SQLException {
 
         // Delete the target database first.
-        try (JdbcConnection connTarget = new JdbcConnection(urlTarget + ";CLUSTER=''", null, user, password);
+        try (JdbcConnection connTarget = new JdbcConnection(urlTarget + ";CLUSTER=''", null, user, password, false);
                 Statement statTarget = connTarget.createStatement()) {
             statTarget.execute("DROP ALL OBJECTS DELETE FILES");
         }
@@ -129,7 +129,7 @@ public class CreateCluster extends Tool {
             Future<?> threadFuture = startWriter(pipeReader, statSource);
 
             // Read data from pipe reader, restore on target.
-            try (JdbcConnection connTarget = new JdbcConnection(urlTarget, null, user, password);
+            try (JdbcConnection connTarget = new JdbcConnection(urlTarget, null, user, password, false);
                     Statement statTarget = connTarget.createStatement()) {
                 RunScript.execute(connTarget, pipeReader);
 

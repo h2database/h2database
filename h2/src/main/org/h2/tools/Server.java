@@ -66,6 +66,9 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
      * <td>Start the web server with the H2 Console</td></tr>
      * <tr><td>[-webAllowOthers]</td>
      * <td>Allow other computers to connect - see below</td></tr>
+     * <tr><td>[-webExternalNames &lt;names&gt;]</td>
+     * <td>The comma-separated list of external names and IP addresses of this server,
+     * used together with -webAllowOthers</td></tr>
      * <tr><td>[-webDaemon]</td>
      * <td>Use a daemon thread</td></tr>
      * <tr><td>[-webPort &lt;port&gt;]</td>
@@ -136,7 +139,9 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
                     // ok
                 } else if ("-webAllowOthers".equals(arg)) {
                     // no parameters
-                } else if ("-webDaemon".equals(arg)) {
+                } else if ("-webExternalNames".equals(arg)) {
+                    i++;
+                }  else if ("-webDaemon".equals(arg)) {
                     // no parameters
                 } else if ("-webSSL".equals(arg)) {
                     // no parameters

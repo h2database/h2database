@@ -115,6 +115,8 @@ public class Console extends Tool implements ShutdownHandler {
                 } else if ("-webAllowOthers".equals(arg)) {
                     // no parameters
                     webAllowOthers = true;
+                } else if ("-webExternalNames".equals(arg)) {
+                    i++;
                 } else if ("-webDaemon".equals(arg)) {
                     // no parameters
                 } else if ("-webSSL".equals(arg)) {

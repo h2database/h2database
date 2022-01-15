@@ -159,6 +159,7 @@ public class WebServer implements Service {
     // private URLClassLoader urlClassLoader;
     private int port;
     private boolean allowOthers;
+    private String externalNames;
     private boolean isDaemon;
     private final Set<WebThread> running =
             Collections.synchronizedSet(new HashSet<WebThread>());
@@ -171,6 +172,7 @@ public class WebServer implements Service {
     private final HashSet<String> languages = new HashSet<>();
     private String startDateTime;
     private ServerSocket serverSocket;
+    private String host;
     private String url;
     private ShutdownHandler shutdownHandler;
     private Thread listenerThread;
@@ -318,6 +320,7 @@ public class WebServer implements Service {
                 "webSSL", false);
         allowOthers = SortedProperties.getBooleanProperty(prop,
                 "webAllowOthers", false);
+        externalNames = SortedProperties.getStringProperty(prop, "webExternalNames", null);
         setAdminPassword(SortedProperties.getStringProperty(prop, "webAdminPassword", null));
         commandHistoryString = prop.getProperty(COMMAND_HISTORY);
         for (int i = 0; args != null && i < args.length; i++) {
@@ -328,6 +331,8 @@ public class WebServer implements Service {
                 ssl = true;
             } else if (Tool.isOption(a, "-webAllowOthers")) {
                 allowOthers = true;
+            }  else if (Tool.isOption(a, "-webExternalNames")) {
+                externalNames = args[++i];
             } else if (Tool.isOption(a, "-webDaemon")) {
                 isDaemon = true;
             } else if (Tool.isOption(a, "-baseDir")) {
@@ -374,10 +379,21 @@ public class WebServer implements Service {
         return url;
     }
 
+    /**
+     * @return host name
+     */
+    public String getHost() {
+        if (host == null) {
+            updateURL();
+        }
+        return host;
+    }
+
     private void updateURL() {
         try {
+            host = NetUtils.getLocalAddress();
             StringBuilder builder = new StringBuilder(ssl ? "https" : "http").append("://")
-                    .append(NetUtils.getLocalAddress()).append(':').append(port);
+                    .append(host).append(':').append(port);
             if (key != null && serverSocket != null) {
                 builder.append("?key=").append(key);
             }
@@ -548,6 +564,14 @@ public class WebServer implements Service {
     @Override
     public boolean getAllowOthers() {
         return allowOthers;
+    }
+
+    void setExternalNames(String externalNames) {
+        this.externalNames = externalNames;
+    }
+
+    String getExternalNames() {
+        return externalNames;
     }
 
     void setSSL(boolean b) {
@@ -730,6 +754,9 @@ public class WebServer implements Service {
                         Integer.toString(SortedProperties.getIntProperty(old, "webPort", port)));
                 prop.setProperty("webAllowOthers",
                         Boolean.toString(SortedProperties.getBooleanProperty(old, "webAllowOthers", allowOthers)));
+                if (externalNames != null) {
+                    prop.setProperty("webExternalNames", externalNames);
+                }
                 prop.setProperty("webSSL",
                         Boolean.toString(SortedProperties.getBooleanProperty(old, "webSSL", ssl)));
                 if (adminPassword != null) {

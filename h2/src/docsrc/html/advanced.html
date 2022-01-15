@@ -1354,9 +1354,10 @@ Ensure the existing accessible databases are protected using strong passwords.
 <p>
 If you enable remote access using <code>-webAllowOthers</code>,
 please ensure the web server can only be accessed from trusted networks.
+If this option is specified, <code>-webExternalNames</code> should be also specified with
+comma-separated list of external names or addresses of this server.
 The options <code>-baseDir</code> don't protect
-access to the tools section, prevent remote shutdown of the web server,
-changes to the preferences, the saved connection settings,
+access to the saved connection settings,
 or access to other databases accessible from the system.
 </p>
 

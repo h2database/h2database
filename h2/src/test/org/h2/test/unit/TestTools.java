@@ -538,6 +538,12 @@ public class TestTools extends TestDb {
             assertEquals("08001", e.getSQLState());
             assertEquals("Only java scheme is supported for JNDI lookups", e.getMessage());
         }
+        try {
+            JdbcUtils.getConnection("org.h2.Driver", "jdbc:h2:mem:", "sa", "", null, true);
+            fail("Expected SQLException: " + ErrorCode.REMOTE_DATABASE_NOT_FOUND_1);
+        } catch (SQLException e) {
+            assertEquals(ErrorCode.REMOTE_DATABASE_NOT_FOUND_1, e.getErrorCode());
+        }
     }
 
     private void testWrongServer() throws Exception {

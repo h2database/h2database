@@ -464,7 +464,7 @@ public class GUIConsole extends Console implements ActionListener, MouseListener
         }
         String url = "jdbc:h2:" + path;
         try {
-            new JdbcConnection(url, null, user, password).close();
+            new JdbcConnection(url, null, user, password, false).close();
             errorArea.setForeground(new Color(0, 0x99, 0));
             errorArea.setText("Database was created successfully.\n\n"
                     + "JDBC URL for H2 Console:\n"

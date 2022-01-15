@@ -394,6 +394,7 @@ public class WebApp {
     private String admin() {
         session.put("port", Integer.toString(server.getPort()));
         session.put("allowOthers", Boolean.toString(server.getAllowOthers()));
+        session.put("webExternalNames", server.getExternalNames());
         session.put("ssl", String.valueOf(server.getSSL()));
         session.put("sessions", server.getSessions());
         return "admin.jsp";
@@ -408,6 +409,9 @@ public class WebApp {
             boolean allowOthers = Utils.parseBoolean((String) attributes.get("allowOthers"), false, false);
             prop.setProperty("webAllowOthers", String.valueOf(allowOthers));
             server.setAllowOthers(allowOthers);
+            String externalNames = (String) attributes.get("webExternalNames");
+            prop.setProperty("webExternalNames", externalNames);
+            server.setExternalNames(externalNames);
             boolean ssl = Utils.parseBoolean((String) attributes.get("ssl"), false, false);
             prop.setProperty("webSSL", String.valueOf(ssl));
             server.setSSL(ssl);

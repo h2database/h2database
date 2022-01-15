@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import org.h2.security.AES;
 import org.h2.security.SHA256;
@@ -37,7 +38,7 @@ public class FileEncrypt extends FileBaseDefault {
      */
     static final int HEADER_LENGTH = BLOCK_SIZE;
 
-    private static final byte[] HEADER = "H2encrypt\n".getBytes();
+    private static final byte[] HEADER = "H2encrypt\n".getBytes(StandardCharsets.ISO_8859_1);
     private static final int SALT_POS = HEADER.length;
 
     /**

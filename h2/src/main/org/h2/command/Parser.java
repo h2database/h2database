@@ -1989,6 +1989,10 @@ public class Parser {
             throw getSyntaxError();
         }
         read(CLOSE_PAREN);
+        if (currentSelect != null) {
+            // Lobs aren't copied, so use it for more safety
+            currentSelect.setNeverLazy(true);
+        }
         return new DataChangeDeltaTable(getSchemaWithDefault(), session, statement, resultOption);
     }
 

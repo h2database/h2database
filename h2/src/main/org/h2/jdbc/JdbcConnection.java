@@ -103,12 +103,17 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
      * @param info of this connection
      * @param user of this connection
      * @param password for the user
+     * @param forbidCreation whether database creation is forbidden
      * @throws SQLException on failure
      */
     @SuppressWarnings("resource")
-    public JdbcConnection(String url, Properties info, String user, Object password) throws SQLException {
+    public JdbcConnection(String url, Properties info, String user, Object password, boolean forbidCreation)
+            throws SQLException {
         try {
             ConnectionInfo ci = new ConnectionInfo(url, info, user, password);
+            if (forbidCreation) {
+                ci.setProperty("FORBID_CREATION", "TRUE");
+            }
             String baseDir = SysProperties.getBaseDir();
             if (baseDir != null) {
                 ci.setBaseDir(baseDir);

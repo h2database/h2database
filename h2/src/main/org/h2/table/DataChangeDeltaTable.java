@@ -116,6 +116,7 @@ public class DataChangeDeltaTable extends VirtualConstructedTable {
         statement.prepare();
         int columnCount = expressions.length;
         LocalResult result = new LocalResult(session, expressions, columnCount, columnCount);
+        result.setForDataChangeDeltaTable();
         statement.update(result, resultOption);
         return result;
     }

@@ -183,7 +183,7 @@ class WebThread extends WebApp implements Runnable {
                     message += "Transfer-Encoding: chunked\r\n";
                     message += "\r\n";
                     trace(message);
-                    output.write(message.getBytes());
+                    output.write(message.getBytes(StandardCharsets.ISO_8859_1));
                     while (it.hasNext()) {
                         String s = it.next();
                         s = PageParser.parse(s, session.map);
@@ -191,13 +191,14 @@ class WebThread extends WebApp implements Runnable {
                         if (bytes.length == 0) {
                             continue;
                         }
-                        output.write(Integer.toHexString(bytes.length).getBytes());
-                        output.write("\r\n".getBytes());
+                        output.write(Integer.toHexString(bytes.length).getBytes(StandardCharsets.ISO_8859_1));
+                        output.write(RN);
                         output.write(bytes);
-                        output.write("\r\n".getBytes());
+                        output.write(RN);
                         output.flush();
                     }
-                    output.write("0\r\n\r\n".getBytes());
+                    output.write('0');
+                    output.write(RNRN);
                     output.flush();
                     return keepAlive;
                 }
@@ -216,7 +217,7 @@ class WebThread extends WebApp implements Runnable {
         message += "Content-Length: " + bytes.length + "\r\n";
         message += "\r\n";
         trace(message);
-        output.write(message.getBytes());
+        output.write(message.getBytes(StandardCharsets.ISO_8859_1));
         output.write(bytes);
         output.flush();
         return keepAlive;
@@ -250,6 +251,9 @@ class WebThread extends WebApp implements Runnable {
         int index = host.indexOf(':');
         if (index >= 0) {
             host = host.substring(0, index);
+        }
+        if (host.isEmpty()) {
+            return false;
         }
         if (host.equals(server.getHost()) || host.equals("localhost") || host.equals("127.0.0.1")) {
             return true;

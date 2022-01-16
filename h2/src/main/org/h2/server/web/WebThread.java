@@ -256,6 +256,7 @@ class WebThread extends WebApp implements Runnable {
         if (host.isEmpty()) {
             return false;
         }
+        host = StringUtils.toLowerEnglish(host);
         if (host.equals(server.getHost()) || host.equals("localhost") || host.equals("127.0.0.1")) {
             return true;
         }

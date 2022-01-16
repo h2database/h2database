@@ -40,7 +40,8 @@ Initial Developer: H2 Group
         ${text.adminOthers}<br />
     </p>
     <p>
-        ${text.adminWebExternalNames}: <input type="text" name="webExternalNames" value="${webExternalNames}" />
+        ${text.adminWebExternalNames}:<br/>
+        <input type="text" name="webExternalNames" value="${webExternalNames}" style="width: 320px"/>
     </p>
     <h3>
         ${text.adminConnection}

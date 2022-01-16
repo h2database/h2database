@@ -320,7 +320,7 @@ public class WebServer implements Service {
                 "webSSL", false);
         allowOthers = SortedProperties.getBooleanProperty(prop,
                 "webAllowOthers", false);
-        externalNames = SortedProperties.getStringProperty(prop, "webExternalNames", null);
+        setExternalNames(SortedProperties.getStringProperty(prop, "webExternalNames", null));
         setAdminPassword(SortedProperties.getStringProperty(prop, "webAdminPassword", null));
         commandHistoryString = prop.getProperty(COMMAND_HISTORY);
         for (int i = 0; args != null && i < args.length; i++) {
@@ -332,7 +332,7 @@ public class WebServer implements Service {
             } else if (Tool.isOption(a, "-webAllowOthers")) {
                 allowOthers = true;
             }  else if (Tool.isOption(a, "-webExternalNames")) {
-                externalNames = args[++i];
+                setExternalNames(args[++i]);
             } else if (Tool.isOption(a, "-webDaemon")) {
                 isDaemon = true;
             } else if (Tool.isOption(a, "-baseDir")) {
@@ -391,7 +391,7 @@ public class WebServer implements Service {
 
     private void updateURL() {
         try {
-            host = NetUtils.getLocalAddress();
+            host = StringUtils.toLowerEnglish(NetUtils.getLocalAddress());
             StringBuilder builder = new StringBuilder(ssl ? "https" : "http").append("://")
                     .append(host).append(':').append(port);
             if (key != null && serverSocket != null) {
@@ -567,7 +567,7 @@ public class WebServer implements Service {
     }
 
     void setExternalNames(String externalNames) {
-        this.externalNames = externalNames;
+        this.externalNames = externalNames != null ? StringUtils.toLowerEnglish(externalNames) : null;
     }
 
     String getExternalNames() {

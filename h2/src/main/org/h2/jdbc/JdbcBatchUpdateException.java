@@ -19,6 +19,8 @@ public final class JdbcBatchUpdateException extends BatchUpdateException {
 
     /**
      * INTERNAL
+     * @param next exception
+     * @param updateCounts affected record counts
      */
     JdbcBatchUpdateException(SQLException next, int[] updateCounts) {
         super(next.getMessage(), next.getSQLState(), next.getErrorCode(), updateCounts);
@@ -27,6 +29,8 @@ public final class JdbcBatchUpdateException extends BatchUpdateException {
 
     /**
      * INTERNAL
+     * @param next exception
+     * @param updateCounts affected record counts
      */
     JdbcBatchUpdateException(SQLException next, long[] updateCounts) {
         super(next.getMessage(), next.getSQLState(), next.getErrorCode(), updateCounts, null);

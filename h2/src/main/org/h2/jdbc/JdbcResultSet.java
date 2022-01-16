@@ -196,6 +196,7 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
 
     /**
      * Close the result set. This method also closes the statement if required.
+     * @param fromStatement if true - close statement in the end
      */
     void closeInternal(boolean fromStatement) {
         if (result != null) {

@@ -796,6 +796,7 @@ public class WebServer implements Service {
      * @param userKey the key of privileged user
      * @param networkConnectionInfo the network connection information
      * @return the database connection
+     * @throws SQLException on failure
      */
     Connection getConnection(String driver, String databaseUrl, String user,
             String password, String userKey, NetworkConnectionInfo networkConnectionInfo) throws SQLException {

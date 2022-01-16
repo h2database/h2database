@@ -71,6 +71,7 @@ public class DbProcedure {
      * Read the column for this table from the database meta data.
      *
      * @param meta the database meta data
+     * @throws SQLException on failure
      */
     void readParameters(DatabaseMetaData meta) throws SQLException {
         ResultSet rs = meta.getProcedureColumns(null, schema.name, name, null);

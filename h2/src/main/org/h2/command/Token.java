@@ -43,27 +43,27 @@ public abstract class Token implements Cloneable {
     static final int EQUAL = LITERAL + 1;
 
     /**
-     * The token ">=".
+     * The token "&gt;=".
      */
     static final int BIGGER_EQUAL = EQUAL + 1;
 
     /**
-     * The token ">".
+     * The token "&gt;".
      */
     static final int BIGGER = BIGGER_EQUAL + 1;
 
     /**
-     * The token "<".
+     * The token "&lt;".
      */
     static final int SMALLER = BIGGER + 1;
 
     /**
-     * The token "<=".
+     * The token "&lt;=".
      */
     static final int SMALLER_EQUAL = SMALLER + 1;
 
     /**
-     * The token "<>" or "!=".
+     * The token "&lt;&gt;" or "!=".
      */
     static final int NOT_EQUAL = SMALLER_EQUAL + 1;
 

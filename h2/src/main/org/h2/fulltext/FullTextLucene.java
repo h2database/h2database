@@ -596,6 +596,7 @@ public class FullTextLucene extends FullText {
 
         /**
          * Commit all changes to the Lucene index.
+         * @throws SQLException on failure
          */
         void commitIndex() throws SQLException {
             try {

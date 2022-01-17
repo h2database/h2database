@@ -206,7 +206,7 @@ public class TestScript extends TestDb {
                 "file-read", "file-write", "greatest", "h2version", "identity",
                 "ifnull", "last-insert-id", "least", "link-schema", "lock-mode", "lock-timeout",
                 "memory-free", "memory-used", "nextval", "nullif", "nvl2",
-                "readonly", "rownum", "scope-identity", "session-id",
+                "readonly", "rownum", "session-id",
                 "table", "transaction-id", "trim_array", "truncate-value", "unnest" }) {
             testScript("functions/system/" + s + ".sql");
         }

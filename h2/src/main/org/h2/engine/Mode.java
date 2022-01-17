@@ -478,6 +478,7 @@ public class Mode {
         // Legacy identity and sequence features
         mode.identityClause = true;
         mode.updateSequenceOnManualIdentityInsertion = true;
+        mode.takeInsertedIdentity = true;
         mode.identityColumnsHaveDefaultOnNull = true;
         mode.nextvalAndCurrvalPseudoColumns = true;
         // Legacy DML features

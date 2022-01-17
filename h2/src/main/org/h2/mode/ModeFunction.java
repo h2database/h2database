@@ -49,6 +49,8 @@ public abstract class ModeFunction extends FunctionN {
 
     private static ModeFunction getCompatibilityModeFunction(String name, ModeEnum modeEnum) {
         switch (modeEnum) {
+        case LEGACY:
+            return FunctionsLegacy.getFunction(name);
         case DB2:
         case Derby:
             return FunctionsDB2Derby.getFunction(name);

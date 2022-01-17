@@ -611,7 +611,6 @@ public class Build extends BuildBase {
                 // need to be disabled if not enough memory
                 File.pathSeparator + "src/test" +
                 File.pathSeparator + "src/tools",
-                "-Xdoclint:all,-missing",
                 "-noindex",
                 "-d", "docs/javadocImpl2",
                 "-classpath", javaToolsJar +
@@ -652,6 +651,7 @@ public class Build extends BuildBase {
         javadoc("-sourcepath", "src/main" +
                 File.pathSeparator + "src/test" +
                 File.pathSeparator + "src/tools",
+                "-Xdoclint:all,-missing",
                 "-d", "docs/javadoc",
                 "-classpath", javaToolsJar +
                 File.pathSeparator + "ext/slf4j-api-" + SLF4J_VERSION + ".jar" +

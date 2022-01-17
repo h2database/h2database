@@ -21,6 +21,12 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul>
+<li>Nothing yet...
+</li>
+</ul>
+
+<h2>Version 2.1.210 (2022-01-17)</h2>
+<ul>
 <li>Issue #3376: Data cannot be read after insert of clob data > MAX_LENGTH_INPLACE_LOB with data change delta table
 </li>
 <li>PR #3377: Add -webExternalNames setting and fix WebServer.getConnection()
@@ -1237,66 +1243,6 @@ that removes ambiguities
 <li>PR #1817: Assorted minor changes in documentation and other places
 </li>
 <li>PR #1812: An IllegalStateException that wraps EOFException is thrown when partial writes happens
-</li>
-</ul>
-
-<h2>Version 1.4.199 (2019-03-13)</h2>
-<ul>
-<li>PR #1807: Reduce code duplication and remove h2.mixedGeometries
-</li>
-<li>PR #1806: Improve SELECT FOR UPDATE documentation
-</li>
-<li>PR #1804: Lift limit of 10 characters on enum value (1.4.198 regression)
-</li>
-<li>PR #1803: Do not rely on index sorting in SELECT FOR UPDATE
-</li>
-<li>Issue #1800: Remove experimental status from window functions
-</li>
-<li>PR #1799: Fire triggers after row locking and remove some leftovers
-</li>
-<li>PR #1798: Reuse some string builders, remove StatementBuilder and other minor changes
-</li>
-<li>Issue #1795: 1.4.198 regression with batch updates and transactions
-</li>
-<li>PR #1794: Ask password in Shell in secure way and improve database creation information in tutorial
-</li>
-<li>PR #1791: Move commands to commands.html and other changes
-</li>
-<li>Issue #1774: H2 Browser configuration is unclear and fails on KUbuntu
-</li>
-<li>PR #1790: Do not convert standard TRIM function to non-standard functions
-</li>
-<li>Issue #1787: Non-standard MERGE throws LOCK_TIMEOUT_1 on violation of some constraints
-</li>
-<li>PR #1784: improve database not found error
-</li>
-<li>Issue #1740: Enhancement Request: h2 server: do not swallow exceptions
-</li>
-<li>Issue #1616: Metadata and scripts should be persisted with unconditionally quoted identifiers
-</li>
-<li>PR #1779: Improve isSimpleIdentifier() and enquoteIdentifier()
-</li>
-<li> PR #1776: Improve DATABASE_TO_LOWER handling
-</li>
-<li>Issue #1771: NPE in Comparison.createIndexConditions
-</li>
-<li>PR #1772: Fix newlines in test scripts
-</li>
-<li>Issue #1762: NullPointerException in Parser. Introduced in 1.4.198
-</li>
-<li>PR #1768: Add more context-sensitive keywords
-</li>
-<li>Issue #1758: sequence restart issue with 1.4.198
-</li>
-<li>Issue #1759: SELECT &#8230; FOR UPDATE returns old data in 1.4.198
-</li>
-<li>PR #1756: Fix DISTINCT ON in presence of ORDER BY
-</li>
-<li>PR #1754: Fix window functions in JOIN with ON condition
-</li>
-<li>Issue #1751: making it easier to open console and create local databases
-</li>
-<li>Issue #1750: JOIN t ON t.col IN (SELECT ...) throws AssertionError
 </li>
 </ul>
 

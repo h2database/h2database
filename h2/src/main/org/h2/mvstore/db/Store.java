@@ -48,7 +48,7 @@ public final class Store {
     static char[] decodePassword(byte[] key) {
         char[] password = new char[key.length / 2];
         for (int i = 0; i < password.length; i++) {
-            password[i] = (char) (((key[i + i] & 255) << 16) | ((key[i + i + 1]) & 255));
+            password[i] = (char) (((key[i + i] & 255) << 16) | (key[i + i + 1] & 255));
         }
         return password;
     }

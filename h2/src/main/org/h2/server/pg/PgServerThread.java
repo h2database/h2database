@@ -705,7 +705,7 @@ public final class PgServerThread implements Runnable {
             }
             case PgServer.PG_TYPE_DATE:
                 writeInt(4);
-                writeInt((int) (toPostgreDays(((ValueDate) v).getDateValue())));
+                writeInt((int) toPostgreDays(((ValueDate) v).getDateValue()));
                 break;
             case PgServer.PG_TYPE_TIME:
                 writeTimeBinary(((ValueTime) v).getNanos(), 8);

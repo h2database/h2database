@@ -112,7 +112,7 @@ public final class ValueTime extends Value {
 
     @Override
     public boolean equals(Object other) {
-        return this == other || other instanceof ValueTime && nanos == (((ValueTime) other).nanos);
+        return this == other || other instanceof ValueTime && nanos == ((ValueTime) other).nanos;
     }
 
     @Override

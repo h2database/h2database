@@ -331,7 +331,7 @@ public final class DataUtils {
                 buff.put((byte) c);
             } else if (c >= 0x800) {
                 buff.put((byte) (0xe0 | (c >> 12)));
-                buff.put((byte) (((c >> 6) & 0x3f)));
+                buff.put((byte) ((c >> 6) & 0x3f));
                 buff.put((byte) (c & 0x3f));
             } else {
                 buff.put((byte) (0xc0 | (c >> 6)));

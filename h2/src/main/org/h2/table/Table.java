@@ -760,7 +760,7 @@ public abstract class Table extends SchemaObject {
      * Get the column with the given name.
      *
      * @param columnName the column name
-     * @param ifExists if (@code true) return {@code null} if column does not exist
+     * @param ifExists if {@code true} return {@code null} if column does not exist
      * @return the column
      * @throws DbException if the column was not found
      */

@@ -5,6 +5,7 @@
  */
 package org.h2.security.auth.impl;
 
+import java.nio.charset.StandardCharsets;
 import java.util.regex.Pattern;
 
 import org.h2.api.CredentialsValidator;
@@ -36,7 +37,7 @@ public class StaticUserCredentialsValidator implements CredentialsValidator {
             this.userNamePattern=Pattern.compile(userNamePattern.toUpperCase());
         }
         salt=MathUtils.secureRandomBytes(256);
-        hashWithSalt=SHA256.getHashWithSalt(password.getBytes(), salt);
+        hashWithSalt=SHA256.getHashWithSalt(password.getBytes(StandardCharsets.UTF_8), salt);
     }
 
     @Override
@@ -50,7 +51,7 @@ public class StaticUserCredentialsValidator implements CredentialsValidator {
             return password.equals(authenticationInfo.getPassword());
         }
         return Utils.compareSecure(hashWithSalt,
-                SHA256.getHashWithSalt(authenticationInfo.getPassword().getBytes(), salt));
+                SHA256.getHashWithSalt(authenticationInfo.getPassword().getBytes(StandardCharsets.UTF_8), salt));
     }
 
     @Override

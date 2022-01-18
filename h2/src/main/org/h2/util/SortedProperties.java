@@ -16,12 +16,12 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.TreeMap;
-import java.util.Vector;
 import org.h2.store.fs.FileUtils;
 
 /**
@@ -34,12 +34,12 @@ public class SortedProperties extends Properties {
 
     @Override
     public synchronized Enumeration<Object> keys() {
-        Vector<String> v = new Vector<>();
+        ArrayList<Object> v = new ArrayList<>();
         for (Object o : keySet()) {
             v.add(o.toString());
         }
-        Collections.sort(v);
-        return new Vector<Object>(v).elements();
+        v.sort(null);
+        return Collections.enumeration(v);
     }
 
     /**
@@ -102,7 +102,7 @@ public class SortedProperties extends Properties {
         SortedProperties prop = new SortedProperties();
         if (FileUtils.exists(fileName)) {
             try (InputStream in = FileUtils.newInputStream(fileName)) {
-                prop.load(in);
+                prop.load(new InputStreamReader(in, StandardCharsets.ISO_8859_1));
             }
         }
         return prop;
@@ -122,7 +122,7 @@ public class SortedProperties extends Properties {
         LineNumberReader r = new LineNumberReader(reader);
         Writer w;
         try {
-            w = new OutputStreamWriter(FileUtils.newOutputStream(fileName, false));
+            w = new OutputStreamWriter(FileUtils.newOutputStream(fileName, false), StandardCharsets.ISO_8859_1);
         } catch (Exception e) {
             throw new IOException(e.toString(), e);
         }

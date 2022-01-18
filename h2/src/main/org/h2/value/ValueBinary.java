@@ -22,7 +22,7 @@ public final class ValueBinary extends ValueBytesBase {
      */
     private TypeInfo type;
 
-    protected ValueBinary(byte[] value) {
+    private ValueBinary(byte[] value) {
         super(value);
         int length = value.length;
         if (length > Constants.MAX_STRING_LENGTH) {

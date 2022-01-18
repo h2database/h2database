@@ -347,7 +347,7 @@ public class StringUtils {
                         throw getFormatException(s, i);
                     }
                     try {
-                        c = (char) (Integer.parseInt(s.substring(i + 1, i + 5), 16));
+                        c = (char) Integer.parseInt(s.substring(i + 1, i + 5), 16);
                     } catch (NumberFormatException e) {
                         throw getFormatException(s, i);
                     }
@@ -358,7 +358,7 @@ public class StringUtils {
                 default:
                     if (c >= '0' && c <= '9' && i + 2 < length) {
                         try {
-                            c = (char) (Integer.parseInt(s.substring(i, i + 3), 8));
+                            c = (char) Integer.parseInt(s.substring(i, i + 3), 8);
                         } catch (NumberFormatException e) {
                             throw getFormatException(s, i);
                         }

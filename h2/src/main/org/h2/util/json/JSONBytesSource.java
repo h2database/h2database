@@ -169,7 +169,7 @@ public final class JSONBytesSource extends JSONTextSource {
                 index = skipInt(index, false);
             }
         }
-        target.valueNumber(new BigDecimal(new String(bytes, start, index - start)));
+        target.valueNumber(new BigDecimal(new String(bytes, start, index - start, StandardCharsets.ISO_8859_1)));
         this.index = index;
     }
 
@@ -241,7 +241,7 @@ public final class JSONBytesSource extends JSONTextSource {
         }
         int ch;
         try {
-            ch = Integer.parseInt(new String(bytes, index, 4), 16);
+            ch = Integer.parseInt(new String(bytes, index, 4, StandardCharsets.ISO_8859_1), 16);
         } catch (NumberFormatException e) {
             throw new IllegalArgumentException();
         }

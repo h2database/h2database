@@ -19,7 +19,7 @@ public final class ValueJavaObject extends ValueBytesBase {
 
     private static final ValueJavaObject EMPTY = new ValueJavaObject(Utils.EMPTY_BYTES);
 
-    protected ValueJavaObject(byte[] v) {
+    private ValueJavaObject(byte[] v) {
         super(v);
         int length = value.length;
         if (length > Constants.MAX_STRING_LENGTH) {

@@ -641,12 +641,12 @@ public class Parser {
         Prepared p;
         try {
             // first, try the fast variant
-            p = parse(sql, false);
+            p = parse(false);
         } catch (DbException e) {
             if (e.getErrorCode() == ErrorCode.SYNTAX_ERROR_1) {
                 // now, get the detailed exception
                 resetTokenIndex();
-                p = parse(sql, true);
+                p = parse(true);
             } else {
                 throw e.addSQL(sql);
             }
@@ -656,7 +656,7 @@ public class Parser {
         return p;
     }
 
-    private Prepared parse(String sql, boolean withExpectedList) {
+    private Prepared parse(boolean withExpectedList) {
         if (withExpectedList) {
             expectedList = new ArrayList<>();
         } else {
@@ -5437,7 +5437,7 @@ public class Parser {
             break;
         case 'U':
             if (currentTokenType == LITERAL && token.value(session).getValueType() == Value.VARCHAR
-                    && (equalsToken("UUID", name))) {
+                    && equalsToken("UUID", name)) {
                 String uuid = token.value(session).getString();
                 read();
                 return ValueExpression.get(ValueUuid.get(uuid));

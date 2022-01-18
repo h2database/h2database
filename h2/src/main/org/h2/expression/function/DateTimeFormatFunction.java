@@ -262,7 +262,7 @@ public final class DateTimeFormatFunction extends FunctionN {
                         ZoneId zoneId;
                         if (timeZone != null) {
                             zoneId = getZoneId(timeZone);
-                            df.withZone(zoneId);
+                            df = df.withZone(zoneId);
                         } else {
                             zoneId = null;
                         }

@@ -310,7 +310,7 @@ public class MultiDimension implements Comparator<long[]> {
     }
 
     private static int roundUp(int x, int blockSizePowerOf2) {
-        return (x + blockSizePowerOf2 - 1) & (-blockSizePowerOf2);
+        return (x + blockSizePowerOf2 - 1) & -blockSizePowerOf2;
     }
 
     private static int findMiddle(int a, int b) {

@@ -630,7 +630,7 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
      * at the end of the current transaction.
      * @param id to be scheduled
      */
-    protected void scheduleDatabaseObjectIdForRelease(int id) {
+    void scheduleDatabaseObjectIdForRelease(int id) {
         if (idsToRelease == null) {
             idsToRelease = new BitSet();
         }

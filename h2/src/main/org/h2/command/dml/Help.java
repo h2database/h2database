@@ -9,6 +9,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 import java.sql.ResultSet;
 
 import org.h2.command.CommandInterface;
@@ -127,7 +128,8 @@ public class Help extends Prepared {
      *             on I/O exception
      */
     public static ResultSet getTable() throws IOException {
-        Reader reader = new InputStreamReader(new ByteArrayInputStream(Utils.getResource("/org/h2/res/help.csv")));
+        Reader reader = new InputStreamReader(new ByteArrayInputStream(Utils.getResource("/org/h2/res/help.csv")),
+                StandardCharsets.UTF_8);
         Csv csv = new Csv();
         csv.setLineCommentCharacter('#');
         return csv.read(reader, null);

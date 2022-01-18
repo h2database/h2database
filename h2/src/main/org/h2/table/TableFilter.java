@@ -964,7 +964,7 @@ public class TableFilter implements ColumnResolver {
      * @param columnName
      *            the column name
      * @param ifExists
-     *            if (@code true) return {@code null} if column does not exist
+     *            if {@code true} return {@code null} if column does not exist
      * @return the column
      * @throws DbException
      *             if the column was not found and {@code ifExists} is

@@ -94,7 +94,7 @@ public final class Trace {
     /**
      * Module names by their ids as array indexes.
      */
-    public static final String[] MODULE_NAMES = {
+    static final String[] MODULE_NAMES = {
         "command",
         "constraint",
         "database",

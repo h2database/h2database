@@ -27,7 +27,7 @@ public final class ValueVarbinary extends ValueBytesBase {
      */
     private TypeInfo type;
 
-    protected ValueVarbinary(byte[] value) {
+    private ValueVarbinary(byte[] value) {
         super(value);
         int length = value.length;
         if (length > Constants.MAX_STRING_LENGTH) {

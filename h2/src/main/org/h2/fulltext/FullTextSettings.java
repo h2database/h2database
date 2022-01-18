@@ -203,8 +203,7 @@ final class FullTextSettings {
      * @return the prepared statement
      * @throws SQLException on failure
      */
-    synchronized PreparedStatement prepare(Connection conn, String sql)
-            throws SQLException {
+    synchronized PreparedStatement prepare(Connection conn, String sql) throws SQLException {
         SoftValuesHashMap<String, PreparedStatement> c = cache.get(conn);
         if (c == null) {
             c = new SoftValuesHashMap<>();
@@ -224,7 +223,7 @@ final class FullTextSettings {
     /**
      * Remove all indexes from the settings.
      */
-    protected void removeAllIndexes() {
+    void removeAllIndexes() {
         indexes.clear();
     }
 
@@ -233,7 +232,7 @@ final class FullTextSettings {
      *
      * @param index the index to remove
      */
-    protected void removeIndexInfo(IndexInfo index) {
+    void removeIndexInfo(IndexInfo index) {
         indexes.remove(index.id);
     }
 
@@ -242,7 +241,7 @@ final class FullTextSettings {
      *
      * @param b the new value
      */
-    protected void setInitialized(boolean b) {
+    void setInitialized(boolean b) {
         this.initialized = b;
     }
 
@@ -251,24 +250,24 @@ final class FullTextSettings {
      *
      * @return whether this instance is initialized
      */
-    protected boolean isInitialized() {
+    boolean isInitialized() {
         return initialized;
     }
 
     /**
      * Close all fulltext settings, freeing up memory.
      */
-    protected static void closeAll() {
+    static void closeAll() {
         synchronized (SETTINGS) {
             SETTINGS.clear();
         }
     }
 
-    protected void setWhitespaceChars(String whitespaceChars) {
+    void setWhitespaceChars(String whitespaceChars) {
         this.whitespaceChars = whitespaceChars;
     }
 
-    protected String getWhitespaceChars() {
+    String getWhitespaceChars() {
         return whitespaceChars;
     }
 

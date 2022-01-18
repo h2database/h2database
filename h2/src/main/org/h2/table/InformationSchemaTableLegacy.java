@@ -9,6 +9,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.Types;
@@ -1166,8 +1167,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
             String resource = "/org/h2/res/help.csv";
             try {
                 final byte[] data = Utils.getResource(resource);
-                final Reader reader = new InputStreamReader(
-                        new ByteArrayInputStream(data));
+                final Reader reader = new InputStreamReader(new ByteArrayInputStream(data), StandardCharsets.UTF_8);
                 final Csv csv = new Csv();
                 csv.setLineCommentCharacter('#');
                 final ResultSet rs = csv.read(reader, null);

@@ -51,7 +51,7 @@ public final class ValueUuid extends Value {
         long high = MathUtils.secureRandomLong();
         long low = MathUtils.secureRandomLong();
         // version 4 (random)
-        high = (high & (~0xf000L)) | 0x4000L;
+        high = (high & ~0xf000L) | 0x4000L;
         // variant (Leach-Salz)
         low = (low & 0x3fff_ffff_ffff_ffffL) | 0x8000_0000_0000_0000L;
         return new ValueUuid(high, low);

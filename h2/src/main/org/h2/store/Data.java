@@ -72,7 +72,7 @@ public class Data {
                 buff[p++] = (byte) c;
             } else if (c >= 0x800) {
                 buff[p++] = (byte) (0xe0 | (c >> 12));
-                buff[p++] = (byte) (((c >> 6) & 0x3f));
+                buff[p++] = (byte) ((c >> 6) & 0x3f);
                 buff[p++] = (byte) (c & 0x3f);
             } else {
                 buff[p++] = (byte) (0xc0 | (c >> 6));

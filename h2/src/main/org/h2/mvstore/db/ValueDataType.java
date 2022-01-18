@@ -528,7 +528,7 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
                 ordinal = ~ordinal;
             }
             buff.put(INTERVAL).
-                put((byte) (ordinal)).
+                put((byte) ordinal).
                 putVarLong(interval.getLeading()).
                 putVarLong(interval.getRemaining());
             break;

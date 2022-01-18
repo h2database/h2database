@@ -84,7 +84,8 @@ public class SettingsBase {
         }
         StringBuilder buff = new StringBuilder("h2.");
         boolean nextUpper = false;
-        for (char c : key.toCharArray()) {
+        for (int i = 0, l = key.length(); i < l; i++) {
+            char c = key.charAt(i);
             if (c == '_') {
                 nextUpper = true;
             } else {

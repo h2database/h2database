@@ -588,7 +588,7 @@ public final class PgCatalogTable extends MetaTable {
         int tableId = table.getId();
         for (int i = 0; i < cols.length;) {
             Column column = cols[i++];
-            addAttribute(session, rows, tableId * 10_000 + i, tableId, table, column, i);
+            addAttribute(session, rows, tableId * 10_000 + i, tableId, column, i);
         }
         for (Index index : table.getIndexes()) {
             if (index.getCreateSQL() == null) {
@@ -598,8 +598,7 @@ public final class PgCatalogTable extends MetaTable {
             for (int i = 0; i < cols.length;) {
                 Column column = cols[i++];
                 int indexId = index.getId();
-                addAttribute(session, rows, 1_000_000 * indexId + tableId * 10_000 + i, indexId, table, column,
-                        i);
+                addAttribute(session, rows, 1_000_000 * indexId + tableId * 10_000 + i, indexId, column, i);
             }
         }
     }
@@ -656,7 +655,7 @@ public final class PgCatalogTable extends MetaTable {
         }
     }
 
-    private void addAttribute(SessionLocal session, ArrayList<Row> rows, int id, int relId, Table table, Column column,
+    private void addAttribute(SessionLocal session, ArrayList<Row> rows, int id, int relId, Column column,
             int ordinal) {
         long precision = column.getType().getPrecision();
         add(session, rows,

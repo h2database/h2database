@@ -77,7 +77,7 @@ public final class JdbcConnectionPool
     private AtomicInteger activeConnections = new AtomicInteger();
     private AtomicBoolean isDisposed = new AtomicBoolean();
 
-    protected JdbcConnectionPool(ConnectionPoolDataSource dataSource) {
+    private JdbcConnectionPool(ConnectionPoolDataSource dataSource) {
         this.dataSource = dataSource;
         if (dataSource != null) {
             try {

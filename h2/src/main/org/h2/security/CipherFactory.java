@@ -141,7 +141,6 @@ public class CipherFactory {
      */
     public static ServerSocket createServerSocket(int port,
             InetAddress bindAddress) throws IOException {
-        ServerSocket socket = null;
         if (SysProperties.ENABLE_ANONYMOUS_TLS) {
             removeAnonFromLegacyAlgorithms();
         }
@@ -161,9 +160,7 @@ public class CipherFactory {
                     secureSocket.getSupportedCipherSuites());
             secureSocket.setEnabledCipherSuites(list);
         }
-
-        socket = secureSocket;
-        return socket;
+        return secureSocket;
     }
 
     /**

@@ -7,11 +7,16 @@ package org.h2.security.auth;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.StringReader;
 import java.net.URL;
+
+import javax.xml.XMLConstants;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
+
 import org.xml.sax.Attributes;
+import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
@@ -67,6 +72,11 @@ public class H2AuthConfigXml extends DefaultHandler{
         }
     }
 
+    @Override
+    public InputSource resolveEntity(String publicId, String systemId) throws IOException, SAXException {
+        return new InputSource(new StringReader(""));
+    }
+
     private static String getMandatoryAttributeValue(String attributeName, Attributes attributes) throws SAXException {
         String attributeValue=attributes.getValue(attributeName);
         if (attributeValue==null || attributeValue.trim().equals("")) {
@@ -120,7 +130,13 @@ public class H2AuthConfigXml extends DefaultHandler{
      */
     public static H2AuthConfig parseFrom(InputStream inputStream)
             throws SAXException, IOException, ParserConfigurationException {
-        SAXParser saxParser = SAXParserFactory.newInstance().newSAXParser();
+        SAXParserFactory spf = SAXParserFactory.newInstance();
+        spf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+        spf.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+        spf.setFeature("http://xml.org/sax/features/external-general-entities", false);
+        spf.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+        spf.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+        SAXParser saxParser = spf.newSAXParser();
         H2AuthConfigXml xmlHandler = new H2AuthConfigXml();
         saxParser.parse(inputStream, xmlHandler);
         return xmlHandler.getResult();

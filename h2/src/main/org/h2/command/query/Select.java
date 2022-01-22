@@ -1158,14 +1158,7 @@ public class Select extends Query {
     }
 
     @Override
-    public void prepare() {
-        if (isPrepared) {
-            // sometimes a subquery is prepared twice (CREATE TABLE AS SELECT)
-            return;
-        }
-        if (!checkInit) {
-            throw DbException.getInternalError("not initialized");
-        }
+    void doPrepare() {
         if (orderList != null) {
             prepareOrder(orderList, expressions.size());
         }
@@ -1271,7 +1264,6 @@ public class Select extends Query {
             }
         }
         expressionArray = expressions.toArray(new Expression[0]);
-        isPrepared = true;
     }
 
     private void optimizeExpressionsAndPreserveAliases() {

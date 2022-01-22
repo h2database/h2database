@@ -106,7 +106,7 @@ public final class Delete extends FilteredDataChangeStatement {
     }
 
     @Override
-    public void prepare() {
+    void doPrepare() {
         if (condition != null) {
             condition.mapColumns(targetTableFilter, 0, Expression.MAP_INITIAL);
             condition = condition.optimizeCondition(session);
@@ -137,4 +137,5 @@ public final class Delete extends FilteredDataChangeStatement {
             condition.isEverything(visitor);
         }
     }
+
 }

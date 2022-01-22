@@ -246,15 +246,7 @@ public class SelectUnion extends Query {
     }
 
     @Override
-    public void prepare() {
-        if (isPrepared) {
-            // sometimes a subquery is prepared twice (CREATE TABLE AS SELECT)
-            return;
-        }
-        if (!checkInit) {
-            throw DbException.getInternalError("not initialized");
-        }
-        isPrepared = true;
+    void doPrepare() {
         left.prepare();
         right.prepare();
         int len = left.getColumnCount();

@@ -280,7 +280,7 @@ public final class Insert extends CommandWithValues implements ResultTarget {
     }
 
     @Override
-    public void prepare() {
+    void doPrepare() {
         if (columns == null) {
             if (!valuesExpressionList.isEmpty() && valuesExpressionList.get(0).length == 0) {
                 // special case where table is used as a sequence
@@ -452,4 +452,5 @@ public final class Insert extends CommandWithValues implements ResultTarget {
             query.isEverything(visitor);
         }
     }
+
 }

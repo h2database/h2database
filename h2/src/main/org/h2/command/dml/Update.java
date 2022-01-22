@@ -131,7 +131,7 @@ public final class Update extends FilteredDataChangeStatement {
     }
 
     @Override
-    public void prepare() {
+    void doPrepare() {
         if (fromTableFilter != null) {
             targetTableFilter.addJoin(fromTableFilter, false, null);
         }

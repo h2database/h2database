@@ -149,7 +149,7 @@ public abstract class Query extends Prepared {
 
     boolean checkInit;
 
-    boolean isPrepared;
+    private boolean isPrepared;
 
     Query(SessionLocal session) {
         super(session);
@@ -206,6 +206,20 @@ public abstract class Query extends Prepared {
      * Initialize the query.
      */
     public abstract void init();
+
+    @Override
+    public final void prepare() {
+        if (!checkInit) {
+            throw DbException.getInternalError("not initialized");
+        }
+        if (isPrepared) {
+            return;
+        }
+        doPrepare();
+        isPrepared = true;
+    }
+
+    abstract void doPrepare();
 
     /**
      * The the list of select expressions.

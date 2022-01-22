@@ -17,6 +17,8 @@ import org.h2.table.Table;
  */
 public abstract class DataChangeStatement extends Prepared {
 
+    private boolean isPrepared;
+
     /**
      * Creates new instance of DataChangeStatement.
      *
@@ -26,6 +28,17 @@ public abstract class DataChangeStatement extends Prepared {
     protected DataChangeStatement(SessionLocal session) {
         super(session);
     }
+
+    @Override
+    public final void prepare() {
+        if (isPrepared) {
+            return;
+        }
+        doPrepare();
+        isPrepared = true;
+    }
+
+    abstract void doPrepare();
 
     /**
      * Return the name of this statement.

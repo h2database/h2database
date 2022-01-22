@@ -259,7 +259,7 @@ public final class Merge extends CommandWithValues {
     }
 
     @Override
-    public void prepare() {
+    void doPrepare() {
         if (columns == null) {
             if (!valuesExpressionList.isEmpty() && valuesExpressionList.get(0).length == 0) {
                 // special case where table is used as a sequence
@@ -345,4 +345,5 @@ public final class Merge extends CommandWithValues {
             query.collectDependencies(dependencies);
         }
     }
+
 }

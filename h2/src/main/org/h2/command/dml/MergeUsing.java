@@ -188,7 +188,7 @@ public final class MergeUsing extends DataChangeStatement {
     }
 
     @Override
-    public void prepare() {
+    void doPrepare() {
         onCondition.addFilterConditions(sourceTableFilter);
         onCondition.addFilterConditions(targetTableFilter);
 

@@ -494,7 +494,7 @@ public class TableView extends Table {
      * @param owner the owner of the query
      * @param name the view name
      * @param columnTemplates column templates, or {@code null}
-     * @param query the query
+     * @param query the prepared query
      * @param topQuery the top level query
      * @return the view table
      */

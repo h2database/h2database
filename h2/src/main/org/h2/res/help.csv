@@ -5680,7 +5680,7 @@ CALL TRANSLATE('Hello world', 'eo', 'EO')
 "
 
 "Functions (Time and Date)","CURRENT_DATE","
-CURRENT_DATE | @c@ { CURDATE() | SYSDATE | TODAY }
+CURRENT_DATE
 ","
 Returns the current date.
 
@@ -5733,7 +5733,7 @@ CURRENT_TIMESTAMP(9)
 "
 
 "Functions (Time and Date)","LOCALTIME","
-LOCALTIME [ (int) ] | @c@ CURTIME([ int ])
+LOCALTIME [ (int) ]
 ","
 Returns the current time without time zone.
 If fractional seconds precision is specified it should be from 0 to 9, 0 is default.
@@ -5752,7 +5752,7 @@ LOCALTIME(9)
 "
 
 "Functions (Time and Date)","LOCALTIMESTAMP","
-LOCALTIMESTAMP [ (int) ] | @c@ NOW( [ int ] )
+LOCALTIMESTAMP [ (int) ]
 ","
 Returns the current timestamp without time zone.
 If fractional seconds precision is specified it should be from 0 to 9, 6 is default.

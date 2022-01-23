@@ -3957,16 +3957,27 @@ public class Parser {
             return new CurrentGeneralValueSpecification(CurrentGeneralValueSpecification.CURRENT_CATALOG);
         // CURRENT_DATE
         case "CURDATE":
-        case "SYSDATE":
-        case "TODAY":
             return readCurrentDateTimeValueFunction(CurrentDateTimeValueFunction.CURRENT_DATE, true, name);
+        case "TODAY":
+            read(CLOSE_PAREN);
+            return ModeFunction.getCompatibilityDateTimeValueFunction(database, "TODAY", -1);
         // CURRENT_SCHEMA
         case "SCHEMA":
             read(CLOSE_PAREN);
             return new CurrentGeneralValueSpecification(CurrentGeneralValueSpecification.CURRENT_SCHEMA);
         // CURRENT_TIMESTAMP
-        case "SYSTIMESTAMP":
-            return readCurrentDateTimeValueFunction(CurrentDateTimeValueFunction.CURRENT_TIMESTAMP, true, name);
+        case "SYSTIMESTAMP": {
+            int scale = -1;
+            if (!readIf(CLOSE_PAREN)) {
+                scale = readInt();
+                if (scale < 0 || scale > ValueTime.MAXIMUM_SCALE) {
+                    throw DbException.get(ErrorCode.INVALID_VALUE_SCALE, Integer.toString(scale), "0",
+                            /* compile-time constant */ "" + ValueTime.MAXIMUM_SCALE);
+                }
+                read(CLOSE_PAREN);
+            }
+            return ModeFunction.getCompatibilityDateTimeValueFunction(database, "SYSTIMESTAMP", scale);
+        }
         // EXTRACT
         case "DAY":
         case "DAY_OF_MONTH":
@@ -4007,12 +4018,12 @@ public class Parser {
         // LOCALTIME
         case "CURTIME":
             return readCurrentDateTimeValueFunction(CurrentDateTimeValueFunction.LOCALTIME, true, "CURTIME");
-        case "SYSTIME":
-            read(CLOSE_PAREN);
-            return readCurrentDateTimeValueFunction(CurrentDateTimeValueFunction.LOCALTIME, false, "SYSTIME");
         // LOCALTIMESTAMP
         case "NOW":
             return readCurrentDateTimeValueFunction(CurrentDateTimeValueFunction.LOCALTIMESTAMP, true, "NOW");
+        case "SYSDATE":
+            read(CLOSE_PAREN);
+            return ModeFunction.getCompatibilityDateTimeValueFunction(database, "SYSDATE", -1);
         // LOCATE
         case "INSTR": {
             Expression arg1 = readExpression();
@@ -7464,8 +7475,8 @@ public class Parser {
         synchronized (session) {
             view = new TableView(schema, id, cteViewName, querySQL,
                     parameters, columnTemplateArray, session,
-                    allowRecursiveQueryDetection, false /* literalsChecked */, true /* isTableExpression */,
-                    isTemporary);
+                    allowRecursiveQueryDetection, false, true,
+                    isTemporary, false);
             if (!view.isRecursiveQueryDetected() && allowRecursiveQueryDetection) {
                 if (!isTemporary) {
                     database.addSchemaObject(session, view);
@@ -7476,8 +7487,8 @@ public class Parser {
                 }
                 view = new TableView(schema, id, cteViewName, querySQL, parameters,
                         columnTemplateArray, session,
-                        false/* assume recursive */, false /* literalsChecked */, true /* isTableExpression */,
-                        isTemporary);
+                        false/* assume recursive */, false, true,
+                        isTemporary, false);
             }
             // both removeSchemaObject and removeLocalTempTable hold meta locks
             database.unlockMeta(session);

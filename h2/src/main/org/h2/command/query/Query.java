@@ -997,6 +997,7 @@ public abstract class Query extends Prepared {
         if (!checkInit) {
             init();
         }
+        prepare();
         return TableView.createTempView(forCreateView ? session.getDatabase().getSystemSession() : session,
                 session.getUser(), alias, columnTemplates, this, topQuery);
     }

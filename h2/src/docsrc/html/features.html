@@ -884,6 +884,7 @@ It means a NULL value may be specified for this column in INSERT command and it 
 will create an UNIQUE constraint on them automatically.
 </li><li>Unsafe comparison operators between numeric and boolean values are allowed.
 </li><li>IDENTITY() and SCOPE_IDENTITY() are supported, but both are implemented like SCOPE_IDENTITY()
+</li><li>SYSDATE, SYSTIMESTAMP, and TODAY are supported.
 </li></ul>
 
 <h3>DB2 Compatibility Mode</h3>
@@ -929,6 +930,7 @@ or the SQL statement <code>SET MODE HSQLDB</code>.
 </li><li>LIMIT / OFFSET clauses are supported.
 </li><li>MINUS can be used instead of EXCEPT.
 </li><li>Unsafe comparison operators between numeric and boolean values are allowed.
+</li><li>SYSDATE and TODAY are supported.
 </li></ul>
 
 <h3>MS SQL Server Compatibility Mode</h3>
@@ -1058,6 +1060,7 @@ or the SQL statement <code>SET MODE Oracle</code>.
 </li><li>SEQUENCE.NEXTVAL and SEQUENCE.CURRVAL are supported and return values with DECIMAL/NUMERIC data type.
 </li><li>Merge when matched clause may have WHERE clause.
 </li><li>MINUS can be used instead of EXCEPT.
+</li><li>SYSDATE and SYSTIMESTAMP are supported.
 </li></ul>
 
 <h3>PostgreSQL Compatibility Mode</h3>

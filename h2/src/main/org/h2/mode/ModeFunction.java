@@ -11,6 +11,7 @@ import org.h2.engine.Mode.ModeEnum;
 import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
+import org.h2.expression.function.CurrentDateTimeValueFunction;
 import org.h2.expression.function.FunctionN;
 import org.h2.message.DbException;
 import org.h2.value.Value;
@@ -67,6 +68,43 @@ public abstract class ModeFunction extends FunctionN {
         }
     }
 
+    /**
+     * Get an instance of the given function without parentheses for this
+     * database. If no function with this name is found, null is returned.
+     *
+     * @param database the database
+     * @param name the upper case function name
+     * @param scale the scale, or {@code -1}
+     * @return the function object or null
+     */
+    @SuppressWarnings("incomplete-switch")
+    public static Expression getCompatibilityDateTimeValueFunction(Database database, String name, int scale) {
+        switch (name) {
+        case "SYSDATE":
+            switch (database.getMode().getEnum()) {
+            case LEGACY:
+            case HSQLDB:
+            case Oracle:
+                return new CompatibilityDateTimeValueFunction(CompatibilityDateTimeValueFunction.SYSDATE, -1);
+            }
+            break;
+        case "SYSTIMESTAMP":
+            switch (database.getMode().getEnum()) {
+            case LEGACY:
+            case Oracle:
+                return new CompatibilityDateTimeValueFunction(CompatibilityDateTimeValueFunction.SYSTIMESTAMP, scale);
+            }
+            break;
+        case "TODAY":
+            switch (database.getMode().getEnum()) {
+            case LEGACY:
+            case HSQLDB:
+                return new CurrentDateTimeValueFunction(CurrentDateTimeValueFunction.CURRENT_DATE, scale);
+            }
+            break;
+        }
+        return null;
+    }
 
     /**
      * Creates a new instance of function.

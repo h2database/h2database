@@ -59,12 +59,15 @@ public class TableView extends Table {
     private ResultInterface recursiveResult;
     private boolean isRecursiveQueryDetected;
     private boolean isTableExpression;
+    private boolean isSubquery;
 
     public TableView(Schema schema, int id, String name, String querySQL,
             ArrayList<Parameter> params, Column[] columnTemplates, SessionLocal session,
-            boolean allowRecursive, boolean literalsChecked, boolean isTableExpression, boolean isTemporary) {
+            boolean allowRecursive, boolean literalsChecked, boolean isTableExpression, boolean isTemporary,
+            boolean isSubquery) {
         super(schema, id, name, false, true);
         setTemporary(isTemporary);
+        this.isSubquery = isSubquery;
         init(querySQL, params, columnTemplates, session, allowRecursive, literalsChecked, isTableExpression);
     }
 
@@ -177,7 +180,7 @@ public class TableView extends Table {
                     type = columnTemplates[i].getType();
                 }
                 if (name == null) {
-                    name = expr.getColumnNameForView(session, i);
+                    name = isSubquery ? expr.getAlias(session, i) : expr.getColumnNameForView(session, i);
                 }
                 if (type.getValueType() == Value.UNKNOWN) {
                     type = expr.getType();
@@ -494,7 +497,7 @@ public class TableView extends Table {
      * @param owner the owner of the query
      * @param name the view name
      * @param columnTemplates column templates, or {@code null}
-     * @param query the query
+     * @param query the prepared query
      * @param topQuery the top level query
      * @return the view table
      */
@@ -504,8 +507,8 @@ public class TableView extends Table {
         String querySQL = query.getPlanSQL(DEFAULT_SQL_FLAGS);
         TableView v = new TableView(mainSchema, 0, name,
                 querySQL, query.getParameters(), columnTemplates, session,
-                false/* allow recursive */, true /* literals have already been checked when parsing original query */,
-                false /* is table expression */, true/*temporary*/);
+                false, true /* literals have already been checked when parsing original query */,
+                false, true, true);
         if (v.createException != null) {
             throw v.createException;
         }
@@ -700,7 +703,7 @@ public class TableView extends Table {
         // build with recursion turned on
         TableView view = new TableView(schema, id, name, querySQL,
                 parameters, columnTemplateList.toArray(columnTemplates), session,
-                true/* try recursive */, literalsChecked, isTableExpression, isTemporary);
+                true/* try recursive */, literalsChecked, isTableExpression, isTemporary, false);
 
         // is recursion really detected ? if not - recreate it without recursion flag
         // and no recursive index
@@ -719,7 +722,7 @@ public class TableView extends Table {
             }
             view = new TableView(schema, id, name, querySQL, parameters,
                     columnTemplates, session,
-                    false/* detected not recursive */, literalsChecked, isTableExpression, isTemporary);
+                    false/* detected not recursive */, literalsChecked, isTableExpression, isTemporary, false);
         }
 
         return view;

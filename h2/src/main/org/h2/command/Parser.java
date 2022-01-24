@@ -4873,7 +4873,7 @@ public class Parser {
             Sequence sequence = findSequence(schema, objectName);
             if (sequence != null) {
                 read();
-                return new SequenceValue(sequence, getCurrentPrepared());
+                return new SequenceValue(sequence, getCurrentPreparedOrSelect());
             }
         } else if (isToken("CURRVAL")) {
             Sequence sequence = findSequence(schema, objectName);
@@ -5081,7 +5081,7 @@ public class Parser {
             if (currentSelect == null && currentPrepared == null) {
                 throw getSyntaxError();
             }
-            r = new Rownum(getCurrentPrepared());
+            r = new Rownum(getCurrentPreparedOrSelect());
             break;
         case NULL:
             read();
@@ -5380,7 +5380,7 @@ public class Parser {
             if (equalsToken("NEXT", name)) {
                 int index = tokenIndex;
                 if (readIf(VALUE) && readIf(FOR)) {
-                    return new SequenceValue(readSequence(), getCurrentPrepared());
+                    return new SequenceValue(readSequence(), getCurrentPreparedOrSelect());
                 }
                 setTokenIndex(index);
             }
@@ -5458,8 +5458,9 @@ public class Parser {
         return new ExpressionColumn(database, null, null, name, quoted);
     }
 
-    private Prepared getCurrentPrepared() {
-        return currentPrepared;
+    private Prepared getCurrentPreparedOrSelect() {
+        Prepared p = currentPrepared;
+        return p != null ? p : currentSelect;
     }
 
     private Expression readInterval() {

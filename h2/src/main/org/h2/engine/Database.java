@@ -828,7 +828,7 @@ public final class Database implements DataHandler, CastDataProvider {
      * @param id the id of the object to remove
      */
     public void removeMeta(SessionLocal session, int id) {
-        if (id > 0 && !starting) {
+        if (id > 0) {
             SearchRow r = meta.getRowFactory().createRow();
             r.setValue(0, ValueInteger.get(id));
             boolean wasLocked = lockMeta(session);

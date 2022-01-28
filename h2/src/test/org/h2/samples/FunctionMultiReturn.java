@@ -13,6 +13,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
 
+import org.h2.jdbc.JdbcArray;
 import org.h2.tools.SimpleResultSet;
 
 /**
@@ -68,7 +69,7 @@ public class FunctionMultiReturn {
             double r = rs.getDouble(1);
             double a = rs.getDouble(2);
             Object o = rs.getObject(3);
-            Object[] xy = (Object[]) o;
+            Object[] xy = (Object[])((JdbcArray) o).getArray();
             double x = (Double) xy[0];
             double y = (Double) xy[1];
             System.out.println("(r=" + r + " a=" + a + ") :" +

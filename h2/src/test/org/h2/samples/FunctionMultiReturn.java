@@ -68,10 +68,9 @@ public class FunctionMultiReturn {
         while (rs.next()) {
             double r = rs.getDouble(1);
             double a = rs.getDouble(2);
-            Object o = rs.getObject(3);
-            Object[] xy = (Object[])((JdbcArray) o).getArray();
-            double x = (Double) xy[0];
-            double y = (Double) xy[1];
+            Double [] xy = rs.getObject(3, Double[].class);
+            double x = xy[0];
+            double y = xy[1];
             System.out.println("(r=" + r + " a=" + a + ") :" +
                     " (x=" + x + ", y=" + y + ")");
         }

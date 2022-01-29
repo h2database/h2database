@@ -304,6 +304,11 @@ public class FilePathDisk extends FilePath {
     }
 
     @Override
+    public boolean isRegularFile() {
+        return Files.isRegularFile(Paths.get(name));
+    }
+
+    @Override
     public boolean isAbsolute() {
         return Paths.get(name).isAbsolute();
     }

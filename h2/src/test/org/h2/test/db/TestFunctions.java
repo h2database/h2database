@@ -135,6 +135,7 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         testCompatibilityDateTime();
         testAnnotationProcessorsOutput();
         testSignal();
+        testLegacyDateTime();
 
         deleteDb("functions");
     }
@@ -1903,17 +1904,17 @@ public class TestFunctions extends TestDb implements AggregateFunction {
             Statement stat = conn.createStatement();
             ResultSet rs = stat.executeQuery("SELECT SYSDATE, SYSTIMESTAMP, SYSTIMESTAMP(0), SYSTIMESTAMP(9)");
             rs.next();
-            LocalDateTime ltd = rs.getObject(1, LocalDateTime.class);
+            LocalDateTime ldt = rs.getObject(1, LocalDateTime.class);
             OffsetDateTime odt = rs.getObject(2, OffsetDateTime.class);
             OffsetDateTime odt0 = rs.getObject(3, OffsetDateTime.class);
             OffsetDateTime odt9 = rs.getObject(4, OffsetDateTime.class);
             assertEquals(3_600, odt.getOffset().getTotalSeconds());
             assertEquals(3_600, odt9.getOffset().getTotalSeconds());
-            assertEquals(ltd, odt0.toLocalDateTime());
+            assertEquals(ldt, odt0.toLocalDateTime());
             stat.execute("SET TIME ZONE '2:00'");
             rs = stat.executeQuery("SELECT SYSDATE, SYSTIMESTAMP, SYSTIMESTAMP(0), SYSTIMESTAMP(9)");
             rs.next();
-            assertEquals(ltd, rs.getObject(1, LocalDateTime.class));
+            assertEquals(ldt, rs.getObject(1, LocalDateTime.class));
             assertEquals(odt, rs.getObject(2, OffsetDateTime.class));
             assertEquals(odt0, rs.getObject(3, OffsetDateTime.class));
             assertEquals(odt9, rs.getObject(4, OffsetDateTime.class));
@@ -2017,18 +2018,18 @@ public class TestFunctions extends TestDb implements AggregateFunction {
                 ResultSet rs = stat.executeQuery(
                         "SELECT SYSDATE, SYSTIMESTAMP, SYSTIMESTAMP(0), SYSTIMESTAMP(9) FROM DUAL");
                 rs.next();
-                LocalDateTime ltd = rs.getObject(1, LocalDateTime.class);
+                LocalDateTime ldt = rs.getObject(1, LocalDateTime.class);
                 OffsetDateTime odt = rs.getObject(2, OffsetDateTime.class);
                 OffsetDateTime odt0 = rs.getObject(3, OffsetDateTime.class);
                 OffsetDateTime odt9 = rs.getObject(4, OffsetDateTime.class);
                 assertEquals(3_600, odt.getOffset().getTotalSeconds());
                 assertEquals(3_600, odt9.getOffset().getTotalSeconds());
-                assertEquals(ltd, odt0.toLocalDateTime());
+                assertEquals(ldt, odt0.toLocalDateTime());
                 if (mode.equals("LEGACY")) {
                     stat.execute("SET TIME ZONE '3:00'");
                     rs = stat.executeQuery("SELECT SYSDATE, SYSTIMESTAMP, SYSTIMESTAMP(0), SYSTIMESTAMP(9) FROM DUAL");
                     rs.next();
-                    assertEquals(ltd, rs.getObject(1, LocalDateTime.class));
+                    assertEquals(ldt, rs.getObject(1, LocalDateTime.class));
                     assertEquals(odt, rs.getObject(2, OffsetDateTime.class));
                     assertEquals(odt0, rs.getObject(3, OffsetDateTime.class));
                     assertEquals(odt9, rs.getObject(4, OffsetDateTime.class));

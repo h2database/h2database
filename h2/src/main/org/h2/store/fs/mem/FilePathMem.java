@@ -128,6 +128,17 @@ public class FilePathMem extends FilePath {
     }
 
     @Override
+    public boolean isRegularFile() {
+        if (isRoot()) {
+            return false;
+        }
+        synchronized (MEMORY_FILES) {
+            FileMemData d = MEMORY_FILES.get(name);
+            return d != null && d != DIRECTORY;
+        }
+    }
+
+    @Override
     public boolean isAbsolute() {
         // TODO relative files are not supported
         return true;

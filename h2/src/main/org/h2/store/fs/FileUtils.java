@@ -240,6 +240,16 @@ public class FileUtils {
     }
 
     /**
+     * Tests whether a file is a regular file.
+     *
+     * @param fileName the file or directory name
+     * @return true if it is a regular file
+     */
+    public static boolean isRegularFile(String fileName) {
+        return FilePath.get(fileName).isRegularFile();
+    }
+
+    /**
      * Open a random access file object.
      * This method is similar to Java 7
      * <code>java.nio.channels.FileChannel.open</code>.

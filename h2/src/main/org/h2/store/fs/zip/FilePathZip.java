@@ -84,10 +84,19 @@ public class FilePathZip extends FilePath {
 
     @Override
     public boolean isDirectory() {
+        return isRegularOrDirectory(true);
+    }
+
+    @Override
+    public boolean isRegularFile() {
+        return isRegularOrDirectory(false);
+    }
+
+    private boolean isRegularOrDirectory(boolean directory) {
         try {
             String entryName = getEntryName();
             if (entryName.isEmpty()) {
-                return true;
+                return directory;
             }
             try (ZipFile file = openZipFile()) {
                 Enumeration<? extends ZipEntry> en = file.entries();
@@ -95,11 +104,11 @@ public class FilePathZip extends FilePath {
                     ZipEntry entry = en.nextElement();
                     String n = entry.getName();
                     if (n.equals(entryName)) {
-                        return entry.isDirectory();
+                        return entry.isDirectory() == directory;
                     } else  if (n.startsWith(entryName)) {
                         if (n.length() == entryName.length() + 1) {
                             if (n.equals(entryName + "/")) {
-                                return true;
+                                return directory;
                             }
                         }
                     }

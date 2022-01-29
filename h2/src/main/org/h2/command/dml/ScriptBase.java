@@ -104,7 +104,9 @@ abstract class ScriptBase extends Prepared {
     void deleteStore() {
         String file = getFileName();
         if (file != null) {
-            FileUtils.delete(file);
+            if (FileUtils.isRegularFile(file)) {
+                FileUtils.delete(file);
+            }
         }
     }
 

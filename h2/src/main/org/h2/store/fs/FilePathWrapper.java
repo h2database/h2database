@@ -109,6 +109,11 @@ public abstract class FilePathWrapper extends FilePath {
     }
 
     @Override
+    public boolean isRegularFile() {
+        return base.isRegularFile();
+    }
+
+    @Override
     public long lastModified() {
         return base.lastModified();
     }

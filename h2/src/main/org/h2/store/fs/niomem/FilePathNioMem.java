@@ -128,6 +128,18 @@ public class FilePathNioMem extends FilePath {
     }
 
     @Override
+    public boolean isRegularFile() {
+        if (isRoot()) {
+            return false;
+        }
+        // TODO in memory file system currently
+        // does not really support directories
+        synchronized (MEMORY_FILES) {
+            return MEMORY_FILES.get(name) != null;
+        }
+    }
+
+    @Override
     public boolean isAbsolute() {
         // TODO relative files are not supported
         return true;

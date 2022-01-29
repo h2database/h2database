@@ -114,6 +114,12 @@ public class FilePathDebug extends FilePathWrapper {
     }
 
     @Override
+    public boolean isRegularFile() {
+        trace(name, "isRegularFile");
+        return super.isRegularFile();
+    }
+
+    @Override
     public boolean canWrite() {
         trace(name, "canWrite");
         return super.canWrite();

@@ -178,6 +178,13 @@ public abstract class FilePath {
     public abstract boolean isDirectory();
 
     /**
+     * Check if it is a regular file.
+     *
+     * @return true if it is a regular file
+     */
+    public abstract boolean isRegularFile();
+
+    /**
      * Check if the file name includes a path.
      *
      * @return if the file name is absolute

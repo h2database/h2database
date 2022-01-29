@@ -124,10 +124,19 @@ public class FilePathZip2 extends FilePath {
 
     @Override
     public boolean isDirectory() {
+        return isRegularOrDirectory(true);
+    }
+
+    @Override
+    public boolean isRegularFile() {
+        return isRegularOrDirectory(false);
+    }
+
+    private boolean isRegularOrDirectory(boolean directory) {
         try {
             String entryName = getEntryName();
             if (entryName.length() == 0) {
-                return true;
+                return directory;
             }
             ZipInputStream file = openZip();
             boolean result = false;
@@ -138,12 +147,12 @@ public class FilePathZip2 extends FilePath {
                 }
                 String n = entry.getName();
                 if (n.equals(entryName)) {
-                    result = entry.isDirectory();
+                    result = entry.isDirectory() == directory;
                     break;
                 } else  if (n.startsWith(entryName)) {
                     if (n.length() == entryName.length() + 1) {
                         if (n.equals(entryName + "/")) {
-                            result = true;
+                            result = directory;
                             break;
                         }
                     }

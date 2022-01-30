@@ -37,7 +37,7 @@ import org.h2.expression.condition.ConditionLocalAndGlobal;
 import org.h2.expression.function.CoalesceFunction;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
-import org.h2.index.ViewIndex;
+import org.h2.index.QueryExpressionIndex;
 import org.h2.message.DbException;
 import org.h2.mode.DefaultNullOrdering;
 import org.h2.result.LazyResult;
@@ -857,7 +857,7 @@ public class Select extends Query {
         if (session.isLazyQueryExecution()) {
             top.visit(f -> {
                 if (f != top && f.getTable().getTableType() == TableType.VIEW) {
-                    ViewIndex idx = (ViewIndex) f.getIndex();
+                    QueryExpressionIndex idx = (QueryExpressionIndex) f.getIndex();
                     if (idx != null && idx.getQuery() != null) {
                         idx.getQuery().setNeverLazy(true);
                     }
@@ -1158,7 +1158,7 @@ public class Select extends Query {
     }
 
     @Override
-    void doPrepare() {
+    public void prepareExpressions() {
         if (orderList != null) {
             prepareOrder(orderList, expressions.size());
         }
@@ -1175,24 +1175,29 @@ public class Select extends Query {
         }
         if (condition != null) {
             condition = condition.optimizeCondition(session);
-            if (condition != null) {
-                for (TableFilter f : filters) {
-                    // outer joins: must not add index conditions such as
-                    // "c is null" - example:
-                    // create table parent(p int primary key) as select 1;
-                    // create table child(c int primary key, pc int);
-                    // insert into child values(2, 1);
-                    // select p, c from parent
-                    // left outer join child on p = pc where c is null;
-                    if (!f.isJoinOuter() && !f.isJoinOuterIndirect()) {
-                        condition.createIndexConditions(session, f);
-                    }
-                }
-            }
         }
         if (isGroupQuery && groupIndex == null && havingIndex < 0 && qualifyIndex < 0 && condition == null
                 && filters.size() == 1) {
             isQuickAggregateQuery = isEverything(ExpressionVisitor.getOptimizableVisitor(filters.get(0).getTable()));
+        }
+        expressionArray = expressions.toArray(new Expression[0]);
+    }
+
+    @Override
+    public void preparePlan() {
+        if (condition != null) {
+            for (TableFilter f : filters) {
+                // outer joins: must not add index conditions such as
+                // "c is null" - example:
+                // create table parent(p int primary key) as select 1;
+                // create table child(c int primary key, pc int);
+                // insert into child values(2, 1);
+                // select p, c from parent
+                // left outer join child on p = pc where c is null;
+                if (!f.isJoinOuter() && !f.isJoinOuterIndirect()) {
+                    condition.createIndexConditions(session, f);
+                }
+            }
         }
         cost = preparePlan(session.isParsingCreateView());
         if (distinct && session.getDatabase().getSettings().optimizeDistinct &&
@@ -1263,7 +1268,7 @@ public class Select extends Query {
                 }
             }
         }
-        expressionArray = expressions.toArray(new Expression[0]);
+        isPrepared = true;
     }
 
     private void optimizeExpressionsAndPreserveAliases() {

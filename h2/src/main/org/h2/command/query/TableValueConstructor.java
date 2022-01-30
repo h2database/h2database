@@ -168,7 +168,7 @@ public class TableValueConstructor extends Query {
     }
 
     @Override
-    void doPrepare() {
+    public void prepareExpressions() {
         if (columnResolver == null) {
             createTable();
         }
@@ -192,6 +192,10 @@ public class TableValueConstructor extends Query {
             cleanupOrder();
         }
         expressionArray = expressions.toArray(new Expression[0]);
+    }
+
+    @Override
+    public void preparePlan() {
         double cost = 0;
         int columnCount = visibleColumnCount;
         for (ArrayList<Expression> r : rows) {
@@ -200,6 +204,7 @@ public class TableValueConstructor extends Query {
             }
         }
         this.cost = cost + rows.size();
+        isPrepared = true;
     }
 
     private void createTable() {

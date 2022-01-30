@@ -625,7 +625,7 @@ public class AlterTableAlterColumn extends CommandWithColumns {
     private void checkViewsAreValid(DbObject tableOrView) {
         for (DbObject view : tableOrView.getChildren()) {
             if (view instanceof TableView) {
-                String sql = ((TableView) view).getQuery();
+                String sql = ((TableView) view).getQuerySQL();
                 // check if the query is still valid
                 // do not execute, not even with limit 1, because that could
                 // have side effects or take a very long time

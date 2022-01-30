@@ -7,9 +7,7 @@ package org.h2.table;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 
 import org.h2.api.ErrorCode;
 import org.h2.command.Prepared;
@@ -17,57 +15,37 @@ import org.h2.command.ddl.CreateTableData;
 import org.h2.command.query.AllColumnsForPlan;
 import org.h2.command.query.Query;
 import org.h2.engine.Database;
-import org.h2.engine.DbObject;
 import org.h2.engine.SessionLocal;
-import org.h2.engine.User;
-import org.h2.expression.Expression;
-import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.Parameter;
 import org.h2.index.Index;
-import org.h2.index.IndexType;
-import org.h2.index.ViewIndex;
+import org.h2.index.QueryExpressionIndex;
 import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
-import org.h2.result.Row;
 import org.h2.result.SortOrder;
 import org.h2.schema.Schema;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
-import org.h2.value.TypeInfo;
-import org.h2.value.Value;
 
 /**
  * A view is a virtual table that is defined by a query.
  * @author Thomas Mueller
  * @author Nicolas Fortin, Atelier SIG, IRSTV FR CNRS 24888
  */
-public class TableView extends Table {
-
-    private static final long ROW_COUNT_APPROXIMATION = 100;
+public final class TableView extends QueryExpressionTable {
 
     private String querySQL;
-    private ArrayList<Table> tables;
     private Column[] columnTemplates;
-    private Query viewQuery;
-    private ViewIndex index;
     private boolean allowRecursive;
     private DbException createException;
-    private long lastModificationCheck;
-    private long maxDataModificationId;
-    private User owner;
-    private Query topQuery;
     private ResultInterface recursiveResult;
     private boolean isRecursiveQueryDetected;
     private boolean isTableExpression;
-    private boolean isSubquery;
 
     public TableView(Schema schema, int id, String name, String querySQL,
             ArrayList<Parameter> params, Column[] columnTemplates, SessionLocal session,
-            boolean allowRecursive, boolean literalsChecked, boolean isTableExpression, boolean isTemporary,
-            boolean isSubquery) {
-        super(schema, id, name, false, true);
+            boolean allowRecursive, boolean literalsChecked, boolean isTableExpression, boolean isTemporary) {
+        super(schema, id, name);
         setTemporary(isTemporary);
-        this.isSubquery = isSubquery;
         init(querySQL, params, columnTemplates, session, allowRecursive, literalsChecked, isTableExpression);
     }
 
@@ -105,7 +83,7 @@ public class TableView extends Table {
         this.allowRecursive = allowRecursive;
         this.isRecursiveQueryDetected = false;
         this.isTableExpression = isTableExpression;
-        index = new ViewIndex(this, querySQL, params, allowRecursive);
+        index = new QueryExpressionIndex(this, querySQL, params, allowRecursive);
         initColumnsAndTables(session, literalsChecked);
     }
 
@@ -168,26 +146,7 @@ public class TableView extends Table {
             Query compiledQuery = compileViewQuery(session, querySQL, literalsChecked);
             this.querySQL = compiledQuery.getPlanSQL(DEFAULT_SQL_FLAGS);
             tables = new ArrayList<>(compiledQuery.getTables());
-            ArrayList<Expression> expressions = compiledQuery.getExpressions();
-            final int count = compiledQuery.getColumnCount();
-            ArrayList<Column> list = new ArrayList<>(count);
-            for (int i = 0; i < count; i++) {
-                Expression expr = expressions.get(i);
-                String name = null;
-                TypeInfo type = TypeInfo.TYPE_UNKNOWN;
-                if (columnTemplates != null && columnTemplates.length > i) {
-                    name = columnTemplates[i].getName();
-                    type = columnTemplates[i].getType();
-                }
-                if (name == null) {
-                    name = isSubquery ? expr.getAlias(session, i) : expr.getColumnNameForView(session, i);
-                }
-                if (type.getValueType() == Value.UNKNOWN) {
-                    type = expr.getType();
-                }
-                list.add(new Column(name, type, this, i));
-            }
-            cols = list.toArray(new Column[0]);
+            cols = initColumns(session, columnTemplates, compiledQuery, false);
             createException = null;
             viewQuery = compiledQuery;
         } catch (DbException e) {
@@ -221,11 +180,6 @@ public class TableView extends Table {
         }
     }
 
-    @Override
-    public boolean isView() {
-        return true;
-    }
-
     /**
      * Check if this view is currently invalid.
      *
@@ -236,41 +190,8 @@ public class TableView extends Table {
     }
 
     @Override
-    public PlanItem getBestPlanItem(SessionLocal session, int[] masks,
-            TableFilter[] filters, int filter, SortOrder sortOrder,
-            AllColumnsForPlan allColumnsSet) {
-        final CacheKey cacheKey = new CacheKey(masks, this);
-        Map<Object, ViewIndex> indexCache = session.getViewIndexCache(topQuery != null);
-        ViewIndex i = indexCache.get(cacheKey);
-        if (i == null || i.isExpired()) {
-            i = new ViewIndex(this, index, session, masks, filters, filter, sortOrder);
-            indexCache.put(cacheKey, i);
-        }
-        PlanItem item = new PlanItem();
-        item.cost = i.getCost(session, masks, filters, filter, sortOrder, allColumnsSet);
-        item.setIndex(i);
-        return item;
-    }
-
-    @Override
-    public boolean isQueryComparable() {
-        if (!super.isQueryComparable()) {
-            return false;
-        }
-        for (Table t : tables) {
-            if (!t.isQueryComparable()) {
-                return false;
-            }
-        }
-        if (topQuery != null &&
-                !topQuery.isEverything(ExpressionVisitor.QUERY_COMPARABLE_VISITOR)) {
-            return false;
-        }
-        return true;
-    }
-
     public Query getTopQuery() {
-        return topQuery;
+        return null;
     }
 
     @Override
@@ -330,53 +251,6 @@ public class TableView extends Table {
     }
 
     @Override
-    public void close(SessionLocal session) {
-        // nothing to do
-    }
-
-    @Override
-    public Index addIndex(SessionLocal session, String indexName, int indexId, IndexColumn[] cols,
-            int uniqueColumnCount, IndexType indexType, boolean create, String indexComment) {
-        throw DbException.getUnsupportedException("VIEW");
-    }
-
-    @Override
-    public boolean isInsertable() {
-        return false;
-    }
-
-    @Override
-    public void removeRow(SessionLocal session, Row row) {
-        throw DbException.getUnsupportedException("VIEW");
-    }
-
-    @Override
-    public void addRow(SessionLocal session, Row row) {
-        throw DbException.getUnsupportedException("VIEW");
-    }
-
-    @Override
-    public void checkSupportAlter() {
-        throw DbException.getUnsupportedException("VIEW");
-    }
-
-    @Override
-    public long truncate(SessionLocal session) {
-        throw DbException.getUnsupportedException("VIEW");
-    }
-
-    @Override
-    public long getRowCount(SessionLocal session) {
-        throw DbException.getInternalError(toString());
-    }
-
-    @Override
-    public boolean canGetRowCount(SessionLocal session) {
-        // TODO view: could get the row count, but not that easy
-        return false;
-    }
-
-    @Override
     public boolean canDrop() {
         return true;
     }
@@ -417,13 +291,8 @@ public class TableView extends Table {
         return super.getSQL(builder, sqlFlags);
     }
 
-    public String getQuery() {
+    public String getQuerySQL() {
         return querySQL;
-    }
-
-    @Override
-    public Index getScanIndex(SessionLocal session) {
-        return getBestPlanItem(session, null, null, -1, null, null).getIndex();
     }
 
     @Override
@@ -434,37 +303,15 @@ public class TableView extends Table {
             String msg = createException.getMessage();
             throw DbException.get(ErrorCode.VIEW_IS_INVALID_2, createException, getTraceSQL(), msg);
         }
-        PlanItem item = getBestPlanItem(session, masks, filters, filter, sortOrder, allColumnsSet);
-        return item.getIndex();
-    }
-
-    @Override
-    public boolean canReference() {
-        return false;
-    }
-
-    @Override
-    public ArrayList<Index> getIndexes() {
-        return null;
+        return super.getScanIndex(session, masks, filters, filter, sortOrder, allColumnsSet);
     }
 
     @Override
     public long getMaxDataModificationId() {
-        if (createException != null) {
+        if (createException != null || viewQuery == null) {
             return Long.MAX_VALUE;
         }
-        if (viewQuery == null) {
-            return Long.MAX_VALUE;
-        }
-        // if nothing was modified in the database since the last check, and the
-        // last is known, then we don't need to check again
-        // this speeds up nested views
-        long dbMod = database.getModificationDataId();
-        if (dbMod > lastModificationCheck && maxDataModificationId <= dbMod) {
-            maxDataModificationId = viewQuery.getMaxDataModificationId();
-            lastModificationCheck = dbMod;
-        }
-        return maxDataModificationId;
+        return super.getMaxDataModificationId();
     }
 
     private void removeCurrentViewFromOtherTables() {
@@ -482,75 +329,6 @@ public class TableView extends Table {
         }
     }
 
-    private void setOwner(User owner) {
-        this.owner = owner;
-    }
-
-    public User getOwner() {
-        return owner;
-    }
-
-    /**
-     * Create a temporary view out of the given query.
-     *
-     * @param session the session
-     * @param owner the owner of the query
-     * @param name the view name
-     * @param columnTemplates column templates, or {@code null}
-     * @param query the prepared query
-     * @param topQuery the top level query
-     * @return the view table
-     */
-    public static TableView createTempView(SessionLocal session, User owner,
-            String name, Column[] columnTemplates, Query query, Query topQuery) {
-        Schema mainSchema = session.getDatabase().getMainSchema();
-        String querySQL = query.getPlanSQL(DEFAULT_SQL_FLAGS);
-        TableView v = new TableView(mainSchema, 0, name,
-                querySQL, query.getParameters(), columnTemplates, session,
-                false, true /* literals have already been checked when parsing original query */,
-                false, true, true);
-        if (v.createException != null) {
-            throw v.createException;
-        }
-        v.setTopQuery(topQuery);
-        v.setOwner(owner);
-        v.setTemporary(true);
-        return v;
-    }
-
-    private void setTopQuery(Query topQuery) {
-        this.topQuery = topQuery;
-    }
-
-    @Override
-    public long getRowCountApproximation(SessionLocal session) {
-        return ROW_COUNT_APPROXIMATION;
-    }
-
-    /**
-     * Get the index of the first parameter.
-     *
-     * @param additionalParameters additional parameters
-     * @return the index of the first parameter
-     */
-    public int getParameterOffset(ArrayList<Parameter> additionalParameters) {
-        int result = topQuery == null ? -1 : getMaxParameterIndex(topQuery.getParameters());
-        if (additionalParameters != null) {
-            result = Math.max(result, getMaxParameterIndex(additionalParameters));
-        }
-        return result + 1;
-    }
-
-    private static int getMaxParameterIndex(ArrayList<Parameter> parameters) {
-        int result = -1;
-        for (Parameter p : parameters) {
-            if (p != null) {
-                result = Math.max(result, p.getIndex());
-            }
-        }
-        return result;
-    }
-
     public boolean isRecursive() {
         return allowRecursive;
     }
@@ -560,7 +338,7 @@ public class TableView extends Table {
         if (allowRecursive || viewQuery == null) {
             return false;
         }
-        return viewQuery.isEverything(ExpressionVisitor.DETERMINISTIC_VISITOR);
+        return super.isDeterministic();
     }
 
     public void setRecursiveResult(ResultInterface value) {
@@ -572,59 +350,6 @@ public class TableView extends Table {
 
     public ResultInterface getRecursiveResult() {
         return recursiveResult;
-    }
-
-    @Override
-    public void addDependencies(HashSet<DbObject> dependencies) {
-        super.addDependencies(dependencies);
-        if (tables != null) {
-            for (Table t : tables) {
-                if (TableType.VIEW != t.getTableType()) {
-                    t.addDependencies(dependencies);
-                }
-            }
-        }
-    }
-
-    /**
-     * The key of the index cache for views.
-     */
-    private static final class CacheKey {
-
-        private final int[] masks;
-        private final TableView view;
-
-        CacheKey(int[] masks, TableView view) {
-            this.masks = masks;
-            this.view = view;
-        }
-
-        @Override
-        public int hashCode() {
-            final int prime = 31;
-            int result = 1;
-            result = prime * result + Arrays.hashCode(masks);
-            result = prime * result + view.hashCode();
-            return result;
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (this == obj) {
-                return true;
-            }
-            if (obj == null) {
-                return false;
-            }
-            if (getClass() != obj.getClass()) {
-                return false;
-            }
-            CacheKey other = (CacheKey) obj;
-            if (view != other.view) {
-                return false;
-            }
-            return Arrays.equals(masks, other.masks);
-        }
     }
 
     /**
@@ -693,7 +418,7 @@ public class TableView extends Table {
             if (!isTemporary) {
                 withQuery.setSession(session);
             }
-            columnTemplateList = TableView.createQueryColumnTemplateList(columnNames.toArray(new String[1]),
+            columnTemplateList = createQueryColumnTemplateList(columnNames.toArray(new String[1]),
                     (Query) withQuery, querySQLOutput);
 
         } finally {
@@ -703,7 +428,7 @@ public class TableView extends Table {
         // build with recursion turned on
         TableView view = new TableView(schema, id, name, querySQL,
                 parameters, columnTemplateList.toArray(columnTemplates), session,
-                true/* try recursive */, literalsChecked, isTableExpression, isTemporary, false);
+                true/* try recursive */, literalsChecked, isTableExpression, isTemporary);
 
         // is recursion really detected ? if not - recreate it without recursion flag
         // and no recursive index
@@ -722,44 +447,10 @@ public class TableView extends Table {
             }
             view = new TableView(schema, id, name, querySQL, parameters,
                     columnTemplates, session,
-                    false/* detected not recursive */, literalsChecked, isTableExpression, isTemporary, false);
+                    false/* detected not recursive */, literalsChecked, isTableExpression, isTemporary);
         }
 
         return view;
-    }
-
-
-    /**
-     * Creates a list of column templates from a query (usually from WITH query,
-     * but could be any query)
-     *
-     * @param cols - an optional list of column names (can be specified by WITH
-     *            clause overriding usual select names)
-     * @param theQuery - the query object we want the column list for
-     * @param querySQLOutput - array of length 1 to receive extra 'output' field
-     *            in addition to return value - containing the SQL query of the
-     *            Query object
-     * @return a list of column object returned by withQuery
-     */
-    public static List<Column> createQueryColumnTemplateList(String[] cols,
-            Query theQuery, String[] querySQLOutput) {
-        List<Column> columnTemplateList = new ArrayList<>();
-        theQuery.prepare();
-        // String array of length 1 is to receive extra 'output' field in addition to
-        // return value
-        querySQLOutput[0] = StringUtils.cache(theQuery.getPlanSQL(ADD_PLAN_INFORMATION));
-        SessionLocal session = theQuery.getSession();
-        ArrayList<Expression> withExpressions = theQuery.getExpressions();
-        for (int i = 0; i < withExpressions.size(); ++i) {
-            Expression columnExp = withExpressions.get(i);
-            // use the passed in column name if supplied, otherwise use alias
-            // (if found) otherwise use column name derived from column
-            // expression
-            String columnName = cols != null && cols.length > i ? cols[i] : columnExp.getColumnNameForView(session, i);
-            columnTemplateList.add(new Column(columnName, columnExp.getType()));
-
-        }
-        return columnTemplateList;
     }
 
     /**

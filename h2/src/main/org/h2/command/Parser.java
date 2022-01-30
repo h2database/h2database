@@ -366,6 +366,7 @@ import org.h2.table.DualTable;
 import org.h2.table.FunctionTable;
 import org.h2.table.IndexColumn;
 import org.h2.table.IndexHints;
+import org.h2.table.QueryExpressionTable;
 import org.h2.table.RangeTable;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
@@ -538,6 +539,22 @@ public class Parser {
             throw getSyntaxError();
         }
         return p;
+    }
+
+    /**
+     * Parse a query and prepare its expressions. Rights and literals must be
+     * already checked.
+     *
+     * @param sql the SQL statement to parse
+     * @return the prepared object
+     */
+    public Query prepareQueryExpression(String sql) {
+        Query q = (Query) parse(sql, null);
+        q.prepareExpressions();
+        if (currentTokenType != END_OF_INPUT) {
+            throw getSyntaxError();
+        }
+        return q;
     }
 
     /**
@@ -1912,7 +1929,7 @@ public class Parser {
                 Column[] columnTemplates = null;
                 if (derivedColumnNames != null) {
                     query.init();
-                    columnTemplates = TableView.createQueryColumnTemplateList(
+                    columnTemplates = QueryExpressionTable.createQueryColumnTemplateList(
                             derivedColumnNames.toArray(new String[0]), query, new String[1])
                             .toArray(new Column[0]);
                 }
@@ -7449,7 +7466,7 @@ public class Parser {
                 withQuery.session = session;
             }
             read(CLOSE_PAREN);
-            columnTemplateList = TableView.createQueryColumnTemplateList(cols, withQuery, querySQLOutput);
+            columnTemplateList = QueryExpressionTable.createQueryColumnTemplateList(cols, withQuery, querySQLOutput);
 
         } finally {
             TableView.destroyShadowTableForRecursiveExpression(isTemporary, session, recursiveTable);
@@ -7477,7 +7494,7 @@ public class Parser {
             view = new TableView(schema, id, cteViewName, querySQL,
                     parameters, columnTemplateArray, session,
                     allowRecursiveQueryDetection, false, true,
-                    isTemporary, false);
+                    isTemporary);
             if (!view.isRecursiveQueryDetected() && allowRecursiveQueryDetection) {
                 if (!isTemporary) {
                     database.addSchemaObject(session, view);
@@ -7489,7 +7506,7 @@ public class Parser {
                 view = new TableView(schema, id, cteViewName, querySQL, parameters,
                         columnTemplateArray, session,
                         false/* assume recursive */, false, true,
-                        isTemporary, false);
+                        isTemporary);
             }
             // both removeSchemaObject and removeLocalTempTable hold meta locks
             database.unlockMeta(session);

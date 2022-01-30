@@ -25,21 +25,21 @@ import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
+import org.h2.table.QueryExpressionTable;
 import org.h2.table.TableFilter;
 import org.h2.table.TableView;
 import org.h2.util.IntArray;
 import org.h2.value.Value;
 
 /**
- * This object represents a virtual index for a query.
- * Actually it only represents a prepared SELECT statement.
+ * This object represents a virtual index for a query expression.
  */
-public class ViewIndex extends Index implements SpatialIndex {
+public class QueryExpressionIndex extends Index implements SpatialIndex {
 
     private static final long MAX_AGE_NANOS =
             TimeUnit.MILLISECONDS.toNanos(Constants.VIEW_COST_CACHE_MAX_AGE);
 
-    private final TableView view;
+    private final QueryExpressionTable table;
     private final String querySQL;
     private final ArrayList<Parameter> originalParameters;
     private boolean recursive;
@@ -55,15 +55,15 @@ public class ViewIndex extends Index implements SpatialIndex {
     /**
      * Constructor for the original index in {@link TableView}.
      *
-     * @param view the table view
+     * @param table the query expression table
      * @param querySQL the query SQL
      * @param originalParameters the original parameters
      * @param recursive if the view is recursive
      */
-    public ViewIndex(TableView view, String querySQL,
+    public QueryExpressionIndex(QueryExpressionTable table, String querySQL,
             ArrayList<Parameter> originalParameters, boolean recursive) {
-        super(view, 0, null, null, 0, IndexType.createNonUnique(false));
-        this.view = view;
+        super(table, 0, null, null, 0, IndexType.createNonUnique(false));
+        this.table = table;
         this.querySQL = querySQL;
         this.originalParameters = originalParameters;
         this.recursive = recursive;
@@ -79,18 +79,18 @@ public class ViewIndex extends Index implements SpatialIndex {
      * Constructor for plan item generation. Over this index the query will be
      * executed.
      *
-     * @param view the table view
-     * @param index the view index
+     * @param table the query expression table
+     * @param index the main index
      * @param session the session
      * @param masks the masks
      * @param filters table filters
      * @param filter current filter
      * @param sortOrder sort order
      */
-    public ViewIndex(TableView view, ViewIndex index, SessionLocal session,
+    public QueryExpressionIndex(QueryExpressionTable table, QueryExpressionIndex index, SessionLocal session,
             int[] masks, TableFilter[] filters, int filter, SortOrder sortOrder) {
-        super(view, 0, null, null, 0, IndexType.createNonUnique(false));
-        this.view = view;
+        super(table, 0, null, null, 0, IndexType.createNonUnique(false));
+        this.table = table;
         this.querySQL = index.querySQL;
         this.originalParameters = index.originalParameters;
         this.recursive = index.recursive;
@@ -100,7 +100,7 @@ public class ViewIndex extends Index implements SpatialIndex {
         if (!recursive) {
             query = getQuery(session, masks);
         }
-        if (recursive || view.getTopQuery() != null) {
+        if (recursive || table.getTopQuery() != null) {
             evaluatedAt = Long.MAX_VALUE;
         } else {
             long time = System.nanoTime();
@@ -117,8 +117,7 @@ public class ViewIndex extends Index implements SpatialIndex {
 
     public boolean isExpired() {
         assert evaluatedAt != Long.MIN_VALUE : "must not be called for main index of TableView";
-        return !recursive && view.getTopQuery() == null &&
-                System.nanoTime() - evaluatedAt > MAX_AGE_NANOS;
+        return !recursive && table.getTopQuery() == null && System.nanoTime() - evaluatedAt > MAX_AGE_NANOS;
     }
 
     @Override
@@ -159,11 +158,11 @@ public class ViewIndex extends Index implements SpatialIndex {
     }
 
     private Cursor findRecursive(SearchRow first, SearchRow last) {
-        assert recursive;
+        TableView view = (TableView) table;
         ResultInterface recursiveResult = view.getRecursiveResult();
         if (recursiveResult != null) {
             recursiveResult.reset();
-            return new ViewCursor(this, recursiveResult, first, last);
+            return new QueryExpressionCursor(this, recursiveResult, first, last);
         }
         if (query == null) {
             Parser parser = new Parser(createSession);
@@ -210,7 +209,7 @@ public class ViewIndex extends Index implements SpatialIndex {
         }
         view.setRecursiveResult(null);
         localResult.done();
-        return new ViewCursor(this, localResult, first, last);
+        return new QueryExpressionCursor(this, localResult, first, last);
     }
 
     /**
@@ -243,7 +242,7 @@ public class ViewIndex extends Index implements SpatialIndex {
         } else {
             len = 0;
         }
-        int idx = view.getParameterOffset(originalParameters);
+        int idx = table.getParameterOffset(originalParameters);
         for (int i = 0; i < len; i++) {
             int mask = indexMasks[i];
             if ((mask & IndexCondition.EQUALITY) != 0) {
@@ -268,7 +267,7 @@ public class ViewIndex extends Index implements SpatialIndex {
         }
         setupQueryParameters(session, first, last, intersection);
         ResultInterface result = query.query(0);
-        return new ViewCursor(this, result, first, last);
+        return new QueryExpressionCursor(this, result, first, last);
     }
 
     private static void setParameter(ArrayList<Parameter> paramList, int x,
@@ -287,14 +286,12 @@ public class ViewIndex extends Index implements SpatialIndex {
     }
 
     private Query getQuery(SessionLocal session, int[] masks) {
-        Query q = (Query) session.prepare(querySQL, true, true);
-        if (masks == null) {
+        Query q = session.prepareQueryExpression(querySQL);
+        if (masks == null || !q.allowGlobalConditions()) {
+            q.preparePlan();
             return q;
         }
-        if (!q.allowGlobalConditions()) {
-            return q;
-        }
-        int firstIndexParam = view.getParameterOffset(originalParameters);
+        int firstIndexParam = table.getParameterOffset(originalParameters);
         // the column index of each parameter
         // (for example: paramColumnIndex {0, 0} mean
         // param[0] is column 0, and param[1] is also column 0)
@@ -369,9 +366,11 @@ public class ViewIndex extends Index implements SpatialIndex {
                 indexColumnId++;
             }
         }
-
         String sql = q.getPlanSQL(DEFAULT_SQL_FLAGS);
-        q = (Query) session.prepare(sql, true, true);
+        if (!sql.equals(querySQL)) {
+            q = session.prepareQueryExpression(sql);
+        }
+        q.preparePlan();
         return q;
     }
 

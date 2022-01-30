@@ -121,7 +121,7 @@ public class CreateView extends SchemaOwnerCommand {
                         false/*isTemporary*/, db);
             } else {
                 view = new TableView(schema, id, viewName, querySQL, null, columnTemplatesAsUnknowns, session,
-                        false, false, isTableExpression, false, false);
+                        false, false, isTableExpression, false);
             }
         } else {
             // TODO support isTableExpression in replace function...

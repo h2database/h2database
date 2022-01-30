@@ -31,9 +31,9 @@ import org.h2.result.ResultTarget;
 import org.h2.result.SortOrder;
 import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
+import org.h2.table.DerivedTable;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
-import org.h2.table.TableView;
 import org.h2.util.Utils;
 import org.h2.value.ExtTypeInfoRow;
 import org.h2.value.TypeInfo;
@@ -149,7 +149,7 @@ public abstract class Query extends Prepared {
 
     boolean checkInit;
 
-    private boolean isPrepared;
+    boolean isPrepared;
 
     Query(SessionLocal session) {
         super(session);
@@ -215,11 +215,13 @@ public abstract class Query extends Prepared {
         if (isPrepared) {
             return;
         }
-        doPrepare();
-        isPrepared = true;
+        prepareExpressions();
+        preparePlan();
     }
 
-    abstract void doPrepare();
+    public abstract void prepareExpressions();
+
+    public abstract void preparePlan();
 
     /**
      * The the list of select expressions.
@@ -997,9 +999,8 @@ public abstract class Query extends Prepared {
         if (!checkInit) {
             init();
         }
-        prepare();
-        return TableView.createTempView(forCreateView ? session.getDatabase().getSystemSession() : session,
-                session.getUser(), alias, columnTemplates, this, topQuery);
+        return new DerivedTable(forCreateView ? session.getDatabase().getSystemSession() : session, alias,
+                columnTemplates, this, topQuery);
     }
 
     @Override

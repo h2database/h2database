@@ -56,9 +56,11 @@ import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueBigint;
 import org.h2.value.ValueDate;
+import org.h2.value.ValueDecfloat;
 import org.h2.value.ValueDouble;
 import org.h2.value.ValueInteger;
 import org.h2.value.ValueNull;
+import org.h2.value.ValueNumeric;
 import org.h2.value.ValueReal;
 import org.h2.value.ValueSmallint;
 import org.h2.value.ValueTime;
@@ -743,6 +745,10 @@ public final class PgServerThread implements Runnable {
     private static final int[] POWERS10 = {1, 10, 100, 1000, 10000};
     private static final int MAX_GROUP_SCALE = 4;
     private static final int MAX_GROUP_SIZE = POWERS10[4];
+    private static final short NUMERIC_POSITIVE = 0x0000;
+    private static final short NUMERIC_NEGATIVE = 0x4000;
+    private static final short NUMERIC_NAN = (short) 0xC000;
+    private static final BigInteger NUMERIC_CHUNK_MULTIPLIER = BigInteger.valueOf(10_000L);
 
     private static int divide(BigInteger[] unscaled, int divisor) {
         BigInteger[] bi = unscaled[0].divideAndRemainder(BigInteger.valueOf(divisor));
@@ -795,7 +801,7 @@ public final class PgServerThread implements Runnable {
         writeInt(8 + groupCount * 2);
         writeShort(groupCount);
         writeShort(groupCount + weight);
-        writeShort(signum < 0 ? 16384 : 0);
+        writeShort(signum < 0 ? NUMERIC_NEGATIVE : NUMERIC_POSITIVE);
         writeShort(scale);
         for (int i = groupCount - 1; i >= 0; i--) {
             writeShort(groups.get(i));
@@ -895,16 +901,20 @@ public final class PgServerThread implements Runnable {
                 checkParamLength(8, paramLen);
                 value = ValueDouble.get(dataIn.readDouble());
                 break;
-            case PgServer.PG_TYPE_BYTEA:
-                byte[] d1 = Utils.newBytes(paramLen);
-                readFully(d1);
-                value = ValueVarbinary.getNoCopy(d1);
+            case PgServer.PG_TYPE_BYTEA: {
+                byte[] d = Utils.newBytes(paramLen);
+                readFully(d);
+                value = ValueVarbinary.getNoCopy(d);
+                break;
+            }
+            case PgServer.PG_TYPE_NUMERIC:
+                value = readNumericBinary(paramLen);
                 break;
             default:
                 server.trace("Binary format for type: "+pgType+" is unsupported");
-                byte[] d2 = Utils.newBytes(paramLen);
-                readFully(d2);
-                value = ValueVarchar.get(new String(d2, getEncoding()), session);
+                byte[] d = Utils.newBytes(paramLen);
+                readFully(d);
+                value = ValueVarchar.get(new String(d, getEncoding()), session);
             }
         }
         parameters.get(i).setValue(value, true);
@@ -914,6 +924,40 @@ public final class PgServerThread implements Runnable {
         if (expected != got) {
             throw DbException.getInvalidValueException("paramLen", got);
         }
+    }
+
+    private Value readNumericBinary(int paramLen) throws IOException {
+        if (paramLen < 8) {
+            throw DbException.getInvalidValueException("numeric binary length", paramLen);
+        }
+        short len = readShort();
+        short weight = readShort();
+        short sign = readShort();
+        short scale = readShort();
+        if (len * 2 + 8 != paramLen) {
+            throw DbException.getInvalidValueException("numeric binary length", paramLen);
+        }
+        if (sign == NUMERIC_NAN) {
+            return ValueDecfloat.NAN;
+        }
+        if (sign != NUMERIC_POSITIVE && sign != NUMERIC_NEGATIVE) {
+            throw DbException.getInvalidValueException("numeric sign", sign);
+        }
+        if ((scale & 0x3FFF) != scale) {
+            throw DbException.getInvalidValueException("numeric scale", scale);
+        }
+        if (len == 0) {
+            return scale == 0 ? ValueNumeric.ZERO : ValueNumeric.get(new BigDecimal(BigInteger.ZERO, scale));
+        }
+        BigInteger n = BigInteger.ZERO;
+        for (int i = 0; i < len; i++) {
+            short c = readShort();
+            if (c < 0 || c > 9_999) {
+                throw DbException.getInvalidValueException("numeric chunk", c);
+            }
+            n = n.multiply(NUMERIC_CHUNK_MULTIPLIER).add(BigInteger.valueOf(c));
+        }
+        return ValueNumeric.get(new BigDecimal(n, (len - weight - 1) * 4).setScale(scale));
     }
 
     private void sendErrorOrCancelResponse(Exception e) throws IOException {

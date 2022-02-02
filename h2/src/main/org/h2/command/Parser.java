@@ -9249,7 +9249,9 @@ public class Parser {
             }
         }
         if (readIf(NOT)) {
-            read("DEFERRABLE");
+            if (!readIf("DEFERRABLE")) {
+                setTokenIndex(tokenIndex - 1);
+            }
         } else {
             readIf("DEFERRABLE");
         }

@@ -2403,7 +2403,7 @@ public final class InformationSchemaTable extends MetaTable {
         String viewDefinition, status = "VALID";
         if (table instanceof TableView) {
             TableView view = (TableView) table;
-            viewDefinition = view.getQuery();
+            viewDefinition = view.getQuerySQL();
             if (view.isInvalid()) {
                 status = "INVALID";
             }

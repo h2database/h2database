@@ -18,7 +18,6 @@ import org.h2.table.MetaTable;
 import org.h2.table.RangeTable;
 import org.h2.table.Table;
 import org.h2.table.TableType;
-import org.h2.table.TableView;
 import org.h2.util.MathUtils;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
@@ -221,15 +220,8 @@ public final class User extends RightOwner {
             return true;
         }
         TableType tableType = table.getTableType();
-        if (TableType.VIEW == tableType) {
-            TableView v = (TableView) table;
-            if (v.getOwner() == this) {
-                // the owner of a view has access:
-                // SELECT * FROM (SELECT * FROM ...)
-                return true;
-            }
-        } else if (tableType == null) {
-            // function table
+        if (tableType == null) {
+            // derived or function table
             return true;
         }
         if (table.isTemporary() && !table.isGlobalTemporary()) {

@@ -447,7 +447,8 @@ public abstract class Query extends Prepared {
         }
         for (int i = 0; i < params.length; i++) {
             Value a = lastParams[i], b = params[i];
-            if (a.getValueType() != b.getValueType() || !session.areEqual(a, b)) {
+            // Derived tables can have gaps in parameters
+            if (a != null && !a.equals(b)) {
                 return false;
             }
         }
@@ -462,8 +463,9 @@ public abstract class Query extends Prepared {
         int size = list.size();
         Value[] params = new Value[size];
         for (int i = 0; i < size; i++) {
-            Value v = list.get(i).getParamValue();
-            params[i] = v;
+            Parameter parameter = list.get(i);
+            // Derived tables can have gaps in parameters
+            params[i] = parameter != null ? parameter.getParamValue() : null;
         }
         return params;
     }

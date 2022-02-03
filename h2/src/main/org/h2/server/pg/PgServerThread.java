@@ -957,6 +957,9 @@ public final class PgServerThread implements Runnable {
             }
             n = n.multiply(NUMERIC_CHUNK_MULTIPLIER).add(BigInteger.valueOf(c));
         }
+        if (sign != NUMERIC_POSITIVE) {
+            n = n.negate();
+        }
         return ValueNumeric.get(new BigDecimal(n, (len - weight - 1) * 4).setScale(scale));
     }
 

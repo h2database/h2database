@@ -1714,7 +1714,7 @@ public class ErrorCode {
 
     /**
      * The error with code <code>90110</code> is thrown when
-     * trying to compare values of incomparable data types.
+     * trying to compare or combine values of incomparable data types.
      * Example:
      * <pre>
      * CREATE TABLE test (id INT NOT NULL, name VARCHAR);

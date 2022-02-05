@@ -6317,7 +6317,8 @@ public class Parser {
             }
             read(CLOSE_PAREN);
         }
-        if (mode.allNumericTypesHavePrecision && DataType.isNumericType(dataType.type)) {
+        if (mode.allNumericTypesHavePrecision
+                && (DataType.isNumericType(dataType.type) || dataType.type == Value.BOOLEAN)) {
             if (readIf(OPEN_PAREN)) {
                 // Support for MySQL: INT(11), MEDIUMINT(8) and so on.
                 // Just ignore the precision.

@@ -57,6 +57,9 @@ select suit, count(rank) from card group by suit order by suit, count(rank);
 > diamonds 1
 > rows (ordered): 4
 
+SELECT JSON_ARRAYAGG(DISTINCT SUIT ORDER BY SUIT) FROM CARD;
+>> ["hearts","clubs","diamonds"]
+
 select rank from card where suit = 'diamonds';
 >> 8
 

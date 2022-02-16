@@ -2393,6 +2393,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         case DATE:
         case TIME:
         case TIME_TZ:
+        case ENUM:
         case UUID:
             v = ValueJson.get(getString());
             break;

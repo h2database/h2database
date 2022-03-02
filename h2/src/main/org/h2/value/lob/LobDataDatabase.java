@@ -7,7 +7,7 @@ package org.h2.value.lob;
 
 import java.io.IOException;
 import java.io.InputStream;
-
+import java.util.Objects;
 import org.h2.message.DbException;
 import org.h2.store.DataHandler;
 import org.h2.value.ValueLob;
@@ -96,4 +96,21 @@ public final class LobDataDatabase extends LobData {
         return isRecoveryReference;
     }
 
+    @Override
+    public int hashCode() {
+        return Objects.hash(lobId, tableId);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        LobDataDatabase other = (LobDataDatabase) obj;
+        return lobId == other.lobId && tableId == other.tableId;
+    }
+    
 }

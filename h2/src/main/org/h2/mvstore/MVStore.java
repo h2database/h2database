@@ -3601,13 +3601,17 @@ public class MVStore implements AutoCloseable {
         dropUnusedVersions();
     }
 
-    private void dropUnusedVersions() {
+    public TxCounter getOldestRegisteredVersion() {
         TxCounter txCounter;
         while ((txCounter = versions.peek()) != null
                 && txCounter.get() < 0) {
             versions.poll();
         }
-        setOldestVersionToKeep((txCounter != null ? txCounter : currentTxCounter).version);
+        return txCounter != null ? txCounter : currentTxCounter;
+    }
+    
+    private void dropUnusedVersions() {
+        setOldestVersionToKeep(getOldestRegisteredVersion().version);
     }
 
     private int dropUnusedChunks() {
@@ -3694,7 +3698,10 @@ public class MVStore implements AutoCloseable {
             this.version = version;
         }
 
-        int get() {
+        /**
+         * Counter of outstanding operation on this version of a store
+         */
+        public int get() {
             return counter;
         }
 

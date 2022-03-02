@@ -388,6 +388,10 @@ public final class Transaction {
             store.store.deregisterVersionUsage(counter);
         }
     }
+    
+    public MVStore.TxCounter getTxCounter() {
+        return txCounter;
+    }
 
     /**
      * Add a log entry.

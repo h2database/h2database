@@ -37,6 +37,7 @@ import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.message.TraceSystem;
 import org.h2.mvstore.MVMap;
+import org.h2.mvstore.db.LobStorageMap;
 import org.h2.mvstore.db.MVIndex;
 import org.h2.mvstore.db.MVTable;
 import org.h2.mvstore.db.Store;
@@ -670,6 +671,12 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
             try {
                 markUsedTablesAsUpdated();
                 transaction.commit();
+                if (database != null) {
+                    LobStorageMap lobStorage = (LobStorageMap) database.getLobStorage();
+                    if (lobStorage != null) {
+                        lobStorage.deregisterSession();
+                    }
+                }
                 removeTemporaryLobs(true);
                 endTransaction();
             } finally {
@@ -1598,6 +1605,15 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
             transaction = store.getTransactionStore().begin(this, this.lockTimeout, id, isolationLevel);
             startStatement = -1;
         }
+        return transaction;
+    }
+
+    /**
+     * Get the active transaction (if any) for this session.
+     *
+     * @return the transaction
+     */
+    public Transaction getActiveTransaction() {
         return transaction;
     }
 

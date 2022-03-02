@@ -14,16 +14,22 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.AtomicLong;
 import org.h2.api.ErrorCode;
 import org.h2.engine.Database;
+import org.h2.engine.SessionLocal;
 import org.h2.message.DbException;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
+import org.h2.mvstore.MVStore.TxCounter;
 import org.h2.mvstore.StreamStore;
 import org.h2.mvstore.WriteBuffer;
+import org.h2.mvstore.tx.Transaction;
 import org.h2.mvstore.tx.TransactionStore;
 import org.h2.mvstore.type.BasicDataType;
 import org.h2.mvstore.type.ByteArrayDataType;
@@ -77,7 +83,30 @@ public final class LobStorageMap implements LobStorageInterface
     private final MVMap<BlobReference,Value> refMap;
 
     private final StreamStore streamStore;
-
+    
+    /**
+     * So... we cannot remove LOBs until all transactions that might be referencing them are done with them.
+     * So when an LOB is unreferenced from it's primary table, we add it to to the pendingRemoveMap.
+     * Then when a session performs a commit, we check to see if we can actually do the delete.
+     * <p>
+     * This has a couple of downsides - (1) we're doing work in someone elses session, which
+     * messes with performance profiling, and (2) we might leak LOB data on a hard shutdown.
+     * <p>
+     * But it has the major upside that it actually works. Feel free to come up with something better.
+     */
+    private static final class PendingRemoveEntry implements Comparable<PendingRemoveEntry> {
+        public final TxCounter transaction;
+        public final LobDataDatabase lobData;
+        public PendingRemoveEntry(LobDataDatabase lobData, TxCounter transaction) {
+            this.transaction = transaction;
+            this.lobData = lobData;
+        }
+        @Override
+        public int compareTo(PendingRemoveEntry o) {
+            return Long.compare(transaction.version, o.transaction.version);
+        }
+    }
+    private final ConcurrentSkipListMap<PendingRemoveEntry, Boolean> pendingRemoveMap = new ConcurrentSkipListMap<>();
 
     /**
      * Open map used to store LOB metadata
@@ -377,14 +406,57 @@ public final class LobStorageMap implements LobStorageInterface
             mvStore.deregisterVersionUsage(txCounter);
         }
     }
-
+    
+    public void deregisterSession() {
+        while (true)
+        {
+            final Map.Entry<PendingRemoveEntry, Boolean> mapEntry = pendingRemoveMap.pollFirstEntry();
+            if (mapEntry == null) {
+                break;
+            }
+            if (pendingRemoveMap.size() > 3) {
+                throw new IllegalStateException();
+            }
+            final PendingRemoveEntry entry = mapEntry.getKey();
+            MVStore.TxCounter sessionTx = findOldestTxInSessions();
+            if (sessionTx == null || (sessionTx.version <= entry.transaction.version && sessionTx.get() == 0)) {
+                removeLob(entry.lobData.getTableId(), entry.lobData.getLobId());
+            } else {
+                pendingRemoveMap.put(entry, Boolean.TRUE);
+                break;
+            }
+        }
+    }
+    
+    private MVStore.TxCounter findOldestTxInSessions() {
+        MVStore.TxCounter oldestTx = null;
+        for (SessionLocal session : database.getSessions(true)) {
+            Transaction transaction = session.getActiveTransaction();
+            if (transaction != null) {
+                MVStore.TxCounter tx = transaction.getTxCounter();
+                if (oldestTx == null || oldestTx.version < oldestTx.version) {
+                    oldestTx = tx;
+                }
+            }
+        }
+        return oldestTx;
+    }
+    
     @Override
     public void removeLob(ValueLob lob) {
+        final LobDataDatabase lobData = (LobDataDatabase) lob.getLobData();
+        final int tableId = lobData.getTableId();
+        final long lobId = lobData.getLobId();
+        // No need to move the remove to pending map if it is a temporary LOB.
+        if (!isTemporaryLob(tableId)) {
+            final MVStore.TxCounter oldestTxCounter = mvStore.getOldestRegisteredVersion();
+            if (oldestTxCounter.get() != 0) { // if there are outstanding operations on this version
+                pendingRemoveMap.put(new PendingRemoveEntry(lobData, oldestTxCounter), Boolean.TRUE);
+                return;
+            }
+        }
         MVStore.TxCounter txCounter = mvStore.registerVersionUsage();
         try {
-            LobDataDatabase lobData = (LobDataDatabase) lob.getLobData();
-            int tableId = lobData.getTableId();
-            long lobId = lobData.getLobId();
             removeLob(tableId, lobId);
         } finally {
             mvStore.deregisterVersionUsage(txCounter);

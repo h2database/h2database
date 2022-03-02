@@ -1260,6 +1260,7 @@ public final class Database implements DataHandler, CastDataProvider {
         }
         try {
             lobStorage.removeAllForTable(LobStorageFrontend.TABLE_ID_SESSION_VARIABLE);
+            lobStorage.flushPendingRemoves();
         } catch (DbException e) {
             trace.error(e, "close");
         }

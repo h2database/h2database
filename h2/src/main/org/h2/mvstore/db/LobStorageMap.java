@@ -16,7 +16,6 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.AtomicLong;
 import org.h2.api.ErrorCode;
@@ -422,6 +421,19 @@ public final class LobStorageMap implements LobStorageInterface
                 pendingRemoveMap.put(entry, Boolean.TRUE);
                 break;
             }
+        }
+    }
+    
+    @Override
+    public void flushPendingRemoves() {
+        while (true)
+        {
+            final Map.Entry<PendingRemoveEntry, Boolean> mapEntry = pendingRemoveMap.pollFirstEntry();
+            if (mapEntry == null) {
+                break;
+            }
+            final PendingRemoveEntry entry = mapEntry.getKey();
+            removeLob(entry.lobData.getTableId(), entry.lobData.getLobId());
         }
     }
     

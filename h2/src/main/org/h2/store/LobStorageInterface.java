@@ -81,6 +81,11 @@ public interface LobStorageInterface {
     void removeAllForTable(int tableId);
 
     /**
+     * Flush any pending removal operations.
+     */
+    void flushPendingRemoves();
+    
+    /**
      * Whether the storage is read-only
      *
      * @return true if yes

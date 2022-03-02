@@ -398,6 +398,11 @@ public class TestValueMemory extends TestBase implements DataHandler {
         public void removeAllForTable(int tableId) {
             throw new UnsupportedOperationException();
         }
+        
+        @Override
+        public void flushPendingRemoves() {
+            throw new UnsupportedOperationException();
+        }
 
         @Override
         public ValueBlob createBlob(InputStream in, long maxLength) {

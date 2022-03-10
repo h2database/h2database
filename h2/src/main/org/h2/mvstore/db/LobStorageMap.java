@@ -415,7 +415,7 @@ public final class LobStorageMap implements LobStorageInterface
             }
             final PendingRemoveEntry entry = mapEntry.getKey();
             MVStore.TxCounter sessionTx = findOldestTxInSessions();
-            if (sessionTx == null || (sessionTx.version <= entry.transaction.version && sessionTx.get() == 0)) {
+            if (sessionTx == null || (sessionTx.version > entry.transaction.version)) {
                 removeLob(entry.lobData.getTableId(), entry.lobData.getLobId());
             } else {
                 pendingRemoveMap.put(entry, Boolean.TRUE);

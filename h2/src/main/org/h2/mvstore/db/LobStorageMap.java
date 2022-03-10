@@ -443,7 +443,7 @@ public final class LobStorageMap implements LobStorageInterface
             Transaction transaction = session.getActiveTransaction();
             if (transaction != null) {
                 MVStore.TxCounter tx = transaction.getTxCounter();
-                if (oldestTx == null || oldestTx.version < oldestTx.version) {
+                if (oldestTx == null || tx.version < oldestTx.version) {
                     oldestTx = tx;
                 }
             }

@@ -100,6 +100,7 @@ public final class JavaFunction extends Expression implements NamedExpression {
         case ExpressionVisitor.DETERMINISTIC:
         case ExpressionVisitor.READONLY:
         case ExpressionVisitor.QUERY_COMPARABLE:
+        case ExpressionVisitor.QUERY_CACHEABLE:
             if (!functionAlias.isDeterministic()) {
                 return false;
             }

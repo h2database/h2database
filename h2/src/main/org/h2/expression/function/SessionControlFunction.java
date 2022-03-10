@@ -86,6 +86,7 @@ public final class SessionControlFunction extends Function1 {
         case ExpressionVisitor.DETERMINISTIC:
         case ExpressionVisitor.READONLY:
         case ExpressionVisitor.QUERY_COMPARABLE:
+        case ExpressionVisitor.QUERY_CACHEABLE:
             return false;
         }
         return super.isEverything(visitor);

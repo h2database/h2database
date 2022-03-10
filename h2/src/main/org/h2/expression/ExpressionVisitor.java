@@ -77,21 +77,11 @@ public final class ExpressionVisitor {
      */
     private static final ExpressionVisitor[] EVALUATABLE_VISITORS;
 
-    static {
-        ExpressionVisitor[] a = new ExpressionVisitor[CACHED];
-        a[0] = INDEPENDENT_VISITOR;
-        for (int i = 1; i < CACHED; i++) {
-            a[i] = new ExpressionVisitor(INDEPENDENT, i);
-        }
-        INDEPENDENT_VISITORS = a;
-        a = new ExpressionVisitor[CACHED];
-        a[0] = EVALUATABLE_VISITOR;
-        for (int i = 1; i < CACHED; i++) {
-            a[i] = new ExpressionVisitor(EVALUATABLE, i);
-        }
-        EVALUATABLE_VISITORS = a;
-    }
-
+    /**
+     * QUERY_CACHEABLE listeners with query level 0, 1, ...
+     */
+    private static final ExpressionVisitor[] QUERY_CACHEABLE_VISITORS;
+    
     /**
      * Request to set the latest modification id (addDataModificationId).
      */
@@ -147,6 +137,38 @@ public final class ExpressionVisitor {
      */
     public static final ExpressionVisitor QUERY_COMPARABLE_VISITOR =
             new ExpressionVisitor(QUERY_COMPARABLE);
+
+    /**
+     * Can we cache this query - same as DETERMINISTIC && DEPENDENT && has_no_LOB_columns
+     */
+    public static final int QUERY_CACHEABLE = 12;
+
+    /**
+     * The visitor singleton for the type QUERY_CACHEABLE.
+     */
+    public static final ExpressionVisitor QUERY_CACHEABLE_VISITOR =
+            new ExpressionVisitor(QUERY_CACHEABLE);
+    
+    static {
+        ExpressionVisitor[] a = new ExpressionVisitor[CACHED];
+        a[0] = INDEPENDENT_VISITOR;
+        for (int i = 1; i < CACHED; i++) {
+            a[i] = new ExpressionVisitor(INDEPENDENT, i);
+        }
+        INDEPENDENT_VISITORS = a;
+        a = new ExpressionVisitor[CACHED];
+        a[0] = EVALUATABLE_VISITOR;
+        for (int i = 1; i < CACHED; i++) {
+            a[i] = new ExpressionVisitor(EVALUATABLE, i);
+        }
+        EVALUATABLE_VISITORS = a;
+        a = new ExpressionVisitor[CACHED];
+        a[0] = QUERY_CACHEABLE_VISITOR;
+        for (int i = 1; i < CACHED; i++) {
+            a[i] = new ExpressionVisitor(QUERY_CACHEABLE, i);
+        }
+        QUERY_CACHEABLE_VISITORS = a;
+    }
 
     private final int type;
     private final int queryLevel;
@@ -322,6 +344,9 @@ public final class ExpressionVisitor {
         if (type == INDEPENDENT) {
             offset += queryLevel;
             return offset < CACHED ? INDEPENDENT_VISITORS[offset] : new ExpressionVisitor(INDEPENDENT, offset);
+        } else if (type == QUERY_CACHEABLE) {
+            offset += queryLevel;
+            return offset < CACHED ? QUERY_CACHEABLE_VISITORS[offset] : new ExpressionVisitor(QUERY_CACHEABLE, offset);
         } else if (type == EVALUATABLE) {
             offset += queryLevel;
             return offset < CACHED ? EVALUATABLE_VISITORS[offset] : new ExpressionVisitor(EVALUATABLE, offset);
@@ -376,7 +401,7 @@ public final class ExpressionVisitor {
     }
 
     int getQueryLevel() {
-        assert type == INDEPENDENT || type == EVALUATABLE || type == DECREMENT_QUERY_LEVEL;
+        assert type == INDEPENDENT || type == EVALUATABLE || type == DECREMENT_QUERY_LEVEL || type == QUERY_CACHEABLE;
         return queryLevel;
     }
 

@@ -124,6 +124,7 @@ public final class CurrentGeneralValueSpecification extends Operation0 implement
     public boolean isEverything(ExpressionVisitor visitor) {
         switch (visitor.getType()) {
         case ExpressionVisitor.DETERMINISTIC:
+        case ExpressionVisitor.QUERY_CACHEABLE:
             return false;
         }
         return true;

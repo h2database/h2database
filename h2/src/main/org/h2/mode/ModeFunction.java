@@ -213,6 +213,7 @@ public abstract class ModeFunction extends FunctionN {
         case ExpressionVisitor.DETERMINISTIC:
         case ExpressionVisitor.QUERY_COMPARABLE:
         case ExpressionVisitor.READONLY:
+        case ExpressionVisitor.QUERY_CACHEABLE:
             return info.deterministic;
         default:
             return true;

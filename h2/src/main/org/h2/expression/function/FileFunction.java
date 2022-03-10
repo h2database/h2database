@@ -128,6 +128,7 @@ public final class FileFunction extends Function1_2 {
         switch (visitor.getType()) {
         case ExpressionVisitor.DETERMINISTIC:
         case ExpressionVisitor.QUERY_COMPARABLE:
+        case ExpressionVisitor.QUERY_CACHEABLE:
             return false;
         case ExpressionVisitor.READONLY:
             if (function == FILE_WRITE) {

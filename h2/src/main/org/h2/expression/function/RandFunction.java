@@ -111,6 +111,7 @@ public final class RandFunction extends Function0_1 {
     public boolean isEverything(ExpressionVisitor visitor) {
         switch (visitor.getType()) {
         case ExpressionVisitor.DETERMINISTIC:
+        case ExpressionVisitor.QUERY_CACHEABLE:
             return false;
         }
         return super.isEverything(visitor);

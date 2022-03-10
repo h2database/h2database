@@ -153,6 +153,7 @@ public final class SysInfoFunction extends Operation0 implements NamedExpression
     public boolean isEverything(ExpressionVisitor visitor) {
         switch (visitor.getType()) {
         case ExpressionVisitor.DETERMINISTIC:
+        case ExpressionVisitor.QUERY_CACHEABLE:
             return false;
         }
         return true;

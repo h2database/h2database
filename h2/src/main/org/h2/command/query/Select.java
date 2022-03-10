@@ -8,7 +8,6 @@ package org.h2.command.query;
 import static org.h2.expression.Expression.WITHOUT_PARENTHESES;
 import static org.h2.util.HasSQL.ADD_PLAN_INFORMATION;
 import static org.h2.util.HasSQL.DEFAULT_SQL_FLAGS;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
@@ -40,6 +39,7 @@ import org.h2.index.Index;
 import org.h2.index.QueryExpressionIndex;
 import org.h2.message.DbException;
 import org.h2.mode.DefaultNullOrdering;
+import org.h2.mvstore.db.MVTable;
 import org.h2.result.LazyResult;
 import org.h2.result.LocalResult;
 import org.h2.result.ResultInterface;
@@ -1662,6 +1662,21 @@ public class Select extends Query {
     @Override
     public boolean isEverything(ExpressionVisitor visitor) {
         switch (visitor.getType()) {
+        case ExpressionVisitor.QUERY_CACHEABLE: {
+            if (isForUpdate) {
+                return false;
+            }
+            for (TableFilter f : filters) {
+                if (!f.getTable().isDeterministic()) {
+                    return false;
+                }
+                MVTable mvTable = (MVTable) f.getTable();
+                if (mvTable.getContainsLargeObject()) {
+                    return false;
+                }
+            }
+            break;
+        }
         case ExpressionVisitor.DETERMINISTIC: {
             if (isForUpdate) {
                 return false;

@@ -70,6 +70,7 @@ public final class SequenceValue extends Operation0 {
         case ExpressionVisitor.DETERMINISTIC:
         case ExpressionVisitor.INDEPENDENT:
         case ExpressionVisitor.QUERY_COMPARABLE:
+        case ExpressionVisitor.QUERY_CACHEABLE:
             return false;
         case ExpressionVisitor.SET_MAX_DATA_MODIFICATION_ID:
             visitor.addDataModificationId(sequence.getModificationId());

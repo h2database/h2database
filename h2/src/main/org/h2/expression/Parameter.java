@@ -95,6 +95,7 @@ public final class Parameter extends Operation0 implements ParameterInterface {
     public boolean isEverything(ExpressionVisitor visitor) {
         switch (visitor.getType()) {
         case ExpressionVisitor.INDEPENDENT:
+        case ExpressionVisitor.QUERY_CACHEABLE:
             return value != null;
         default:
             return true;

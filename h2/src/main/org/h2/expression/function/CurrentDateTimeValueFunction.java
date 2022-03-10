@@ -89,6 +89,7 @@ public final class CurrentDateTimeValueFunction extends Operation0 implements Na
     public boolean isEverything(ExpressionVisitor visitor) {
         switch (visitor.getType()) {
         case ExpressionVisitor.DETERMINISTIC:
+        case ExpressionVisitor.QUERY_CACHEABLE:
             return false;
         }
         return true;

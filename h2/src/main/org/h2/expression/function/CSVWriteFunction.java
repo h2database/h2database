@@ -117,6 +117,7 @@ public final class CSVWriteFunction extends FunctionN {
         case ExpressionVisitor.DETERMINISTIC:
         case ExpressionVisitor.QUERY_COMPARABLE:
         case ExpressionVisitor.READONLY:
+        case ExpressionVisitor.QUERY_CACHEABLE:
             return false;
         default:
             return true;

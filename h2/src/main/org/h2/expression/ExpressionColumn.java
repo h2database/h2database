@@ -373,6 +373,7 @@ public final class ExpressionColumn extends Expression {
         case ExpressionVisitor.OPTIMIZABLE_AGGREGATE:
             return false;
         case ExpressionVisitor.INDEPENDENT:
+        case ExpressionVisitor.QUERY_CACHEABLE:
             return this.queryLevel < visitor.getQueryLevel();
         case ExpressionVisitor.EVALUATABLE:
             // if this column belongs to a 'higher level' query and is

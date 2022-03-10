@@ -83,6 +83,7 @@ public final class CompatibilitySequenceValueFunction extends Function1_2 {
         case ExpressionVisitor.INDEPENDENT:
         case ExpressionVisitor.DETERMINISTIC:
         case ExpressionVisitor.QUERY_COMPARABLE:
+        case ExpressionVisitor.QUERY_CACHEABLE:
             return false;
         case ExpressionVisitor.READONLY:
             if (!current) {

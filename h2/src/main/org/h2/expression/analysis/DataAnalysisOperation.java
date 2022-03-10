@@ -369,6 +369,7 @@ public abstract class DataAnalysisOperation extends Expression {
         case ExpressionVisitor.DETERMINISTIC:
         case ExpressionVisitor.INDEPENDENT:
         case ExpressionVisitor.DECREMENT_QUERY_LEVEL:
+        case ExpressionVisitor.QUERY_CACHEABLE:
             return false;
         default:
             return true;

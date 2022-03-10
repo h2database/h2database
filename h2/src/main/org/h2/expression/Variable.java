@@ -48,6 +48,7 @@ public final class Variable extends Operation0 {
     public boolean isEverything(ExpressionVisitor visitor) {
         switch (visitor.getType()) {
         case ExpressionVisitor.DETERMINISTIC:
+        case ExpressionVisitor.QUERY_CACHEABLE:
             return false;
         default:
             return true;

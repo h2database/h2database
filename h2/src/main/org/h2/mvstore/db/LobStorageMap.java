@@ -438,7 +438,7 @@ public final class LobStorageMap implements LobStorageInterface
     }
     
     private MVStore.TxCounter findOldestTxInSessions() {
-        MVStore.TxCounter oldestTx = null;
+        MVStore.TxCounter oldestTx = database.getStore().getMvStore().getOldestRegisteredVersion();
         for (SessionLocal session : database.getSessions(true)) {
             Transaction transaction = session.getActiveTransaction();
             if (transaction != null) {

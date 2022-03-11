@@ -1685,9 +1685,12 @@ public class Select extends Query {
         }
         case ExpressionVisitor.QUERY_CONTAINS_LOB: {
             for (TableFilter f : filters) {
-                MVTable mvTable = (MVTable) f.getTable();
-                if (mvTable.getContainsLargeObject()) {
-                    return true;
+                if (f.getTable() instanceof MVTable)
+                {
+                    MVTable mvTable = (MVTable) f.getTable();
+                    if (mvTable.getContainsLargeObject()) {
+                        return true;
+                    }
                 }
             }
             return false;

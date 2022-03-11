@@ -375,6 +375,8 @@ public final class ExpressionColumn extends Expression {
         case ExpressionVisitor.INDEPENDENT:
         case ExpressionVisitor.QUERY_CACHEABLE:
             return this.queryLevel < visitor.getQueryLevel();
+        case ExpressionVisitor.QUERY_CONTAINS_LOB:
+            return false;
         case ExpressionVisitor.EVALUATABLE:
             // if this column belongs to a 'higher level' query and is
             // therefore just a parameter

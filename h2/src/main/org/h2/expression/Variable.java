@@ -49,6 +49,7 @@ public final class Variable extends Operation0 {
         switch (visitor.getType()) {
         case ExpressionVisitor.DETERMINISTIC:
         case ExpressionVisitor.QUERY_CACHEABLE:
+        case ExpressionVisitor.QUERY_CONTAINS_LOB:
             return false;
         default:
             return true;

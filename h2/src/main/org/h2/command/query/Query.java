@@ -137,7 +137,7 @@ public abstract class Query extends Prepared {
      * include virtual columns for HAVING and QUALIFY.
      */
     int resultColumnCount;
-
+    
     private boolean noCache;
     private long lastLimit;
     private long lastEvaluated;

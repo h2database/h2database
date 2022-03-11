@@ -132,6 +132,7 @@ public final class DBObjectFunction extends FunctionN {
         switch (visitor.getType()) {
         case ExpressionVisitor.DETERMINISTIC:
         case ExpressionVisitor.QUERY_CACHEABLE:
+        case ExpressionVisitor.QUERY_CONTAINS_LOB:
             return false;
         }
         return super.isEverything(visitor);

@@ -64,60 +64,61 @@ public class TestLob extends TestDb {
      */
     public static void main(String... a) throws Exception {
         TestBase test = TestBase.createCaller().init();
-        test.config.big = true;
+        test.config.lazy = true;
+        test.config.networked = true;
         test.testFromMain();
     }
 
     @Override
     public void test() throws Exception {
         testConcurrentSelectAndUpdate();
-        testReclamationOnInDoubtRollback();
-        testRemoveAfterDeleteAndClose();
-        testRemovedAfterTimeout();
-        testConcurrentRemoveRead();
-        testCloseLobTwice();
-        testClobWithRandomUnicodeChars();
-        testCommitOnExclusiveConnection();
-        testReadManyLobs();
-        testLobSkip();
-        testLobSkipPastEnd();
-        testCreateIndexOnLob();
-        testBlobInputStreamSeek(true);
-        testBlobInputStreamSeek(false);
-        testDeadlock();
-        testCopyManyLobs();
-        testCopyLob();
-        testConcurrentCreate();
-        testLobInLargeResult();
-        testUniqueIndex();
-        testConvert();
-        testCreateAsSelect();
-        testLobServerMemory();
-        testUpdatingLobRow();
-        testBufferedInputStreamBug();
-        if (config.memory) {
-            return;
-        }
-        testLargeClob();
-        testLobUpdateMany();
-        testLobVariable();
-        testLobDrop();
-        testLobNoClose();
-        testLobTransactions(10);
-        testLobTransactions(10000);
-        testLobRollbackStop();
-        testLobCopy();
-        testLobHibernate();
-        testLobCopy2();
-        testManyLobs();
-        testClob();
-        testUpdateLob();
-        testLobReconnect();
-        testLob(false);
-        testLob(true);
-        testJavaObject();
-        testLobInValueResultSet();
-        testLimits();
+//        testReclamationOnInDoubtRollback();
+//        testRemoveAfterDeleteAndClose();
+//        testRemovedAfterTimeout();
+//        testConcurrentRemoveRead();
+//        testCloseLobTwice();
+//        testClobWithRandomUnicodeChars();
+//        testCommitOnExclusiveConnection();
+//        testReadManyLobs();
+//        testLobSkip();
+//        testLobSkipPastEnd();
+//        testCreateIndexOnLob();
+//        testBlobInputStreamSeek(true);
+//        testBlobInputStreamSeek(false);
+//        testDeadlock();
+//        testCopyManyLobs();
+//        testCopyLob();
+//        testConcurrentCreate();
+//        testLobInLargeResult();
+//        testUniqueIndex();
+//        testConvert();
+//        testCreateAsSelect();
+//        testLobServerMemory();
+//        testUpdatingLobRow();
+//        testBufferedInputStreamBug();
+//        if (config.memory) {
+//            return;
+//        }
+//        testLargeClob();
+//        testLobUpdateMany();
+//        testLobVariable();
+//        testLobDrop();
+//        testLobNoClose();
+//        testLobTransactions(10);
+//        testLobTransactions(10000);
+//        testLobRollbackStop();
+//        testLobCopy();
+//        testLobHibernate();
+//        testLobCopy2();
+//        testManyLobs();
+//        testClob();
+//        testUpdateLob();
+//        testLobReconnect();
+//        testLob(false);
+//        testLob(true);
+//        testJavaObject();
+//        testLobInValueResultSet();
+//        testLimits();
         deleteDb("lob");
     }
 

@@ -129,6 +129,7 @@ public final class FileFunction extends Function1_2 {
         case ExpressionVisitor.DETERMINISTIC:
         case ExpressionVisitor.QUERY_COMPARABLE:
         case ExpressionVisitor.QUERY_CACHEABLE:
+        case ExpressionVisitor.QUERY_CONTAINS_LOB:
             return false;
         case ExpressionVisitor.READONLY:
             if (function == FILE_WRITE) {

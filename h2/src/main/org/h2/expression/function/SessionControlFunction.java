@@ -87,6 +87,7 @@ public final class SessionControlFunction extends Function1 {
         case ExpressionVisitor.READONLY:
         case ExpressionVisitor.QUERY_COMPARABLE:
         case ExpressionVisitor.QUERY_CACHEABLE:
+        case ExpressionVisitor.QUERY_CONTAINS_LOB:
             return false;
         }
         return super.isEverything(visitor);

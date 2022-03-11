@@ -77,6 +77,7 @@ final class CompatibilityDateTimeValueFunction extends Operation0 implements Nam
         switch (visitor.getType()) {
         case ExpressionVisitor.DETERMINISTIC:
         case ExpressionVisitor.QUERY_CACHEABLE:
+        case ExpressionVisitor.QUERY_CONTAINS_LOB:
             return false;
         }
         return true;

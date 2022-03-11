@@ -97,6 +97,8 @@ public final class Parameter extends Operation0 implements ParameterInterface {
         case ExpressionVisitor.INDEPENDENT:
         case ExpressionVisitor.QUERY_CACHEABLE:
             return value != null;
+        case ExpressionVisitor.QUERY_CONTAINS_LOB:
+            return false;
         default:
             return true;
         }

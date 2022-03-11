@@ -57,6 +57,7 @@ public final class Rownum extends Operation0 {
         case ExpressionVisitor.INDEPENDENT:
         case ExpressionVisitor.EVALUATABLE:
         case ExpressionVisitor.QUERY_CACHEABLE:
+        case ExpressionVisitor.QUERY_CONTAINS_LOB:
             return false;
         case ExpressionVisitor.DECREMENT_QUERY_LEVEL:
             if (visitor.getQueryLevel() > 0) {

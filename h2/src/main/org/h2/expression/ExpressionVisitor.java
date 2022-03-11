@@ -149,6 +149,17 @@ public final class ExpressionVisitor {
     public static final ExpressionVisitor QUERY_CACHEABLE_VISITOR =
             new ExpressionVisitor(QUERY_CACHEABLE);
     
+    /**
+     * Does this query contain LOB columns
+     */
+    public static final int QUERY_CONTAINS_LOB = 13;
+
+    /**
+     * The visitor singleton for the type QUERY_CACHEABLE.
+     */
+    public static final ExpressionVisitor QUERY_CONTAINS_LOB_VISITOR =
+            new ExpressionVisitor(QUERY_CONTAINS_LOB);
+    
     static {
         ExpressionVisitor[] a = new ExpressionVisitor[CACHED];
         a[0] = INDEPENDENT_VISITOR;

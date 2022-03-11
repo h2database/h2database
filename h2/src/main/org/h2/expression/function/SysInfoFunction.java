@@ -154,6 +154,7 @@ public final class SysInfoFunction extends Operation0 implements NamedExpression
         switch (visitor.getType()) {
         case ExpressionVisitor.DETERMINISTIC:
         case ExpressionVisitor.QUERY_CACHEABLE:
+        case ExpressionVisitor.QUERY_CONTAINS_LOB:
             return false;
         }
         return true;

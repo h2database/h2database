@@ -63,6 +63,7 @@ public class JavaAggregate extends AbstractAggregate {
             return false;
         }
         switch (visitor.getType()) {
+        case ExpressionVisitor.QUERY_CONTAINS_LOB:
         case ExpressionVisitor.DETERMINISTIC:
         case ExpressionVisitor.QUERY_CACHEABLE:
             // TODO optimization: some functions are deterministic, but we don't

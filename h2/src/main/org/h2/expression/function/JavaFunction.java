@@ -106,6 +106,8 @@ public final class JavaFunction extends Expression implements NamedExpression {
             }
             // only if all parameters are deterministic as well
             break;
+        case ExpressionVisitor.QUERY_CONTAINS_LOB:
+            return false;
         case ExpressionVisitor.GET_DEPENDENCIES:
             visitor.addDependency(functionAlias);
             break;

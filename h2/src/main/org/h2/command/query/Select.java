@@ -155,6 +155,10 @@ public class Select extends Query {
     private boolean isGroupWindowStage2;
 
     private HashMap<String, Window> windows;
+    /**
+     * Does this fetch LOB columns
+     */
+    private boolean containsLOB;
 
     public Select(SessionLocal session, Select parentSelect) {
         super(session);
@@ -771,7 +775,8 @@ public class Select extends Query {
         boolean fetchPercent = offsetFetch.fetchPercent;
         boolean lazy = session.isLazyQueryExecution() &&
                 target == null && !isForUpdate && !isQuickAggregateQuery &&
-                fetch != 0 && !fetchPercent && !withTies && offset == 0 && isReadOnly();
+                fetch != 0 && !fetchPercent && !withTies && offset == 0 && isReadOnly()
+                && !containsLOB;
         int columnCount = expressions.size();
         LocalResult result = null;
         if (!lazy && (target == null ||
@@ -1180,6 +1185,7 @@ public class Select extends Query {
                 && filters.size() == 1) {
             isQuickAggregateQuery = isEverything(ExpressionVisitor.getOptimizableVisitor(filters.get(0).getTable()));
         }
+        containsLOB = isEverything(ExpressionVisitor.QUERY_CONTAINS_LOB_VISITOR);
         expressionArray = expressions.toArray(new Expression[0]);
     }
 
@@ -1676,6 +1682,15 @@ public class Select extends Query {
                 }
             }
             break;
+        }
+        case ExpressionVisitor.QUERY_CONTAINS_LOB: {
+            for (TableFilter f : filters) {
+                MVTable mvTable = (MVTable) f.getTable();
+                if (mvTable.getContainsLargeObject()) {
+                    return true;
+                }
+            }
+            return false;
         }
         case ExpressionVisitor.DETERMINISTIC: {
             if (isForUpdate) {

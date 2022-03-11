@@ -47,6 +47,7 @@ public final class OnDuplicateKeyValues extends Operation0 {
         switch (visitor.getType()) {
         case ExpressionVisitor.DETERMINISTIC:
         case ExpressionVisitor.QUERY_CACHEABLE:
+        case ExpressionVisitor.QUERY_CONTAINS_LOB:
             return false;
         }
         return true;

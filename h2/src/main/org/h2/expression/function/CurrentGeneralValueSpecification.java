@@ -125,6 +125,7 @@ public final class CurrentGeneralValueSpecification extends Operation0 implement
         switch (visitor.getType()) {
         case ExpressionVisitor.DETERMINISTIC:
         case ExpressionVisitor.QUERY_CACHEABLE:
+        case ExpressionVisitor.QUERY_CONTAINS_LOB:
             return false;
         }
         return true;

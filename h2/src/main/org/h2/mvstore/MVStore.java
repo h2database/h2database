@@ -39,7 +39,6 @@ import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.LongConsumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import org.h2.compress.CompressDeflate;
@@ -364,6 +363,11 @@ public class MVStore implements AutoCloseable {
 
     private long leafCount;
     private long nonLeafCount;
+
+    /**
+     * Callback for maintance after some unused store versions were dropped
+     */
+    private Cleaner cleaner;
 
 
     /**
@@ -1306,7 +1310,8 @@ public class MVStore implements AutoCloseable {
                     try {
                         try {
                             if (normalShutdown && fileStore != null && !fileStore.isReadOnly()) {
-                                notifyLobCleaner(currentVersion);
+                                // remove all dead LOBs before maps are closed
+                                notifyCleaner(currentVersion);
                                 for (MVMap<?, ?> map : maps.values()) {
                                     if (map.isClosed()) {
                                         deregisterMapRoot(map.getId());
@@ -2779,10 +2784,14 @@ public class MVStore implements AutoCloseable {
         notifyAboutOldestVersion(oldestVersionToKeep);
     }
 
+    public void setCleaner(Cleaner cleaner) {
+        this.cleaner = cleaner;
+    }
+
     private void notifyAboutOldestVersion(long oldestVersionToKeep) {
-        if (onVersionListener != null && bufferSaveExecutor != null) {
+        if (cleaner != null && cleaner.needCleanup()) {
             Runnable blobCleaner = () -> {
-                notifyLobCleaner(oldestVersionToKeep);
+                notifyCleaner(oldestVersionToKeep);
             };
             try {
                 bufferSaveExecutor.execute(blobCleaner);
@@ -2795,9 +2804,9 @@ public class MVStore implements AutoCloseable {
         }
     }
 
-    public void notifyLobCleaner(long oldestVersionToKeep) {
-        if (onVersionListener != null) {
-            onVersionListener.accept(oldestVersionToKeep);
+    public void notifyCleaner(long oldestVersionToKeep) {
+        if (cleaner != null && cleaner.needCleanup()) {
+            cleaner.cleanup(oldestVersionToKeep);
         }
     }
 
@@ -3625,13 +3634,6 @@ public class MVStore implements AutoCloseable {
         return txCounter != null &&  txCounter.decrementAndGet() <= 0;
     }
 
-
-    private LongConsumer onVersionListener;
-
-    public void setOnVersionListener(LongConsumer onVersionListener) {
-        this.onVersionListener = onVersionListener;
-    }
-
     private void onVersionChange(long version) {
         TxCounter txCounter = currentTxCounter;
         assert txCounter.get() >= 0;
@@ -4113,5 +4115,26 @@ public class MVStore implements AutoCloseable {
             // Cast from HashMap<String, String> to HashMap<String, Object> is safe
             return new Builder((HashMap) DataUtils.parseMap(s));
         }
+    }
+
+    /**
+     * Callback interface to perform cleanup after some unused store versions were dropped.
+     * Currently removes LOBs, which are known to be out of scope.
+     */
+    public interface Cleaner {
+        /**
+         * Determine if cleanup is needed.
+         * This is mainly performance optimization to avoid async call to cleanup().
+         *
+         * @return true if cleanup is required at this time, false otherwise
+         */
+        boolean needCleanup();
+
+        /**
+         * Actual procedure for cleanup after some unused store versions were dropped
+         *
+         * @param oldestVersionToKeep in this MVStore
+         */
+        void cleanup(long oldestVersionToKeep);
     }
 }

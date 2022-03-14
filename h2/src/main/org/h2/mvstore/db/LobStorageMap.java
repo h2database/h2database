@@ -48,7 +48,7 @@ import org.h2.value.lob.LobDataDatabase;
  * This class stores LOB objects in the database, in maps. This is the back-end
  * i.e. the server side of the LOB storage.
  */
-public final class LobStorageMap implements LobStorageInterface
+public final class LobStorageMap implements LobStorageInterface, MVStore.Cleaner
 {
     private static final boolean TRACE = false;
 
@@ -105,7 +105,7 @@ public final class LobStorageMap implements LobStorageInterface
         Store s = database.getStore();
         TransactionStore txStore = s.getTransactionStore();
         mvStore = s.getMvStore();
-        mvStore.setOnVersionListener(this::removeLobs);
+        mvStore.setCleaner(this);
         MVStore.TxCounter txCounter = mvStore.registerVersionUsage();
         try {
             lobMap = openLobMap(txStore);
@@ -394,7 +394,13 @@ public final class LobStorageMap implements LobStorageInterface
         pendingLobRemovals.offer(new LobRemovalInfo(mvStore.getCurrentVersion(), lobId, tableId));
     }
 
-    private void removeLobs(long oldestVersionToKeep) {
+    @Override
+    public boolean needCleanup() {
+        return !pendingLobRemovals.isEmpty();
+    }
+
+    @Override
+    public void cleanup(long oldestVersionToKeep) {
         MVStore.TxCounter txCounter = mvStore.registerVersionUsage();
         try {
             LobRemovalInfo lobRemovalInfo;

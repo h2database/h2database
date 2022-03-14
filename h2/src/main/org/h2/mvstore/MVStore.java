@@ -2789,7 +2789,7 @@ public class MVStore implements AutoCloseable {
     }
 
     private void notifyAboutOldestVersion(long oldestVersionToKeep) {
-        if (cleaner != null && cleaner.needCleanup()) {
+        if (cleaner != null && cleaner.needCleanup() && bufferSaveExecutor != null) {
             Runnable blobCleaner = () -> {
                 notifyCleaner(oldestVersionToKeep);
             };

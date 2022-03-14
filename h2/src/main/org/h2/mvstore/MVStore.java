@@ -3601,19 +3601,28 @@ public class MVStore implements AutoCloseable {
      * @param txCounter to be decremented, obtained from registerVersionUsage()
      */
     public void deregisterVersionUsage(TxCounter txCounter) {
-        if(txCounter != null) {
-            if(txCounter.decrementAndGet() <= 0) {
-                if (storeLock.isHeldByCurrentThread()) {
+        if(decrementVersionUsageCounter(txCounter)) {
+            if (storeLock.isHeldByCurrentThread()) {
+                dropUnusedVersions();
+            } else if (storeLock.tryLock()) {
+                try {
                     dropUnusedVersions();
-                } else if (storeLock.tryLock()) {
-                    try {
-                        dropUnusedVersions();
-                    } finally {
-                        storeLock.unlock();
-                    }
+                } finally {
+                    storeLock.unlock();
                 }
             }
         }
+    }
+
+    /**
+     * De-register (close) completed operation (transaction).
+     * This will decrement usage counter for the corresponding version.
+     *
+     * @param txCounter to be decremented, obtained from registerVersionUsage()
+     * @return true if counter reaches zero, which indicates that version is no longer in use, false otherwise.
+     */
+    public boolean decrementVersionUsageCounter(TxCounter txCounter) {
+        return txCounter != null &&  txCounter.decrementAndGet() <= 0;
     }
 
 

@@ -405,7 +405,8 @@ public final class LobStorageMap implements LobStorageInterface
                 pendingLobRemovals.offer(lobRemovalInfo);
             }
         } finally {
-            mvStore.deregisterVersionUsage(txCounter);
+            // we can not call deregisterVersionUsage() due to a possible infinite recursion
+            mvStore.decrementVersionUsageCounter(txCounter);
         }
     }
 

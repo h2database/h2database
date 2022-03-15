@@ -17,7 +17,7 @@ import org.h2.value.ValueLob;
  */
 public final class LobDataDatabase extends LobData {
 
-    private DataHandler handler;
+    private final DataHandler handler;
 
     /**
      * If the LOB is managed by the one the LobStorageBackend classes, these are
@@ -26,11 +26,6 @@ public final class LobDataDatabase extends LobData {
     private final int tableId;
 
     private final long lobId;
-
-    /**
-     * Fix for recovery tool.
-     */
-    private boolean isRecoveryReference;
 
     public LobDataDatabase(DataHandler handler, int tableId, long lobId) {
         this.handler = handler;
@@ -87,13 +82,4 @@ public final class LobDataDatabase extends LobData {
     public String toString() {
         return "lob-table: table: " + tableId + " id: " + lobId;
     }
-
-    public void setRecoveryReference(boolean isRecoveryReference) {
-        this.isRecoveryReference = isRecoveryReference;
-    }
-
-    public boolean isRecoveryReference() {
-        return isRecoveryReference;
-    }
-
 }

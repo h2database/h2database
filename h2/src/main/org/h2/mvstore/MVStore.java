@@ -364,6 +364,11 @@ public class MVStore implements AutoCloseable {
     private long leafCount;
     private long nonLeafCount;
 
+    /**
+     * Callback for maintenance after some unused store versions were dropped
+     */
+    private Cleaner cleaner;
+
 
     /**
      * Create and open the store.
@@ -1305,6 +1310,8 @@ public class MVStore implements AutoCloseable {
                     try {
                         try {
                             if (normalShutdown && fileStore != null && !fileStore.isReadOnly()) {
+                                // remove all dead LOBs before maps are closed
+                                notifyCleaner(currentVersion);
                                 for (MVMap<?, ?> map : maps.values()) {
                                     if (map.isClosed()) {
                                         deregisterMapRoot(map.getId());
@@ -2774,6 +2781,33 @@ public class MVStore implements AutoCloseable {
             success = oldestVersionToKeep <= current ||
                         this.oldestVersionToKeep.compareAndSet(current, oldestVersionToKeep);
         } while (!success);
+        notifyAboutOldestVersion(oldestVersionToKeep);
+    }
+
+    public void setCleaner(Cleaner cleaner) {
+        this.cleaner = cleaner;
+    }
+
+    private void notifyAboutOldestVersion(long oldestVersionToKeep) {
+        if (cleaner != null && cleaner.needCleanup() && bufferSaveExecutor != null) {
+            Runnable blobCleaner = () -> {
+                notifyCleaner(oldestVersionToKeep);
+            };
+            try {
+                bufferSaveExecutor.execute(blobCleaner);
+            } catch (RejectedExecutionException ignore) {
+            } catch (MVStoreException e) {
+                panic(e);
+            } catch (Throwable e) {
+                panic(DataUtils.newMVStoreException(DataUtils.ERROR_INTERNAL, "{0}", e.toString(), e));
+            }
+        }
+    }
+
+    public void notifyCleaner(long oldestVersionToKeep) {
+        if (cleaner != null && cleaner.needCleanup()) {
+            cleaner.cleanup(oldestVersionToKeep);
+        }
     }
 
     private long lastChunkVersion() {
@@ -3329,8 +3363,7 @@ public class MVStore implements AutoCloseable {
         }
         storeLock.lock();
         try {
-            assert state == STATE_CLOSED;
-            return true;
+            return state == STATE_CLOSED;
         } finally {
             storeLock.unlock();
         }
@@ -3577,19 +3610,28 @@ public class MVStore implements AutoCloseable {
      * @param txCounter to be decremented, obtained from registerVersionUsage()
      */
     public void deregisterVersionUsage(TxCounter txCounter) {
-        if(txCounter != null) {
-            if(txCounter.decrementAndGet() <= 0) {
-                if (storeLock.isHeldByCurrentThread()) {
+        if(decrementVersionUsageCounter(txCounter)) {
+            if (storeLock.isHeldByCurrentThread()) {
+                dropUnusedVersions();
+            } else if (storeLock.tryLock()) {
+                try {
                     dropUnusedVersions();
-                } else if (storeLock.tryLock()) {
-                    try {
-                        dropUnusedVersions();
-                    } finally {
-                        storeLock.unlock();
-                    }
+                } finally {
+                    storeLock.unlock();
                 }
             }
         }
+    }
+
+    /**
+     * De-register (close) completed operation (transaction).
+     * This will decrement usage counter for the corresponding version.
+     *
+     * @param txCounter to be decremented, obtained from registerVersionUsage()
+     * @return true if counter reaches zero, which indicates that version is no longer in use, false otherwise.
+     */
+    public boolean decrementVersionUsageCounter(TxCounter txCounter) {
+        return txCounter != null &&  txCounter.decrementAndGet() <= 0;
     }
 
     private void onVersionChange(long version) {
@@ -3607,7 +3649,8 @@ public class MVStore implements AutoCloseable {
                 && txCounter.get() < 0) {
             versions.poll();
         }
-        setOldestVersionToKeep((txCounter != null ? txCounter : currentTxCounter).version);
+        long oldestVersionToKeep = (txCounter != null ? txCounter : currentTxCounter).version;
+        setOldestVersionToKeep(oldestVersionToKeep);
     }
 
     private int dropUnusedChunks() {
@@ -4072,5 +4115,26 @@ public class MVStore implements AutoCloseable {
             // Cast from HashMap<String, String> to HashMap<String, Object> is safe
             return new Builder((HashMap) DataUtils.parseMap(s));
         }
+    }
+
+    /**
+     * Callback interface to perform cleanup after some unused store versions were dropped.
+     * Currently removes LOBs, which are known to be out of scope.
+     */
+    public interface Cleaner {
+        /**
+         * Determine if cleanup is needed.
+         * This is mainly performance optimization to avoid async call to cleanup().
+         *
+         * @return true if cleanup is required at this time, false otherwise
+         */
+        boolean needCleanup();
+
+        /**
+         * Actual procedure for cleanup after some unused store versions were dropped
+         *
+         * @param oldestVersionToKeep in this MVStore
+         */
+        void cleanup(long oldestVersionToKeep);
     }
 }

@@ -365,7 +365,7 @@ public class MVStore implements AutoCloseable {
     private long nonLeafCount;
 
     /**
-     * Callback for maintance after some unused store versions were dropped
+     * Callback for maintenance after some unused store versions were dropped
      */
     private Cleaner cleaner;
 

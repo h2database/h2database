@@ -1583,49 +1583,44 @@ public class TestLob extends TestDb {
     
     public void testConcurrentSelectAndUpdate() throws SQLException, InterruptedException {
         deleteDb("lob");
-        final JdbcConnection conn1 = (JdbcConnection) getConnection("lob");
-        final JdbcConnection conn2 = (JdbcConnection) getConnection("lob");
+        try (JdbcConnection conn1 = (JdbcConnection) getConnection("lob")) {
+            try (JdbcConnection conn2 = (JdbcConnection) getConnection("lob")) {
 
-        try (Statement st = conn1.createStatement()) {
-            final String createTable = "create table t1 (id int, ver bigint, data text, primary key (id));";
-            st.execute(createTable);
-//            st.execute("SET SESSION CHARACTERISTICS AS TRANSACTION ISOLATION LEVEL REPEATABLE READ");
-        }
-
-        final String insert = "insert into t1 (id, ver, data) values (1, 0, ?)";
-        try (final PreparedStatement insertStmt = conn1.prepareStatement(insert)) {
-            final String largeData = org.h2.util.StringUtils.pad("", 512, "x", false);
-            insertStmt.setString(1, largeData);
-            insertStmt.executeUpdate();
-        }
-
-        final long startTime_ms = System.currentTimeMillis();
-        final long endTime_ms = startTime_ms + 10_000; // 10 seconds
-
-        final Thread thread1 = new Thread() {
-            @Override
-            public void run() {
-                try {
-                    final String update = "update t1 set ver = ver + 1 where id = 1";
-                    try (PreparedStatement ps = conn2.prepareStatement(update)) {
-                        while (!Thread.currentThread().isInterrupted() && System.currentTimeMillis() < endTime_ms) {
-                            ps.executeUpdate();
-                        }
-                    }
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
+                try (Statement st = conn1.createStatement()) {
+                    String createTable = "create table t1 (id int, ver bigint, data text, primary key (id));";
+                    st.execute(createTable);
                 }
-            }
-        };
-        thread1.start();
 
-        try (final PreparedStatement st = conn1.prepareStatement("select * from t1 where id = 1")) {
-            while (System.currentTimeMillis() < endTime_ms) {
-                st.executeQuery();
+                String insert = "insert into t1 (id, ver, data) values (1, 0, ?)";
+                try (PreparedStatement insertStmt = conn1.prepareStatement(insert)) {
+                    String largeData = org.h2.util.StringUtils.pad("", 512, "x", false);
+                    insertStmt.setString(1, largeData);
+                    insertStmt.executeUpdate();
+                }
+
+                long startTimeNs = System.nanoTime();
+
+                Thread thread1 = new Thread(() -> {
+                    try {
+                        String update = "update t1 set ver = ver + 1 where id = 1";
+                        try (PreparedStatement ps = conn2.prepareStatement(update)) {
+                            while (!Thread.currentThread().isInterrupted() && System.nanoTime() - startTimeNs < 10_000_000_000L) {
+                                ps.executeUpdate();
+                            }
+                        }
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                });
+                thread1.start();
+
+                try (PreparedStatement st = conn1.prepareStatement("select * from t1 where id = 1")) {
+                    while (System.nanoTime() - startTimeNs  < 10_000_000_000L) {
+                        st.executeQuery();
+                    }
+                }
+                thread1.join();
             }
         }
-        thread1.join();
-        conn1.close();
-        conn2.close();
     }
 }

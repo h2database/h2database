@@ -65,6 +65,8 @@ public class Build extends BuildBase {
 
     private static final String APIGUARDIAN_VERSION = "1.1.0";
 
+    private static final String SQLITE_VERSION = "3.36.0.3";
+
     private boolean filesMissing;
 
     /**
@@ -101,6 +103,8 @@ public class Build extends BuildBase {
         downloadUsingMaven("ext/mysql-connector-java-" + MYSQL_CONNECTOR_VERSION + ".jar",
                 "mysql", "mysql-connector-java", MYSQL_CONNECTOR_VERSION,
                 "f1da9f10a3de6348725a413304aab6d0aa04f923");
+        downloadUsingMaven("ext/sqlite-" + SQLITE_VERSION + ".jar",
+            "org.xerial", "sqlite-jdbc", SQLITE_VERSION, "7fa71c4dfab806490cb909714fb41373ec552c29");
         compile();
 
         String cp = "temp" +
@@ -111,7 +115,8 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/derbynet-" + DERBY_VERSION + ".jar" +
 //                File.pathSeparator + "ext/derbyshared-" + DERBY_VERSION + ".jar" +
                 File.pathSeparator + "ext/postgresql-" + PGJDBC_VERSION + ".jar" +
-                File.pathSeparator + "ext/mysql-connector-java-" + MYSQL_CONNECTOR_VERSION + ".jar";
+                File.pathSeparator + "ext/mysql-connector-java-" + MYSQL_CONNECTOR_VERSION + ".jar" +
+                File.pathSeparator + "ext/sqlite-" + SQLITE_VERSION + ".jar";
         StringList args = args("-Xmx128m",
                 "-cp", cp, "-Dderby.system.durability=test", "org.h2.test.bench.TestPerformance");
         execJava(args.plus("-init", "-db", "1"));
@@ -122,6 +127,8 @@ public class Build extends BuildBase {
         execJava(args.plus("-db", "6"));
         execJava(args.plus("-db", "7"));
         execJava(args.plus("-db", "8", "-out", "ps.html"));
+        // Disable SQLite because it doesn't work with multi-threaded benchmark, BenchB
+        // execJava(args.plus("-db", "9"));
     }
 
     /**

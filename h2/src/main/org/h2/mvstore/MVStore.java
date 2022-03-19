@@ -1381,13 +1381,23 @@ public class MVStore implements AutoCloseable {
                         oldestVersionToKeep.compareAndSet(current, version);
         } while (!success);
 
-        if (oldestVersionTracker != null) {
-            oldestVersionTracker.accept(version);
+    public void setCleaner(Cleaner cleaner) {
+        this.cleaner = cleaner;
+    }
+
+    private void notifyAboutOldestVersion(long oldestVersionToKeep) {
+        if (cleaner != null && cleaner.needCleanup()) {
+            Runnable blobCleaner = () -> {
+                notifyCleaner(oldestVersionToKeep);
+            };
+            fileStore.executeBackgroundOperation(blobCleaner);
         }
     }
 
-    public void setOldestVersionTracker(LongConsumer callback) {
-        oldestVersionTracker = callback;
+    private void notifyCleaner(long oldestVersionToKeep) {
+        if (cleaner != null && cleaner.needCleanup()) {
+            cleaner.cleanup(oldestVersionToKeep);
+        }
     }
 
     /**

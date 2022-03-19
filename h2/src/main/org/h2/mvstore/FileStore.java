@@ -2064,7 +2064,13 @@ public abstract class FileStore
         }
     }
 
-
+    public void executeBackgroundOperation(Runnable operation) {
+        if (bufferSaveExecutor != null) {
+            try {
+                bufferSaveExecutor.execute(operation);
+            } catch (RejectedExecutionException ignore) {/**/}
+        }
+    }
 
 
     private int compactRewrite(Set<Integer> set) {

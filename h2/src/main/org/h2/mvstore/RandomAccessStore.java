@@ -208,6 +208,7 @@ public abstract class RandomAccessStore extends FileStore {
      * @param targetFillRate do nothing if the file store fill rate is higher
      *            than this
      * @param moveSize the number of bytes to move
+     * @param mvStore owner of this store
      */
     public void compactMoveChunks(int targetFillRate, long moveSize, MVStore mvStore) {
         if (isSpaceReused()) {

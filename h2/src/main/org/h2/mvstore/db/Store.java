@@ -346,12 +346,6 @@ public final class Store {
         try {
             mvStore.close(allowedCompactionTime);
         } catch (MVStoreException e) {
-            int errorCode = e.getErrorCode();
-            if (errorCode == DataUtils.ERROR_WRITING_FAILED) {
-                // disk full - ok
-            } else if (errorCode == DataUtils.ERROR_FILE_CORRUPT) {
-                // wrong encryption key - ok
-            }
             mvStore.closeImmediately();
             throw DbException.get(ErrorCode.IO_EXCEPTION_1, e, "Closing");
         }

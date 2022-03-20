@@ -1033,6 +1033,7 @@ public abstract class FileStore
             Chunk tailChunk = discoverChunk(blocksInStore);
             if (tailChunk != null) {
                 blocksInStore = tailChunk.block; // for a possible full scan later on
+                validChunksByLocation.put(blocksInStore, tailChunk);
                 if (newest == null || tailChunk.version > newest.version) {
                     newest = tailChunk;
                 }
@@ -1931,7 +1932,7 @@ public abstract class FileStore
         bufferSaveExecutor = null;
     }
 
-    private static void shutdownExecutor(ThreadPoolExecutor executor) {
+    static void shutdownExecutor(ThreadPoolExecutor executor) {
         if (executor != null) {
             executor.shutdown();
             try {
@@ -2064,18 +2065,7 @@ public abstract class FileStore
         }
     }
 
-    public void executeBackgroundOperation(Runnable operation) {
-        if (bufferSaveExecutor != null) {
-            try {
-                bufferSaveExecutor.execute(operation);
-            } catch (RejectedExecutionException ignore) {/**/}
-        }
-    }
-
-
     private int compactRewrite(Set<Integer> set) {
-//        assert storeLock.isHeldByCurrentThread();
-//        assert currentStoreVersion < 0; // we should be able to do tryCommit() -> store()
         acceptChunkOccupancyChanges(getTimeSinceCreation(), mvStore.getCurrentVersion());
         int rewrittenPageCount = rewriteChunks(set, false);
         acceptChunkOccupancyChanges(getTimeSinceCreation(), mvStore.getCurrentVersion());

@@ -135,16 +135,6 @@ public final class DataUtils {
     public static final int PAGE_COMPRESSED_HIGH = 2 + 4;
 
     /**
-     * The maximum length of a variable size int.
-     */
-    public static final int MAX_VAR_INT_LEN = 5;
-
-    /**
-     * The maximum length of a variable size long.
-     */
-    public static final int MAX_VAR_LONG_LEN = 10;
-
-    /**
      * The maximum integer that needs less space when using variable size
      * encoding (only 3 bytes instead of 4).
      */

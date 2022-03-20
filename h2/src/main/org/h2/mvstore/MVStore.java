@@ -17,6 +17,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
@@ -231,6 +234,7 @@ public class MVStore implements AutoCloseable {
      * Callback for maintenance after some unused store versions were dropped
      */
     private volatile LongConsumer oldestVersionTracker;
+    private ThreadPoolExecutor cleanupExecutor;
 
 
     /**
@@ -260,6 +264,13 @@ public class MVStore implements AutoCloseable {
             fileStoreShallBeClosed = fileStoreIsAdopted != null && fileStoreIsAdopted;
         }
         this.fileStore = fileStore;
+        cleanupExecutor = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS,
+                                                new LinkedBlockingQueue<>(),
+                                                r -> {
+                                                    Thread thread = new Thread(r, "H2-lob-cleaner");
+                                                    thread.setDaemon(true);
+                                                    return thread;
+                                                });
 
         keysPerPage = DataUtils.getConfigParam(config, "keysPerPage", 48);
         backgroundExceptionHandler =
@@ -621,24 +632,27 @@ public class MVStore implements AutoCloseable {
      *                              -1 means unlimited time (full compaction)
      */
     public void close(int allowedCompactionTime) {
-        if (!isClosed() && fileStore != null) {
-            boolean compactFully = allowedCompactionTime == -1;
-            if (fileStore.isReadOnly()) {
-                compactFully = false;
-            } else {
-                commit();
-            }
-            if (compactFully) {
-                allowedCompactionTime = 0;
-            }
+        if (!isClosed()) {
+            FileStore.shutdownExecutor(cleanupExecutor);
+            if (fileStore != null) {
+                boolean compactFully = allowedCompactionTime == -1;
+                if (fileStore.isReadOnly()) {
+                    compactFully = false;
+                } else {
+                    commit();
+                }
+                if (compactFully) {
+                    allowedCompactionTime = 0;
+                }
 
-            closeStore(true, allowedCompactionTime);
+                closeStore(true, allowedCompactionTime);
 
-            String fileName = fileStore.getFileName();
-            if (compactFully && FileUtils.exists(fileName)) {
-                // the file could have been deleted concurrently,
-                // so only compact if the file still exists
-                MVStoreTool.compact(fileName, true);
+                String fileName = fileStore.getFileName();
+                if (compactFully && FileUtils.exists(fileName)) {
+                    // the file could have been deleted concurrently,
+                    // so only compact if the file still exists
+                    MVStoreTool.compact(fileName, true);
+                }
             }
         }
     }
@@ -1390,7 +1404,9 @@ public class MVStore implements AutoCloseable {
             Runnable blobCleaner = () -> {
                 notifyCleaner(oldestVersionToKeep);
             };
-            fileStore.executeBackgroundOperation(blobCleaner);
+            try {
+                cleanupExecutor.execute(blobCleaner);
+            } catch (RejectedExecutionException ignore) {/**/}
         }
     }
 

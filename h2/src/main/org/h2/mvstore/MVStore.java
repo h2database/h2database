@@ -937,6 +937,7 @@ public class MVStore implements AutoCloseable {
             Chunk tailChunk = discoverChunk(blocksInStore);
             if (tailChunk != null) {
                 blocksInStore = tailChunk.block; // for a possible full scan later on
+                validChunksByLocation.put(blocksInStore, tailChunk);
                 if (newest == null || tailChunk.version > newest.version) {
                     newest = tailChunk;
                 }

@@ -20,7 +20,6 @@ import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.expression.Parameter;
-import org.h2.expression.ParameterInterface;
 import org.h2.index.Index;
 import org.h2.message.DbException;
 import org.h2.result.LocalResult;
@@ -117,7 +116,7 @@ public class CommandContainer extends Command {
     }
 
     @Override
-    public ArrayList<? extends ParameterInterface> getParameters() {
+    public ArrayList<Parameter> getParameters() {
         return prepared.getParameters();
     }
 
@@ -291,7 +290,6 @@ public class CommandContainer extends Command {
         return prepared.isCacheable();
     }
 
-    @Override
     public int getCommandType() {
         return prepared.getType();
     }

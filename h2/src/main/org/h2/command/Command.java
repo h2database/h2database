@@ -15,13 +15,14 @@ import org.h2.engine.DbObject;
 import org.h2.engine.Mode.CharPadding;
 import org.h2.engine.Session;
 import org.h2.engine.SessionLocal;
+import org.h2.expression.Parameter;
 import org.h2.expression.ParameterInterface;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.result.ResultInterface;
 import org.h2.result.ResultWithGeneratedKeys;
 import org.h2.result.ResultWithPaddedStrings;
-import org.h2.util.Utils;
+import org.h2.util.DateTimeUtils;
 
 /**
  * Represents a SQL statement. This object is only used on the server side.
@@ -71,7 +72,6 @@ public abstract class Command implements CommandInterface {
      *
      * @return true if it is
      */
-    @Override
     public abstract boolean isQuery();
 
     /**
@@ -80,7 +80,7 @@ public abstract class Command implements CommandInterface {
      * @return the list of parameters
      */
     @Override
-    public abstract ArrayList<? extends ParameterInterface> getParameters();
+    public abstract ArrayList<Parameter> getParameters();
 
     /**
      * Check if this command is read only.
@@ -130,7 +130,7 @@ public abstract class Command implements CommandInterface {
      */
     void start() {
         if (trace.isInfoEnabled() || session.getDatabase().getQueryStatistics()) {
-            startTimeNanos = Utils.currentNanoTime();
+            startTimeNanos = DateTimeUtils.currentNanoTime();
         }
     }
 
@@ -319,7 +319,7 @@ public abstract class Command implements CommandInterface {
                 && errorCode != ErrorCode.ROW_NOT_FOUND_WHEN_DELETING_1) {
             throw e;
         }
-        long now = Utils.currentNanoTime();
+        long now = DateTimeUtils.currentNanoTime();
         if (start != 0L && now - start > session.getLockTimeout() * 1_000_000L) {
             throw DbException.get(ErrorCode.LOCK_TIMEOUT_1, e);
         }
@@ -369,6 +369,8 @@ public abstract class Command implements CommandInterface {
     public void setCanReuse(boolean canReuse) {
         this.canReuse = canReuse;
     }
+
+    public abstract int getCommandType();
 
     public abstract Set<DbObject> getDependencies();
 

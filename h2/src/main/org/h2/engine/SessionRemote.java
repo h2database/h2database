@@ -46,6 +46,8 @@ import org.h2.value.ValueInteger;
 import org.h2.value.ValueLob;
 import org.h2.value.ValueTimestampTimeZone;
 import org.h2.value.ValueVarchar;
+import org.h2.engine.DynamicSetting;
+import org.h2.engine.StaticSetting;
 
 /**
  * The client side part of a session when using the server mode. This object
@@ -107,7 +109,7 @@ public final class SessionRemote extends Session implements DataHandler {
 
     private String currentSchemaName;
 
-    private volatile DynamicSettings dynamicSettings;
+    private volatile DynamicSetting dynamicSettings;
 
     public SessionRemote(ConnectionInfo ci) {
         this.connectionInfo = ci;
@@ -860,8 +862,8 @@ public final class SessionRemote extends Session implements DataHandler {
     }
 
     @Override
-    public StaticSettings getStaticSettings() {
-        StaticSettings settings = staticSettings;
+    public StaticSetting getStaticSettings() {
+        StaticSetting settings = staticSettings;
         if (settings == null) {
             boolean databaseToUpper = true, databaseToLower = false, caseInsensitiveIdentifiers = false;
             try (CommandInterface command = getSettingsCommand(" IN (?, ?, ?)")) {
@@ -889,15 +891,15 @@ public final class SessionRemote extends Session implements DataHandler {
             if (clientVersion < Constants.TCP_PROTOCOL_VERSION_18) {
                 caseInsensitiveIdentifiers = !databaseToUpper;
             }
-            staticSettings = settings = new StaticSettings(databaseToUpper, databaseToLower,
+            staticSettings = settings = new StaticSetting(databaseToUpper, databaseToLower,
                     caseInsensitiveIdentifiers);
         }
         return settings;
     }
 
     @Override
-    public DynamicSettings getDynamicSettings() {
-        DynamicSettings settings = dynamicSettings;
+    public DynamicSetting getDynamicSettings() {
+        DynamicSetting settings = dynamicSettings;
         if (settings == null) {
             String modeName = ModeEnum.REGULAR.name();
             TimeZoneProvider timeZone = DateTimeUtils.getTimeZone();
@@ -928,7 +930,7 @@ public final class SessionRemote extends Session implements DataHandler {
             if (mode == null) {
                 mode = Mode.getRegular();
             }
-            dynamicSettings = settings = new DynamicSettings(mode, timeZone);
+            dynamicSettings = settings = new DynamicSetting(mode, timeZone);
             if (javaObjectSerializerName != null
                     && !(javaObjectSerializerName = javaObjectSerializerName.trim()).isEmpty()
                     && !javaObjectSerializerName.equals("null")) {

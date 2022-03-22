@@ -26,6 +26,8 @@ import org.h2.result.SimpleResult;
 import org.h2.value.TypeInfo;
 import org.h2.value.ValueInteger;
 import org.h2.value.ValueVarchar;
+import org.h2.engine.StaticSetting;
+import org.h2.engine.DynamicSetting;
 
 /**
  * Represents the meta data for a database.
@@ -2007,7 +2009,7 @@ public final class JdbcDatabaseMetaData extends TraceObject
     @Override
     public boolean supportsMixedCaseIdentifiers() throws SQLException {
         debugCodeCall("supportsMixedCaseIdentifiers");
-        Session.StaticSettings settings = conn.getStaticSettings();
+        StaticSetting settings = conn.getStaticSettings();
         return !settings.databaseToUpper && !settings.databaseToLower && !settings.caseInsensitiveIdentifiers;
     }
 
@@ -2044,7 +2046,7 @@ public final class JdbcDatabaseMetaData extends TraceObject
     @Override
     public boolean storesMixedCaseIdentifiers() throws SQLException {
         debugCodeCall("storesMixedCaseIdentifiers");
-        Session.StaticSettings settings = conn.getStaticSettings();
+        StaticSetting settings = conn.getStaticSettings();
         return !settings.databaseToUpper && !settings.databaseToLower && settings.caseInsensitiveIdentifiers;
     }
 

@@ -95,13 +95,15 @@ public final class JdbcCallableStatement extends JdbcPreparedStatement implement
         }
     }
 
-    public int checkForDDL()
+    public int checkForDDL() throws SQLException
     {
         checkClosed();
-        if (command.isQuery()) {
+        if (command.isQuery())
+        {
             super.executeQuery();
             return 0;
         }
+        return 1;
     }
 
     /**

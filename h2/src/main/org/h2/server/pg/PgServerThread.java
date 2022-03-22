@@ -28,7 +28,9 @@ import java.util.Properties;
 import java.util.regex.Pattern;
 
 import org.h2.api.ErrorCode;
+import org.h2.command.Command;
 import org.h2.command.CommandInterface;
+import org.h2.command.CommandRemote;
 import org.h2.engine.ConnectionInfo;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
@@ -434,7 +436,7 @@ public final class PgServerThread implements Runnable {
             }
             int maxRows = readInt();
             Prepared prepared = p.prep;
-            CommandInterface prep = prepared.prep;
+            Command prep = (Command) prepared.prep;
             server.trace(prepared.sql);
             try {
                 setActiveRequest(prep);
@@ -466,7 +468,7 @@ public final class PgServerThread implements Runnable {
                     break;
                 }
                 s = getSQL(s);
-                try (CommandInterface command = session.prepareLocal(s)) {
+                try (Command command = session.prepareLocal(s)) {
                     setActiveRequest(command);
                     if (command.isQuery()) {
                         try (ResultInterface result = command.executeQuery(0, false)) {
@@ -523,7 +525,7 @@ public final class PgServerThread implements Runnable {
                 }
             }
             prepared.closeResult();
-            sendCommandComplete(prep, 0);
+            sendCommandComplete((Command) prep, 0);
         } catch (Exception e) {
             prepared.closeResult();
             throw e;
@@ -544,7 +546,7 @@ public final class PgServerThread implements Runnable {
         return s;
     }
 
-    private void sendCommandComplete(CommandInterface command, long updateCount) throws IOException {
+    private void sendCommandComplete(Command command, long updateCount) throws IOException {
         startMessage('C');
         switch (command.getCommandType()) {
         case CommandInterface.INSERT:

@@ -29,6 +29,7 @@ import java.util.HashMap;
 
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
+import org.h2.command.CommandRemote;
 import org.h2.expression.ParameterInterface;
 import org.h2.message.DbException;
 import org.h2.message.TraceObject;
@@ -78,7 +79,7 @@ import org.h2.value.ValueVarchar;
  */
 public class JdbcPreparedStatement extends JdbcStatement implements PreparedStatement {
 
-    protected CommandInterface command;
+    protected CommandRemote command;
     private ArrayList<Value[]> batchParameters;
     private MergedResult batchIdentities;
     private HashMap<String, Integer> cachedColumnLabelMap;
@@ -89,7 +90,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
         super(conn, id, resultSetType, resultSetConcurrency);
         this.generatedKeysRequest = generatedKeysRequest;
         setTrace(session.getTrace(), TraceObject.PREPARED_STATEMENT, id);
-        command = conn.prepareCommand(sql, fetchSize);
+        command = (CommandRemote) conn.prepareCommand(sql, fetchSize);
     }
 
     /**

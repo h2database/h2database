@@ -246,7 +246,7 @@ public class TestDatabaseEventListener extends TestDb {
             if (state == DatabaseEventListener.STATE_SCAN_FILE) {
                 calledScan = true;
             }
-            if (state == DatabaseEventListener.STATE_CREATE_INDEX) {
+            if (state == DatabaseEventListener.STATE_RECREATE_INDEX) {
                 if (!name.startsWith("SYS:")) {
                     calledCreateIndex = true;
                 }

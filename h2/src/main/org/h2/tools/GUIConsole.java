@@ -34,6 +34,7 @@ import java.io.IOException;
 import java.util.Locale;
 
 import org.h2.jdbc.JdbcConnection;
+import org.h2.util.DateTimeUtils;
 import org.h2.util.Utils;
 
 /**
@@ -286,7 +287,7 @@ public class GUIConsole extends Console implements ActionListener, MouseListener
             if (urlText != null) {
                 urlText.setText(url);
             }
-            long now = Utils.currentNanoTime();
+            long now = DateTimeUtils.currentNanoTime();
             if (lastOpenNs == 0 || now - lastOpenNs > 100_000_000L) {
                 lastOpenNs = now;
                 openBrowser(url);

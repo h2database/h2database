@@ -13,7 +13,9 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
+import org.h2.command.CommandRemote;
 import org.h2.engine.Session;
+import org.h2.engine.StaticSetting;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.message.TraceObject;
@@ -234,7 +236,7 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
         checkClosed();
         closeOldResultSet();
         sql = JdbcConnection.translateSQL(sql, escapeProcessing);
-        CommandInterface command = conn.prepareCommand(sql, fetchSize);
+        CommandRemote command = (CommandRemote) conn.prepareCommand(sql, fetchSize);
         boolean lazy = false;
         boolean returnsResultSet;
         synchronized (session) {
@@ -1450,7 +1452,7 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
      */
     @Override
     public boolean isSimpleIdentifier(String identifier) throws SQLException {
-        Session.StaticSettings settings;
+        StaticSetting settings;
         try {
             checkClosed();
             settings = conn.getStaticSettings();

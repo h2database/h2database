@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import org.h2.engine.GeneratedKeysMode;
 import org.h2.engine.SessionRemote;
 import org.h2.engine.SysProperties;
+import org.h2.expression.Parameter;
 import org.h2.expression.ParameterInterface;
 import org.h2.expression.ParameterRemote;
 import org.h2.message.DbException;
@@ -100,8 +101,14 @@ public class CommandRemote implements CommandInterface {
         return isQuery;
     }
 
-    public ArrayList<ParameterInterface> getParameters() {
-        return parameters;
+//    @Override
+//    public ArrayList<Parameter> getParameters() {
+//        return parameters;
+//    }
+
+    @Override
+    public ArrayList<Parameter> getParameters() {
+        return null;
     }
 
     private void prepareIfRequired() {

@@ -64,6 +64,9 @@ import org.h2.value.VersionedValue;
 import org.h2.value.lob.LobData;
 import org.h2.value.lob.LobDataDatabase;
 import org.h2.value.lob.LobDataInMemory;
+import org.h2.engine.StaticSetting;
+import org.h2.util.DateTimeUtils;
+import org.h2.engine.DynamicSetting;
 
 /**
  * A session represents an embedded database connection. When using the server
@@ -855,7 +858,7 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
 
     @Override
     public void cancel() {
-        cancelAtNs = Utils.currentNanoTime();
+        cancelAtNs = DateTimeUtils.currentNanoTime();
     }
 
     /**
@@ -1189,7 +1192,7 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
         if (lastThrottleNs != 0L && time - lastThrottleNs < Constants.THROTTLE_DELAY * 1_000_000L) {
             return;
         }
-        lastThrottleNs = Utils.nanoTimePlusMillis(time, throttleMs);
+        lastThrottleNs = DateTimeUtils.nanoTimePlusMillis(time, throttleMs);
         State prevState = transitionToState(State.THROTTLED, false);
         try {
             Thread.sleep(throttleMs);
@@ -1213,7 +1216,7 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
             commandStartOrEnd = Instant.now();
             if (command != null) {
                 if (queryTimeout > 0) {
-                    cancelAtNs = Utils.currentNanoTimePlusMillis(queryTimeout);
+                    cancelAtNs = DateTimeUtils.currentNanoTimePlusMillis(queryTimeout);
                 }
             } else {
                 if (currentTimestamp != null && !database.getMode().dateTimeValueWithinTransaction) {
@@ -1885,19 +1888,19 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
     }
 
     @Override
-    public StaticSettings getStaticSettings() {
-        StaticSettings settings = staticSettings;
+    public StaticSetting getStaticSettings() {
+        StaticSetting settings = staticSettings;
         if (settings == null) {
             DbSettings dbSettings = database.getSettings();
-            staticSettings = settings = new StaticSettings(dbSettings.databaseToUpper, dbSettings.databaseToLower,
+            staticSettings = settings = new StaticSetting(dbSettings.databaseToUpper, dbSettings.databaseToLower,
                     dbSettings.caseInsensitiveIdentifiers);
         }
         return settings;
     }
 
     @Override
-    public DynamicSettings getDynamicSettings() {
-        return new DynamicSettings(database.getMode(), timeZone);
+    public DynamicSetting getDynamicSettings() {
+        return new DynamicSetting(database.getMode(), timeZone);
     }
 
     @Override

@@ -43,6 +43,7 @@ import org.h2.util.DebuggingThreadLocal;
 import org.h2.util.Utils;
 import org.h2.value.DataType;
 import org.h2.value.TypeInfo;
+import org.h2.util.DateTimeUtils;
 
 /**
  * A table stored in a MVStore.
@@ -223,7 +224,7 @@ public class MVTable extends TableBase {
             long now = System.nanoTime();
             if (max == 0L) {
                 // try at least one more time
-                max = Utils.nanoTimePlusMillis(now, session.getLockTimeout());
+                max = DateTimeUtils.nanoTimePlusMillis(now, session.getLockTimeout());
             } else if (now - max >= 0L) {
                 traceLock(session, lockType,
                         TraceLockEvent.TRACE_LOCK_TIMEOUT_AFTER, Integer.toString(session.getLockTimeout()));
@@ -425,7 +426,7 @@ public class MVTable extends TableBase {
         while (cursor.next()) {
             Row row = cursor.get();
             buffer.add(row);
-            database.setProgress(DatabaseEventListener.STATE_CREATE_INDEX, n, i++, total);
+            database.setProgress(DatabaseEventListener.STATE_RECREATE_INDEX, n, i++, total);
             if (buffer.size() >= bufferSize) {
                 sortRows(buffer, index);
                 String mapName = store.nextTemporaryMapName();
@@ -462,7 +463,7 @@ public class MVTable extends TableBase {
         while (cursor.next()) {
             Row row = cursor.get();
             buffer.add(row);
-            database.setProgress(DatabaseEventListener.STATE_CREATE_INDEX, n, i++, total);
+            database.setProgress(DatabaseEventListener.STATE_RECREATE_INDEX, n, i++, total);
             if (buffer.size() >= bufferSize) {
                 addRowsToIndex(session, buffer, index);
             }

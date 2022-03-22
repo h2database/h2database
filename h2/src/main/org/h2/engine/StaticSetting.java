@@ -14,7 +14,7 @@ import org.h2.value.ValueLob;
 /**
  * Static settings.
  */
-public abstract final class StaticSetting
+public class StaticSetting
 {
     /**
      * Whether unquoted identifiers are converted to upper case.

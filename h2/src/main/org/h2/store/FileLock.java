@@ -427,7 +427,7 @@ public class FileLock implements Runnable {
 
     private static DbException getExceptionFatal(String reason, Throwable t) {
         return DbException.get(
-                ErrorCode.ERROR_OPENING_DATABASE_1, t, reason);
+                ErrorCode.ERROR_CREATING_LOCK, t, reason);
     }
 
     private DbException getExceptionAlreadyInUse(String reason) {

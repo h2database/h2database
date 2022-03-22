@@ -252,7 +252,7 @@ public class TestOpenClose extends TestDb {
                 break;
             case STATE_STATEMENT_START:
                 break;
-            case STATE_CREATE_INDEX:
+            case STATE_RECREATE_INDEX:
                 stateName = "Create Index " + name + " " + current + "/" + max;
                 if (!"SYS:SYS_ID".equals(name)) {
                     throw new AssertionError("unexpected: " + stateName);

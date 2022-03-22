@@ -15,7 +15,7 @@ import org.h2.value.ValueLob;
 /**
  * Dynamic settings.
  */
-public abstract final class DynamicSetting {
+public class DynamicSetting {
 
     /**
      * The database mode.

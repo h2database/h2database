@@ -6,7 +6,8 @@
 package org.h2.command;
 
 import java.util.ArrayList;
-import org.h2.expression.ParameterInterface;
+
+import org.h2.expression.Parameter;
 import org.h2.result.ResultInterface;
 import org.h2.result.ResultWithGeneratedKeys;
 
@@ -563,6 +564,8 @@ public interface CommandInterface extends AutoCloseable {
      * @return the update count and generated keys, if any
      */
     ResultWithGeneratedKeys executeUpdate(Object generatedKeysRequest);
+
+    ArrayList<Parameter> getParameters();
 
     /**
      * Stop the command execution, release all locks and resources

@@ -11,7 +11,6 @@ import java.util.Set;
 import org.h2.engine.DbObject;
 import org.h2.engine.SessionLocal;
 import org.h2.expression.Parameter;
-import org.h2.expression.ParameterInterface;
 import org.h2.result.ResultInterface;
 import org.h2.result.ResultWithGeneratedKeys;
 
@@ -36,7 +35,7 @@ class CommandList extends Command {
     }
 
     @Override
-    public ArrayList<? extends ParameterInterface> getParameters() {
+    public ArrayList<Parameter> getParameters() {
         return parameters;
     }
 

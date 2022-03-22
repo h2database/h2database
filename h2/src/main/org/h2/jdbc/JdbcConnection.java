@@ -41,7 +41,7 @@ import org.h2.engine.Constants;
 import org.h2.engine.IsolationLevel;
 import org.h2.engine.Mode;
 import org.h2.engine.Session;
-import org.h2.engine.Session.StaticSetting;
+import org.h2.engine.StaticSetting;
 import org.h2.engine.SessionRemote;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;

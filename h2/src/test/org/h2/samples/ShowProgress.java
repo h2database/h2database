@@ -125,7 +125,7 @@ public class ShowProgress implements DatabaseEventListener {
         case STATE_SCAN_FILE:
             stateName = "Scan " + name;
             break;
-        case STATE_CREATE_INDEX:
+        case STATE_RECREATE_INDEX:
             stateName = "Create Index " + name;
             break;
         case STATE_RECOVER:

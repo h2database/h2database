@@ -1,0 +1,272 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>com.h2database</groupId>
+  <artifactId>h2</artifactId>
+  <version>2.2.219-SNAPSHOT</version>
+  <packaging>jar</packaging>
+  <name>H2 Database Engine</name>
+  <url>https://h2database.com</url>
+  <description>H2 Database Engine</description>
+
+  <licenses>
+    <license>
+      <name>MPL 2.0</name>
+      <url>https://www.mozilla.org/en-US/MPL/2.0/</url>
+      <distribution>repo</distribution>
+    </license>
+    <license>
+      <name>EPL 1.0</name>
+      <url>https://opensource.org/licenses/eclipse-1.0.php</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
+  <scm>
+    <connection>scm:git:https://github.com/h2database/h2database</connection>
+    <url>https://github.com/h2database/h2database</url>
+  </scm>
+
+  <developers>
+    <developer>
+      <id>thomas.tom.mueller</id>
+      <name>Thomas Mueller</name>
+      <email>thomas.tom.mueller at gmail dot com</email>
+    </developer>
+  </developers>
+
+  <properties>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
+    <asm.version>8.0.1</asm.version>
+    <jts.version>1.17.0</jts.version>
+    <junit.version>5.6.2</junit.version>
+    <lucene.version>8.5.2</lucene.version>
+    <osgi.version>5.0.0</osgi.version>
+    <pgjdbc.version>42.3.2</pgjdbc.version>
+    <javax.servlet.version>4.0.1</javax.servlet.version>
+    <jakarta.servlet.version>5.0.0</jakarta.servlet.version>
+    <slf4j.version>1.7.30</slf4j.version>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+
+  <dependencies>
+
+    <!-- START COMPILE DEPENDENCIES !-->
+    <dependency>
+      <groupId>javax.servlet</groupId>
+      <artifactId>javax.servlet-api</artifactId>
+      <version>${javax.servlet.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>jakarta.servlet</groupId>
+      <artifactId>jakarta.servlet-api</artifactId>
+      <version>${jakarta.servlet.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.lucene</groupId>
+      <artifactId>lucene-core</artifactId>
+      <version>${lucene.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.lucene</groupId>
+      <artifactId>lucene-analyzers-common</artifactId>
+      <version>${lucene.version}</version>
+    </dependency>
+    <dependency>
+        <groupId>org.apache.lucene</groupId>
+        <artifactId>lucene-queryparser</artifactId>
+        <version>${lucene.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>${slf4j.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.osgi</groupId>
+      <artifactId>org.osgi.core</artifactId>
+      <version>${osgi.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.osgi</groupId>
+      <artifactId>org.osgi.enterprise</artifactId>
+      <version>${osgi.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.locationtech.jts</groupId>
+      <artifactId>jts-core</artifactId>
+      <version>${jts.version}</version>
+    </dependency>
+    <!-- END COMPILE DEPENDENCIES !-->
+
+
+    <!-- START TEST DEPENDENCIES !-->
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-nop</artifactId>
+      <version>${slf4j.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.postgresql</groupId>
+      <artifactId>postgresql</artifactId>
+      <version>${pgjdbc.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-engine</artifactId>
+      <version>${junit.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.ow2.asm</groupId>
+      <artifactId>asm</artifactId>
+      <version>${asm.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <!-- END TEST DEPENDENCIES !-->
+  </dependencies>
+
+  <!-- The test code creates proxy files using javac or tools.jar. Through maven we need to tell it
+       where to possibly find tools.jar and annoyingly its called classes.jar on OSX -->
+  <profiles>
+    <profile>
+      <id>jigsaw-jdk</id>
+      <activation>
+        <jdk>[1.9,)</jdk>
+      </activation>
+      <dependencies/>
+    </profile>
+    <profile>
+      <id>default-tools.jar</id>
+      <activation>
+        <file>
+          <exists>${java.home}/../lib/tools.jar</exists>
+        </file>
+      </activation>
+      <dependencies>
+        <dependency>
+          <groupId>com.sun</groupId>
+          <artifactId>tools</artifactId>
+          <scope>system</scope>
+          <version>1.8</version>
+          <systemPath>${java.home}/../lib/tools.jar</systemPath>
+        </dependency>
+      </dependencies>
+    </profile>
+    <profile>
+      <id>default-tools.jar-mac</id>
+      <activation>
+        <file>
+          <exists>${java.home}/../Classes/classes.jar</exists>
+        </file>
+      </activation>
+      <dependencies>
+        <dependency>
+          <groupId>com.sun</groupId>
+          <artifactId>tools</artifactId>
+          <scope>system</scope>
+          <version>1.8</version>
+          <systemPath>${java.home}/../Classes/classes.jar</systemPath>
+        </dependency>
+      </dependencies>
+    </profile>
+  </profiles>
+
+  <build>
+    <sourceDirectory>src/main</sourceDirectory>
+    <testSourceDirectory>src/test</testSourceDirectory>
+    <!-- Resources do not follow maven project layout. We need to manually copy them -->
+    <resources>
+      <resource>
+        <directory>src/main</directory>
+        <includes>
+          <include>**/*.prop</include>
+          <include>**/*.png</include>
+          <include>**/*.jsp</include>
+          <include>**/*.ico</include>
+          <include>**/*.gif</include>
+          <include>**/*.css</include>
+          <include>**/*.js</include>
+          <include>org/h2/res/help.csv</include>
+          <include>org/h2/res/javadoc.properties</include>
+          <include>META-INF/**</include>
+        </includes>
+      </resource>
+      <resource>
+        <directory>src/java9/precompiled</directory>
+        <targetPath>META-INF/versions/9</targetPath>
+      </resource>
+      <resource>
+        <directory>src/java10/precompiled</directory>
+        <targetPath>META-INF/versions/10</targetPath>
+      </resource>
+    </resources>
+    <testResources>
+  <testResource>
+    <directory>src/test</directory>
+      <includes>
+        <include>org/h2/test/bench/test.properties</include>
+        <include>org/h2/test/script/testScrip.sql</include>
+        <include>org/h2/test/scripts/**/*.sql</include>
+        <include>org/h2/samples/newsfeed.sql</include>
+        <include>org/h2/samples/optimizations.sql</include>
+      </includes>
+    </testResource>
+    </testResources>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>3.1.2</version>
+        <configuration>
+          <archive>
+            <manifest>
+              <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+              <mainClass>org.h2.tools.Console</mainClass>
+            </manifest>
+            <manifestEntries>
+              <Automatic-Module-Name>com.h2database</Automatic-Module-Name>
+              <Multi-Release>true</Multi-Release>
+              <Premain-Class>org.h2.util.Profiler</Premain-Class>
+            </manifestEntries>
+          </archive>
+        </configuration>
+      </plugin>
+      <!-- Add tools folder to test sources but consider moving them to src/test -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>3.0.0</version>
+        <executions>
+          <execution>
+            <phase>generate-test-sources</phase>
+            <goals>
+              <goal>add-test-source</goal>
+            </goals>
+            <configuration>
+              <sources>
+                <source>src/tools</source>
+              </sources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.22.2</version>
+        <configuration>
+          <includes>
+            <include>TestAllJunit.java</include>
+          </includes>
+        </configuration>
+      </plugin>
+
+    </plugins>
+  </build>
+
+</project>

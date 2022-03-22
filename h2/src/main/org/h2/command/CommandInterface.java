@@ -542,27 +542,6 @@ public interface CommandInterface extends AutoCloseable {
     int ALTER_DOMAIN_RENAME_CONSTRAINT = 101;
 
     /**
-     * Get command type.
-     *
-     * @return one of the constants above
-     */
-    int getCommandType();
-
-    /**
-     * Check if this is a query.
-     *
-     * @return true if it is a query
-     */
-    boolean isQuery();
-
-    /**
-     * Get the parameters (if any).
-     *
-     * @return the parameters
-     */
-    ArrayList<? extends ParameterInterface> getParameters();
-
-    /**
      * Execute the query.
      *
      * @param maxRows the maximum number of rows returned

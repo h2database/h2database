@@ -88,14 +88,19 @@ public final class JdbcCallableStatement extends JdbcPreparedStatement implement
     @Override
     public int executeUpdate() throws SQLException {
         try {
-            checkClosed();
-            if (command.isQuery()) {
-                super.executeQuery();
-                return 0;
-            }
+            checkForDDL();
             return super.executeUpdate();
         } catch (Exception e) {
             throw logAndConvert(e);
+        }
+    }
+
+    public int checkForDDL()
+    {
+        checkClosed();
+        if (command.isQuery()) {
+            super.executeQuery();
+            return 0;
         }
     }
 
@@ -118,11 +123,7 @@ public final class JdbcCallableStatement extends JdbcPreparedStatement implement
     @Override
     public long executeLargeUpdate() throws SQLException {
         try {
-            checkClosed();
-            if (command.isQuery()) {
-                super.executeQuery();
-                return 0;
-            }
+            checkForDDL();
             return super.executeLargeUpdate();
         } catch (Exception e) {
             throw logAndConvert(e);

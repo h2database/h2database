@@ -17,7 +17,8 @@ import org.h2.message.DbException;
  */
 public class CacheLRU implements Cache {
 
-    static final String TYPE_NAME = "LRU";
+    static final String TYPE_NAME_TQ = "TQ";
+    static final String TYPE_NAME_LRU = "LRU";
 
     private final CacheWriter writer;
 
@@ -82,9 +83,9 @@ public class CacheLRU implements Cache {
             cacheType = cacheType.substring("SOFT_".length());
         }
         Cache cache;
-        if (CacheLRU.TYPE_NAME.equals(cacheType)) {
+        if (TYPE_NAME_LRU.equals(cacheType)) {
             cache = new CacheLRU(writer, cacheSize, false);
-        } else if (CacheTQ.TYPE_NAME.equals(cacheType)) {
+        } else if (TYPE_NAME_TQ.equals(cacheType)) {
             cache = new CacheTQ(writer, cacheSize);
         } else {
             throw DbException.getInvalidValueException("CACHE_TYPE", cacheType);

@@ -17,8 +17,6 @@ import java.util.ArrayList;
  */
 public class CacheTQ implements Cache {
 
-    static final String TYPE_NAME = "TQ";
-
     private final Cache lru;
     private final Cache fifo;
     private final SmallLRUCache<Integer, Object> recentlyUsed =

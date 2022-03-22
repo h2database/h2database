@@ -197,6 +197,20 @@ public class DateTimeUtils {
     }
 
     /**
+     * Returns the current value of the high-resolution time source.
+     *
+     * @return time in nanoseconds, never equal to 0
+     * @see System#nanoTime()
+     */
+    public static long currentNanoTime() {
+        long time = System.nanoTime();
+        if (time == 0L) {
+            time = 1L;
+        }
+        return time;
+    }
+
+    /**
      * Parse a time string. The format is: hour:minute[:second[.nanos]],
      * hhmm[ss[.nanos]], or hour.minute.second[.nanos].
      *
@@ -277,6 +291,38 @@ public class DateTimeUtils {
             throw new IllegalArgumentException(s);
         }
         return ((((hour * 60L) + minute) * 60) + second) * NANOS_PER_SECOND + nanos;
+    }
+
+    /**
+     * Returns the current value of the high-resolution time source plus the
+     * specified offset.
+     *
+     * @param ms
+     *            additional offset in milliseconds
+     * @return time in nanoseconds, never equal to 0
+     * @see System#nanoTime()
+     */
+    public static long currentNanoTimePlusMillis(int ms) {
+        return nanoTimePlusMillis(System.nanoTime(), ms);
+    }
+
+    /**
+     * Returns the current value of the high-resolution time source plus the
+     * specified offset.
+     *
+     * @param nanoTime
+     *            time in nanoseconds
+     * @param ms
+     *            additional offset in milliseconds
+     * @return time in nanoseconds, never equal to 0
+     * @see System#nanoTime()
+     */
+    public static long nanoTimePlusMillis(long nanoTime, int ms) {
+        long time = nanoTime + ms * 1_000_000L;
+        if (time == 0L) {
+            time = 1L;
+        }
+        return time;
     }
 
     /**

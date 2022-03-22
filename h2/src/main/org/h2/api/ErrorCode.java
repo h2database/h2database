@@ -65,7 +65,7 @@ public class ErrorCode {
      * there was a problem trying to create a database lock.
      * See the message and cause for details.
      */
-    public static final int ERROR_OPENING_DATABASE_1 = 8000;
+    public static final int ERROR_CREATING_LOCK = 8000;
 
     // 21: cardinality violation
 
@@ -2294,7 +2294,7 @@ public class ErrorCode {
         case INVALID_PARAMETER_COUNT_2: return "07001";
 
         // 08: connection exception
-        case ERROR_OPENING_DATABASE_1: return "08000";
+        case ERROR_CREATING_LOCK: return "08000";
 
         // 21: cardinality violation
         case COLUMN_COUNT_DOES_NOT_MATCH: return "21S02";

@@ -22,81 +22,13 @@ import org.h2.value.ValueLob;
  */
 public abstract class Session implements CastDataProvider, AutoCloseable {
 
-    /**
-     * Static settings.
-     */
-    public static final class StaticSettings {
-
-        /**
-         * Whether unquoted identifiers are converted to upper case.
-         */
-        public final boolean databaseToUpper;
-
-        /**
-         * Whether unquoted identifiers are converted to lower case.
-         */
-        public final boolean databaseToLower;
-
-        /**
-         * Whether all identifiers are case insensitive.
-         */
-        public final boolean caseInsensitiveIdentifiers;
-
-        /**
-         * Creates new instance of static settings.
-         *
-         * @param databaseToUpper
-         *            whether unquoted identifiers are converted to upper case
-         * @param databaseToLower
-         *            whether unquoted identifiers are converted to lower case
-         * @param caseInsensitiveIdentifiers
-         *            whether all identifiers are case insensitive
-         */
-        public StaticSettings(boolean databaseToUpper, boolean databaseToLower, boolean caseInsensitiveIdentifiers) {
-            this.databaseToUpper = databaseToUpper;
-            this.databaseToLower = databaseToLower;
-            this.caseInsensitiveIdentifiers = caseInsensitiveIdentifiers;
-        }
-
-    }
-
-    /**
-     * Dynamic settings.
-     */
-    public static final class DynamicSettings {
-
-        /**
-         * The database mode.
-         */
-        public final Mode mode;
-
-        /**
-         * The current time zone.
-         */
-        public final TimeZoneProvider timeZone;
-
-        /**
-         * Creates new instance of dynamic settings.
-         *
-         * @param mode
-         *            the database mode
-         * @param timeZone
-         *            the current time zone
-         */
-        public DynamicSettings(Mode mode, TimeZoneProvider timeZone) {
-            this.mode = mode;
-            this.timeZone = timeZone;
-        }
-
-    }
-
     private ArrayList<String> sessionState;
 
     boolean sessionStateChanged;
 
     private boolean sessionStateUpdating;
 
-    volatile StaticSettings staticSettings;
+    volatile StaticSetting staticSettings;
 
     Session() {
     }
@@ -228,7 +160,7 @@ public abstract class Session implements CastDataProvider, AutoCloseable {
      *
      * @return static settings
      */
-    public abstract StaticSettings getStaticSettings();
+    public abstract StaticSetting getStaticSettings();
 
     /**
      * Returns dynamic settings. These settings can be changed during lifecycle
@@ -236,7 +168,7 @@ public abstract class Session implements CastDataProvider, AutoCloseable {
      *
      * @return dynamic settings
      */
-    public abstract DynamicSettings getDynamicSettings();
+    public abstract DynamicSetting getDynamicSettings();
 
     /**
      * Returns database meta information.

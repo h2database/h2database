@@ -24,7 +24,7 @@ public interface DatabaseEventListener extends EventListener {
     /**
      * This state is used when re-creating an index.
      */
-    int STATE_CREATE_INDEX = 1;
+    int STATE_RECREATE_INDEX = 1;
 
     /**
      * This state is used when re-applying the transaction log or rolling back

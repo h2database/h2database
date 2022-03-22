@@ -96,12 +96,10 @@ public class CommandRemote implements CommandInterface {
         }
     }
 
-    @Override
     public boolean isQuery() {
         return isQuery;
     }
 
-    @Override
     public ArrayList<ParameterInterface> getParameters() {
         return parameters;
     }
@@ -313,7 +311,6 @@ public class CommandRemote implements CommandInterface {
         return sql + Trace.formatParams(getParameters());
     }
 
-    @Override
     public int getCommandType() {
         return cmdType;
     }

@@ -177,38 +177,27 @@ public class AbbaLockingDetector implements Runnable {
      * stack frames)
      */
     private static String getStackTraceForThread(ThreadInfo info) {
-        StringBuilder sb = new StringBuilder().append('"')
-                .append(info.getThreadName()).append("\"" + " Id=")
-                .append(info.getThreadId()).append(' ').append(info.getThreadState());
-        if (info.getLockName() != null) {
-            sb.append(" on ").append(info.getLockName());
-        }
-        if (info.getLockOwnerName() != null) {
-            sb.append(" owned by \"").append(info.getLockOwnerName())
-                    .append("\" Id=").append(info.getLockOwnerId());
-        }
-        if (info.isSuspended()) {
-            sb.append(" (suspended)");
-        }
-        if (info.isInNative()) {
-            sb.append(" (in native)");
-        }
-        sb.append('\n');
+        StringBuilder sb = buildString(info);
         final StackTraceElement[] stackTrace = info.getStackTrace();
         final MonitorInfo[] lockedMonitors = info.getLockedMonitors();
         boolean startDumping = false;
-        for (int i = 0; i < stackTrace.length; i++) {
+        for (int i = 0; i < stackTrace.length; i++)
+        {
             StackTraceElement e = stackTrace[i];
-            if (startDumping) {
+            if (startDumping)
+            {
                 dumpStackTraceElement(info, sb, i, e);
             }
 
-            for (MonitorInfo mi : lockedMonitors) {
-                if (mi.getLockedStackDepth() == i) {
+            for (MonitorInfo mi : lockedMonitors)
+            {
+                if (mi.getLockedStackDepth() == i)
+                {
                     // Only start dumping the stack from the first time we lock
                     // something.
                     // Removes a lot of unnecessary noise from the output.
-                    if (!startDumping) {
+                    if (!startDumping)
+                    {
                         dumpStackTraceElement(info, sb, i, e);
                         startDumping = true;
                     }
@@ -218,6 +207,36 @@ public class AbbaLockingDetector implements Runnable {
             }
         }
         return sb.toString();
+    }
+
+    private static StringBuilder buildString(ThreadInfo info)
+    {
+        StringBuilder builder = new StringBuilder().append('"')
+                .append(info.getThreadName()).append("\"" + " Id=")
+                .append(info.getThreadId()).append(' ').append(info.getThreadState());
+        if (info.getLockName() != null)
+        {
+            builder.append(" on ").append(info.getLockName());
+        }
+
+        if (info.getLockOwnerName() != null)
+        {
+            builder.append(" owned by \"").append(info.getLockOwnerName())
+                    .append("\" Id=").append(info.getLockOwnerId());
+        }
+
+        if (info.isSuspended())
+        {
+            builder.append(" (suspended)");
+        }
+
+        if (info.isInNative())
+        {
+            builder.append(" (in native)");
+        }
+
+        builder.append('\n');
+        return builder;
     }
 
     private static void dumpStackTraceElement(ThreadInfo info,

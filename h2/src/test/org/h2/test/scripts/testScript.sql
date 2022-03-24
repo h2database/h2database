@@ -2178,9 +2178,9 @@ select DOMAIN_NAME, DOMAIN_DEFAULT, DATA_TYPE, CHARACTER_MAXIMUM_LENGTH, PARENT_
 > EMAIL       null           CHARACTER VARYING 200                      null               null
 > GMAIL       '@gmail.com'   CHARACTER VARYING 200                      EMAIL              null
 > STRING      ''             CHARACTER VARYING 255                      null               null
-> STRING1     null           CHARACTER VARYING 1048576                  null               null
-> STRING2     '<empty>'      CHARACTER VARYING 1048576                  null               null
-> STRING_X    null           CHARACTER VARYING 1048576                  STRING2            null
+> STRING1     null           CHARACTER VARYING 1000000000               null               null
+> STRING2     '<empty>'      CHARACTER VARYING 1000000000               null               null
+> STRING_X    null           CHARACTER VARYING 1000000000               STRING2            null
 > rows: 6
 
 script nodata nopasswords nosettings noversion;

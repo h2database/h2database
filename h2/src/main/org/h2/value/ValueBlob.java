@@ -126,7 +126,7 @@ public final class ValueBlob extends ValueLob {
             return readString((int) p);
         }
         // 1 Java character may be encoded with up to 3 bytes
-        if (octetLength > Constants.MAX_STRING_LENGTH * 3) {
+        if (octetLength > Constants.MAX_STRING_LENGTH * 3L) {
             throw getStringTooLong(charLength());
         }
         String s;

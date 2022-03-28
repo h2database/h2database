@@ -226,6 +226,20 @@ class Database {
             try (Statement s = newConn.createStatement()) {
                 s.execute("SET WRITE_DELAY 1");
             }
+        } else if (url.startsWith("jdbc:sqlite:")) {
+            try (Statement s = newConn.createStatement()) {
+
+                // Since 2010, SQLite has a Write-Ahead Logging mode which is widely cited as the key to getting good
+                // performance from SQLite. This option replaces the rollback journaling mode. Additional
+                // files are created as part of this mode. https://sqlite.org/wal.html
+                s.execute("PRAGMA journal_mode=WAL;");
+
+                // In WAL mode, NORMAL is safe from corruption and is consistent, but mayNot be durable in the event of
+                // a power loss. From the SQLite docs, "A transaction committed in WAL mode with synchronous=NORMAL
+                // might roll back following a power loss or system crash." This is in line with H2's commit delay.
+                // https://sqlite.org/pragma.html#pragma_synchronous
+                s.execute("PRAGMA synchronous=NORMAL;");
+            }
         }
         return newConn;
     }

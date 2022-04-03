@@ -480,7 +480,9 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
                         continue;
                     }
                 }
-                store.registerUnsavedMemory(rootPage.removeAllRecursive(version));
+                if (isPersistent()) {
+                    store.registerUnsavedMemory(rootPage.removeAllRecursive(version));
+                }
                 rootPage = emptyRootPage;
                 return rootReference;
             } finally {
@@ -1870,7 +1872,9 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
                         continue;
                     }
                 }
-                store.registerUnsavedMemory(unsavedMemoryHolder.value + tip.processRemovalInfo(version));
+                if (isPersistent()) {
+                    store.registerUnsavedMemory(unsavedMemoryHolder.value + tip.processRemovalInfo(version));
+                }
                 return result;
             } finally {
                 if(locked) {

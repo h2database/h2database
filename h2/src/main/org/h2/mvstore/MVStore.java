@@ -2733,6 +2733,14 @@ public class MVStore implements AutoCloseable {
     }
 
     /**
+     * Indicates whether store versions are rolling.
+     * @return true if versions are rolling, false otherwise
+     */
+    public boolean isVersioningRequired() {
+        return fileStore != null || versionsToKeep > 0;
+    }
+
+    /**
      * How many versions to retain for in-memory stores. If not set, 5 old
      * versions are retained.
      *
@@ -3159,6 +3167,11 @@ public class MVStore implements AutoCloseable {
             }
             if (meta.remove(DataUtils.META_NAME + name) != null) {
                 markMetaChanged();
+            }
+            // normally actual map removal is delayed, up until this current version go out os scope,
+            // but for in-memory case, when versions rolling is turned off, do it now
+            if (!isVersioningRequired()) {
+                maps.remove(id);
             }
         } finally {
             storeLock.unlock();

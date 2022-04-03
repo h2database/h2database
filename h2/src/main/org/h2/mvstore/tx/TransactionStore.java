@@ -628,7 +628,7 @@ public class TransactionStore {
                 preparedTransactions.remove(txId);
             }
 
-            if (store.getFileStore() != null) {
+            if (store.isVersioningRequired()) {
                 if (wasStored || store.getAutoCommitDelay() == 0) {
                     store.commit();
                 } else {

@@ -330,7 +330,7 @@ public final class Transaction {
     @SuppressWarnings({"unchecked","rawtypes"})
     public void markStatementStart(HashSet<MVMap<Object,VersionedValue<Object>>> maps) {
         markStatementEnd();
-        if (txCounter == null) {
+        if (txCounter == null && store.store.isVersioningRequired()) {
             txCounter = store.store.registerVersionUsage();
         }
 

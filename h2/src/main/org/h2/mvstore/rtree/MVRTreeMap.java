@@ -169,7 +169,9 @@ public final class MVRTreeMap<V> extends MVMap<Spatial, V> {
                                 unsavedMemory += page.removePage(version);
                             }
                         }
-                        store.registerUnsavedMemory(unsavedMemory);
+                        if (isPersistent()) {
+                            store.registerUnsavedMemory(unsavedMemory);
+                        }
                     } finally {
                         unlockRoot(p);
                     }

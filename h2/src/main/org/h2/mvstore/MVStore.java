@@ -1131,6 +1131,11 @@ public class MVStore implements AutoCloseable {
         return false;
     }
 
+    void adoptMetaFrom(MVStore source) {
+        currentVersion = source.currentVersion;
+        lastMapId.set(source.lastMapId.get());
+    }
+
     private void setLastChunk(Chunk last) {
         chunks.clear();
         lastChunk = last;

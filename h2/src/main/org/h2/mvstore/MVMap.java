@@ -473,7 +473,9 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
                         continue;
                     }
                 }
-                registerUnsavedMemory(rootPage.removeAllRecursive(version));
+                if (isPersistent()) {
+                    registerUnsavedMemory(rootPage.removeAllRecursive(version));
+                }
                 rootPage = emptyRootPage;
                 return rootReference;
             } finally {
@@ -1329,7 +1331,7 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
                 if (rootReference != null) {
                     // should always be the case, except for spurious failure?
                     locked = preLocked || isPersistent();
-                    if (tip != null) {
+                    if (isPersistent() && tip != null) {
                         registerUnsavedMemory(unsavedMemoryHolder.value + tip.processRemovalInfo(version));
                     }
                     assert rootReference.getAppendCounter() <= availabilityThreshold;
@@ -1866,7 +1868,9 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
                         continue;
                     }
                 }
-                registerUnsavedMemory(unsavedMemoryHolder.value + tip.processRemovalInfo(version));
+                if (isPersistent()) {
+                    registerUnsavedMemory(unsavedMemoryHolder.value + tip.processRemovalInfo(version));
+                }
                 return result;
             } finally {
                 if(locked) {

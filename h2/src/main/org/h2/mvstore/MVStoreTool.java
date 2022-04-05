@@ -518,7 +518,8 @@ public class MVStoreTool {
      * @param target the target store
      */
     public static void compact(MVStore source, MVStore target) {
-        target.adoptMetaFrom(source);
+        target.setCurrentVersion(source.getCurrentVersion());
+        target.adjustLastMapId(source.getLastMapId());
         int autoCommitDelay = target.getAutoCommitDelay();
         boolean reuseSpace = target.isSpaceReused();
         try {

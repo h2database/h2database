@@ -181,7 +181,8 @@ public final class Store {
     public static DbException getInvalidExpressionTypeException(String param, Typed e) {
         TypeInfo type = e.getType();
         if (type.getValueType() == Value.UNKNOWN) {
-            return DbException.get(ErrorCode.UNKNOWN_DATA_TYPE_1, (e instanceof HasSQL ? (HasSQL) e : type).getTraceSQL());
+            return DbException.get(ErrorCode.UNKNOWN_DATA_TYPE_1,
+                                    (e instanceof HasSQL ? (HasSQL) e : type).getTraceSQL());
         }
         return DbException.get(ErrorCode.INVALID_VALUE_2, type.getTraceSQL(), param);
     }

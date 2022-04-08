@@ -21,7 +21,6 @@ import org.h2.compress.CompressDeflate;
 import org.h2.compress.CompressLZF;
 import org.h2.compress.Compressor;
 import org.h2.engine.Constants;
-import org.h2.message.DbException;
 import org.h2.mvstore.tx.TransactionStore;
 import org.h2.mvstore.type.BasicDataType;
 import org.h2.mvstore.type.StringDataType;
@@ -442,7 +441,7 @@ public class MVStoreTool {
         compact(fileName, tempName, compress);
         try {
             FileUtils.moveAtomicReplace(tempName, fileName);
-        } catch (DbException e) {
+        } catch (MVStoreException e) {
             String newName = fileName + Constants.SUFFIX_MV_STORE_NEW_FILE;
             FileUtils.delete(newName);
             FileUtils.move(tempName, newName);

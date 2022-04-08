@@ -31,8 +31,12 @@ import org.h2.mvstore.type.MetaType;
 import org.h2.store.InDoubtTransaction;
 import org.h2.store.fs.FileChannelInputStream;
 import org.h2.store.fs.FileUtils;
+import org.h2.util.HasSQL;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
+import org.h2.value.TypeInfo;
+import org.h2.value.Typed;
+import org.h2.value.Value;
 
 /**
  * A store with open tables.
@@ -165,6 +169,21 @@ public final class Store {
         default:
             throw DbException.get(ErrorCode.GENERAL_ERROR_1, e, e.getMessage());
         }
+    }
+
+    /**
+     * Gets a SQL exception meaning the type of expression is invalid or unknown.
+     *
+     * @param param the name of the parameter
+     * @param e the expression
+     * @return the exception
+     */
+    public static DbException getInvalidExpressionTypeException(String param, Typed e) {
+        TypeInfo type = e.getType();
+        if (type.getValueType() == Value.UNKNOWN) {
+            return DbException.get(ErrorCode.UNKNOWN_DATA_TYPE_1, (e instanceof HasSQL ? (HasSQL) e : type).getTraceSQL());
+        }
+        return DbException.get(ErrorCode.INVALID_VALUE_2, type.getTraceSQL(), param);
     }
 
     public MVStore getMvStore() {

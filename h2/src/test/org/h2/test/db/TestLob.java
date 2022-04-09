@@ -1605,8 +1605,8 @@ public class TestLob extends TestDb {
                     try {
                         String update = "update t1 set ver = ver + 1 where id = 1";
                         try (PreparedStatement ps = conn2.prepareStatement(update)) {
-                            while (!Thread.currentThread().isInterrupted() &&
-                                    System.nanoTime() - startTimeNs < 10_000_000_000L) {
+                            while (!Thread.currentThread().isInterrupted()
+                                    && System.nanoTime() - startTimeNs < 10_000_000_000L) {
                                 ps.executeUpdate();
                             }
                         }

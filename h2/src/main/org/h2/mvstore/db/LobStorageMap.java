@@ -404,8 +404,8 @@ public final class LobStorageMap implements LobStorageInterface, MVStore.Cleaner
         MVStore.TxCounter txCounter = mvStore.registerVersionUsage();
         try {
             LobRemovalInfo lobRemovalInfo;
-            while ((lobRemovalInfo = pendingLobRemovals.poll()) != null &&
-                    lobRemovalInfo.version < oldestVersionToKeep) {
+            while ((lobRemovalInfo = pendingLobRemovals.poll()) != null
+                    && lobRemovalInfo.version < oldestVersionToKeep) {
                 doRemoveLob(lobRemovalInfo.mapId, lobRemovalInfo.lobId);
             }
             if (lobRemovalInfo != null) {

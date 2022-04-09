@@ -33,28 +33,42 @@ SELECT MY_SQRT(-1.0) MS, SQRT(NULL) S;
 > NaN null
 > rows: 1
 
+CREATE ALIAS MY_SUM AS 'int sum(int a, int b) { return a + b; }';
+> ok
+
+CALL MY_SUM(1, 2);
+>> 3
+
 SCRIPT NOPASSWORDS NOSETTINGS NOVERSION;
 > SCRIPT
-> ----------------------------------------------------------------
+> ----------------------------------------------------------------------------------
 > CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
 > CREATE FORCE ALIAS "PUBLIC"."MY_SQRT" FOR 'java.lang.Math.sqrt';
-> rows (ordered): 2
+> CREATE FORCE ALIAS "PUBLIC"."MY_SUM" AS 'int sum(int a, int b) { return a + b; }';
+> rows (ordered): 3
 
-SELECT SPECIFIC_NAME, ROUTINE_NAME, ROUTINE_TYPE, DATA_TYPE, ROUTINE_BODY, EXTERNAL_NAME, EXTERNAL_LANGUAGE,
+SELECT SPECIFIC_NAME, ROUTINE_NAME, ROUTINE_TYPE, DATA_TYPE, ROUTINE_BODY, ROUTINE_DEFINITION,
+    EXTERNAL_NAME, EXTERNAL_LANGUAGE,
     IS_DETERMINISTIC, REMARKS FROM INFORMATION_SCHEMA.ROUTINES;
-> SPECIFIC_NAME ROUTINE_NAME ROUTINE_TYPE DATA_TYPE        ROUTINE_BODY EXTERNAL_NAME       EXTERNAL_LANGUAGE IS_DETERMINISTIC REMARKS
-> ------------- ------------ ------------ ---------------- ------------ ------------------- ----------------- ---------------- -------
-> MY_SQRT_1     MY_SQRT      FUNCTION     DOUBLE PRECISION EXTERNAL     java.lang.Math.sqrt JAVA              NO               null
-> rows: 1
+> SPECIFIC_NAME ROUTINE_NAME ROUTINE_TYPE DATA_TYPE        ROUTINE_BODY ROUTINE_DEFINITION                      EXTERNAL_NAME       EXTERNAL_LANGUAGE IS_DETERMINISTIC REMARKS
+> ------------- ------------ ------------ ---------------- ------------ --------------------------------------- ------------------- ----------------- ---------------- -------
+> MY_SQRT_1     MY_SQRT      FUNCTION     DOUBLE PRECISION EXTERNAL     null                                    java.lang.Math.sqrt JAVA              NO               null
+> MY_SUM_1      MY_SUM       FUNCTION     INTEGER          EXTERNAL     int sum(int a, int b) { return a + b; } null                JAVA              NO               null
+> rows: 2
 
 SELECT SPECIFIC_NAME, ORDINAL_POSITION, PARAMETER_MODE, IS_RESULT, AS_LOCATOR, PARAMETER_NAME, DATA_TYPE,
     PARAMETER_DEFAULT FROM INFORMATION_SCHEMA.PARAMETERS;
 > SPECIFIC_NAME ORDINAL_POSITION PARAMETER_MODE IS_RESULT AS_LOCATOR PARAMETER_NAME DATA_TYPE        PARAMETER_DEFAULT
 > ------------- ---------------- -------------- --------- ---------- -------------- ---------------- -----------------
 > MY_SQRT_1     1                IN             NO        NO         P1             DOUBLE PRECISION null
-> rows: 1
+> MY_SUM_1      1                IN             NO        NO         P1             INTEGER          null
+> MY_SUM_1      2                IN             NO        NO         P2             INTEGER          null
+> rows: 3
 
 DROP ALIAS MY_SQRT;
+> ok
+
+DROP ALIAS MY_SUM;
 > ok
 
 CREATE SCHEMA TEST_SCHEMA;

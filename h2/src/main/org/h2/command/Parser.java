@@ -5491,78 +5491,14 @@ public class Parser {
         }
         String s = token.value(session).getString();
         read();
-        IntervalQualifier qualifier;
-        switch (currentTokenType) {
-        case YEAR:
-            read();
-            if (readIf(TO)) {
-                read(MONTH);
-                qualifier = IntervalQualifier.YEAR_TO_MONTH;
-            } else {
-                qualifier = IntervalQualifier.YEAR;
-            }
-            break;
-        case MONTH:
-            read();
-            qualifier = IntervalQualifier.MONTH;
-            break;
-        case DAY:
-            read();
-            if (readIf(TO)) {
-                switch (currentTokenType) {
-                case HOUR:
-                    qualifier = IntervalQualifier.DAY_TO_HOUR;
-                    break;
-                case MINUTE:
-                    qualifier = IntervalQualifier.DAY_TO_MINUTE;
-                    break;
-                case SECOND:
-                    qualifier = IntervalQualifier.DAY_TO_SECOND;
-                    break;
-                default:
-                    throw intervalDayError();
-                }
-                read();
-            } else {
-                qualifier = IntervalQualifier.DAY;
-            }
-            break;
-        case HOUR:
-            read();
-            if (readIf(TO)) {
-                switch (currentTokenType) {
-                case MINUTE:
-                    qualifier = IntervalQualifier.HOUR_TO_MINUTE;
-                    break;
-                case SECOND:
-                    qualifier = IntervalQualifier.HOUR_TO_SECOND;
-                    break;
-                default:
-                    throw intervalHourError();
-                }
-                read();
-            } else {
-                qualifier = IntervalQualifier.HOUR;
-            }
-            break;
-        case MINUTE:
-            read();
-            if (readIf(TO)) {
-                read(SECOND);
-                qualifier = IntervalQualifier.MINUTE_TO_SECOND;
-            } else {
-                qualifier = IntervalQualifier.MINUTE;
-            }
-            break;
-        case SECOND:
-            read();
-            qualifier = IntervalQualifier.SECOND;
-            break;
-        default:
-            throw intervalQualifierError();
-        }
+        TypeInfo typeInfo = readIntervalQualifier();
         try {
-            return ValueExpression.get(IntervalUtils.parseInterval(qualifier, negative, s));
+            ValueInterval interval = IntervalUtils.parseInterval(
+                    IntervalQualifier.valueOf(typeInfo.getValueType() - Value.INTERVAL_YEAR), negative, s);
+            if (typeInfo.getDeclaredPrecision() != -1L || typeInfo.getDeclaredScale() != -1) {
+                return TypedValueExpression.get(interval.castTo(typeInfo, session), typeInfo);
+            }
+            return ValueExpression.get(interval);
         } catch (Exception e) {
             throw DbException.get(ErrorCode.INVALID_DATETIME_CONSTANT_2, e, "INTERVAL", s);
         }

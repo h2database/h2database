@@ -161,7 +161,7 @@ The memory usage number is incorrect, because only the memory usage of the JDBC 
 SQLite 3.36.0.3, configured to use <a href="https://sqlite.org/wal.html">WAL</a> and with
 <a href="https://sqlite.org/pragma.html#pragma_synchronous"><code>synchronous=NORMAL</code></a> was tested in a
 separate, less reliable run. A rough estimate is that SQLite performs approximately 2-5x worse in the simple benchmarks,
-which perform simple work in the database, resulting in a low work-per-transaction ration. SQLite becomes competitive as
+which perform simple work in the database, resulting in a low work-per-transaction ratio. SQLite becomes competitive as
 the complexity of the database interactions increases. The results seemed to vary drastically across machine, and more
 reliable results should be obtained. Benchmark on your production hardware.
 </p>

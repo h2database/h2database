@@ -1975,10 +1975,11 @@ public final class InformationSchemaTable extends MetaTable {
                         } else {
                             routineType = "FUNCTION";
                         }
+                        String javaClassName = alias.getJavaClassName();
                         routines(session, rows, catalog, mainSchemaName, collation, schemaName, name,
                                 name + '_' + (i + 1), routineType, admin ? alias.getSource() : null,
-                                alias.getJavaClassName() + '.' + alias.getJavaMethodName(), typeInfo,
-                                alias.isDeterministic(), alias.getComment());
+                                javaClassName != null ? javaClassName + '.' + alias.getJavaMethodName() : null,
+                                typeInfo, alias.isDeterministic(), alias.getComment());
                     }
                 } else {
                     routines(session, rows, catalog, mainSchemaName, collation, schemaName, name, name, "AGGREGATE",

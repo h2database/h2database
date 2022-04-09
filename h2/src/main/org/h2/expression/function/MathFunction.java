@@ -13,6 +13,7 @@ import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.TypedValueExpression;
 import org.h2.message.DbException;
+import org.h2.mvstore.db.Store;
 import org.h2.value.DataType;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
@@ -238,7 +239,7 @@ public final class MathFunction extends Function1_2 {
             if (valueType == Value.NULL) {
                 commonType = TypeInfo.TYPE_BIGINT;
             } else if (!DataType.isNumericType(valueType)) {
-                throw DbException.getInvalidExpressionTypeException("MOD argument",
+                throw Store.getInvalidExpressionTypeException("MOD argument",
                         DataType.isNumericType(left.getType().getValueType()) ? right : left);
             }
             type = DataType.isNumericType(divisorType.getValueType()) ? divisorType : commonType;
@@ -378,7 +379,7 @@ public final class MathFunction extends Function1_2 {
             break;
         }
         default:
-            throw DbException.getInvalidExpressionTypeException(getName() + " argument", left);
+            throw Store.getInvalidExpressionTypeException(getName() + " argument", left);
         }
         if (scaleIsNull) {
             return TypedValueExpression.get(ValueNull.INSTANCE, type);

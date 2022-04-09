@@ -13,6 +13,7 @@ import org.h2.engine.Mode.ModeEnum;
 import org.h2.expression.Expression;
 import org.h2.expression.TypedValueExpression;
 import org.h2.message.DbException;
+import org.h2.mvstore.db.Store;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
@@ -152,7 +153,7 @@ public final class ArrayFunction extends FunctionN {
             type = arg.getType();
             int t = type.getValueType();
             if (t != Value.ARRAY && t != Value.NULL) {
-                throw DbException.getInvalidExpressionTypeException(getName() + " array argument", arg);
+                throw Store.getInvalidExpressionTypeException(getName() + " array argument", arg);
             }
             break;
         }

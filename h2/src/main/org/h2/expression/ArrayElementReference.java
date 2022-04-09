@@ -8,6 +8,7 @@ package org.h2.expression;
 import org.h2.api.ErrorCode;
 import org.h2.engine.SessionLocal;
 import org.h2.message.DbException;
+import org.h2.mvstore.db.Store;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
@@ -59,7 +60,7 @@ public final class ArrayElementReference extends Operation2 {
             }
             break;
         default:
-            throw DbException.getInvalidExpressionTypeException("Array", left);
+            throw Store.getInvalidExpressionTypeException("Array", left);
         }
         return this;
     }

@@ -33,13 +33,9 @@ import org.h2.jdbc.JdbcSQLSyntaxErrorException;
 import org.h2.jdbc.JdbcSQLTimeoutException;
 import org.h2.jdbc.JdbcSQLTransactionRollbackException;
 import org.h2.jdbc.JdbcSQLTransientException;
-import org.h2.util.HasSQL;
 import org.h2.util.SortedProperties;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
-import org.h2.value.TypeInfo;
-import org.h2.value.Typed;
-import org.h2.value.Value;
 
 /**
  * This exception wraps a checked exception.
@@ -300,21 +296,6 @@ public class DbException extends RuntimeException {
      */
     public static DbException getInvalidValueException(String param, Object value) {
         return get(INVALID_VALUE_2, value == null ? "null" : value.toString(), param);
-    }
-
-    /**
-     * Gets a SQL exception meaning the type of expression is invalid or unknown.
-     *
-     * @param param the name of the parameter
-     * @param e the expression
-     * @return the exception
-     */
-    public static DbException getInvalidExpressionTypeException(String param, Typed e) {
-        TypeInfo type = e.getType();
-        if (type.getValueType() == Value.UNKNOWN) {
-            return get(UNKNOWN_DATA_TYPE_1, (e instanceof HasSQL ? (HasSQL) e : type).getTraceSQL());
-        }
-        return get(INVALID_VALUE_2, type.getTraceSQL(), param);
     }
 
     /**

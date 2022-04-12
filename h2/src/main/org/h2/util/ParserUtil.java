@@ -1,9 +1,11 @@
 /*
- * Copyright 2004-2021 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.util;
+
+import java.util.HashMap;
 
 public class ParserUtil {
 
@@ -476,6 +478,115 @@ public class ParserUtil {
      */
     public static final int LAST_KEYWORD = _ROWID_;
 
+    private static final HashMap<String, Integer> KEYWORDS;
+
+    static {
+        HashMap<String, Integer> map = new HashMap<>(256);
+        map.put("ALL", ALL);
+        map.put("AND", AND);
+        map.put("ANY", ANY);
+        map.put("ARRAY", ARRAY);
+        map.put("AS", AS);
+        map.put("ASYMMETRIC", ASYMMETRIC);
+        map.put("AUTHORIZATION", AUTHORIZATION);
+        map.put("BETWEEN", BETWEEN);
+        map.put("CASE", CASE);
+        map.put("CAST", CAST);
+        map.put("CHECK", CHECK);
+        map.put("CONSTRAINT", CONSTRAINT);
+        map.put("CROSS", CROSS);
+        map.put("CURRENT_CATALOG", CURRENT_CATALOG);
+        map.put("CURRENT_DATE", CURRENT_DATE);
+        map.put("CURRENT_PATH", CURRENT_PATH);
+        map.put("CURRENT_ROLE", CURRENT_ROLE);
+        map.put("CURRENT_SCHEMA", CURRENT_SCHEMA);
+        map.put("CURRENT_TIME", CURRENT_TIME);
+        map.put("CURRENT_TIMESTAMP", CURRENT_TIMESTAMP);
+        map.put("CURRENT_USER", CURRENT_USER);
+        map.put("DAY", DAY);
+        map.put("DEFAULT", DEFAULT);
+        map.put("DISTINCT", DISTINCT);
+        map.put("ELSE", ELSE);
+        map.put("END", END);
+        map.put("EXCEPT", EXCEPT);
+        map.put("EXISTS", EXISTS);
+        map.put("FALSE", FALSE);
+        map.put("FETCH", FETCH);
+        map.put("FOR", FOR);
+        map.put("FOREIGN", FOREIGN);
+        map.put("FROM", FROM);
+        map.put("FULL", FULL);
+        map.put("GROUP", GROUP);
+        map.put("HAVING", HAVING);
+        map.put("HOUR", HOUR);
+        map.put("IF", IF);
+        map.put("IN", IN);
+        map.put("INNER", INNER);
+        map.put("INTERSECT", INTERSECT);
+        map.put("INTERVAL", INTERVAL);
+        map.put("IS", IS);
+        map.put("JOIN", JOIN);
+        map.put("KEY", KEY);
+        map.put("LEFT", LEFT);
+        map.put("LIKE", LIKE);
+        map.put("LIMIT", LIMIT);
+        map.put("LOCALTIME", LOCALTIME);
+        map.put("LOCALTIMESTAMP", LOCALTIMESTAMP);
+        map.put("MINUS", MINUS);
+        map.put("MINUTE", MINUTE);
+        map.put("MONTH", MONTH);
+        map.put("NATURAL", NATURAL);
+        map.put("NOT", NOT);
+        map.put("NULL", NULL);
+        map.put("OFFSET", OFFSET);
+        map.put("ON", ON);
+        map.put("OR", OR);
+        map.put("ORDER", ORDER);
+        map.put("PRIMARY", PRIMARY);
+        map.put("QUALIFY", QUALIFY);
+        map.put("RIGHT", RIGHT);
+        map.put("ROW", ROW);
+        map.put("ROWNUM", ROWNUM);
+        map.put("SECOND", SECOND);
+        map.put("SELECT", SELECT);
+        map.put("SESSION_USER", SESSION_USER);
+        map.put("SET", SET);
+        map.put("SOME", SOME);
+        map.put("SYMMETRIC", SYMMETRIC);
+        map.put("SYSTEM_USER", SYSTEM_USER);
+        map.put("TABLE", TABLE);
+        map.put("TO", TO);
+        map.put("TRUE", TRUE);
+        map.put("UESCAPE", UESCAPE);
+        map.put("UNION", UNION);
+        map.put("UNIQUE", UNIQUE);
+        map.put("UNKNOWN", UNKNOWN);
+        map.put("USER", USER);
+        map.put("USING", USING);
+        map.put("VALUE", VALUE);
+        map.put("VALUES", VALUES);
+        map.put("WHEN", WHEN);
+        map.put("WHERE", WHERE);
+        map.put("WINDOW", WINDOW);
+        map.put("WITH", WITH);
+        map.put("YEAR", YEAR);
+        map.put("_ROWID_", _ROWID_);
+        // Additional keywords
+        map.put("BOTH", KEYWORD);
+        map.put("FILTER", KEYWORD);
+        map.put("GROUPS", KEYWORD);
+        map.put("ILIKE", KEYWORD);
+        map.put("LEADING", KEYWORD);
+        map.put("OVER", KEYWORD);
+        map.put("PARTITION", KEYWORD);
+        map.put("RANGE", KEYWORD);
+        map.put("REGEXP", KEYWORD);
+        map.put("ROWS", KEYWORD);
+        map.put("TOP", KEYWORD);
+        map.put("TRAILING", KEYWORD);
+        KEYWORDS = map;
+    }
+
     private ParserUtil() {
         // utility class
     }
@@ -508,7 +619,7 @@ public class ParserUtil {
      * @return true if it is a keyword
      */
     public static boolean isKeyword(String s, boolean ignoreCase) {
-        return getTokenType(s, ignoreCase, 0, s.length(), false) != IDENTIFIER;
+        return getTokenType(s, ignoreCase, false) != IDENTIFIER;
     }
 
     /**
@@ -534,7 +645,7 @@ public class ParserUtil {
                 return false;
             }
         }
-        return getTokenType(s, !databaseToUpper, 0, length, true) == IDENTIFIER;
+        return getTokenType(s, !databaseToUpper, true) == IDENTIFIER;
     }
 
     private static boolean checkLetter(boolean databaseToUpper, boolean databaseToLower, char c) {
@@ -560,377 +671,25 @@ public class ParserUtil {
      * @param s the string with token
      * @param ignoreCase true if case should be ignored, false if only upper case
      *            tokens are detected as keywords
-     * @param start start index of token
-     * @param length length of token; must be positive
      * @param additionalKeywords
      *            whether context-sensitive keywords are returned as
      *            {@link #KEYWORD}
      * @return the token type
      */
-    public static int getTokenType(String s, boolean ignoreCase, int start, int length, boolean additionalKeywords) {
+    public static int getTokenType(String s, boolean ignoreCase, boolean additionalKeywords) {
+        int length = s.length();
         if (length <= 1 || length > 17) {
             return IDENTIFIER;
         }
-        /*
-         * DatabaseMetaLocal.getSQLKeywords() and tests should be updated when new
-         * non-SQL:2003 keywords are introduced here.
-         */
-        char c1 = s.charAt(start);
         if (ignoreCase) {
-            // Convert a-z to A-Z and 0x7f to _ (need special handling).
-            c1 &= 0xffdf;
+            s = StringUtils.toUpperEnglish(s);
         }
-        if (length == 2) {
-            char c2 = s.charAt(start + 1);
-            if (ignoreCase) {
-                c2 &= 0xffdf;
-            }
-            switch (c1) {
-            case 'A':
-                if (c2 == 'S') {
-                    return AS;
-                }
-                return IDENTIFIER;
-            case 'I':
-                if (c2 == 'F') {
-                    return IF;
-                } else if (c2 == 'N') {
-                    return IN;
-                } else if (c2 == 'S') {
-                    return IS;
-                }
-                return IDENTIFIER;
-            case 'O':
-                if (c2 == 'N') {
-                    return ON;
-                } else if (c2 == 'R') {
-                    return OR;
-                }
-                return IDENTIFIER;
-            case 'T':
-                if (c2 == 'O') {
-                    return TO;
-                }
-                //$FALL-THROUGH$
-            default:
-                return IDENTIFIER;
-            }
-        }
-        switch (c1) {
-        case 'A':
-            if (eq("ALL", s, ignoreCase, start, length)) {
-                return ALL;
-            } else if (eq("AND", s, ignoreCase, start, length)) {
-                return AND;
-            } else if (eq("ANY", s, ignoreCase, start, length)) {
-                return ANY;
-            } else if (eq("ARRAY", s, ignoreCase, start, length)) {
-                return ARRAY;
-            } else if (eq("ASYMMETRIC", s, ignoreCase, start, length)) {
-                return ASYMMETRIC;
-            } else if (eq("AUTHORIZATION", s, ignoreCase, start, length)) {
-                return AUTHORIZATION;
-            }
-            return IDENTIFIER;
-        case 'B':
-            if (eq("BETWEEN", s, ignoreCase, start, length)) {
-                return BETWEEN;
-            }
-            if (additionalKeywords) {
-                if (eq("BOTH", s, ignoreCase, start, length)) {
-                    return KEYWORD;
-                }
-            }
-            return IDENTIFIER;
-        case 'C':
-            if (eq("CASE", s, ignoreCase, start, length)) {
-                return CASE;
-            } else if (eq("CAST", s, ignoreCase, start, length)) {
-                return CAST;
-            } else if (eq("CHECK", s, ignoreCase, start, length)) {
-                return CHECK;
-            } else if (eq("CONSTRAINT", s, ignoreCase, start, length)) {
-                return CONSTRAINT;
-            } else if (eq("CROSS", s, ignoreCase, start, length)) {
-                return CROSS;
-            } else if (length >= 12 && "CURRENT_".regionMatches(ignoreCase, 1, s, start + 1, 7)) {
-                return getTokenTypeCurrent(s, ignoreCase, start, length);
-            }
-            return IDENTIFIER;
-        case 'D':
-            if (eq("DAY", s, ignoreCase, start, length)) {
-                return DAY;
-            } else if (eq("DEFAULT", s, ignoreCase, start, length)) {
-                return DEFAULT;
-            } else if (eq("DISTINCT", s, ignoreCase, start, length)) {
-                return DISTINCT;
-            }
-            return IDENTIFIER;
-        case 'E':
-            if (eq("ELSE", s, ignoreCase, start, length)) {
-                return ELSE;
-            } else if (eq("END", s, ignoreCase, start, length)) {
-                return END;
-            } else if (eq("EXCEPT", s, ignoreCase, start, length)) {
-                return EXCEPT;
-            } else if (eq("EXISTS", s, ignoreCase, start, length)) {
-                return EXISTS;
-            }
-            return IDENTIFIER;
-        case 'F':
-            if (eq("FETCH", s, ignoreCase, start, length)) {
-                return FETCH;
-            } else if (eq("FROM", s, ignoreCase, start, length)) {
-                return FROM;
-            } else if (eq("FOR", s, ignoreCase, start, length)) {
-                return FOR;
-            } else if (eq("FOREIGN", s, ignoreCase, start, length)) {
-                return FOREIGN;
-            } else if (eq("FULL", s, ignoreCase, start, length)) {
-                return FULL;
-            } else if (eq("FALSE", s, ignoreCase, start, length)) {
-                return FALSE;
-            }
-            if (additionalKeywords) {
-                if (eq("FILTER", s, ignoreCase, start, length)) {
-                    return KEYWORD;
-                }
-            }
-            return IDENTIFIER;
-        case 'G':
-            if (eq("GROUP", s, ignoreCase, start, length)) {
-                return GROUP;
-            }
-            if (additionalKeywords) {
-                if (eq("GROUPS", s, ignoreCase, start, length)) {
-                    return KEYWORD;
-                }
-            }
-            return IDENTIFIER;
-        case 'H':
-            if (eq("HAVING", s, ignoreCase, start, length)) {
-                return HAVING;
-            } else if (eq("HOUR", s, ignoreCase, start, length)) {
-                return HOUR;
-            }
-            return IDENTIFIER;
-        case 'I':
-            if (eq("INNER", s, ignoreCase, start, length)) {
-                return INNER;
-            } else if (eq("INTERSECT", s, ignoreCase, start, length)) {
-                return INTERSECT;
-            } else if (eq("INTERVAL", s, ignoreCase, start, length)) {
-                return INTERVAL;
-            }
-            if (additionalKeywords) {
-                if (eq("ILIKE", s, ignoreCase, start, length)) {
-                    return KEYWORD;
-                }
-            }
-            return IDENTIFIER;
-        case 'J':
-            if (eq("JOIN", s, ignoreCase, start, length)) {
-                return JOIN;
-            }
-            return IDENTIFIER;
-        case 'K':
-            if (eq("KEY", s, ignoreCase, start, length)) {
-                return KEY;
-            }
-            return IDENTIFIER;
-        case 'L':
-            if (eq("LEFT", s, ignoreCase, start, length)) {
-                return LEFT;
-            } else if (eq("LIMIT", s, ignoreCase, start, length)) {
-                return LIMIT;
-            } else if (eq("LIKE", s, ignoreCase, start, length)) {
-                return LIKE;
-            } else if (eq("LOCALTIME", s, ignoreCase, start, length)) {
-                return LOCALTIME;
-            } else if (eq("LOCALTIMESTAMP", s, ignoreCase, start, length)) {
-                return LOCALTIMESTAMP;
-            }
-            if (additionalKeywords) {
-                if (eq("LEADING", s, ignoreCase, start, length)) {
-                    return KEYWORD;
-                }
-            }
-            return IDENTIFIER;
-        case 'M':
-            if (eq("MINUS", s, ignoreCase, start, length)) {
-                return MINUS;
-            } else if (eq("MINUTE", s, ignoreCase, start, length)) {
-                return MINUTE;
-            } else if (eq("MONTH", s, ignoreCase, start, length)) {
-                return MONTH;
-            }
-            return IDENTIFIER;
-        case 'N':
-            if (eq("NOT", s, ignoreCase, start, length)) {
-                return NOT;
-            } else if (eq("NATURAL", s, ignoreCase, start, length)) {
-                return NATURAL;
-            } else if (eq("NULL", s, ignoreCase, start, length)) {
-                return NULL;
-            }
-            return IDENTIFIER;
-        case 'O':
-            if (eq("OFFSET", s, ignoreCase, start, length)) {
-                return OFFSET;
-            } else if (eq("ORDER", s, ignoreCase, start, length)) {
-                return ORDER;
-            }
-            if (additionalKeywords) {
-                if (eq("OVER", s, ignoreCase, start, length)) {
-                    return KEYWORD;
-                }
-            }
-            return IDENTIFIER;
-        case 'P':
-            if (eq("PRIMARY", s, ignoreCase, start, length)) {
-                return PRIMARY;
-            }
-            if (additionalKeywords) {
-                if (eq("PARTITION", s, ignoreCase, start, length)) {
-                    return KEYWORD;
-                }
-            }
-            return IDENTIFIER;
-        case 'Q':
-            if (eq("QUALIFY", s, ignoreCase, start, length)) {
-                return QUALIFY;
-            }
-            return IDENTIFIER;
-        case 'R':
-            if (eq("RIGHT", s, ignoreCase, start, length)) {
-                return RIGHT;
-            } else if (eq("ROW", s, ignoreCase, start, length)) {
-                return ROW;
-            } else if (eq("ROWNUM", s, ignoreCase, start, length)) {
-                return ROWNUM;
-            }
-            if (additionalKeywords) {
-                if (eq("RANGE", s, ignoreCase, start, length) || eq("REGEXP", s, ignoreCase, start, length)
-                        || eq("ROWS", s, ignoreCase, start, length)) {
-                    return KEYWORD;
-                }
-            }
-            return IDENTIFIER;
-        case 'S':
-            if (eq("SECOND", s, ignoreCase, start, length)) {
-                return SECOND;
-            } else if (eq("SELECT", s, ignoreCase, start, length)) {
-                return SELECT;
-            } else if (eq("SESSION_USER", s, ignoreCase, start, length)) {
-                return SESSION_USER;
-            } else if (eq("SET", s, ignoreCase, start, length)) {
-                return SET;
-            } else if (eq("SOME", s, ignoreCase, start, length)) {
-                return SOME;
-            } else if (eq("SYMMETRIC", s, ignoreCase, start, length)) {
-                return SYMMETRIC;
-            } else if (eq("SYSTEM_USER", s, ignoreCase, start, length)) {
-                return SYSTEM_USER;
-            }
-            return IDENTIFIER;
-        case 'T':
-            if (eq("TABLE", s, ignoreCase, start, length)) {
-                return TABLE;
-            } else if (eq("TRUE", s, ignoreCase, start, length)) {
-                return TRUE;
-            }
-            if (additionalKeywords) {
-                if (eq("TOP", s, ignoreCase, start, length) || eq("TRAILING", s, ignoreCase, start, length)) {
-                    return KEYWORD;
-                }
-            }
-            return IDENTIFIER;
-        case 'U':
-            if (eq("UESCAPE", s, ignoreCase, start, length)) {
-                return UESCAPE;
-            } else if (eq("UNION", s, ignoreCase, start, length)) {
-                return UNION;
-            } else if (eq("UNIQUE", s, ignoreCase, start, length)) {
-                return UNIQUE;
-            } else if (eq("UNKNOWN", s, ignoreCase, start, length)) {
-                return UNKNOWN;
-            } else if (eq("USER", s, ignoreCase, start, length)) {
-                return USER;
-            } else if (eq("USING", s, ignoreCase, start, length)) {
-                return USING;
-            }
-            return IDENTIFIER;
-        case 'V':
-            if (eq("VALUE", s, ignoreCase, start, length)) {
-                return VALUE;
-            } else if (eq("VALUES", s, ignoreCase, start, length)) {
-                return VALUES;
-            }
-            return IDENTIFIER;
-        case 'W':
-            if (eq("WHEN", s, ignoreCase, start, length)) {
-                return WHEN;
-            } else if (eq("WHERE", s, ignoreCase, start, length)) {
-                return WHERE;
-            } else if (eq("WINDOW", s, ignoreCase, start, length)) {
-                return WINDOW;
-            } else if (eq("WITH", s, ignoreCase, start, length)) {
-                return WITH;
-            }
-            return IDENTIFIER;
-        case 'Y':
-            if (eq("YEAR", s, ignoreCase, start, length)) {
-                return YEAR;
-            }
-            return IDENTIFIER;
-        case '_':
-            // Cannot use eq() because 0x7f can be converted to '_' (0x5f)
-            if (length == 7 && "_ROWID_".regionMatches(ignoreCase, 0, s, start, 7)) {
-                return _ROWID_;
-            }
-            //$FALL-THROUGH$
-        default:
+        Integer type = KEYWORDS.get(s);
+        if (type == null) {
             return IDENTIFIER;
         }
-    }
-
-    private static boolean eq(String expected, String s, boolean ignoreCase, int start, int length) {
-        // First letter was already checked
-        return length == expected.length() && expected.regionMatches(ignoreCase, 1, s, start + 1, length - 1);
-    }
-
-    private static int getTokenTypeCurrent(String s, boolean ignoreCase, int start, int length) {
-        start += 8;
-        switch (length -= 8) {
-        case 4:
-            if ("CURRENT_DATE".regionMatches(ignoreCase, 8, s, start, length)) {
-                return CURRENT_DATE;
-            } else if ("CURRENT_PATH".regionMatches(ignoreCase, 8, s, start, length)) {
-                return CURRENT_PATH;
-            } else if ("CURRENT_ROLE".regionMatches(ignoreCase, 8, s, start, length)) {
-                return CURRENT_ROLE;
-            } else if ("CURRENT_TIME".regionMatches(ignoreCase, 8, s, start, length)) {
-                return CURRENT_TIME;
-            } else if ("CURRENT_USER".regionMatches(ignoreCase, 8, s, start, length)) {
-                return CURRENT_USER;
-            }
-            break;
-        case 6:
-            if ("CURRENT_SCHEMA".regionMatches(ignoreCase, 8, s, start, length)) {
-                return CURRENT_SCHEMA;
-            }
-            break;
-        case 7:
-            if ("CURRENT_CATALOG".regionMatches(ignoreCase, 8, s, start, length)) {
-                return CURRENT_CATALOG;
-            }
-            break;
-        case 9:
-            if ("CURRENT_TIMESTAMP".regionMatches(ignoreCase, 8, s, start, length)) {
-                return CURRENT_TIMESTAMP;
-            }
-        }
-        return IDENTIFIER;
+        int t = type;
+        return t == KEYWORD && !additionalKeywords ? IDENTIFIER : t;
     }
 
 }

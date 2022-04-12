@@ -63,7 +63,7 @@
 90020=Datenbank wird wahrscheinlich bereits benutzt: {0}. Mögliche Lösungen: alle Verbindungen schliessen; Server Modus verwenden
 90021=Diese Kombination von Einstellungen wird nicht unterstützt {0}
 90022=Funktion {0} nicht gefunden
-90023=Feld {0} darf nicht NULL nicht erlauben
+90023=Feld {0} darf nicht nullable sein
 90024=Fehler beim Umbenennen der Datei {0} nach {1}
 90025=Kann Datei {0} nicht löschen
 90026=Serialisierung fehlgeschlagen, Grund: {0}

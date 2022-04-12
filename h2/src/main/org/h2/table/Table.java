@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2021 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -58,6 +58,21 @@ public abstract class Table extends SchemaObject {
      * The table type that means this table is a regular persistent table.
      */
     public static final int TYPE_MEMORY = 1;
+
+    /**
+     * Read lock.
+     */
+    public static final int READ_LOCK = 0;
+
+    /**
+     * Write lock.
+     */
+    public static final int WRITE_LOCK = 1;
+
+    /**
+     * Exclusive lock.
+     */
+    public static final int EXCLUSIVE_LOCK = 2;
 
     /**
      * The columns of this table.
@@ -120,12 +135,11 @@ public abstract class Table extends SchemaObject {
      * This method waits until the lock is granted.
      *
      * @param session the session
-     * @param exclusive true for write locks, false for read locks
-     * @param forceLockEvenInMvcc lock even in the MVCC mode
+     * @param lockType the type of lock
      * @return true if the table was already exclusively locked by this session.
      * @throws DbException if a lock timeout occurred
      */
-    public boolean lock(SessionLocal session, boolean exclusive, boolean forceLockEvenInMvcc) {
+    public boolean lock(SessionLocal session, int lockType) {
         return false;
     }
 
@@ -746,7 +760,7 @@ public abstract class Table extends SchemaObject {
      * Get the column with the given name.
      *
      * @param columnName the column name
-     * @param ifExists if (@code true) return {@code null} if column does not exist
+     * @param ifExists if {@code true} return {@code null} if column does not exist
      * @return the column
      * @throws DbException if the column was not found
      */

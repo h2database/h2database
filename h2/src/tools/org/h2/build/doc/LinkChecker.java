@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2021 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -42,7 +42,8 @@ public class LinkChecker {
         "#functions_index",
         "#functions_aggregate_index",
         "#functions_window_index",
-        "#tutorial_index"
+        "#tutorial_index",
+        "docs/javadoc/"
     };
 
     private static enum TargetKind {
@@ -137,7 +138,8 @@ public class LinkChecker {
     private void listBadLinks() throws Exception {
         ArrayList<String> errors = new ArrayList<>();
         for (String link : links.keySet()) {
-            if (!link.startsWith("http") && !link.endsWith("h2.pdf")) {
+            if (!link.startsWith("http") && !link.endsWith("h2.pdf")
+                    && /* For Javadoc 8 */ !link.startsWith("docs/javadoc")) {
                 if (targets.get(link) == null) {
                     errors.add(links.get(link) + ": Link missing " + link);
                 }
@@ -210,7 +212,8 @@ public class LinkChecker {
             }
             String ref = html.substring(start, end);
             if (!ref.startsWith("_")) {
-                targets.put(path + "#" + ref, TargetKind.ID);
+                targets.put(path + "#" + ref.replaceAll("%3C|&lt;", "<").replaceAll("%3E|&gt;", ">"), //
+                        TargetKind.ID);
             }
         }
         // find all the href links in the document
@@ -252,7 +255,10 @@ public class LinkChecker {
                 ref = p + File.separator + ref;
             }
             if (ref != null) {
-                links.put(ref.replace('/', File.separatorChar), path);
+                links.put(ref.replace('/', File.separatorChar) //
+                        .replaceAll("%5B", "[").replaceAll("%5D", "]") //
+                        .replaceAll("%3C", "<").replaceAll("%3E", ">"), //
+                        path);
             }
         }
         idx = -1;
@@ -278,8 +284,9 @@ public class LinkChecker {
             if (type.equals("href")) {
                 // already checked
             } else if (type.equals("id")) {
+                // For Javadoc 8
                 targets.put(path + "#" + ref, TargetKind.ID);
-            } else {
+            } else if (!type.equals("name")) {
                 error(fileName, "Unsupported <a ?: " + html.substring(idx, idx + 100));
             }
         }

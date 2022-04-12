@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2021 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -813,7 +813,9 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
         String[] strings = new String[count];
         String s = getListaggItem(array[0]);
         strings[0] = s;
-        StringBuilder builder = new StringBuilder(s);
+        final int estimatedLength = (int) Math.min(Integer.MAX_VALUE, s.length() * (long)count);
+        final StringBuilder builder = new StringBuilder(estimatedLength);
+        builder.append(s);
         loop: for (int i = 1; i < count; i++) {
             builder.append(separator).append(strings[i] = s = getListaggItem(array[i]));
             int length = builder.length();

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2021 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -23,7 +23,6 @@ import org.h2.util.Utils;
 
 /**
  * Starts the H2 Console (web-) server, TCP, and PG server.
- * @h2.resource
  */
 public class Server extends Tool implements Runnable, ShutdownHandler {
 
@@ -66,6 +65,9 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
      * <td>Start the web server with the H2 Console</td></tr>
      * <tr><td>[-webAllowOthers]</td>
      * <td>Allow other computers to connect - see below</td></tr>
+     * <tr><td>[-webExternalNames &lt;names&gt;]</td>
+     * <td>The comma-separated list of external names and IP addresses of this server,
+     * used together with -webAllowOthers</td></tr>
      * <tr><td>[-webDaemon]</td>
      * <td>Use a daemon thread</td></tr>
      * <tr><td>[-webPort &lt;port&gt;]</td>
@@ -116,7 +118,6 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
      * The options -xAllowOthers are potentially risky.
      *
      * For details, see Advanced Topics / Protection against Remote Access.
-     * @h2.resource
      *
      * @param args the command line arguments
      * @throws SQLException on failure
@@ -136,7 +137,9 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
                     // ok
                 } else if ("-webAllowOthers".equals(arg)) {
                     // no parameters
-                } else if ("-webDaemon".equals(arg)) {
+                } else if ("-webExternalNames".equals(arg)) {
+                    i++;
+                }  else if ("-webDaemon".equals(arg)) {
                     // no parameters
                 } else if ("-webSSL".equals(arg)) {
                     // no parameters

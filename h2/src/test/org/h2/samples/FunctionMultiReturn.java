@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2021 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -67,10 +67,9 @@ public class FunctionMultiReturn {
         while (rs.next()) {
             double r = rs.getDouble(1);
             double a = rs.getDouble(2);
-            Object o = rs.getObject(3);
-            Object[] xy = (Object[]) o;
-            double x = (Double) xy[0];
-            double y = (Double) xy[1];
+            Double [] xy = rs.getObject(3, Double[].class);
+            double x = xy[0];
+            double y = xy[1];
             System.out.println("(r=" + r + " a=" + a + ") :" +
                     " (x=" + x + ", y=" + y + ")");
         }

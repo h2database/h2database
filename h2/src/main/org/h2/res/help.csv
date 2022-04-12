@@ -1,4 +1,4 @@
-# Copyright 2004-2021 H2 Group. Multiple-Licensed under the MPL 2.0,
+# Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
 # and the EPL 1.0 (https://h2database.com/html/license.html).
 # Initial Developer: H2 Group
 
@@ -49,8 +49,8 @@ First row is each DISTINCT ON group is preserved.
 In absence of ORDER BY preserved rows are not determined, database may choose any row from each DISTINCT ON group.
 
 9. UNION, EXCEPT, and INTERSECT combine the result of this query with the results of another query.
-Multiple set operators (UNION, INTERSECT, EXCEPT) are evaluated from left to right.
-For compatibility with other databases and future versions of H2 please use parentheses.
+INTERSECT has higher precedence than UNION and EXCEPT.
+Operators with equal precedence are evaluated from left to right.
 
 10. ORDER BY sorts the result by the given column(s) or expression(s).
 
@@ -937,8 +937,9 @@ For TINYINT the allowed values are between -128 and 127.
 For SMALLINT the allowed values are between -32768 and 32767.
 For INTEGER the allowed values are between -2147483648 and 2147483647.
 For BIGINT the allowed values are between -9223372036854775808 and 9223372036854775807.
-For NUMERIC the allowed values depend on precision and scale,
-but cannot exceed the range of BIGINT data type (from -9223372036854775808 to 9223372036854775807).
+For NUMERIC and DECFLOAT the allowed values depend on precision,
+but cannot exceed the range of BIGINT data type (from -9223372036854775808 to 9223372036854775807);
+the scale of NUMERIC must be 0.
 For REAL the allowed values are between -16777216 and 16777216.
 For DOUBLE PRECISION the allowed values are between -9007199254740992 and 9007199254740992.
 
@@ -2399,105 +2400,126 @@ INTERVAL '1-2' YEAR TO MONTH
 "
 
 "Literals","INTERVAL YEAR","
-INTERVAL [-|+] '[-|+]yearInt' YEAR
+INTERVAL [-|+] '[-|+]yearInt' YEAR [ ( precisionInt ) ]
 ","
 An INTERVAL YEAR literal.
+If precision is specified it should be from 1 to 18.
 ","
 INTERVAL '10' YEAR
 "
 
 "Literals","INTERVAL MONTH","
-INTERVAL [-|+] '[-|+]monthInt' MONTH
+INTERVAL [-|+] '[-|+]monthInt' MONTH [ ( precisionInt ) ]
 ","
 An INTERVAL MONTH literal.
+If precision is specified it should be from 1 to 18.
 ","
 INTERVAL '10' MONTH
 "
 
 "Literals","INTERVAL DAY","
-INTERVAL [-|+] '[-|+]dayInt' DAY
+INTERVAL [-|+] '[-|+]dayInt' DAY [ ( precisionInt ) ]
 ","
 An INTERVAL DAY literal.
+If precision is specified it should be from 1 to 18.
 ","
 INTERVAL '10' DAY
 "
 
 "Literals","INTERVAL HOUR","
-INTERVAL [-|+] '[-|+]hourInt' HOUR
+INTERVAL [-|+] '[-|+]hourInt' HOUR [ ( precisionInt ) ]
 ","
 An INTERVAL HOUR literal.
+If precision is specified it should be from 1 to 18.
 ","
 INTERVAL '10' HOUR
 "
 
 "Literals","INTERVAL MINUTE","
-INTERVAL [-|+] '[-|+]minuteInt' MINUTE
+INTERVAL [-|+] '[-|+]minuteInt' MINUTE [ ( precisionInt ) ]
 ","
 An INTERVAL MINUTE literal.
+If precision is specified it should be from 1 to 18.
 ","
 INTERVAL '10' MINUTE
 "
 
 "Literals","INTERVAL SECOND","
-INTERVAL [-|+] '[-|+]secondInt[.nnnnnnnnn]' SECOND
+INTERVAL [-|+] '[-|+]secondInt[.nnnnnnnnn]'
+SECOND [ ( precisionInt [, fractionalPrecisionInt ] ) ]
 ","
 An INTERVAL SECOND literal.
+If precision is specified it should be from 1 to 18.
+If fractional seconds precision is specified it should be from 0 to 9.
 ","
 INTERVAL '10.123' SECOND
 "
 
 "Literals","INTERVAL YEAR TO MONTH","
-INTERVAL [-|+] '[-|+]yearInt-monthInt' YEAR TO MONTH
+INTERVAL [-|+] '[-|+]yearInt-monthInt' YEAR [ ( precisionInt ) ] TO MONTH
 ","
 An INTERVAL YEAR TO MONTH literal.
+If leading field precision is specified it should be from 1 to 18.
 ","
 INTERVAL '1-6' YEAR TO MONTH
 "
 
 "Literals","INTERVAL DAY TO HOUR","
-INTERVAL [-|+] '[-|+]dayInt hoursInt' DAY TO HOUR
+INTERVAL [-|+] '[-|+]dayInt hoursInt' DAY [ ( precisionInt ) ] TO HOUR
 ","
 An INTERVAL DAY TO HOUR literal.
+If leading field precision is specified it should be from 1 to 18.
 ","
 INTERVAL '10 11' DAY TO HOUR
 "
 
 "Literals","INTERVAL DAY TO MINUTE","
-INTERVAL [-|+] '[-|+]dayInt hh:mm' DAY TO MINUTE
+INTERVAL [-|+] '[-|+]dayInt hh:mm' DAY [ ( precisionInt ) ] TO MINUTE
 ","
 An INTERVAL DAY TO MINUTE literal.
+If leading field precision is specified it should be from 1 to 18.
 ","
 INTERVAL '10 11:12' DAY TO MINUTE
 "
 
 "Literals","INTERVAL DAY TO SECOND","
-INTERVAL [-|+] '[-|+]dayInt hh:mm:ss[.nnnnnnnnn]' DAY TO SECOND
+INTERVAL [-|+] '[-|+]dayInt hh:mm:ss[.nnnnnnnnn]' DAY [ ( precisionInt ) ]
+TO SECOND [ ( fractionalPrecisionInt ) ]
 ","
 An INTERVAL DAY TO SECOND literal.
+If leading field precision is specified it should be from 1 to 18.
+If fractional seconds precision is specified it should be from 0 to 9.
 ","
 INTERVAL '10 11:12:13.123' DAY TO SECOND
 "
 
 "Literals","INTERVAL HOUR TO MINUTE","
-INTERVAL [-|+] '[-|+]hh:mm' HOUR TO MINUTE
+INTERVAL [-|+] '[-|+]hh:mm' HOUR [ ( precisionInt ) ] TO MINUTE
 ","
 An INTERVAL HOUR TO MINUTE literal.
+If leading field precision is specified it should be from 1 to 18.
 ","
 INTERVAL '10:11' HOUR TO MINUTE
 "
 
 "Literals","INTERVAL HOUR TO SECOND","
-INTERVAL [-|+] '[-|+]hh:mm:ss[.nnnnnnnnn]' HOUR TO SECOND
+INTERVAL [-|+] '[-|+]hh:mm:ss[.nnnnnnnnn]' HOUR [ ( precisionInt ) ]
+TO SECOND [ ( fractionalPrecisionInt ) ]
 ","
 An INTERVAL HOUR TO SECOND literal.
+If leading field precision is specified it should be from 1 to 18.
+If fractional seconds precision is specified it should be from 0 to 9.
 ","
 INTERVAL '10:11:12.123' HOUR TO SECOND
 "
 
 "Literals","INTERVAL MINUTE TO SECOND","
-INTERVAL [-|+] '[-|+]mm:ss[.nnnnnnnnn]' MINUTE TO SECOND
+INTERVAL [-|+] '[-|+]mm:ss[.nnnnnnnnn]' MINUTE [ ( precisionInt ) ]
+TO SECOND [ ( fractionalPrecisionInt ) ]
 ","
 An INTERVAL MINUTE TO SECOND literal.
+If leading field precision is specified it should be from 1 to 18.
+If fractional seconds precision is specified it should be from 0 to 9.
 ","
 INTERVAL '11:12.123' MINUTE TO SECOND
 "
@@ -5679,7 +5701,7 @@ CALL TRANSLATE('Hello world', 'eo', 'EO')
 "
 
 "Functions (Time and Date)","CURRENT_DATE","
-CURRENT_DATE | @c@ { CURDATE() | SYSDATE | TODAY }
+CURRENT_DATE
 ","
 Returns the current date.
 
@@ -5732,7 +5754,7 @@ CURRENT_TIMESTAMP(9)
 "
 
 "Functions (Time and Date)","LOCALTIME","
-LOCALTIME [ (int) ] | @c@ CURTIME([ int ])
+LOCALTIME [ (int) ]
 ","
 Returns the current time without time zone.
 If fractional seconds precision is specified it should be from 0 to 9, 0 is default.
@@ -5751,7 +5773,7 @@ LOCALTIME(9)
 "
 
 "Functions (Time and Date)","LOCALTIMESTAMP","
-LOCALTIMESTAMP [ (int) ] | @c@ NOW( [ int ] )
+LOCALTIMESTAMP [ (int) ]
 ","
 Returns the current timestamp without time zone.
 If fractional seconds precision is specified it should be from 0 to 9, 6 is default.

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2021 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -14,12 +14,12 @@ import org.h2.mvstore.type.DataType;
 /**
  * Class MemoryEstimator.
  *
- * Calculation of the amount of memory taken by keys, values and pages of the MVTable
+ * Calculation of the amount of memory occupied by keys, values and pages of the MVTable
  * may become expensive operation for complex data types like Row.
  * On the other hand, result of the calculation is used by page cache to limit it's size
  * and determine when eviction is needed. Another usage is to trigger auto commit,
  * based on amount of unsaved changes. In both cases reasonable (lets say ~30%) approximation
- * would be good enough and do the job.
+ * would be good enough and will do the job.
  * This class replaces exact calculation with an estimate based on
  * a sliding window average of last 256 values.
  * If estimation gets close to the exact value, then next N calculations are skipped
@@ -30,10 +30,10 @@ import org.h2.mvstore.type.DataType;
 public final class MemoryEstimator {
 
     // Structure of statsData long value:
-    // 0 - 7   skip counter (how many more requests will skip calculation and use estimate instead)
+    // 0 - 7   skip counter (how many more requests will skip calculation and use an estimate instead)
     // 8 - 23  total number of skips between last 256 calculations
     //         (used for sampling percentage calculation only)
-    // 24      bit is 0 when window is not completely filled yet, 1 when it become full
+    // 24      bit is 0 when window is not completely filled yet, 1 once it become full
     // 25 - 31 unused
     // 32 - 63 sliding window sum of estimated values
 
@@ -63,7 +63,7 @@ public final class MemoryEstimator {
         int counter = getCounter(statsData);
         int skipSum = getSkipSum(statsData);
         long initialized = statsData & INIT_BIT;
-        long sum = statsData >> SUM_SHIFT;
+        long sum = statsData >>> SUM_SHIFT;
         int mem = 0;
         int cnt = 0;
         if (initialized == 0 || counter-- == 0) {
@@ -103,7 +103,7 @@ public final class MemoryEstimator {
         int counter = getCounter(statsData);
         int skipSum = getSkipSum(statsData);
         long initialized = statsData & INIT_BIT;
-        long sum = statsData >> SUM_SHIFT;
+        long sum = statsData >>> SUM_SHIFT;
         int index = 0;
         int memSum = 0;
         if (initialized != 0 && counter >= count) {
@@ -172,7 +172,7 @@ public final class MemoryEstimator {
                                         int itemsCount, int itemsMem) {
         while (!stats.compareAndSet(statsData, updatedStatsData)) {
             statsData = stats.get();
-            long sum = statsData >> SUM_SHIFT;
+            long sum = statsData >>> SUM_SHIFT;
             if (itemsCount > 0) {
                 sum += itemsMem - ((sum * itemsCount + WINDOW_HALF_SIZE) >> WINDOW_SHIFT);
             }
@@ -190,6 +190,6 @@ public final class MemoryEstimator {
     }
 
     private static int getAverage(long updatedStatsData) {
-        return (int)(updatedStatsData >> (SUM_SHIFT + WINDOW_SHIFT));
+        return (int)(updatedStatsData >>> (SUM_SHIFT + WINDOW_SHIFT));
     }
 }

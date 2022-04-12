@@ -25,6 +25,7 @@ adminLoginCancel=Zrušiť
 adminLoginOk=OK
 adminLogout=Odhlásiť
 adminOthers=Povoliť pripojenia z iných počítačov
+adminWebExternalNames=#External names or addresses of this server (comma-separated)
 adminPort=Číslo portu
 adminPortWeb=Číslo portu Web servera
 adminRestart=Zmeny sa vykonajú po reštarte servera

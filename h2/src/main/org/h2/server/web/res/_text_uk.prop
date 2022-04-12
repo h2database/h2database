@@ -25,6 +25,7 @@ adminLoginCancel=Відмінити
 adminLoginOk=OK
 adminLogout=Завершення сеансу
 adminOthers=Дозволити під'єднання з інших копм'ютерів
+adminWebExternalNames=#External names or addresses of this server (comma-separated)
 adminPort=Номер порта
 adminPortWeb=Номер порта веб сервера
 adminRestart=Зміни вступлять в силу після перезавантаження сервера.

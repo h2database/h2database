@@ -1,6 +1,6 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <!--
-Copyright 2004-2021 H2 Group. Multiple-Licensed under the MPL 2.0,
+Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
 and the EPL 1.0 (https://h2database.com/html/license.html).
 Initial Developer: H2 Group
 -->
@@ -21,11 +21,119 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul>
-<li>Issue #3297: Unexpected GROUP BY results with indexed IGNORECASE column
+<li>Nothing yet ...
+</li>
+</ul>
+
+<h2>Next Version  2.1.212 (2022-04-09)</h2>
+<ul>
+<li>PR #3481: Add support for standard interval literals with precision
+</li>
+<li>Issue #3471: Possibility of corruption after SHUTDOWN DEFRAG
+</li>
+<li>Issue #3473: DROP TABLE/INDEX causes memory leak
+</li>
+<li>PR #3464 / Issue #3457: increase max length of VAR* types
+</li>
+<li>PR #3460: fix bug in readStoreHeader()
+</li>
+<li>PR #3458: Add performance tests for SQLite
+</li>
+<li>Issue #1808: Occasional NPE in concurrent update of LOB
+</li>
+<li>Issue #3439: Cannot use enum values in JSON without explicit casts
+</li>
+<li>Issue #3426: Regression: BIT(1) is not accepted in MySQL compatibility mode
+</li>
+<li>PR #3422: Allow combination of any geometry types with the same SRID
+</li>
+<li>Issue #3414: H2 2.1.210: Query with Parameters throws NPE
+</li>
+<li>Issue #3413: Parser can&apos;t parse REFERENCES &hellip; NOT NULL
+</li>
+<li>Issue #3410: OOME with nested derived tables
+</li>
+<li>Issue #3405: Enhance SCRIPT to support operations on STDOUT
+</li>
+<li>Issue #3406 / PR #3407: FunctionMultiReturn.polar2CartesianArray result set iteration throws ClassCastException
+</li>
+<li>Issue #3400: Regression: ORDER BY ROWNUM fails with General error: "Unexpected code path"
+</li>
+<li>Issue #3387: SYSDATE behavior changed in 2.x
+</li>
+<li>Issue #3394: SYSDATE Considered Identifier when used in inner select
+</li>
+<li>Issue #3391: Hang on merge statement with data change delta table
+</li>
+<li>PR #3384: Remove abandoned Java to C converter and fix some warnings from Sonatype Lift
+</li>
+<li>PR #3382: Use secure parser in H2AuthConfigXml to avoid future reports
+</li>
+</ul>
+
+<h2>Version 2.1.210 (2022-01-17)</h2>
+<ul>
+<li>PR #3381: Add IDENTITY() and SCOPE_IDENTITY() to LEGACY mode
+</li>
+<li>Issue #3376: Data cannot be read after insert of clob data > MAX_LENGTH_INPLACE_LOB with data change delta table
+</li>
+<li>PR #3377: Add -webExternalNames setting and fix WebServer.getConnection()
+</li>
+<li>PR #3367: Use faster checks of dimension systems of geometries
+</li>
+<li>PR #3369: Added v2 changes in migration docs
+</li>
+<li>Issue #3361: MemoryEstimator.estimateMemory() can return negative size
+</li>
+<li>PR #3362: Use BufferedReader instead of BufferedInputStream to avoid Illegal seek exception
+</li>
+<li>Issue #3353: Wrong rownum() scope for DML with change delta table
+</li>
+<li>PR #3352: make Javadoc happier
+</li>
+<li>Issue #3344: Changelog could link to github issue
+</li>
+<li>Issue #3340: JDBC index type seems wrong
+</li>
+<li>Issue #3336: FT_INIT error when mode=MySQL
+</li>
+<li>Issue #3334: Regression with CREATE ALIAS - Parameter "#2" is not set
+</li>
+<li>Issue #3321: Insert Primary Key after import CSV Data does not work
+</li>
+<li>PR #3323: Tokenize SQL before parsing and preserve tokens for recompilation
+</li>
+<li>PR #3320: Add Servlet 5-compatible servlet for H2 Console
+</li>
+<li>Issue #918: Parser fails recognising set operations in correlated subqueries
+</li>
+<li>Issue #2050: PostgreSQL with recursive fail with union in the final query
+</li>
+<li>PR #3316: Update copyright years
+</li>
+<li>PR #3315: Never put read locks into lockSharedSessions and other minor changes
+</li>
+<li>Issue #492: H2 does not correctly parse &lt;parenthesized joined table&gt;
+</li>
+<li>Issue #3311: Parser creates wrong join graph in some cases and uses wrong tables for column mapping
+</li>
+<li>FORCE_JOIN_ORDER setting is removed
+</li>
+<li>Issue #1983: Official build script is not compatible with Java 13
+</li>
+<li>PR #3305: Add UNIQUE(VALUE) and remove some non-standard keywords
 </li>
 <li>PR #3299: Remove useless StringBuilder.toString() call
 </li>
 <li>PR #3298: Delete unused sqlTypes array
+</li>
+</ul>
+
+<h2>Version 2.0.206 (2022-01-04)</h2>
+<ul>
+<li>Issue #3322: Create linked table fails when the table contains a Geometry with a data type specified
+</li>
+<li>Issue #3297: Unexpected GROUP BY results with indexed IGNORECASE column
 </li>
 </ul>
 
@@ -847,402 +955,6 @@ that removes ambiguities
 <li>Issue #2171: Wrong PostgreSQL compatibility syntax for the creation of indexes
 </li>
 <li>PR #2169: Clean up some find methods of indexes and fix minor issues with them
-</li>
-</ul>
-
-<h2>Version 1.4.200 (2019-10-14)</h2>
-<ul>
-<li>PR #2168: Add non-standard SNAPSHOT isolation level to MVStore databases
-</li>
-<li>Issue #2165: Problem with secondary index on SERIALIZABLE isolation level
-</li>
-<li>Issue #2161: Remove undocumented PageStore-only FILE_LOCK=SERIALIZED
-</li>
-<li>PR #2155: Reduce code duplication
-</li>
-<li>Issue #1894: Confusing error message when database creation is disallowed
-</li>
-<li>Issue #2123: Random failures in TestTransactionStore
-</li>
-<li>Issue #2153: Different behavior in SET LOCK_TIMEOUT after 1.4.197
-</li>
-<li>Issue #2150: Remove MULTI_THREADED setting and use multi-threaded MVStore and single-threaded PageStore backends
-</li>
-<li>Issue #216: Support READ UNCOMMITTED isolation level in MVStore mode
-</li>
-<li>Issue #678: Support REPEATABLE READ isolation level in MVStore mode
-</li>
-<li>Issue #174: Support SERIALIZABLE isolation level in MVStore mode
-</li>
-<li>Issue #2144: MVStore: read uncommitted doesn't see committed rows
-</li>
-<li>Issue #2142: CURRVAL / CURRENT VALUE FOR should return the value for the current session
-</li>
-<li>Issue #2136: ConstraintCheck concurrency regression
-</li>
-<li>PR #2137: Don't use SYSTEM_RANGE for SELECT without a FROM
-</li>
-<li>PR #2134: Assorted fixes and other changes in DateTimeUtils
-</li>
-<li>PR #2133: Optimize COUNT([ALL] constant) and other changes
-</li>
-<li>PR #2132: Typo and another bug in MVStore.readStoreHeader()
-</li>
-<li>Issue #2130: Group-sorted query returns invalid results with duplicate grouped columns in select list
-</li>
-<li>Issue #2120: Add IF EXISTS clause to column name in ALTER TABLE ALTER COLUMN statement
-</li>
-<li>Issue #521: Add support for the TIME WITH TIME ZONE data type
-</li>
-<li>PR #2127: Fix race condition / performance issue during snapshotting
-</li>
-<li>Issue #2124: MVStore build is broken
-</li>
-<li>PR #2122: Add support for LMT in time zones and fix large years in datetime values
-</li>
-<li>Issue #2067: Incorrect chunk space allocation during chunks movement
-</li>
-<li>PR #2066: Not so happy path - "four alternatives" implementation
-</li>
-<li>PR #2121: Reduce code duplication for datetime API with custom Calendar instances
-</li>
-<li>PR #2119: SQL: statement read consistency
-</li>
-<li>Issue #2116: Empty IN() operator should result in error (MSSQL)
-</li>
-<li>Issue #2036: CAST from TIME to TIMESTAMP returns incorrect result
-</li>
-<li>PR #2114: Assorted changes
-</li>
-<li>PR #2113: Add feature F411: Time zone specification
-</li>
-<li>PR #2111: CURRENT_CATALOG, SET CATALOG and other changes
-</li>
-<li>Issue #2109: IW date formatting does not produce proper output
-</li>
-<li>PR #2104: Fix ordinary grouping set with parentheses and empty grouping set in GROUP BY
-</li>
-<li>Issue #2103: Add QUOTE_IDENT() function to enquote an identifier in SQL
-</li>
-<li>Issue #2075: Add EXECUTE IMMEDIATE implementation
-</li>
-<li>PR #2101: Fix infinite loop in Schema.removeChildrenAndResources()
-</li>
-<li>Issue #2096: Convert LEFT and RIGHT to keywords and disallow comma before closing parenthesis
-</li>
-<li>PR #2098: Fix typos
-</li>
-<li>Issue #1305 / PR #2097: Remove unused and outdated website translation infrastructure
-</li>
-<li>PR #2093: CURRENT VALUE FOR and other sequence-related changes
-</li>
-<li>PR #2092: Allow to simulate usage of multiple catalogs by one connection
-</li>
-<li>PR #2091: Oracle mode now uses DECIMAL with NEXTVAL
-</li>
-<li>Issue #2088: Division by zero caused by evaluation of global conditions before local conditions
-</li>
-<li>Issue #2086: TCP_QUICKACK on server socket
-</li>
-<li>Issue #2073: TableLink should not pass queries to DatabaseMetaData.getColumns()
-</li>
-<li>Issue #2074: MySQL and MSSQLServer Mode: TRUNCATE TABLE should always RESTART IDENTITY
-</li>
-<li>Issue #2063: MySQL mode: "drop foreign key if exists" support
-</li>
-<li>PR #2061: Use VirtualTable as a base class for RangeTable
-</li>
-<li>PR #2059: Parse IN predicate with multiple subqueries correctly
-</li>
-<li>PR #2057: Fix TestCrashAPI failure with Statement.enquoteIdentifier()
-</li>
-<li>PR #2056: Happy path: speed up database opening
-</li>
-<li>Issue #2051: The website shows outdated information about the storage engine
-</li>
-<li>PR #2049: bugfix - mvstore data lost issue when partial write occurs
-</li>
-<li>PR #2047: File maintenance
-</li>
-<li>PR #2046: Recovery mode
-</li>
-<li>Issue #2044: setTransactionIsolation always call commit() even if transaction is auto-commit
-</li>
-<li>Issue #2042: Add possibility to specify generated columns for query in web console
-</li>
-<li>Issue #2040: INFORMATION_SCHEMA.SETTINGS contains irrelevant settings
-</li>
-<li>PR #2038: MVMap: lock reduction on updates
-</li>
-<li>PR #2037: Fix SYS_GUID, RAWTOHEX, and HEXTORAW in Oracle mode
-</li>
-<li>Issue #2016: ExpressionColumn.mapColumns() performance complexity is quadratic
-</li>
-<li>Issue #2028: Sporadic inconsistent state after concurrent UPDATE in 1.4.199
-</li>
-<li>PR #2033: Assorted changes
-</li>
-<li>Issue #2025: Incorrect query result when (OFFSET + FETCH) &gt; Integer.MAX_VALUE
-</li>
-<li>PR #2023: traverseDown() code deduplication
-</li>
-<li>PR #2022: Mvmap minor cleanup
-</li>
-<li>Issue #2020: Wrong implementation of IN predicate with subquery
-</li>
-<li>PR #2003: Change dead chunks determination algorithm
-</li>
-<li>Issue #2013: DECIMAL is casted to double in ROUND function
-</li>
-<li>PR #2011: ZonedDateTime and (INTERVAL / INTERVAL)
-</li>
-<li>Issue #1997: TestRandomSQL failure with ClassCastException
-</li>
-<li>Issue #2007: PostgreSQL compatibility mode: support ON CONFLICT DO NOTHING
-</li>
-<li>Issue #1927: Do not allow commit() when auto-commit is enabled
-</li>
-<li>PR #1998: Reduce TxCounter memory footprint
-</li>
-<li>PR #1999: Make RootReference lock re-entrant
-</li>
-<li>PR #2001: Test improvements, OOME elimination
-</li>
-<li>Issue #1995: Obscure condition in MVPrimaryIndex.extractPKFromRow()
-</li>
-<li>Issue #1975: Add client ip address to information_schema
-</li>
-<li>PR #1982: Hindi language translation added
-</li>
-<li>Issue #1985: Add thread number to TCP server thread names
-</li>
-<li>Do not allow empty password for management DB
-</li>
-<li>Issue #1978: getGeneratedKeys() can use the same rules as FINAL TABLE
-</li>
-<li>PR #1977: Change JSON literals and add support for compound character literals
-</li>
-<li>PR #1974: Use proleptic Gregorian calendar for datetime values
-</li>
-<li>Issue #1847: Add support for data change delta tables
-</li>
-<li>PR #1971: Add maximum cardinality parameter to ARRAY data type
-</li>
-<li>PR #1970: Switch from log map rename to "committed" marker log record
-</li>
-<li>PR #1969: Add unique predicate
-</li>
-<li>Issue #1963: Expression.addFilterConditions() with outer joins
-</li>
-<li>PR #1966: Add standard CURRENT_SCHEMA function
-</li>
-<li>PR #1964: Add Feature T571: Truth value tests
-</li>
-<li>PR #1962: Fix data types of optimized conditions
-</li>
-<li>PR #1961: Failure to open DB after improper shutdown
-</li>
-<li>Issue #1957: NullPointerException with DISTINCT and ORDER BY CASE
-</li>
-<li>PR #1956: Fix row value handling in the null predicate
-</li>
-<li>PR #1955: Add standard UNKNOWN literal
-</li>
-<li>Issue #1952: Connection.setSchema doesn't work with query cache
-</li>
-<li>PR #1951: Assorted changes
-</li>
-<li>PR #1950: Fix NULL handling in ARRAY_AGG
-</li>
-<li>PR #1949: Extract aggregate and window functions into own pages in documentation
-</li>
-<li>PR #1948: Add standard LOG() function with two arguments
-</li>
-<li>Issue #1935: Improve file locking on shared filesystems like SMB
-</li>
-<li>PR #1946: Reimplement table value constructor on top of Query
-</li>
-<li>PR #1945: Fix IN (SELECT UNION with OFFSET/FETCH)
-</li>
-<li>Issue #1942: MySQL Mode: convertInsertNullToZero should be turned off by default?
-</li>
-<li>Issue #1940: MySQL Mode: Modify column from NOT NULL to NULL syntax
-</li>
-<li>PR #1941: Extract OFFSET / FETCH handling from Select and SelectUnion to Query
-</li>
-<li>Issue #1938: Regression with CREATE OR REPLACE VIEW. Causes "Duplicate column name" exception.
-</li>
-<li>PR #1937: Get rid of FunctionCursorResultSet
-</li>
-<li>Issue #1932: Incoherence between DbSettings.mvStore and getSettings()
-</li>
-<li>PR #1931: Fix wildcard expansion for multiple schemas
-</li>
-<li>PR #1930: Move PageStore table engine into own package
-</li>
-<li>PR #1929: Initial implementation of type predicate and other changes
-</li>
-<li>PR #1926: Assorted improvements for BINARY data type
-</li>
-<li>Issue #1925: Support SQL Server binary literal syntax
-</li>
-<li>Issue #1918: MySQL: CREATE TABLE with both CHARSET and COMMENT failed
-</li>
-<li>Issue #1913: MySQL: auto_increment changing SQL not supported
-</li>
-<li>Issue #1585: The translate function on DB2 mode could have parameters order changed
-</li>
-<li>PR #1914: Change storage and network format of JSON to byte[]
-</li>
-<li>Issue #1911: Foreign key constraint does not prevent table being dropped
-</li>
-<li>PR #1909: Add JSON_OBJECTAGG and JSON_ARRAYAGG aggregate functions
-</li>
-<li>PR #1908: Cast VARCHAR to JSON properly and require FORMAT JSON in literals
-</li>
-<li>PR #1906: Add JSON_OBJECT and JSON_ARRAY functions
-</li>
-<li>Issue #1887: Infinite recursion in ConditionAndOr.java
-</li>
-<li>Issue #1903: MSSQLServer Mode - Support Update TOP(X)
-</li>
-<li>Issue #1900: Support SQLServer stored procedure execution syntax
-</li>
-<li>PR #1898: Add IS JSON predicate
-</li>
-<li>Issue #1896: MSSQLServer compatibility mode - GETDATE() incorrectly omits time
-</li>
-<li>PR #1895: Add standard array concatenation operation
-</li>
-<li>Issue #1892: Window aggregate functions return incorrect result without window ordering and with ROWS unit
-</li>
-<li>Issue #1890: ArrayIndexOutOfBoundsException in MVSortedTempResult.getKey
-</li>
-<li>Issue #308: Mode MySQL and LAST_INSERT_ID with argument
-</li>
-<li>Issue #1883: Suspicious code in Session.getLocks()
-</li>
-<li>Issue #1878: OPTIMIZE_REUSE_RESULTS causes incorrect result after rollback since 1.4.198
-</li>
-<li>PR #1880: Collation names like CHARSET_* recognition
-</li>
-<li>Issue #1844: MySQL Compatibility: create table error when primary key has comment
-</li>
-<li>PR #1873: Concurrency in database metadata
-</li>
-<li>Issue #1864: Failing to format NotSerializableException corrupting the database
-</li>
-<li>PR #1868: add more checking to TestFileLock
-</li>
-<li>Issue #1819: Trace.db file exceed file size limit (64MB)
-</li>
-<li>Issue #1861: Use COALESCE in named columns join for some data types
-</li>
-<li>PR #1860: Additional fix for deadlock on shutdown (exclusively in PageStore mode)
-</li>
-<li>Issue #1855: Wrong qualified asterisked projections in named column join
-</li>
-<li>Issue #1854: Wrong asterisked projection and result in named column right outer join
-</li>
-<li>Issue #1852: Named column joins doesn't work with the VALUES constructor and derived column lists
-</li>
-<li>Issue #1851: Wrong asterisked projection in named column joins
-</li>
-<li>PR #1850: Duplicate map identifiers
-</li>
-<li>PR #1849: Reimplement MVStore.findOldChunks() with PriorityQueue
-</li>
-<li>PR #1848: Reimplement MVStore.findChunksToMove() with PriorityQueue
-</li>
-<li>Issue #1843: Named columns join syntax is not supported
-</li>
-<li>Issue #1841: Deadlock during concurrent shutdown attempts with 1.4.199
-</li>
-<li>Issue #1834: NUMERIC does not preserve its scale for some values
-</li>
-<li>PR #1838: Implement conversion from JSON to GEOMETRY
-</li>
-<li>PR #1837: Implement conversion from GEOMETRY to JSON
-</li>
-<li>PR #1836: Add LSHIFT and RSHIFT function
-</li>
-<li>PR #1833: Add BITNOT function
-</li>
-<li>PR #1832: JSON validation and normalization
-</li>
-<li>PR #1829: MVStore chunks occupancy rate calculation fixes
-</li>
-<li>PR #1828: Basis for implementation of SQL/JSON standard
-</li>
-<li>PR #1827: Add support for Lucene 8.0.0
-</li>
-<li>Issue #1820: Performance problem on commit
-</li>
-<li>Issue #1822: Use https:// in h2database.com hyperlinks
-</li>
-<li>PR #1817: Assorted minor changes in documentation and other places
-</li>
-<li>PR #1812: An IllegalStateException that wraps EOFException is thrown when partial writes happens
-</li>
-</ul>
-
-<h2>Version 1.4.199 (2019-03-13)</h2>
-<ul>
-<li>PR #1807: Reduce code duplication and remove h2.mixedGeometries
-</li>
-<li>PR #1806: Improve SELECT FOR UPDATE documentation
-</li>
-<li>PR #1804: Lift limit of 10 characters on enum value (1.4.198 regression)
-</li>
-<li>PR #1803: Do not rely on index sorting in SELECT FOR UPDATE
-</li>
-<li>Issue #1800: Remove experimental status from window functions
-</li>
-<li>PR #1799: Fire triggers after row locking and remove some leftovers
-</li>
-<li>PR #1798: Reuse some string builders, remove StatementBuilder and other minor changes
-</li>
-<li>Issue #1795: 1.4.198 regression with batch updates and transactions
-</li>
-<li>PR #1794: Ask password in Shell in secure way and improve database creation information in tutorial
-</li>
-<li>PR #1791: Move commands to commands.html and other changes
-</li>
-<li>Issue #1774: H2 Browser configuration is unclear and fails on KUbuntu
-</li>
-<li>PR #1790: Do not convert standard TRIM function to non-standard functions
-</li>
-<li>Issue #1787: Non-standard MERGE throws LOCK_TIMEOUT_1 on violation of some constraints
-</li>
-<li>PR #1784: improve database not found error
-</li>
-<li>Issue #1740: Enhancement Request: h2 server: do not swallow exceptions
-</li>
-<li>Issue #1616: Metadata and scripts should be persisted with unconditionally quoted identifiers
-</li>
-<li>PR #1779: Improve isSimpleIdentifier() and enquoteIdentifier()
-</li>
-<li> PR #1776: Improve DATABASE_TO_LOWER handling
-</li>
-<li>Issue #1771: NPE in Comparison.createIndexConditions
-</li>
-<li>PR #1772: Fix newlines in test scripts
-</li>
-<li>Issue #1762: NullPointerException in Parser. Introduced in 1.4.198
-</li>
-<li>PR #1768: Add more context-sensitive keywords
-</li>
-<li>Issue #1758: sequence restart issue with 1.4.198
-</li>
-<li>Issue #1759: SELECT &#8230; FOR UPDATE returns old data in 1.4.198
-</li>
-<li>PR #1756: Fix DISTINCT ON in presence of ORDER BY
-</li>
-<li>PR #1754: Fix window functions in JOIN with ON condition
-</li>
-<li>Issue #1751: making it easier to open console and create local databases
-</li>
-<li>Issue #1750: JOIN t ON t.col IN (SELECT ...) throws AssertionError
 </li>
 </ul>
 

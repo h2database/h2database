@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2021 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -14,7 +14,6 @@ import org.h2.util.StringUtils;
 import org.h2.util.geometry.EWKBUtils;
 import org.h2.util.geometry.EWKTUtils;
 import org.h2.util.geometry.GeometryUtils;
-import org.h2.util.geometry.GeometryUtils.EnvelopeAndDimensionSystemTarget;
 import org.h2.util.geometry.GeometryUtils.EnvelopeTarget;
 import org.h2.util.geometry.JTSUtils;
 import org.h2.util.geometry.EWKTUtils.EWKTTarget;
@@ -80,11 +79,8 @@ public final class ValueGeometry extends ValueBytesBase {
      */
     public static ValueGeometry getFromGeometry(Object o) {
         try {
-            EnvelopeAndDimensionSystemTarget target = new EnvelopeAndDimensionSystemTarget();
             Geometry g = (Geometry) o;
-            JTSUtils.parseGeometry(g, target);
-            return (ValueGeometry) Value.cache(new ValueGeometry( //
-                    JTSUtils.geometry2ewkb(g, target.getDimensionSystem()), target.getEnvelope()));
+            return (ValueGeometry) Value.cache(new ValueGeometry(JTSUtils.geometry2ewkb(g), UNKNOWN_ENVELOPE));
         } catch (RuntimeException ex) {
             throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, String.valueOf(o));
         }
@@ -98,10 +94,7 @@ public final class ValueGeometry extends ValueBytesBase {
      */
     public static ValueGeometry get(String s) {
         try {
-            EnvelopeAndDimensionSystemTarget target = new EnvelopeAndDimensionSystemTarget();
-            EWKTUtils.parseEWKT(s, target);
-            return (ValueGeometry) Value.cache(new ValueGeometry( //
-                    EWKTUtils.ewkt2ewkb(s, target.getDimensionSystem()), target.getEnvelope()));
+            return (ValueGeometry) Value.cache(new ValueGeometry(EWKTUtils.ewkt2ewkb(s), UNKNOWN_ENVELOPE));
         } catch (RuntimeException ex) {
             throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, s);
         }
@@ -125,10 +118,7 @@ public final class ValueGeometry extends ValueBytesBase {
      */
     public static ValueGeometry getFromEWKB(byte[] bytes) {
         try {
-            EnvelopeAndDimensionSystemTarget target = new EnvelopeAndDimensionSystemTarget();
-            EWKBUtils.parseEWKB(bytes, target);
-            return (ValueGeometry) Value.cache(new ValueGeometry( //
-                    EWKBUtils.ewkb2ewkb(bytes, target.getDimensionSystem()), target.getEnvelope()));
+            return (ValueGeometry) Value.cache(new ValueGeometry(EWKBUtils.ewkb2ewkb(bytes), UNKNOWN_ENVELOPE));
         } catch (RuntimeException ex) {
             throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, StringUtils.convertBytesToHex(bytes));
         }

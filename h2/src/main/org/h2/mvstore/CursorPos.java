@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2021 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -42,6 +42,9 @@ public final class CursorPos<K,V> {
      * Searches for a given key and creates a breadcrumb trail through a B-tree
      * rooted at a given Page. Resulting path starts at "insertion point" for a
      * given key and goes back to the root.
+     *
+     * @param <K> key type
+     * @param <V> value type
      *
      * @param page      root of the tree
      * @param key       the key to search for

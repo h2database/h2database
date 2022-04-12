@@ -25,6 +25,7 @@ adminLoginCancel=取消
 adminLoginOk=确认
 adminLogout=注销
 adminOthers=允许来自其他远程计算机的连接
+adminWebExternalNames=#External names or addresses of this server (comma-separated)
 adminPort=端口号
 adminPortWeb=Web 服务器端口号
 adminRestart=更新配置将在重启服务器后生效.

@@ -25,6 +25,7 @@ adminLoginCancel=Batal
 adminLoginOk=OK
 adminLogout=Keluar
 adminOthers=Ijinkan koneksi dari komputer lain
+adminWebExternalNames=#External names or addresses of this server (comma-separated)
 adminPort=Nomor port
 adminPortWeb=Nomor port web server
 adminRestart=Perubahan akan efektif setelah server di-restart.

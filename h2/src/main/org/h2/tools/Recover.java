@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2021 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -63,7 +63,6 @@ import org.h2.value.lob.LobDataDatabase;
 
 /**
  * Helps recovering a corrupted database.
- * @h2.resource
  */
 public class Recover extends Tool implements DataHandler {
 
@@ -95,7 +94,6 @@ public class Recover extends Tool implements DataHandler {
      * <td>Print the transaction log</td></tr>
      * </table>
      * Encrypted databases need to be decrypted first.
-     * @h2.resource
      *
      * @param args the command line arguments
      * @throws SQLException on failure

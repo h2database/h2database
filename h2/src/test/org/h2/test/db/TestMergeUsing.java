@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2021 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -171,6 +171,7 @@ public class TestMergeUsing extends TestDb implements Trigger {
                 "SELECT 2 AS ID, 'Marcy22-updated2' AS NAME UNION ALL " +
                 "SELECT X AS ID, 'Marcy'||X||'-inserted'||X AS NAME FROM SYSTEM_RANGE(3,4)",
                 4);
+        testDataChangeDeltaTable();
     }
 
     /**
@@ -296,6 +297,30 @@ public class TestMergeUsing extends TestDb implements Trigger {
         buf.append("CREATE TRIGGER DEL_BEFORE " + "BEFORE DELETE ON PARENT "
                 + "FOR EACH ROW NOWAIT CALL \"" + getClass().getName() + "\";");
         return buf.toString();
+    }
+
+    private void testDataChangeDeltaTable() throws SQLException {
+        deleteDb("mergeUsingQueries");
+        try (Connection conn = getConnection("mergeUsingQueries")) {
+            Statement stat = conn.createStatement();
+            stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, C INTEGER) AS (VALUES (1, 2), (2, 3), (3, 4))");
+            PreparedStatement prep = conn.prepareStatement("SELECT TEST.ID FROM FINAL TABLE ( "
+                    + "MERGE INTO TEST USING ( "
+                    + "SELECT T.ID, T.C FROM (SELECT 1, 3) T(ID, C) "
+                    + ") T ON TEST.ID = T.ID "
+                    + "WHEN MATCHED AND TEST.ID = 1 THEN "
+                    + "UPDATE SET C = T.C "
+                    + "WHEN NOT MATCHED THEN INSERT(ID, C) VALUES (T.ID, T.C) "
+                    + ") TEST");
+            ResultSet rs = prep.executeQuery();
+            rs.next();
+            assertEquals(1L, rs.getLong(1));
+            rs = prep.executeQuery();
+            rs.next();
+            assertEquals(1L, rs.getLong(1));
+        } finally {
+            deleteDb("mergeUsingQueries");
+        }
     }
 
 }

@@ -25,6 +25,7 @@ adminLoginCancel=取消
 adminLoginOk=確定
 adminLogout=登出
 adminOthers=允許來自其他電腦的連接
+adminWebExternalNames=#External names or addresses of this server (comma-separated)
 adminPort=通訊埠
 adminPortWeb=Web 伺服器的通訊埠
 adminRestart=伺服器重新啟動後修改才會生效.

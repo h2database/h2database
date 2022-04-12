@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2021 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -59,7 +59,6 @@ import org.h2.test.db.TestMultiThread;
 import org.h2.test.db.TestMultiThreadedKernel;
 import org.h2.test.db.TestOpenClose;
 import org.h2.test.db.TestOptimizations;
-import org.h2.test.db.TestOptimizerHints;
 import org.h2.test.db.TestOutOfMemory;
 import org.h2.test.db.TestPersistentCommonTableExpressions;
 import org.h2.test.db.TestPowerOff;
@@ -123,6 +122,7 @@ import org.h2.test.rowlock.TestRowLocks;
 import org.h2.test.scripts.TestScript;
 import org.h2.test.server.TestAutoServer;
 import org.h2.test.server.TestInit;
+import org.h2.test.server.TestJakartaWeb;
 import org.h2.test.server.TestNestedLoop;
 import org.h2.test.server.TestWeb;
 import org.h2.test.store.TestCacheConcurrentLIRS;
@@ -739,7 +739,6 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
             addTest(new TestMultiDimension());
             addTest(new TestMultiThreadedKernel());
             addTest(new TestOpenClose());
-            addTest(new TestOptimizerHints());
             addTest(new TestReadOnly());
             addTest(new TestRecursiveQueries());
             addTest(new TestGeneralCommonTableQueries());
@@ -837,6 +836,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
             addTest(new TestQueryCache());
             addTest(new TestUrlJavaObjectSerializer());
             addTest(new TestWeb());
+            addTest(new TestJakartaWeb());
 
             // other unsafe
             addTest(new TestOptimizations());
@@ -874,6 +874,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestRecovery());
         addTest(new RecoverLobTest());
         addTest(createTest("org.h2.test.unit.TestServlet"));
+        addTest(createTest("org.h2.test.unit.TestJakartaServlet"));
         addTest(new TestTimeStampWithTimeZone());
         addTest(new TestValue());
 

@@ -1,4 +1,4 @@
--- Copyright 2004-2021 H2 Group. Multiple-Licensed under the MPL 2.0,
+-- Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
 -- and the EPL 1.0 (https://h2database.com/html/license.html).
 -- Initial Developer: H2 Group
 --
@@ -1800,12 +1800,12 @@ insert into test values(1, 'abc' || space(20));
 
 script nopasswords nosettings noversion blocksize 10;
 > SCRIPT
-> -----------------------------------------------------------------------------------------------------------------
+> ----------------------------------------------------------------------------------------------------------------------------------------
 > CREATE USER IF NOT EXISTS "SA" PASSWORD '' ADMIN;
 > CREATE MEMORY TABLE "PUBLIC"."TEST"( "ID" INTEGER NOT NULL, "DATA" CHARACTER LARGE OBJECT );
 > ALTER TABLE "PUBLIC"."TEST" ADD CONSTRAINT "PUBLIC"."CONSTRAINT_2" PRIMARY KEY("ID");
 > -- 1 +/- SELECT COUNT(*) FROM PUBLIC.TEST;
-> CREATE TABLE IF NOT EXISTS SYSTEM_LOB_STREAM(ID INT NOT NULL, PART INT NOT NULL, CDATA VARCHAR, BDATA VARBINARY);
+> CREATE CACHED LOCAL TEMPORARY TABLE IF NOT EXISTS SYSTEM_LOB_STREAM(ID INT NOT NULL, PART INT NOT NULL, CDATA VARCHAR, BDATA VARBINARY);
 > ALTER TABLE SYSTEM_LOB_STREAM ADD CONSTRAINT SYSTEM_LOB_STREAM_PRIMARY_KEY PRIMARY KEY(ID, PART);
 > CREATE ALIAS IF NOT EXISTS SYSTEM_COMBINE_CLOB FOR 'org.h2.command.dml.ScriptCommand.combineClob';
 > CREATE ALIAS IF NOT EXISTS SYSTEM_COMBINE_BLOB FOR 'org.h2.command.dml.ScriptCommand.combineBlob';
@@ -2178,9 +2178,9 @@ select DOMAIN_NAME, DOMAIN_DEFAULT, DATA_TYPE, CHARACTER_MAXIMUM_LENGTH, PARENT_
 > EMAIL       null           CHARACTER VARYING 200                      null               null
 > GMAIL       '@gmail.com'   CHARACTER VARYING 200                      EMAIL              null
 > STRING      ''             CHARACTER VARYING 255                      null               null
-> STRING1     null           CHARACTER VARYING 1048576                  null               null
-> STRING2     '<empty>'      CHARACTER VARYING 1048576                  null               null
-> STRING_X    null           CHARACTER VARYING 1048576                  STRING2            null
+> STRING1     null           CHARACTER VARYING 1000000000               null               null
+> STRING2     '<empty>'      CHARACTER VARYING 1000000000               null               null
+> STRING_X    null           CHARACTER VARYING 1000000000               STRING2            null
 > rows: 6
 
 script nodata nopasswords nosettings noversion;
@@ -2971,8 +2971,9 @@ drop table test;
 create table test(id int primary key);
 > ok
 
+-- Column A.ID cannot be referenced here
 explain select * from test a inner join test b left outer join test c on c.id = a.id;
->> SELECT "A"."ID", "B"."ID", "C"."ID" FROM "PUBLIC"."TEST" "A" /* PUBLIC.TEST.tableScan */ LEFT OUTER JOIN "PUBLIC"."TEST" "C" /* PUBLIC.PRIMARY_KEY_2: ID = A.ID */ ON "C"."ID" = "A"."ID" INNER JOIN "PUBLIC"."TEST" "B" /* PUBLIC.TEST.tableScan */ ON 1=1
+> exception COLUMN_NOT_FOUND_1
 
 SELECT T.ID FROM TEST "T";
 > ID

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2021 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -15,6 +15,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Map.Entry;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicLong;
 import org.h2.api.ErrorCode;
 import org.h2.engine.Database;
@@ -46,7 +48,7 @@ import org.h2.value.lob.LobDataDatabase;
  * This class stores LOB objects in the database, in maps. This is the back-end
  * i.e. the server side of the LOB storage.
  */
-public final class LobStorageMap implements LobStorageInterface
+public final class LobStorageMap implements LobStorageInterface, MVStore.Cleaner
 {
     private static final boolean TRACE = false;
 
@@ -78,6 +80,7 @@ public final class LobStorageMap implements LobStorageInterface
 
     private final StreamStore streamStore;
 
+    private final Queue<LobRemovalInfo> pendingLobRemovals = new ConcurrentLinkedQueue<>();
 
     /**
      * Open map used to store LOB metadata
@@ -102,6 +105,7 @@ public final class LobStorageMap implements LobStorageInterface
         Store s = database.getStore();
         TransactionStore txStore = s.getTransactionStore();
         mvStore = s.getMvStore();
+        mvStore.setCleaner(this);
         MVStore.TxCounter txCounter = mvStore.registerVersionUsage();
         try {
             lobMap = openLobMap(txStore);
@@ -355,7 +359,7 @@ public final class LobStorageMap implements LobStorageInterface
                 final Iterator<Long> iter = tempLobMap.keyIterator(0L);
                 while (iter.hasNext()) {
                     long lobId = iter.next();
-                    removeLob(tableId, lobId);
+                    doRemoveLob(tableId, lobId);
                 }
                 tempLobMap.clear();
             } else {
@@ -370,7 +374,7 @@ public final class LobStorageMap implements LobStorageInterface
                     }
                 }
                 for (long lobId : list) {
-                    removeLob(tableId, lobId);
+                    doRemoveLob(tableId, lobId);
                 }
             }
         } finally {
@@ -380,18 +384,40 @@ public final class LobStorageMap implements LobStorageInterface
 
     @Override
     public void removeLob(ValueLob lob) {
+        LobDataDatabase lobData = (LobDataDatabase) lob.getLobData();
+        int tableId = lobData.getTableId();
+        long lobId = lobData.getLobId();
+        requestLobRemoval(tableId, lobId);
+    }
+
+    private void requestLobRemoval(int tableId, long lobId) {
+        pendingLobRemovals.offer(new LobRemovalInfo(mvStore.getCurrentVersion(), lobId, tableId));
+    }
+
+    @Override
+    public boolean needCleanup() {
+        return !pendingLobRemovals.isEmpty();
+    }
+
+    @Override
+    public void cleanup(long oldestVersionToKeep) {
         MVStore.TxCounter txCounter = mvStore.registerVersionUsage();
         try {
-            LobDataDatabase lobData = (LobDataDatabase) lob.getLobData();
-            int tableId = lobData.getTableId();
-            long lobId = lobData.getLobId();
-            removeLob(tableId, lobId);
+            LobRemovalInfo lobRemovalInfo;
+            while ((lobRemovalInfo = pendingLobRemovals.poll()) != null
+                    && lobRemovalInfo.version < oldestVersionToKeep) {
+                doRemoveLob(lobRemovalInfo.mapId, lobRemovalInfo.lobId);
+            }
+            if (lobRemovalInfo != null) {
+                pendingLobRemovals.offer(lobRemovalInfo);
+            }
         } finally {
-            mvStore.deregisterVersionUsage(txCounter);
+            // we can not call deregisterVersionUsage() due to a possible infinite recursion
+            mvStore.decrementVersionUsageCounter(txCounter);
         }
     }
 
-    private void removeLob(int tableId, long lobId) {
+    public void doRemoveLob(int tableId, long lobId) {
         if (TRACE) {
             trace("remove " + tableId + "/" + lobId);
         }
@@ -558,6 +584,19 @@ public final class LobStorageMap implements LobStorageInterface
             public BlobMeta[] createStorage(int size) {
                 return new BlobMeta[size];
             }
+        }
+    }
+
+    private static final class LobRemovalInfo
+    {
+        final long version;
+        final long lobId;
+        final int mapId;
+
+        LobRemovalInfo(long version, long lobId, int mapId) {
+            this.version = version;
+            this.lobId = lobId;
+            this.mapId = mapId;
         }
     }
 }

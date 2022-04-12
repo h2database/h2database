@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2021 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -168,15 +168,7 @@ public class TableValueConstructor extends Query {
     }
 
     @Override
-    public void prepare() {
-        if (isPrepared) {
-            // sometimes a subquery is prepared twice (CREATE TABLE AS SELECT)
-            return;
-        }
-        if (!checkInit) {
-            throw DbException.getInternalError("not initialized");
-        }
-        isPrepared = true;
+    public void prepareExpressions() {
         if (columnResolver == null) {
             createTable();
         }
@@ -200,6 +192,10 @@ public class TableValueConstructor extends Query {
             cleanupOrder();
         }
         expressionArray = expressions.toArray(new Expression[0]);
+    }
+
+    @Override
+    public void preparePlan() {
         double cost = 0;
         int columnCount = visibleColumnCount;
         for (ArrayList<Expression> r : rows) {
@@ -208,6 +204,7 @@ public class TableValueConstructor extends Query {
             }
         }
         this.cost = cost + rows.size();
+        isPrepared = true;
     }
 
     private void createTable() {

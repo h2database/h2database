@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2021 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -79,7 +79,7 @@ public final class MergeUsing extends DataChangeStatement {
         sourceTableFilter.reset();
         Table table = targetTableFilter.getTable();
         table.fire(session, evaluateTriggerMasks(), true);
-        table.lock(session, true, false);
+        table.lock(session, Table.WRITE_LOCK);
         setCurrentRowNumber(0);
         long count = 0;
         Row previousSource = null, missedSource = null;
@@ -188,7 +188,7 @@ public final class MergeUsing extends DataChangeStatement {
     }
 
     @Override
-    public void prepare() {
+    void doPrepare() {
         onCondition.addFilterConditions(sourceTableFilter);
         onCondition.addFilterConditions(targetTableFilter);
 

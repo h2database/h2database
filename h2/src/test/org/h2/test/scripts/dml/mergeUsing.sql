@@ -1,4 +1,4 @@
--- Copyright 2004-2021 H2 Group. Multiple-Licensed under the MPL 2.0,
+-- Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
 -- and the EPL 1.0 (https://h2database.com/html/license.html).
 -- Initial Developer: H2 Group
 --
@@ -479,12 +479,12 @@ EXPLAIN MERGE INTO T USING (VALUES (1, 2)) S(ID, V) ON T.ID = S.ID
     WHEN NOT MATCHED THEN INSERT VALUES (S.ID, S.V + 1)
     WHEN MATCHED AND T.ID = 2 THEN UPDATE SET V = S.ID + 2
     WHEN MATCHED THEN UPDATE SET V = S.ID + 3;
->> MERGE INTO "PUBLIC"."T" /* PUBLIC.T.tableScan */ USING ( VALUES (1, 2) ) "S"("ID", "V") /* VALUES (1, 2) */ WHEN NOT MATCHED AND "T"."ID" = 1 THEN INSERT ("ID", "V") VALUES ("S"."ID", "S"."V") WHEN NOT MATCHED THEN INSERT ("ID", "V") VALUES ("S"."ID", "S"."V" + 1) WHEN MATCHED AND "T"."ID" = 2 THEN UPDATE SET "V" = "S"."ID" + 2 WHEN MATCHED THEN UPDATE SET "V" = "S"."ID" + 3
+>> MERGE INTO "PUBLIC"."T" /* PUBLIC.T.tableScan */ USING (VALUES (1, 2)) "S"("ID", "V") /* table scan */ WHEN NOT MATCHED AND "T"."ID" = 1 THEN INSERT ("ID", "V") VALUES ("S"."ID", "S"."V") WHEN NOT MATCHED THEN INSERT ("ID", "V") VALUES ("S"."ID", "S"."V" + 1) WHEN MATCHED AND "T"."ID" = 2 THEN UPDATE SET "V" = "S"."ID" + 2 WHEN MATCHED THEN UPDATE SET "V" = "S"."ID" + 3
 
 EXPLAIN MERGE INTO T USING (VALUES (1, 2)) S(ID, V) ON T.ID = S.ID
     WHEN MATCHED AND T.ID = 1 THEN DELETE
     WHEN MATCHED THEN DELETE;
->> MERGE INTO "PUBLIC"."T" /* PUBLIC.T.tableScan */ USING ( VALUES (1, 2) ) "S"("ID", "V") /* VALUES (1, 2) */ WHEN MATCHED AND "T"."ID" = 1 THEN DELETE WHEN MATCHED THEN DELETE
+>> MERGE INTO "PUBLIC"."T" /* PUBLIC.T.tableScan */ USING (VALUES (1, 2)) "S"("ID", "V") /* table scan */ WHEN MATCHED AND "T"."ID" = 1 THEN DELETE WHEN MATCHED THEN DELETE
 
 DROP TABLE T;
 > ok

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2021 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -16,7 +16,6 @@ import org.h2.util.Utils;
 
 /**
  * Starts the H2 Console (web-) server, as well as the TCP and PG server.
- * @h2.resource
  *
  * @author Thomas Mueller, Ridvan Agar
  */
@@ -59,7 +58,6 @@ public class Console extends Tool implements ShutdownHandler {
      * for details, see the Server tool.
      * If a service can not be started, the program
      * terminates with an exit code of 1.
-     * @h2.resource
      *
      * @param args the command line arguments
      * @throws SQLException on failure
@@ -115,6 +113,8 @@ public class Console extends Tool implements ShutdownHandler {
                 } else if ("-webAllowOthers".equals(arg)) {
                     // no parameters
                     webAllowOthers = true;
+                } else if ("-webExternalNames".equals(arg)) {
+                    i++;
                 } else if ("-webDaemon".equals(arg)) {
                     // no parameters
                 } else if ("-webSSL".equals(arg)) {

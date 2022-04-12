@@ -1,17 +1,14 @@
 /*
- * Copyright 2004-2021 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.test.utils;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
-import java.util.List;
 import java.util.Random;
 
 import org.h2.store.fs.FileBase;
@@ -108,98 +105,8 @@ public class FilePathUnstable extends FilePathWrapper {
     }
 
     @Override
-    public void createDirectory() {
-        super.createDirectory();
-    }
-
-    @Override
-    public boolean createFile() {
-        return super.createFile();
-    }
-
-    @Override
-    public void delete() {
-        super.delete();
-    }
-
-    @Override
-    public boolean exists() {
-        return super.exists();
-    }
-
-    @Override
-    public String getName() {
-        return super.getName();
-    }
-
-    @Override
-    public long lastModified() {
-        return super.lastModified();
-    }
-
-    @Override
-    public FilePath getParent() {
-        return super.getParent();
-    }
-
-    @Override
-    public boolean isAbsolute() {
-        return super.isAbsolute();
-    }
-
-    @Override
-    public boolean isDirectory() {
-        return super.isDirectory();
-    }
-
-    @Override
-    public boolean canWrite() {
-        return super.canWrite();
-    }
-
-    @Override
-    public boolean setReadOnly() {
-        return super.setReadOnly();
-    }
-
-    @Override
-    public long size() {
-        return super.size();
-    }
-
-    @Override
-    public List<FilePath> newDirectoryStream() {
-        return super.newDirectoryStream();
-    }
-
-    @Override
-    public FilePath toRealPath() {
-        return super.toRealPath();
-    }
-
-    @Override
-    public InputStream newInputStream() throws IOException {
-        return super.newInputStream();
-    }
-
-    @Override
     public FileChannel open(String mode) throws IOException {
         return new FileUnstable(this, super.open(mode));
-    }
-
-    @Override
-    public OutputStream newOutputStream(boolean append) throws IOException {
-        return super.newOutputStream(append);
-    }
-
-    @Override
-    public void moveTo(FilePath newName, boolean atomicReplace) {
-        super.moveTo(newName, atomicReplace);
-    }
-
-    @Override
-    public FilePath createTempFile(String suffix, boolean inTempDir) throws IOException {
-        return super.createTempFile(suffix, inTempDir);
     }
 
     @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2021 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -19,6 +19,8 @@ public final class JdbcBatchUpdateException extends BatchUpdateException {
 
     /**
      * INTERNAL
+     * @param next exception
+     * @param updateCounts affected record counts
      */
     JdbcBatchUpdateException(SQLException next, int[] updateCounts) {
         super(next.getMessage(), next.getSQLState(), next.getErrorCode(), updateCounts);
@@ -27,6 +29,8 @@ public final class JdbcBatchUpdateException extends BatchUpdateException {
 
     /**
      * INTERNAL
+     * @param next exception
+     * @param updateCounts affected record counts
      */
     JdbcBatchUpdateException(SQLException next, long[] updateCounts) {
         super(next.getMessage(), next.getSQLState(), next.getErrorCode(), updateCounts, null);

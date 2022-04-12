@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2021 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -51,7 +51,7 @@ public final class ValueUuid extends Value {
         long high = MathUtils.secureRandomLong();
         long low = MathUtils.secureRandomLong();
         // version 4 (random)
-        high = (high & (~0xf000L)) | 0x4000L;
+        high = (high & ~0xf000L) | 0x4000L;
         // variant (Leach-Salz)
         low = (low & 0x3fff_ffff_ffff_ffffL) | 0x8000_0000_0000_0000L;
         return new ValueUuid(high, low);

@@ -1,4 +1,4 @@
--- Copyright 2004-2021 H2 Group. Multiple-Licensed under the MPL 2.0,
+-- Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
 -- and the EPL 1.0 (https://h2database.com/html/license.html).
 -- Initial Developer: H2 Group
 --
@@ -1178,3 +1178,36 @@ SELECT X FROM SYSTEM_RANGE(1, 2) ORDER BY X DESC FETCH FIRST 0xFFFFFFFF ROWS ONL
 > 2
 > 1
 > rows (ordered): 2
+
+SELECT ((SELECT 1 X) EXCEPT (SELECT 1 Y)) T;
+> T
+> ----
+> null
+> rows: 1
+
+create table test(x0 int, x1 int);
+> ok
+
+select * from
+    (select * from
+        (select * from
+            (select * from
+                (select * from
+                    (select * from
+                        (select * from
+                            (select * from
+                                (select * from test as t399 where x0 < 1 and x0 >= x0 or null <= -1) as t398
+                            where -1 is not distinct from -1) as t397
+                        where 3 is distinct from 2) as t396
+                    where null is distinct from -1) as t395
+                where 3 is distinct from -1 or null = x1) as t394
+            where x0 is distinct from null) as t393
+        where x0 >= null and -1 <= 1 and 3 is not distinct from -1) as t392
+    where -1 >= 3) as t391
+where -1 is distinct from -1 or 2 is distinct from x0;
+> X0 X1
+> -- --
+> rows: 0
+
+drop table test;
+> ok

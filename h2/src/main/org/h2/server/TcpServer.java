@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2021 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -86,7 +86,8 @@ public class TcpServer implements Service {
             managementPassword = StringUtils.convertBytesToHex(MathUtils.secureRandomBytes(32));
         }
         // avoid using the driver manager
-        JdbcConnection conn = new JdbcConnection("jdbc:h2:" + getManagementDbName(port), null, "", managementPassword);
+        JdbcConnection conn = new JdbcConnection("jdbc:h2:" + getManagementDbName(port), null, "", managementPassword,
+                false);
         managementDb = conn;
 
         try (Statement stat = conn.createStatement()) {
@@ -446,7 +447,7 @@ public class TcpServer implements Service {
             }
             String db = getManagementDbName(port);
             for (int i = 0; i < 2; i++) {
-                try (JdbcConnection conn = new JdbcConnection("jdbc:h2:" + url + '/' + db, null, "", password)) {
+                try (JdbcConnection conn = new JdbcConnection("jdbc:h2:" + url + '/' + db, null, "", password, true)) {
                     PreparedStatement prep = conn.prepareStatement("CALL STOP_SERVER(?, ?, ?)");
                     prep.setInt(1, all ? 0 : port);
                     prep.setString(2, password);

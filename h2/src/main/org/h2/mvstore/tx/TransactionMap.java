@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2021 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -526,10 +526,14 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
     }
 
     /**
-     * Create a new snapshot for this map.
+     * Gets a coherent picture of committing transactions and root reference,
+     * passes it to the specified function, and returns its result.
      *
-     * @param snapshotConsumer BiFunction<RootReference<K,VersionedValue<V>>, BitSet, R>
-     * @return the snapshot
+     * @param <R> type of the result
+     *
+     * @param snapshotConsumer
+     *            function to invoke on a snapshot
+     * @return function's result
      */
     <R> R useSnapshot(BiFunction<RootReference<K,VersionedValue<V>>, BitSet, R> snapshotConsumer) {
         // The purpose of the following loop is to get a coherent picture

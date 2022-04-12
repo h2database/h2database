@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2021 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -450,6 +450,7 @@ public class TransactionStore {
      * @param transactionId id of the transaction
      * @param logId sequential number of the log record within transaction
      * @param record Record(mapId, key, previousValue) to add
+     * @return key for the added record
      */
     long addUndoLogRecord(int transactionId, long logId, Record<?,?> record) {
         MVMap<Long, Record<?,?>> undoLog = undoLogs[transactionId];
@@ -567,6 +568,9 @@ public class TransactionStore {
     /**
      * Open the map with the given id.
      *
+     * @param <K> key type
+     * @param <V> value type
+     *
      * @param mapId the id
      * @return the map
      */
@@ -624,7 +628,7 @@ public class TransactionStore {
                 preparedTransactions.remove(txId);
             }
 
-            if (store.getFileStore() != null) {
+            if (store.isVersioningRequired()) {
                 if (wasStored || store.getAutoCommitDelay() == 0) {
                     store.commit();
                 } else {

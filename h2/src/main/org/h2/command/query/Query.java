@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2021 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -31,9 +31,9 @@ import org.h2.result.ResultTarget;
 import org.h2.result.SortOrder;
 import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
+import org.h2.table.DerivedTable;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
-import org.h2.table.TableView;
 import org.h2.util.Utils;
 import org.h2.value.ExtTypeInfoRow;
 import org.h2.value.TypeInfo;
@@ -206,6 +206,22 @@ public abstract class Query extends Prepared {
      * Initialize the query.
      */
     public abstract void init();
+
+    @Override
+    public final void prepare() {
+        if (!checkInit) {
+            throw DbException.getInternalError("not initialized");
+        }
+        if (isPrepared) {
+            return;
+        }
+        prepareExpressions();
+        preparePlan();
+    }
+
+    public abstract void prepareExpressions();
+
+    public abstract void preparePlan();
 
     /**
      * The the list of select expressions.
@@ -431,7 +447,8 @@ public abstract class Query extends Prepared {
         }
         for (int i = 0; i < params.length; i++) {
             Value a = lastParams[i], b = params[i];
-            if (a.getValueType() != b.getValueType() || !session.areEqual(a, b)) {
+            // Derived tables can have gaps in parameters
+            if (a != null && !a.equals(b)) {
                 return false;
             }
         }
@@ -446,8 +463,9 @@ public abstract class Query extends Prepared {
         int size = list.size();
         Value[] params = new Value[size];
         for (int i = 0; i < size; i++) {
-            Value v = list.get(i).getParamValue();
-            params[i] = v;
+            Parameter parameter = list.get(i);
+            // Derived tables can have gaps in parameters
+            params[i] = parameter != null ? parameter.getParamValue() : null;
         }
         return params;
     }
@@ -983,8 +1001,8 @@ public abstract class Query extends Prepared {
         if (!checkInit) {
             init();
         }
-        return TableView.createTempView(forCreateView ? session.getDatabase().getSystemSession() : session,
-                session.getUser(), alias, columnTemplates, this, topQuery);
+        return new DerivedTable(forCreateView ? session.getDatabase().getSystemSession() : session, alias,
+                columnTemplates, this, topQuery);
     }
 
     @Override

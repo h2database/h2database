@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2021 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -26,9 +26,10 @@ import org.h2.command.CommandInterface;
 import org.h2.command.Parser;
 import org.h2.command.Prepared;
 import org.h2.command.ddl.Analyze;
+import org.h2.command.query.Query;
 import org.h2.constraint.Constraint;
 import org.h2.index.Index;
-import org.h2.index.ViewIndex;
+import org.h2.index.QueryExpressionIndex;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.jdbc.meta.DatabaseMeta;
 import org.h2.jdbc.meta.DatabaseMetaLocal;
@@ -183,9 +184,8 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
     private SmallLRUCache<String, Command> queryCache;
     private long modificationMetaID = -1;
     private int createViewLevel;
-    private volatile SmallLRUCache<Object, ViewIndex> viewIndexCache;
-    private HashMap<Object, ViewIndex> subQueryIndexCache;
-    private boolean forceJoinOrder;
+    private volatile SmallLRUCache<Object, QueryExpressionIndex> viewIndexCache;
+    private HashMap<Object, QueryExpressionIndex> derivedTableIndexCache;
     private boolean lazyQueryExecution;
 
     private BitSet nonKeywords;
@@ -276,14 +276,6 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
 
     public boolean isLazyQueryExecution() {
         return lazyQueryExecution;
-    }
-
-    public void setForceJoinOrder(boolean forceJoinOrder) {
-        this.forceJoinOrder = forceJoinOrder;
-    }
-
-    public boolean isForceJoinOrder() {
-        return forceJoinOrder;
     }
 
     /**
@@ -590,6 +582,21 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
     }
 
     /**
+     * Parse a query and prepare its expressions. Rights and literals must be
+     * already checked.
+     *
+     * @param sql the SQL statement
+     * @return the prepared statement
+     */
+    public Query prepareQueryExpression(String sql) {
+        Parser parser = new Parser(this);
+        parser.setRightsChecked(true);
+        parser.setLiteralsChecked(true);
+        return parser.prepareQueryExpression(sql);
+    }
+
+
+    /**
      * Parse and prepare the given SQL statement.
      * This method also checks if the connection has been closed.
      *
@@ -623,8 +630,8 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
         try {
             command = parser.prepareCommand(sql);
         } finally {
-            // we can't reuse sub-query indexes, so just drop the whole cache
-            subQueryIndexCache = null;
+            // we can't reuse indexes of derived tables, so just drop the whole cache
+            derivedTableIndexCache = null;
         }
         if (queryCache != null) {
             if (command.isCacheable()) {
@@ -639,7 +646,7 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
      * at the end of the current transaction.
      * @param id to be scheduled
      */
-    protected void scheduleDatabaseObjectIdForRelease(int id) {
+    void scheduleDatabaseObjectIdForRelease(int id) {
         if (idsToRelease == null) {
             idsToRelease = new BitSet();
         }
@@ -1494,24 +1501,25 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
     }
 
     /**
-     * Get the view cache for this session. There are two caches: the subquery
-     * cache (which is only use for a single query, has no bounds, and is
+     * Get the view cache for this session. There are two caches: the derived
+     * table cache (which is only use for a single query, has no bounds, and is
      * cleared after use), and the cache for regular views.
      *
-     * @param subQuery true to get the subquery cache
-     * @return the view cache
+     * @param derivedTable
+     *            true to get the cache of derived tables
+     * @return the view cache or derived table cache
      */
-    public Map<Object, ViewIndex> getViewIndexCache(boolean subQuery) {
-        if (subQuery) {
-            // for sub-queries we don't need to use LRU because the cache should
-            // not grow too large for a single query (we drop the whole cache in
-            // the end of prepareLocal)
-            if (subQueryIndexCache == null) {
-                subQueryIndexCache = new HashMap<>();
+    public Map<Object, QueryExpressionIndex> getViewIndexCache(boolean derivedTable) {
+        if (derivedTable) {
+            // for derived tables we don't need to use LRU because the cache
+            // should not grow too large for a single query (we drop the whole
+            // cache in this cache is dropped at the end of prepareLocal)
+            if (derivedTableIndexCache == null) {
+                derivedTableIndexCache = new HashMap<>();
             }
-            return subQueryIndexCache;
+            return derivedTableIndexCache;
         }
-        SmallLRUCache<Object, ViewIndex> cache = viewIndexCache;
+        SmallLRUCache<Object, QueryExpressionIndex> cache = viewIndexCache;
         if (cache == null) {
             viewIndexCache = cache = SmallLRUCache.newInstance(Constants.VIEW_INDEX_CACHE_SIZE);
         }

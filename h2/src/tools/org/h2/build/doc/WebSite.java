@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2021 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -155,6 +155,12 @@ public class WebSite {
                 page = StringUtils.replaceAll(page, TRANSLATE_END, "");
                 page = StringUtils.replaceAll(page, "<pre>", "<pre class=\"notranslate\">");
                 page = StringUtils.replaceAll(page, "<code>", "<code class=\"notranslate\">");
+            }
+            if (name.endsWith("changelog.html")) {
+                page = page.replaceAll("Issue\\s+#?(\\d+)",
+                        "<a href=\"https://github.com/h2database/h2database/issues/$1\">Issue #$1</a>");
+                page = page.replaceAll("PR\\s+#?(\\d+)",
+                        "<a href=\"https://github.com/h2database/h2database/pull/$1\">PR #$1</a>");
             }
             bytes = page.getBytes(StandardCharsets.UTF_8);
         }

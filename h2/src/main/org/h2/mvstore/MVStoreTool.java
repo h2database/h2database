@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2021 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -21,7 +21,6 @@ import org.h2.compress.CompressDeflate;
 import org.h2.compress.CompressLZF;
 import org.h2.compress.Compressor;
 import org.h2.engine.Constants;
-import org.h2.message.DbException;
 import org.h2.mvstore.tx.TransactionStore;
 import org.h2.mvstore.type.BasicDataType;
 import org.h2.mvstore.type.StringDataType;
@@ -37,7 +36,8 @@ public class MVStoreTool {
     /**
      * Runs this tool.
      * Options are case sensitive. Supported options are:
-     * <table summary="command line options">
+     * <table>
+     * <caption>Command line options</caption>
      * <tr><td>[-dump &lt;fileName&gt;]</td>
      * <td>Dump the contends of the file</td></tr>
      * <tr><td>[-info &lt;fileName&gt;]</td>
@@ -441,7 +441,7 @@ public class MVStoreTool {
         compact(fileName, tempName, compress);
         try {
             FileUtils.moveAtomicReplace(tempName, fileName);
-        } catch (DbException e) {
+        } catch (MVStoreException e) {
             String newName = fileName + Constants.SUFFIX_MV_STORE_NEW_FILE;
             FileUtils.delete(newName);
             FileUtils.move(tempName, newName);
@@ -507,6 +507,7 @@ public class MVStoreTool {
      * @param target the target store
      */
     public static void compact(MVStore source, MVStore target) {
+        target.adoptMetaFrom(source);
         int autoCommitDelay = target.getAutoCommitDelay();
         boolean reuseSpace = target.getReuseSpace();
         try {

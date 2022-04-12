@@ -25,6 +25,7 @@ adminLoginCancel=취소
 adminLoginOk=확인
 adminLogout=로그아웃
 adminOthers=다른 컴퓨터에서의 연결 허가
+adminWebExternalNames=#External names or addresses of this server (comma-separated)
 adminPort=포트 번호
 adminPortWeb=웹 서버 포트 번호
 adminRestart=변경 사항은 서버 재시작 후 반영됩니다.

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2021 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -17,7 +17,6 @@ import org.h2.util.Tool;
  * Deletes all files belonging to a database.
  *
  * The database must be closed before calling this tool.
- * @h2.resource
  */
 public class DeleteDbFiles extends Tool {
 
@@ -34,7 +33,6 @@ public class DeleteDbFiles extends Tool {
      * <tr><td>[-quiet]</td>
      * <td>Do not print progress information</td></tr>
      * </table>
-     * @h2.resource
      *
      * @param args the command line arguments
      * @throws SQLException on failure

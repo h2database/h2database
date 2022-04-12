@@ -25,6 +25,7 @@ adminLoginCancel=रद्द करना
 adminLoginOk=ठीक
 adminLogout=लोग आउट
 adminOthers=अन्य कंप्यूटर से कनेक्शन की अनुमति दें
+adminWebExternalNames=#External names or addresses of this server (comma-separated)
 adminPort=पोर्ट नंबर
 adminPortWeb=वेब सर्वर पोर्ट नंबर
 adminRestart=सर्वर को पुनरारंभ करने के बाद परिवर्तन प्रभावी होते हैं।

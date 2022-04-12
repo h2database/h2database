@@ -1,6 +1,6 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <!--
-Copyright 2004-2021 H2 Group. Multiple-Licensed under the MPL 2.0,
+Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
 and the EPL 1.0 (https://h2database.com/html/license.html).
 Initial Developer: H2 Group
 -->
@@ -158,9 +158,16 @@ The memory usage number is incorrect, because only the memory usage of the JDBC 
 
 <h4>SQLite</h4>
 <p>
-SQLite 3.36.0.2 was tested, but the results are not published currently,
-because it's about 50 times slower than H2 in embedded mode.
-Any tips on how to configure SQLite for higher performance are welcome.
+SQLite 3.36.0.3, configured to use <a href="https://sqlite.org/wal.html">WAL</a> and with
+<a href="https://sqlite.org/pragma.html#pragma_synchronous"><code>synchronous=NORMAL</code></a> was tested in a
+separate, less reliable run. A rough estimate is that SQLite performs approximately 2-5x worse in the simple benchmarks,
+which perform simple work in the database, resulting in a low work-per-transaction ratio. SQLite becomes competitive as
+the complexity of the database interactions increases. The results seemed to vary drastically across machine, and more
+reliable results should be obtained. Benchmark on your production hardware.
+</p>
+<p>
+The benchmarks used include multi-threaded scenarios, and we were not able to get the SQLite JDBC driver we used to work
+with them. Help with configuring the driver for multi-threaded usage is welcome.
 </p>
 
 <h4>Firebird</h4>

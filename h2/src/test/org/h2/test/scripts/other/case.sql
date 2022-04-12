@@ -1,4 +1,4 @@
--- Copyright 2004-2021 H2 Group. Multiple-Licensed under the MPL 2.0,
+-- Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
 -- and the EPL 1.0 (https://h2database.com/html/license.html).
 -- Initial Developer: H2 Group
 --
@@ -70,8 +70,8 @@ SELECT S, CASE S
     WHEN IS OF (VARCHAR) THEN 13
     ELSE 13
     END FROM (VALUES NULL, 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm') T(S);
-> S    CASE S WHEN IS NULL THEN 1 WHEN 'a' THEN 2 WHEN LIKE '%b' THEN 3 WHEN ILIKE 'C' THEN 4 WHEN REGEXP '[dQ]' THEN 5 WHEN IS NOT DISTINCT FROM 'e' THEN 6 WHEN IN('x', 'f') THEN 7 WHEN IN( VALUES ('g'), ('z')) THEN 8 WHEN BETWEEN 'h' AND 'i' THEN 9 WHEN = 'j' THEN 10 WHEN < ANY( VALUES ('j'), ('l')) THEN 11 WHEN NOT LIKE '%m%' THEN 12 WHEN IS OF (CHARACTER VARYING) THEN 13 ELSE 13 END
-> ---- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> S    C2
+> ---- --
 > a    2
 > b    3
 > c    4

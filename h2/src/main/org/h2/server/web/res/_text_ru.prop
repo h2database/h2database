@@ -25,6 +25,7 @@ adminLoginCancel=Отменить
 adminLoginOk=OK
 adminLogout=Выход
 adminOthers=Разрешить удаленные подключения
+adminWebExternalNames=Внешние имена или адреса этого сервера (через запятую)
 adminPort=Номер порта
 adminPortWeb=Порт web-сервера
 adminRestart=Изменения вступят в силу после перезагрузки сервера.

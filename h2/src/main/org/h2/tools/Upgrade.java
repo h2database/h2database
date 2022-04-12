@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2021 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -163,7 +163,7 @@ public final class Upgrade {
             unloadH2(driver);
         }
         rename(name, false);
-        try (JdbcConnection conn = new JdbcConnection(url, info, null, null)) {
+        try (JdbcConnection conn = new JdbcConnection(url, info, null, null, false)) {
             StringBuilder builder = StringUtils.quoteStringSQL(new StringBuilder("RUNSCRIPT FROM "), script)
                     .append(scriptCommandSuffix);
             if (version <= 200) {

@@ -25,6 +25,7 @@ adminLoginCancel=Annuleren
 adminLoginOk=OK
 adminLogout=Uitloggen
 adminOthers=Sta verbindingen vanaf andere computers toe
+adminWebExternalNames=#External names or addresses of this server (comma-separated)
 adminPort=Poortnummer
 adminPortWeb=Webserver poortnummer
 adminRestart=Wijzigingen worden doorgevoerd na herstarten server

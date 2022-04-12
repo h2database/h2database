@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2021 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -10,6 +10,7 @@ import java.util.Map.Entry;
 import org.h2.api.ErrorCode;
 import org.h2.engine.SessionLocal;
 import org.h2.message.DbException;
+import org.h2.mvstore.db.Store;
 import org.h2.util.ParserUtil;
 import org.h2.value.ExtTypeInfoRow;
 import org.h2.value.TypeInfo;
@@ -50,7 +51,7 @@ public final class FieldReference extends Operation1 {
         arg = arg.optimize(session);
         TypeInfo type = arg.getType();
         if (type.getValueType() != Value.ROW) {
-            throw DbException.getInvalidExpressionTypeException("ROW", arg);
+            throw Store.getInvalidExpressionTypeException("ROW", arg);
         }
         int ordinal = 0;
         for (Entry<String, TypeInfo> entry : ((ExtTypeInfoRow) type.getExtTypeInfo()).getFields()) {

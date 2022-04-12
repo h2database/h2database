@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2021 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -33,7 +33,7 @@ public final class LobDataFetchOnDemand extends LobData {
      * hmac acts a security cookie that the client can send back to the server
      * to ask for data related to this LOB.
      */
-    protected final byte[] hmac;
+    private final byte[] hmac;
 
     public LobDataFetchOnDemand(DataHandler handler, int tableId, long lobId, byte[] hmac) {
         this.hmac = hmac;

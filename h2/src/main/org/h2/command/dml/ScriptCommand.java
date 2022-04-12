@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2021 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -247,7 +247,7 @@ public class ScriptCommand extends ScriptBase {
                 if (table.isHidden()) {
                     continue;
                 }
-                table.lock(session, false, false);
+                table.lock(session, Table.READ_LOCK);
                 String sql = table.getCreateSQL();
                 if (sql == null) {
                     // null for metadata tables
@@ -290,7 +290,7 @@ public class ScriptCommand extends ScriptBase {
                 if (table.isHidden()) {
                     continue;
                 }
-                table.lock(session, false, false);
+                table.lock(session, Table.READ_LOCK);
                 String createTableSql = table.getCreateSQL();
                 if (createTableSql == null) {
                     // null for metadata tables
@@ -573,7 +573,7 @@ public class ScriptCommand extends ScriptBase {
 
     private int writeLobStream(Value v) throws IOException {
         if (!tempLobTableCreated) {
-            add("CREATE TABLE IF NOT EXISTS SYSTEM_LOB_STREAM" +
+            add("CREATE CACHED LOCAL TEMPORARY TABLE IF NOT EXISTS SYSTEM_LOB_STREAM" +
                     "(ID INT NOT NULL, PART INT NOT NULL, " +
                     "CDATA VARCHAR, BDATA VARBINARY)",
                     true);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2021 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -169,7 +169,7 @@ public final class Insert extends CommandWithValues implements ResultTarget {
                     deltaChangeCollector.addRow(newRow.getValueList().clone());
                 }
                 if (!table.fireBeforeRow(session, null, newRow)) {
-                    table.lock(session, true, false);
+                    table.lock(session, Table.WRITE_LOCK);
                     try {
                         table.addRow(session, newRow);
                     } catch (DbException de) {
@@ -192,7 +192,7 @@ public final class Insert extends CommandWithValues implements ResultTarget {
                 }
             }
         } else {
-            table.lock(session, true, false);
+            table.lock(session, Table.WRITE_LOCK);
             if (insertFromSelect) {
                 query.query(0, this);
             } else {
@@ -280,7 +280,7 @@ public final class Insert extends CommandWithValues implements ResultTarget {
     }
 
     @Override
-    public void prepare() {
+    void doPrepare() {
         if (columns == null) {
             if (!valuesExpressionList.isEmpty() && valuesExpressionList.get(0).length == 0) {
                 // special case where table is used as a sequence
@@ -452,4 +452,5 @@ public final class Insert extends CommandWithValues implements ResultTarget {
             query.isEverything(visitor);
         }
     }
+
 }

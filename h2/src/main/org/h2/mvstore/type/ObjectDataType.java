@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2021 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -1358,11 +1358,9 @@ public class ObjectDataType extends BasicDataType<Object> {
                         x = Integer.signum((((boolean[]) aObj)[i] ? 1 : 0)
                                 - (((boolean[]) bObj)[i] ? 1 : 0));
                     } else if (type == char.class) {
-                        x = Integer.signum((((char[]) aObj)[i])
-                                - (((char[]) bObj)[i]));
+                        x = Integer.signum(((char[]) aObj)[i] - ((char[]) bObj)[i]);
                     } else if (type == short.class) {
-                        x = Integer.signum((((short[]) aObj)[i])
-                                - (((short[]) bObj)[i]));
+                        x = Integer.signum(((short[]) aObj)[i] - ((short[]) bObj)[i]);
                     } else if (type == int.class) {
                         int a = ((int[]) aObj)[i];
                         int b = ((int[]) bObj)[i];

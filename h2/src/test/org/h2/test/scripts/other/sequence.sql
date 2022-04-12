@@ -1,4 +1,4 @@
--- Copyright 2004-2021 H2 Group. Multiple-Licensed under the MPL 2.0,
+-- Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
 -- and the EPL 1.0 (https://h2database.com/html/license.html).
 -- Initial Developer: H2 Group
 --
@@ -255,34 +255,34 @@ CREATE SEQUENCE SEQ05 AS REAL;
 CREATE SEQUENCE SEQ06 AS DOUBLE PRECISION;
 > ok
 
-CREATE SEQUENCE SEQ07 AS NUMERIC(10, 2);
+CREATE SEQUENCE SEQ AS NUMERIC(10, 2);
+> exception FEATURE_NOT_SUPPORTED_1
+
+CREATE SEQUENCE SEQ AS NUMERIC(100, 20);
+> exception FEATURE_NOT_SUPPORTED_1
+
+CREATE SEQUENCE SEQ07 AS DECIMAL;
 > ok
 
-CREATE SEQUENCE SEQ08 AS NUMERIC(100, 20);
-> ok
-
-CREATE SEQUENCE SEQ09 AS DECIMAL;
-> ok
-
-CREATE SEQUENCE SEQ10 AS DECIMAL(10);
+CREATE SEQUENCE SEQ08 AS DECIMAL(10);
 > ok
 
 CREATE SEQUENCE SEQ11 AS DECIMAL(10, 2);
+> exception FEATURE_NOT_SUPPORTED_1
+
+CREATE SEQUENCE SEQ09 AS FLOAT;
 > ok
 
-CREATE SEQUENCE SEQ12 AS FLOAT;
+CREATE SEQUENCE SEQ10 AS FLOAT(20);
 > ok
 
-CREATE SEQUENCE SEQ13 AS FLOAT(20);
+CREATE SEQUENCE SEQ11 AS DECFLOAT;
 > ok
 
-CREATE SEQUENCE SEQ14 AS DECFLOAT;
+CREATE SEQUENCE SEQ12 AS DECFLOAT(10);
 > ok
 
-CREATE SEQUENCE SEQ15 AS DECFLOAT(10);
-> ok
-
-CREATE SEQUENCE SEQ16 AS DECFLOAT(20);
+CREATE SEQUENCE SEQ13 AS DECFLOAT(20);
 > ok
 
 SELECT SEQUENCE_NAME, DATA_TYPE, NUMERIC_PRECISION, NUMERIC_PRECISION_RADIX, NUMERIC_SCALE, MAXIMUM_VALUE,
@@ -295,17 +295,14 @@ SELECT SEQUENCE_NAME, DATA_TYPE, NUMERIC_PRECISION, NUMERIC_PRECISION_RADIX, NUM
 > SEQ04         BIGINT           64                2                       0             9223372036854775807 BIGINT             null                       null
 > SEQ05         REAL             24                2                       null          16777216            REAL               null                       null
 > SEQ06         DOUBLE PRECISION 53                2                       null          9007199254740992    DOUBLE PRECISION   null                       null
-> SEQ07         NUMERIC          10                10                      2             99999999            NUMERIC            10                         2
-> SEQ08         NUMERIC          39                10                      20            9223372036854775807 NUMERIC            100                        20
-> SEQ09         NUMERIC          19                10                      0             9223372036854775807 DECIMAL            null                       null
-> SEQ10         NUMERIC          10                10                      0             9999999999          DECIMAL            10                         null
-> SEQ11         NUMERIC          10                10                      2             99999999            DECIMAL            10                         2
-> SEQ12         DOUBLE PRECISION 53                2                       null          9007199254740992    FLOAT              null                       null
-> SEQ13         REAL             24                2                       null          16777216            FLOAT              20                         null
-> SEQ14         DECFLOAT         19                10                      null          9223372036854775807 DECFLOAT           null                       null
-> SEQ15         DECFLOAT         10                10                      null          10000000000         DECFLOAT           10                         null
-> SEQ16         DECFLOAT         19                10                      null          9223372036854775807 DECFLOAT           20                         null
-> rows: 16
+> SEQ07         NUMERIC          19                10                      0             9223372036854775807 DECIMAL            null                       null
+> SEQ08         NUMERIC          10                10                      0             9999999999          DECIMAL            10                         null
+> SEQ09         DOUBLE PRECISION 53                2                       null          9007199254740992    FLOAT              null                       null
+> SEQ10         REAL             24                2                       null          16777216            FLOAT              20                         null
+> SEQ11         DECFLOAT         19                10                      null          9223372036854775807 DECFLOAT           null                       null
+> SEQ12         DECFLOAT         10                10                      null          10000000000         DECFLOAT           10                         null
+> SEQ13         DECFLOAT         19                10                      null          9223372036854775807 DECFLOAT           20                         null
+> rows: 13
 
 SELECT NEXT VALUE FOR SEQ01 IS OF (TINYINT);
 >> TRUE

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2021 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -13,6 +13,8 @@ import java.sql.Statement;
 import java.sql.Types;
 import java.util.Random;
 import org.h2.api.Aggregate;
+import org.h2.api.ErrorCode;
+import org.h2.message.DbException;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
 import org.h2.tools.SimpleResultSet;
@@ -24,11 +26,15 @@ import org.h2.value.ValueGeometry;
 import org.h2.value.ValueToObjectConverter;
 import org.h2.value.ValueToObjectConverter2;
 import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.CoordinateSequence;
 import org.locationtech.jts.geom.Envelope;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.MultiPoint;
 import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.geom.Polygon;
+import org.locationtech.jts.geom.PrecisionModel;
+import org.locationtech.jts.geom.impl.CoordinateArraySequenceFactory;
 import org.locationtech.jts.geom.util.AffineTransformation;
 import org.locationtech.jts.io.ByteOrderValues;
 import org.locationtech.jts.io.ParseException;
@@ -74,6 +80,7 @@ public class TestSpatial extends TestDb {
     }
 
     private void testSpatial() throws SQLException {
+        testNaNs();
         testBug1();
         testSpatialValues();
         testOverlap();
@@ -103,6 +110,26 @@ public class TestSpatial extends TestDb {
         testIndexUpdateNullGeometry();
         testInsertNull();
         testSpatialIndexWithOrder();
+    }
+
+    private void testNaNs() {
+        GeometryFactory factory = new GeometryFactory(new PrecisionModel(), 0,
+                CoordinateArraySequenceFactory.instance());
+        CoordinateSequence c2 = factory.getCoordinateSequenceFactory().create(1, 2, 0);
+        c2.setOrdinate(0, 0, 1d);
+        c2.setOrdinate(0, 1, 1d);
+        CoordinateSequence c3 = factory.getCoordinateSequenceFactory().create(1, 3, 0);
+        c3.setOrdinate(0, 0, 1d);
+        c3.setOrdinate(0, 1, 2d);
+        c3.setOrdinate(0, 2, 3d);
+        Point p2 = factory.createPoint(c2);
+        Point p3 = factory.createPoint(c3);
+        try {
+            ValueGeometry.getFromGeometry(new MultiPoint(new Point[] { p2, p3 }, factory));
+            fail("Expected exception");
+        } catch (DbException e) {
+            assertEquals(ErrorCode.DATA_CONVERSION_ERROR_1, e.getErrorCode());
+        }
     }
 
     private void testBug1() throws SQLException {
@@ -577,6 +604,7 @@ public class TestSpatial extends TestDb {
      */
     public static Geometry geomFromText(String text, int srid) throws SQLException {
         WKTReader wktReader = new WKTReader();
+        wktReader.setIsOldJtsCoordinateSyntaxAllowed(false);
         try {
             Geometry geom = wktReader.read(text);
             geom.setSRID(srid);
@@ -668,7 +696,7 @@ public class TestSpatial extends TestDb {
     private void testEquals() {
         // 3d equality test
         ValueGeometry geom3d = ValueGeometry.get(
-                "POLYGON ((67 13 6, 67 18 5, 59 18 4, 59 13 6,  67 13 6))");
+                "POLYGON Z((67 13 6, 67 18 5, 59 18 4, 59 13 6,  67 13 6))");
         ValueGeometry geom2d = ValueGeometry.get(
                 "POLYGON ((67 13, 67 18, 59 18, 59 13,  67 13))");
         assertFalse(geom3d.equals(geom2d));
@@ -813,7 +841,7 @@ public class TestSpatial extends TestDb {
      * Check ValueGeometry conversion into SQL script
      */
     private void testValueGeometryScript() throws SQLException {
-        ValueGeometry valueGeometry = ValueGeometry.get("POINT(1 1 5)");
+        ValueGeometry valueGeometry = ValueGeometry.get("POINT Z(1 1 5)");
         try (Connection conn = getConnection(URL)) {
             ResultSet rs = conn.createStatement().executeQuery(
                     "SELECT " + valueGeometry.getSQL(HasSQL.DEFAULT_SQL_FLAGS));

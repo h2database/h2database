@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2021 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -26,7 +26,6 @@ import java.io.ByteArrayOutputStream;
 
 import org.h2.util.Bits;
 import org.h2.util.StringUtils;
-import org.h2.util.geometry.GeometryUtils.DimensionSystemTarget;
 import org.h2.util.geometry.GeometryUtils.Target;
 
 /**
@@ -155,9 +154,13 @@ public final class EWKBUtils {
             writeDouble(y);
             if ((dimensionSystem & DIMENSION_SYSTEM_XYZ) != 0) {
                 writeDouble(check ? checkFinite(z) : z);
+            } else if (check && !Double.isNaN(z)) {
+                throw new IllegalArgumentException();
             }
             if ((dimensionSystem & DIMENSION_SYSTEM_XYM) != 0) {
                 writeDouble(check ? checkFinite(m) : m);
+            } else if (check && !Double.isNaN(m)) {
+                throw new IllegalArgumentException();
             }
         }
 
@@ -263,11 +266,7 @@ public final class EWKBUtils {
      * @return canonical EWKB, may be the same as the source
      */
     public static byte[] ewkb2ewkb(byte[] ewkb) {
-        // Determine dimension system first
-        DimensionSystemTarget dimensionTarget = new DimensionSystemTarget();
-        parseEWKB(ewkb, dimensionTarget);
-        // Write an EWKB
-        return ewkb2ewkb(ewkb, dimensionTarget.getDimensionSystem());
+        return ewkb2ewkb(ewkb, getDimensionSystem(ewkb));
     }
 
     /**
@@ -488,6 +487,29 @@ public final class EWKBUtils {
         target.addCoordinate(source.readCoordinate(), source.readCoordinate(),
                 useZ ? source.readCoordinate() : Double.NaN, useM ? source.readCoordinate() : Double.NaN, //
                 index, total);
+    }
+
+    /**
+     * Reads the dimension system from EWKB.
+     *
+     * @param ewkb
+     *            EWKB
+     * @return the dimension system
+     */
+    public static int getDimensionSystem(byte[] ewkb) {
+        EWKBSource source = new EWKBSource(ewkb);
+        // Read byte order of a next geometry
+        switch (source.readByte()) {
+        case 0:
+            source.bigEndian = true;
+            break;
+        case 1:
+            source.bigEndian = false;
+            break;
+        default:
+            throw new IllegalArgumentException();
+        }
+        return type2dimensionSystem(source.readInt());
     }
 
     /**

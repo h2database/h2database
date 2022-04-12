@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2021 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -44,7 +44,7 @@ public final class Delete extends FilteredDataChangeStatement {
         Table table = targetTableFilter.getTable();
         session.getUser().checkTableRight(table, Right.DELETE);
         table.fire(session, Trigger.DELETE, true);
-        table.lock(session, true, false);
+        table.lock(session, Table.WRITE_LOCK);
         long limitRows = -1;
         if (fetchExpr != null) {
             Value v = fetchExpr.getValue(session);
@@ -106,7 +106,7 @@ public final class Delete extends FilteredDataChangeStatement {
     }
 
     @Override
-    public void prepare() {
+    void doPrepare() {
         if (condition != null) {
             condition.mapColumns(targetTableFilter, 0, Expression.MAP_INITIAL);
             condition = condition.optimizeCondition(session);
@@ -137,4 +137,5 @@ public final class Delete extends FilteredDataChangeStatement {
             condition.isEverything(visitor);
         }
     }
+
 }

@@ -1,4 +1,4 @@
--- Copyright 2004-2021 H2 Group. Multiple-Licensed under the MPL 2.0,
+-- Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
 -- and the EPL 1.0 (https://h2database.com/html/license.html).
 -- Initial Developer: H2 Group
 --
@@ -56,6 +56,9 @@ select suit, count(rank) from card group by suit order by suit, count(rank);
 > clubs    2
 > diamonds 1
 > rows (ordered): 4
+
+SELECT JSON_ARRAYAGG(DISTINCT SUIT ORDER BY SUIT) FROM CARD;
+>> ["hearts","clubs","diamonds"]
 
 select rank from card where suit = 'diamonds';
 >> 8

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2021 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -7,7 +7,6 @@ package org.h2.jmx;
 
 /**
  * Information and management operations for the given database.
- * @h2.resource
  *
  * @author Eric Dong
  * @author Thomas Mueller
@@ -16,7 +15,6 @@ public interface DatabaseInfoMBean {
 
     /**
      * Is the database open in exclusive mode?
-     * @h2.resource
      *
      * @return true if the database is open in exclusive mode, false otherwise
      */
@@ -24,7 +22,6 @@ public interface DatabaseInfoMBean {
 
     /**
      * Is the database read-only?
-     * @h2.resource
      *
      * @return true if the database is read-only, false otherwise
      */
@@ -33,7 +30,6 @@ public interface DatabaseInfoMBean {
     /**
      * The database compatibility mode (REGULAR if no compatibility mode is
      * used).
-     * @h2.resource
      *
      * @return the database mode
      */
@@ -41,7 +37,6 @@ public interface DatabaseInfoMBean {
 
     /**
      * The number of write operations since the database was opened.
-     * @h2.resource
      *
      * @return the write count
      */
@@ -49,7 +44,6 @@ public interface DatabaseInfoMBean {
 
     /**
      * The file read count since the database was opened.
-     * @h2.resource
      *
      * @return the read count
      */
@@ -57,7 +51,6 @@ public interface DatabaseInfoMBean {
 
     /**
      * The database file size in KB.
-     * @h2.resource
      *
      * @return the number of pages
      */
@@ -65,7 +58,6 @@ public interface DatabaseInfoMBean {
 
     /**
      * The maximum cache size in KB.
-     * @h2.resource
      *
      * @return the maximum size
      */
@@ -80,7 +72,6 @@ public interface DatabaseInfoMBean {
 
     /**
      * The current cache size in KB.
-     * @h2.resource
      *
      * @return the current size
      */
@@ -88,7 +79,6 @@ public interface DatabaseInfoMBean {
 
     /**
      * The database version.
-     * @h2.resource
      *
      * @return the version
      */
@@ -96,7 +86,6 @@ public interface DatabaseInfoMBean {
 
     /**
      * The trace level (0 disabled, 1 error, 2 info, 3 debug).
-     * @h2.resource
      *
      * @return the level
      */
@@ -111,7 +100,6 @@ public interface DatabaseInfoMBean {
 
     /**
      * List the database settings.
-     * @h2.resource
      *
      * @return the database settings
      */
@@ -120,7 +108,6 @@ public interface DatabaseInfoMBean {
     /**
      * List sessions, including the queries that are in
      * progress, and locked tables.
-     * @h2.resource
      *
      * @return information about the sessions
      */

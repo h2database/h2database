@@ -25,6 +25,7 @@ adminLoginCancel=İptal et
 adminLoginOk=Tamam
 adminLogout=Bitir
 adminOthers=Başka bilgisayarlardan, veri tabanına bağlanma izni ver
+adminWebExternalNames=#External names or addresses of this server (comma-separated)
 adminPort=Port
 adminPortWeb=Web-Server Port
 adminRestart=Değişiklikler veri tabanı hizmetçisinin yeniden başlatılmasıyla etkinlik kazanacak.

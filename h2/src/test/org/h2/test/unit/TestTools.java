@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2021 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -530,6 +530,19 @@ public class TestTools extends TestDb {
             fail("Expected SQLException: 08001");
         } catch (SQLException e) {
             assertEquals("08001", e.getSQLState());
+        }
+        try {
+            JdbcUtils.getConnection("javax.naming.InitialContext", "ldap://localhost/ds", "sa", "");
+            fail("Expected SQLException: 08001");
+        } catch (SQLException e) {
+            assertEquals("08001", e.getSQLState());
+            assertEquals("Only java scheme is supported for JNDI lookups", e.getMessage());
+        }
+        try {
+            JdbcUtils.getConnection("org.h2.Driver", "jdbc:h2:mem:", "sa", "", null, true);
+            fail("Expected SQLException: " + ErrorCode.REMOTE_DATABASE_NOT_FOUND_1);
+        } catch (SQLException e) {
+            assertEquals(ErrorCode.REMOTE_DATABASE_NOT_FOUND_1, e.getErrorCode());
         }
     }
 

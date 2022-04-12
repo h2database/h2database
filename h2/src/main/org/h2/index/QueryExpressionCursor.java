@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2021 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -14,18 +14,17 @@ import org.h2.value.Value;
 import org.h2.value.ValueNull;
 
 /**
- * The cursor implementation of a view index.
+ * The cursor implementation of a query expression index.
  */
-public class ViewCursor implements Cursor {
+public class QueryExpressionCursor implements Cursor {
 
     private final Table table;
-    private final ViewIndex index;
+    private final QueryExpressionIndex index;
     private final ResultInterface result;
     private final SearchRow first, last;
     private Row current;
 
-    public ViewCursor(ViewIndex index, ResultInterface result, SearchRow first,
-            SearchRow last) {
+    public QueryExpressionCursor(QueryExpressionIndex index, ResultInterface result, SearchRow first, SearchRow last) {
         this.table = index.getTable();
         this.index = index;
         this.result = result;

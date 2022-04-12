@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2021 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -70,6 +70,7 @@ public class TestLob extends TestDb {
 
     @Override
     public void test() throws Exception {
+        testConcurrentSelectAndUpdate();
         testReclamationOnInDoubtRollback();
         testRemoveAfterDeleteAndClose();
         testRemovedAfterTimeout();
@@ -116,7 +117,8 @@ public class TestLob extends TestDb {
         testLob(true);
         testJavaObject();
         testLobInValueResultSet();
-        testLimits();
+        // cannot run this on CI, will cause OOM
+        // testLimits();
         deleteDb("lob");
     }
 
@@ -252,8 +254,9 @@ public class TestLob extends TestDb {
         Thread.sleep(250);
         // start a new transaction, to be sure
         stat.execute("delete from test");
-        assertThrows(SQLException.class, c1).getSubString(1, 3);
+        c1.getSubString(1, 3);
         conn.close();
+        assertThrows(SQLException.class, c1).getSubString(1, 3);
     }
 
     private void testConcurrentRemoveRead() throws Exception {
@@ -1576,6 +1579,50 @@ public class TestLob extends TestDb {
                 assertEquals(ErrorCode.VALUE_TOO_LONG_2, e.getErrorCode());
             }
             assertEquals(s, IOUtils.readStringAndClose(v.getReader(), -1));
+        }
+    }
+
+    public void testConcurrentSelectAndUpdate() throws SQLException, InterruptedException {
+        deleteDb("lob");
+        try (JdbcConnection conn1 = (JdbcConnection) getConnection("lob")) {
+            try (JdbcConnection conn2 = (JdbcConnection) getConnection("lob")) {
+
+                try (Statement st = conn1.createStatement()) {
+                    String createTable = "create table t1 (id int, ver bigint, data text, primary key (id));";
+                    st.execute(createTable);
+                }
+
+                String insert = "insert into t1 (id, ver, data) values (1, 0, ?)";
+                try (PreparedStatement insertStmt = conn1.prepareStatement(insert)) {
+                    String largeData = org.h2.util.StringUtils.pad("", 512, "x", false);
+                    insertStmt.setString(1, largeData);
+                    insertStmt.executeUpdate();
+                }
+
+                long startTimeNs = System.nanoTime();
+
+                Thread thread1 = new Thread(() -> {
+                    try {
+                        String update = "update t1 set ver = ver + 1 where id = 1";
+                        try (PreparedStatement ps = conn2.prepareStatement(update)) {
+                            while (!Thread.currentThread().isInterrupted()
+                                    && System.nanoTime() - startTimeNs < 10_000_000_000L) {
+                                ps.executeUpdate();
+                            }
+                        }
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                });
+                thread1.start();
+
+                try (PreparedStatement st = conn1.prepareStatement("select * from t1 where id = 1")) {
+                    while (System.nanoTime() - startTimeNs  < 10_000_000_000L) {
+                        st.executeQuery();
+                    }
+                }
+                thread1.join();
+            }
         }
     }
 }

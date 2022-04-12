@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2021 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -208,7 +208,7 @@ public final class Database implements DataHandler, CastDataProvider {
     private JavaObjectSerializer javaObjectSerializer;
     private String javaObjectSerializerName;
     private volatile boolean javaObjectSerializerInitialized;
-    private boolean queryStatistics;
+    private volatile boolean queryStatistics;
     private int queryStatisticsMaxEntries = Constants.QUERY_STATISTICS_MAX_ENTRIES;
     private QueryStatisticsData queryStatisticsData;
     private RowFactory rowFactory = RowFactory.getRowFactory();
@@ -769,7 +769,7 @@ public final class Database implements DataHandler, CastDataProvider {
         if (ASSERT) {
             lockMetaAssertion(session);
         }
-        return meta.lock(session, true, true);
+        return meta.lock(session, Table.EXCLUSIVE_LOCK);
     }
 
     private void lockMetaAssertion(SessionLocal session) {
@@ -2340,9 +2340,20 @@ public final class Database implements DataHandler, CastDataProvider {
         if (l == 0) {
             return false;
         }
-        for (int i = 0; i < l; i++) {
-            int ch = upperName.charAt(i);
-            if (ch < 'A' || ch > 'Z' && ch != '_') {
+        char c = upperName.charAt(0);
+        if (c < 'A' || c > 'Z') {
+            return false;
+        }
+        l--;
+        for (int i = 1; i < l; i++) {
+            c = upperName.charAt(i);
+            if ((c < 'A' || c > 'Z') && c != '_') {
+                return false;
+            }
+        }
+        if (l > 0) {
+            c = upperName.charAt(l);
+            if (c < 'A' || c > 'Z') {
                 return false;
             }
         }

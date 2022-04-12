@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2021 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -246,17 +246,9 @@ public class SelectUnion extends Query {
     }
 
     @Override
-    public void prepare() {
-        if (isPrepared) {
-            // sometimes a subquery is prepared twice (CREATE TABLE AS SELECT)
-            return;
-        }
-        if (!checkInit) {
-            throw DbException.getInternalError("not initialized");
-        }
-        isPrepared = true;
-        left.prepare();
-        right.prepare();
+    public void prepareExpressions() {
+        left.prepareExpressions();
+        right.prepareExpressions();
         int len = left.getColumnCount();
         // set the correct expressions now
         expressions = new ArrayList<>(len);
@@ -277,6 +269,13 @@ public class SelectUnion extends Query {
         }
         resultColumnCount = expressions.size();
         expressionArray = expressions.toArray(new Expression[0]);
+    }
+
+    @Override
+    public void preparePlan() {
+        left.preparePlan();
+        right.preparePlan();
+        isPrepared = true;
     }
 
     @Override

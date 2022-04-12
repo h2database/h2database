@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2021 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -74,7 +74,7 @@ public class CreateIndex extends SchemaCommand {
             throw DbException.get(ErrorCode.INDEX_ALREADY_EXISTS_1, indexName);
         }
         session.getUser().checkTableRight(table, Right.SCHEMA_OWNER);
-        table.lock(session, true, true);
+        table.lock(session, Table.EXCLUSIVE_LOCK);
         if (!table.isPersistIndexes()) {
             persistent = false;
         }

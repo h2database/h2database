@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2021 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -347,7 +347,7 @@ public class StringUtils {
                         throw getFormatException(s, i);
                     }
                     try {
-                        c = (char) (Integer.parseInt(s.substring(i + 1, i + 5), 16));
+                        c = (char) Integer.parseInt(s.substring(i + 1, i + 5), 16);
                     } catch (NumberFormatException e) {
                         throw getFormatException(s, i);
                     }
@@ -358,7 +358,7 @@ public class StringUtils {
                 default:
                     if (c >= '0' && c <= '9' && i + 2 < length) {
                         try {
-                            c = (char) (Integer.parseInt(s.substring(i, i + 3), 8));
+                            c = (char) Integer.parseInt(s.substring(i, i + 3), 8);
                         } catch (NumberFormatException e) {
                             throw getFormatException(s, i);
                         }
@@ -539,24 +539,6 @@ public class StringUtils {
             }
         }
         return builder.toString();
-    }
-
-    /**
-     * Join specified strings and add them to the specified string builder.
-     *
-     * @param builder string builder
-     * @param strings strings to join
-     * @param separator separator
-     * @return the specified string builder
-     */
-    public static StringBuilder join(StringBuilder builder, ArrayList<String> strings, String separator) {
-        for (int i = 0, l = strings.size(); i < l; i++) {
-            if (i > 0) {
-                builder.append(separator);
-            }
-            builder.append(strings.get(i));
-        }
-        return builder;
     }
 
     /**
@@ -1125,7 +1107,7 @@ public class StringUtils {
      * @param end the end index, exclusive
      * @return the specified output stream or a new output stream
      */
-    public static ByteArrayOutputStream convertHexWithSpacesToBytes(ByteArrayOutputStream baos, char[] s, int start,
+    public static ByteArrayOutputStream convertHexWithSpacesToBytes(ByteArrayOutputStream baos, String s, int start,
             int end) {
         if (baos == null) {
             baos = new ByteArrayOutputStream((end - start) >>> 1);
@@ -1139,7 +1121,7 @@ public class StringUtils {
                     if (i >= end) {
                         break loop;
                     }
-                    c1 = s[i++];
+                    c1 = s.charAt(i++);
                 } while (c1 == ' ');
                 do {
                     if (i >= end) {
@@ -1148,7 +1130,7 @@ public class StringUtils {
                         }
                         throw getHexStringException(ErrorCode.HEX_STRING_ODD_1, s, start, end);
                     }
-                    c2 = s[i++];
+                    c2 = s.charAt(i++);
                 } while (c2 == ' ');
                 int d = hex[c1] << 4 | hex[c2];
                 mask |= d;
@@ -1163,8 +1145,8 @@ public class StringUtils {
         return baos;
     }
 
-    private static DbException getHexStringException(int code, char[] s, int start, int end) {
-        return DbException.get(code, new String(s, start, end - start));
+    private static DbException getHexStringException(int code, String s, int start, int end) {
+        return DbException.get(code, s.substring(start, end));
     }
 
     /**

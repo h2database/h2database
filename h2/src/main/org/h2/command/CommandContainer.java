@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2021 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -136,9 +136,10 @@ public class CommandContainer extends Command {
             // TODO test with 'always recompile'
             prepared.setModificationMetaId(0);
             String sql = prepared.getSQL();
+            ArrayList<Token> tokens = prepared.getSQLTokens();
             ArrayList<Parameter> oldParams = prepared.getParameters();
             Parser parser = new Parser(session);
-            prepared = parser.parse(sql);
+            prepared = parser.parse(sql, tokens);
             long mod = prepared.getModificationMetaId();
             prepared.setModificationMetaId(0);
             ArrayList<Parameter> newParams = prepared.getParameters();

@@ -1,4 +1,4 @@
--- Copyright 2004-2021 H2 Group. Multiple-Licensed under the MPL 2.0,
+-- Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
 -- and the EPL 1.0 (https://h2database.com/html/license.html).
 -- Initial Developer: H2 Group
 --
@@ -1100,3 +1100,6 @@ SELECT T1, T2, (T1 - T2) YEAR TO MONTH, (T2 - T1) YEAR TO MONTH FROM (VALUES
 
 SELECT (DATE '2010-01-02' - DATE '2000-01-01') YEAR;
 >> INTERVAL '10' YEAR
+
+VALUES INTERVAL '100' YEAR(2);
+> exception INVALID_DATETIME_CONSTANT_2

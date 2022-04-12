@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2021 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -30,8 +30,6 @@ import org.h2.util.Tool;
  * responding, creating a backup using the Backup tool is possible by using the
  * quiet mode. However, if the database is changed while the backup is running
  * in quiet mode, the backup could be corrupt.
- *
- * @h2.resource
  */
 public class Backup extends Tool {
 
@@ -50,7 +48,6 @@ public class Backup extends Tool {
      * <tr><td>[-quiet]</td>
      * <td>Do not print progress information</td></tr>
      * </table>
-     * @h2.resource
      *
      * @param args the command line arguments
      * @throws SQLException on failure

@@ -1,4 +1,4 @@
--- Copyright 2004-2021 H2 Group. Multiple-Licensed under the MPL 2.0,
+-- Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
 -- and the EPL 1.0 (https://h2database.com/html/license.html).
 -- Initial Developer: H2 Group
 --
@@ -1002,3 +1002,45 @@ DROP SCHEMA S1 CASCADE;
 
 DROP SCHEMA S2 CASCADE;
 > ok
+
+CREATE TABLE T1(C1 INTEGER) AS VALUES 1, 2, 4;
+> ok
+
+CREATE TABLE T2(C2 INTEGER) AS VALUES 1, 3, 4;
+> ok
+
+CREATE TABLE T3(C3 INTEGER) AS VALUES 2, 3, 4;
+> ok
+
+SELECT * FROM T1 JOIN T2 LEFT JOIN T3 ON T2.C2 = T3.C3 ON T1.C1 = T2.C2;
+> C1 C2 C3
+> -- -- ----
+> 1  1  null
+> 4  4  4
+> rows: 2
+
+EXPLAIN SELECT * FROM T1 JOIN T2 LEFT JOIN T3 ON T2.C2 = T3.C3 ON T1.C1 = T2.C2;
+>> SELECT "PUBLIC"."T1"."C1", "PUBLIC"."T2"."C2", "PUBLIC"."T3"."C3" FROM ( "PUBLIC"."T2" /* PUBLIC.T2.tableScan */ LEFT OUTER JOIN "PUBLIC"."T3" /* PUBLIC.T3.tableScan */ ON "T2"."C2" = "T3"."C3" ) INNER JOIN "PUBLIC"."T1" /* PUBLIC.T1.tableScan */ ON 1=1 WHERE "T1"."C1" = "T2"."C2"
+
+SELECT * FROM T1 RIGHT JOIN T2 LEFT JOIN T3 ON T2.C2 = T3.C3 ON T1.C1 = T2.C2;
+> C1   C2 C3
+> ---- -- ----
+> 1    1  null
+> 4    4  4
+> null 3  3
+> rows: 3
+
+EXPLAIN SELECT * FROM T1 RIGHT JOIN T2 LEFT JOIN T3 ON T2.C2 = T3.C3 ON T1.C1 = T2.C2;
+>> SELECT "PUBLIC"."T1"."C1", "PUBLIC"."T2"."C2", "PUBLIC"."T3"."C3" FROM "PUBLIC"."T2" /* PUBLIC.T2.tableScan */ LEFT OUTER JOIN "PUBLIC"."T3" /* PUBLIC.T3.tableScan */ ON "T2"."C2" = "T3"."C3" LEFT OUTER JOIN "PUBLIC"."T1" /* PUBLIC.T1.tableScan */ ON "T1"."C1" = "T2"."C2"
+
+DROP TABLE T1, T2, T3;
+> ok
+
+SELECT X.A, Y.B, Z.C
+FROM (SELECT 1 A) X JOIN (
+    (SELECT 1 B) Y JOIN (SELECT 1 C) Z ON Z.C = Y.B
+) ON Y.B = X.A;
+> A B C
+> - - -
+> 1 1 1
+> rows: 1

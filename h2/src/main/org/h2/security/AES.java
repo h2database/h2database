@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2021 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -96,7 +96,7 @@ public class AES implements BlockCipher {
             encKey[e + 4] = encKey[e] ^ RCON[i]
                     ^ (FS[(encKey[e + 3] >> 16) & 255] << 24)
                     ^ (FS[(encKey[e + 3] >> 8) & 255] << 16)
-                    ^ (FS[(encKey[e + 3]) & 255] << 8)
+                    ^ (FS[encKey[e + 3] & 255] << 8)
                     ^ FS[(encKey[e + 3] >> 24) & 255];
             encKey[e + 5] = encKey[e + 1] ^ encKey[e + 4];
             encKey[e + 6] = encKey[e + 2] ^ encKey[e + 5];

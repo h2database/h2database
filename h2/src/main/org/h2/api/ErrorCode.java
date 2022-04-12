@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2021 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -1714,7 +1714,7 @@ public class ErrorCode {
 
     /**
      * The error with code <code>90110</code> is thrown when
-     * trying to compare values of incomparable data types.
+     * trying to compare or combine values of incomparable data types.
      * Example:
      * <pre>
      * CREATE TABLE test (id INT NOT NULL, name VARCHAR);

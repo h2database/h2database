@@ -1,15 +1,13 @@
 /*
- * Copyright 2004-2021 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.tools;
 
-import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -19,7 +17,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.concurrent.TimeUnit;
 
-import org.h2.engine.Constants;
 import org.h2.message.DbException;
 import org.h2.store.fs.FileUtils;
 import org.h2.util.IOUtils;
@@ -30,7 +27,6 @@ import org.h2.util.Tool;
 
 /**
  * Runs a SQL script against a database.
- * @h2.resource
  */
 public class RunScript extends Tool {
 
@@ -62,7 +58,6 @@ public class RunScript extends Tool {
      * <tr><td>[-options ...]</td>
      * <td>RUNSCRIPT options (embedded H2; -*Results not supported)</td></tr>
      * </table>
-     * @h2.resource
      *
      * @param args the command line arguments
      * @throws SQLException on failure
@@ -186,14 +181,11 @@ public class RunScript extends Tool {
     private void process(Connection conn, String fileName,
             boolean continueOnError, Charset charset) throws SQLException,
             IOException {
-        InputStream in = FileUtils.newInputStream(fileName);
-        String path = FileUtils.getParent(fileName);
+        BufferedReader reader = FileUtils.newBufferedReader(fileName, charset);
         try {
-            in = new BufferedInputStream(in, Constants.IO_BUFFER_SIZE);
-            Reader reader = new InputStreamReader(in, charset);
-            process(conn, continueOnError, path, reader, charset);
+            process(conn, continueOnError, FileUtils.getParent(fileName), reader, charset);
         } finally {
-            IOUtils.closeSilently(in);
+            IOUtils.closeSilently(reader);
         }
     }
 

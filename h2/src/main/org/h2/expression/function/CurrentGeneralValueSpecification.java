@@ -1,16 +1,18 @@
 /*
- * Copyright 2004-2021 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.expression.function;
 
+import org.h2.engine.Database;
 import org.h2.engine.SessionLocal;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.Operation0;
 import org.h2.message.DbException;
 import org.h2.util.HasSQL;
 import org.h2.util.ParserUtil;
+import org.h2.util.StringUtils;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
@@ -88,16 +90,24 @@ public final class CurrentGeneralValueSpecification extends Operation0 implement
             }
             break;
         }
-        case CURRENT_ROLE:
-            s = session.getDatabase().sysIdentifier(session.getDatabase().getPublicRole().getName());
+        case CURRENT_ROLE: {
+            Database db = session.getDatabase();
+            s = db.getPublicRole().getName();
+            if (db.getSettings().databaseToLower) {
+                s = StringUtils.toLowerEnglish(s);
+            }
             break;
+        }
         case CURRENT_SCHEMA:
             s = session.getCurrentSchemaName();
             break;
         case CURRENT_USER:
         case SESSION_USER:
         case SYSTEM_USER:
-            s = session.getDatabase().sysIdentifier(session.getUser().getName());
+            s = session.getUser().getName();
+            if (session.getDatabase().getSettings().databaseToLower) {
+                s = StringUtils.toLowerEnglish(s);
+            }
             break;
         default:
             throw DbException.getInternalError("specification=" + specification);

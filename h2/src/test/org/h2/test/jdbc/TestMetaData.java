@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2021 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -893,16 +893,16 @@ public class TestMetaData extends TestDb {
                         Types.VARCHAR }, null, null);
         assertResultSetOrdered(rs, new String[][] {
                 { CATALOG, Constants.SCHEMA_MAIN, "TEST", "FALSE", CATALOG,
-                        "IDX_DATE", "" + DatabaseMetaData.tableIndexStatistic, "1",
+                        "IDX_DATE", "" + DatabaseMetaData.tableIndexOther, "1",
                         "DATE_V", "A", "0", "0" },
                 { CATALOG, Constants.SCHEMA_MAIN, "TEST", "FALSE", CATALOG,
                         "PRIMARY_KEY_2", "" + DatabaseMetaData.tableIndexOther,
                         "1", "ID", "A", "0", "0" },
                 { CATALOG, Constants.SCHEMA_MAIN, "TEST", "TRUE", CATALOG,
-                        "IDX_TEXT_DEC", "" + DatabaseMetaData.tableIndexStatistic,
+                        "IDX_TEXT_DEC", "" + DatabaseMetaData.tableIndexOther,
                         "1", "TEXT_V", "A", "0", "0" },
                 { CATALOG, Constants.SCHEMA_MAIN, "TEST", "TRUE", CATALOG,
-                        "IDX_TEXT_DEC", "" + DatabaseMetaData.tableIndexStatistic,
+                        "IDX_TEXT_DEC", "" + DatabaseMetaData.tableIndexOther,
                         "2", "DEC_V", "A", "0", "0" }, },
                 new int[] { 11 });
         stat.executeUpdate("DROP INDEX IDX_TEXT_DEC");
@@ -992,13 +992,13 @@ public class TestMetaData extends TestDb {
                         "PRIMARY_KEY_14",
                         "" + DatabaseMetaData.tableIndexOther, "3", "B", "A" },
                 { CATALOG, Constants.SCHEMA_MAIN, "TX2", "TRUE", CATALOG,
-                        "B_INDEX", "" + DatabaseMetaData.tableIndexStatistic, "1",
+                        "B_INDEX", "" + DatabaseMetaData.tableIndexOther, "1",
                         "A", "A" },
                 { CATALOG, Constants.SCHEMA_MAIN, "TX2", "TRUE", CATALOG,
-                        "B_INDEX", "" + DatabaseMetaData.tableIndexStatistic, "2",
+                        "B_INDEX", "" + DatabaseMetaData.tableIndexOther, "2",
                         "B", "A" },
                 { CATALOG, Constants.SCHEMA_MAIN, "TX2", "TRUE", CATALOG,
-                        "B_INDEX", "" + DatabaseMetaData.tableIndexStatistic, "3",
+                        "B_INDEX", "" + DatabaseMetaData.tableIndexOther, "3",
                         "C", "A" }, },
                 new int[] { 11 });
         trace("getPrimaryKeys");

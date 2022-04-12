@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2021 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -30,7 +30,7 @@ import org.h2.util.geometry.EWKTUtils;
 import org.h2.util.geometry.EWKTUtils.EWKTTarget;
 import org.h2.util.geometry.GeometryUtils;
 import org.h2.util.geometry.GeometryUtils.DimensionSystemTarget;
-import org.h2.util.geometry.GeometryUtils.EnvelopeAndDimensionSystemTarget;
+import org.h2.util.geometry.GeometryUtils.EnvelopeTarget;
 import org.h2.util.geometry.GeometryUtils.Target;
 import org.h2.util.geometry.JTSUtils;
 import org.h2.util.geometry.JTSUtils.GeometryTarget;
@@ -41,6 +41,7 @@ import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryCollection;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKBWriter;
 import org.locationtech.jts.io.WKTReader;
 import org.locationtech.jts.io.WKTWriter;
@@ -197,7 +198,7 @@ public class TestGeometryUtils extends TestBase {
 
     private void testGeometry(String wkt, String h2Wkt, String jtsWkt, int numOfDimensions, boolean withEWKB)
             throws Exception {
-        Geometry geometryFromJTS = new WKTReader().read(wkt);
+        Geometry geometryFromJTS = readWKT(wkt);
         byte[] wkbFromJTS = new WKBWriter(numOfDimensions).write(geometryFromJTS);
 
         // Test WKB->WKT conversion
@@ -226,7 +227,7 @@ public class TestGeometryUtils extends TestBase {
         // Test Envelope
         Envelope envelopeFromJTS = geometryFromJTS.getEnvelopeInternal();
         testEnvelope(envelopeFromJTS, GeometryUtils.getEnvelope(wkbFromJTS));
-        EnvelopeAndDimensionSystemTarget target = new EnvelopeAndDimensionSystemTarget();
+        EnvelopeTarget target = new EnvelopeTarget();
         EWKBUtils.parseEWKB(wkbFromJTS, target);
         testEnvelope(envelopeFromJTS, target.getEnvelope());
 
@@ -269,23 +270,23 @@ public class TestGeometryUtils extends TestBase {
         assertEquals("POINT (1 2)", EWKTUtils.ewkb2ewkt(ewkb));
         Point p = (Point) JTSUtils.ewkb2geometry(ewkb);
         CoordinateSequence cs = p.getCoordinateSequence();
-        testDimensionXYCheckPoint(cs, false);
+        testDimensionXYCheckPoint(cs);
         assertEquals(ewkb, JTSUtils.geometry2ewkb(p));
         testDimensions(GeometryUtils.DIMENSION_SYSTEM_XY, ewkb);
         testValueGeometryProperties(ewkb);
 
-        p = (Point) new WKTReader().read("POINT (1 2)");
+        p = (Point) readWKT("POINT (1 2)");
         cs = p.getCoordinateSequence();
-        testDimensionXYCheckPoint(cs, true);
+        testDimensionXYCheckPoint(cs);
         ewkb = JTSUtils.geometry2ewkb(p);
         assertEquals("POINT (1 2)", EWKTUtils.ewkb2ewkt(ewkb));
         p = (Point) JTSUtils.ewkb2geometry(ewkb);
         cs = p.getCoordinateSequence();
-        testDimensionXYCheckPoint(cs, false);
+        testDimensionXYCheckPoint(cs);
     }
 
-    private void testDimensionXYCheckPoint(CoordinateSequence cs, boolean fromJTS) {
-        assertEquals(fromJTS ? 3 : 2, cs.getDimension());
+    private void testDimensionXYCheckPoint(CoordinateSequence cs) {
+        assertEquals(2, cs.getDimension());
         assertEquals(0, cs.getMeasures());
         assertEquals(1, cs.getOrdinate(0, X));
         assertEquals(2, cs.getOrdinate(0, Y));
@@ -304,7 +305,7 @@ public class TestGeometryUtils extends TestBase {
         testDimensions(GeometryUtils.DIMENSION_SYSTEM_XYZ, ewkb);
         testValueGeometryProperties(ewkb);
 
-        p = (Point) new WKTReader().read("POINT Z (1 2 3)");
+        p = (Point) readWKT("POINT Z (1 2 3)");
         cs = p.getCoordinateSequence();
         testDimensionZCheckPoint(cs);
         ewkb = JTSUtils.geometry2ewkb(p);
@@ -335,7 +336,7 @@ public class TestGeometryUtils extends TestBase {
         testDimensions(GeometryUtils.DIMENSION_SYSTEM_XYM, ewkb);
         testValueGeometryProperties(ewkb);
 
-        p = (Point) new WKTReader().read("POINT M (1 2 3)");
+        p = (Point) readWKT("POINT M (1 2 3)");
         cs = p.getCoordinateSequence();
         testDimensionMCheckPoint(cs);
         ewkb = JTSUtils.geometry2ewkb(p);
@@ -366,7 +367,7 @@ public class TestGeometryUtils extends TestBase {
         testDimensions(GeometryUtils.DIMENSION_SYSTEM_XYZM, ewkb);
         testValueGeometryProperties(ewkb);
 
-        p = (Point) new WKTReader().read("POINT ZM (1 2 3 4)");
+        p = (Point) readWKT("POINT ZM (1 2 3 4)");
         cs = p.getCoordinateSequence();
         testDimensionZMCheckPoint(cs);
         ewkb = JTSUtils.geometry2ewkb(p);
@@ -467,9 +468,6 @@ public class TestGeometryUtils extends TestBase {
         DimensionSystemTarget dst = new DimensionSystemTarget();
         EWKBUtils.parseEWKB(ewkb, dst);
         assertEquals(expected, dst.getDimensionSystem());
-        EnvelopeAndDimensionSystemTarget envelopeAndDimensionTarget = new EnvelopeAndDimensionSystemTarget();
-        EWKBUtils.parseEWKB(ewkb, envelopeAndDimensionTarget);
-        assertEquals(expected, envelopeAndDimensionTarget.getDimensionSystem());
     }
 
     private void testIntersectionAndUnion() {
@@ -522,6 +520,12 @@ public class TestGeometryUtils extends TestBase {
         assertThrows(IllegalArgumentException.class, () -> JTSUtils.ewkb2geometry(MIXED_WKB));
         Geometry g = new WKTReader().read(MIXED_WKT);
         assertThrows(IllegalArgumentException.class, () -> JTSUtils.geometry2ewkb(g));
+    }
+
+    private static Geometry readWKT(String text) throws ParseException {
+        WKTReader reader = new WKTReader();
+        reader.setIsOldJtsCoordinateSyntaxAllowed(false);
+        return reader.read(text);
     }
 
 }

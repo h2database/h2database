@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2021 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -124,6 +124,17 @@ public class FilePathMem extends FilePath {
         synchronized (MEMORY_FILES) {
             FileMemData d = MEMORY_FILES.get(name);
             return d == DIRECTORY;
+        }
+    }
+
+    @Override
+    public boolean isRegularFile() {
+        if (isRoot()) {
+            return false;
+        }
+        synchronized (MEMORY_FILES) {
+            FileMemData d = MEMORY_FILES.get(name);
+            return d != null && d != DIRECTORY;
         }
     }
 

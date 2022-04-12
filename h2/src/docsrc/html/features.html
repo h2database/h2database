@@ -1,6 +1,6 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <!--
-Copyright 2004-2021 H2 Group. Multiple-Licensed under the MPL 2.0,
+Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
 and the EPL 1.0 (https://h2database.com/html/license.html).
 Initial Developer: H2 Group
 -->
@@ -883,6 +883,8 @@ It means a NULL value may be specified for this column in INSERT command and it 
 </li><li>Attempt to reference a non-unique set of columns from a referential constraint
 will create an UNIQUE constraint on them automatically.
 </li><li>Unsafe comparison operators between numeric and boolean values are allowed.
+</li><li>IDENTITY() and SCOPE_IDENTITY() are supported, but both are implemented like SCOPE_IDENTITY()
+</li><li>SYSDATE, SYSTIMESTAMP, and TODAY are supported.
 </li></ul>
 
 <h3>DB2 Compatibility Mode</h3>
@@ -928,6 +930,7 @@ or the SQL statement <code>SET MODE HSQLDB</code>.
 </li><li>LIMIT / OFFSET clauses are supported.
 </li><li>MINUS can be used instead of EXCEPT.
 </li><li>Unsafe comparison operators between numeric and boolean values are allowed.
+</li><li>SYSDATE and TODAY are supported.
 </li></ul>
 
 <h3>MS SQL Server Compatibility Mode</h3>
@@ -1057,6 +1060,7 @@ or the SQL statement <code>SET MODE Oracle</code>.
 </li><li>SEQUENCE.NEXTVAL and SEQUENCE.CURRVAL are supported and return values with DECIMAL/NUMERIC data type.
 </li><li>Merge when matched clause may have WHERE clause.
 </li><li>MINUS can be used instead of EXCEPT.
+</li><li>SYSDATE and SYSTIMESTAMP are supported.
 </li></ul>
 
 <h3>PostgreSQL Compatibility Mode</h3>

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2021 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -27,7 +27,6 @@ import java.io.ByteArrayOutputStream;
 
 import org.h2.message.DbException;
 import org.h2.util.geometry.EWKBUtils.EWKBTarget;
-import org.h2.util.geometry.GeometryUtils.DimensionSystemTarget;
 import org.h2.util.geometry.GeometryUtils.Target;
 import org.locationtech.jts.geom.CoordinateSequence;
 import org.locationtech.jts.geom.Geometry;
@@ -236,11 +235,7 @@ public final class JTSUtils {
      * @return JTS geometry object
      */
     public static Geometry ewkb2geometry(byte[] ewkb) {
-        // Determine dimension system first
-        DimensionSystemTarget dimensionTarget = new DimensionSystemTarget();
-        EWKBUtils.parseEWKB(ewkb, dimensionTarget);
-        // Generate a Geometry
-        return ewkb2geometry(ewkb, dimensionTarget.getDimensionSystem());
+        return ewkb2geometry(ewkb, EWKBUtils.getDimensionSystem(ewkb));
     }
 
     /**
@@ -266,11 +261,7 @@ public final class JTSUtils {
      * @return EWKB representation
      */
     public static byte[] geometry2ewkb(Geometry geometry) {
-        // Determine dimension system first
-        DimensionSystemTarget dimensionTarget = new DimensionSystemTarget();
-        parseGeometry(geometry, dimensionTarget);
-        // Write an EWKB
-        return geometry2ewkb(geometry, dimensionTarget.getDimensionSystem());
+        return geometry2ewkb(geometry, getDimensionSystem(geometry));
     }
 
     /**
@@ -325,8 +316,7 @@ public final class JTSUtils {
             if (p.isEmpty()) {
                 target.addCoordinate(Double.NaN, Double.NaN, Double.NaN, Double.NaN, 0, 1);
             } else {
-                CoordinateSequence sequence = p.getCoordinateSequence();
-                addCoordinate(sequence, target, 0, 1);
+                addCoordinate(p.getCoordinateSequence(), target, 0, 1);
             }
             target.endObject(POINT);
         } else if (geometry instanceof LineString) {
@@ -336,7 +326,7 @@ public final class JTSUtils {
             LineString ls = (LineString) geometry;
             CoordinateSequence cs = ls.getCoordinateSequence();
             int numPoints = cs.size();
-            if (numPoints < 0 || numPoints == 1) {
+            if (numPoints == 1) {
                 throw new IllegalArgumentException();
             }
             target.startLineString(numPoints);
@@ -350,13 +340,10 @@ public final class JTSUtils {
             }
             Polygon p = (Polygon) geometry;
             int numInner = p.getNumInteriorRing();
-            if (numInner < 0) {
-                throw new IllegalArgumentException();
-            }
             CoordinateSequence cs = p.getExteriorRing().getCoordinateSequence();
             int size = cs.size();
             // Size may be 0 (EMPTY) or 4+
-            if (size < 0 || size >= 1 && size <= 3) {
+            if (size >= 1 && size <= 3) {
                 throw new IllegalArgumentException();
             }
             if (size == 0 && numInner > 0) {
@@ -369,7 +356,7 @@ public final class JTSUtils {
                     cs = p.getInteriorRingN(i).getCoordinateSequence();
                     size = cs.size();
                     // Size may be 0 (EMPTY) or 4+
-                    if (size < 0 || size >= 1 && size <= 3) {
+                    if (size >= 1 && size <= 3) {
                         throw new IllegalArgumentException();
                     }
                     target.startPolygonInner(size);
@@ -394,9 +381,6 @@ public final class JTSUtils {
                 type = GEOMETRY_COLLECTION;
             }
             int numItems = gc.getNumGeometries();
-            if (numItems < 0) {
-                throw new IllegalArgumentException();
-            }
             target.startCollection(type, numItems);
             for (int i = 0; i < numItems; i++) {
                 Target innerTarget = target.startCollectionItem(i, numItems);
@@ -440,6 +424,62 @@ public final class JTSUtils {
         double z = toCanonicalDouble(sequence.getZ(index));
         double m = toCanonicalDouble(sequence.getM(index));
         target.addCoordinate(x, y, z, m, index, total);
+    }
+
+    /**
+     * Determines a dimension system of a JTS Geometry object.
+     *
+     * @param geometry
+     *            geometry to parse
+     * @return the dimension system
+     */
+    public static int getDimensionSystem(Geometry geometry) {
+        int d = getDimensionSystem1(geometry);
+        return d >= 0 ? d : 0;
+    }
+
+    private static int getDimensionSystem1(Geometry geometry) {
+        int d;
+        if (geometry instanceof Point) {
+            d = getDimensionSystemFromSequence(((Point) geometry).getCoordinateSequence());
+        } else if (geometry instanceof LineString) {
+            d = getDimensionSystemFromSequence(((LineString) geometry).getCoordinateSequence());
+        } else if (geometry instanceof Polygon) {
+            d = getDimensionSystemFromSequence(((Polygon) geometry).getExteriorRing().getCoordinateSequence());
+        } else if (geometry instanceof GeometryCollection) {
+            d = -1;
+            GeometryCollection gc = (GeometryCollection) geometry;
+            for (int i = 0, l = gc.getNumGeometries(); i < l; i++) {
+                d = getDimensionSystem1(gc.getGeometryN(i));
+                if (d >= 0) {
+                    break;
+                }
+            }
+        } else {
+            throw new IllegalArgumentException();
+        }
+        return d;
+    }
+
+    private static int getDimensionSystemFromSequence(CoordinateSequence sequence) {
+        int size = sequence.size();
+        if (size > 0) {
+            for (int i = 0; i < size; i++) {
+                int d = getDimensionSystemFromCoordinate(sequence, i);
+                if (d >= 0) {
+                    return d;
+                }
+            }
+        }
+        return (sequence.hasZ() ? DIMENSION_SYSTEM_XYZ : 0) | (sequence.hasM() ? DIMENSION_SYSTEM_XYM : 0);
+    }
+
+    private static int getDimensionSystemFromCoordinate(CoordinateSequence sequence, int index) {
+        if (Double.isNaN(sequence.getX(index))) {
+            return -1;
+        }
+        return (!Double.isNaN(sequence.getZ(index)) ? DIMENSION_SYSTEM_XYZ : 0)
+                | (!Double.isNaN(sequence.getM(index)) ? DIMENSION_SYSTEM_XYM : 0);
     }
 
     private JTSUtils() {

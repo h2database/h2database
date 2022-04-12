@@ -1,6 +1,6 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <!--
-Copyright 2004-2021 H2 Group. Multiple-Licensed under the MPL 2.0,
+Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
 and the EPL 1.0 (https://h2database.com/html/license.html).
 Initial Developer: H2 Group
 -->
@@ -789,6 +789,15 @@ add the following snippet to your web.xml file (between the
 &lt;/listener&gt;
 </pre>
 <p>
+If your servlet container is already Servlet 5-compatible, use the following
+snippet instead:
+</p>
+<pre>
+&lt;listener&gt;
+    &lt;listener-class&gt;org.h2.server.web.JakartaDbStarter&lt;/listener-class&gt;
+&lt;/listener&gt;
+</pre>
+<p>
 For details on how to access the database, see the file <code>DbStarter.java</code>.
 By default this tool opens an embedded connection
 using the database URL <code>jdbc:h2:~/test</code>,
@@ -871,6 +880,10 @@ add the following configuration to your <code>web.xml</code>:
 </pre>
 <p>
 For details, see also <code>src/tools/WEB-INF/web.xml</code>.
+</p>
+<p>
+If your application is already Servlet 5-compatible, use the servlet class
+<code>org.h2.server.web.JakartaWebServlet</code> instead.
 </p>
 <p>
 To create a web application with just the H2 Console, run the following command:

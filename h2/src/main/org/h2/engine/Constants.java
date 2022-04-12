@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2021 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -15,23 +15,13 @@ public class Constants {
     /**
      * The build date is updated for each public release.
      */
-    public static final String BUILD_DATE = "2021-12-21";
-
-    /**
-     * The build date of the last stable release.
-     */
-    public static final String BUILD_DATE_STABLE = "2021-12-21";
+    public static final String BUILD_DATE = "2022-04-09";
 
     /**
      * Sequential version number. Even numbers are used for official releases,
      * odd numbers are used for development builds.
      */
-    public static final int BUILD_ID = 209;
-
-    /**
-     * The build id of the last stable release.
-     */
-    public static final int BUILD_ID_STABLE = 204;
+    public static final int BUILD_ID = 219;
 
     /**
      * Whether this is a snapshot version.
@@ -88,7 +78,7 @@ public class Constants {
     /**
      * The minor version of this database.
      */
-    public static final int VERSION_MINOR = 1;
+    public static final int VERSION_MINOR = 2;
 
     /**
      * The lock mode that means no locking is used at all.
@@ -277,8 +267,11 @@ public class Constants {
     /**
      * The maximum allowed length for character string, binary string, and other
      * data types based on them; excluding LOB data types.
+     * <p>
+     * This needs to be less than (2^31-8)/2 to avoid running into the limit on
+     * encoding data fields when storing rows.
      */
-    public static final int MAX_STRING_LENGTH = 1024 * 1024;
+    public static final int MAX_STRING_LENGTH = 1000_000_000;
 
     /**
      * The maximum allowed precision of numeric data types.
@@ -489,11 +482,6 @@ public class Constants {
      * version, and build id.
      */
     public static final String VERSION;
-
-    /**
-     * The last stable version name.
-     */
-    public static final String VERSION_STABLE = "2.0." + BUILD_ID_STABLE;
 
     /**
      * The complete version number of this database, consisting of

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2021 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import org.h2.security.AES;
 import org.h2.security.SHA256;
@@ -37,7 +38,7 @@ public class FileEncrypt extends FileBaseDefault {
      */
     static final int HEADER_LENGTH = BLOCK_SIZE;
 
-    private static final byte[] HEADER = "H2encrypt\n".getBytes();
+    private static final byte[] HEADER = "H2encrypt\n".getBytes(StandardCharsets.ISO_8859_1);
     private static final int SALT_POS = HEADER.length;
 
     /**

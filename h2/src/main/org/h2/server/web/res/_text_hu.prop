@@ -25,6 +25,7 @@ adminLoginCancel=Mégse
 adminLoginOk=OK
 adminLogout=Kilépés
 adminOthers=Más számítógépekről kezdeményezett kapcsolatok engedélyezése
+adminWebExternalNames=#External names or addresses of this server (comma-separated)
 adminPort=#Port number
 adminPortWeb=Webkiszolgáló portszáma
 adminRestart=A változtatások a kiszolgáló újraindítása után lépnek érvénybe

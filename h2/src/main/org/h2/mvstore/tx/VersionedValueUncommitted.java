@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2021 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -25,6 +25,8 @@ class VersionedValueUncommitted<T> extends VersionedValueCommitted<T> {
 
     /**
      * Create new VersionedValueUncommitted.
+     *
+     * @param <X> type of the value to get the VersionedValue for
      *
      * @param operationId combined log/transaction id
      * @param value value before commit

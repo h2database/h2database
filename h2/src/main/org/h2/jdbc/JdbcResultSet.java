@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2021 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -196,6 +196,7 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
 
     /**
      * Close the result set. This method also closes the statement if required.
+     * @param fromStatement if true - close statement in the end
      */
     void closeInternal(boolean fromStatement) {
         if (result != null) {
@@ -4275,6 +4276,15 @@ public final class JdbcResultSet extends TraceObject implements ResultSet {
      */
     public Value[] getUpdateRow() {
         return updateRow;
+    }
+
+    /**
+     * INTERNAL
+     *
+     * @return result
+     */
+    public ResultInterface getResult() {
+        return result;
     }
 
 }

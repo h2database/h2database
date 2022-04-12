@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2021 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -609,6 +609,8 @@ public class TypeInfo extends ExtTypeInfo implements Typed {
         case Value.DOUBLE:
             precision = -1L;
             break;
+        case Value.GEOMETRY:
+            return getHigherGeometry(type1, type2);
         case Value.ARRAY:
             return getHigherArray(type1, type2, dimensions(type1), dimensions(type2));
         case Value.ROW:
@@ -621,6 +623,44 @@ public class TypeInfo extends ExtTypeInfo implements Typed {
                 precision, //
                 Math.max(type1.getScale(), type2.getScale()), //
                 dataType == t1 && ext1 != null ? ext1 : dataType == t2 ? type2.extTypeInfo : null);
+    }
+
+    private static TypeInfo getHigherGeometry(TypeInfo type1, TypeInfo type2) {
+        ExtTypeInfo ext1 = type1.getExtTypeInfo(), ext2 = type2.getExtTypeInfo();
+        if (ext1 instanceof ExtTypeInfoGeometry) {
+            if (ext2 instanceof ExtTypeInfoGeometry) {
+                ExtTypeInfoGeometry g1 = (ExtTypeInfoGeometry) ext1, g2 = (ExtTypeInfoGeometry) ext2;
+                Integer srid = g1.getSrid();
+                if (!Objects.equals(srid, g2.getSrid())) {
+                    throw DbException.get(ErrorCode.TYPES_ARE_NOT_COMPARABLE_2, type1.getTraceSQL(),
+                            type2.getTraceSQL());
+                }
+                if (g1.getType() == g2.getType()) {
+                    return type1;
+                }
+                return srid == null ? TypeInfo.TYPE_GEOMETRY
+                        : TypeInfo.getTypeInfo(Value.GEOMETRY, -1, -1, new ExtTypeInfoGeometry(0, srid));
+            } else {
+                return getHigherGeometry(type1, ext1, type2);
+            }
+        } else if (ext2 instanceof ExtTypeInfoGeometry) {
+            return getHigherGeometry(type2, ext2, type1);
+        } else {
+            return TypeInfo.TYPE_GEOMETRY;
+        }
+    }
+
+    private static TypeInfo getHigherGeometry(TypeInfo geometryType, ExtTypeInfo geometryExt, TypeInfo otherType) {
+        if (otherType.getValueType() != Value.GEOMETRY) {
+            return geometryType;
+        }
+        ExtTypeInfoGeometry g = (ExtTypeInfoGeometry) geometryExt;
+        if (g.getType() == 0) {
+            return geometryType;
+        }
+        Integer srid = g.getSrid();
+        return srid == null ? TypeInfo.TYPE_GEOMETRY
+                : TypeInfo.getTypeInfo(Value.GEOMETRY, -1, -1, new ExtTypeInfoGeometry(0, srid));
     }
 
     private static int dimensions(TypeInfo type) {

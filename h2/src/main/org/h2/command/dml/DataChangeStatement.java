@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2021 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -17,6 +17,8 @@ import org.h2.table.Table;
  */
 public abstract class DataChangeStatement extends Prepared {
 
+    private boolean isPrepared;
+
     /**
      * Creates new instance of DataChangeStatement.
      *
@@ -26,6 +28,17 @@ public abstract class DataChangeStatement extends Prepared {
     protected DataChangeStatement(SessionLocal session) {
         super(session);
     }
+
+    @Override
+    public final void prepare() {
+        if (isPrepared) {
+            return;
+        }
+        doPrepare();
+        isPrepared = true;
+    }
+
+    abstract void doPrepare();
 
     /**
      * Return the name of this statement.

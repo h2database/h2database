@@ -25,6 +25,7 @@ adminLoginCancel=Annuler
 adminLoginOk=OK
 adminLogout=Déconnexion
 adminOthers=Autoriser les connexions d'ordinateurs distants
+adminWebExternalNames=#External names or addresses of this server (comma-separated)
 adminPort=Numéro de port
 adminPortWeb=Numéro de port du serveur Web
 adminRestart=Modifications effectuées après redémarrage du serveur.

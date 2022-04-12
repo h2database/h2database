@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2021 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -176,6 +176,13 @@ public abstract class FilePath {
      * @return true if it is a directory
      */
     public abstract boolean isDirectory();
+
+    /**
+     * Check if it is a regular file.
+     *
+     * @return true if it is a regular file
+     */
+    public abstract boolean isRegularFile();
 
     /**
      * Check if the file name includes a path.

@@ -9,6 +9,7 @@ import static org.h2.mvstore.MVStore.INITIAL_VERSION;
 import org.h2.mvstore.cache.CacheLongKeyLIRS;
 import org.h2.mvstore.type.StringDataType;
 import org.h2.util.MathUtils;
+import org.h2.util.Utils;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
@@ -36,11 +37,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
@@ -442,8 +441,8 @@ public abstract class FileStore
                     BackgroundWriterThread t = new BackgroundWriterThread(this, sleep, toString());
                     if (backgroundWriterThread.compareAndSet(null, t)) {
                         t.start();
-                        serializationExecutor = createSingleThreadExecutor("H2-serialization");
-                        bufferSaveExecutor = createSingleThreadExecutor("H2-save");
+                        serializationExecutor = Utils.createSingleThreadExecutor("H2-serialization");
+                        bufferSaveExecutor = Utils.createSingleThreadExecutor("H2-save");
                     }
                 }
             }
@@ -1568,7 +1567,7 @@ public abstract class FileStore
                 return hwm;
             } catch (RejectedExecutionException ex) {
                 assert executor.isShutdown();
-                shutdownExecutor(executor);
+                Utils.shutdownExecutor(executor);
             }
         }
         action.run();
@@ -1884,16 +1883,6 @@ public abstract class FileStore
         return (int) (100 * hits / (hits + cache.getMisses() + 1));
     }
 
-    private static ThreadPoolExecutor createSingleThreadExecutor(String threadName) {
-        return new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS,
-                                        new LinkedBlockingQueue<>(),
-                                        r -> {
-                                            Thread thread = new Thread(r, threadName);
-                                            thread.setDaemon(true);
-                                            return thread;
-                                        });
-    }
-
     public boolean isBackgroundThread() {
         return Thread.currentThread() == backgroundWriterThread.get();
     }
@@ -1926,22 +1915,10 @@ public abstract class FileStore
     }
 
     private void shutdownExecutors() {
-        shutdownExecutor(serializationExecutor);
+        Utils.shutdownExecutor(serializationExecutor);
         serializationExecutor = null;
-        shutdownExecutor(bufferSaveExecutor);
+        Utils.shutdownExecutor(bufferSaveExecutor);
         bufferSaveExecutor = null;
-    }
-
-    static void shutdownExecutor(ThreadPoolExecutor executor) {
-        if (executor != null) {
-            executor.shutdown();
-            try {
-                if (executor.awaitTermination(1000, TimeUnit.MILLISECONDS)) {
-                    return;
-                }
-            } catch (InterruptedException ignore) {/**/}
-            executor.shutdownNow();
-        }
     }
 
     private Iterable<Chunk> findOldChunks(int writeLimit, int targetFillRate) {

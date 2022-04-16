@@ -17,9 +17,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.RejectedExecutionException;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
@@ -264,14 +261,6 @@ public class MVStore implements AutoCloseable {
             fileStoreShallBeClosed = fileStoreIsAdopted != null && fileStoreIsAdopted;
         }
         this.fileStore = fileStore;
-        cleanupExecutor = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS,
-                                                new LinkedBlockingQueue<>(),
-                                                r -> {
-                                                    Thread thread = new Thread(r, "H2-lob-cleaner");
-                                                    thread.setDaemon(true);
-                                                    return thread;
-                                                });
-
         keysPerPage = DataUtils.getConfigParam(config, "keysPerPage", 48);
         backgroundExceptionHandler =
                 (UncaughtExceptionHandler)config.get("backgroundExceptionHandler");
@@ -633,7 +622,6 @@ public class MVStore implements AutoCloseable {
      */
     public void close(int allowedCompactionTime) {
         if (!isClosed()) {
-            FileStore.shutdownExecutor(cleanupExecutor);
             if (fileStore != null) {
                 boolean compactFully = allowedCompactionTime == -1;
                 if (fileStore.isReadOnly()) {
@@ -1395,25 +1383,13 @@ public class MVStore implements AutoCloseable {
                         oldestVersionToKeep.compareAndSet(current, version);
         } while (!success);
 
-    public void setCleaner(Cleaner cleaner) {
-        this.cleaner = cleaner;
-    }
-
-    private void notifyAboutOldestVersion(long oldestVersionToKeep) {
-        if (cleaner != null && cleaner.needCleanup()) {
-            Runnable blobCleaner = () -> {
-                notifyCleaner(oldestVersionToKeep);
-            };
-            try {
-                cleanupExecutor.execute(blobCleaner);
-            } catch (RejectedExecutionException ignore) {/**/}
+        if (oldestVersionTracker != null) {
+            oldestVersionTracker.accept(version);
         }
     }
 
-    private void notifyCleaner(long oldestVersionToKeep) {
-        if (cleaner != null && cleaner.needCleanup()) {
-            cleaner.cleanup(oldestVersionToKeep);
-        }
+    public void setOldestVersionTracker(LongConsumer callback) {
+        oldestVersionTracker = callback;
     }
 
     /**

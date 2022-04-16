@@ -5,10 +5,8 @@
  */
 package org.h2.test.store;
 
-import java.io.BufferedInputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.ConcurrentModificationException;
@@ -162,7 +160,7 @@ public class TestMVStoreConcurrent extends TestMVStore {
                 new Object[]{ new byte[]{(byte) -1, (byte) 1}, 20L},
                 new Object[]{ new byte[]{(byte) 1, (byte) -1}, 5},
         };
-        Arrays.sort(data, type::compare);
+        Arrays.sort(data, type);
         Task[] tasks = new Task[2];
         for (int i = 0; i < tasks.length; i++) {
             tasks[i] = new Task() {
@@ -316,8 +314,6 @@ public class TestMVStoreConcurrent extends TestMVStore {
             Thread.sleep(1);
             for (int i = 0; !task.isFinished() && !task2.isFinished() && i < 1000; i++) {
                 MVMap<Integer, Integer> map = s.openMap("d" + (i % 3));
-                // MVMap<Integer, Integer> map = s.openMap("d" + (i % 3),
-                //         new MVMapConcurrent.Builder<Integer, Integer>());
                 map.put(0, i);
                 map.get(0);
                 s.commit();

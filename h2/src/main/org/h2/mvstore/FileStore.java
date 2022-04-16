@@ -332,8 +332,8 @@ public abstract class FileStore
         return new TreeMap<>(layout);
     }
 
-    public final boolean isSpecialMap(MVMap<?,?> map) {
-        return map == layout;
+    public final boolean isRegularMap(MVMap<?,?> map) {
+        return map != layout;
     }
 
     /**
@@ -2277,7 +2277,7 @@ public abstract class FileStore
             return buff;
         }
 
-        public int getChunkId() {
+        private int getChunkId() {
             return chunk.id;
         }
 
@@ -2288,7 +2288,14 @@ public abstract class FileStore
         public long getPagePosition(int mapId, int offset, int pageLength, int type) {
             long tocElement = DataUtils.getTocElement(mapId, offset, pageLength, type);
             toc.add(tocElement);
-            return DataUtils.composePagePos(chunk.id, tocElement);
+            long pagePos = DataUtils.composePagePos(chunk.id, tocElement);
+            int chunkId = getChunkId();
+            int check = DataUtils.getCheckValue(chunkId)
+                    ^ DataUtils.getCheckValue(offset)
+                    ^ DataUtils.getCheckValue(pageLength);
+            buff.putInt(offset, pageLength).
+                putShort(offset + 4, (short) check);
+            return pagePos;
         }
 
         public void onPageSerialized(Page<?,?> page, boolean isDeleted, int diskSpaceUsed, boolean isPinned) {

@@ -362,7 +362,7 @@ public class MVStore implements AutoCloseable {
         }
     }
 
-    void unlockAndCheckPanicCondition() {
+    private void unlockAndCheckPanicCondition() {
         storeLock.unlock();
         MVStoreException exception = getPanicException();
         if (exception != null) {
@@ -475,13 +475,13 @@ public class MVStore implements AutoCloseable {
     public <M extends MVMap<K, V>, K, V> M openMap(int id, MVMap.MapBuilder<M, K, V> builder) {
         M map;
         while ((map = (M)getMap(id)) == null) {
-                String configAsString = meta.get(MVMap.getMapKey(id));
-                DataUtils.checkArgument(configAsString != null, "Missing map with id {0}", id);
-                HashMap<String, Object> config = new HashMap<>(DataUtils.parseMap(configAsString));
-                config.put("id", id);
-                map = builder.create(this, config);
-                long root = getRootPos(id);
-                map.setRootPos(root, currentVersion);
+            String configAsString = meta.get(MVMap.getMapKey(id));
+            DataUtils.checkArgument(configAsString != null, "Missing map with id {0}", id);
+            HashMap<String, Object> config = new HashMap<>(DataUtils.parseMap(configAsString));
+            config.put("id", id);
+            map = builder.create(this, config);
+            long root = getRootPos(id);
+            map.setRootPos(root, currentVersion);
             if (maps.putIfAbsent(id, map) == null) {
                 break;
             }
@@ -542,8 +542,8 @@ public class MVStore implements AutoCloseable {
         return fileStore == null ? null : fileStore.getLayoutMap();
     }
 
-    private boolean isSpecialMap(MVMap<?,?> map) {
-        return fileStore != null && fileStore.isSpecialMap(map) || map == meta;
+    private boolean isRegularMap(MVMap<?,?> map) {
+        return map != meta && (fileStore == null || fileStore.isRegularMap(map));
     }
 
     /**
@@ -596,7 +596,7 @@ public class MVStore implements AutoCloseable {
         return lastMapId.get();
     }
 
-    int getNextMapId() {
+    private int getNextMapId() {
         return lastMapId.incrementAndGet();
     }
 
@@ -719,7 +719,7 @@ public class MVStore implements AutoCloseable {
     private void setWriteVersion(long version) {
         for (Iterator<MVMap<?, ?>> iter = maps.values().iterator(); iter.hasNext(); ) {
             MVMap<?, ?> map = iter.next();
-            assert !isSpecialMap(map);
+            assert isRegularMap(map);
             if (map.setWriteVersion(version) == null) {
                 iter.remove();
             }
@@ -1473,7 +1473,7 @@ public class MVStore implements AutoCloseable {
                 // map root lock
                 (storeLock.isHeldByCurrentThread() || !map.getRoot().isLockedByCurrentThread()) &&
                 // to avoid infinite recursion via store() -> dropUnusedChunks() -> layout.remove()
-                !fileStore.isSpecialMap(map)) {
+                fileStore.isRegularMap(map)) {
             saveNeeded = false;
             // check again, because it could have been written by now
             if (autoCommitMemory > 0 && needStore()) {
@@ -1634,7 +1634,7 @@ public class MVStore implements AutoCloseable {
      */
     public void renameMap(MVMap<?, ?> map, String newName) {
         checkOpen();
-        DataUtils.checkArgument(!isSpecialMap(map), "Renaming the meta map is not allowed");
+        DataUtils.checkArgument(isRegularMap(map), "Renaming the meta map is not allowed");
         int id = map.getId();
         String oldName = getMapName(id);
         if (oldName != null && !oldName.equals(newName)) {
@@ -1662,7 +1662,7 @@ public class MVStore implements AutoCloseable {
         storeLock.lock();
         try {
             checkOpen();
-            DataUtils.checkArgument(!isSpecialMap(map), "Removing the meta map is not allowed");
+            DataUtils.checkArgument(isRegularMap(map), "Removing the meta map is not allowed");
             RootReference<?,?> rootReference = map.clearIt();
             map.close();
 

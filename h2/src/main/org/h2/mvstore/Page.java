@@ -764,12 +764,6 @@ public abstract class Page<K,V> implements Cloneable {
         }
         int pageLength = buff.position() - start;
         long pagePos = pageSerializationManager.getPagePosition(getMapId(), start, pageLength, type);
-        int chunkId = pageSerializationManager.getChunkId();
-        int check = DataUtils.getCheckValue(chunkId)
-                ^ DataUtils.getCheckValue(start)
-                ^ DataUtils.getCheckValue(pageLength);
-        buff.putInt(start, pageLength).
-            putShort(start + 4, (short) check);
         if (isSaved()) {
             throw DataUtils.newMVStoreException(
                     DataUtils.ERROR_INTERNAL, "Page already stored");

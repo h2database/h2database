@@ -28,7 +28,6 @@ import org.h2.mvstore.MVStore;
 import org.h2.mvstore.MVStoreException;
 import org.h2.mvstore.WriteBuffer;
 import org.h2.mvstore.type.ObjectDataType;
-import org.h2.store.fs.FileChannelInputStream;
 import org.h2.store.fs.FilePath;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
@@ -585,7 +584,7 @@ public class TestMVStoreConcurrent extends TestMVStore {
 
     private void testConcurrentOnlineBackup() throws Exception {
         String fileName = getBaseDir() + "/" + getTestName();
-        String fileNameRestore = getBaseDir() + "/" + getTestName() + "2";
+        String fileNameRestore = getBaseDir() + "/" + getTestName() + ".bck";
         FileUtils.delete(fileName);
         FileUtils.delete(fileNameRestore);
         try (final MVStore s = openStore(fileName)) {
@@ -623,12 +622,13 @@ public class TestMVStoreConcurrent extends TestMVStore {
                         }
                     }
 
-                    ZipFile zipFile = new ZipFile(archiveName);
-                    String name = FilePath.get(s.getFileStore().getFileName()).getName();
-                    ZipEntry zipEntry = zipFile.getEntry(name);
-                    try (InputStream inputStream = zipFile.getInputStream(zipEntry)) {
-                        try (OutputStream out = FilePath.get(fileNameRestore).newOutputStream(false)) {
-                            IOUtils.copy(inputStream, out);
+                    try (ZipFile zipFile = new ZipFile(archiveName)) {
+                        String name = FilePath.get(s.getFileStore().getFileName()).getName();
+                        ZipEntry zipEntry = zipFile.getEntry(name);
+                        try (InputStream inputStream = zipFile.getInputStream(zipEntry)) {
+                            try (OutputStream out = FilePath.get(fileNameRestore).newOutputStream(false)) {
+                                IOUtils.copy(inputStream, out);
+                            }
                         }
                     }
 
@@ -643,21 +643,6 @@ public class TestMVStoreConcurrent extends TestMVStore {
                 }
             } finally {
                 task.get();
-            }
-        }
-    }
-
-    private static void copyFileSlowly(FileChannel file, long length, OutputStream out)
-            throws Exception {
-        file.position(0);
-        try (InputStream in = new BufferedInputStream(new FileChannelInputStream(
-                file, false))) {
-            for (int j = 0; j < length; j++) {
-                int x = in.read();
-                if (x < 0) {
-                    break;
-                }
-                out.write(x);
             }
         }
     }

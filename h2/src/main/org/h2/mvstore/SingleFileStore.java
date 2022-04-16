@@ -6,7 +6,6 @@
 package org.h2.mvstore;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
@@ -15,7 +14,6 @@ import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import org.h2.mvstore.cache.FilePathCache;
-import org.h2.store.fs.FileChannelInputStream;
 import org.h2.store.fs.FilePath;
 import org.h2.store.fs.encrypt.FileEncrypt;
 import org.h2.store.fs.encrypt.FilePathEncrypt;
@@ -31,12 +29,12 @@ public class SingleFileStore extends RandomAccessStore {
     /**
      * The file.
      */
-    private FileChannel file;
+    private FileChannel fileChannel;
 
     /**
      * The encrypted file (if encryption is used).
      */
-    private FileChannel encryptedFile;
+    private FileChannel originalFileChannel;
 
     /**
      * The file lock.
@@ -63,7 +61,7 @@ public class SingleFileStore extends RandomAccessStore {
      * @return the byte buffer
      */
     public ByteBuffer readFully(int volumeId, long pos, int len) {
-        return readFully(this.file, pos, len);
+        return readFully(this.fileChannel, pos, len);
     }
 
     /**
@@ -72,10 +70,10 @@ public class SingleFileStore extends RandomAccessStore {
      * @param pos the write position
      * @param src the source buffer
      */
-    public void writeFully(int volumeId, long pos, ByteBuffer src) {
+    protected void writeFully(int volumeId, long pos, ByteBuffer src) {
         int len = src.remaining();
         setSize(Math.max(super.size(), pos + len));
-        DataUtils.writeFully(file, pos, src);
+        DataUtils.writeFully(fileChannel, pos, src);
         writeCount.incrementAndGet();
         writeBytes.addAndGet(len);
     }
@@ -90,7 +88,7 @@ public class SingleFileStore extends RandomAccessStore {
     @Override
     public void open(String fileName, boolean readOnly, char[] encryptionKey,
                      MVStore mvStore) {
-        if (file != null && file.isOpen()) {
+        if (fileChannel != null && fileChannel.isOpen()) {
             return;
         }
         // ensure the Cache file system is registered
@@ -106,17 +104,17 @@ public class SingleFileStore extends RandomAccessStore {
         }
         super.open(fileName, readOnly, encryptionKey, mvStore);
         try {
-            file = f.open(readOnly ? "r" : "rw");
+            fileChannel = f.open(readOnly ? "r" : "rw");
             if (encryptionKey != null) {
                 byte[] key = FilePathEncrypt.getPasswordBytes(encryptionKey);
-                encryptedFile = file;
-                file = new FileEncrypt(fileName, key, file);
+                originalFileChannel = fileChannel;
+                fileChannel = new FileEncrypt(fileName, key, fileChannel);
             }
             try {
                 if (readOnly) {
-                    fileLock = file.tryLock(0, Long.MAX_VALUE, true);
+                    fileLock = fileChannel.tryLock(0, Long.MAX_VALUE, true);
                 } else {
-                    fileLock = file.tryLock();
+                    fileLock = fileChannel.tryLock();
                 }
             } catch (OverlappingFileLockException e) {
                 throw DataUtils.newMVStoreException(
@@ -131,7 +129,7 @@ public class SingleFileStore extends RandomAccessStore {
             }
             saveChunkLock.lock();
             try {
-                setSize(file.size());
+                setSize(fileChannel.size());
             } finally {
                 saveChunkLock.unlock();
             }
@@ -149,11 +147,11 @@ public class SingleFileStore extends RandomAccessStore {
     @Override
     public void close() {
         try {
-            if(file.isOpen()) {
+            if(fileChannel.isOpen()) {
                 if (fileLock != null) {
                     fileLock.release();
                 }
-                file.close();
+                fileChannel.close();
             }
         } catch (Exception e) {
             throw DataUtils.newMVStoreException(
@@ -170,9 +168,9 @@ public class SingleFileStore extends RandomAccessStore {
      */
     @Override
     public void sync() {
-        if (file.isOpen()) {
+        if (fileChannel.isOpen()) {
             try {
-                file.force(true);
+                fileChannel.force(true);
             } catch (IOException e) {
                 throw DataUtils.newMVStoreException(
                         DataUtils.ERROR_WRITING_FAILED,
@@ -191,7 +189,7 @@ public class SingleFileStore extends RandomAccessStore {
         while (true) {
             try {
                 writeCount.incrementAndGet();
-                file.truncate(size);
+                fileChannel.truncate(size);
                 setSize(Math.min(super.size(), size));
                 return;
             } catch (IOException e) {
@@ -208,30 +206,6 @@ public class SingleFileStore extends RandomAccessStore {
     }
 
     /**
-     * Get the file instance in use.
-     * <p>
-     * The application may read from the file (for example for online backup),
-     * but not write to it or truncate it.
-     *
-     * @return the file
-     */
-    public FileChannel getFile() {
-        return file;
-    }
-
-    /**
-     * Get the encrypted file instance, if encryption is used.
-     * <p>
-     * The application may read from the file (for example for online backup),
-     * but not write to it or truncate it.
-     *
-     * @return the encrypted file, or null if encryption is not used
-     */
-    public FileChannel getEncryptedFile() {
-        return encryptedFile;
-    }
-
-    /**
      * Calculates relative "priority" for chunk to be moved.
      *
      * @param block where chunk starts
@@ -245,31 +219,21 @@ public class SingleFileStore extends RandomAccessStore {
         return freeSpace.getAfterLastBlock();
     }
 
-    public InputStream getInputStream() {
-        FileChannel fc = getEncryptedFile();
-        if (fc == null) {
-            fc = getFile();
-        }
-        writeCleanShutdown();
-        return new FileChannelInputStream(fc, false);
-    }
-
     public void backup(ZipOutputStream out) throws IOException {
         boolean before = isSpaceReused();
         setReuseSpace(false);
         try {
-            InputStream in = getInputStream();
-            backupFile(out, getFileName(), in);
+            backupFile(out, getFileName(), originalFileChannel != null ? originalFileChannel : fileChannel);
         } finally {
             setReuseSpace(before);
         }
     }
 
-    private static void backupFile(ZipOutputStream out, String fileName, InputStream in) throws IOException {
+    private static void backupFile(ZipOutputStream out, String fileName, FileChannel in) throws IOException {
         String f = FilePath.get(fileName).toRealPath().getName();
         f = correctFileName(f);
         out.putNextEntry(new ZipEntry(f));
-        IOUtils.copyAndCloseInput(in, out);
+        IOUtils.copy(in, out);
         out.closeEntry();
     }
 

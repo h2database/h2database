@@ -13,8 +13,7 @@ import java.util.TreeMap;
 import java.util.zip.ZipOutputStream;
 
 /**
- * A storage mechanism that "persists" data in the off-heap area of the main
- * memory.
+ * A storage mechanism that "persists" data in the off-heap area of the main memory.
  */
 public class OffHeapStore extends RandomAccessStore {
 
@@ -67,7 +66,7 @@ public class OffHeapStore extends RandomAccessStore {
 
     @Override
     public void writeFully(int volumeId, long pos, ByteBuffer src) {
-        setSize(Math.max(super.size(), pos + src.remaining()));
+        setSize(Math.max(size(), pos + src.remaining()));
         Entry<Long, ByteBuffer> mem = memory.floorEntry(pos);
         if (mem == null) {
             // not found: create a new entry

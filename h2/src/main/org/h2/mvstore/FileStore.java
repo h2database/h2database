@@ -51,7 +51,7 @@ import java.util.zip.ZipOutputStream;
  * FileStore concept revolves around notion of a "chunk", which is a piece of data
  * written into the store at once.
  *
- * @author <a href='mailto:andrei.tokar@gmail.com'>Andrei Tokar</a>
+ * @author <a href="mailto:andrei.tokar@gmail.com">Andrei Tokar</a>
  */
 public abstract class FileStore
 {

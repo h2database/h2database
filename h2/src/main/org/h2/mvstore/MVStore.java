@@ -1358,20 +1358,13 @@ public class MVStore implements AutoCloseable {
      * Previously it was used only in case of non-persistent MVStore.
      * Now it's honored in all cases (although H2 always sets it to zero).
      * Oldest version determination also takes into account calls (de)registerVersionUsage(),
-     * an will not release the version, while version is still in use.
+     * and will not release the version, while version is still in use.
      *
      * @return the version
      */
     long getOldestVersionToKeep() {
-        long v = oldestVersionToKeep.get();
-        v = Math.max(v - versionsToKeep, INITIAL_VERSION);
-        if (fileStore != null) {
-            long storeVersion = fileStore.lastChunkVersion();
-            if (storeVersion != INITIAL_VERSION && storeVersion < v) {
-                v = storeVersion;
-            }
-        }
-        return v;
+        return Math.min(oldestVersionToKeep.get(),
+                        Math.max(currentVersion - versionsToKeep, INITIAL_VERSION));
     }
 
     private void setOldestVersionToKeep(long version) {

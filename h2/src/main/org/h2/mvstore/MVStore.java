@@ -665,6 +665,7 @@ public class MVStore implements AutoCloseable {
         while (!isClosed()) {
             if (fileStore != null) {
                 fileStore.stopBackgroundThread(normalShutdown);
+                setOldestVersionTracker(null);
             }
             setOldestVersionTracker(null);
             storeLock.lock();

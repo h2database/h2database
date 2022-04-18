@@ -464,7 +464,15 @@ public final class Chunk {
                             "Illegal page length {0} reading at {1}; max pos {2} ", length, filePos, maxPos);
                 }
 
-                ByteBuffer buff = readFully(fileStore, filePos, length);
+                ByteBuffer buff = buffer;
+                if (buff == null) {
+                    buff = readFully(fileStore, filePos, length);
+                } else {
+                    buff = buff.duplicate();
+                    buff.position(offset);
+                    buff = buff.slice();
+                    buff.limit(length);
+                }
 
                 if (originalBlock == block) {
                     return buff;

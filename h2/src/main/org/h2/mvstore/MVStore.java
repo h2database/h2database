@@ -231,7 +231,6 @@ public class MVStore implements AutoCloseable {
      * Callback for maintenance after some unused store versions were dropped
      */
     private volatile LongConsumer oldestVersionTracker;
-    private ThreadPoolExecutor cleanupExecutor;
 
 
     /**

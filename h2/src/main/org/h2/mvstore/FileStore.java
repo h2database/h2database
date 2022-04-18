@@ -2029,13 +2029,13 @@ public abstract class FileStore
         // all task submissions to it are done under storeLock,
         // it is guaranteed, that upon this dummy task completion
         // there are no pending / in-progress task here
-        submitOrRun(serializationExecutor, () -> {}, true, 0, Integer.MAX_VALUE);
+        Utils.flushExecutor(serializationExecutor);
         serializationLock.lock();
         try {
             // similarly, all task submissions to bufferSaveExecutor
             // are done under serializationLock, and upon this dummy task completion
             // it will be no pending / in-progress task here
-            submitOrRun(bufferSaveExecutor, () -> {}, true, 0, Integer.MAX_VALUE);
+            Utils.flushExecutor(bufferSaveExecutor);
             operation.run();
         } finally {
             serializationLock.unlock();

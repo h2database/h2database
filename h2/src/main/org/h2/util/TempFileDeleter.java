@@ -105,11 +105,8 @@ public class TempFileDeleter {
      * Delete all unused resources now.
      */
     public void deleteUnused() {
-        while (queue != null) {
-            Reference<?> ref = queue.poll();
-            if (ref == null) {
-                break;
-            }
+        Reference<?> ref;
+        while ((ref = queue.poll()) != null) {
             deleteFile(ref, null);
         }
     }

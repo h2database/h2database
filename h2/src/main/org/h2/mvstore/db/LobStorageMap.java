@@ -401,6 +401,11 @@ public final class LobStorageMap implements LobStorageInterface
                     doRemoveLob(tableId, lobId);
                 }
             }
+        } catch (MVStoreException e) {
+            int errorCode = e.getErrorCode();
+            if (errorCode != DataUtils.ERROR_CLOSED) { // MVStore closed concurrently - ok
+                throw e;
+            }
         } finally {
             mvStore.deregisterVersionUsage(txCounter);
         }
@@ -444,6 +449,14 @@ public final class LobStorageMap implements LobStorageInterface
             }
             if (lobRemovalInfo != null) {
                 pendingLobRemovals.offer(lobRemovalInfo);
+            }
+        } catch (MVStoreException e) {
+            if (e.getErrorCode() != DataUtils.ERROR_CLOSED) { // MVStore closed concurrently - ok
+                mvStore.panic(e);
+            }
+        } catch (Throwable e) {
+            if (!mvStore.isClosed()) {
+                mvStore.panic(DataUtils.newMVStoreException(DataUtils.ERROR_INTERNAL, "Error during asynchronous BLOB cleanup", e));
             }
         } finally {
             // we can not call deregisterVersionUsage() due to a possible infinite recursion

@@ -1330,7 +1330,7 @@ public class MVStore implements AutoCloseable {
      * @return true if versions are rolling, false otherwise
      */
     public boolean isVersioningRequired() {
-        return fileStore != null || versionsToKeep > 0;
+        return fileStore != null && !fileStore.isReadOnly() || versionsToKeep > 0;
     }
 
     /**

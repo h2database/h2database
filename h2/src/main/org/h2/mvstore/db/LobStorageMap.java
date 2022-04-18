@@ -445,10 +445,6 @@ public final class LobStorageMap implements LobStorageInterface
             if (lobRemovalInfo != null) {
                 pendingLobRemovals.offer(lobRemovalInfo);
             }
-        } catch (MVStoreException e) {
-            mvStore.panic(e);
-        } catch (Throwable e) {
-            mvStore.panic(DataUtils.newMVStoreException(DataUtils.ERROR_INTERNAL, "Error during asynchronous BLOB cleanup", e));
         } finally {
             // we can not call deregisterVersionUsage() due to a possible infinite recursion
             mvStore.decrementVersionUsageCounter(txCounter);

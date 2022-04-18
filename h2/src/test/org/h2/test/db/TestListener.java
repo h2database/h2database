@@ -122,7 +122,6 @@ public class TestListener extends TestDb implements DatabaseEventListener {
         try (Connection conn = DriverManager.getConnection(databaseUrl,
                 getUser(), getPassword())) {
             conn.createStatement().execute("DROP TABLE TEST2");
-            conn.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -142,7 +141,6 @@ public class TestListener extends TestDb implements DatabaseEventListener {
         try (Connection conn = DriverManager.getConnection(databaseUrl,
                 getUser(), getPassword())) {
             conn.createStatement().execute("CREATE TABLE IF NOT EXISTS TEST2(ID INT)");
-            conn.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }

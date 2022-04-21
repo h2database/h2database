@@ -17,6 +17,9 @@ import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicLong;
 import org.h2.api.ErrorCode;
 import org.h2.engine.Database;
@@ -24,6 +27,7 @@ import org.h2.message.DbException;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
+import org.h2.mvstore.MVStoreException;
 import org.h2.mvstore.StreamStore;
 import org.h2.mvstore.WriteBuffer;
 import org.h2.mvstore.tx.TransactionStore;
@@ -36,6 +40,7 @@ import org.h2.store.LobStorageInterface;
 import org.h2.store.RangeInputStream;
 import org.h2.util.IOUtils;
 import org.h2.util.StringUtils;
+import org.h2.util.Utils;
 import org.h2.value.Value;
 import org.h2.value.ValueBlob;
 import org.h2.value.ValueClob;
@@ -48,13 +53,15 @@ import org.h2.value.lob.LobDataDatabase;
  * This class stores LOB objects in the database, in maps. This is the back-end
  * i.e. the server side of the LOB storage.
  */
-public final class LobStorageMap implements LobStorageInterface, MVStore.Cleaner
+public final class LobStorageMap implements LobStorageInterface
 {
     private static final boolean TRACE = false;
 
     private final Database database;
-    final MVStore mvStore;
+    private final MVStore mvStore;
     private final AtomicLong nextLobId = new AtomicLong(0);
+    private final ThreadPoolExecutor cleanupExecutor;
+
 
     /**
      * The lob metadata map. It contains the mapping from the lob id
@@ -105,7 +112,24 @@ public final class LobStorageMap implements LobStorageInterface, MVStore.Cleaner
         Store s = database.getStore();
         TransactionStore txStore = s.getTransactionStore();
         mvStore = s.getMvStore();
-        mvStore.setCleaner(this);
+        if (mvStore.isVersioningRequired()) {
+            cleanupExecutor = Utils.createSingleThreadExecutor("H2-lob-cleaner", new SynchronousQueue<>());
+            mvStore.setOldestVersionTracker(oldestVersionToKeep -> {
+                if (needCleanup()) {
+                    try {
+                        cleanupExecutor.execute(() -> {
+                            try {
+                                cleanup(oldestVersionToKeep);
+                            } catch (MVStoreException e) {
+                                mvStore.panic(e);
+                            }
+                        });
+                    } catch (RejectedExecutionException ignore) {/**/}
+                }
+            });
+        } else {
+            cleanupExecutor = null;
+        }
         MVStore.TxCounter txCounter = mvStore.registerVersionUsage();
         try {
             lobMap = openLobMap(txStore);
@@ -394,13 +418,23 @@ public final class LobStorageMap implements LobStorageInterface, MVStore.Cleaner
         pendingLobRemovals.offer(new LobRemovalInfo(mvStore.getCurrentVersion(), lobId, tableId));
     }
 
-    @Override
-    public boolean needCleanup() {
+    private boolean needCleanup() {
         return !pendingLobRemovals.isEmpty();
     }
 
     @Override
-    public void cleanup(long oldestVersionToKeep) {
+    public void close() {
+        mvStore.setOldestVersionTracker(null);
+        Utils.shutdownExecutor(cleanupExecutor);
+        if (!mvStore.isClosed() && mvStore.isVersioningRequired()) {
+            // remove all session variables and temporary lobs
+            removeAllForTable(LobStorageFrontend.TABLE_ID_SESSION_VARIABLE);
+            // remove all dead LOBs, even deleted in current version, before the store closed
+            cleanup(mvStore.getCurrentVersion() + 1);
+        }
+    }
+
+    private void cleanup(long oldestVersionToKeep) {
         MVStore.TxCounter txCounter = mvStore.registerVersionUsage();
         try {
             LobRemovalInfo lobRemovalInfo;
@@ -417,7 +451,7 @@ public final class LobStorageMap implements LobStorageInterface, MVStore.Cleaner
         }
     }
 
-    public void doRemoveLob(int tableId, long lobId) {
+    private void doRemoveLob(int tableId, long lobId) {
         if (TRACE) {
             trace("remove " + tableId + "/" + lobId);
         }

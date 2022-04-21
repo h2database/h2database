@@ -86,4 +86,9 @@ public interface LobStorageInterface {
      * @return true if yes
      */
     boolean isReadOnly();
+
+    /**
+     * Close LobStorage and release all resources
+     */
+    default void close() {}
 }

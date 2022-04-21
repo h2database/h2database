@@ -1192,7 +1192,7 @@ public final class Database implements DataHandler, CastDataProvider {
                         for (Schema schema : schemas.values()) {
                             for (Table table : schema.getAllTablesAndViews(null)) {
                                 if (table.isGlobalTemporary()) {
-                                    table.removeChildrenAndResources(systemSession);
+                                    removeSchemaObject(systemSession, table);
                                 } else {
                                     table.close(systemSession);
                                 }
@@ -1219,6 +1219,7 @@ public final class Database implements DataHandler, CastDataProvider {
                     }
                 }
             } catch (DbException e) {
+                e.printStackTrace();
                 trace.error(e, "close");
             }
             tempFileDeleter.deleteAll();

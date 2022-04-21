@@ -1050,8 +1050,6 @@ public abstract class FileStore
                     if (test == null || test.version <= newest.version) {
                         break;
                     }
-                    // if shutdown was really clean then chain should be empty
-                    assumeCleanShutdown = false;
                     newest = test;
                 }
             }
@@ -2024,7 +2022,7 @@ public abstract class FileStore
         return set;
     }
 
-    public void executeFilestoreOperation(Runnable operation) throws Exception {
+    public void executeFilestoreOperation(Runnable operation) {
         // because serializationExecutor is a single-threaded one and
         // all task submissions to it are done under storeLock,
         // it is guaranteed, that upon this dummy task completion

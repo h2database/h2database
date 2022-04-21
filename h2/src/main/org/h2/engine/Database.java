@@ -1181,9 +1181,6 @@ public final class Database implements DataHandler, CastDataProvider {
                     closeAllSessionsExcept(null);
                 }
             }
-            if (!this.isReadOnly()) {
-                removeOrphanedLobs();
-            }
         }
         try {
             try {
@@ -1217,23 +1214,16 @@ public final class Database implements DataHandler, CastDataProvider {
                         meta.close(systemSession);
                         systemSession.commit(true);
                     }
-                }
-            } catch (DbException e) {
-                e.printStackTrace();
-                trace.error(e, "close");
-            }
-            tempFileDeleter.deleteAll();
-            try {
-                if (lobSession != null) {
-                    lobSession.close();
-                    lobSession = null;
-                }
-                if (systemSession != null) {
+                    if (lobSession != null) {
+                        lobSession.close();
+                        lobSession = null;
+                    }
                     systemSession.close();
                     systemSession = null;
                 }
+                tempFileDeleter.deleteAll();
                 closeOpenFilesAndUnlock();
-            } catch (DbException e) {
+            } catch (DbException | MVStoreException e) {
                 trace.error(e, "close");
             }
             trace.info("closed");
@@ -1254,23 +1244,12 @@ public final class Database implements DataHandler, CastDataProvider {
         }
     }
 
-    private void removeOrphanedLobs() {
-        // remove all session variables and temporary lobs
-        if (!persistent) {
-            return;
-        }
-        try {
-            lobStorage.removeAllForTable(LobStorageFrontend.TABLE_ID_SESSION_VARIABLE);
-        } catch (DbException e) {
-            trace.error(e, "close");
-        }
-    }
-
     /**
      * Close all open files and unlock the database.
      */
     private synchronized void closeOpenFilesAndUnlock() {
         try {
+            lobStorage.close();
             if (!store.getMvStore().isClosed()) {
                 if (compactMode == CommandInterface.SHUTDOWN_IMMEDIATELY) {
                     store.closeImmediately();

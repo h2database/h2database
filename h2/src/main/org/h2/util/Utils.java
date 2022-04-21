@@ -18,6 +18,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -743,6 +749,51 @@ public class Utils {
             time = 1L;
         }
         return time;
+    }
+
+    public static ThreadPoolExecutor createSingleThreadExecutor(String threadName) {
+        return createSingleThreadExecutor(threadName, new LinkedBlockingQueue<>());
+    }
+
+    public static ThreadPoolExecutor createSingleThreadExecutor(String threadName, BlockingQueue<Runnable> workQueue) {
+        return new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, workQueue,
+                                        r -> {
+                                            Thread thread = new Thread(r, threadName);
+                                            thread.setDaemon(true);
+                                            return thread;
+                                        });
+    }
+
+    /**
+     * Makes sure that all currently submitted tasks are processed before this method returns.
+     * It is assumed that there will be no new submissions to this executor, once this method has started.
+     * It is assumed that executor is single-threaded, and flush is done by submitting a dummy task
+     * and waiting for it's completion.
+     * @param executor to flush
+     */
+    public static void flushExecutor(ThreadPoolExecutor executor) {
+        if (executor != null) {
+            try {
+                executor.submit(() -> {}).get();
+            } catch (InterruptedException ignore) {/**/
+            } catch (RejectedExecutionException ex) {
+                shutdownExecutor(executor);
+            } catch (ExecutionException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    public static void shutdownExecutor(ThreadPoolExecutor executor) {
+        if (executor != null) {
+            executor.shutdown();
+            try {
+                if (executor.awaitTermination(10, TimeUnit.SECONDS)) {
+                    return;
+                }
+            } catch (InterruptedException ignore) {/**/}
+            executor.shutdownNow();
+        }
     }
 
     /**

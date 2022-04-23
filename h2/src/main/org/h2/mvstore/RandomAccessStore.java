@@ -19,7 +19,7 @@ import java.util.PriorityQueue;
  * <LI> 4/5/20 2:51 PM initial creation
  * </UL>
  *
- * @author <a href='mailto:andrei.tokar@gmail.com'>Andrei Tokar</a>
+ * @author <a href="mailto:andrei.tokar@gmail.com">Andrei Tokar</a>
  */
 public abstract class RandomAccessStore extends FileStore {
     /**
@@ -42,6 +42,18 @@ public abstract class RandomAccessStore extends FileStore {
 
     public RandomAccessStore(Map<String, Object> config) {
         super(config);
+    }
+
+    protected final Chunk createChunk(int newChunkId) {
+        return new SFChunk(newChunkId);
+    }
+
+    protected Chunk createChunk(String s) {
+        return new SFChunk(s);
+    }
+
+    protected Chunk createChunk(Map<String, String> map, boolean full) {
+        return new SFChunk(map, full);
     }
 
     /**
@@ -386,8 +398,8 @@ public abstract class RandomAccessStore extends FileStore {
         // in the absence of a reserved area,
         // block should always move closer to the beginning of the file
         assert reservedAreaHigh > 0 || block <= chunk.block : block + " " + chunk;
-        ByteBuffer readBuff = readFully(0, start, length);
-        writeFully(0, pos, readBuff);
+        ByteBuffer readBuff = readFully(chunk, start, length);
+        writeFully(null, pos, readBuff);
         free(start, length);
         // can not set chunk's new block/len until it's fully written at new location,
         // because concurrent reader can pick it up prematurely,

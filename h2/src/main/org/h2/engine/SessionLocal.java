@@ -970,7 +970,7 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
                     // Exception thrown in org.h2.engine.Database.removeMeta
                     // if line below is missing with TestDeadlock
                     database.lockMeta(this);
-                    database.removeSchemaObject(this, table);
+                    table.removeChildrenAndResources(this);
                     if (closeSession) {
                         database.throwLastBackgroundException();
                     }

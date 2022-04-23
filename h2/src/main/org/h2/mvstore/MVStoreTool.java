@@ -117,25 +117,25 @@ public class MVStoreTool {
         try (FileChannel file = FilePath.get(fileName).open("r")) {
             long fileSize = file.size();
             int len = Long.toHexString(fileSize).length();
-            ByteBuffer block = ByteBuffer.allocate(4096);
+            ByteBuffer buffer = ByteBuffer.allocate(4096);
             long pageCount = 0;
             for (long pos = 0; pos < fileSize; ) {
-                block.rewind();
+                buffer.rewind();
                 // Bugfix - An MVStoreException that wraps EOFException is
                 // thrown when partial writes happens in the case of power off
                 // or file system issues.
                 // So we should skip the broken block at end of the DB file.
                 try {
-                    DataUtils.readFully(file, pos, block);
+                    DataUtils.readFully(file, pos, buffer);
                 } catch (MVStoreException e) {
                     pos += blockSize;
                     pw.printf("ERROR illegal position %d%n", pos);
                     continue;
                 }
-                block.rewind();
-                int headerType = block.get();
+                buffer.rewind();
+                int headerType = buffer.get();
                 if (headerType == 'H') {
-                    String header = new String(block.array(), StandardCharsets.ISO_8859_1).trim();
+                    String header = new String(buffer.array(), StandardCharsets.ISO_8859_1).trim();
                     pw.printf("%0" + len + "x fileHeader %s%n",
                             pos, header);
                     pos += blockSize;
@@ -145,10 +145,10 @@ public class MVStoreTool {
                     pos += blockSize;
                     continue;
                 }
-                block.position(0);
+                buffer.position(0);
                 Chunk c;
                 try {
-                    c = Chunk.readChunkHeader(block, pos);
+                    c = new SFChunk(Chunk.readChunkHeader(buffer, pos));
                 } catch (MVStoreException e) {
                     pos += blockSize;
                     continue;
@@ -163,7 +163,7 @@ public class MVStoreTool {
                         pos, c.toString());
                 ByteBuffer chunk = ByteBuffer.allocate(length);
                 DataUtils.readFully(file, pos, chunk);
-                int p = block.position();
+                int p = buffer.position();
                 pos += length;
                 int remaining = c.pageCount;
                 pageCount += c.pageCount;
@@ -361,7 +361,7 @@ public class MVStoreTool {
             for (Entry<String, String> e : layout.entrySet()) {
                 String k = e.getKey();
                 if (k.startsWith(DataUtils.META_CHUNK)) {
-                    Chunk c = Chunk.fromString(e.getValue());
+                    Chunk c = Chunk.fromString(e.getValue(), store.getFileStore());
                     chunks.put(c.id, c);
                     chunkLength += c.len * FileStore.BLOCK_SIZE;
                     maxLength += c.maxLen;
@@ -629,16 +629,16 @@ public class MVStoreTool {
             FilePath.get(fileName + ".temp").delete();
             target = FilePath.get(fileName + ".temp").open("rw");
             long fileSize = file.size();
-            ByteBuffer block = ByteBuffer.allocate(4096);
+            ByteBuffer buffer = ByteBuffer.allocate(4096);
             Chunk newestChunk = null;
             for (long pos = 0; pos < fileSize;) {
-                block.rewind();
-                DataUtils.readFully(file, pos, block);
-                block.rewind();
-                int headerType = block.get();
+                buffer.rewind();
+                DataUtils.readFully(file, pos, buffer);
+                buffer.rewind();
+                int headerType = buffer.get();
                 if (headerType == 'H') {
-                    block.rewind();
-                    target.write(block, pos);
+                    buffer.rewind();
+                    target.write(buffer, pos);
                     pos += blockSize;
                     continue;
                 }
@@ -648,7 +648,7 @@ public class MVStoreTool {
                 }
                 Chunk c;
                 try {
-                    c = Chunk.readChunkHeader(block, pos);
+                    c = new SFChunk(Chunk.readChunkHeader(buffer, pos));
                 } catch (MVStoreException e) {
                     pos += blockSize;
                     continue;

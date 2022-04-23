@@ -661,7 +661,7 @@ public abstract class FileStore
      * @param pos the write "position"
      * @param src the source buffer
      */
-    protected abstract void writeFully(int volumeId, long pos, ByteBuffer src);
+    protected abstract void writeFully(Chunk chunk, long pos, ByteBuffer src);
 
     /**
      * Read data from the store.
@@ -672,7 +672,7 @@ public abstract class FileStore
      * @param len the number of bytes to read
      * @return the byte buffer with data requested
      */
-    public abstract ByteBuffer readFully(int volumeId, long pos, int len);
+    public abstract ByteBuffer readFully(Chunk chunk, long pos, int len);
 
     protected final ByteBuffer readFully(FileChannel file, long pos, int len) {
         ByteBuffer dst = ByteBuffer.allocate(len);
@@ -746,12 +746,19 @@ public abstract class FileStore
 
     private Chunk createChunk(long time, long version) {
         int newChunkId = findNewChunkId();
-        Chunk c = new Chunk(newChunkId);
+        Chunk c = createChunk(newChunkId);
         c.time = time;
         c.version = version;
         c.occupancy = new BitSet();
         return c;
     }
+
+    protected abstract Chunk createChunk(int id);
+
+    protected abstract Chunk createChunk(String s);
+
+    protected abstract Chunk createChunk(Map<String, String> map, boolean full);
+
 
     private int findNewChunkId() {
         int newChunkId;
@@ -791,7 +798,7 @@ public abstract class FileStore
         header.position(BLOCK_SIZE);
         header.put(bytes);
         header.rewind();
-        writeFully(0, 0, header);
+        writeFully(null, 0, header);
     }
 
     protected void writeCleanShutdown() {
@@ -920,14 +927,14 @@ public abstract class FileStore
         return chunk == null ? 0 : chunk.mapId;
     }
 
-    private void readStoreHeader(boolean recoveryMode) {
+    protected void readStoreHeader(boolean recoveryMode) {
         long now = System.currentTimeMillis();
         Chunk newest = null;
         boolean assumeCleanShutdown = true;
         boolean validStoreHeader = false;
         // find out which chunk and version are the newest
         // read the first two blocks
-        ByteBuffer fileHeaderBlocks = readFully(0, 0, 2 * FileStore.BLOCK_SIZE);
+        ByteBuffer fileHeaderBlocks = readFully((Chunk)null, 0, 2 * FileStore.BLOCK_SIZE);
         byte[] buff = new byte[FileStore.BLOCK_SIZE];
         for (int i = 0; i <= FileStore.BLOCK_SIZE; i += FileStore.BLOCK_SIZE) {
             fileHeaderBlocks.get(buff);
@@ -1237,16 +1244,25 @@ public abstract class FileStore
 
     private Chunk readChunkHeader(long block) {
         long p = block * FileStore.BLOCK_SIZE;
-        ByteBuffer buff = readFully(0, p, Chunk.MAX_HEADER_LENGTH);
-        Chunk chunk = Chunk.readChunkHeader(buff, p);
-        if (chunk.block == 0) {
-            chunk.block = block;
-        } else if (chunk.block != block) {
-            throw DataUtils.newMVStoreException(
-                    DataUtils.ERROR_FILE_CORRUPT,
-                    "File corrupt reading chunk at position {0}", p);
+        ByteBuffer buff = readFully((Chunk)null, p, Chunk.MAX_HEADER_LENGTH);
+        Throwable exception = null;
+        try {
+            Chunk chunk = createChunk(Chunk.readChunkHeader(buff, p));
+            if (chunk.block == 0) {
+                chunk.block = block;
+            }
+            if (chunk.block == block) {
+                return chunk;
+            }
+        } catch (MVStoreException e) {
+            exception = e.getCause();
+        } catch (Throwable e) {
+            // there could be various reasons
+            exception = e;
         }
-        return chunk;
+        throw DataUtils.newMVStoreException(
+                DataUtils.ERROR_FILE_CORRUPT,
+                "File corrupt reading chunk at position {0}", p, exception);
     }
 
     private Iterable<Chunk> getChunksFromLayoutMap() {
@@ -1262,7 +1278,7 @@ public abstract class FileStore
             public boolean hasNext() {
                 if(nextChunk == null && cursor.hasNext()) {
                     if (cursor.next().startsWith(DataUtils.META_CHUNK)) {
-                        nextChunk = Chunk.fromString(cursor.getValue());
+                        nextChunk = Chunk.fromString(cursor.getValue(), FileStore.this);
                         // might be there already, due to layout traversal
                         // see readPage() ... getChunkIfFound(),
                         // then take existing one instead
@@ -1345,12 +1361,12 @@ public abstract class FileStore
             if(pos < 0) {
                 return null;
             }
-            ByteBuffer lastBlock = readFully(0, pos, Chunk.FOOTER_LENGTH);
+            ByteBuffer lastBlock = readFully((Chunk)null, pos, Chunk.FOOTER_LENGTH);
             byte[] buff = new byte[Chunk.FOOTER_LENGTH];
             lastBlock.get(buff);
             HashMap<String, String> m = DataUtils.parseChecksummedMap(buff);
             if (m != null) {
-                Chunk chunk = new Chunk(m);
+                Chunk chunk = createChunk(m, false);
                 if (chunk.block == 0) {
                     chunk.block = block - chunk.len;
                 }
@@ -1677,7 +1693,7 @@ public abstract class FileStore
             allocateChunkSpace(c, buff);
             buff.position(0);
             long filePos = c.block * BLOCK_SIZE;
-            writeFully(c.volumeId, filePos, buff.getBuffer());
+            writeFully(c, filePos, buff.getBuffer());
 
             // end of the used space is not necessarily the end of the file
             boolean storeAtEndOfFile = filePos + buff.limit() >= size();
@@ -2155,7 +2171,7 @@ public abstract class FileStore
                         DataUtils.ERROR_CHUNK_NOT_FOUND,
                         "Chunk {0} not found", chunkId);
             }
-            c = Chunk.fromString(s);
+            c = Chunk.fromString(s, this);
             if (!c.isSaved()) {
                 throw DataUtils.newMVStoreException(
                         DataUtils.ERROR_FILE_CORRUPT,

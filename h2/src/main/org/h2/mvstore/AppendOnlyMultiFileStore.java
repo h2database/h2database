@@ -53,13 +53,27 @@ public class AppendOnlyMultiFileStore extends FileStore
         files = new FileChannel[maxFileCount];
     }
 
+    protected final Chunk createChunk(int newChunkId) {
+        return new MFChunk(newChunkId);
+    }
+
+    protected Chunk createChunk(String s) {
+        return new MFChunk(s);
+    }
+
+    protected Chunk createChunk(Map<String, String> map, boolean full) {
+        return new MFChunk(map, full);
+    }
+
+
     @Override
     public boolean shouldSaveNow(int unsavedMemory, int autoCommitMemory) {
         return unsavedMemory > autoCommitMemory;
     }
 
     @Override
-    protected void writeFully(int volumeId, long pos, ByteBuffer src) {
+    protected void writeFully(Chunk chunk, long pos, ByteBuffer src) {
+        int volumeId = ((MFChunk)chunk).volumeId;
         int len = src.remaining();
         setSize(Math.max(super.size(), pos + len));
         DataUtils.writeFully(files[volumeId], pos, src);
@@ -75,7 +89,8 @@ public class AppendOnlyMultiFileStore extends FileStore
      * @param len the number of bytes to read
      * @return the byte buffer
      */
-    public ByteBuffer readFully(int volumeId, long pos, int len) {
+    public ByteBuffer readFully(Chunk chunk, long pos, int len) {
+        int volumeId = ((MFChunk)chunk).volumeId;
         return readFully(files[volumeId], pos, len);
     }
 

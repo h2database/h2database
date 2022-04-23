@@ -23,7 +23,7 @@ import org.h2.util.StringUtils;
  * There are at most 67 million (2^26) chunks,
  * and each chunk is at most 2 GB large.
  */
-public final class Chunk {
+public abstract class Chunk {
 
     /**
      * The maximum chunk id.
@@ -45,7 +45,6 @@ public final class Chunk {
     static final int FOOTER_LENGTH = 128; // it's really 70 now
 
     private static final String ATTR_CHUNK = "chunk";
-    private static final String ATTR_VOLUME = "vol";
     private static final String ATTR_BLOCK = "block";
     private static final String ATTR_LEN = "len";
     private static final String ATTR_MAP = "map";
@@ -73,11 +72,6 @@ public final class Chunk {
      * The start block number within the file.
      */
     public volatile long block;
-
-    /**
-     * The index of the file (0-based), containing this chunk.
-     */
-    public volatile int volumeId;
 
     /**
      * The length in number of blocks.
@@ -174,7 +168,7 @@ public final class Chunk {
      */
     public volatile ByteBuffer buffer;
 
-    private Chunk(String s) {
+    Chunk(String s) {
         this(DataUtils.parseMap(s), true);
     }
 
@@ -182,9 +176,8 @@ public final class Chunk {
         this(map, false);
     }
 
-    private Chunk(Map<String, String> map, boolean full) {
+    Chunk(Map<String, String> map, boolean full) {
         this(DataUtils.readHexInt(map, ATTR_CHUNK, 0));
-        volumeId = DataUtils.readHexInt(map, ATTR_VOLUME, 0);
         block = DataUtils.readHexLong(map, ATTR_BLOCK, 0);
         len = DataUtils.readHexInt(map, ATTR_LEN, 0);
         version = DataUtils.readHexLong(map, ATTR_VERSION, id);
@@ -231,28 +224,19 @@ public final class Chunk {
      * @param start the start of the chunk in the file
      * @return the chunk
      */
-    static Chunk readChunkHeader(ByteBuffer buff, long start) {
+    static String readChunkHeader(ByteBuffer buff, long start) {
         int pos = buff.position();
         byte[] data = new byte[Math.min(buff.remaining(), MAX_HEADER_LENGTH)];
         buff.get(data);
-        try {
-            for (int i = 0; i < data.length; i++) {
-                if (data[i] == '\n') {
-                    // set the position to the start of the first page
-                    buff.position(pos + i + 1);
-                    String s = new String(data, 0, i, StandardCharsets.ISO_8859_1).trim();
-                    return fromString(s);
-                }
+        for (int i = 0; i < data.length; i++) {
+            if (data[i] == '\n') {
+                // set the position to the start of the first page
+                buff.position(pos + i + 1);
+                String s = new String(data, 0, i, StandardCharsets.ISO_8859_1).trim();
+                return s;
             }
-        } catch (Exception e) {
-            // there could be various reasons
-            throw DataUtils.newMVStoreException(
-                    DataUtils.ERROR_FILE_CORRUPT,
-                    "File corrupt reading chunk at position {0}", start, e);
         }
-        throw DataUtils.newMVStoreException(
-                DataUtils.ERROR_FILE_CORRUPT,
-                "File corrupt reading chunk at position {0}", start);
+        return null;
     }
 
     /**
@@ -287,13 +271,14 @@ public final class Chunk {
     }
 
     /**
-     * Build a block from the given string.
+     * Build a Chunk from the given string.
      *
-     * @param s the string
-     * @return the block
+     * @param s         the string
+     * @param fileStore to use as a Chunk factory
+     * @return the Chunk created
      */
-    public static Chunk fromString(String s) {
-        return new Chunk(s);
+    public static Chunk fromString(String s, FileStore fileStore) {
+        return fileStore.createChunk(DataUtils.parseMap(s), true);
     }
 
     /**
@@ -326,12 +311,14 @@ public final class Chunk {
      *
      * @return the string
      */
-    public String asString() {
+    public final String asString() {
         StringBuilder buff = new StringBuilder(240);
+        dump(buff);
+        return buff.toString();
+    }
+
+    protected void dump(StringBuilder buff) {
         DataUtils.appendMap(buff, ATTR_CHUNK, id);
-        if (volumeId != 0) {
-            DataUtils.appendMap(buff, ATTR_VOLUME, volumeId);
-        }
         DataUtils.appendMap(buff, ATTR_BLOCK, block);
         DataUtils.appendMap(buff, ATTR_LEN, len);
         DataUtils.appendMap(buff, ATTR_PAGES, pageCount);
@@ -365,7 +352,6 @@ public final class Chunk {
             DataUtils.appendMap(buff, ATTR_OCCUPANCY,
                     StringUtils.convertBytesToHex(occupancy.toByteArray()));
         }
-        return buff.toString();
     }
 
     private byte[] getHeaderBytes() {
@@ -486,7 +472,7 @@ public final class Chunk {
     }
 
     private ByteBuffer readFully(FileStore fileStore, long filePos, int length) {
-        return fileStore.readFully(volumeId, filePos, length);
+        return fileStore.readFully(this, filePos, length);
     }
 
     long[] readToC(FileStore fileStore) {

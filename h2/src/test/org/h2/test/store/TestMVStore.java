@@ -290,7 +290,7 @@ public class TestMVStore extends TestBase {
             map.put(1, new byte[10 * 1024]);
             s.commit();
             Map<String, String> layout = s.getLayoutMap();
-            Chunk c = Chunk.fromString(layout.get(DataUtils.META_CHUNK + "1"));
+            Chunk c = Chunk.fromString(layout.get(DataUtils.META_CHUNK + "1"), s.getFileStore());
             assertTrue(c.maxLen < Integer.MAX_VALUE);
             assertTrue(c.maxLenLive < Integer.MAX_VALUE);
         }

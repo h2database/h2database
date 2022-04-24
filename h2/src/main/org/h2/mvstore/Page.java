@@ -708,7 +708,7 @@ public abstract class Page<K,V> implements Cloneable {
      *                                related to serialization
      * @return the position of the buffer, where serialized child page references (if any) begin
      */
-    protected final int write(FileStore.PageSerializationManager pageSerializationManager) {
+    protected final int write(FileStore<?>.PageSerializationManager pageSerializationManager) {
         pageNo = pageSerializationManager.getPageNo();
         int keyCount = getKeyCount();
         WriteBuffer buff = pageSerializationManager.getBuffer();

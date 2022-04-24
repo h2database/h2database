@@ -21,7 +21,7 @@ import java.util.PriorityQueue;
  *
  * @author <a href="mailto:andrei.tokar@gmail.com">Andrei Tokar</a>
  */
-public abstract class RandomAccessStore extends FileStore {
+public abstract class RandomAccessStore extends FileStore<SFChunk> {
     /**
      * The free spaces between the chunks. The first block to use is block 2
      * (the first two blocks are the store header).
@@ -44,15 +44,15 @@ public abstract class RandomAccessStore extends FileStore {
         super(config);
     }
 
-    protected final Chunk createChunk(int newChunkId) {
+    protected final SFChunk createChunk(int newChunkId) {
         return new SFChunk(newChunkId);
     }
 
-    protected Chunk createChunk(String s) {
+    protected SFChunk createChunk(String s) {
         return new SFChunk(s);
     }
 
-    protected Chunk createChunk(Map<String, String> map, boolean full) {
+    protected SFChunk createChunk(Map<String, String> map, boolean full) {
         return new SFChunk(map, full);
     }
 
@@ -108,14 +108,14 @@ public abstract class RandomAccessStore extends FileStore {
         this.reuseSpace = reuseSpace;
     }
 
-    protected void freeChunkSpace(Iterable<Chunk> chunks) {
-        for (Chunk chunk : chunks) {
+    protected void freeChunkSpace(Iterable<SFChunk> chunks) {
+        for (SFChunk chunk : chunks) {
             freeChunkSpace(chunk);
         }
         assert validateFileLength(String.valueOf(chunks));
     }
 
-    private void freeChunkSpace(Chunk chunk) {
+    private void freeChunkSpace(SFChunk chunk) {
         long start = chunk.block * BLOCK_SIZE;
         int length = chunk.len * BLOCK_SIZE;
         free(start, length);
@@ -151,7 +151,7 @@ public abstract class RandomAccessStore extends FileStore {
     private long measureFileLengthInUse() {
         assert saveChunkLock.isHeldByCurrentThread();
         long size = 2;
-        for (Chunk c : getChunks().values()) {
+        for (SFChunk c : getChunks().values()) {
             if (c.isAllocated()) {
                 size = Math.max(size, c.block + c.len);
             }
@@ -167,7 +167,7 @@ public abstract class RandomAccessStore extends FileStore {
         return freeSpace.getLastFree();
     }
 
-    protected void allocateChunkSpace(Chunk chunk, WriteBuffer buff) {
+    protected void allocateChunkSpace(SFChunk chunk, WriteBuffer buff) {
         int headerLength = (int) chunk.next;
         long reservedLow = this.reservedLow;
         long reservedHigh = this.reservedHigh > 0 ? this.reservedHigh : isSpaceReused() ? 0 : getAfterLastBlock();
@@ -229,7 +229,7 @@ public abstract class RandomAccessStore extends FileStore {
                 saveChunkLock.lock();
                 try {
                     if (hasPersitentData() && getFillRate() <= targetFillRate) {
-                        compactMoveChunks(moveSize, mvStore);
+                        compactMoveChunks(moveSize);
                     }
                 } finally {
                     saveChunkLock.unlock();
@@ -238,19 +238,19 @@ public abstract class RandomAccessStore extends FileStore {
         }
     }
 
-    private void compactMoveChunks(long moveSize, MVStore mvStore) {
+    private void compactMoveChunks(long moveSize) {
         long start = getFirstFree() / FileStore.BLOCK_SIZE;
-        Iterable<Chunk> chunksToMove = findChunksToMove(start, moveSize);
+        Iterable<SFChunk> chunksToMove = findChunksToMove(start, moveSize);
         if (chunksToMove != null) {
-            compactMoveChunks(chunksToMove, mvStore);
+            compactMoveChunks(chunksToMove);
         }
     }
 
-    private Iterable<Chunk> findChunksToMove(long startBlock, long moveSize) {
+    private Iterable<SFChunk> findChunksToMove(long startBlock, long moveSize) {
         long maxBlocksToMove = moveSize / FileStore.BLOCK_SIZE;
-        Iterable<Chunk> result = null;
+        Iterable<SFChunk> result = null;
         if (maxBlocksToMove > 0) {
-            PriorityQueue<Chunk> queue = new PriorityQueue<>(getChunks().size() / 2 + 1,
+            PriorityQueue<SFChunk> queue = new PriorityQueue<>(getChunks().size() / 2 + 1,
                     (o1, o2) -> {
                         // instead of selection just closest to beginning of the file,
                         // pick smaller chunk(s) which sit in between bigger holes
@@ -261,13 +261,13 @@ public abstract class RandomAccessStore extends FileStore {
                         return Long.signum(o2.block - o1.block);
                     });
             long size = 0;
-            for (Chunk chunk : getChunks().values()) {
+            for (SFChunk chunk : getChunks().values()) {
                 if (chunk.isAllocated() && chunk.block > startBlock) {
                     chunk.collectPriority = getMovePriority(chunk);
                     queue.offer(chunk);
                     size += chunk.len;
                     while (size > maxBlocksToMove) {
-                        Chunk removed = queue.poll();
+                        Chunk<?> removed = queue.poll();
                         if (removed == null) {
                             break;
                         }
@@ -276,19 +276,19 @@ public abstract class RandomAccessStore extends FileStore {
                 }
             }
             if (!queue.isEmpty()) {
-                ArrayList<Chunk> list = new ArrayList<>(queue);
-                list.sort(Chunk.PositionComparator.INSTANCE);
+                ArrayList<SFChunk> list = new ArrayList<>(queue);
+                list.sort(Chunk.PositionComparator.instance());
                 result = list;
             }
         }
         return result;
     }
 
-    private int getMovePriority(Chunk chunk) {
+    private int getMovePriority(SFChunk chunk) {
         return getMovePriority((int)chunk.block);
     }
 
-    private void compactMoveChunks(Iterable<Chunk> move, MVStore mvStore) {
+    private void compactMoveChunks(Iterable<SFChunk> move) {
         assert saveChunkLock.isHeldByCurrentThread();
         if (move != null) {
             // this will ensure better recognition of the last chunk
@@ -297,21 +297,21 @@ public abstract class RandomAccessStore extends FileStore {
             writeStoreHeader();
             sync();
 
-            Iterator<Chunk> iterator = move.iterator();
+            Iterator<SFChunk> iterator = move.iterator();
             assert iterator.hasNext();
             long leftmostBlock = iterator.next().block;
             long originalBlockCount = getAfterLastBlock();
             // we need to ensure that chunks moved within the following loop
             // do not overlap with space just released by chunks moved before them,
             // hence the need to reserve this area [leftmostBlock, originalBlockCount)
-            for (Chunk chunk : move) {
-                moveChunk(chunk, leftmostBlock, originalBlockCount, mvStore);
+            for (SFChunk chunk : move) {
+                moveChunk(chunk, leftmostBlock, originalBlockCount);
             }
             // update the metadata (hopefully within the file)
-            store(leftmostBlock, originalBlockCount, mvStore);
+            store(leftmostBlock, originalBlockCount);
             sync();
 
-            Chunk chunkToMove = lastChunk;
+            SFChunk chunkToMove = lastChunk;
             assert chunkToMove != null;
             long postEvacuationBlockCount = getAfterLastBlock();
 
@@ -320,9 +320,9 @@ public abstract class RandomAccessStore extends FileStore {
             // move all chunks, which previously did not fit before reserved area
             // now we can re-use previously reserved area [leftmostBlock, originalBlockCount),
             // but need to reserve [originalBlockCount, postEvacuationBlockCount)
-            for (Chunk c : move) {
+            for (SFChunk c : move) {
                 if (c.block >= originalBlockCount &&
-                        moveChunk(c, originalBlockCount, postEvacuationBlockCount, mvStore)) {
+                        moveChunk(c, originalBlockCount, postEvacuationBlockCount)) {
                     assert c.block < originalBlockCount;
                     movedToEOF = true;
                 }
@@ -330,10 +330,10 @@ public abstract class RandomAccessStore extends FileStore {
             assert postEvacuationBlockCount >= getAfterLastBlock();
 
             if (movedToEOF) {
-                boolean moved = moveChunkInside(chunkToMove, originalBlockCount, mvStore);
+                boolean moved = moveChunkInside(chunkToMove, originalBlockCount);
 
                 // store a new chunk with updated metadata (hopefully within a file)
-                store(originalBlockCount, postEvacuationBlockCount, mvStore);
+                store(originalBlockCount, postEvacuationBlockCount);
                 sync();
                 // if chunkToMove did not fit within originalBlockCount (move is
                 // false), and since now previously reserved area
@@ -342,9 +342,9 @@ public abstract class RandomAccessStore extends FileStore {
                 // the beginning of the file
                 long lastBoundary = moved || chunkToMoveIsAlreadyInside ?
                                         postEvacuationBlockCount : chunkToMove.block;
-                moved = !moved && moveChunkInside(chunkToMove, lastBoundary, mvStore);
-                if (moveChunkInside(lastChunk, lastBoundary, mvStore) || moved) {
-                    store(lastBoundary, -1, mvStore);
+                moved = !moved && moveChunkInside(chunkToMove, lastBoundary);
+                if (moveChunkInside(lastChunk, lastBoundary) || moved) {
+                    store(lastBoundary, -1);
                 }
             }
 
@@ -353,7 +353,7 @@ public abstract class RandomAccessStore extends FileStore {
         }
     }
 
-    private void store(long reservedLow, long reservedHigh, MVStore mvStore) {
+    private void store(long reservedLow, long reservedHigh) {
         this.reservedLow = reservedLow;
         this.reservedHigh = reservedHigh;
         saveChunkLock.unlock();
@@ -366,10 +366,10 @@ public abstract class RandomAccessStore extends FileStore {
         }
     }
 
-    private boolean moveChunkInside(Chunk chunkToMove, long boundary, MVStore mvStore) {
+    private boolean moveChunkInside(SFChunk chunkToMove, long boundary) {
         boolean res = chunkToMove.block >= boundary &&
                 predictAllocation(chunkToMove.len, boundary, -1) < boundary &&
-                moveChunk(chunkToMove, boundary, -1, mvStore);
+                moveChunk(chunkToMove, boundary, -1);
         assert !res || chunkToMove.block + chunkToMove.len <= boundary;
         return res;
     }
@@ -379,12 +379,12 @@ public abstract class RandomAccessStore extends FileStore {
      * specifies file interval to be avoided, when un-allocated space will be
      * chosen for a new chunk's location.
      *
-     * @param chunk to move
-     * @param reservedAreaLow low boundary of reserved area, inclusive
+     * @param chunk            to move
+     * @param reservedAreaLow  low boundary of reserved area, inclusive
      * @param reservedAreaHigh high boundary of reserved area, exclusive
      * @return true if block was moved, false otherwise
      */
-    private boolean moveChunk(Chunk chunk, long reservedAreaLow, long reservedAreaHigh, MVStore mvStore) {
+    private boolean moveChunk(SFChunk chunk, long reservedAreaLow, long reservedAreaHigh) {
         // ignore if already removed during the previous store operations
         // those are possible either as explicit commit calls
         // or from meta map updates at the end of this method
@@ -518,7 +518,7 @@ public abstract class RandomAccessStore extends FileStore {
         return freeSpace.getAfterLastBlock();
     }
 
-    public Collection<Chunk> getRewriteCandidates() {
+    public Collection<SFChunk> getRewriteCandidates() {
         return isSpaceReused() ? null : Collections.emptyList();
     }
 }

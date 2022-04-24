@@ -15,9 +15,9 @@ import java.util.zip.ZipOutputStream;
 /**
  * Class AppendOnlyMultiFileStore.
  *
- * @author <a href='mailto:andrei.tokar@gmail.com'>Andrei Tokar</a>
+ * @author <a href="mailto:andrei.tokar@gmail.com">Andrei Tokar</a>
  */
-public class AppendOnlyMultiFileStore extends FileStore
+public class AppendOnlyMultiFileStore extends FileStore<MFChunk>
 {
     /**
      * Limit for the number of files used by this store
@@ -53,15 +53,15 @@ public class AppendOnlyMultiFileStore extends FileStore
         files = new FileChannel[maxFileCount];
     }
 
-    protected final Chunk createChunk(int newChunkId) {
+    protected final MFChunk createChunk(int newChunkId) {
         return new MFChunk(newChunkId);
     }
 
-    protected Chunk createChunk(String s) {
+    protected MFChunk createChunk(String s) {
         return new MFChunk(s);
     }
 
-    protected Chunk createChunk(Map<String, String> map, boolean full) {
+    protected MFChunk createChunk(Map<String, String> map, boolean full) {
         return new MFChunk(map, full);
     }
 
@@ -72,8 +72,8 @@ public class AppendOnlyMultiFileStore extends FileStore
     }
 
     @Override
-    protected void writeFully(Chunk chunk, long pos, ByteBuffer src) {
-        int volumeId = ((MFChunk)chunk).volumeId;
+    protected void writeFully(MFChunk chunk, long pos, ByteBuffer src) {
+        int volumeId = chunk.volumeId;
         int len = src.remaining();
         setSize(Math.max(super.size(), pos + len));
         DataUtils.writeFully(files[volumeId], pos, src);
@@ -81,21 +81,13 @@ public class AppendOnlyMultiFileStore extends FileStore
         writeBytes.addAndGet(len);
     }
 
-    /**
-     * Read from the file.
-     *
-     * @param volumeId of the file to read from
-     * @param pos the offset within the file
-     * @param len the number of bytes to read
-     * @return the byte buffer
-     */
-    public ByteBuffer readFully(Chunk chunk, long pos, int len) {
-        int volumeId = ((MFChunk)chunk).volumeId;
+    public ByteBuffer readFully(MFChunk chunk, long pos, int len) {
+        int volumeId = chunk.volumeId;
         return readFully(files[volumeId], pos, len);
     }
 
     @Override
-    protected void allocateChunkSpace(Chunk chunk, WriteBuffer buff) {
+    protected void allocateChunkSpace(MFChunk chunk, WriteBuffer buff) {
         saveChunkLock.lock();
         try {
             int headerLength = (int) chunk.next;
@@ -119,9 +111,7 @@ public class AppendOnlyMultiFileStore extends FileStore
     }
 
     @Override
-    protected void doHousekeeping(MVStore mvStore) throws InterruptedException {
-
-    }
+    protected void doHousekeeping(MVStore mvStore) throws InterruptedException {}
 
     @Override
     public int getFillRate() {
@@ -135,7 +125,7 @@ public class AppendOnlyMultiFileStore extends FileStore
     public void markUsed(long pos, int length) {}
 
     @Override
-    protected void freeChunkSpace(Iterable<Chunk> chunks) {}
+    protected void freeChunkSpace(Iterable<MFChunk> chunks) {}
 
     protected boolean validateFileLength(String msg) {
         return true;

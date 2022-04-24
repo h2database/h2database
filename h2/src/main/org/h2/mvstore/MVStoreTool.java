@@ -148,7 +148,7 @@ public class MVStoreTool {
                 buffer.position(0);
                 Chunk c;
                 try {
-                    c = new SFChunk(Chunk.readChunkHeader(buffer, pos));
+                    c = new SFChunk(Chunk.readChunkHeader(buffer));
                 } catch (MVStoreException e) {
                     pos += blockSize;
                     continue;
@@ -648,7 +648,7 @@ public class MVStoreTool {
                 }
                 Chunk c;
                 try {
-                    c = new SFChunk(Chunk.readChunkHeader(buffer, pos));
+                    c = new SFChunk(Chunk.readChunkHeader(buffer));
                 } catch (MVStoreException e) {
                     pos += blockSize;
                     continue;

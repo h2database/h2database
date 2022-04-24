@@ -5,6 +5,7 @@
  */
 package org.h2.mvstore;
 
+import java.nio.ByteBuffer;
 import java.util.Map;
 
 /**
@@ -15,7 +16,7 @@ import java.util.Map;
  *
  * @author <a href="mailto:andrei.tokar@gmail.com">Andrei Tokar</a>
  */
-class SFChunk extends Chunk
+class SFChunk extends Chunk<SFChunk>
 {
     SFChunk(int id) {
         super(id);
@@ -33,5 +34,8 @@ class SFChunk extends Chunk
         super(map, full);
     }
 
-
+    @Override
+    protected ByteBuffer readFully(FileStore<SFChunk> fileStore, long filePos, int length) {
+        return fileStore.readFully(this, filePos, length);
+    }
 }

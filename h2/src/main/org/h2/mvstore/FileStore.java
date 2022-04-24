@@ -53,7 +53,7 @@ import java.util.zip.ZipOutputStream;
  *
  * @author <a href="mailto:andrei.tokar@gmail.com">Andrei Tokar</a>
  */
-public abstract class FileStore
+public abstract class FileStore<C extends Chunk<C>>
 {
     // The following are attribute names (keys) in store header map
     static final String HDR_H = "H";
@@ -167,7 +167,7 @@ public abstract class FileStore
     /**
      * The newest chunk. If nothing was stored yet, this field is not set.
      */
-    protected volatile Chunk lastChunk;
+    protected volatile C lastChunk;
 
     private int lastChunkId;   // protected by serializationLock
 
@@ -176,7 +176,7 @@ public abstract class FileStore
     /**
      * The map of chunks.
      */
-    private final ConcurrentHashMap<Integer, Chunk> chunks = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Integer, C> chunks = new ConcurrentHashMap<>();
 
     private final HashMap<String, Object> storeHeader = new HashMap<>();
 
@@ -194,7 +194,7 @@ public abstract class FileStore
      */
     private MVMap<String, String> layout;
 
-    private final Deque<Chunk> deadChunks = new ArrayDeque<>();
+    private final Deque<C> deadChunks = new ArrayDeque<>();
 
     /**
      * Reference to a background thread, which is expected to be running, if any.
@@ -365,7 +365,7 @@ public abstract class FileStore
     }
 
     public final long lastChunkVersion() {
-        Chunk chunk = lastChunk;
+        C chunk = lastChunk;
         return chunk == null ? INITIAL_VERSION + 1 : chunk.version;
     }
 
@@ -463,7 +463,7 @@ public abstract class FileStore
             return true;
         }
         // need to check if a chunk for this version exists
-        Chunk c = getChunkForVersion(version);
+        C c = getChunkForVersion(version);
         if (c == null) {
             return false;
         }
@@ -471,7 +471,7 @@ public abstract class FileStore
             // also, all chunks referenced by this version
             // need to be available in the file
             MVMap<String, String> oldLayoutMap = getLayoutMap(version);
-            for (Chunk chunk : getChunksFromLayoutMap(oldLayoutMap)) {
+            for (C chunk : getChunksFromLayoutMap(oldLayoutMap)) {
                 String chunkKey = Chunk.getMetaKey(chunk.id);
                 // if current layout map does not have it - verify it's existence
                 if (!layout.containsKey(chunkKey) && !isValidChunk(chunk)) {
@@ -499,7 +499,7 @@ public abstract class FileStore
         }
         serializationLock.lock();
         try {
-            Chunk keep = getChunkForVersion(version);
+            C keep = getChunkForVersion(version);
             if (keep != null) {
                 saveChunkLock.lock();
                 try {
@@ -525,14 +525,14 @@ public abstract class FileStore
     }
 
     private MVMap<String, String> getLayoutMap(long version) {
-        Chunk chunk = getChunkForVersion(version);
+        C chunk = getChunkForVersion(version);
         DataUtils.checkArgument(chunk != null, "Unknown version {0}", version);
         return layout.openReadOnly(chunk.layoutRootPos, version);
     }
 
-    private Chunk getChunkForVersion(long version) {
-        Chunk newest = null;
-        for (Chunk c : chunks.values()) {
+    private C getChunkForVersion(long version) {
+        C newest = null;
+        for (C c : chunks.values()) {
             if (c.version <= version) {
                 if (newest == null || c.id > newest.id) {
                     newest = c;
@@ -584,7 +584,7 @@ public abstract class FileStore
         return autoCompactLastFileOpCount == getWriteCount() + getReadCount();
     }
 
-    private void setLastChunk(Chunk last) {
+    private void setLastChunk(C last) {
         lastChunk = last;
         chunks.clear();
         lastChunkId = 0;
@@ -597,7 +597,7 @@ public abstract class FileStore
         layout.setRootPos(layoutRootPos, lastChunkVersion());
     }
 
-    private void registerDeadChunk(Chunk chunk) {
+    private void registerDeadChunk(C chunk) {
         deadChunks.offer(chunk);
     }
 
@@ -605,8 +605,8 @@ public abstract class FileStore
         if (!deadChunks.isEmpty()) {
             long oldestVersionToKeep = mvStore.getOldestVersionToKeep();
             long time = getTimeSinceCreation();
-            List<Chunk> toBeFreed = new ArrayList<>();
-            Chunk chunk;
+            List<C> toBeFreed = new ArrayList<>();
+            C chunk;
             while ((chunk = deadChunks.poll()) != null &&
                     (isSeasonedChunk(chunk, time) && canOverwriteChunk(chunk, oldestVersionToKeep) ||
                             // if chunk is not ready yet, put it back and exit
@@ -642,37 +642,36 @@ public abstract class FileStore
         }
     }
 
-    private static boolean canOverwriteChunk(Chunk c, long oldestVersionToKeep) {
+    private static <C extends Chunk<C>> boolean canOverwriteChunk(C c, long oldestVersionToKeep) {
         return !c.isLive() && c.unusedAtVersion < oldestVersionToKeep;
     }
 
-    private boolean isSeasonedChunk(Chunk chunk, long time) {
+    private boolean isSeasonedChunk(C chunk, long time) {
         int retentionTime = getRetentionTime();
         return retentionTime < 0 || chunk.time + retentionTime <= time;
     }
 
-    private boolean isRewritable(Chunk chunk, long time) {
+    private boolean isRewritable(C chunk, long time) {
         return chunk.isRewritable() && isSeasonedChunk(chunk, time);
     }
 
     /**
-     * Write data to the store.
-     * @param volumeId 0-based index
-     * @param pos the write "position"
+     * Write to the file.
+     * @param chunk to write
+     * @param pos the write position
      * @param src the source buffer
      */
-    protected abstract void writeFully(Chunk chunk, long pos, ByteBuffer src);
+    protected abstract void writeFully(C chunk, long pos, ByteBuffer src);
 
     /**
      * Read data from the store.
      *
-     *
-     * @param volumeId 0-based index
+     * @param chunk that owns data to be read
      * @param pos the read "position"
      * @param len the number of bytes to read
      * @return the byte buffer with data requested
      */
-    public abstract ByteBuffer readFully(Chunk chunk, long pos, int len);
+    public abstract ByteBuffer readFully(C chunk, long pos, int len);
 
     protected final ByteBuffer readFully(FileChannel file, long pos, int len) {
         ByteBuffer dst = ByteBuffer.allocate(len);
@@ -689,13 +688,13 @@ public abstract class FileStore
      * @param chunk to allocate space for
      * @param buff to allocate space for
      */
-    protected abstract void allocateChunkSpace(Chunk chunk, WriteBuffer buff);
+    protected abstract void allocateChunkSpace(C chunk, WriteBuffer buff);
 
-    private boolean isWriteStoreHeader(Chunk c, boolean storeAtEndOfFile) {
+    private boolean isWriteStoreHeader(C c, boolean storeAtEndOfFile) {
         // whether we need to write the store header
         boolean writeStoreHeader = false;
         if (!storeAtEndOfFile) {
-            Chunk chunk = lastChunk;
+            C chunk = lastChunk;
             if (chunk == null) {
                 writeStoreHeader = true;
             } else if (chunk.next != c.block) {
@@ -744,20 +743,20 @@ public abstract class FileStore
         writeStoreHeader();
     }
 
-    private Chunk createChunk(long time, long version) {
+    private C createChunk(long time, long version) {
         int newChunkId = findNewChunkId();
-        Chunk c = createChunk(newChunkId);
+        C c = createChunk(newChunkId);
         c.time = time;
         c.version = version;
         c.occupancy = new BitSet();
         return c;
     }
 
-    protected abstract Chunk createChunk(int id);
+    protected abstract C createChunk(int id);
 
-    protected abstract Chunk createChunk(String s);
+    protected abstract C createChunk(String s);
 
-    protected abstract Chunk createChunk(Map<String, String> map, boolean full);
+    protected abstract C createChunk(Map<String, String> map, boolean full);
 
 
     private int findNewChunkId() {
@@ -767,7 +766,7 @@ public abstract class FileStore
             if (newChunkId == lastChunkId) {
                 break;
             }
-            Chunk old = chunks.get(newChunkId);
+            C old = chunks.get(newChunkId);
             if (old == null) {
                 break;
             }
@@ -822,7 +821,7 @@ public abstract class FileStore
      *
      * @param chunk to save
      */
-    public void saveChunkMetadataChanges(Chunk chunk) {
+    public void saveChunkMetadataChanges(C chunk) {
         assert serializationLock.isHeldByCurrentThread();
         // chunk's location has to be determined before
         // it's metadata can be is serialized
@@ -846,7 +845,7 @@ public abstract class FileStore
      *
      * @param chunks chunks to be processed
      */
-    protected abstract void freeChunkSpace(Iterable<Chunk> chunks);
+    protected abstract void freeChunkSpace(Iterable<C> chunks);
 
     protected abstract boolean validateFileLength(String msg);
 
@@ -923,18 +922,18 @@ public abstract class FileStore
     }
 
     private int lastMapId() {
-        Chunk chunk = lastChunk;
+        C chunk = lastChunk;
         return chunk == null ? 0 : chunk.mapId;
     }
 
     protected void readStoreHeader(boolean recoveryMode) {
         long now = System.currentTimeMillis();
-        Chunk newest = null;
+        C newest = null;
         boolean assumeCleanShutdown = true;
         boolean validStoreHeader = false;
         // find out which chunk and version are the newest
         // read the first two blocks
-        ByteBuffer fileHeaderBlocks = readFully((Chunk)null, 0, 2 * FileStore.BLOCK_SIZE);
+        ByteBuffer fileHeaderBlocks = readFully((C)null, 0, 2 * FileStore.BLOCK_SIZE);
         byte[] buff = new byte[FileStore.BLOCK_SIZE];
         for (int i = 0; i <= FileStore.BLOCK_SIZE; i += FileStore.BLOCK_SIZE) {
             fileHeaderBlocks.get(buff);
@@ -955,7 +954,7 @@ public abstract class FileStore
                     creationTime = DataUtils.readHexLong(m, FileStore.HDR_CREATED, 0);
                     int chunkId = DataUtils.readHexInt(m, FileStore.HDR_CHUNK, 0);
                     long block = DataUtils.readHexLong(m, FileStore.HDR_BLOCK, 2);
-                    Chunk test = readChunkHeaderAndFooter(block, chunkId);
+                    C test = readChunkHeaderAndFooter(block, chunkId);
                     if (test != null) {
                         newest = test;
                     }
@@ -1024,7 +1023,7 @@ public abstract class FileStore
         long fileSize = size();
         long blocksInStore = fileSize / FileStore.BLOCK_SIZE;
 
-        Comparator<Chunk> chunkComparator = (one, two) -> {
+        Comparator<C> chunkComparator = (one, two) -> {
             int result = Long.compare(two.version, one.version);
             if (result == 0) {
                 // out of two copies of the same chunk we prefer the one
@@ -1034,9 +1033,9 @@ public abstract class FileStore
             return result;
         };
 
-        Map<Long, Chunk> validChunksByLocation = new HashMap<>();
+        Map<Long,C> validChunksByLocation = new HashMap<>();
         if (!assumeCleanShutdown) {
-            Chunk tailChunk = discoverChunk(blocksInStore);
+            C tailChunk = discoverChunk(blocksInStore);
             if (tailChunk != null) {
                 blocksInStore = tailChunk.block; // for a possible full scan later on
                 validChunksByLocation.put(blocksInStore, tailChunk);
@@ -1053,7 +1052,7 @@ public abstract class FileStore
                         // no (valid) next
                         break;
                     }
-                    Chunk test = readChunkHeaderAndFooter(newest.next, newest.id + 1);
+                    C test = readChunkHeaderAndFooter(newest.next, newest.id + 1);
                     if (test == null || test.version <= newest.version) {
                         break;
                     }
@@ -1064,12 +1063,12 @@ public abstract class FileStore
 
         if (assumeCleanShutdown) {
             // quickly check latest 20 chunks referenced in meta table
-            Queue<Chunk> chunksToVerify = new PriorityQueue<>(20, Collections.reverseOrder(chunkComparator));
+            Queue<C> chunksToVerify = new PriorityQueue<>(20, Collections.reverseOrder(chunkComparator));
             try {
                 setLastChunk(newest);
                 // load the chunk metadata: although meta's root page resides in the lastChunk,
                 // traversing meta map might recursively load another chunk(s)
-                for (Chunk c : getChunksFromLayoutMap()) {
+                for (C c : getChunksFromLayoutMap()) {
                     // might be there already, due to meta traversal
                     // see readPage() ... getChunkIfFound()
                     chunksToVerify.offer(c);
@@ -1077,9 +1076,9 @@ public abstract class FileStore
                         chunksToVerify.poll();
                     }
                 }
-                Chunk c;
+                C c;
                 while (assumeCleanShutdown && (c = chunksToVerify.poll()) != null) {
-                    Chunk test = readChunkHeaderAndFooter(c.block, c.id);
+                    C test = readChunkHeaderAndFooter(c.block, c.id);
                     assumeCleanShutdown = test != null;
                     if (assumeCleanShutdown) {
                         validChunksByLocation.put(test.block, test);
@@ -1100,7 +1099,7 @@ public abstract class FileStore
                 // scan whole file and try to fetch chunk header and/or footer out of every block
                 // matching pairs with nothing in-between are considered as valid chunk
                 long block = blocksInStore;
-                Chunk tailChunk;
+                C tailChunk;
                 while ((tailChunk = discoverChunk(block)) != null) {
                     block = tailChunk.block;
                     validChunksByLocation.put(block, tailChunk);
@@ -1117,7 +1116,7 @@ public abstract class FileStore
 
         clear();
         // build the free space list
-        for (Chunk c : getChunks().values()) {
+        for (C c : getChunks().values()) {
             if (c.isAllocated()) {
                 long start = c.block * FileStore.BLOCK_SIZE;
                 int length = c.len * FileStore.BLOCK_SIZE;
@@ -1137,9 +1136,9 @@ public abstract class FileStore
      *            further than block-1)
      * @return valid chunk or null if none found
      */
-    private Chunk discoverChunk(long block) {
+    private C discoverChunk(long block) {
         long candidateLocation = Long.MAX_VALUE;
-        Chunk candidate = null;
+        C candidate = null;
         while (true) {
             if (block == candidateLocation) {
                 return candidate;
@@ -1147,7 +1146,7 @@ public abstract class FileStore
             if (block == 2) { // number of blocks occupied by headers
                 return null;
             }
-            Chunk test = readChunkFooter(block);
+            C test = readChunkFooter(block);
             if (test != null) {
                 // if we encounter chunk footer (with or without corresponding header)
                 // in the middle of prospective chunk, stop considering it
@@ -1178,28 +1177,30 @@ public abstract class FileStore
         return DataUtils.newMVStoreException(DataUtils.ERROR_UNSUPPORTED_FORMAT, s, format, expectedFormat);
     }
 
-    private boolean findLastChunkWithCompleteValidChunkSet(Comparator<Chunk> chunkComparator,
-                                                           Map<Long, Chunk> validChunksByLocation,
+    private boolean findLastChunkWithCompleteValidChunkSet(Comparator<C> chunkComparator,
+                                                           Map<Long, C> validChunksByLocation,
                                                            boolean afterFullScan) {
         // this collection will hold potential candidates for lastChunk to fall back to,
         // in order from the most to least likely
-        Chunk[] lastChunkCandidates = validChunksByLocation.values().toArray(new Chunk[0]);
+        @SuppressWarnings("unchecked")
+        C[] array = (C[]) new Chunk[validChunksByLocation.size()];
+        C[] lastChunkCandidates = validChunksByLocation.values().toArray(array);
         Arrays.sort(lastChunkCandidates, chunkComparator);
-        Map<Integer, Chunk> validChunksById = new HashMap<>();
-        for (Chunk chunk : lastChunkCandidates) {
+        Map<Integer, C> validChunksById = new HashMap<>();
+        for (C chunk : lastChunkCandidates) {
             validChunksById.put(chunk.id, chunk);
         }
         // Try candidates for "last chunk" in order from newest to oldest
         // until suitable is found. Suitable one should have meta map
         // where all chunk references point to valid locations.
-        for (Chunk chunk : lastChunkCandidates) {
+        for (C chunk : lastChunkCandidates) {
             boolean verified = true;
             try {
                 setLastChunk(chunk);
                 // load the chunk metadata: although meta's root page resides in the lastChunk,
                 // traversing meta map might recursively load another chunk(s)
-                for (Chunk c : getChunksFromLayoutMap()) {
-                    Chunk test;
+                for (C c : getChunksFromLayoutMap()) {
+                    C test;
                     if ((test = validChunksByLocation.get(c.block)) == null || test.id != c.id) {
                         if ((test = validChunksById.get(c.id)) != null) {
                             // We do not have a valid chunk at that location,
@@ -1242,12 +1243,17 @@ public abstract class FileStore
         return false;
     }
 
-    private Chunk readChunkHeader(long block) {
+    @SuppressWarnings("unchecked")
+    private C[] createChunksArray(int sz) {
+        return (C[]) new Chunk[sz];
+    }
+
+    private C readChunkHeader(long block) {
         long p = block * FileStore.BLOCK_SIZE;
-        ByteBuffer buff = readFully((Chunk)null, p, Chunk.MAX_HEADER_LENGTH);
+        ByteBuffer buff = readFully((C)null, p, Chunk.MAX_HEADER_LENGTH);
         Throwable exception = null;
         try {
-            Chunk chunk = createChunk(Chunk.readChunkHeader(buff, p));
+            C chunk = createChunk(Chunk.readChunkHeader(buff));
             if (chunk.block == 0) {
                 chunk.block = block;
             }
@@ -1265,14 +1271,14 @@ public abstract class FileStore
                 "File corrupt reading chunk at position {0}", p, exception);
     }
 
-    private Iterable<Chunk> getChunksFromLayoutMap() {
+    private Iterable<C> getChunksFromLayoutMap() {
         return getChunksFromLayoutMap(layout);
     }
 
-    private Iterable<Chunk> getChunksFromLayoutMap(MVMap<String, String> layoutMap) {
-        return () -> new Iterator<Chunk>() {
+    private Iterable<C> getChunksFromLayoutMap(MVMap<String, String> layoutMap) {
+        return () -> new Iterator<C>() {
             private final Cursor<String, String> cursor = layoutMap.cursor(DataUtils.META_CHUNK);
-            private Chunk nextChunk;
+            private C nextChunk;
 
             @Override
             public boolean hasNext() {
@@ -1282,7 +1288,7 @@ public abstract class FileStore
                         // might be there already, due to layout traversal
                         // see readPage() ... getChunkIfFound(),
                         // then take existing one instead
-                        Chunk existingChunk = chunks.putIfAbsent(nextChunk.id, nextChunk);
+                        C existingChunk = chunks.putIfAbsent(nextChunk.id, nextChunk);
                         if (existingChunk != null) {
                             nextChunk = existingChunk;
                         }
@@ -1292,11 +1298,11 @@ public abstract class FileStore
             }
 
             @Override
-            public Chunk next() {
+            public C next() {
                 if (!hasNext()) {
                     throw new NoSuchElementException();
                 }
-                Chunk chunk = nextChunk;
+                C chunk = nextChunk;
                 nextChunk = null;
                 return chunk;
             }
@@ -1310,7 +1316,7 @@ public abstract class FileStore
      * @param chunk to verify existence
      * @return true if Chunk exists in the file and is valid, false otherwise
      */
-    private boolean isValidChunk(Chunk chunk) {
+    private boolean isValidChunk(C chunk) {
         return readChunkHeaderAndFooter(chunk.block, chunk.id) != null;
     }
 
@@ -1322,10 +1328,10 @@ public abstract class FileStore
      * @return the chunk, or null if the header or footer don't match or are not
      *         consistent
      */
-    private Chunk readChunkHeaderAndFooter(long block, int expectedId) {
-        Chunk header = readChunkHeaderOptionally(block, expectedId);
+    private C readChunkHeaderAndFooter(long block, int expectedId) {
+        C header = readChunkHeaderOptionally(block, expectedId);
         if (header != null) {
-            Chunk footer = readChunkFooter(block + header.len);
+            C footer = readChunkFooter(block + header.len);
             if (footer == null || footer.id != expectedId || footer.block != header.block) {
                 return null;
             }
@@ -1333,14 +1339,14 @@ public abstract class FileStore
         return header;
     }
 
-    private Chunk readChunkHeaderOptionally(long block, int expectedId) {
-        Chunk chunk = readChunkHeaderOptionally(block);
+    private C readChunkHeaderOptionally(long block, int expectedId) {
+        C chunk = readChunkHeaderOptionally(block);
         return chunk == null || chunk.id != expectedId ? null : chunk;
     }
 
-    private Chunk readChunkHeaderOptionally(long block) {
+    private C readChunkHeaderOptionally(long block) {
         try {
-            Chunk chunk = readChunkHeader(block);
+            C chunk = readChunkHeader(block);
             return chunk.block != block ? null : chunk;
         } catch (Exception ignore) {
             return null;
@@ -1353,7 +1359,7 @@ public abstract class FileStore
      * @param block the index of the next block after the chunk
      * @return the chunk, or null if not successful
      */
-    private Chunk readChunkFooter(long block) {
+    private C readChunkFooter(long block) {
         // the following can fail for various reasons
         try {
             // read the chunk footer of the last block of the file
@@ -1361,12 +1367,12 @@ public abstract class FileStore
             if(pos < 0) {
                 return null;
             }
-            ByteBuffer lastBlock = readFully((Chunk)null, pos, Chunk.FOOTER_LENGTH);
+            ByteBuffer lastBlock = readFully((C)null, pos, Chunk.FOOTER_LENGTH);
             byte[] buff = new byte[Chunk.FOOTER_LENGTH];
             lastBlock.get(buff);
             HashMap<String, String> m = DataUtils.parseChecksummedMap(buff);
             if (m != null) {
-                Chunk chunk = createChunk(m, false);
+                C chunk = createChunk(m, false);
                 if (chunk.block == 0) {
                     chunk.block = block - chunk.len;
                 }
@@ -1529,11 +1535,11 @@ public abstract class FileStore
 
     public abstract void backup(ZipOutputStream out) throws IOException;
 
-    protected final ConcurrentMap<Integer, Chunk> getChunks() {
+    protected final ConcurrentMap<Integer, C> getChunks() {
         return chunks;
     }
 
-    protected Collection<Chunk> getRewriteCandidates() {
+    protected Collection<C> getRewriteCandidates() {
         return null;
     }
 
@@ -1594,7 +1600,7 @@ public abstract class FileStore
     private void serializeAndStore(boolean syncRun, ArrayList<Page<?,?>> changed, long time, long version) {
         serializationLock.lock();
         try {
-            Chunk lastChunk = null;
+            C lastChunk = null;
             int chunkId = lastChunkId;
             if (chunkId != 0) {
                 chunkId &= Chunk.MAX_ID;
@@ -1603,7 +1609,7 @@ public abstract class FileStore
                 // never go backward in time
                 time = Math.max(lastChunk.time, time);
             }
-            Chunk c = createChunk(time, version);
+            C c = createChunk(time, version);
             WriteBuffer buff = getWriteBuffer();
             serializeToBuffer(buff, changed, c, lastChunk);
             chunks.put(c.id, c);
@@ -1623,7 +1629,7 @@ public abstract class FileStore
         }
     }
 
-    private void serializeToBuffer(WriteBuffer buff, ArrayList<Page<?, ?>> changed, Chunk c, Chunk previousChunk) {
+    private void serializeToBuffer(WriteBuffer buff, ArrayList<Page<?, ?>> changed, C c, C previousChunk) {
         // need to patch the header later
         c.writeChunkHeader(buff, 0);
         int headerLength = buff.position() + 66; // len:0[fffffff]map:0[fffffff],toc:0[fffffffffffffff],root:0[fffffffffffffff,next:ffffffffffffffff]
@@ -1684,7 +1690,7 @@ public abstract class FileStore
         c.buffer = buff.getBuffer();
     }
 
-    private void storeBuffer(Chunk c, WriteBuffer buff) {
+    private void storeBuffer(C c, WriteBuffer buff) {
         saveChunkLock.lock();
         try {
             if (closed) {
@@ -1726,7 +1732,7 @@ public abstract class FileStore
     private void acceptChunkOccupancyChanges(long time, long version) {
         assert serializationLock.isHeldByCurrentThread();
         if (hasPersitentData()) {
-            Set<Chunk> modifiedChunks = new HashSet<>();
+            Set<C> modifiedChunks = new HashSet<>();
             while (true) {
                 RemovedPageInfo rpi;
                 while ((rpi = removedPages.peek()) != null && rpi.version < version) {
@@ -1734,7 +1740,7 @@ public abstract class FileStore
                     assert rpi != null;         // since nobody else retrieves from queue
                     assert rpi.version < version : rpi + " < " + version;
                     int chunkId = rpi.getPageChunkId();
-                    Chunk chunk = chunks.get(chunkId);
+                    C chunk = chunks.get(chunkId);
                     assert !mvStore.isOpen() || chunk != null : chunkId;
                     if (chunk != null) {
                         modifiedChunks.add(chunk);
@@ -1747,7 +1753,7 @@ public abstract class FileStore
                 if (modifiedChunks.isEmpty()) {
                     return;
                 }
-                for (Chunk chunk : modifiedChunks) {
+                for (C chunk : modifiedChunks) {
                     saveChunkMetadataChanges(chunk);
                 }
                 modifiedChunks.clear();
@@ -1775,7 +1781,7 @@ public abstract class FileStore
         long maxLengthSum = 1;
         long maxLengthLiveSum = 1;
         long time = getTimeSinceCreation();
-        for (Chunk c : chunks.values()) {
+        for (C c : chunks.values()) {
             if (all || isRewritable(c, time)) {
                 assert c.maxLen >= 0;
                 maxLengthSum += c.maxLen;
@@ -1803,7 +1809,7 @@ public abstract class FileStore
      */
     public int getPageCount() {
         int count = 0;
-        for (Chunk chunk : chunks.values()) {
+        for (C chunk : chunks.values()) {
             count += chunk.pageCount;
         }
         return count;
@@ -1816,7 +1822,7 @@ public abstract class FileStore
      */
     public int getLivePageCount() {
         int count = 0;
-        for (Chunk chunk : chunks.values()) {
+        for (C chunk : chunks.values()) {
             count += chunk.pageCountLive;
         }
         return count;
@@ -1873,11 +1879,11 @@ public abstract class FileStore
         }
     }
 
-    private void cacheToC(Chunk chunk, long[] toc) {
+    private void cacheToC(C chunk, long[] toc) {
         chunksToC.put(chunk.version, toc, toc.length * 8);
     }
 
-    private long[] cleanToCCache(Chunk chunk) {
+    private long[] cleanToCCache(C chunk) {
         return chunksToC.remove(chunk.version);
     }
 
@@ -1935,7 +1941,7 @@ public abstract class FileStore
         bufferSaveExecutor = null;
     }
 
-    private Iterable<Chunk> findOldChunks(int writeLimit, int targetFillRate) {
+    private Iterable<C> findOldChunks(int writeLimit, int targetFillRate) {
         assert hasPersitentData();
         long time = getTimeSinceCreation();
 
@@ -1943,7 +1949,7 @@ public abstract class FileStore
         // the smaller the collectionPriority, the more desirable this chunk's re-write is
         // queue will be ordered in descending order of collectionPriority values,
         // so most desirable chunks will stay at the tail
-        PriorityQueue<Chunk> queue = new PriorityQueue<>(this.chunks.size() / 4 + 1,
+        PriorityQueue<C> queue = new PriorityQueue<>(this.chunks.size() / 4 + 1,
                 (o1, o2) -> {
                     int comp = Integer.compare(o2.collectPriority, o1.collectPriority);
                     if (comp == 0) {
@@ -1955,11 +1961,11 @@ public abstract class FileStore
         long totalSize = 0;
         long latestVersion = lastChunkVersion() + 1;
 
-        Collection<Chunk> candidates = getRewriteCandidates();
+        Collection<C> candidates = getRewriteCandidates();
         if (candidates == null) {
             candidates = chunks.values();
         }
-        for (Chunk chunk : candidates) {
+        for (C chunk : candidates) {
             // only look at chunk older than the retention time
             // (it's possible to compact chunks earlier, but right
             // now we don't do that)
@@ -1970,7 +1976,7 @@ public abstract class FileStore
                 totalSize += chunk.maxLenLive;
                 queue.offer(chunk);
                 while (totalSize > writeLimit) {
-                    Chunk removed = queue.poll();
+                    C removed = queue.poll();
                     if (removed == null) {
                         break;
                     }
@@ -2016,7 +2022,7 @@ public abstract class FileStore
             MVStore.TxCounter txCounter = mvStore.registerVersionUsage();
             try {
                 acceptChunkOccupancyChanges(getTimeSinceCreation(), mvStore.getCurrentVersion());
-                Iterable<Chunk> old = findOldChunks(writeLimit, targetFillRate);
+                Iterable<C> old = findOldChunks(writeLimit, targetFillRate);
                 if (old != null) {
                     HashSet<Integer> idSet = createIdSet(old);
                     return !idSet.isEmpty() && compactRewrite(idSet) > 0;
@@ -2030,9 +2036,9 @@ public abstract class FileStore
         }
     }
 
-    private static HashSet<Integer> createIdSet(Iterable<Chunk> toCompact) {
+    private static <C extends Chunk<C>> HashSet<Integer> createIdSet(Iterable<C> toCompact) {
         HashSet<Integer> set = new HashSet<>();
-        for (Chunk c : toCompact) {
+        for (C c : toCompact) {
             set.add(c.id);
         }
         return set;
@@ -2067,7 +2073,7 @@ public abstract class FileStore
     private int rewriteChunks(Set<Integer> set, boolean secondPass) {
         int rewrittenPageCount = 0;
         for (int chunkId : set) {
-            Chunk chunk = chunks.get(chunkId);
+            C chunk = chunks.get(chunkId);
             long[] toc = getToC(chunk);
             if (toc != null) {
                 for (int pageNo = 0; (pageNo = chunk.occupancy.nextClearBit(pageNo)) < chunk.pageCount; ++pageNo) {
@@ -2114,7 +2120,7 @@ public abstract class FileStore
             }
             Page<K,V> page = readPageFromCache(pos);
             if (page == null) {
-                Chunk chunk = getChunk(pos);
+                C chunk = getChunk(pos);
                 int pageOffset = DataUtils.getPageOffset(pos);
                 while(true) {
                     MVStoreException exception = null;
@@ -2161,9 +2167,9 @@ public abstract class FileStore
      * @param pos the position
      * @return the chunk
      */
-    private Chunk getChunk(long pos) {
+    private C getChunk(long pos) {
         int chunkId = DataUtils.getPageChunkId(pos);
-        Chunk c = chunks.get(chunkId);
+        C c = chunks.get(chunkId);
         if (c == null) {
             String s = layout.get(Chunk.getMetaKey(chunkId));
             if (s == null) {
@@ -2184,7 +2190,7 @@ public abstract class FileStore
 
     private int calculatePageNo(long pos) {
         int pageNo = -1;
-        Chunk chunk = getChunk(pos);
+        C chunk = getChunk(pos);
         long[] toC = getToC(chunk);
         if (toC != null) {
             int offset = DataUtils.getPageOffset(pos);
@@ -2216,7 +2222,7 @@ public abstract class FileStore
         removedPages.clear();
     }
 
-    private long[] getToC(Chunk chunk) {
+    private long[] getToC(C chunk) {
         if (chunk.tocPos == 0) {
             // legacy chunk without table of content
             return null;
@@ -2255,11 +2261,11 @@ public abstract class FileStore
 
     public final class PageSerializationManager
     {
-        private final Chunk chunk;
+        private final C chunk;
         private final WriteBuffer buff;
         private final List<Long> toc = new ArrayList<>();
 
-        PageSerializationManager(Chunk chunk, WriteBuffer buff) {
+        PageSerializationManager(C chunk, WriteBuffer buff) {
             this.chunk = chunk;
             this.buff = buff;
         }
@@ -2277,7 +2283,7 @@ public abstract class FileStore
         }
 
         public long getPagePosition(int mapId, int offset, int pageLength, int type) {
-            long tocElement = DataUtils.getTocElement(mapId, offset, pageLength, type);
+            long tocElement = DataUtils.composeTocElement(mapId, offset, pageLength, type);
             toc.add(tocElement);
             long pagePos = DataUtils.composePagePos(chunk.id, tocElement);
             int chunkId = getChunkId();
@@ -2388,10 +2394,10 @@ public abstract class FileStore
     private static final class BackgroundWriterThread extends Thread {
 
         public final Object sync = new Object();
-        private final FileStore store;
+        private final FileStore<?> store;
         private final int sleep;
 
-        BackgroundWriterThread(FileStore store, int sleep, String fileStoreName) {
+        BackgroundWriterThread(FileStore<?> store, int sleep, String fileStoreName) {
             super("MVStore background writer " + fileStoreName);
             this.store = store;
             this.sleep = sleep;

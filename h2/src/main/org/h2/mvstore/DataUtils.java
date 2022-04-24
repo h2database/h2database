@@ -655,7 +655,7 @@ public final class DataUtils {
      * @param type the page type (1 for node, 0 for leaf)
      * @return the position
      */
-    public static long getTocElement(int mapId, int offset, int length, int type) {
+    public static long composeTocElement(int mapId, int offset, int length, int type) {
         assert mapId >= 0;
         assert offset >= 0;
         assert type == DataUtils.PAGE_TYPE_LEAF || type == DataUtils.PAGE_TYPE_NODE;

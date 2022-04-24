@@ -23,7 +23,7 @@ import org.h2.util.StringUtils;
  * There are at most 67 million (2^26) chunks,
  * and each chunk is at most 2 GB large.
  */
-public abstract class Chunk {
+public abstract class Chunk<C extends Chunk<C>> {
 
     /**
      * The maximum chunk id.
@@ -172,10 +172,6 @@ public abstract class Chunk {
         this(DataUtils.parseMap(s), true);
     }
 
-    Chunk(Map<String, String> map) {
-        this(map, false);
-    }
-
     Chunk(Map<String, String> map, boolean full) {
         this(DataUtils.readHexInt(map, ATTR_CHUNK, 0));
         block = DataUtils.readHexLong(map, ATTR_BLOCK, 0);
@@ -217,14 +213,15 @@ public abstract class Chunk {
         }
     }
 
+    protected abstract ByteBuffer readFully(FileStore<C> fileStore, long filePos, int length);
+
     /**
      * Read the header from the byte buffer.
      *
      * @param buff the source buffer
-     * @param start the start of the chunk in the file
      * @return the chunk
      */
-    static String readChunkHeader(ByteBuffer buff, long start) {
+    static String readChunkHeader(ByteBuffer buff) {
         int pos = buff.position();
         byte[] data = new byte[Math.min(buff.remaining(), MAX_HEADER_LENGTH)];
         buff.get(data);
@@ -277,7 +274,7 @@ public abstract class Chunk {
      * @param fileStore to use as a Chunk factory
      * @return the Chunk created
      */
-    public static Chunk fromString(String s, FileStore fileStore) {
+    public static <C extends Chunk<C>> C fromString(String s, FileStore<C> fileStore) {
         return fileStore.createChunk(DataUtils.parseMap(s), true);
     }
 
@@ -301,9 +298,10 @@ public abstract class Chunk {
         return id;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public boolean equals(Object o) {
-        return o instanceof Chunk && ((Chunk) o).id == id;
+        return o instanceof Chunk && ((Chunk<C>) o).id == id;
     }
 
     /**
@@ -422,7 +420,7 @@ public abstract class Chunk {
      * @param pos page pos
      * @return ByteBuffer containing page data.
      */
-    ByteBuffer readBufferForPage(FileStore fileStore, int offset, long pos) {
+    ByteBuffer readBufferForPage(FileStore<C> fileStore, int offset, long pos) {
         assert isSaved() : this;
         while (true) {
             long originalBlock = block;
@@ -471,11 +469,7 @@ public abstract class Chunk {
         }
     }
 
-    private ByteBuffer readFully(FileStore fileStore, long filePos, int length) {
-        return fileStore.readFully(this, filePos, length);
-    }
-
-    long[] readToC(FileStore fileStore) {
+    long[] readToC(FileStore<C> fileStore) {
         assert buffer != null || isAllocated() : this;
         assert tocPos > 0;
         long[] toc = new long[pageCount];
@@ -585,13 +579,19 @@ public abstract class Chunk {
     }
 
 
-    public static final class PositionComparator implements Comparator<Chunk> {
-        public static final Comparator<Chunk> INSTANCE = new PositionComparator();
+    public static final class PositionComparator<C extends Chunk<C>> implements Comparator<C>
+    {
+        public static final Comparator<? extends Chunk<?>> INSTANCE = new PositionComparator<>();
+
+        @SuppressWarnings("unchecked")
+        public static <C extends Chunk<C>> Comparator<C> instance() {
+            return (Comparator<C>)INSTANCE;
+        }
 
         private PositionComparator() {}
 
         @Override
-        public int compare(Chunk one, Chunk two) {
+        public int compare(C one, C two) {
             return Long.compare(one.block, two.block);
         }
     }

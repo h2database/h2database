@@ -5,6 +5,7 @@
  */
 package org.h2.mvstore;
 
+import java.nio.ByteBuffer;
 import java.util.Map;
 
 /**
@@ -15,7 +16,7 @@ import java.util.Map;
  *
  * @author <a href="mailto:andrei.tokar@gmail.com">Andrei Tokar</a>
  */
-public final class MFChunk extends Chunk
+public final class MFChunk extends Chunk<MFChunk>
 {
     private static final String ATTR_VOLUME = "vol";
 
@@ -39,6 +40,11 @@ public final class MFChunk extends Chunk
     MFChunk(Map<String, String> map, boolean full) {
         super(map, full);
         volumeId = DataUtils.readHexInt(map, ATTR_VOLUME, 0);
+    }
+
+    @Override
+    protected ByteBuffer readFully(FileStore<MFChunk> fileStore, long filePos, int length) {
+        return fileStore.readFully(this, filePos, length);
     }
 
     @Override

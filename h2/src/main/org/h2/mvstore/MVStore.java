@@ -155,7 +155,7 @@ public class MVStore implements AutoCloseable {
 
     private volatile int state;
 
-    private final FileStore fileStore;
+    private final FileStore<?> fileStore;
 
     private final boolean fileStoreShallBeClosed;
 
@@ -244,7 +244,7 @@ public class MVStore implements AutoCloseable {
     MVStore(Map<String, Object> config) {
         compressionLevel = DataUtils.getConfigParam(config, "compress", 0);
         String fileName = (String) config.get("fileName");
-        FileStore fileStore = (FileStore) config.get("fileStore");
+        FileStore<?> fileStore = (FileStore<?>) config.get("fileStore");
         boolean fileStoreShallBeOpen = false;
         if (fileStore == null) {
             if (fileName != null) {
@@ -1089,7 +1089,7 @@ public class MVStore implements AutoCloseable {
      */
     public void sync() {
         checkOpen();
-        FileStore f = fileStore;
+        FileStore<?> f = fileStore;
         if (f != null) {
             f.sync();
         }
@@ -1572,7 +1572,7 @@ public class MVStore implements AutoCloseable {
      *
      * @return the file store
      */
-    public FileStore getFileStore() {
+    public FileStore<?> getFileStore() {
         return fileStore;
     }
 

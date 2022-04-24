@@ -754,7 +754,13 @@ public abstract class FileStore<C extends Chunk<C>>
 
     protected abstract C createChunk(int id);
 
-    protected abstract C createChunk(String s);
+    /**
+     * Build a Chunk from the given string.
+     *
+     * @param s         the string
+     * @return the Chunk created
+     */
+    public abstract C createChunk(String s);
 
     protected abstract C createChunk(Map<String, String> map, boolean full);
 
@@ -1284,7 +1290,7 @@ public abstract class FileStore<C extends Chunk<C>>
             public boolean hasNext() {
                 if(nextChunk == null && cursor.hasNext()) {
                     if (cursor.next().startsWith(DataUtils.META_CHUNK)) {
-                        nextChunk = Chunk.fromString(cursor.getValue(), FileStore.this);
+                        nextChunk = createChunk(cursor.getValue());
                         // might be there already, due to layout traversal
                         // see readPage() ... getChunkIfFound(),
                         // then take existing one instead
@@ -2177,7 +2183,7 @@ public abstract class FileStore<C extends Chunk<C>>
                         DataUtils.ERROR_CHUNK_NOT_FOUND,
                         "Chunk {0} not found", chunkId);
             }
-            c = Chunk.fromString(s, this);
+            c = createChunk(s);
             if (!c.isSaved()) {
                 throw DataUtils.newMVStoreException(
                         DataUtils.ERROR_FILE_CORRUPT,

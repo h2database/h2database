@@ -48,7 +48,7 @@ public abstract class RandomAccessStore extends FileStore<SFChunk> {
         return new SFChunk(newChunkId);
     }
 
-    protected SFChunk createChunk(String s) {
+    public SFChunk createChunk(String s) {
         return new SFChunk(s);
     }
 

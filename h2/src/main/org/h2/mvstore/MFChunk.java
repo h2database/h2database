@@ -16,7 +16,7 @@ import java.util.Map;
  *
  * @author <a href="mailto:andrei.tokar@gmail.com">Andrei Tokar</a>
  */
-public final class MFChunk extends Chunk<MFChunk>
+final class MFChunk extends Chunk<MFChunk>
 {
     private static final String ATTR_VOLUME = "vol";
 
@@ -31,10 +31,6 @@ public final class MFChunk extends Chunk<MFChunk>
 
     MFChunk(String line) {
         super(line);
-    }
-
-    MFChunk(Map<String, String> map) {
-        this(map, false);
     }
 
     MFChunk(Map<String, String> map, boolean full) {

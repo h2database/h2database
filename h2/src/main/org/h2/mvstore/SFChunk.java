@@ -16,7 +16,7 @@ import java.util.Map;
  *
  * @author <a href="mailto:andrei.tokar@gmail.com">Andrei Tokar</a>
  */
-class SFChunk extends Chunk<SFChunk>
+final class SFChunk extends Chunk<SFChunk>
 {
     SFChunk(int id) {
         super(id);
@@ -24,10 +24,6 @@ class SFChunk extends Chunk<SFChunk>
 
     SFChunk(String line) {
         super(line);
-    }
-
-    SFChunk(Map<String, String> map) {
-        this(map, false);
     }
 
     SFChunk(Map<String, String> map, boolean full) {

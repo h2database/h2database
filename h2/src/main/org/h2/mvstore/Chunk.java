@@ -268,17 +268,6 @@ public abstract class Chunk<C extends Chunk<C>> {
     }
 
     /**
-     * Build a Chunk from the given string.
-     *
-     * @param s         the string
-     * @param fileStore to use as a Chunk factory
-     * @return the Chunk created
-     */
-    public static <C extends Chunk<C>> C fromString(String s, FileStore<C> fileStore) {
-        return fileStore.createChunk(DataUtils.parseMap(s), true);
-    }
-
-    /**
      * Calculate the fill rate in %. 0 means empty, 100 means full.
      *
      * @return the fill rate

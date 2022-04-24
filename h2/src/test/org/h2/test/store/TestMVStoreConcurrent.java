@@ -440,7 +440,7 @@ public class TestMVStoreConcurrent extends TestMVStore {
                     if (k.startsWith(DataUtils.META_CHUNK)) {
                         // dead chunks may stay around for a little while
                         // discount them
-                        Chunk chunk = Chunk.fromString(layoutMap.get(k), s.getFileStore());
+                        Chunk<?> chunk = s.getFileStore().createChunk(layoutMap.get(k));
                         if (chunk.maxLenLive > 0) {
                             chunkCount++;
                         }

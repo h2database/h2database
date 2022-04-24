@@ -159,8 +159,7 @@ public class MVStoreTool {
                     continue;
                 }
                 int length = c.len * FileStore.BLOCK_SIZE;
-                pw.printf("%n%0" + len + "x chunkHeader %s%n",
-                        pos, c.toString());
+                pw.printf("%n%0" + len + "x chunkHeader %s%n", pos, c);
                 ByteBuffer chunk = ByteBuffer.allocate(length);
                 DataUtils.readFully(file, pos, chunk);
                 int p = buffer.position();
@@ -264,7 +263,7 @@ public class MVStoreTool {
                             pw.printf("    %d children >= %s @ chunk %x +%0" +
                                             len + "x%n",
                                     counts[entries],
-                                    keys.length >= entries ? null : keys[entries],
+                                    entries <= keys.length ? null : keys[entries],
                                     DataUtils.getPageChunkId(cp),
                                     DataUtils.getPageOffset(cp));
                         } else {
@@ -353,7 +352,7 @@ public class MVStoreTool {
             Map<String, String> layout = store.getLayoutMap();
             Map<String, Object> header = store.getStoreHeader();
             long fileCreated = DataUtils.readHexLong(header, "created", 0L);
-            TreeMap<Integer, Chunk> chunks = new TreeMap<>();
+            TreeMap<Integer, Chunk<?>> chunks = new TreeMap<>();
             long chunkLength = 0;
             long maxLength = 0;
             long maxLengthLive = 0;
@@ -361,9 +360,9 @@ public class MVStoreTool {
             for (Entry<String, String> e : layout.entrySet()) {
                 String k = e.getKey();
                 if (k.startsWith(DataUtils.META_CHUNK)) {
-                    Chunk c = Chunk.fromString(e.getValue(), store.getFileStore());
+                    Chunk<?> c = store.getFileStore().createChunk(e.getValue());
                     chunks.put(c.id, c);
-                    chunkLength += c.len * FileStore.BLOCK_SIZE;
+                    chunkLength += (long)c.len * FileStore.BLOCK_SIZE;
                     maxLength += c.maxLen;
                     maxLengthLive += c.maxLenLive;
                     if (c.maxLenLive > 0) {
@@ -384,8 +383,8 @@ public class MVStoreTool {
             pw.printf("Chunk fill rate excluding empty chunks: %d%%\n",
                 maxLengthNotEmpty == 0 ? 100 :
                 getPercent(maxLengthLive, maxLengthNotEmpty));
-            for (Entry<Integer, Chunk> e : chunks.entrySet()) {
-                Chunk c = e.getValue();
+            for (Entry<Integer, Chunk<?>> e : chunks.entrySet()) {
+                Chunk<?> c = e.getValue();
                 long created = fileCreated + c.time;
                 pw.printf("  Chunk %d: %s, %d%% used, %d blocks",
                         c.id, formatTimestamp(created, fileCreated),

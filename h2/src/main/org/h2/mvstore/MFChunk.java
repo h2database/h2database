@@ -33,8 +33,8 @@ final class MFChunk extends Chunk<MFChunk>
         super(line);
     }
 
-    MFChunk(Map<String, String> map, boolean full) {
-        super(map, full);
+    MFChunk(Map<String, String> map) {
+        super(map, false);
         volumeId = DataUtils.readHexInt(map, ATTR_VOLUME, 0);
     }
 

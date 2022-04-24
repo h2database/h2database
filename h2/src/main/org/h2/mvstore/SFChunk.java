@@ -26,8 +26,8 @@ final class SFChunk extends Chunk<SFChunk>
         super(line);
     }
 
-    SFChunk(Map<String, String> map, boolean full) {
-        super(map, full);
+    SFChunk(Map<String, String> map) {
+        super(map, false);
     }
 
     @Override

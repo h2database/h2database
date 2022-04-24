@@ -61,8 +61,8 @@ public class AppendOnlyMultiFileStore extends FileStore<MFChunk>
         return new MFChunk(s);
     }
 
-    protected MFChunk createChunk(Map<String, String> map, boolean full) {
-        return new MFChunk(map, full);
+    protected MFChunk createChunk(Map<String, String> map) {
+        return new MFChunk(map);
     }
 
 

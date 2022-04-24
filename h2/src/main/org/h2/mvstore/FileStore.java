@@ -762,7 +762,7 @@ public abstract class FileStore<C extends Chunk<C>>
      */
     public abstract C createChunk(String s);
 
-    protected abstract C createChunk(Map<String, String> map, boolean full);
+    protected abstract C createChunk(Map<String, String> map);
 
 
     private int findNewChunkId() {
@@ -1378,7 +1378,7 @@ public abstract class FileStore<C extends Chunk<C>>
             lastBlock.get(buff);
             HashMap<String, String> m = DataUtils.parseChecksummedMap(buff);
             if (m != null) {
-                C chunk = createChunk(m, false);
+                C chunk = createChunk(m);
                 if (chunk.block == 0) {
                     chunk.block = block - chunk.len;
                 }

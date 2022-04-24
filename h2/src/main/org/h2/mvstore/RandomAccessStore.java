@@ -52,8 +52,8 @@ public abstract class RandomAccessStore extends FileStore<SFChunk> {
         return new SFChunk(s);
     }
 
-    protected SFChunk createChunk(Map<String, String> map, boolean full) {
-        return new SFChunk(map, full);
+    protected SFChunk createChunk(Map<String, String> map) {
+        return new SFChunk(map);
     }
 
     /**

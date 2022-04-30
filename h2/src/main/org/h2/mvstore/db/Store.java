@@ -238,8 +238,7 @@ public final class Store {
      * Store all pending changes.
      */
     public void flush() {
-        FileStore s = mvStore.getFileStore();
-        if (s != null && !s.isReadOnly()) {
+        if (mvStore.isPersistent() && !mvStore.isReadOnly()) {
             mvStore.commit();
         }
     }
@@ -308,10 +307,7 @@ public final class Store {
      * @param kb the maximum size in KB
      */
     public void setCacheSize(int kb) {
-        FileStore fileStore = mvStore.getFileStore();
-        if (fileStore != null) {
-            fileStore.setCacheSize(Math.max(1, kb / 1024));
-        }
+        mvStore.setCacheSize(kb);
     }
 
     /**

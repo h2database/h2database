@@ -2969,48 +2969,7 @@ public final class InformationSchemaTable extends MetaTable {
         for (Map.Entry<String, String> entry : database.getSettings().getSortedSettings()) {
             add(session, rows, entry.getKey(), entry.getValue());
         }
-
-        MVStore mvStore = database.getStore().getMvStore();
-        add(session, rows,
-                "info.UPDATE_FAILURE_PERCENT",
-                String.format(Locale.ENGLISH, "%.2f%%", 100 * mvStore.getUpdateFailureRatio()));
-        add(session, rows,
-                "info.LEAF_RATIO", Integer.toString(mvStore.getLeafRatio()));
-        FileStore fs = mvStore.getFileStore();
-        if (fs != null) {
-            add(session, rows,
-                    "info.FILE_WRITE", Long.toString(fs.getWriteCount()));
-            add(session, rows,
-                    "info.FILE_WRITE_BYTES", Long.toString(fs.getWriteBytes()));
-            add(session, rows,
-                    "info.FILE_READ", Long.toString(fs.getReadCount()));
-            add(session, rows,
-                    "info.FILE_READ_BYTES", Long.toString(fs.getReadBytes()));
-            add(session, rows,
-                    "info.FILL_RATE", Integer.toString(fs.getFillRate()));
-            add(session, rows,
-                    "info.CHUNKS_FILL_RATE", Integer.toString(fs.getChunksFillRate()));
-            add(session, rows,
-                    "info.CHUNKS_FILL_RATE_RW", Integer.toString(fs.getRewritableChunksFillRate()));
-            add(session, rows,
-                    "info.FILE_SIZE", Long.toString(fs.size()));
-            add(session, rows,
-                    "info.CHUNK_COUNT", Long.toString(fs.getChunkCount()));
-            add(session, rows,
-                    "info.PAGE_COUNT", Long.toString(fs.getPageCount()));
-            add(session, rows,
-                    "info.PAGE_COUNT_LIVE", Long.toString(fs.getLivePageCount()));
-            add(session, rows,
-                    "info.PAGE_SIZE", Long.toString(fs.getMaxPageSize()));
-            add(session, rows,
-                    "info.CACHE_MAX_SIZE", Integer.toString(fs.getCacheSize()));
-            add(session, rows,
-                    "info.CACHE_SIZE", Integer.toString(fs.getCacheSizeUsed()));
-            add(session, rows,
-                    "info.CACHE_HIT_RATIO", Integer.toString(fs.getCacheHitRatio()));
-            add(session, rows,
-                    "info.TOC_CACHE_HIT_RATIO", Integer.toString(fs.getTocCacheHitRatio()));
-        }
+        database.getStore().getMvStore().populateInfo((name, value) -> add(session, rows, name, value));
     }
 
     private void synonyms(SessionLocal session, ArrayList<Row> rows, String catalog) {

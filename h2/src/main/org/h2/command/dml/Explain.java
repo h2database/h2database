@@ -94,8 +94,8 @@ public class Explain extends Prepared {
                 }
                 if (statistics != null) {
                     int total = 0;
-                    for (Entry<String, Integer> e : statistics.entrySet()) {
-                        total += e.getValue();
+                    for (Integer value : statistics.values()) {
+                        total += value;
                     }
                     if (total > 0) {
                         statistics = new TreeMap<>(statistics);
@@ -112,7 +112,7 @@ public class Explain extends Prepared {
                             }
                             buff.append('\n');
                         }
-                        plan += "\n/*\n" + buff.toString() + "*/";
+                        plan += "\n/*\n" + buff + "*/";
                     }
                 }
             } else {

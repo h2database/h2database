@@ -89,6 +89,7 @@ public class TestConcurrentJdbc extends TestBase {
             SQLException e = (SQLException) t.getException();
             if (e != null) {
                 if (ErrorCode.OBJECT_CLOSED != e.getErrorCode() &&
+                        ErrorCode.DATABASE_IS_CLOSED != e.getErrorCode() &&
                         ErrorCode.STATEMENT_WAS_CANCELED != e.getErrorCode() &&
                         ErrorCode.DATABASE_CALLED_AT_SHUTDOWN != e.getErrorCode()) {
                     throw e;

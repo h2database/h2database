@@ -805,7 +805,7 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
     }
 
     protected final boolean isPersistent() {
-        return store.getFileStore() != null && !isVolatile;
+        return store.isPersistent() && !isVolatile;
     }
 
     /**

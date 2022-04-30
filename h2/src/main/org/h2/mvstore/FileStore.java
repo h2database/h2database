@@ -43,6 +43,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.BiConsumer;
 import java.util.function.IntSupplier;
 import java.util.zip.ZipOutputStream;
 
@@ -434,7 +435,7 @@ public abstract class FileStore<C extends Chunk<C>>
         if (autoCommitDelay != millis) {
             autoCommitDelay = millis;
             if (!isReadOnly()) {
-                stopBackgroundThread(true);
+                stopBackgroundThread(millis >= 0);
                 // start the background thread if needed
                 if (millis > 0 && mvStore.isOpen()) {
                     int sleep = Math.max(1, millis / 10);
@@ -1468,7 +1469,7 @@ public abstract class FileStore<C extends Chunk<C>>
      *
      * @return the number of write operations
      */
-    public long getWriteBytes() {
+    private long getWriteBytes() {
         return writeBytes.get();
     }
 
@@ -1779,7 +1780,7 @@ public abstract class FileStore<C extends Chunk<C>>
         return getChunksFillRate(true);
     }
 
-    public int getRewritableChunksFillRate() {
+    int getRewritableChunksFillRate() {
         return getChunksFillRate(false);
     }
 
@@ -1804,7 +1805,7 @@ public abstract class FileStore<C extends Chunk<C>>
      *
      * @return number of existing chunks in store.
      */
-    public int getChunkCount() {
+    private int getChunkCount() {
         return chunks.size();
     }
 
@@ -1813,7 +1814,7 @@ public abstract class FileStore<C extends Chunk<C>>
      *
      * @return number of existing pages in store.
      */
-    public int getPageCount() {
+    private int getPageCount() {
         int count = 0;
         for (C chunk : chunks.values()) {
             count += chunk.pageCount;
@@ -1826,7 +1827,7 @@ public abstract class FileStore<C extends Chunk<C>>
      *
      * @return number of existing live pages in store.
      */
-    public int getLivePageCount() {
+    private int getLivePageCount() {
         int count = 0;
         for (C chunk : chunks.values()) {
             count += chunk.pageCountLive;
@@ -1893,6 +1894,26 @@ public abstract class FileStore<C extends Chunk<C>>
         return chunksToC.remove(chunk.version);
     }
 
+    public void populateInfo(BiConsumer<String, String> consumer) {
+        consumer.accept("info.FILE_WRITE", Long.toString(getWriteCount()));
+        consumer.accept("info.FILE_WRITE_BYTES", Long.toString(getWriteBytes()));
+        consumer.accept("info.FILE_READ", Long.toString(getReadCount()));
+        consumer.accept("info.FILE_READ_BYTES", Long.toString(getReadBytes()));
+        consumer.accept("info.FILL_RATE", Integer.toString(getFillRate()));
+        consumer.accept("info.CHUNKS_FILL_RATE", Integer.toString(getChunksFillRate()));
+        consumer.accept("info.CHUNKS_FILL_RATE_RW", Integer.toString(getRewritableChunksFillRate()));
+        consumer.accept("info.FILE_SIZE", Long.toString(size()));
+        consumer.accept("info.CHUNK_COUNT", Long.toString(getChunkCount()));
+        consumer.accept("info.PAGE_COUNT", Long.toString(getPageCount()));
+        consumer.accept("info.PAGE_COUNT_LIVE", Long.toString(getLivePageCount()));
+        consumer.accept("info.PAGE_SIZE", Long.toString(getMaxPageSize()));
+        consumer.accept("info.CACHE_MAX_SIZE", Integer.toString(getCacheSize()));
+        consumer.accept("info.CACHE_SIZE", Integer.toString(getCacheSizeUsed()));
+        consumer.accept("info.CACHE_HIT_RATIO", Integer.toString(getCacheHitRatio()));
+        consumer.accept("info.TOC_CACHE_HIT_RATIO", Integer.toString(getTocCacheHitRatio()));
+    }
+
+
     public int getCacheHitRatio() {
         return getCacheHitRatio(cache);
     }
@@ -1909,11 +1930,11 @@ public abstract class FileStore<C extends Chunk<C>>
         return (int) (100 * hits / (hits + cache.getMisses() + 1));
     }
 
-    public boolean isBackgroundThread() {
+    private boolean isBackgroundThread() {
         return Thread.currentThread() == backgroundWriterThread.get();
     }
 
-    void stopBackgroundThread(boolean waitForIt) {
+    private void stopBackgroundThread(boolean waitForIt) {
         // Loop here is not strictly necessary, except for case of a spurious failure,
         // which should not happen with non-weak flavour of CAS operation,
         // but I've seen it, so just to be safe...
@@ -2001,22 +2022,19 @@ public abstract class FileStore<C extends Chunk<C>>
      */
     void writeInBackground() {
         try {
-            if (!mvStore.isOpenOrStopping() || isReadOnly()) {
-                return;
+            if (mvStore.isOpen() && !isReadOnly()) {
+                // could also commit when there are many unsaved pages,
+                // but according to a test it doesn't really help
+                long time = getTimeSinceCreation();
+                if (time > lastCommitTime + autoCommitDelay) {
+                    mvStore.tryCommit();
+                }
+                doHousekeeping(mvStore);
+                autoCompactLastFileOpCount = getWriteCount() + getReadCount();
             }
-
-            // could also commit when there are many unsaved pages,
-            // but according to a test it doesn't really help
-            long time = getTimeSinceCreation();
-            if (time > lastCommitTime + autoCommitDelay) {
-                mvStore.tryCommit();
-            }
-            doHousekeeping(mvStore);
-            autoCompactLastFileOpCount = getWriteCount() + getReadCount();
         } catch (InterruptedException ignore) {
         } catch (Throwable e) {
-            mvStore.handleException(e);
-            if (mvStore.backgroundExceptionHandler == null) {
+            if (!mvStore.handleException(e)) {
                 throw e;
             }
         }

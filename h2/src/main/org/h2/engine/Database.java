@@ -1775,12 +1775,10 @@ public final class Database implements DataHandler, CastDataProvider {
      * that thread, throw it now.
      */
     void throwLastBackgroundException() {
-        if (!store.getMvStore().isBackgroundThread()) {
-            DbException b = backgroundException.getAndSet(null);
-            if (b != null) {
-                // wrap the exception, so we see it was thrown here
-                throw DbException.get(b.getErrorCode(), b, b.getMessage());
-            }
+        DbException b = backgroundException.getAndSet(null);
+        if (b != null) {
+            // wrap the exception, so we see it was thrown here
+            throw DbException.get(b.getErrorCode(), b, b.getMessage());
         }
     }
 

@@ -13,15 +13,18 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.BiConsumer;
 import java.util.function.LongConsumer;
 import java.util.function.Predicate;
 import org.h2.compress.CompressDeflate;
@@ -153,6 +156,12 @@ public class MVStore implements AutoCloseable {
      */
     private final ReentrantLock storeLock = new ReentrantLock(true);
 
+    /**
+     * Flag to refine the state under storeLock.
+     * It indicates that store() operation is running, and we have to prevent possible re-entrance.
+     */
+    private final AtomicBoolean storeOperationInProgress = new AtomicBoolean();
+
     private volatile int state;
 
     private final FileStore<?> fileStore;
@@ -214,8 +223,6 @@ public class MVStore implements AutoCloseable {
     private int unsavedMemory;
     private final int autoCommitMemory;
     private volatile boolean saveNeeded;
-
-    private volatile boolean storeOperationInProgress;
 
     private volatile boolean metaChanged;
 
@@ -640,6 +647,8 @@ public class MVStore implements AutoCloseable {
                     // so only compact if the file still exists
                     MVStoreTool.compact(fileName, true);
                 }
+            } else {
+                close();
             }
         }
     }
@@ -662,9 +671,7 @@ public class MVStore implements AutoCloseable {
         // isClosed() would wait until closure is done and then  we jump out of the loop.
         // This is a subtle difference between !isClosed() and isOpen().
         while (!isClosed()) {
-            if (fileStore != null) {
-                fileStore.stopBackgroundThread(normalShutdown);
-            }
+            setAutoCommitDelay(-1);
             setOldestVersionTracker(null);
             storeLock.lock();
             try {
@@ -703,16 +710,14 @@ public class MVStore implements AutoCloseable {
         }
     }
 
-    private void setWriteVersion(long version) {
-        for (Iterator<MVMap<?, ?>> iter = maps.values().iterator(); iter.hasNext(); ) {
-            MVMap<?, ?> map = iter.next();
-            assert isRegularMap(map);
-            if (map.setWriteVersion(version) == null) {
-                iter.remove();
-            }
-        }
-        meta.setWriteVersion(version);
-        onVersionChange(version);
+    /**
+     * Indicates whether this MVStore is backed by FileStore,
+     * and therefore it's data will survive this store closure
+     * (but not neccessary process termination in case of in-memory store).
+     * @return true if persistent
+     */
+    public boolean isPersistent() {
+        return fileStore != null;
     }
 
     /**
@@ -778,34 +783,44 @@ public class MVStore implements AutoCloseable {
         // we need to prevent re-entrance, which may be possible,
         // because meta map is modified within storeNow() and that
         // causes beforeWrite() call with possibility of going back here
-        return !storeLock.isHeldByCurrentThread() || !storeOperationInProgress;
+        return !storeLock.isHeldByCurrentThread() || !storeOperationInProgress.get();
     }
 
     private long store(boolean syncWrite) {
         assert storeLock.isHeldByCurrentThread();
-        if (isOpenOrStopping()) {
-            if (hasUnsavedChanges()) {
-                try {
-                    storeOperationInProgress = true;
-                    //noinspection NonAtomicOperationOnVolatileField
-                    long result = ++currentVersion;
-                    if (fileStore == null) {
-                        setWriteVersion(currentVersion);
-                    } else {
-                        if (fileStore.isReadOnly()) {
-                            throw DataUtils.newMVStoreException(
-                                    DataUtils.ERROR_WRITING_FAILED, "This store is read-only");
-                        }
-                        fileStore.dropUnusedChunks();
-                        storeNow(syncWrite);
+        if (isOpenOrStopping() && hasUnsavedChanges() && storeOperationInProgress.compareAndSet(false, true)) {
+            try {
+                storeOperationInProgress.compareAndSet(false, true);
+                //noinspection NonAtomicOperationOnVolatileField
+                long result = ++currentVersion;
+                if (fileStore == null) {
+                    setWriteVersion(currentVersion);
+                } else {
+                    if (fileStore.isReadOnly()) {
+                        throw DataUtils.newMVStoreException(
+                                DataUtils.ERROR_WRITING_FAILED, "This store is read-only");
                     }
-                    return result;
-                } finally {
-                    storeOperationInProgress = false;
+                    fileStore.dropUnusedChunks();
+                    storeNow(syncWrite);
                 }
+                return result;
+            } finally {
+                storeOperationInProgress.set(false);
             }
         }
         return INITIAL_VERSION;
+    }
+
+    private void setWriteVersion(long version) {
+        for (Iterator<MVMap<?, ?>> iter = maps.values().iterator(); iter.hasNext(); ) {
+            MVMap<?, ?> map = iter.next();
+            assert isRegularMap(map);
+            if (map.setWriteVersion(version) == null) {
+                iter.remove();
+            }
+        }
+        meta.setWriteVersion(version);
+        onVersionChange(version);
     }
 
     void storeNow() {
@@ -1153,6 +1168,7 @@ public class MVStore implements AutoCloseable {
      * @return the page
      */
     <K,V> Page<K,V> readPage(MVMap<K,V> map, long pos) {
+        checkNotClosed();
         try {
             if (!DataUtils.isPageSaved(pos)) {
                 throw DataUtils.newMVStoreException(
@@ -1269,7 +1285,16 @@ public class MVStore implements AutoCloseable {
         return fileStore == null ? 0 : fileStore.getCacheSizeUsed();
     }
 
-
+    /**
+     * Set the maximum memory to be used by the cache.
+     *
+     * @param kb the maximum size in KB
+     */
+    public void setCacheSize(int kb) {
+        if (fileStore != null) {
+            fileStore.setCacheSize(Math.max(1, kb / 1024));
+        }
+    }
 
     public boolean isSpaceReused() {
         return fileStore.isSpaceReused();
@@ -1587,7 +1612,14 @@ public class MVStore implements AutoCloseable {
         return fileStore.getStoreHeader();
     }
 
-    void checkOpen() {
+    private void checkOpen() {
+        if (!isOpen()) {
+            throw DataUtils.newMVStoreException(DataUtils.ERROR_CLOSED,
+                    "This store is closed", panicException);
+        }
+    }
+
+    private void checkNotClosed() {
         if (!isOpenOrStopping()) {
             throw DataUtils.newMVStoreException(DataUtils.ERROR_CLOSED,
                     "This store is closed", panicException);
@@ -1699,7 +1731,17 @@ public class MVStore implements AutoCloseable {
         return m == null ? -1 : DataUtils.parseHexInt(m);
     }
 
-    void handleException(Throwable ex) {
+    public void populateInfo(BiConsumer<String, String> consumer) {
+        consumer.accept("info.UPDATE_FAILURE_PERCENT",
+            String.format(Locale.ENGLISH, "%.2f%%", 100 * getUpdateFailureRatio()));
+        consumer.accept("info.LEAF_RATIO", Integer.toString(getLeafRatio()));
+
+        if (fileStore != null) {
+            fileStore.populateInfo(consumer);
+        }
+    }
+
+    boolean handleException(Throwable ex) {
         if (backgroundExceptionHandler != null) {
             try {
                 backgroundExceptionHandler.uncaughtException(Thread.currentThread(), ex);
@@ -1708,7 +1750,9 @@ public class MVStore implements AutoCloseable {
                     ex.addSuppressed(e);
                 }
             }
+            return true;
         }
+        return false;
     }
 
     boolean isOpen() {
@@ -1731,12 +1775,8 @@ public class MVStore implements AutoCloseable {
         }
     }
 
-    boolean isOpenOrStopping() {
+    private boolean isOpenOrStopping() {
         return state <= STATE_STOPPING;
-    }
-
-    public boolean isBackgroundThread() {
-        return fileStore != null && fileStore.isBackgroundThread();
     }
 
     /**
@@ -1796,11 +1836,11 @@ public class MVStore implements AutoCloseable {
         return fileStore != null && fileStore.isReadOnly();
     }
 
-    public int getLeafRatio() {
+    private int getLeafRatio() {
         return (int)(leafCount * 100 / Math.max(1, leafCount + nonLeafCount));
     }
 
-    public double getUpdateFailureRatio() {
+    private double getUpdateFailureRatio() {
         long updateCounter = this.updateCounter;
         long updateAttemptCounter = this.updateAttemptCounter;
         RootReference<?,?> rootReference = meta.getRoot();

@@ -1041,33 +1041,6 @@ public abstract class FileStore<C extends Chunk<C>>
         };
 
         Map<Long,C> validChunksByLocation = new HashMap<>();
-        if (!assumeCleanShutdown) {
-            C tailChunk = discoverChunk(blocksInStore);
-            if (tailChunk != null) {
-                blocksInStore = tailChunk.block; // for a possible full scan later on
-                validChunksByLocation.put(blocksInStore, tailChunk);
-                if (newest == null || tailChunk.version > newest.version) {
-                    newest = tailChunk;
-                }
-            }
-            if (newest != null) {
-                // read the chunk header and footer,
-                // and follow the chain of next chunks
-                while (true) {
-                    validChunksByLocation.put(newest.block, newest);
-                    if (newest.next == 0 || newest.next >= blocksInStore) {
-                        // no (valid) next
-                        break;
-                    }
-                    C test = readChunkHeaderAndFooter(newest.next, newest.id + 1);
-                    if (test == null || test.version <= newest.version) {
-                        break;
-                    }
-                    newest = test;
-                }
-            }
-        }
-
         if (assumeCleanShutdown) {
             // quickly check latest 20 chunks referenced in meta table
             Queue<C> chunksToVerify = new PriorityQueue<>(20, Collections.reverseOrder(chunkComparator));
@@ -1093,6 +1066,31 @@ public abstract class FileStore<C extends Chunk<C>>
                 }
             } catch(IllegalStateException ignored) {
                 assumeCleanShutdown = false;
+            }
+        } else {
+            C tailChunk = discoverChunk(blocksInStore);
+            if (tailChunk != null) {
+                blocksInStore = tailChunk.block; // for a possible full scan later on
+                validChunksByLocation.put(blocksInStore, tailChunk);
+                if (newest == null || tailChunk.version > newest.version) {
+                    newest = tailChunk;
+                }
+            }
+            if (newest != null) {
+                // read the chunk header and footer,
+                // and follow the chain of next chunks
+                while (true) {
+                    validChunksByLocation.put(newest.block, newest);
+                    if (newest.next == 0 || newest.next >= blocksInStore) {
+                        // no (valid) next
+                        break;
+                    }
+                    C test = readChunkHeaderAndFooter(newest.next, newest.id + 1);
+                    if (test == null || test.version <= newest.version) {
+                        break;
+                    }
+                    newest = test;
+                }
             }
         }
 

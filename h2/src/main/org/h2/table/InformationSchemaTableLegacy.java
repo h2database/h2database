@@ -6,7 +6,6 @@
 package org.h2.table;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
@@ -45,9 +44,6 @@ import org.h2.expression.ValueExpression;
 import org.h2.index.Index;
 import org.h2.index.MetaIndex;
 import org.h2.message.DbException;
-import org.h2.mvstore.FileStore;
-import org.h2.mvstore.MVStore;
-import org.h2.mvstore.db.Store;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
@@ -1710,7 +1706,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                     continue;
                 }
                 if (constraintType == Constraint.Type.CHECK) {
-                    checkExpression = ((ConstraintCheck) constraint).getExpression().getSQL(HasSQL.DEFAULT_SQL_FLAGS);
+                    checkExpression = constraint.getExpression().getSQL(HasSQL.DEFAULT_SQL_FLAGS);
                 } else if (constraintType == Constraint.Type.UNIQUE ||
                         constraintType == Constraint.Type.PRIMARY_KEY) {
                     indexColumns = ((ConstraintUnique) constraint).getColumns();
@@ -2159,7 +2155,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                 }
                 ConstraintUnique referenced;
                 if (constraintType == Constraint.Type.REFERENTIAL) {
-                    referenced = ((ConstraintReferential) constraint).getReferencedConstraint();
+                    referenced = constraint.getReferencedConstraint();
                 } else {
                     referenced = null;
                 }

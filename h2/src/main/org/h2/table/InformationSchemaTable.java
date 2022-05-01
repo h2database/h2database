@@ -5,7 +5,6 @@
  */
 package org.h2.table;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.HashSet;
@@ -38,9 +37,6 @@ import org.h2.expression.ValueExpression;
 import org.h2.index.Index;
 import org.h2.index.MetaIndex;
 import org.h2.message.DbException;
-import org.h2.mvstore.FileStore;
-import org.h2.mvstore.MVStore;
-import org.h2.mvstore.db.Store;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
@@ -1758,7 +1754,7 @@ public final class InformationSchemaTable extends MetaTable {
             Constraint.Type constraintType, IndexColumn[] indexColumns, Table table, String tableName) {
         ConstraintUnique referenced;
         if (constraintType == Constraint.Type.REFERENTIAL) {
-            referenced = ((ConstraintReferential) constraint).getReferencedConstraint();
+            referenced = constraint.getReferencedConstraint();
         } else {
             referenced = null;
         }
@@ -2265,7 +2261,7 @@ public final class InformationSchemaTable extends MetaTable {
             enforced = true;
         } else {
             enforced = database.getReferentialIntegrity() && table.getCheckForeignKeyConstraints()
-                    && ((ConstraintReferential) constraint).getRefTable().getCheckForeignKeyConstraints();
+                    && constraint.getRefTable().getCheckForeignKeyConstraints();
         }
         add(session, rows,
                 // CONSTRAINT_CATALOG
@@ -2681,15 +2677,13 @@ public final class InformationSchemaTable extends MetaTable {
     private void inDoubt(SessionLocal session, ArrayList<Row> rows) {
         if (session.getUser().isAdmin()) {
             ArrayList<InDoubtTransaction> prepared = database.getInDoubtTransactions();
-            if (prepared != null) {
-                for (InDoubtTransaction prep : prepared) {
-                    add(session, rows,
-                            // TRANSACTION_NAME
-                            prep.getTransactionName(),
-                            // TRANSACTION_STATE
-                            prep.getStateDescription()
-                    );
-                }
+            for (InDoubtTransaction prep : prepared) {
+                add(session, rows,
+                        // TRANSACTION_NAME
+                        prep.getTransactionName(),
+                        // TRANSACTION_STATE
+                        prep.getStateDescription()
+                );
             }
         }
     }
@@ -3151,10 +3145,7 @@ public final class InformationSchemaTable extends MetaTable {
             return session.getDatabase().getAllSchemas().size();
         case IN_DOUBT:
             if (session.getUser().isAdmin()) {
-                ArrayList<InDoubtTransaction> inDoubt = session.getDatabase().getInDoubtTransactions();
-                if (inDoubt != null) {
-                    return inDoubt.size();
-                }
+                return session.getDatabase().getInDoubtTransactions().size();
             }
             return 0L;
         case ROLES:

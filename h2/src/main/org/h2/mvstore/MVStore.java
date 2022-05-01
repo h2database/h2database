@@ -2258,7 +2258,7 @@ public class MVStore implements AutoCloseable {
          * @param store the file store
          * @return this
          */
-        public Builder fileStore(FileStore store) {
+        public Builder fileStore(FileStore<?> store) {
             return set("fileStore", store);
         }
 

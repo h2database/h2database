@@ -47,8 +47,8 @@ public abstract class Page<K,V> implements Cloneable {
      * or 1 if this page has not been saved yet, but already removed
      * This "removed" flag is to keep track of pages that concurrently
      * changed while they are being stored, in which case the live bookkeeping
-     * needs to be aware of such cases.
-     * Field need to be volatile to avoid races between saving thread setting it
+     * needs to be aware of this fact.
+     * Field needs to be volatile to avoid races between saving thread setting it
      * and other thread reading it to access the page.
      * On top of this update atomicity is required so removal mark and saved position
      * can be set concurrently.

@@ -211,7 +211,7 @@ public class FilePathDisk extends FilePath {
 
     @Override
     public List<FilePath> newDirectoryStream() {
-        try (Stream<Path> files = Files.list(Paths.get(name).toRealPath())) {
+        try (Stream<Path> files = Files.list(toRealPath(Paths.get(name)))) {
             return files.collect(ArrayList::new, (t, u) -> t.add(getPath(u.toString())), ArrayList::addAll);
         } catch (NoSuchFileException e) {
             return Collections.emptyList();
@@ -267,19 +267,27 @@ public class FilePathDisk extends FilePath {
 
     @Override
     public FilePathDisk toRealPath() {
-        Path path = Paths.get(name);
+        return getPath(toRealPath(Paths.get(name)).toString());
+    }
+
+    private static Path toRealPath(Path path) {
         try {
-            return getPath(path.toRealPath().toString());
+            path = path.toRealPath();
         } catch (IOException e) {
             /*
              * File does not exist or isn't accessible, try to get the real path
              * of parent directory.
+             *
+             * toRealPath() can also throw AccessDeniedException on accessible
+             * remote directory on Windows if other directories on remote drive
+             * aren't accessible, but toAbsolutePath() should work.
              */
-            return getPath(toRealPath(path.toAbsolutePath().normalize()).toString());
+            path = parentToRealPath(path.toAbsolutePath().normalize());
         }
+        return path;
     }
 
-    private static Path toRealPath(Path path) {
+    private static Path parentToRealPath(Path path) {
         Path parent = path.getParent();
         if (parent == null) {
             return path;
@@ -287,7 +295,7 @@ public class FilePathDisk extends FilePath {
         try {
             parent = parent.toRealPath();
         } catch (IOException e) {
-            parent = toRealPath(parent);
+            parent = parentToRealPath(parent);
         }
         return parent.resolve(path.getFileName());
     }

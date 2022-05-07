@@ -687,10 +687,13 @@ public class MVStore implements AutoCloseable {
                                 }
                                 setRetentionTime(0);
                                 commit();
+                                assert oldestVersionToKeep.get() == currentVersion : oldestVersionToKeep.get() + " != " + currentVersion;
                                 fileStore.stop(allowedCompactionTime);
                             }
 
-                            meta.close();
+                            if (meta != null) {
+                                meta.close();
+                            }
                             for (MVMap<?, ?> m : new ArrayList<>(maps.values())) {
                                 m.close();
                             }
@@ -1399,6 +1402,7 @@ public class MVStore implements AutoCloseable {
             success = version <= current ||
                         oldestVersionToKeep.compareAndSet(current, version);
         } while (!success);
+        assert version <= currentVersion : version + " <= " + currentVersion;
 
         if (oldestVersionTracker != null) {
             oldestVersionTracker.accept(version);
@@ -1547,6 +1551,9 @@ public class MVStore implements AutoCloseable {
                 versions.removeLast();
             }
             currentTxCounter = new TxCounter(version);
+            if (oldestVersionToKeep.get() > version) {
+                oldestVersionToKeep.set(version);
+            }
 
             if (fileStore != null) {
                 fileStore.rollbackTo(version);

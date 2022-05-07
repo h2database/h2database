@@ -96,11 +96,7 @@ public class SingleFileStore extends RandomAccessStore {
                 fileChannel = new FileEncrypt(fileName, key, fileChannel);
             }
             try {
-                if (readOnly) {
-                    fileLock = fileChannel.tryLock(0, Long.MAX_VALUE, true);
-                } else {
-                    fileLock = fileChannel.tryLock();
-                }
+                fileLock = fileChannel.tryLock(0L, Long.MAX_VALUE, readOnly);
             } catch (OverlappingFileLockException e) {
                 throw DataUtils.newMVStoreException(
                         DataUtils.ERROR_FILE_LOCKED,

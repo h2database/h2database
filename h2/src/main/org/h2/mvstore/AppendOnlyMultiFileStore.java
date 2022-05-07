@@ -32,14 +32,14 @@ public class AppendOnlyMultiFileStore extends FileStore<MFChunk>
     /**
      * The current file. This is writable channel in append mode
      */
-    private FileChannel file;
+    private FileChannel fileChannel;
 
     /**
      * All files currently used by this store. This includes current one at first position.
      * Previous files are opened in read-only mode.
      * Locical length of this array is determined by fileCount.
      */
-    private final FileChannel[] files;
+    private final FileChannel[] fileChannels;
 
     /**
      * The file lock.
@@ -50,7 +50,7 @@ public class AppendOnlyMultiFileStore extends FileStore<MFChunk>
     public AppendOnlyMultiFileStore(Map<String, Object> config) {
         super(config);
         maxFileCount = DataUtils.getConfigParam(config, "maxFileCount", 16);
-        files = new FileChannel[maxFileCount];
+        fileChannels = new FileChannel[maxFileCount];
     }
 
     protected final MFChunk createChunk(int newChunkId) {
@@ -76,14 +76,14 @@ public class AppendOnlyMultiFileStore extends FileStore<MFChunk>
         int volumeId = chunk.volumeId;
         int len = src.remaining();
         setSize(Math.max(super.size(), pos + len));
-        DataUtils.writeFully(files[volumeId], pos, src);
+        DataUtils.writeFully(fileChannels[volumeId], pos, src);
         writeCount.incrementAndGet();
         writeBytes.addAndGet(len);
     }
 
     public ByteBuffer readFully(MFChunk chunk, long pos, int len) {
         int volumeId = chunk.volumeId;
-        return readFully(files[volumeId], pos, len);
+        return readFully(fileChannels[volumeId], pos, len);
     }
 
     @Override
@@ -135,6 +135,4 @@ public class AppendOnlyMultiFileStore extends FileStore<MFChunk>
     public void backup(ZipOutputStream out) throws IOException {
 
     }
-
-
 }

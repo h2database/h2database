@@ -17,7 +17,7 @@ import java.util.zip.ZipOutputStream;
  *
  * @author <a href="mailto:andrei.tokar@gmail.com">Andrei Tokar</a>
  */
-public class AppendOnlyMultiFileStore extends FileStore<MFChunk>
+public final class AppendOnlyMultiFileStore extends FileStore<MFChunk>
 {
     /**
      * Limit for the number of files used by this store
@@ -86,23 +86,33 @@ public class AppendOnlyMultiFileStore extends FileStore<MFChunk>
         return readFully(fileChannels[volumeId], pos, len);
     }
 
+    public long getCreationTime() {
+        return 0;
+    }
+
+    protected void initializeStoreHeader(long time) {
+    }
+
+    protected void readStoreHeader(boolean recoveryMode) {
+    }
+
     @Override
     protected void allocateChunkSpace(MFChunk chunk, WriteBuffer buff) {
-        saveChunkLock.lock();
-        try {
-            int headerLength = (int) chunk.next;
+        chunk.block = size() / BLOCK_SIZE;
+        setSize((chunk.block + chunk.len) * BLOCK_SIZE);
+    }
 
-            buff.position(0);
-            chunk.writeChunkHeader(buff, headerLength);
+    protected void writeChunk(MFChunk chunk, WriteBuffer buff) {
+        long filePos = chunk.block * BLOCK_SIZE;
+        writeFully(chunk, filePos, buff.getBuffer());
+    }
 
-            buff.position(buff.limit() - Chunk.FOOTER_LENGTH);
-            buff.put(chunk.getFooterBytes());
+    protected void writeCleanShutdownMark() {
 
-            chunk.block = size() / BLOCK_SIZE;
-            setSize((chunk.block + chunk.len) * BLOCK_SIZE);
-        } finally {
-            saveChunkLock.unlock();
-        }
+    }
+
+    protected void adjustStoreToLastChunk() {
+
     }
 
     @Override

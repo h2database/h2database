@@ -6,12 +6,16 @@
 package org.h2.mvstore;
 
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.PriorityQueue;
+import java.util.Queue;
 
 /**
  * Class RandomAccessStore.
@@ -21,7 +25,8 @@ import java.util.PriorityQueue;
  *
  * @author <a href="mailto:andrei.tokar@gmail.com">Andrei Tokar</a>
  */
-public abstract class RandomAccessStore extends FileStore<SFChunk> {
+public abstract class RandomAccessStore extends FileStore<SFChunk>
+{
     /**
      * The free spaces between the chunks. The first block to use is block 2
      * (the first two blocks are the store header).
@@ -35,9 +40,20 @@ public abstract class RandomAccessStore extends FileStore<SFChunk> {
      */
     private volatile boolean reuseSpace = true;
 
+    /**
+     * The time the store was created, in milliseconds since 1970.
+     */
+    private long creationTime;
+
+
     private long reservedLow;
     private long reservedHigh;
 
+
+    private static final int FORMAT_WRITE_MIN = 2;
+    private static final int FORMAT_WRITE_MAX = 2;
+    private static final int FORMAT_READ_MIN = 2;
+    private static final int FORMAT_READ_MAX = 2;
 
 
     public RandomAccessStore(Map<String, Object> config) {
@@ -131,6 +147,10 @@ public abstract class RandomAccessStore extends FileStore<SFChunk> {
         freeSpace.free(pos, length);
     }
 
+    public long getCreationTime() {
+        return creationTime;
+    }
+
     public int getFillRate() {
         saveChunkLock.lock();
         try {
@@ -167,8 +187,266 @@ public abstract class RandomAccessStore extends FileStore<SFChunk> {
         return freeSpace.getLastFree();
     }
 
-    protected void allocateChunkSpace(SFChunk chunk, WriteBuffer buff) {
-        int headerLength = (int) chunk.next;
+    protected void readStoreHeader(boolean recoveryMode) {
+        long now = System.currentTimeMillis();
+        SFChunk newest = null;
+        boolean assumeCleanShutdown = true;
+        boolean validStoreHeader = false;
+        // find out which chunk and version are the newest
+        // read the first two blocks
+        ByteBuffer fileHeaderBlocks = readFully((SFChunk)null, 0, 2 * FileStore.BLOCK_SIZE);
+        byte[] buff = new byte[FileStore.BLOCK_SIZE];
+        for (int i = 0; i <= FileStore.BLOCK_SIZE; i += FileStore.BLOCK_SIZE) {
+            fileHeaderBlocks.get(buff);
+            // the following can fail for various reasons
+            try {
+                HashMap<String, String> m = DataUtils.parseChecksummedMap(buff);
+                if (m == null) {
+                    assumeCleanShutdown = false;
+                    continue;
+                }
+                long version = DataUtils.readHexLong(m, FileStore.HDR_VERSION, 0);
+                // if both header blocks do agree on version
+                // we'll continue on happy path - assume that previous shutdown was clean
+                assumeCleanShutdown = assumeCleanShutdown && (newest == null || version == newest.version);
+                if (newest == null || version > newest.version) {
+                    validStoreHeader = true;
+                    storeHeader.putAll(m);
+                    creationTime = DataUtils.readHexLong(m, FileStore.HDR_CREATED, 0);
+                    int chunkId = DataUtils.readHexInt(m, FileStore.HDR_CHUNK, 0);
+                    long block = DataUtils.readHexLong(m, FileStore.HDR_BLOCK, 2);
+                    SFChunk test = readChunkHeaderAndFooter(block, chunkId);
+                    if (test != null) {
+                        newest = test;
+                    }
+                }
+            } catch (Exception ignore) {
+                assumeCleanShutdown = false;
+            }
+        }
+
+        if (!validStoreHeader) {
+            throw DataUtils.newMVStoreException(
+                    DataUtils.ERROR_FILE_CORRUPT,
+                    "Store header is corrupt: {0}", this);
+        }
+        int blockSize = DataUtils.readHexInt(storeHeader, FileStore.HDR_BLOCK_SIZE, FileStore.BLOCK_SIZE);
+        if (blockSize != FileStore.BLOCK_SIZE) {
+            throw DataUtils.newMVStoreException(
+                    DataUtils.ERROR_UNSUPPORTED_FORMAT,
+                    "Block size {0} is currently not supported",
+                    blockSize);
+        }
+        long format = DataUtils.readHexLong(storeHeader, HDR_FORMAT, 1);
+        if (!isReadOnly()) {
+            if (format > FORMAT_WRITE_MAX) {
+                throw getUnsupportedWriteFormatException(format, FORMAT_WRITE_MAX,
+                        "The write format {0} is larger than the supported format {1}");
+            } else if (format < FORMAT_WRITE_MIN) {
+                throw getUnsupportedWriteFormatException(format, FORMAT_WRITE_MIN,
+                        "The write format {0} is smaller than the supported format {1}");
+            }
+        }
+        format = DataUtils.readHexLong(storeHeader, HDR_FORMAT_READ, format);
+        if (format > FORMAT_READ_MAX) {
+            throw DataUtils.newMVStoreException(
+                    DataUtils.ERROR_UNSUPPORTED_FORMAT,
+                    "The read format {0} is larger than the supported format {1}",
+                    format, FORMAT_READ_MAX);
+        } else if (format < FORMAT_READ_MIN) {
+            throw DataUtils.newMVStoreException(
+                    DataUtils.ERROR_UNSUPPORTED_FORMAT,
+                    "The read format {0} is smaller than the supported format {1}",
+                    format, FORMAT_READ_MIN);
+        }
+
+        assumeCleanShutdown = assumeCleanShutdown && newest != null && !recoveryMode;
+        if (assumeCleanShutdown) {
+            assumeCleanShutdown = DataUtils.readHexInt(storeHeader, FileStore.HDR_CLEAN, 0) != 0;
+        }
+        getChunks().clear();
+        // calculate the year (doesn't have to be exact;
+        // we assume 365.25 days per year, * 4 = 1461)
+        int year =  1970 + (int) (now / (1000L * 60 * 60 * 6 * 1461));
+        if (year < 2014) {
+            // if the year is before 2014,
+            // we assume the system doesn't have a real-time clock,
+            // and we set the creationTime to the past, so that
+            // existing chunks are overwritten
+            creationTime = now - getRetentionTime();
+        } else if (now < creationTime) {
+            // the system time was set to the past:
+            // we change the creation time
+            creationTime = now;
+            storeHeader.put(FileStore.HDR_CREATED, creationTime);
+        }
+
+        long fileSize = size();
+        long blocksInStore = fileSize / FileStore.BLOCK_SIZE;
+
+        Comparator<SFChunk> chunkComparator = (one, two) -> {
+            int result = Long.compare(two.version, one.version);
+            if (result == 0) {
+                // out of two copies of the same chunk we prefer the one
+                // close to the beginning of file (presumably later version)
+                result = Long.compare(one.block, two.block);
+            }
+            return result;
+        };
+
+        Map<Long,SFChunk> validChunksByLocation = new HashMap<>();
+        if (assumeCleanShutdown) {
+            // quickly check latest 20 chunks referenced in meta table
+            Queue<SFChunk> chunksToVerify = new PriorityQueue<>(20, Collections.reverseOrder(chunkComparator));
+            try {
+                setLastChunk(newest);
+                // load the chunk metadata: although meta's root page resides in the lastChunk,
+                // traversing meta map might recursively load another chunk(s)
+                for (SFChunk c : getChunksFromLayoutMap()) {
+                    // might be there already, due to meta traversal
+                    // see readPage() ... getChunkIfFound()
+                    chunksToVerify.offer(c);
+                    if (chunksToVerify.size() == 20) {
+                        chunksToVerify.poll();
+                    }
+                }
+                SFChunk c;
+                while (assumeCleanShutdown && (c = chunksToVerify.poll()) != null) {
+                    SFChunk test = readChunkHeaderAndFooter(c.block, c.id);
+                    assumeCleanShutdown = test != null;
+                    if (assumeCleanShutdown) {
+                        validChunksByLocation.put(test.block, test);
+                    }
+                }
+            } catch(IllegalStateException ignored) {
+                assumeCleanShutdown = false;
+            }
+        } else {
+            SFChunk tailChunk = discoverChunk(blocksInStore);
+            if (tailChunk != null) {
+                blocksInStore = tailChunk.block; // for a possible full scan later on
+                validChunksByLocation.put(blocksInStore, tailChunk);
+                if (newest == null || tailChunk.version > newest.version) {
+                    newest = tailChunk;
+                }
+            }
+            if (newest != null) {
+                // read the chunk header and footer,
+                // and follow the chain of next chunks
+                while (true) {
+                    validChunksByLocation.put(newest.block, newest);
+                    if (newest.next == 0 || newest.next >= blocksInStore) {
+                        // no (valid) next
+                        break;
+                    }
+                    SFChunk test = readChunkHeaderAndFooter(newest.next, newest.id + 1);
+                    if (test == null || test.version <= newest.version) {
+                        break;
+                    }
+                    newest = test;
+                }
+            }
+        }
+
+        if (!assumeCleanShutdown) {
+            // now we know, that previous shutdown did not go well and file
+            // is possibly corrupted but there is still hope for a quick
+            // recovery
+            boolean quickRecovery = !recoveryMode &&
+                    findLastChunkWithCompleteValidChunkSet(chunkComparator, validChunksByLocation, false);
+            if (!quickRecovery) {
+                // scan whole file and try to fetch chunk header and/or footer out of every block
+                // matching pairs with nothing in-between are considered as valid chunk
+                long block = blocksInStore;
+                SFChunk tailChunk;
+                while ((tailChunk = discoverChunk(block)) != null) {
+                    block = tailChunk.block;
+                    validChunksByLocation.put(block, tailChunk);
+                }
+
+                if (!findLastChunkWithCompleteValidChunkSet(chunkComparator, validChunksByLocation, true)
+                        && hasPersitentData()) {
+                    throw DataUtils.newMVStoreException(
+                            DataUtils.ERROR_FILE_CORRUPT,
+                            "File is corrupted - unable to recover a valid set of chunks");
+                }
+            }
+        }
+
+        clear();
+        // build the free space list
+        for (SFChunk c : getChunks().values()) {
+            if (c.isAllocated()) {
+                long start = c.block * FileStore.BLOCK_SIZE;
+                int length = c.len * FileStore.BLOCK_SIZE;
+                markUsed(start, length);
+            }
+            if (!c.isLive()) {
+                registerDeadChunk(c);
+            }
+        }
+        assert validateFileLength("on open");
+    }
+
+    /**
+     * Discover a valid chunk, searching file backwards from the given block
+     *
+     * @param block to start search from (found chunk footer should be no
+     *            further than block-1)
+     * @return valid chunk or null if none found
+     */
+    private SFChunk discoverChunk(long block) {
+        long candidateLocation = Long.MAX_VALUE;
+        SFChunk candidate = null;
+        while (true) {
+            if (block == candidateLocation) {
+                return candidate;
+            }
+            if (block == 2) { // number of blocks occupied by headers
+                return null;
+            }
+            SFChunk test = readChunkFooter(block);
+            if (test != null) {
+                // if we encounter chunk footer (with or without corresponding header)
+                // in the middle of prospective chunk, stop considering it
+                candidateLocation = Long.MAX_VALUE;
+                test = readChunkHeaderOptionally(test.block, test.id);
+                if (test != null) {
+                    // if that footer has a corresponding header,
+                    // consider them as a new candidate for a valid chunk
+                    candidate = test;
+                    candidateLocation = test.block;
+                }
+            }
+
+            // if we encounter chunk header without corresponding footer
+            // (due to incomplete write?) in the middle of prospective
+            // chunk, stop considering it
+            if (--block > candidateLocation && readChunkHeaderOptionally(block) != null) {
+                candidateLocation = Long.MAX_VALUE;
+            }
+        }
+    }
+
+    private MVStoreException getUnsupportedWriteFormatException(long format, int expectedFormat, String s) {
+        format = DataUtils.readHexLong(storeHeader, HDR_FORMAT_READ, format);
+        if (format >= FORMAT_READ_MIN && format <= FORMAT_READ_MAX) {
+            s += ", and the file was not opened in read-only mode";
+        }
+        return DataUtils.newMVStoreException(DataUtils.ERROR_UNSUPPORTED_FORMAT, s, format, expectedFormat);
+    }
+
+    protected void initializeStoreHeader(long time) {
+        setLastChunk(null);
+        creationTime = time;
+        storeHeader.put(FileStore.HDR_H, 2);
+        storeHeader.put(FileStore.HDR_BLOCK_SIZE, FileStore.BLOCK_SIZE);
+        storeHeader.put(FileStore.HDR_FORMAT, FORMAT_WRITE_MAX);
+        storeHeader.put(FileStore.HDR_CREATED, creationTime);
+        writeStoreHeader();
+    }
+
+    protected final void allocateChunkSpace(SFChunk chunk, WriteBuffer buff) {
         long reservedLow = this.reservedLow;
         long reservedHigh = this.reservedHigh > 0 ? this.reservedHigh : isSpaceReused() ? 0 : getAfterLastBlock();
         long filePos = allocate(buff.limit(), reservedLow, reservedHigh);
@@ -179,14 +457,68 @@ public abstract class RandomAccessStore extends FileStore<SFChunk> {
             // just after this chunk
             chunk.next = 0;
         }
-
-        buff.position(0);
-        chunk.writeChunkHeader(buff, headerLength);
-
-        buff.position(buff.limit() - Chunk.FOOTER_LENGTH);
-        buff.put(chunk.getFooterBytes());
-
         chunk.block = filePos / BLOCK_SIZE;
+    }
+
+    protected final void writeChunk(SFChunk chunk, WriteBuffer buffer) {
+        long filePos = chunk.block * BLOCK_SIZE;
+        writeFully(chunk, filePos, buffer.getBuffer());
+
+        // end of the used space is not necessarily the end of the file
+        boolean storeAtEndOfFile = filePos + buffer.limit() >= size();
+        boolean shouldWriteStoreHeader = shouldWriteStoreHeader(chunk, storeAtEndOfFile);
+        lastChunk = chunk;
+        if (shouldWriteStoreHeader) {
+            writeStoreHeader();
+        }
+        if (!storeAtEndOfFile) {
+            // may only shrink after the store header was written
+            shrinkStoreIfPossible(1);
+        }
+    }
+
+    private boolean shouldWriteStoreHeader(SFChunk c, boolean storeAtEndOfFile) {
+        // whether we need to write the store header
+        boolean writeStoreHeader = false;
+        if (!storeAtEndOfFile) {
+            SFChunk chunk = lastChunk;
+            if (chunk == null) {
+                writeStoreHeader = true;
+            } else if (chunk.next != c.block) {
+                // the last prediction did not matched
+                writeStoreHeader = true;
+            } else {
+                long headerVersion = DataUtils.readHexLong(storeHeader, HDR_VERSION, 0);
+                if (chunk.version - headerVersion > 20) {
+                    // we write after at least every 20 versions
+                    writeStoreHeader = true;
+                } else {
+                    for (int chunkId = DataUtils.readHexInt(storeHeader, HDR_CHUNK, 0);
+                         !writeStoreHeader && chunkId <= chunk.id; ++chunkId) {
+                        // one of the chunks in between
+                        // was removed
+                        writeStoreHeader = !getChunks().containsKey(chunkId);
+                    }
+                }
+            }
+        }
+
+        if (storeHeader.remove(HDR_CLEAN) != null) {
+            writeStoreHeader = true;
+        }
+        return writeStoreHeader;
+    }
+
+    protected final void writeCleanShutdownMark() {
+        shrinkStoreIfPossible(0);
+        storeHeader.put(HDR_CLEAN, 1);
+        writeStoreHeader();
+    }
+
+    protected final void adjustStoreToLastChunk() {
+        storeHeader.put(HDR_CLEAN, 1);
+        writeStoreHeader();
+        readStoreHeader(false);
     }
 
     /**
@@ -351,6 +683,27 @@ public abstract class RandomAccessStore extends FileStore<SFChunk> {
             shrinkStoreIfPossible(0);
             sync();
         }
+    }
+
+    private void writeStoreHeader() {
+        StringBuilder buff = new StringBuilder(112);
+        if (hasPersitentData()) {
+            storeHeader.put(HDR_BLOCK, lastChunk.block);
+            storeHeader.put(HDR_CHUNK, lastChunk.id);
+            storeHeader.put(HDR_VERSION, lastChunk.version);
+        }
+        DataUtils.appendMap(buff, storeHeader);
+        byte[] bytes = buff.toString().getBytes(StandardCharsets.ISO_8859_1);
+        int checksum = DataUtils.getFletcher32(bytes, 0, bytes.length);
+        DataUtils.appendMap(buff, HDR_FLETCHER, checksum);
+        buff.append('\n');
+        bytes = buff.toString().getBytes(StandardCharsets.ISO_8859_1);
+        ByteBuffer header = ByteBuffer.allocate(2 * BLOCK_SIZE);
+        header.put(bytes);
+        header.position(BLOCK_SIZE);
+        header.put(bytes);
+        header.rewind();
+        writeFully(null, 0, header);
     }
 
     private void store(long reservedLow, long reservedHigh) {

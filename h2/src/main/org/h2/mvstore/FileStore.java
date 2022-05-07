@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.Deque;
 import java.util.HashMap;
@@ -66,7 +65,7 @@ public abstract class FileStore<C extends Chunk<C>>
     static final String HDR_BLOCK = "block";
     static final String HDR_VERSION = "version";
     static final String HDR_CLEAN = "clean";
-    private static final String HDR_FLETCHER = "fletcher";
+    static final String HDR_FLETCHER = "fletcher";
 
     /**
      * The key for the entry within "layout" map, which contains id of "meta" map.
@@ -80,11 +79,6 @@ public abstract class FileStore<C extends Chunk<C>>
      * written twice, one copy in each block, to ensure it survives a crash.
      */
     static final int BLOCK_SIZE = 4 * 1024;
-
-    private static final int FORMAT_WRITE_MIN = 2;
-    private static final int FORMAT_WRITE_MAX = 2;
-    private static final int FORMAT_READ_MIN = 2;
-    private static final int FORMAT_READ_MAX = 2;
 
     private MVStore mvStore;
     private boolean closed;
@@ -179,13 +173,7 @@ public abstract class FileStore<C extends Chunk<C>>
      */
     private final ConcurrentHashMap<Integer, C> chunks = new ConcurrentHashMap<>();
 
-    private final HashMap<String, Object> storeHeader = new HashMap<>();
-
-    /**
-     * The time the store was created, in milliseconds since 1970.
-     */
-    private long creationTime;
-
+    protected final HashMap<String, Object> storeHeader = new HashMap<>();
 
     private final Queue<WriteBuffer> writeBufferPool = new ArrayBlockingQueue<>(PIPE_LENGTH + 1);
 
@@ -213,7 +201,7 @@ public abstract class FileStore<C extends Chunk<C>>
 
     private long lastCommitTime;
 
-    private final boolean recoveryMode;
+    protected final boolean recoveryMode;
 
     public static final int PIPE_LENGTH = 3;
 
@@ -506,9 +494,7 @@ public abstract class FileStore<C extends Chunk<C>>
                 try {
                     deadChunks.clear();
                     setLastChunk(keep);
-                    storeHeader.put(HDR_CLEAN, 1);
-                    writeStoreHeader();
-                    readStoreHeader(false);
+                    adjustStoreToLastChunk();
                 } finally {
                     saveChunkLock.unlock();
                 }
@@ -585,7 +571,7 @@ public abstract class FileStore<C extends Chunk<C>>
         return autoCompactLastFileOpCount == getWriteCount() + getReadCount();
     }
 
-    private void setLastChunk(C last) {
+    protected final void setLastChunk(C last) {
         lastChunk = last;
         chunks.clear();
         lastChunkId = 0;
@@ -598,7 +584,7 @@ public abstract class FileStore<C extends Chunk<C>>
         layout.setRootPos(layoutRootPos, lastChunkVersion());
     }
 
-    private void registerDeadChunk(C chunk) {
+    protected final void registerDeadChunk(C chunk) {
         deadChunks.offer(chunk);
     }
 
@@ -691,37 +677,22 @@ public abstract class FileStore<C extends Chunk<C>>
      */
     protected abstract void allocateChunkSpace(C chunk, WriteBuffer buff);
 
-    private boolean isWriteStoreHeader(C c, boolean storeAtEndOfFile) {
-        // whether we need to write the store header
-        boolean writeStoreHeader = false;
-        if (!storeAtEndOfFile) {
-            C chunk = lastChunk;
-            if (chunk == null) {
-                writeStoreHeader = true;
-            } else if (chunk.next != c.block) {
-                // the last prediction did not matched
-                writeStoreHeader = true;
-            } else {
-                long headerVersion = DataUtils.readHexLong(storeHeader, HDR_VERSION, 0);
-                if (chunk.version - headerVersion > 20) {
-                    // we write after at least every 20 versions
-                    writeStoreHeader = true;
-                } else {
-                    for (int chunkId = DataUtils.readHexInt(storeHeader, HDR_CHUNK, 0);
-                         !writeStoreHeader && chunkId <= chunk.id; ++chunkId) {
-                        // one of the chunks in between
-                        // was removed
-                        writeStoreHeader = !getChunks().containsKey(chunkId);
-                    }
-                }
-            }
-        }
+    /**
+     * Write buffer associated with chunk into store at chunk's allocated position
+     * @param chunk chunk to write
+     * @param buffer to write
+     */
+    protected abstract void writeChunk(C chunk, WriteBuffer buffer);
 
-        if (storeHeader.remove(HDR_CLEAN) != null) {
-            writeStoreHeader = true;
-        }
-        return writeStoreHeader;
-    }
+    /**
+     * Performs final preparation before store is closed normally
+     */
+    protected abstract void writeCleanShutdownMark();
+
+    /**
+     * Make persistent changes after lastChunk was reset
+     */
+    protected abstract void adjustStoreToLastChunk();
 
     /**
      * Get the store header. This data is for informational purposes only. The
@@ -732,16 +703,6 @@ public abstract class FileStore<C extends Chunk<C>>
      */
     public Map<String, Object> getStoreHeader() {
         return storeHeader;
-    }
-
-    private void initializeStoreHeader(long time) {
-        setLastChunk(null);
-        creationTime = time;
-        storeHeader.put(FileStore.HDR_H, 2);
-        storeHeader.put(FileStore.HDR_BLOCK_SIZE, FileStore.BLOCK_SIZE);
-        storeHeader.put(FileStore.HDR_FORMAT, FileStore.FORMAT_WRITE_MAX);
-        storeHeader.put(FileStore.HDR_CREATED, creationTime);
-        writeStoreHeader();
     }
 
     private C createChunk(long time, long version) {
@@ -786,34 +747,11 @@ public abstract class FileStore<C extends Chunk<C>>
         return newChunkId;
     }
 
-    protected void writeStoreHeader() {
-        StringBuilder buff = new StringBuilder(112);
-        if (hasPersitentData()) {
-            storeHeader.put(HDR_BLOCK, lastChunk.block);
-            storeHeader.put(HDR_CHUNK, lastChunk.id);
-            storeHeader.put(HDR_VERSION, lastChunk.version);
-        }
-        DataUtils.appendMap(buff, storeHeader);
-        byte[] bytes = buff.toString().getBytes(StandardCharsets.ISO_8859_1);
-        int checksum = DataUtils.getFletcher32(bytes, 0, bytes.length);
-        DataUtils.appendMap(buff, HDR_FLETCHER, checksum);
-        buff.append('\n');
-        bytes = buff.toString().getBytes(StandardCharsets.ISO_8859_1);
-        ByteBuffer header = ByteBuffer.allocate(2 * BLOCK_SIZE);
-        header.put(bytes);
-        header.position(BLOCK_SIZE);
-        header.put(bytes);
-        header.rewind();
-        writeFully(null, 0, header);
-    }
-
     protected void writeCleanShutdown() {
         if (!isReadOnly()) {
             saveChunkLock.lock();
             try {
-                shrinkStoreIfPossible(0);
-                storeHeader.put(HDR_CLEAN, 1);
-                writeStoreHeader();
+                writeCleanShutdownMark();
                 sync();
                 assert validateFileLength("on close");
             } finally {
@@ -928,261 +866,16 @@ public abstract class FileStore<C extends Chunk<C>>
         mvStore.setCurrentVersion(lastChunkVersion());
     }
 
+    protected abstract void initializeStoreHeader(long time);
+
+    protected abstract void readStoreHeader(boolean recoveryMode);
+
     private int lastMapId() {
         C chunk = lastChunk;
         return chunk == null ? 0 : chunk.mapId;
     }
 
-    protected void readStoreHeader(boolean recoveryMode) {
-        long now = System.currentTimeMillis();
-        C newest = null;
-        boolean assumeCleanShutdown = true;
-        boolean validStoreHeader = false;
-        // find out which chunk and version are the newest
-        // read the first two blocks
-        ByteBuffer fileHeaderBlocks = readFully((C)null, 0, 2 * FileStore.BLOCK_SIZE);
-        byte[] buff = new byte[FileStore.BLOCK_SIZE];
-        for (int i = 0; i <= FileStore.BLOCK_SIZE; i += FileStore.BLOCK_SIZE) {
-            fileHeaderBlocks.get(buff);
-            // the following can fail for various reasons
-            try {
-                HashMap<String, String> m = DataUtils.parseChecksummedMap(buff);
-                if (m == null) {
-                    assumeCleanShutdown = false;
-                    continue;
-                }
-                long version = DataUtils.readHexLong(m, FileStore.HDR_VERSION, 0);
-                // if both header blocks do agree on version
-                // we'll continue on happy path - assume that previous shutdown was clean
-                assumeCleanShutdown = assumeCleanShutdown && (newest == null || version == newest.version);
-                if (newest == null || version > newest.version) {
-                    validStoreHeader = true;
-                    storeHeader.putAll(m);
-                    creationTime = DataUtils.readHexLong(m, FileStore.HDR_CREATED, 0);
-                    int chunkId = DataUtils.readHexInt(m, FileStore.HDR_CHUNK, 0);
-                    long block = DataUtils.readHexLong(m, FileStore.HDR_BLOCK, 2);
-                    C test = readChunkHeaderAndFooter(block, chunkId);
-                    if (test != null) {
-                        newest = test;
-                    }
-                }
-            } catch (Exception ignore) {
-                assumeCleanShutdown = false;
-            }
-        }
-
-        if (!validStoreHeader) {
-            throw DataUtils.newMVStoreException(
-                    DataUtils.ERROR_FILE_CORRUPT,
-                    "Store header is corrupt: {0}", this);
-        }
-        int blockSize = DataUtils.readHexInt(storeHeader, FileStore.HDR_BLOCK_SIZE, FileStore.BLOCK_SIZE);
-        if (blockSize != FileStore.BLOCK_SIZE) {
-            throw DataUtils.newMVStoreException(
-                    DataUtils.ERROR_UNSUPPORTED_FORMAT,
-                    "Block size {0} is currently not supported",
-                    blockSize);
-        }
-        long format = DataUtils.readHexLong(storeHeader, HDR_FORMAT, 1);
-        if (!isReadOnly()) {
-            if (format > FORMAT_WRITE_MAX) {
-                throw getUnsupportedWriteFormatException(format, FORMAT_WRITE_MAX,
-                        "The write format {0} is larger than the supported format {1}");
-            } else if (format < FORMAT_WRITE_MIN) {
-                throw getUnsupportedWriteFormatException(format, FORMAT_WRITE_MIN,
-                        "The write format {0} is smaller than the supported format {1}");
-            }
-        }
-        format = DataUtils.readHexLong(storeHeader, HDR_FORMAT_READ, format);
-        if (format > FORMAT_READ_MAX) {
-            throw DataUtils.newMVStoreException(
-                    DataUtils.ERROR_UNSUPPORTED_FORMAT,
-                    "The read format {0} is larger than the supported format {1}",
-                    format, FORMAT_READ_MAX);
-        } else if (format < FORMAT_READ_MIN) {
-            throw DataUtils.newMVStoreException(
-                    DataUtils.ERROR_UNSUPPORTED_FORMAT,
-                    "The read format {0} is smaller than the supported format {1}",
-                    format, FORMAT_READ_MIN);
-        }
-
-        assumeCleanShutdown = assumeCleanShutdown && newest != null && !recoveryMode;
-        if (assumeCleanShutdown) {
-            assumeCleanShutdown = DataUtils.readHexInt(storeHeader, FileStore.HDR_CLEAN, 0) != 0;
-        }
-        getChunks().clear();
-        // calculate the year (doesn't have to be exact;
-        // we assume 365.25 days per year, * 4 = 1461)
-        int year =  1970 + (int) (now / (1000L * 60 * 60 * 6 * 1461));
-        if (year < 2014) {
-            // if the year is before 2014,
-            // we assume the system doesn't have a real-time clock,
-            // and we set the creationTime to the past, so that
-            // existing chunks are overwritten
-            creationTime = now - getRetentionTime();
-        } else if (now < creationTime) {
-            // the system time was set to the past:
-            // we change the creation time
-            creationTime = now;
-            storeHeader.put(FileStore.HDR_CREATED, creationTime);
-        }
-
-        long fileSize = size();
-        long blocksInStore = fileSize / FileStore.BLOCK_SIZE;
-
-        Comparator<C> chunkComparator = (one, two) -> {
-            int result = Long.compare(two.version, one.version);
-            if (result == 0) {
-                // out of two copies of the same chunk we prefer the one
-                // close to the beginning of file (presumably later version)
-                result = Long.compare(one.block, two.block);
-            }
-            return result;
-        };
-
-        Map<Long,C> validChunksByLocation = new HashMap<>();
-        if (assumeCleanShutdown) {
-            // quickly check latest 20 chunks referenced in meta table
-            Queue<C> chunksToVerify = new PriorityQueue<>(20, Collections.reverseOrder(chunkComparator));
-            try {
-                setLastChunk(newest);
-                // load the chunk metadata: although meta's root page resides in the lastChunk,
-                // traversing meta map might recursively load another chunk(s)
-                for (C c : getChunksFromLayoutMap()) {
-                    // might be there already, due to meta traversal
-                    // see readPage() ... getChunkIfFound()
-                    chunksToVerify.offer(c);
-                    if (chunksToVerify.size() == 20) {
-                        chunksToVerify.poll();
-                    }
-                }
-                C c;
-                while (assumeCleanShutdown && (c = chunksToVerify.poll()) != null) {
-                    C test = readChunkHeaderAndFooter(c.block, c.id);
-                    assumeCleanShutdown = test != null;
-                    if (assumeCleanShutdown) {
-                        validChunksByLocation.put(test.block, test);
-                    }
-                }
-            } catch(IllegalStateException ignored) {
-                assumeCleanShutdown = false;
-            }
-        } else {
-            C tailChunk = discoverChunk(blocksInStore);
-            if (tailChunk != null) {
-                blocksInStore = tailChunk.block; // for a possible full scan later on
-                validChunksByLocation.put(blocksInStore, tailChunk);
-                if (newest == null || tailChunk.version > newest.version) {
-                    newest = tailChunk;
-                }
-            }
-            if (newest != null) {
-                // read the chunk header and footer,
-                // and follow the chain of next chunks
-                while (true) {
-                    validChunksByLocation.put(newest.block, newest);
-                    if (newest.next == 0 || newest.next >= blocksInStore) {
-                        // no (valid) next
-                        break;
-                    }
-                    C test = readChunkHeaderAndFooter(newest.next, newest.id + 1);
-                    if (test == null || test.version <= newest.version) {
-                        break;
-                    }
-                    newest = test;
-                }
-            }
-        }
-
-        if (!assumeCleanShutdown) {
-            // now we know, that previous shutdown did not go well and file
-            // is possibly corrupted but there is still hope for a quick
-            // recovery
-            boolean quickRecovery = !recoveryMode &&
-                    findLastChunkWithCompleteValidChunkSet(chunkComparator, validChunksByLocation, false);
-            if (!quickRecovery) {
-                // scan whole file and try to fetch chunk header and/or footer out of every block
-                // matching pairs with nothing in-between are considered as valid chunk
-                long block = blocksInStore;
-                C tailChunk;
-                while ((tailChunk = discoverChunk(block)) != null) {
-                    block = tailChunk.block;
-                    validChunksByLocation.put(block, tailChunk);
-                }
-
-                if (!findLastChunkWithCompleteValidChunkSet(chunkComparator, validChunksByLocation, true)
-                        && hasPersitentData()) {
-                    throw DataUtils.newMVStoreException(
-                            DataUtils.ERROR_FILE_CORRUPT,
-                            "File is corrupted - unable to recover a valid set of chunks");
-                }
-            }
-        }
-
-        clear();
-        // build the free space list
-        for (C c : getChunks().values()) {
-            if (c.isAllocated()) {
-                long start = c.block * FileStore.BLOCK_SIZE;
-                int length = c.len * FileStore.BLOCK_SIZE;
-                markUsed(start, length);
-            }
-            if (!c.isLive()) {
-                registerDeadChunk(c);
-            }
-        }
-        assert validateFileLength("on open");
-    }
-
-    /**
-     * Discover a valid chunk, searching file backwards from the given block
-     *
-     * @param block to start search from (found chunk footer should be no
-     *            further than block-1)
-     * @return valid chunk or null if none found
-     */
-    private C discoverChunk(long block) {
-        long candidateLocation = Long.MAX_VALUE;
-        C candidate = null;
-        while (true) {
-            if (block == candidateLocation) {
-                return candidate;
-            }
-            if (block == 2) { // number of blocks occupied by headers
-                return null;
-            }
-            C test = readChunkFooter(block);
-            if (test != null) {
-                // if we encounter chunk footer (with or without corresponding header)
-                // in the middle of prospective chunk, stop considering it
-                candidateLocation = Long.MAX_VALUE;
-                test = readChunkHeaderOptionally(test.block, test.id);
-                if (test != null) {
-                    // if that footer has a corresponding header,
-                    // consider them as a new candidate for a valid chunk
-                    candidate = test;
-                    candidateLocation = test.block;
-                }
-            }
-
-            // if we encounter chunk header without corresponding footer
-            // (due to incomplete write?) in the middle of prospective
-            // chunk, stop considering it
-            if (--block > candidateLocation && readChunkHeaderOptionally(block) != null) {
-                candidateLocation = Long.MAX_VALUE;
-            }
-        }
-    }
-
-    private MVStoreException getUnsupportedWriteFormatException(long format, int expectedFormat, String s) {
-        format = DataUtils.readHexLong(storeHeader, HDR_FORMAT_READ, format);
-        if (format >= FORMAT_READ_MIN && format <= FORMAT_READ_MAX) {
-            s += ", and the file was not opened in read-only mode";
-        }
-        return DataUtils.newMVStoreException(DataUtils.ERROR_UNSUPPORTED_FORMAT, s, format, expectedFormat);
-    }
-
-    private boolean findLastChunkWithCompleteValidChunkSet(Comparator<C> chunkComparator,
+    protected final boolean findLastChunkWithCompleteValidChunkSet(Comparator<C> chunkComparator,
                                                            Map<Long, C> validChunksByLocation,
                                                            boolean afterFullScan) {
         // this collection will hold potential candidates for lastChunk to fall back to,
@@ -1231,7 +924,7 @@ public abstract class FileStore<C extends Chunk<C>>
                         c.block = 0;
                         c.len = 0;
                         if (c.unused == 0) {
-                            c.unused = creationTime;
+                            c.unused = getCreationTime();
                         }
                         if (c.unusedAtVersion == 0) {
                             c.unusedAtVersion = INITIAL_VERSION;
@@ -1276,7 +969,7 @@ public abstract class FileStore<C extends Chunk<C>>
                 "File corrupt reading chunk at position {0}", p, exception);
     }
 
-    private Iterable<C> getChunksFromLayoutMap() {
+    protected Iterable<C> getChunksFromLayoutMap() {
         return getChunksFromLayoutMap(layout);
     }
 
@@ -1333,7 +1026,7 @@ public abstract class FileStore<C extends Chunk<C>>
      * @return the chunk, or null if the header or footer don't match or are not
      *         consistent
      */
-    private C readChunkHeaderAndFooter(long block, int expectedId) {
+    protected final C readChunkHeaderAndFooter(long block, int expectedId) {
         C header = readChunkHeaderOptionally(block, expectedId);
         if (header != null) {
             C footer = readChunkFooter(block + header.len);
@@ -1344,12 +1037,12 @@ public abstract class FileStore<C extends Chunk<C>>
         return header;
     }
 
-    private C readChunkHeaderOptionally(long block, int expectedId) {
+    protected final C readChunkHeaderOptionally(long block, int expectedId) {
         C chunk = readChunkHeaderOptionally(block);
         return chunk == null || chunk.id != expectedId ? null : chunk;
     }
 
-    private C readChunkHeaderOptionally(long block) {
+    protected final C readChunkHeaderOptionally(long block) {
         try {
             C chunk = readChunkHeader(block);
             return chunk.block != block ? null : chunk;
@@ -1364,7 +1057,7 @@ public abstract class FileStore<C extends Chunk<C>>
      * @param block the index of the next block after the chunk
      * @return the chunk, or null if not successful
      */
-    private C readChunkFooter(long block) {
+    protected final C readChunkFooter(long block) {
         // the following can fail for various reasons
         try {
             // read the chunk footer of the last block of the file
@@ -1417,9 +1110,10 @@ public abstract class FileStore<C extends Chunk<C>>
         }
     }
 
-    public long getCreationTime() {
-        return creationTime;
-    }
+    /**
+     * The time the store was created, in milliseconds since 1970.
+     */
+    public abstract long getCreationTime();
 
     protected final int getAutoCompactFillRate() {
         return autoCompactFillRate;
@@ -1701,22 +1395,18 @@ public abstract class FileStore<C extends Chunk<C>>
             if (closed) {
                 throw DataUtils.newMVStoreException(DataUtils.ERROR_WRITING_FAILED, "This fileStore is closed");
             }
-            allocateChunkSpace(c, buff);
-            buff.position(0);
-            long filePos = c.block * BLOCK_SIZE;
-            writeFully(c, filePos, buff.getBuffer());
 
-            // end of the used space is not necessarily the end of the file
-            boolean storeAtEndOfFile = filePos + buff.limit() >= size();
-            boolean writeStoreHeader = isWriteStoreHeader(c, storeAtEndOfFile);
-            lastChunk = c;
-            if (writeStoreHeader) {
-                writeStoreHeader();
-            }
-            if (!storeAtEndOfFile) {
-                // may only shrink after the store header was written
-                shrinkStoreIfPossible(1);
-            }
+            int headerLength = (int)c.next;
+
+            allocateChunkSpace(c, buff);
+
+            buff.position(0);
+            c.writeChunkHeader(buff, headerLength);
+            buff.position(buff.limit() - Chunk.FOOTER_LENGTH);
+            buff.put(c.getFooterBytes());
+            buff.position(0);
+
+            writeChunk(c, buff);
         } catch (MVStoreException e) {
             mvStore.panic(e);
         } catch (Throwable e) {

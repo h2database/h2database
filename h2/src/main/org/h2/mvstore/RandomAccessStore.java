@@ -40,20 +40,9 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
      */
     private volatile boolean reuseSpace = true;
 
-    /**
-     * The time the store was created, in milliseconds since 1970.
-     */
-    private long creationTime;
-
 
     private long reservedLow;
     private long reservedHigh;
-
-
-    private static final int FORMAT_WRITE_MIN = 2;
-    private static final int FORMAT_WRITE_MAX = 2;
-    private static final int FORMAT_READ_MIN = 2;
-    private static final int FORMAT_READ_MAX = 2;
 
 
     public RandomAccessStore(Map<String, Object> config) {
@@ -147,10 +136,6 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
         freeSpace.free(pos, length);
     }
 
-    public long getCreationTime() {
-        return creationTime;
-    }
-
     public int getFillRate() {
         saveChunkLock.lock();
         try {
@@ -188,7 +173,6 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
     }
 
     protected void readStoreHeader(boolean recoveryMode) {
-        long now = System.currentTimeMillis();
         SFChunk newest = null;
         boolean assumeCleanShutdown = true;
         boolean validStoreHeader = false;
@@ -212,7 +196,6 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
                 if (newest == null || version > newest.version) {
                     validStoreHeader = true;
                     storeHeader.putAll(m);
-                    creationTime = DataUtils.readHexLong(m, FileStore.HDR_CREATED, 0);
                     int chunkId = DataUtils.readHexInt(m, FileStore.HDR_CHUNK, 0);
                     long block = DataUtils.readHexLong(m, FileStore.HDR_BLOCK, 2);
                     SFChunk test = readChunkHeaderAndFooter(block, chunkId);
@@ -230,56 +213,14 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
                     DataUtils.ERROR_FILE_CORRUPT,
                     "Store header is corrupt: {0}", this);
         }
-        int blockSize = DataUtils.readHexInt(storeHeader, FileStore.HDR_BLOCK_SIZE, FileStore.BLOCK_SIZE);
-        if (blockSize != FileStore.BLOCK_SIZE) {
-            throw DataUtils.newMVStoreException(
-                    DataUtils.ERROR_UNSUPPORTED_FORMAT,
-                    "Block size {0} is currently not supported",
-                    blockSize);
-        }
-        long format = DataUtils.readHexLong(storeHeader, HDR_FORMAT, 1);
-        if (!isReadOnly()) {
-            if (format > FORMAT_WRITE_MAX) {
-                throw getUnsupportedWriteFormatException(format, FORMAT_WRITE_MAX,
-                        "The write format {0} is larger than the supported format {1}");
-            } else if (format < FORMAT_WRITE_MIN) {
-                throw getUnsupportedWriteFormatException(format, FORMAT_WRITE_MIN,
-                        "The write format {0} is smaller than the supported format {1}");
-            }
-        }
-        format = DataUtils.readHexLong(storeHeader, HDR_FORMAT_READ, format);
-        if (format > FORMAT_READ_MAX) {
-            throw DataUtils.newMVStoreException(
-                    DataUtils.ERROR_UNSUPPORTED_FORMAT,
-                    "The read format {0} is larger than the supported format {1}",
-                    format, FORMAT_READ_MAX);
-        } else if (format < FORMAT_READ_MIN) {
-            throw DataUtils.newMVStoreException(
-                    DataUtils.ERROR_UNSUPPORTED_FORMAT,
-                    "The read format {0} is smaller than the supported format {1}",
-                    format, FORMAT_READ_MIN);
-        }
+
+        processCommonHeaderAttributes();
 
         assumeCleanShutdown = assumeCleanShutdown && newest != null && !recoveryMode;
         if (assumeCleanShutdown) {
             assumeCleanShutdown = DataUtils.readHexInt(storeHeader, FileStore.HDR_CLEAN, 0) != 0;
         }
-        getChunks().clear();
-        // calculate the year (doesn't have to be exact;
-        // we assume 365.25 days per year, * 4 = 1461)
-        int year =  1970 + (int) (now / (1000L * 60 * 60 * 6 * 1461));
-        if (year < 2014) {
-            // if the year is before 2014,
-            // we assume the system doesn't have a real-time clock,
-            // and we set the creationTime to the past, so that
-            // existing chunks are overwritten
-            creationTime = now - getRetentionTime();
-        } else if (now < creationTime) {
-            // the system time was set to the past:
-            // we change the creation time
-            creationTime = now;
-            storeHeader.put(FileStore.HDR_CREATED, creationTime);
-        }
+//        assert getChunks().size() <= 1 : getChunks().size();
 
         long fileSize = size();
         long blocksInStore = fileSize / FileStore.BLOCK_SIZE;
@@ -388,61 +329,8 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
         assert validateFileLength("on open");
     }
 
-    /**
-     * Discover a valid chunk, searching file backwards from the given block
-     *
-     * @param block to start search from (found chunk footer should be no
-     *            further than block-1)
-     * @return valid chunk or null if none found
-     */
-    private SFChunk discoverChunk(long block) {
-        long candidateLocation = Long.MAX_VALUE;
-        SFChunk candidate = null;
-        while (true) {
-            if (block == candidateLocation) {
-                return candidate;
-            }
-            if (block == 2) { // number of blocks occupied by headers
-                return null;
-            }
-            SFChunk test = readChunkFooter(block);
-            if (test != null) {
-                // if we encounter chunk footer (with or without corresponding header)
-                // in the middle of prospective chunk, stop considering it
-                candidateLocation = Long.MAX_VALUE;
-                test = readChunkHeaderOptionally(test.block, test.id);
-                if (test != null) {
-                    // if that footer has a corresponding header,
-                    // consider them as a new candidate for a valid chunk
-                    candidate = test;
-                    candidateLocation = test.block;
-                }
-            }
-
-            // if we encounter chunk header without corresponding footer
-            // (due to incomplete write?) in the middle of prospective
-            // chunk, stop considering it
-            if (--block > candidateLocation && readChunkHeaderOptionally(block) != null) {
-                candidateLocation = Long.MAX_VALUE;
-            }
-        }
-    }
-
-    private MVStoreException getUnsupportedWriteFormatException(long format, int expectedFormat, String s) {
-        format = DataUtils.readHexLong(storeHeader, HDR_FORMAT_READ, format);
-        if (format >= FORMAT_READ_MIN && format <= FORMAT_READ_MAX) {
-            s += ", and the file was not opened in read-only mode";
-        }
-        return DataUtils.newMVStoreException(DataUtils.ERROR_UNSUPPORTED_FORMAT, s, format, expectedFormat);
-    }
-
     protected void initializeStoreHeader(long time) {
-        setLastChunk(null);
-        creationTime = time;
-        storeHeader.put(FileStore.HDR_H, 2);
-        storeHeader.put(FileStore.HDR_BLOCK_SIZE, FileStore.BLOCK_SIZE);
-        storeHeader.put(FileStore.HDR_FORMAT, FORMAT_WRITE_MAX);
-        storeHeader.put(FileStore.HDR_CREATED, creationTime);
+        initializeCommonHeaderAttributes(time);
         writeStoreHeader();
     }
 

@@ -270,23 +270,24 @@ public class MVStore implements AutoCloseable {
         keysPerPage = DataUtils.getConfigParam(config, "keysPerPage", 48);
         backgroundExceptionHandler =
                 (UncaughtExceptionHandler)config.get("backgroundExceptionHandler");
-        if (this.fileStore != null) {
+        if (fileStore != null) {
             // 19 KB memory is about 1 KB storage
             int kb = Math.max(1, Math.min(19, Utils.scaleForAvailableMemory(64))) * 1024;
             kb = DataUtils.getConfigParam(config, "autoCommitBufferSize", kb);
             autoCommitMemory = kb * 1024;
             char[] encryptionKey = (char[]) config.remove("encryptionKey");
+            MVMap<String, String> metaMap = null;
             // there is no need to lock store here, since it is not opened (or even created) yet,
             // just to make some assertions happy, when they ensure single-threaded access
             storeLock.lock();
             try {
                 if (fileStoreShallBeOpen) {
                     boolean readOnly = config.containsKey("readOnly");
-                    this.fileStore.open(fileName, readOnly, encryptionKey, this);
+                    fileStore.open(fileName, readOnly, encryptionKey, this);
                 } else {
                     fileStore.bind(this);
                 }
-                fileStore.start();
+                metaMap = fileStore.start();
             } catch (MVStoreException e) {
                 panic(e);
             } finally {
@@ -296,7 +297,7 @@ public class MVStore implements AutoCloseable {
                 unlockAndCheckPanicCondition();
             }
 
-            meta = openMetaMap();
+            meta = metaMap;
             scrubMetaMap();
 
             // setAutoCommitDelay starts the thread, but only if
@@ -310,7 +311,7 @@ public class MVStore implements AutoCloseable {
         onVersionChange(currentVersion);
     }
 
-    private MVMap<String,String> openMetaMap() {
+    public MVMap<String,String> openMetaMap() {
         int metaId = fileStore != null ? fileStore.getMetaMapId(this::getNextMapId) : 1;
         MVMap<String,String> map = new MVMap<>(this, metaId, StringDataType.INSTANCE, StringDataType.INSTANCE);
         map.setRootPos(getRootPos(map.getId()), currentVersion);

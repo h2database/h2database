@@ -13,7 +13,6 @@ import org.h2.util.Utils;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -79,6 +78,11 @@ public abstract class FileStore<C extends Chunk<C>>
      * written twice, one copy in each block, to ensure it survives a crash.
      */
     static final int BLOCK_SIZE = 4 * 1024;
+
+    private static final int FORMAT_WRITE_MIN = 2;
+    private static final int FORMAT_WRITE_MAX = 2;
+    private static final int FORMAT_READ_MIN = 2;
+    private static final int FORMAT_READ_MAX = 2;
 
     private MVStore mvStore;
     private boolean closed;
@@ -175,6 +179,12 @@ public abstract class FileStore<C extends Chunk<C>>
 
     protected final HashMap<String, Object> storeHeader = new HashMap<>();
 
+    /**
+     * The time the store was created, in milliseconds since 1970.
+     */
+    private long creationTime;
+
+
     private final Queue<WriteBuffer> writeBufferPool = new ArrayBlockingQueue<>(PIPE_LENGTH + 1);
 
     /**
@@ -264,12 +274,13 @@ public abstract class FileStore<C extends Chunk<C>>
         this.fileName = fileName;
         this.readOnly = readOnly;
         bind(mvStore);
-        scrubLayoutMap(mvStore);
     }
 
     public final void bind(MVStore mvStore) {
         if(this.mvStore != mvStore) {
+            long pos = layout == null ? 0L : layout.getRootPage().getPos();
             layout = new MVMap<>(mvStore, 0, StringDataType.INSTANCE, StringDataType.INSTANCE);
+            layout.setRootPos(pos, mvStore.getCurrentVersion());
             this.mvStore = mvStore;
             mvStore.resetLastMapId(lastChunk == null ? 0 : lastChunk.mapId);
             mvStore.setCurrentVersion(lastChunkVersion());
@@ -506,6 +517,64 @@ public abstract class FileStore<C extends Chunk<C>>
         clearCaches();
     }
 
+    protected final void initializeCommonHeaderAttributes(long time) {
+        setLastChunk(null);
+        creationTime = time;
+        storeHeader.put(FileStore.HDR_H, 2);
+        storeHeader.put(FileStore.HDR_BLOCK_SIZE, FileStore.BLOCK_SIZE);
+        storeHeader.put(FileStore.HDR_FORMAT, FORMAT_WRITE_MAX);
+        storeHeader.put(FileStore.HDR_CREATED, creationTime);
+    }
+
+    protected final void processCommonHeaderAttributes() {
+        creationTime = DataUtils.readHexLong(storeHeader, FileStore.HDR_CREATED, 0);
+        long now = System.currentTimeMillis();
+        // calculate the year (doesn't have to be exact;
+        // we assume 365.25 days per year, * 4 = 1461)
+        int year =  1970 + (int) (now / (1000L * 60 * 60 * 6 * 1461));
+        if (year < 2014) {
+            // if the year is before 2014,
+            // we assume the system doesn't have a real-time clock,
+            // and we set the creationTime to the past, so that
+            // existing chunks are overwritten
+            creationTime = now - getRetentionTime();
+        } else if (now < creationTime) {
+            // the system time was set to the past:
+            // we change the creation time
+            creationTime = now;
+            storeHeader.put(FileStore.HDR_CREATED, creationTime);
+        }
+
+        int blockSize = DataUtils.readHexInt(storeHeader, FileStore.HDR_BLOCK_SIZE, FileStore.BLOCK_SIZE);
+        if (blockSize != FileStore.BLOCK_SIZE) {
+            throw DataUtils.newMVStoreException(
+                    DataUtils.ERROR_UNSUPPORTED_FORMAT,
+                    "Block size {0} is currently not supported",
+                    blockSize);
+        }
+        long format = DataUtils.readHexLong(storeHeader, HDR_FORMAT, 1);
+        if (!isReadOnly()) {
+            if (format > FORMAT_WRITE_MAX) {
+                throw getUnsupportedWriteFormatException(format, FORMAT_WRITE_MAX,
+                        "The write format {0} is larger than the supported format {1}");
+            } else if (format < FORMAT_WRITE_MIN) {
+                throw getUnsupportedWriteFormatException(format, FORMAT_WRITE_MIN,
+                        "The write format {0} is smaller than the supported format {1}");
+            }
+        }
+        format = DataUtils.readHexLong(storeHeader, HDR_FORMAT_READ, format);
+        if (format > FORMAT_READ_MAX) {
+            throw DataUtils.newMVStoreException(
+                    DataUtils.ERROR_UNSUPPORTED_FORMAT,
+                    "The read format {0} is larger than the supported format {1}",
+                    format, FORMAT_READ_MAX);
+        } else if (format < FORMAT_READ_MIN) {
+            throw DataUtils.newMVStoreException(
+                    DataUtils.ERROR_UNSUPPORTED_FORMAT,
+                    "The read format {0} is smaller than the supported format {1}",
+                    format, FORMAT_READ_MIN);
+        }
+    }
 
     private long getTimeSinceCreation() {
         return Math.max(0, mvStore.getTimeAbsolute() - getCreationTime());
@@ -529,8 +598,7 @@ public abstract class FileStore<C extends Chunk<C>>
         return newest;
     }
 
-    private void scrubLayoutMap(MVStore mvStore) {
-        MVMap<String, String> meta = mvStore.getMetaMap();
+    private void scrubLayoutMap(MVMap<String, String> meta) {
         Set<String> keysToRemove = new HashSet<>();
 
         // split meta map off layout map
@@ -850,8 +918,9 @@ public abstract class FileStore<C extends Chunk<C>>
 
 
 
-    public void start() {
+    public MVMap<String, String> start() {
         if (size() == 0) {
+            initializeCommonHeaderAttributes(mvStore.getTimeAbsolute());
             initializeStoreHeader(mvStore.getTimeAbsolute());
         } else {
             saveChunkLock.lock();
@@ -864,6 +933,9 @@ public abstract class FileStore<C extends Chunk<C>>
         lastCommitTime = getTimeSinceCreation();
         mvStore.resetLastMapId(lastMapId());
         mvStore.setCurrentVersion(lastChunkVersion());
+        MVMap<String, String> metaMap = mvStore.openMetaMap();
+        scrubLayoutMap(metaMap);
+        return metaMap;
     }
 
     protected abstract void initializeStoreHeader(long time);
@@ -873,6 +945,54 @@ public abstract class FileStore<C extends Chunk<C>>
     private int lastMapId() {
         C chunk = lastChunk;
         return chunk == null ? 0 : chunk.mapId;
+    }
+
+    private MVStoreException getUnsupportedWriteFormatException(long format, int expectedFormat, String s) {
+        format = DataUtils.readHexLong(storeHeader, HDR_FORMAT_READ, format);
+        if (format >= FORMAT_READ_MIN && format <= FORMAT_READ_MAX) {
+            s += ", and the file was not opened in read-only mode";
+        }
+        return DataUtils.newMVStoreException(DataUtils.ERROR_UNSUPPORTED_FORMAT, s, format, expectedFormat);
+    }
+
+    /**
+     * Discover a valid chunk, searching file backwards from the given block
+     *
+     * @param block to start search from (found chunk footer should be no
+     *            further than block-1)
+     * @return valid chunk or null if none found
+     */
+    protected final C discoverChunk(long block) {
+        long candidateLocation = Long.MAX_VALUE;
+        C candidate = null;
+        while (true) {
+            if (block == candidateLocation) {
+                return candidate;
+            }
+            if (block == 2) { // number of blocks occupied by headers
+                return null;
+            }
+            C test = readChunkFooter(block);
+            if (test != null) {
+                // if we encounter chunk footer (with or without corresponding header)
+                // in the middle of prospective chunk, stop considering it
+                candidateLocation = Long.MAX_VALUE;
+                test = readChunkHeaderOptionally(test.block, test.id);
+                if (test != null) {
+                    // if that footer has a corresponding header,
+                    // consider them as a new candidate for a valid chunk
+                    candidate = test;
+                    candidateLocation = test.block;
+                }
+            }
+
+            // if we encounter chunk header without corresponding footer
+            // (due to incomplete write?) in the middle of prospective
+            // chunk, stop considering it
+            if (--block > candidateLocation && readChunkHeaderOptionally(block) != null) {
+                candidateLocation = Long.MAX_VALUE;
+            }
+        }
     }
 
     protected final boolean findLastChunkWithCompleteValidChunkSet(Comparator<C> chunkComparator,
@@ -1113,7 +1233,9 @@ public abstract class FileStore<C extends Chunk<C>>
     /**
      * The time the store was created, in milliseconds since 1970.
      */
-    public abstract long getCreationTime();
+    public long getCreationTime() {
+        return creationTime;
+    }
 
     protected final int getAutoCompactFillRate() {
         return autoCompactFillRate;
@@ -1407,6 +1529,7 @@ public abstract class FileStore<C extends Chunk<C>>
             buff.position(0);
 
             writeChunk(c, buff);
+            lastChunk = c;
         } catch (MVStoreException e) {
             mvStore.panic(e);
         } catch (Throwable e) {

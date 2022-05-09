@@ -5,10 +5,16 @@
  */
 package org.h2.mvstore;
 
+import org.h2.mvstore.cache.FilePathCache;
+import org.h2.store.fs.FilePath;
+import org.h2.store.fs.encrypt.FileEncrypt;
+import org.h2.store.fs.encrypt.FilePathEncrypt;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
+import java.nio.channels.OverlappingFileLockException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.zip.ZipOutputStream;
 
@@ -23,6 +29,13 @@ public final class AppendOnlyMultiFileStore extends FileStore<MFChunk>
      * Limit for the number of files used by this store
      */
     private final int maxFileCount;
+
+    /**
+     * The time the store was created, in milliseconds since 1970.
+     */
+    private long creationTime;
+
+    private int volumeId;
 
     /**
      * Current number of files in use
@@ -72,8 +85,59 @@ public final class AppendOnlyMultiFileStore extends FileStore<MFChunk>
     }
 
     @Override
+    public void open(String fileName, boolean readOnly, char[] encryptionKey, MVStore mvStore) {
+        if (fileChannel != null && fileChannel.isOpen()) {
+            return;
+        }
+        // ensure the Cache file system is registered
+        FilePathCache.INSTANCE.getScheme();
+        FilePath f = FilePath.get(fileName);
+        FilePath parent = f.getParent();
+        if (parent != null && !parent.exists()) {
+            throw DataUtils.newIllegalArgumentException(
+                    "Directory does not exist: {0}", parent);
+        }
+        if (f.exists() && !f.canWrite()) {
+            readOnly = true;
+        }
+        super.open(fileName, readOnly, encryptionKey, mvStore);
+        try {
+            fileChannel = f.open(readOnly ? "r" : "rw");
+            if (encryptionKey != null) {
+                byte[] key = FilePathEncrypt.getPasswordBytes(encryptionKey);
+//                originalFileChannel = fileChannel;
+                fileChannel = new FileEncrypt(fileName, key, fileChannel);
+            }
+            try {
+                fileLock = fileChannel.tryLock(0L, Long.MAX_VALUE, readOnly);
+            } catch (OverlappingFileLockException e) {
+                throw DataUtils.newMVStoreException(
+                        DataUtils.ERROR_FILE_LOCKED,
+                        "The file is locked: {0}", fileName, e);
+            }
+            if (fileLock == null) {
+                try { close(); } catch (Exception ignore) {}
+                throw DataUtils.newMVStoreException(
+                        DataUtils.ERROR_FILE_LOCKED,
+                        "The file is locked: {0}", fileName);
+            }
+            saveChunkLock.lock();
+            try {
+                setSize(fileChannel.size());
+            } finally {
+                saveChunkLock.unlock();
+            }
+        } catch (IOException e) {
+            try { close(); } catch (Exception ignore) {}
+            throw DataUtils.newMVStoreException(
+                    DataUtils.ERROR_READING_FAILED,
+                    "Could not open file {0}", fileName, e);
+        }
+    }
+
+    @Override
     protected void writeFully(MFChunk chunk, long pos, ByteBuffer src) {
-        int volumeId = chunk.volumeId;
+        assert chunk.volumeId == volumeId;
         int len = src.remaining();
         setSize(Math.max(super.size(), pos + len));
         DataUtils.writeFully(fileChannels[volumeId], pos, src);
@@ -86,14 +150,44 @@ public final class AppendOnlyMultiFileStore extends FileStore<MFChunk>
         return readFully(fileChannels[volumeId], pos, len);
     }
 
-    public long getCreationTime() {
-        return 0;
-    }
-
     protected void initializeStoreHeader(long time) {
     }
 
     protected void readStoreHeader(boolean recoveryMode) {
+        ByteBuffer fileHeaderBlocks = readFully((MFChunk)null, 0, FileStore.BLOCK_SIZE);
+        byte[] buff = new byte[FileStore.BLOCK_SIZE];
+        fileHeaderBlocks.get(buff);
+        // the following can fail for various reasons
+        try {
+            HashMap<String, String> m = DataUtils.parseChecksummedMap(buff);
+            if (m == null) {
+                throw DataUtils.newMVStoreException(
+                        DataUtils.ERROR_FILE_CORRUPT,
+                        "Store header is corrupt: {0}", this);
+            }
+            storeHeader.putAll(m);
+        } catch (Exception ignore) {
+            throw DataUtils.newMVStoreException(
+                    DataUtils.ERROR_FILE_CORRUPT,
+                    "Store header is corrupt: {0}", this);
+        }
+
+        processCommonHeaderAttributes();
+
+        long fileSize = size();
+        long blocksInVolume = fileSize / FileStore.BLOCK_SIZE;
+
+        MFChunk chunk = discoverChunk(blocksInVolume);
+        setLastChunk(chunk);
+        // load the chunk metadata: although meta's root page resides in the lastChunk,
+        // traversing meta map might recursively load another chunk(s)
+        for (MFChunk c : getChunksFromLayoutMap()) {
+            // might be there already, due to meta traversal
+            // see readPage() ... getChunkIfFound()
+            if (!c.isLive()) {
+                registerDeadChunk(c);
+            }
+        }
     }
 
     @Override

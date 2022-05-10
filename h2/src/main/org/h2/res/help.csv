@@ -3899,7 +3899,7 @@ ID
 A Unicode String of fixed length.
 
 Length, if any, should be specified in characters, CHARACTERS and OCTETS units have no effect in H2.
-The allowed length is from 1 to 1048576 characters.
+The allowed length is from 1 to 1,000,000,000 characters.
 If length is not specified, 1 character is used by default.
 
 The whole text is kept in memory when using this data type.
@@ -3925,14 +3925,13 @@ CHAR(10)
 { { CHARACTER | CHAR } VARYING
     | VARCHAR
     | { NATIONAL { CHARACTER | CHAR } | NCHAR } VARYING
-    | @c@ { LONGVARCHAR | VARCHAR2 | NVARCHAR | NVARCHAR2 }
     | @h2@ { VARCHAR_CASESENSITIVE } }
 [ ( lengthInt [CHARACTERS|OCTETS] ) ]
 ","
 A Unicode String.
 Use two single quotes ('') to create a quote.
 
-The allowed length is from 1 to 1048576 characters.
+The allowed length is from 1 to 1,000,000,000 characters.
 The length is a size constraint; only the actual data is persisted.
 Length, if any, should be specified in characters, CHARACTERS and OCTETS units have no effect in H2.
 
@@ -3949,8 +3948,7 @@ VARCHAR(255)
 
 "Data Types","CHARACTER LARGE OBJECT Type","
 { { CHARACTER | CHAR } LARGE OBJECT | CLOB
-    | { NATIONAL CHARACTER | NCHAR } LARGE OBJECT | NCLOB
-    | @c@ { TINYTEXT | TEXT | MEDIUMTEXT | LONGTEXT | NTEXT } }
+    | { NATIONAL CHARACTER | NCHAR } LARGE OBJECT | NCLOB }
 [ ( lengthLong [K|M|G|T|P] [CHARACTERS|OCTETS]) ]
 ","
 CHARACTER LARGE OBJECT is intended for very large Unicode character string values.
@@ -3980,7 +3978,7 @@ CLOB(10K)
 Same as VARCHAR, but not case sensitive when comparing.
 Stored in mixed case.
 
-The allowed length is from 1 to 1048576 characters.
+The allowed length is from 1 to 1,000,000,000 characters.
 The length is a size constraint; only the actual data is persisted.
 Length, if any, should be specified in characters, CHARACTERS and OCTETS units have no effect in H2.
 
@@ -3998,7 +3996,7 @@ BINARY [ ( lengthInt ) ]
 ","
 Represents a binary string (byte array) of fixed predefined length.
 
-The allowed length is from 1 to 1048576 bytes.
+The allowed length is from 1 to 1,000,000,000 bytes.
 If length is not specified, 1 byte is used by default.
 
 The whole binary string is kept in memory when using this data type.
@@ -4020,13 +4018,12 @@ BINARY(1000)
 "
 
 "Data Types","BINARY VARYING Type","
-{ BINARY VARYING | VARBINARY
-    | @c@ { LONGVARBINARY | RAW | BYTEA } }
+{ BINARY VARYING | VARBINARY }
 [ ( lengthInt ) ]
 ","
 Represents a byte array.
 
-The allowed length is from 1 to 1048576 bytes.
+The allowed length is from 1 to 1,000,000,000 bytes.
 The length is a size constraint; only the actual data is persisted.
 
 The whole binary string is kept in memory when using this data type.
@@ -4041,8 +4038,7 @@ VARBINARY(1000)
 "
 
 "Data Types","BINARY LARGE OBJECT Type","
-{ BINARY LARGE OBJECT | BLOB
-    | @c@ { TINYBLOB | MEDIUMBLOB | LONGBLOB | IMAGE } }
+{ BINARY LARGE OBJECT | BLOB }
 [ ( lengthLong [K|M|G|T|P]) ]
 ","
 BINARY LARGE OBJECT is intended for very large binary values such as files or images.
@@ -4059,7 +4055,7 @@ BLOB(10K)
 "
 
 "Data Types","BOOLEAN Type","
-BOOLEAN | @c@ { BIT | BOOL }
+BOOLEAN
 ","
 Possible values: TRUE, FALSE, and UNKNOWN (NULL).
 
@@ -4087,7 +4083,7 @@ TINYINT
 "
 
 "Data Types","SMALLINT Type","
-SMALLINT | @c@ { INT2 }
+SMALLINT
 ","
 Possible values: -32768 to 32767.
 
@@ -4103,7 +4099,7 @@ SMALLINT
 "
 
 "Data Types","INTEGER Type","
-INTEGER | INT | @c@ { MEDIUMINT | INT4 | SIGNED }
+INTEGER | INT
 ","
 Possible values: -2147483648 to 2147483647.
 
@@ -4115,7 +4111,7 @@ INT
 "
 
 "Data Types","BIGINT Type","
-BIGINT | @c@ INT8
+BIGINT
 ","
 Possible values: -9223372036854775808 to 9223372036854775807.
 
@@ -4141,7 +4137,7 @@ NUMERIC(20, 2)
 "
 
 "Data Types","REAL Type","
-REAL | FLOAT ( precisionInt ) | @c@ { FLOAT4 }
+REAL | FLOAT ( precisionInt )
 ","
 A single precision floating point number.
 Should not be used to represent currency values, because of rounding problems.
@@ -4154,7 +4150,7 @@ REAL
 "
 
 "Data Types","DOUBLE PRECISION Type","
-DOUBLE PRECISION | FLOAT [ ( precisionInt ) ] | @c@ { DOUBLE | FLOAT8 }
+DOUBLE PRECISION | FLOAT [ ( precisionInt ) ]
 ","
 A double precision floating point number.
 Should not be used to represent currency values, because of rounding problems.
@@ -4252,7 +4248,6 @@ TIME(9) WITH TIME ZONE
 
 "Data Types","TIMESTAMP Type","
 TIMESTAMP [ ( precisionInt ) ] [ WITHOUT TIME ZONE ]
-    | @c@ { DATETIME [ ( precisionInt ) ] | SMALLDATETIME }
 ","
 The timestamp data type. The proleptic Gregorian calendar is used.
 If fractional seconds precision is specified it should be from 0 to 9, 6 is default.

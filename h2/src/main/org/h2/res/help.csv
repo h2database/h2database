@@ -958,7 +958,7 @@ TABLE @h2@ [ IF NOT EXISTS ] [schemaName.]tableName
 @h2@ [ ENGINE tableEngineName ]
 @h2@ [ WITH tableEngineParamName [,...] ]
 @h2@ [ NOT PERSISTENT ] @h2@ [ TRANSACTIONAL ]
-[ AS query [ WITH [ NO ] DATA ] ]","
+[ AS ( query ) [ WITH [ NO ] DATA ] ]","
 Creates a new table.
 
 Cached tables (the default for regular tables) are persistent,
@@ -3851,7 +3851,7 @@ CURRENT ROW
     | ( expression )
     | arrayElementReference
     | fieldReference
-    | query
+    | ( query )
     | caseExpression
     | castSpecification
     | userDefinedFunctionName }

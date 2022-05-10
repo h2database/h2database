@@ -4251,7 +4251,6 @@ TIMESTAMP [ ( precisionInt ) ] [ WITHOUT TIME ZONE ]
 ","
 The timestamp data type. The proleptic Gregorian calendar is used.
 If fractional seconds precision is specified it should be from 0 to 9, 6 is default.
-Fractional seconds precision of SMALLDATETIME is always 0 and cannot be specified.
 
 This data type holds the local date and time without time zone information.
 It cannot distinguish timestamps near transitions from DST to normal time.
@@ -4353,8 +4352,8 @@ A type with enumerated values.
 Mapped to ""java.lang.String"".
 
 Duplicate and empty values are not permitted.
-The maximum allowed length of value is 1048576 characters.
 The maximum number of values is 65536.
+The maximum allowed length of complete data type definition with all values is 1,000,000,000 characters.
 ","
 ENUM('clubs', 'diamonds', 'hearts', 'spades')
 "

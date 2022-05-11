@@ -4321,7 +4321,7 @@ INTERVAL DAY TO SECOND
 @h2@ { JAVA_OBJECT | OBJECT | OTHER } [ ( lengthInt ) ]
 ","
 This type allows storing serialized Java objects. Internally, a byte array with serialized form is used.
-The allowed length is from 1 (useful only with custom serializer) to 1048576 bytes.
+The allowed length is from 1 (useful only with custom serializer) to 1,000,000,000 bytes.
 The length is a size constraint; only the actual data is persisted.
 
 Serialization and deserialization is done on the client side only with two exclusions described below.
@@ -4381,7 +4381,8 @@ A constraint with required spatial reference system identifier (SRID) can be set
 
 Mapped to ""org.locationtech.jts.geom.Geometry"" if JTS library is in classpath and to ""java.lang.String"" otherwise.
 May be represented in textual format using the WKT (well-known text) or EWKT (extended well-known text) format.
-Values are stored internally in EWKB (extended well-known binary) format, the maximum allowed length is 1048576 bytes.
+Values are stored internally in EWKB (extended well-known binary) format,
+the maximum allowed length is 1,000,000,000 bytes.
 Only a subset of EWKB and EWKT features is supported.
 Supported objects are POINT, LINESTRING, POLYGON, MULTIPOINT, MULTILINESTRING, MULTIPOLYGON, and GEOMETRYCOLLECTION.
 Supported dimension systems are 2D (XY), Z (XYZ), M (XYM), and ZM (XYZM).
@@ -4404,7 +4405,7 @@ A RFC 8259-compliant JSON text.
 
 See also [json](https://h2database.com/html/grammar.html#json) literal grammar.
 Mapped to ""byte[]"".
-The allowed length is from 1 to 1048576 bytes.
+The allowed length is from 1 to 1,000,000,000 bytes.
 The length is a size constraint; only the actual data is persisted.
 
 To set a JSON value with ""java.lang.String"" in a PreparedStatement use a ""FORMAT JSON"" data format

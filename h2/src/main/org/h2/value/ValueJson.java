@@ -11,7 +11,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 import org.h2.api.ErrorCode;
-import org.h2.engine.Constants;
 import org.h2.message.DbException;
 import org.h2.util.StringUtils;
 import org.h2.util.json.JSONByteArrayTarget;
@@ -51,11 +50,6 @@ public final class ValueJson extends ValueBytesBase {
 
     private ValueJson(byte[] value) {
         super(value);
-        int length = value.length;
-        if (length > Constants.MAX_STRING_LENGTH) {
-            throw DbException.getValueTooLongException(getTypeName(getValueType()),
-                    StringUtils.convertBytesToHex(value, 41), length);
-        }
     }
 
     @Override

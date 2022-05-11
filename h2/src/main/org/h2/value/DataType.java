@@ -123,10 +123,11 @@ public class DataType {
                 "NCHAR VARYING", "NATIONAL CHARACTER VARYING", "NATIONAL CHAR VARYING",
                 "VARCHAR2", "NVARCHAR", "NVARCHAR2",
                 "VARCHAR_CASESENSITIVE", "TID",
-                "LONGVARCHAR", "LONGNVARCHAR");
+                "LONGVARCHAR", "LONGNVARCHAR",
+                "TINYTEXT", "TEXT", "MEDIUMTEXT", "LONGTEXT", "NTEXT");
         add(Value.CLOB, Types.CLOB, createLob(true),
-                "CHARACTER LARGE OBJECT", "CLOB", "CHAR LARGE OBJECT", "TINYTEXT", "TEXT", "MEDIUMTEXT",
-                "LONGTEXT", "NTEXT", "NCLOB", "NCHAR LARGE OBJECT", "NATIONAL CHARACTER LARGE OBJECT");
+                "CHARACTER LARGE OBJECT", "CLOB", "CHAR LARGE OBJECT",
+                "NCLOB", "NCHAR LARGE OBJECT", "NATIONAL CHARACTER LARGE OBJECT");
         add(Value.VARCHAR_IGNORECASE, Types.VARCHAR, createString(false, false), "VARCHAR_IGNORECASE");
         add(Value.BINARY, Types.BINARY, createBinary(true), "BINARY");
         add(Value.VARBINARY, Types.VARBINARY, createBinary(false),

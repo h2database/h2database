@@ -446,7 +446,7 @@ public class FilePathDisk extends FilePath {
         String prefix = file.getFileName().toString();
         if (inTempDir) {
             final Path tempDir = Paths.get(System.getProperty("java.io.tmpdir", "."));
-            if (!Files.isSymbolicLink(tempDir)) {
+            if (!Files.isDirectory(tempDir)) {
                 Files.createDirectories(tempDir);
             }
             file = Files.createTempFile(prefix, suffix);

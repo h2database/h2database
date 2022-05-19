@@ -655,8 +655,11 @@ public final class BitFunction extends Function1_2 {
             default:
                 return this;
             }
-            return new Aggregate(t, new Expression[] { l.getSubexpression(0) }, l.getSelect(), l.isDistinct())
-                    .optimize(session);
+            Aggregate aggregate = new Aggregate(t, new Expression[] { l.getSubexpression(0) }, l.getSelect(),
+                    l.isDistinct());
+            aggregate.setFilterCondition(l.getFilterCondition());
+            aggregate.setOverCondition(l.getOverCondition());
+            return aggregate.optimize(session);
         }
         return this;
     }

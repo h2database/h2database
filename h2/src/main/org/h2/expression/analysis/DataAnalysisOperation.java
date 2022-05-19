@@ -90,6 +90,15 @@ public abstract class DataAnalysisOperation extends Expression {
     }
 
     /**
+     * Returns the OVER condition.
+     *
+     * @return the OVER condition
+     */
+    public Window getOverCondition() {
+        return over;
+    }
+
+    /**
      * Sets the OVER condition.
      *
      * @param over

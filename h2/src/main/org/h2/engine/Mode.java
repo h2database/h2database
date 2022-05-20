@@ -503,6 +503,7 @@ public class Mode {
         mode.allowDB2TimestampFormat = true;
         mode.forBitData = true;
         mode.takeInsertedIdentity = true;
+        mode.nextvalAndCurrvalPseudoColumns = true;
         mode.expressionNames = ExpressionNames.NUMBER;
         mode.viewExpressionNames = ViewExpressionNames.EXCEPTION;
         mode.limit = true;

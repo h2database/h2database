@@ -356,8 +356,9 @@ public final class Store {
      * @param allowedCompactionTime time (in milliseconds) alloted for file
      *                              compaction activity, 0 means no compaction,
      *                              -1 means unlimited time (full compaction)
+     * @param fileEncryptionKey the file encryption key, or {@code null}
      */
-    public void close(int allowedCompactionTime) {
+    public void close(int allowedCompactionTime, byte[] fileEncryptionKey) {
         try {
             FileStore fileStore = mvStore.getFileStore();
             if (!mvStore.isClosed() && fileStore != null) {
@@ -377,7 +378,8 @@ public final class Store {
                 if (compactFully && FileUtils.exists(fileName)) {
                     // the file could have been deleted concurrently,
                     // so only compact if the file still exists
-                    MVStoreTool.compact(fileName, true);
+                    MVStoreTool.compact(fileName, true,
+                            fileEncryptionKey == null ? null : decodePassword(fileEncryptionKey));
                 }
             }
         } catch (MVStoreException e) {

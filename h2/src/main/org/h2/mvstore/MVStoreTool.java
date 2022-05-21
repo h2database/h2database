@@ -21,6 +21,7 @@ import org.h2.compress.CompressDeflate;
 import org.h2.compress.CompressLZF;
 import org.h2.compress.Compressor;
 import org.h2.engine.Constants;
+import org.h2.mvstore.MVStore.Builder;
 import org.h2.mvstore.tx.TransactionStore;
 import org.h2.mvstore.type.BasicDataType;
 import org.h2.mvstore.type.StringDataType;
@@ -436,9 +437,25 @@ public class MVStoreTool {
      * @param compress whether to compress the data
      */
     public static void compact(String fileName, boolean compress) {
+        compact(fileName, compress, null);
+    }
+
+    /**
+     * Compress the store by creating a new file and copying the live pages
+     * there. Temporarily, a file with the suffix ".tempFile" is created. This
+     * file is then renamed, replacing the original file, if possible. If not,
+     * the new file is renamed to ".newFile", then the old file is removed, and
+     * the new file is renamed. This might be interrupted, so it's better to
+     * compactCleanUp before opening a store, in case this method was used.
+     *
+     * @param fileName the file name
+     * @param compress whether to compress the data
+     * @param encryptionKey the encryption key, or {@code null}
+     */
+    public static void compact(String fileName, boolean compress, char[] encryptionKey) {
         String tempName = fileName + Constants.SUFFIX_MV_STORE_TEMP_FILE;
         FileUtils.delete(tempName);
-        compact(fileName, tempName, compress);
+        compact(fileName, tempName, compress, encryptionKey);
         try {
             FileUtils.moveAtomicReplace(tempName, fileName);
         } catch (MVStoreException e) {
@@ -481,20 +498,40 @@ public class MVStoreTool {
      * @param compress whether to compress the data
      */
     public static void compact(String sourceFileName, String targetFileName, boolean compress) {
-        try (MVStore source = new MVStore.Builder().
-                fileName(sourceFileName).readOnly().open()) {
+        compact(sourceFileName, targetFileName, compress, null);
+    }
+
+    /**
+     * Copy all live pages from the source store to the target store.
+     *
+     * @param sourceFileName the name of the source store
+     * @param targetFileName the name of the target store
+     * @param compress whether to compress the data
+     * @param encryptionKey the encryption key, or {@code null}
+     */
+    public static void compact(String sourceFileName, String targetFileName, boolean compress,
+            char[] encryptionKey) {
+        Builder sourceBuilder = new MVStore.Builder().fileName(sourceFileName).readOnly();
+        if (encryptionKey != null) {
+            // Key is erased, so create a copy
+            char[] key = encryptionKey.clone();
+            sourceBuilder.encryptionKey(key);
+        }
+        try (MVStore source = sourceBuilder.open()) {
             // Bugfix - Add double "try-finally" statements to close source and target stores for
             //releasing lock and file resources in these stores even if OOM occurs.
             // Fix issues such as "Cannot delete file "/h2/data/test.mv.db.tempFile" [90025-197]"
             //when client connects to this server and reopens this store database in this process.
             // @since 2018-09-13 little-pan
             FileUtils.delete(targetFileName);
-            MVStore.Builder b = new MVStore.Builder().
-                fileName(targetFileName);
+            MVStore.Builder targetBuilder = new MVStore.Builder().fileName(targetFileName);
             if (compress) {
-                b.compress();
+                targetBuilder.compress();
             }
-            try (MVStore target = b.open()) {
+            if (encryptionKey != null) {
+                targetBuilder.encryptionKey(encryptionKey);
+            }
+            try (MVStore target = targetBuilder.open()) {
                 compact(source, target);
             }
         }

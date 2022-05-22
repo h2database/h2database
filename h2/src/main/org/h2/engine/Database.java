@@ -1261,7 +1261,7 @@ public final class Database implements DataHandler, CastDataProvider {
                             compactMode == CommandInterface.SHUTDOWN_COMPACT ||
                             compactMode == CommandInterface.SHUTDOWN_DEFRAG ||
                             dbSettings.defragAlways ? -1 : dbSettings.maxCompactTime;
-                    store.close(allowedCompactionTime);
+                    store.close(allowedCompactionTime, fileEncryptionKey);
                 }
             }
             if (persistent) {

@@ -132,6 +132,7 @@ public class FileEncrypt extends FileBaseDefault {
                 writeFully(base, 0, byteBuffer);
             }
             xts = source.xts;
+            source = null;
         }
         if (existingFile) {
             if ((sz & BLOCK_SIZE_MASK) != 0) {

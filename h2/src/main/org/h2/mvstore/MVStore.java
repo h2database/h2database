@@ -29,7 +29,6 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -226,7 +225,7 @@ public class MVStore implements AutoCloseable {
 
     private final FileStore fileStore;
 
-    private final boolean fileStoreIsProvided;
+    private final boolean fileStoreShallBeClosed;
 
     private final int pageSplitSize;
 
@@ -384,16 +383,19 @@ public class MVStore implements AutoCloseable {
         compressionLevel = DataUtils.getConfigParam(config, "compress", 0);
         String fileName = (String) config.get("fileName");
         FileStore fileStore = (FileStore) config.get("fileStore");
+        boolean fileStoreShallBeOpen = false;
         if (fileStore == null) {
-            fileStoreIsProvided = false;
             if (fileName != null) {
                 fileStore = new FileStore();
+                fileStoreShallBeOpen = true;
             }
+            fileStoreShallBeClosed = true;
         } else {
             if (fileName != null) {
                 throw new IllegalArgumentException("fileName && fileStore");
             }
-            fileStoreIsProvided = true;
+            Boolean fileStoreIsAdopted = (Boolean) config.get("fileStoreIsAdopted");
+            fileStoreShallBeClosed = fileStoreIsAdopted != null && fileStoreIsAdopted;
         }
         this.fileStore = fileStore;
 
@@ -438,14 +440,14 @@ public class MVStore implements AutoCloseable {
             kb = DataUtils.getConfigParam(config, "autoCommitBufferSize", kb);
             autoCommitMemory = kb * 1024;
             autoCompactFillRate = DataUtils.getConfigParam(config, "autoCompactFillRate", 90);
-            char[] encryptionKey = (char[]) config.get("encryptionKey");
+            char[] encryptionKey = (char[]) config.remove("encryptionKey");
             // there is no need to lock store here, since it is not opened (or even created) yet,
             // just to make some assertions happy, when they ensure single-threaded access
             storeLock.lock();
             try {
                 saveChunkLock.lock();
                 try {
-                    if (!fileStoreIsProvided) {
+                    if (fileStoreShallBeOpen) {
                         boolean readOnly = config.containsKey("readOnly");
                         this.fileStore.open(fileName, readOnly, encryptionKey);
                     }
@@ -1352,7 +1354,7 @@ public class MVStore implements AutoCloseable {
                             chunks.clear();
                             maps.clear();
                         } finally {
-                            if (fileStore != null && !fileStoreIsProvided) {
+                            if (fileStore != null && fileStoreShallBeClosed) {
                                 fileStore.close();
                             }
                         }
@@ -3819,7 +3821,7 @@ public class MVStore implements AutoCloseable {
          * @return removed page info that contains chunk id, page number, page length and pinned flag
          */
         private static long createRemovedPageInfo(long pagePos, boolean isPinned, int pageNo) {
-            long result = (pagePos & ~((0xFFFFFFFFL << 6) | 1)) | ((pageNo << 6) & 0xFFFFFFFFL);
+            long result = (pagePos & ~((0xFFFFFFFFL << 6) | 1)) | (((long)pageNo << 6) & 0xFFFFFFFFL);
             if (isPinned) {
                 result |= 1;
             }
@@ -4063,6 +4065,11 @@ public class MVStore implements AutoCloseable {
          * @return this
          */
         public Builder fileStore(FileStore store) {
+            return set("fileStore", store);
+        }
+
+        public Builder adoptFileStore(FileStore store) {
+            set("fileStoreIsAdopted", true);
             return set("fileStore", store);
         }
 

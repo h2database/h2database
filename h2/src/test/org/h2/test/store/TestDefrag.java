@@ -39,6 +39,19 @@ public class TestDefrag  extends TestDb {
 
     @Override
     public void test() throws Exception {
+        String cipher = config.cipher;
+        config.traceTest = true;
+        try {
+            config.cipher = null;
+            testIt();
+            config.cipher = "AES";
+            testIt();
+        } finally {
+            config.cipher = cipher;
+        }
+    }
+
+    public void testIt() throws Exception {
         String dbName = getTestName();
         deleteDb(dbName);
         File dbFile = new File(getBaseDir(), dbName + SUFFIX_MV_FILE);

@@ -13,6 +13,7 @@ import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.expression.Expression;
 import org.h2.message.DbException;
+import org.h2.mvstore.FileStore;
 import org.h2.mvstore.MVStore;
 import org.h2.mvstore.MVStore.Builder;
 import org.h2.result.ResultExternal;
@@ -176,11 +177,9 @@ public abstract class MVTempResult implements ResultExternal {
         this.database = database;
         try {
             String fileName = FileUtils.createTempFile("h2tmp", Constants.SUFFIX_TEMP_FILE, true);
-            Builder builder = new MVStore.Builder().fileName(fileName).cacheSize(0).autoCommitDisabled();
-            byte[] key = database.getFileEncryptionKey();
-            if (key != null) {
-                builder.encryptionKey(Store.decodePassword(key));
-            }
+
+            FileStore fileStore = database.getStore().getMvStore().getFileStore().open(fileName, false);
+            MVStore.Builder builder = new MVStore.Builder().adoptFileStore(fileStore).cacheSize(0).autoCommitDisabled();
             store = builder.open();
             this.expressions = expressions;
             this.visibleColumnCount = visibleColumnCount;

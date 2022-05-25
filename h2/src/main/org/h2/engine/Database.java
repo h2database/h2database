@@ -131,7 +131,6 @@ public final class Database implements DataHandler, CastDataProvider {
     private final String databaseURL;
     private final String cipher;
     private final byte[] filePasswordHash;
-    private final byte[] fileEncryptionKey;
 
     private final ConcurrentHashMap<String, RightOwner> usersAndRoles = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, Setting> settings = new ConcurrentHashMap<>();
@@ -227,7 +226,6 @@ public final class Database implements DataHandler, CastDataProvider {
         this.compareMode = CompareMode.getInstance(null, 0);
         this.persistent = ci.isPersistent();
         this.filePasswordHash = ci.getFilePasswordHash();
-        this.fileEncryptionKey = ci.getFileEncryptionKey();
         this.databaseName = databaseName;
         this.databaseShortName = parseDatabaseShortName();
         this.maxLengthInplaceLob = Constants.DEFAULT_MAX_LENGTH_INPLACE_LOB;
@@ -324,7 +322,7 @@ public final class Database implements DataHandler, CastDataProvider {
             }
             starting = true;
             if (dbSettings.mvStore) {
-                store = new Store(this);
+                store = new Store(this, ci.getFileEncryptionKey());
             } else {
                 throw new UnsupportedOperationException();
             }
@@ -1261,7 +1259,7 @@ public final class Database implements DataHandler, CastDataProvider {
                             compactMode == CommandInterface.SHUTDOWN_COMPACT ||
                             compactMode == CommandInterface.SHUTDOWN_DEFRAG ||
                             dbSettings.defragAlways ? -1 : dbSettings.maxCompactTime;
-                    store.close(allowedCompactionTime, fileEncryptionKey);
+                    store.close(allowedCompactionTime);
                 }
             }
             if (persistent) {
@@ -2346,10 +2344,6 @@ public final class Database implements DataHandler, CastDataProvider {
     @Override
     public int readLob(long lobId, byte[] hmac, long offset, byte[] buff, int off, int length) {
         throw DbException.getInternalError();
-    }
-
-    public byte[] getFileEncryptionKey() {
-        return fileEncryptionKey;
     }
 
     public int getPageSize() {

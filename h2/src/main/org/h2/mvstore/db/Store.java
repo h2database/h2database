@@ -131,6 +131,8 @@ public final class Store {
         this.encrypted = encrypted;
         try {
             this.mvStore = builder.open();
+            FileStore<?> fs = mvStore.getFileStore();
+            fileName = fs != null ? fs.getFileName() : null;
             if (!db.getSettings().reuseSpace) {
                 mvStore.setReuseSpace(false);
             }
@@ -340,7 +342,35 @@ public final class Store {
      */
     public void close(int allowedCompactionTime) {
         try {
-            mvStore.close(allowedCompactionTime);
+            FileStore<?> fileStore = mvStore.getFileStore();
+            if (!mvStore.isClosed() && fileStore != null) {
+                boolean compactFully = allowedCompactionTime == -1;
+                if (fileStore.isReadOnly()) {
+                    compactFully = false;
+                } else {
+                    transactionStore.close();
+                }
+                if (compactFully) {
+                    allowedCompactionTime = 0;
+                }
+
+                String fileName = null;
+                FileStore<?> targetFileStore = null;
+                if (compactFully) {
+                    fileName = fileStore.getFileName();
+                    String tempName = fileName + Constants.SUFFIX_MV_STORE_TEMP_FILE;
+                    FileUtils.delete(tempName);
+                    targetFileStore = fileStore.open(tempName, false);
+                }
+
+                mvStore.close(allowedCompactionTime);
+
+                if (compactFully && FileUtils.exists(fileName)) {
+                    // the file could have been deleted concurrently,
+                    // so only compact if the file still exists
+                    compact(fileName, targetFileStore);
+                }
+            }
         } catch (MVStoreException e) {
             mvStore.closeImmediately();
             throw DbException.get(ErrorCode.IO_EXCEPTION_1, e, "Closing");
@@ -348,10 +378,10 @@ public final class Store {
     }
 
 
-    private static void compact(String sourceFilename, FileStore targetFileStore) {
+    private static void compact(String sourceFilename, FileStore<?> targetFileStore) {
         MVStore.Builder targetBuilder = new MVStore.Builder().compress().adoptFileStore(targetFileStore);
         try (MVStore targetMVStore = targetBuilder.open()) {
-            FileStore sourceFileStore = targetFileStore.open(sourceFilename, true);
+            FileStore<?> sourceFileStore = targetFileStore.open(sourceFilename, true);
             MVStore.Builder sourceBuilder = new MVStore.Builder();
             sourceBuilder.readOnly().adoptFileStore(sourceFileStore);
             try (MVStore sourceMVStore = sourceBuilder.open()) {
@@ -365,7 +395,7 @@ public final class Store {
      * Start collecting statistics.
      */
     public void statisticsStart() {
-        FileStore fs = mvStore.getFileStore();
+        FileStore<?> fs = mvStore.getFileStore();
         statisticsStart = fs == null ? 0 : fs.getReadCount();
     }
 
@@ -376,7 +406,7 @@ public final class Store {
      */
     public Map<String, Integer> statisticsEnd() {
         HashMap<String, Integer> map = new HashMap<>();
-        FileStore fs = mvStore.getFileStore();
+        FileStore<?> fs = mvStore.getFileStore();
         int reads = fs == null ? 0 : (int) (fs.getReadCount() - statisticsStart);
         map.put("reads", reads);
         return map;

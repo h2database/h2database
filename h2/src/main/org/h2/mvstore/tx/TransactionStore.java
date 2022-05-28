@@ -359,6 +359,13 @@ public class TransactionStore {
     }
 
     /**
+     * Close the transaction store.
+     */
+    public synchronized void close() {
+        store.commit();
+    }
+
+    /**
      * Begin a new transaction.
      *
      * @return the transaction

@@ -16,6 +16,7 @@ import java.nio.channels.FileLock;
 import java.nio.channels.OverlappingFileLockException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.zip.ZipOutputStream;
 
 /**
@@ -48,6 +49,11 @@ public final class AppendOnlyMultiFileStore extends FileStore<MFChunk>
     private FileChannel fileChannel;
 
     /**
+     * The encrypted file (if encryption is used).
+     */
+    private FileChannel originalFileChannel;
+
+    /**
      * All files currently used by this store. This includes current one at first position.
      * Previous files are opened in read-only mode.
      * Locical length of this array is determined by fileCount.
@@ -59,9 +65,12 @@ public final class AppendOnlyMultiFileStore extends FileStore<MFChunk>
      */
     private FileLock fileLock;
 
+    private final Map<String, Object> config;
+
 
     public AppendOnlyMultiFileStore(Map<String, Object> config) {
         super(config);
+        this.config = config;
         maxFileCount = DataUtils.getConfigParam(config, "maxFileCount", 16);
         fileChannels = new FileChannel[maxFileCount];
     }
@@ -85,7 +94,20 @@ public final class AppendOnlyMultiFileStore extends FileStore<MFChunk>
     }
 
     @Override
-    public void open(String fileName, boolean readOnly, char[] encryptionKey, MVStore mvStore) {
+    public void open(String fileName, boolean readOnly, char[] encryptionKey) {
+        open(fileName, readOnly, encryptionKey == null ? null :
+                fileChannel ->  new FileEncrypt(fileName, FilePathEncrypt.getPasswordBytes(encryptionKey), fileChannel));
+    }
+
+    @Override
+    public AppendOnlyMultiFileStore open(String fileName, boolean readOnly) {
+        AppendOnlyMultiFileStore result = new AppendOnlyMultiFileStore(config);
+        result.open(fileName, readOnly, originalFileChannel == null ? null :
+                fileChannel -> new FileEncrypt(fileName, (FileEncrypt)this.fileChannel, fileChannel));
+        return result;
+    }
+
+    private void open(String fileName, boolean readOnly, Function<FileChannel,FileChannel> encryptionTransformer) {
         if (fileChannel != null && fileChannel.isOpen()) {
             return;
         }
@@ -100,13 +122,12 @@ public final class AppendOnlyMultiFileStore extends FileStore<MFChunk>
         if (f.exists() && !f.canWrite()) {
             readOnly = true;
         }
-        super.open(fileName, readOnly, encryptionKey, mvStore);
+        super.init(fileName, readOnly);
         try {
             fileChannel = f.open(readOnly ? "r" : "rw");
-            if (encryptionKey != null) {
-                byte[] key = FilePathEncrypt.getPasswordBytes(encryptionKey);
-//                originalFileChannel = fileChannel;
-                fileChannel = new FileEncrypt(fileName, key, fileChannel);
+            if (encryptionTransformer != null) {
+                originalFileChannel = fileChannel;
+                fileChannel = encryptionTransformer.apply(fileChannel);
             }
             try {
                 fileLock = fileChannel.tryLock(0L, Long.MAX_VALUE, readOnly);

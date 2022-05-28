@@ -24,7 +24,18 @@ public class OffHeapStore extends RandomAccessStore {
     }
 
     @Override
-    public void open(String fileName, boolean readOnly, char[] encryptionKey, MVStore mvStore) {
+    public void open(String fileName, boolean readOnly, char[] encryptionKey) {
+        init();
+    }
+
+    @Override
+    public OffHeapStore open(String fileName, boolean readOnly) {
+        OffHeapStore result = new OffHeapStore();
+        result.init();
+        return result;
+    }
+
+    private void init() {
         memory.clear();
     }
 

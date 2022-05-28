@@ -283,10 +283,9 @@ public class MVStore implements AutoCloseable {
             try {
                 if (fileStoreShallBeOpen) {
                     boolean readOnly = config.containsKey("readOnly");
-                    fileStore.open(fileName, readOnly, encryptionKey, this);
-                } else {
-                    fileStore.bind(this);
+                    fileStore.open(fileName, readOnly, encryptionKey);
                 }
+                fileStore.bind(this);
                 metaMap = fileStore.start();
             } catch (MVStoreException e) {
                 panic(e);

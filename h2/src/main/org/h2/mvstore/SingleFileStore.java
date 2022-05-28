@@ -11,6 +11,7 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.nio.channels.OverlappingFileLockException;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import org.h2.mvstore.cache.FilePathCache;
@@ -41,9 +42,12 @@ public class SingleFileStore extends RandomAccessStore {
      */
     private FileLock fileLock;
 
+    private final Map<String, Object> config;
+
 
     public SingleFileStore(Map<String, Object> config) {
         super(config);
+        this.config = config;
     }
 
     @Override
@@ -71,8 +75,20 @@ public class SingleFileStore extends RandomAccessStore {
      * @param encryptionKey the encryption key, or null if encryption is not
      */
     @Override
-    public void open(String fileName, boolean readOnly, char[] encryptionKey,
-                     MVStore mvStore) {
+    public void open(String fileName, boolean readOnly, char[] encryptionKey) {
+        open(fileName, readOnly, encryptionKey == null ? null :
+                fileChannel ->  new FileEncrypt(fileName, FilePathEncrypt.getPasswordBytes(encryptionKey), fileChannel));
+    }
+
+    @Override
+    public SingleFileStore open(String fileName, boolean readOnly) {
+        SingleFileStore result = new SingleFileStore(config);
+        result.open(fileName, readOnly, originalFileChannel == null ? null :
+                fileChannel -> new FileEncrypt(fileName, (FileEncrypt)this.fileChannel, fileChannel));
+        return result;
+    }
+
+    private void open(String fileName, boolean readOnly, Function<FileChannel,FileChannel> encryptionTransformer) {
         if (fileChannel != null && fileChannel.isOpen()) {
             return;
         }
@@ -87,13 +103,12 @@ public class SingleFileStore extends RandomAccessStore {
         if (f.exists() && !f.canWrite()) {
             readOnly = true;
         }
-        super.open(fileName, readOnly, encryptionKey, mvStore);
+        super.init(fileName, readOnly);
         try {
             fileChannel = f.open(readOnly ? "r" : "rw");
-            if (encryptionKey != null) {
-                byte[] key = FilePathEncrypt.getPasswordBytes(encryptionKey);
+            if (encryptionTransformer != null) {
                 originalFileChannel = fileChannel;
-                fileChannel = new FileEncrypt(fileName, key, fileChannel);
+                fileChannel = encryptionTransformer.apply(fileChannel);
             }
             try {
                 fileLock = fileChannel.tryLock(0L, Long.MAX_VALUE, readOnly);

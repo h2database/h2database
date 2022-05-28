@@ -249,8 +249,10 @@ public abstract class FileStore<C extends Chunk<C>>
         this.maxPageSize = maxPageSize;
     }
 
-    public void open(String fileName, boolean readOnly, char[] encryptionKey,
-                     MVStore mvStore) {
+    public abstract void open(String fileName, boolean readOnly, char[] encryptionKey);
+    public abstract FileStore<C> open(String fileName, boolean readOnly);
+
+    protected final void init(String fileName, boolean readOnly) {
         open(fileName, readOnly,
                 encryptionKey == null ? null
                         : fileChannel -> new FileEncrypt(fileName, FilePathEncrypt.getPasswordBytes(encryptionKey),
@@ -273,7 +275,6 @@ public abstract class FileStore<C extends Chunk<C>>
         FilePathCache.INSTANCE.getScheme();
         this.fileName = fileName;
         this.readOnly = readOnly;
-        bind(mvStore);
     }
 
     public final void bind(MVStore mvStore) {

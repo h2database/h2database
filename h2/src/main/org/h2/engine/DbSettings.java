@@ -8,6 +8,7 @@ package org.h2.engine;
 import java.util.HashMap;
 
 import org.h2.api.ErrorCode;
+import org.h2.util.Utils;
 import org.h2.message.DbException;
 
 /**
@@ -280,6 +281,26 @@ public class DbSettings extends SettingsBase {
      * Compress data when storing.
      */
     public final boolean compressData = get("COMPRESS", false);
+
+    /**
+     * Database setting <code>CACHE_CONCURRENCY</code>
+     * (default: 16).<br />
+     * Set the read cache concurrency.
+     */
+    public final int cacheConcurrency = get("CACHE_CONCURRENCY", 16);
+
+    /**
+     * Database setting <code>AUTO_COMMIT_BUFFER_SIZE_KB</code>
+     * (default: depends on max heap).<br />
+     * Set the size of the write buffer, in KB disk space (for file-based
+     * stores). Unless auto-commit is disabled, changes are automatically
+     * saved if there are more than this amount of changes.
+     *
+     * When the value is set to 0 or lower, data is not automatically
+     * stored.
+     */
+    public final int autoCommitBufferSize = get("AUTO_COMMIT_BUFFER_SIZE_KB",
+        Math.max(1, Math.min(19, Utils.scaleForAvailableMemory(64))) * 1024);
 
     /**
      * Database setting <code>IGNORE_CATALOGS</code>

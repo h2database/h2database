@@ -1674,6 +1674,10 @@ public final class Database implements DataHandler, CastDataProvider {
         return traceSystem;
     }
 
+    public int getCacheSize() {
+        return cacheSize;
+    }
+
     public synchronized void setCacheSize(int kb) {
         if (starting) {
             int max = MathUtils.convertLongToInt(Utils.getMemoryMax()) / 2;

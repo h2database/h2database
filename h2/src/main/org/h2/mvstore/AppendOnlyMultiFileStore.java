@@ -122,7 +122,7 @@ public final class AppendOnlyMultiFileStore extends FileStore<MFChunk>
         if (f.exists() && !f.canWrite()) {
             readOnly = true;
         }
-        super.init(fileName, readOnly);
+        init(fileName, readOnly);
         try {
             fileChannel = f.open(readOnly ? "r" : "rw");
             if (encryptionTransformer != null) {
@@ -153,6 +153,28 @@ public final class AppendOnlyMultiFileStore extends FileStore<MFChunk>
             throw DataUtils.newMVStoreException(
                     DataUtils.ERROR_READING_FAILED,
                     "Could not open file {0}", fileName, e);
+        }
+    }
+
+    /**
+     * Close this store.
+     */
+    @Override
+    public void close() {
+        try {
+            if(fileChannel.isOpen()) {
+                if (fileLock != null) {
+                    fileLock.release();
+                }
+                fileChannel.close();
+            }
+        } catch (Exception e) {
+            throw DataUtils.newMVStoreException(
+                    DataUtils.ERROR_WRITING_FAILED,
+                    "Closing failed for file {0}", getFileName(), e);
+        } finally {
+            fileLock = null;
+            super.close();
         }
     }
 

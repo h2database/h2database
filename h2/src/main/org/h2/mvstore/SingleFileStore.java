@@ -103,26 +103,14 @@ public class SingleFileStore extends RandomAccessStore {
         if (f.exists() && !f.canWrite()) {
             readOnly = true;
         }
-        super.init(fileName, readOnly);
+        init(fileName, readOnly);
         try {
             fileChannel = f.open(readOnly ? "r" : "rw");
             if (encryptionTransformer != null) {
                 originalFileChannel = fileChannel;
                 fileChannel = encryptionTransformer.apply(fileChannel);
             }
-            try {
-                fileLock = fileChannel.tryLock(0L, Long.MAX_VALUE, readOnly);
-            } catch (OverlappingFileLockException e) {
-                throw DataUtils.newMVStoreException(
-                        DataUtils.ERROR_FILE_LOCKED,
-                        "The file is locked: {0}", fileName, e);
-            }
-            if (fileLock == null) {
-                try { close(); } catch (Exception ignore) {}
-                throw DataUtils.newMVStoreException(
-                        DataUtils.ERROR_FILE_LOCKED,
-                        "The file is locked: {0}", fileName);
-            }
+            fileLock = lockFileChannel(fileChannel, readOnly, fileName);
             saveChunkLock.lock();
             try {
                 setSize(fileChannel.size());
@@ -135,6 +123,24 @@ public class SingleFileStore extends RandomAccessStore {
                     DataUtils.ERROR_READING_FAILED,
                     "Could not open file {0}", fileName, e);
         }
+    }
+
+    private FileLock lockFileChannel(FileChannel fileChannel, boolean readOnly, String fileName) throws IOException {
+        FileLock fileLock;
+        try {
+            fileLock = fileChannel.tryLock(0L, Long.MAX_VALUE, readOnly);
+        } catch (OverlappingFileLockException e) {
+            throw DataUtils.newMVStoreException(
+                    DataUtils.ERROR_FILE_LOCKED,
+                    "The file is locked: {0}", fileName, e);
+        }
+        if (fileLock == null) {
+            try { close(); } catch (Exception ignore) {}
+            throw DataUtils.newMVStoreException(
+                    DataUtils.ERROR_FILE_LOCKED,
+                    "The file is locked: {0}", fileName);
+        }
+        return fileLock;
     }
 
     /**

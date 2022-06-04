@@ -62,6 +62,7 @@ public class TableLink extends Table {
     private boolean storesMixedCase;
     private boolean storesMixedCaseQuoted;
     private boolean supportsMixedCaseIdentifiers;
+    private String identifierQuoteString;
     private boolean globalTemporary;
     private boolean readOnly;
     private final boolean targetsMySql;
@@ -125,6 +126,7 @@ public class TableLink extends Table {
         storesMixedCase = meta.storesMixedCaseIdentifiers();
         storesMixedCaseQuoted = meta.storesMixedCaseQuotedIdentifiers();
         supportsMixedCaseIdentifiers = meta.supportsMixedCaseIdentifiers();
+        identifierQuoteString = meta.getIdentifierQuoteString();
         ArrayList<Column> columnList = Utils.newSmallArrayList();
         HashMap<String, Column> columnMap = new HashMap<>();
         String schema = null;
@@ -735,6 +737,15 @@ public class TableLink extends Table {
      */
     public int getFetchSize() {
         return fetchSize;
+    }
+
+    /**
+     * Returns the identifier quote string or space.
+     *
+     * @return the identifier quote string or space
+     */
+    public String getIdentifierQuoteString() {
+        return identifierQuoteString;
     }
 
 }

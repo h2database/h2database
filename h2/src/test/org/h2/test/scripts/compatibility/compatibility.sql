@@ -496,6 +496,21 @@ SET MODE Regular;
 DROP TABLE TEST;
 > ok
 
+CREATE TABLE TEST(A INT, B INT) AS (VALUES (1, 2), (1, 3), (2, 4));
+> ok
+
+SET MODE Oracle;
+> ok
+
+EXPLAIN SELECT * FROM (SELECT A, SUM(B) FROM TEST HAVING COUNT(B) > 1 OR A = 1 OR A = 2) WHERE A <> 3;
+>> SELECT "_0"."A", "_0"."SUM(B)" FROM ( SELECT "A", SUM("B") FROM "PUBLIC"."TEST" HAVING ("A" IN(1, 2)) OR (COUNT("B") > 1) ) "_0" /* SELECT A, SUM(B) FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan */ HAVING (A IN(1, 2)) OR (COUNT(B) > 1) */ WHERE "A" <> 3
+
+SET MODE Regular;
+> ok
+
+DROP TABLE TEST;
+> ok
+
 --- sequence with manual value ------------------
 
 SET MODE MySQL;

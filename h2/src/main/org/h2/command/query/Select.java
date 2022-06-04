@@ -1273,13 +1273,23 @@ public class Select extends Query {
 
     private void optimizeExpressionsAndPreserveAliases() {
         for (int i = 0; i < expressions.size(); i++) {
-            Expression e = expressions.get(i);
-            String alias = e.getAlias(session, i);
-            e = e.optimize(session);
-            if (!e.getAlias(session, i).equals(alias)) {
-                e = new Alias(e, alias, true);
+            Expression original = expressions.get(i);
+            /*
+             * TODO cannot evaluate optimized now, because some optimize()
+             * methods violate their contract and modify the original
+             * expression.
+             */
+            Expression optimized;
+            if (i < visibleColumnCount) {
+                String alias = original.getAlias(session, i);
+                optimized = original.optimize(session);
+                if (!optimized.getAlias(session, i).equals(alias)) {
+                    optimized = new Alias(optimized, alias, true);
+                }
+            } else {
+                optimized = original.optimize(session);
             }
-            expressions.set(i, e);
+            expressions.set(i, optimized);
         }
     }
 
@@ -1492,7 +1502,7 @@ public class Select extends Query {
     }
 
     private static void getFilterSQL(StringBuilder builder, String sql, Expression condition, int sqlFlags) {
-        condition.getUnenclosedSQL(builder.append(sql), sqlFlags);
+        condition.getNonAliasExpression().getUnenclosedSQL(builder.append(sql), sqlFlags);
     }
 
     private static boolean containsAggregate(Expression expression) {

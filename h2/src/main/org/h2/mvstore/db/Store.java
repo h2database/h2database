@@ -92,6 +92,7 @@ public final class Store {
         boolean encrypted = false;
         if (dbPath != null) {
             String fileName = dbPath + Constants.SUFFIX_MV_FILE;
+            this.fileName = fileName;
             MVStoreTool.compactCleanUp(fileName);
             builder.fileName(fileName);
             builder.pageSplitSize(db.getPageSize());
@@ -126,12 +127,12 @@ public final class Store {
             // otherwise background thread would compete for store lock
             // with maps opening procedure
             builder.autoCommitDisabled();
+        } else {
+            fileName = null;
         }
         this.encrypted = encrypted;
         try {
             this.mvStore = builder.open();
-            FileStore fs = mvStore.getFileStore();
-            fileName = fs != null ? fs.getFileName() : null;
             if (!db.getSettings().reuseSpace) {
                 mvStore.setReuseSpace(false);
             }
@@ -155,6 +156,8 @@ public final class Store {
         switch (e.getErrorCode()) {
         case DataUtils.ERROR_CLOSED:
             throw DbException.get(ErrorCode.DATABASE_IS_CLOSED, e, fileName);
+        case DataUtils.ERROR_UNSUPPORTED_FORMAT:
+            throw DbException.get(ErrorCode.FILE_VERSION_ERROR_1, e, fileName);
         case DataUtils.ERROR_FILE_CORRUPT:
             if (encrypted) {
                 throw DbException.get(ErrorCode.FILE_ENCRYPTION_ERROR_1, e, fileName);

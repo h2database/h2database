@@ -76,7 +76,7 @@ public class TestTableEngines extends TestDb {
         Statement stat = conn.createStatement();
         stat.execute("CREATE USER U PASSWORD '1'");
         stat.execute("GRANT ALTER ANY SCHEMA TO U");
-        Connection connUser = getConnection("tableEngine", "U", "1");
+        Connection connUser = getConnection("tableEngine", "U", getPassword("1"));
         Statement statUser = connUser.createStatement();
         assertThrows(ErrorCode.ADMIN_RIGHTS_REQUIRED, statUser)
                 .execute("CREATE TABLE T(ID INT, NAME VARCHAR) ENGINE \"" + EndlessTableEngine.class.getName() + '"');

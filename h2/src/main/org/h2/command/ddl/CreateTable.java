@@ -71,10 +71,13 @@ public class CreateTable extends CommandWithColumns {
     public long update() {
         Schema schema = getSchema();
         boolean isSessionTemporary = data.temporary && !data.globalTemporary;
-        if (!isSessionTemporary) {
+        Database db = session.getDatabase();
+        String tableEngine = data.tableEngine;
+        if (tableEngine != null || db.getSettings().defaultTableEngine != null) {
+            session.getUser().checkAdmin();
+        } else if (!isSessionTemporary) {
             session.getUser().checkSchemaOwner(schema);
         }
-        Database db = session.getDatabase();
         if (!db.isPersistent()) {
             data.persistIndexes = false;
         }

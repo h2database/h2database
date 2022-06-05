@@ -961,6 +961,10 @@ TABLE @h2@ [ IF NOT EXISTS ] [schemaName.]tableName
 [ AS ( query ) [ WITH [ NO ] DATA ] ]","
 Creates a new table.
 
+Admin rights are required to execute this command
+if and only if ENGINE option is used or custom default table engine is configured in the database.
+Schema owner rights or ALTER ANY SCHEMA rights are required for creation of regular tables and GLOBAL TEMPORARY tables.
+
 Cached tables (the default for regular tables) are persistent,
 and the number of rows is not limited by the main memory.
 Memory tables (the default for temporary tables) are persistent,

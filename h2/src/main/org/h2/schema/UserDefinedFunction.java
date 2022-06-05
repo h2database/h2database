@@ -6,7 +6,6 @@
 package org.h2.schema;
 
 import org.h2.message.DbException;
-import org.h2.table.Table;
 
 /**
  * User-defined Java function or aggregate function.
@@ -17,11 +16,6 @@ public abstract class UserDefinedFunction extends SchemaObject {
 
     UserDefinedFunction(Schema newSchema, int id, String name, int traceModuleId) {
         super(newSchema, id, name, traceModuleId);
-    }
-
-    @Override
-    public final String getCreateSQLForCopy(Table table, String quotedName) {
-        throw DbException.getInternalError(toString());
     }
 
     @Override

@@ -76,11 +76,6 @@ public class ConstraintDomain extends Constraint {
     }
 
     @Override
-    public String getCreateSQLForCopy(Table forTable, String quotedName) {
-        throw DbException.getInternalError(toString());
-    }
-
-    @Override
     public String getCreateSQLWithoutIndexes() {
         return getCreateSQL();
     }

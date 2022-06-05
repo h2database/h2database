@@ -5411,9 +5411,9 @@ RPAD(TEXT, 10, '-')
 "
 
 "Functions (String)","LTRIM","
-@c@ LTRIM(string)
+@c@ LTRIM(string [, characterToTrimString])
 ","
-Removes all leading spaces from a string.
+Removes all leading spaces or other specified characters from a string.
 
 This function is deprecated, use [TRIM](https://h2database.com/html/functions.html#trim) instead of it.
 ","
@@ -5421,9 +5421,9 @@ LTRIM(NAME)
 "
 
 "Functions (String)","RTRIM","
-@c@ RTRIM(string)
+@c@ RTRIM(string [, characterToTrimString])
 ","
-Removes all trailing spaces from a string.
+Removes all trailing spaces or other specified characters from a string.
 
 This function is deprecated, use [TRIM](https://h2database.com/html/functions.html#trim) instead of it.
 ","

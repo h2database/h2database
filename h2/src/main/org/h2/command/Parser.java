@@ -4062,9 +4062,9 @@ public class Parser {
             return readSubstringFunction();
         // TRIM
         case "LTRIM":
-            return new TrimFunction(readSingleArgument(), null, TrimFunction.LEADING);
+            return new TrimFunction(readExpression(), readIfArgument(), TrimFunction.LEADING);
         case "RTRIM":
-            return new TrimFunction(readSingleArgument(), null, TrimFunction.TRAILING);
+            return new TrimFunction(readExpression(), readIfArgument(), TrimFunction.TRAILING);
         // UPPER
         case "UCASE":
             return new StringFunction1(readSingleArgument(), StringFunction1.UPPER);

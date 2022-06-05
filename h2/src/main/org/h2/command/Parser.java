@@ -1788,8 +1788,7 @@ public class Parser {
         do {
             values.clear();
             boolean multiColumn;
-            if (readIf(ROW)) {
-                read(OPEN_PAREN);
+            if (readIf(ROW, OPEN_PAREN)) {
                 multiColumn = true;
             } else {
                 multiColumn = readIf(OPEN_PAREN);
@@ -4968,6 +4967,45 @@ public class Parser {
     }
 
     private Expression readTerm() {
+        Expression r = currentTokenType == IDENTIFIER ? readTermWithIdentifier() : readTermWithoutIdentifier();
+        if (readIf(OPEN_BRACKET)) {
+            r = new ArrayElementReference(r, readExpression());
+            read(CLOSE_BRACKET);
+        }
+        if (readIf(COLON_COLON)) {
+            r = readColonColonAfterTerm(r);
+        }
+        for (;;) {
+            TypeInfo ti = readIntervalQualifier();
+            if (ti != null) {
+                r = new CastSpecification(r, ti);
+            }
+            int index = tokenIndex;
+            if (readIf("AT")) {
+                if (readIf("TIME")) {
+                    read("ZONE");
+                    r = new TimeZoneOperation(r, readExpression());
+                    continue;
+                } else if (readIf("LOCAL")) {
+                    r = new TimeZoneOperation(r, null);
+                    continue;
+                } else {
+                    setTokenIndex(index);
+                }
+            } else if (readIf("FORMAT")) {
+                if (readIf("JSON")) {
+                    r = new Format(r, FormatEnum.JSON);
+                    continue;
+                } else {
+                    setTokenIndex(index);
+                }
+            }
+            break;
+        }
+        return r;
+    }
+
+    private Expression readTermWithoutIdentifier() {
         Expression r;
         switch (currentTokenType) {
         case AT:
@@ -5064,20 +5102,21 @@ public class Parser {
             read();
             r = readInterval();
             break;
-        case ROW: {
-            read();
-            read(OPEN_PAREN);
-            if (readIf(CLOSE_PAREN)) {
-                r = ValueExpression.get(ValueRow.EMPTY);
+        case ROW:
+            if (readIf(ROW, OPEN_PAREN)) {
+                if (readIf(CLOSE_PAREN)) {
+                    r = ValueExpression.get(ValueRow.EMPTY);
+                } else {
+                    ArrayList<Expression> list = Utils.newSmallArrayList();
+                    do {
+                        list.add(readExpression());
+                    } while (readIfMore());
+                    r = new ExpressionList(list.toArray(new Expression[0]), false);
+                }
             } else {
-                ArrayList<Expression> list = Utils.newSmallArrayList();
-                do {
-                    list.add(readExpression());
-                } while (readIfMore());
-                r = new ExpressionList(list.toArray(new Expression[0]), false);
+                r = readTermWithIdentifier();
             }
             break;
-        }
         case TRUE:
             read();
             r = ValueExpression.TRUE;
@@ -5140,17 +5179,21 @@ public class Parser {
             break;
         }
         case CURRENT_CATALOG:
-            return readCurrentGeneralValueSpecification(CurrentGeneralValueSpecification.CURRENT_CATALOG);
+            r = readCurrentGeneralValueSpecification(CurrentGeneralValueSpecification.CURRENT_CATALOG);
+            break;
         case CURRENT_DATE:
             read();
             r = readCurrentDateTimeValueFunction(CurrentDateTimeValueFunction.CURRENT_DATE, readIf(OPEN_PAREN), null);
             break;
         case CURRENT_PATH:
-            return readCurrentGeneralValueSpecification(CurrentGeneralValueSpecification.CURRENT_PATH);
+            r = readCurrentGeneralValueSpecification(CurrentGeneralValueSpecification.CURRENT_PATH);
+            break;
         case CURRENT_ROLE:
-            return readCurrentGeneralValueSpecification(CurrentGeneralValueSpecification.CURRENT_ROLE);
+            r = readCurrentGeneralValueSpecification(CurrentGeneralValueSpecification.CURRENT_ROLE);
+            break;
         case CURRENT_SCHEMA:
-            return readCurrentGeneralValueSpecification(CurrentGeneralValueSpecification.CURRENT_SCHEMA);
+            r = readCurrentGeneralValueSpecification(CurrentGeneralValueSpecification.CURRENT_SCHEMA);
+            break;
         case CURRENT_TIME:
             read();
             r = readCurrentDateTimeValueFunction(CurrentDateTimeValueFunction.CURRENT_TIME, readIf(OPEN_PAREN), null);
@@ -5162,16 +5205,20 @@ public class Parser {
             break;
         case CURRENT_USER:
         case USER:
-            return readCurrentGeneralValueSpecification(CurrentGeneralValueSpecification.CURRENT_USER);
+            r = readCurrentGeneralValueSpecification(CurrentGeneralValueSpecification.CURRENT_USER);
+            break;
         case SESSION_USER:
-            return readCurrentGeneralValueSpecification(CurrentGeneralValueSpecification.SESSION_USER);
+            r = readCurrentGeneralValueSpecification(CurrentGeneralValueSpecification.SESSION_USER);
+            break;
         case SYSTEM_USER:
-            return readCurrentGeneralValueSpecification(CurrentGeneralValueSpecification.SYSTEM_USER);
+            r = readCurrentGeneralValueSpecification(CurrentGeneralValueSpecification.SYSTEM_USER);
+            break;
         case ANY:
         case SOME:
             read();
             read(OPEN_PAREN);
-            return readAggregate(AggregateType.ANY, "ANY");
+            r = readAggregate(AggregateType.ANY, "ANY");
+            break;
         case DAY:
         case HOUR:
         case MINUTE:
@@ -5218,68 +5265,40 @@ public class Parser {
             if (!isIdentifier()) {
                 throw getSyntaxError();
             }
-            //$FALL-THROUGH$
-        case IDENTIFIER:
-            String name = currentToken;
-            boolean quoted = token.isQuoted();
-            read();
-            if (readIf(OPEN_PAREN)) {
-                r = readFunction(null, name);
-            } else if (readIf(DOT)) {
-                r = readTermObjectDot(name);
-            } else if (quoted) {
-                r = new ExpressionColumn(database, null, null, name);
-            } else {
-                r = readTermWithIdentifier(name, quoted);
-            }
-            break;
-        }
-        if (readIf(OPEN_BRACKET)) {
-            r = new ArrayElementReference(r, readExpression());
-            read(CLOSE_BRACKET);
-        }
-        colonColon: if (readIf(COLON_COLON)) {
-            if (database.getMode().getEnum() == ModeEnum.PostgreSQL) {
-                // PostgreSQL compatibility
-                if (isToken("PG_CATALOG")) {
-                    read("PG_CATALOG");
-                    read(DOT);
-                }
-                if (readIf("REGCLASS")) {
-                    r = new Regclass(r);
-                    break colonColon;
-                }
-            }
-            r = new CastSpecification(r, parseColumnWithType(null));
-        }
-        for (;;) {
-            TypeInfo ti = readIntervalQualifier();
-            if (ti != null) {
-                r = new CastSpecification(r, ti);
-            }
-            int index = tokenIndex;
-            if (readIf("AT")) {
-                if (readIf("TIME")) {
-                    read("ZONE");
-                    r = new TimeZoneOperation(r, readExpression());
-                    continue;
-                } else if (readIf("LOCAL")) {
-                    r = new TimeZoneOperation(r, null);
-                    continue;
-                } else {
-                    setTokenIndex(index);
-                }
-            } else if (readIf("FORMAT")) {
-                if (readIf("JSON")) {
-                    r = new Format(r, FormatEnum.JSON);
-                    continue;
-                } else {
-                    setTokenIndex(index);
-                }
-            }
+            r = readTermWithIdentifier();
             break;
         }
         return r;
+    }
+
+    private Expression readTermWithIdentifier() {
+        Expression r;
+        String name = currentToken;
+        boolean quoted = token.isQuoted();
+        read();
+        if (readIf(OPEN_PAREN)) {
+            r = readFunction(null, name);
+        } else if (readIf(DOT)) {
+            r = readTermObjectDot(name);
+        } else if (quoted) {
+            r = new ExpressionColumn(database, null, null, name);
+        } else {
+            r = readTermWithIdentifier(name, quoted);
+        }
+        return r;
+    }
+
+    private Expression readColonColonAfterTerm(Expression r) {
+        if (database.getMode().getEnum() == ModeEnum.PostgreSQL) {
+            // PostgreSQL compatibility
+            if (readIf("PG_CATALOG")) {
+                read(DOT);
+            }
+            if (readIf("REGCLASS")) {
+                return new Regclass(r);
+            }
+        }
+        return new CastSpecification(r, parseColumnWithType(null));
     }
 
     private Expression readCurrentGeneralValueSpecification(int specification) {
@@ -5763,6 +5782,19 @@ public class Parser {
         return false;
     }
 
+    private boolean readIf(int tokenType1, int tokenType2) {
+        int size = tokens.size();
+        if (tokenType1 == currentTokenType) {
+            int i = tokenIndex + 1;
+            if (i < size && tokens.get(i).tokenType() == tokenType2) {
+                setTokenIndex(i + 1);
+                return true;
+            }
+        }
+        addExpected(tokenType1, tokenType2);
+        return false;
+    }
+
     private boolean isToken(String tokenName) {
         if (!token.isQuoted() && equalsToken(tokenName, currentToken)) {
             return true;
@@ -5799,6 +5831,12 @@ public class Parser {
     private void addExpected(int tokenType) {
         if (expectedList != null) {
             expectedList.add(TOKENS[tokenType]);
+        }
+    }
+
+    private void addExpected(int tokenType1, int tokenType2) {
+        if (expectedList != null) {
+            expectedList.add(TOKENS[tokenType1] + ' ' + TOKENS[tokenType2]);
         }
     }
 
@@ -6919,9 +6957,7 @@ public class Parser {
     }
 
     private ArrayList<Expression> parseValuesRow(ArrayList<Expression> row) {
-        if (readIf(ROW)) {
-            read(OPEN_PAREN);
-        } else if (!readIf(OPEN_PAREN)) {
+        if (!readIf(ROW, OPEN_PAREN) && !readIf(OPEN_PAREN)) {
             row.add(readExpression());
             return row;
         }

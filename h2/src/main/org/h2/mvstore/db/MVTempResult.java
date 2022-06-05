@@ -178,7 +178,8 @@ public abstract class MVTempResult implements ResultExternal {
             String fileName = FileUtils.createTempFile("h2tmp", Constants.SUFFIX_TEMP_FILE, true);
 
             FileStore fileStore = database.getStore().getMvStore().getFileStore().open(fileName, false);
-            MVStore.Builder builder = new MVStore.Builder().adoptFileStore(fileStore).cacheSize(0).autoCommitDisabled();
+            MVStore.Builder builder = new MVStore.Builder().adoptFileStore(fileStore).cacheSize(0)
+                    .autoCommitDisabled();
             store = builder.open();
             this.expressions = expressions;
             this.visibleColumnCount = visibleColumnCount;

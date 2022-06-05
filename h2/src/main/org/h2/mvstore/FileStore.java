@@ -125,8 +125,10 @@ public class FileStore {
      *            used
      */
     public void open(String fileName, boolean readOnly, char[] encryptionKey) {
-        open(fileName, readOnly, encryptionKey == null ? null :
-                fileChannel ->  new FileEncrypt(fileName, FilePathEncrypt.getPasswordBytes(encryptionKey), fileChannel));
+        open(fileName, readOnly,
+                encryptionKey == null ? null
+                        : fileChannel -> new FileEncrypt(fileName, FilePathEncrypt.getPasswordBytes(encryptionKey),
+                                fileChannel));
     }
 
     public FileStore open(String fileName, boolean readOnly) {

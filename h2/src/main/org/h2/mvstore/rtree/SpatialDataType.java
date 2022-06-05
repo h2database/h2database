@@ -68,15 +68,13 @@ public class SpatialDataType extends BasicDataType<Spatial> {
      * @param b the second value
      * @return true if they are equal
      */
-    public boolean equals(Object a, Object b) {
+    public boolean equals(Spatial a, Spatial b) {
         if (a == b) {
             return true;
         } else if (a == null || b == null) {
             return false;
         }
-        long la = ((Spatial) a).getId();
-        long lb = ((Spatial) b).getId();
-        return la == lb;
+        return a.getId() == b.getId();
     }
 
     @Override
@@ -155,20 +153,18 @@ public class SpatialDataType extends BasicDataType<Spatial> {
      * @param bounds the bounds (may be modified)
      * @param add the value
      */
-    public void increaseBounds(Object bounds, Object add) {
-        Spatial a = (Spatial) add;
-        Spatial b = (Spatial) bounds;
-        if (a.isNull() || b.isNull()) {
+    public void increaseBounds(Spatial bounds, Spatial add) {
+        if (add.isNull() || bounds.isNull()) {
             return;
         }
         for (int i = 0; i < dimensions; i++) {
-            float v = a.min(i);
-            if (v < b.min(i)) {
-                b.setMin(i, v);
+            float v = add.min(i);
+            if (v < bounds.min(i)) {
+                bounds.setMin(i, v);
             }
-            v = a.max(i);
-            if (v > b.max(i)) {
-                b.setMax(i, v);
+            v = add.max(i);
+            if (v > bounds.max(i)) {
+                bounds.setMax(i, v);
             }
         }
     }
@@ -176,28 +172,26 @@ public class SpatialDataType extends BasicDataType<Spatial> {
     /**
      * Get the area increase by extending a to contain b.
      *
-     * @param objA the bounding box
-     * @param objB the object
+     * @param bounds the bounding box
+     * @param add the object
      * @return the area
      */
-    public float getAreaIncrease(Object objA, Object objB) {
-        Spatial b = (Spatial) objB;
-        Spatial a = (Spatial) objA;
-        if (a.isNull() || b.isNull()) {
+    public float getAreaIncrease(Spatial bounds, Spatial add) {
+        if (bounds.isNull() || add.isNull()) {
             return 0;
         }
-        float min = a.min(0);
-        float max = a.max(0);
+        float min = bounds.min(0);
+        float max = bounds.max(0);
         float areaOld = max - min;
-        min = Math.min(min,  b.min(0));
-        max = Math.max(max,  b.max(0));
+        min = Math.min(min,  add.min(0));
+        max = Math.max(max,  add.max(0));
         float areaNew = max - min;
         for (int i = 1; i < dimensions; i++) {
-            min = a.min(i);
-            max = a.max(i);
+            min = bounds.min(i);
+            max = bounds.max(i);
             areaOld *= max - min;
-            min = Math.min(min,  b.min(i));
-            max = Math.max(max,  b.max(i));
+            min = Math.min(min,  add.min(i));
+            max = Math.max(max,  add.max(i));
             areaNew *= max - min;
         }
         return areaNew - areaOld;
@@ -206,13 +200,11 @@ public class SpatialDataType extends BasicDataType<Spatial> {
     /**
      * Get the combined area of both objects.
      *
-     * @param objA the first object
-     * @param objB the second object
+     * @param a the first object
+     * @param b the second object
      * @return the area
      */
-    float getCombinedArea(Object objA, Object objB) {
-        Spatial a = (Spatial) objA;
-        Spatial b = (Spatial) objB;
+    float getCombinedArea(Spatial a, Spatial b) {
         if (a.isNull()) {
             return getArea(b);
         } else if (b.isNull()) {
@@ -239,20 +231,18 @@ public class SpatialDataType extends BasicDataType<Spatial> {
     }
 
     /**
-     * Check whether a contains b.
+     * Check whether bounds contains object.
      *
-     * @param objA the bounding box
-     * @param objB the object
+     * @param bounds the bounding box
+     * @param object the object
      * @return the area
      */
-    public boolean contains(Object objA, Object objB) {
-        Spatial a = (Spatial) objA;
-        Spatial b = (Spatial) objB;
-        if (a.isNull() || b.isNull()) {
+    public boolean contains(Spatial bounds, Spatial object) {
+        if (bounds.isNull() || object.isNull()) {
             return false;
         }
         for (int i = 0; i < dimensions; i++) {
-            if (a.min(i) > b.min(i) || a.max(i) < b.max(i)) {
+            if (bounds.min(i) > object.min(i) || bounds.max(i) < object.max(i)) {
                 return false;
             }
         }
@@ -260,21 +250,18 @@ public class SpatialDataType extends BasicDataType<Spatial> {
     }
 
     /**
-     * Check whether a is completely inside b and does not touch the
-     * given bound.
+     * Check whether object is completely inside bounds and does not touch them.
      *
-     * @param objA the object to check
-     * @param objB the bounds
+     * @param object the object to check
+     * @param bounds the bounds
      * @return true if a is completely inside b
      */
-    public boolean isInside(Object objA, Object objB) {
-        Spatial a = (Spatial) objA;
-        Spatial b = (Spatial) objB;
-        if (a.isNull() || b.isNull()) {
+    public boolean isInside(Spatial object, Spatial bounds) {
+        if (object.isNull() || bounds.isNull()) {
             return false;
         }
         for (int i = 0; i < dimensions; i++) {
-            if (a.min(i) <= b.min(i) || a.max(i) >= b.max(i)) {
+            if (object.min(i) <= bounds.min(i) || object.max(i) >= bounds.max(i)) {
                 return false;
             }
         }
@@ -284,15 +271,14 @@ public class SpatialDataType extends BasicDataType<Spatial> {
     /**
      * Create a bounding box starting with the given object.
      *
-     * @param objA the object
+     * @param object the object
      * @return the bounding box
      */
-    Spatial createBoundingBox(Object objA) {
-        Spatial a = (Spatial) objA;
-        if (a.isNull()) {
-            return a;
+    Spatial createBoundingBox(Spatial object) {
+        if (object.isNull()) {
+            return object;
         }
-        return a.clone(0);
+        return object.clone(0);
     }
 
     /**
@@ -303,7 +289,7 @@ public class SpatialDataType extends BasicDataType<Spatial> {
      * @param list the objects
      * @return the indexes of the extremes
      */
-    public int[] getExtremes(ArrayList<Object> list) {
+    public int[] getExtremes(ArrayList<Spatial> list) {
         list = getNotNull(list);
         if (list.isEmpty()) {
             return null;
@@ -315,7 +301,7 @@ public class SpatialDataType extends BasicDataType<Spatial> {
             boundsInner.setMin(i, boundsInner.max(i));
             boundsInner.setMax(i, t);
         }
-        for (Object o : list) {
+        for (Spatial o : list) {
             increaseBounds(bounds, o);
             increaseMaxInnerBounds(boundsInner, o);
         }
@@ -341,7 +327,7 @@ public class SpatialDataType extends BasicDataType<Spatial> {
         int firstIndex = -1, lastIndex = -1;
         for (int i = 0; i < list.size() &&
                 (firstIndex < 0 || lastIndex < 0); i++) {
-            Spatial o = (Spatial) list.get(i);
+            Spatial o = list.get(i);
             if (firstIndex < 0 && o.max(bestDim) == min) {
                 firstIndex = i;
             } else if (lastIndex < 0 && o.min(bestDim) == max) {
@@ -351,11 +337,10 @@ public class SpatialDataType extends BasicDataType<Spatial> {
         return new int[] { firstIndex, lastIndex };
     }
 
-    private static ArrayList<Object> getNotNull(ArrayList<Object> list) {
+    private static ArrayList<Spatial> getNotNull(ArrayList<Spatial> list) {
         boolean foundNull = false;
-        for (Object o : list) {
-            Spatial a = (Spatial) o;
-            if (a.isNull()) {
+        for (Spatial o : list) {
+            if (o.isNull()) {
                 foundNull = true;
                 break;
             }
@@ -363,22 +348,19 @@ public class SpatialDataType extends BasicDataType<Spatial> {
         if (!foundNull) {
             return list;
         }
-        ArrayList<Object> result = new ArrayList<>();
-        for (Object o : list) {
-            Spatial a = (Spatial) o;
-            if (!a.isNull()) {
-                result.add(a);
+        ArrayList<Spatial> result = new ArrayList<>();
+        for (Spatial o : list) {
+            if (!o.isNull()) {
+                result.add(o);
             }
         }
         return result;
     }
 
-    private void increaseMaxInnerBounds(Object bounds, Object add) {
-        Spatial b = (Spatial) bounds;
-        Spatial a = (Spatial) add;
+    private void increaseMaxInnerBounds(Spatial bounds, Spatial add) {
         for (int i = 0; i < dimensions; i++) {
-            b.setMin(i, Math.min(b.min(i), a.max(i)));
-            b.setMax(i, Math.max(b.max(i), a.min(i)));
+            bounds.setMin(i, Math.min(bounds.min(i), add.max(i)));
+            bounds.setMax(i, Math.max(bounds.max(i), add.min(i)));
         }
     }
 

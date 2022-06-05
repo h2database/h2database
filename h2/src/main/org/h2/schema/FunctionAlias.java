@@ -374,13 +374,13 @@ public final class FunctionAlias extends UserDefinedFunction {
          * Create a result for the given result set.
          *
          * @param session the session
-         * @param rs the result set
+         * @param resultSet the result set
          * @param maxrows the maximum number of rows to read (0 to just read the
          *            meta data)
          * @return the value
          */
-        public static ResultInterface resultSetToResult(SessionLocal session, ResultSet rs, int maxrows) {
-            try {
+        public static ResultInterface resultSetToResult(SessionLocal session, ResultSet resultSet, int maxrows) {
+            try (ResultSet rs = resultSet) {
                 ResultSetMetaData meta = rs.getMetaData();
                 int columnCount = meta.getColumnCount();
                 Expression[] columns = new Expression[columnCount];

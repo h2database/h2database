@@ -44,6 +44,7 @@ import java.util.Currency;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Locale;
 import java.util.Properties;
 import java.util.TimeZone;
@@ -77,6 +78,8 @@ import org.h2.value.ValueTimestampTimeZone;
 public class TestFunctions extends TestDb implements AggregateFunction {
 
     static int count;
+
+    private static HashSet<SimpleResultSet> RESULT_SETS = new HashSet<>();
 
     /**
      * Run just this test.
@@ -157,12 +160,21 @@ public class TestFunctions extends TestDb implements AggregateFunction {
     private void testFunctionTable() throws SQLException {
         Connection conn = getConnection("functions");
         Statement stat = conn.createStatement();
-        stat.execute("create alias simple_function_table for '" +
-                TestFunctions.class.getName() + ".simpleFunctionTable'");
+        synchronized (RESULT_SETS) {
+            try {
+                stat.execute("create alias simple_function_table for '" +
+                        TestFunctions.class.getName() + ".simpleFunctionTable'");
+                stat.execute("select * from simple_function_table() " +
+                        "where a>0 and b in ('x', 'y')");
+                for (SimpleResultSet rs : RESULT_SETS) {
+                    assertTrue(rs.isClosed());
+                }
+            } finally {
+                RESULT_SETS.clear();
+            }
+        }
         stat.execute("create alias function_table_with_parameter for '" +
                 TestFunctions.class.getName() + ".functionTableWithParameter'");
-        stat.execute("select * from simple_function_table() " +
-                "where a>0 and b in ('x', 'y')");
         PreparedStatement prep = conn.prepareStatement("call function_table_with_parameter(?)");
         prep.setInt(1, 10);
         ResultSet rs = prep.executeQuery();
@@ -197,6 +209,8 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         result.addColumn("A", Types.INTEGER, 0, 0);
         result.addColumn("B", Types.CHAR, 0, 0);
         result.addRow(42, 'X');
+        result.setAutoClose(false);
+        RESULT_SETS.add(result);
         return result;
     }
 

@@ -97,7 +97,7 @@ public class LinkedIndex extends Index {
                 builder.append(f ? " AND " : " WHERE ");
                 f = true;
                 Column col = table.getColumn(i);
-                col.getSQL(builder, sqlFlags);
+                addColumnName(builder, col);
                 if (v == ValueNull.INSTANCE) {
                     builder.append(" IS NULL");
                 } else {
@@ -113,7 +113,7 @@ public class LinkedIndex extends Index {
                 builder.append(f ? " AND " : " WHERE ");
                 f = true;
                 Column col = table.getColumn(i);
-                col.getSQL(builder, sqlFlags);
+                addColumnName(builder, col);
                 if (v == ValueNull.INSTANCE) {
                     builder.append(" IS NULL");
                 } else {
@@ -130,6 +130,36 @@ public class LinkedIndex extends Index {
             return new LinkedCursor(link, rs, session, sql, prep);
         } catch (Exception e) {
             throw TableLink.wrapException(sql, e);
+        }
+    }
+
+    private void addColumnName(StringBuilder builder, Column col) {
+        String identifierQuoteString = link.getIdentifierQuoteString();
+        String name = col.getName();
+        if (identifierQuoteString == null || identifierQuoteString.isEmpty() || identifierQuoteString.equals(" ")) {
+            builder.append(name);
+        } else if (identifierQuoteString.equals("\"")) {
+            /*
+             * StringUtils.quoteIdentifier() can produce Unicode identifiers,
+             * but target DBMS isn't required to support them
+             */
+            builder.append('"');
+            int i = name.indexOf('"');
+            if (i < 0) {
+                builder.append(name);
+            } else {
+                builder.append(name, 0, ++i).append('"');
+                for (int l = name.length(); i < l; i++) {
+                    char c = name.charAt(i);
+                    if (c == '"') {
+                        builder.append('"');
+                    }
+                    builder.append(c);
+                }
+            }
+            builder.append('"');
+        } else {
+            builder.append(identifierQuoteString).append(name).append(identifierQuoteString);
         }
     }
 
@@ -183,7 +213,7 @@ public class LinkedIndex extends Index {
                 builder.append("AND ");
             }
             Column col = table.getColumn(i);
-            col.getSQL(builder, sqlFlags);
+            addColumnName(builder, col);
             Value v = row.getValue(i);
             if (isNull(v)) {
                 builder.append(" IS NULL ");
@@ -235,7 +265,7 @@ public class LinkedIndex extends Index {
             if (i > 0) {
                 builder.append(" AND ");
             }
-            col.getSQL(builder, sqlFlags);
+            addColumnName(builder, col);
             Value v = oldRow.getValue(i);
             if (isNull(v)) {
                 builder.append(" IS NULL");

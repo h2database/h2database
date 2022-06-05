@@ -58,7 +58,7 @@ public final class LobStorageMap implements LobStorageInterface
     private static final boolean TRACE = false;
 
     private final Database database;
-    private final MVStore mvStore;
+    final MVStore mvStore;
     private final AtomicLong nextLobId = new AtomicLong(0);
     private final ThreadPoolExecutor cleanupExecutor;
 

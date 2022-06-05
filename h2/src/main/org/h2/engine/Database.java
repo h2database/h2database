@@ -1699,10 +1699,13 @@ public final class Database implements DataHandler, CastDataProvider {
      * @return a unique name
      */
     public synchronized String getTempTableName(String baseName, SessionLocal session) {
+        int maxBaseLength = Constants.MAX_IDENTIFIER_LENGTH - (7 + ValueInteger.DISPLAY_SIZE * 2);
+        if (baseName.length() > maxBaseLength) {
+            baseName = baseName.substring(0, maxBaseLength);
+        }
         String tempName;
         do {
-            tempName = baseName + "_COPY_" + session.getId() +
-                    "_" + nextTempTableId++;
+            tempName = baseName + "_COPY_" + session.getId() + '_' + nextTempTableId++;
         } while (mainSchema.findTableOrView(session, tempName) != null);
         return tempName;
     }

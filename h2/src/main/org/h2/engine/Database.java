@@ -54,7 +54,6 @@ import org.h2.store.FileLock;
 import org.h2.store.FileLockMethod;
 import org.h2.store.FileStore;
 import org.h2.store.InDoubtTransaction;
-import org.h2.store.LobStorageFrontend;
 import org.h2.store.LobStorageInterface;
 import org.h2.store.fs.FileUtils;
 import org.h2.store.fs.encrypt.FileEncrypt;

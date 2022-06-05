@@ -15,7 +15,6 @@ import org.h2.expression.Expression;
 import org.h2.message.DbException;
 import org.h2.mvstore.FileStore;
 import org.h2.mvstore.MVStore;
-import org.h2.mvstore.MVStore.Builder;
 import org.h2.result.ResultExternal;
 import org.h2.result.SortOrder;
 import org.h2.store.fs.FileUtils;

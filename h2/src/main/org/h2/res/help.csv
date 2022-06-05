@@ -5126,19 +5126,6 @@ This method returns value of the same type as argument, but with adjusted precis
 ROUND(N, 2)
 "
 
-"Functions (Numeric)","ROUNDMAGIC","
-@h2@ ROUNDMAGIC(numeric)
-","
-This function rounds numbers in a good way, but it is slow.
-It has a special handling for numbers around 0.
-Only numbers smaller or equal +/-1000000000000 are supported.
-The value is converted to a String internally, and then the last 4 characters are checked.
-'000x' becomes '0000' and '999x' becomes '999999', which is rounded automatically.
-This method returns a double.
-","
-ROUNDMAGIC(N/3*3)
-"
-
 "Functions (Numeric)","SECURE_RAND","
 @h2@ SECURE_RAND(int)
 ","

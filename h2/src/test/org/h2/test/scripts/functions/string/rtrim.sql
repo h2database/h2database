@@ -11,3 +11,6 @@ select rtrim(null) en, '>' || rtrim('a') || '<' ea, '>' || rtrim(' a ') || '<' e
 
 select rtrim() from dual;
 > exception SYNTAX_ERROR_2
+
+VALUES RTRIM('__A__', '_');
+>> __A

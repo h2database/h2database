@@ -54,7 +54,6 @@ import org.h2.store.FileLock;
 import org.h2.store.FileLockMethod;
 import org.h2.store.FileStore;
 import org.h2.store.InDoubtTransaction;
-import org.h2.store.LobStorageFrontend;
 import org.h2.store.LobStorageInterface;
 import org.h2.store.fs.FileUtils;
 import org.h2.store.fs.encrypt.FileEncrypt;
@@ -1700,10 +1699,13 @@ public final class Database implements DataHandler, CastDataProvider {
      * @return a unique name
      */
     public synchronized String getTempTableName(String baseName, SessionLocal session) {
+        int maxBaseLength = Constants.MAX_IDENTIFIER_LENGTH - (7 + ValueInteger.DISPLAY_SIZE * 2);
+        if (baseName.length() > maxBaseLength) {
+            baseName = baseName.substring(0, maxBaseLength);
+        }
         String tempName;
         do {
-            tempName = baseName + "_COPY_" + session.getId() +
-                    "_" + nextTempTableId++;
+            tempName = baseName + "_COPY_" + session.getId() + '_' + nextTempTableId++;
         } while (mainSchema.findTableOrView(session, tempName) != null);
         return tempName;
     }

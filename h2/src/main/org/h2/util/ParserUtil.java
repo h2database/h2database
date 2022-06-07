@@ -573,7 +573,6 @@ public class ParserUtil {
         map.put("_ROWID_", _ROWID_);
         // Additional keywords
         map.put("BOTH", KEYWORD);
-        map.put("FILTER", KEYWORD);
         map.put("GROUPS", KEYWORD);
         map.put("ILIKE", KEYWORD);
         map.put("LEADING", KEYWORD);

@@ -228,7 +228,9 @@ public abstract class DbObject implements HasSQL {
      * @param quotedName the quoted name
      * @return the SQL statement
      */
-    public abstract String getCreateSQLForCopy(Table table, String quotedName);
+    public String getCreateSQLForCopy(Table table, String quotedName) {
+        throw DbException.getInternalError(toString());
+    }
 
     /**
      * Construct the CREATE ... SQL statement for this object for meta table.

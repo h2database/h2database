@@ -7,10 +7,8 @@ package org.h2.engine;
 
 import java.util.ArrayList;
 
-import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.schema.Schema;
-import org.h2.table.Table;
 
 /**
  * Represents a role. Roles can be granted to users, and to other roles.
@@ -22,11 +20,6 @@ public final class Role extends RightOwner {
     public Role(Database database, int id, String roleName, boolean system) {
         super(database, id, roleName, Trace.USER);
         this.system = system;
-    }
-
-    @Override
-    public String getCreateSQLForCopy(Table table, String quotedName) {
-        throw DbException.getInternalError(toString());
     }
 
     /**

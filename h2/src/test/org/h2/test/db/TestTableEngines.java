@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
+import org.h2.api.ErrorCode;
 import org.h2.api.TableEngine;
 import org.h2.command.ddl.CreateTableData;
 import org.h2.command.query.AllColumnsForPlan;
@@ -60,12 +61,28 @@ public class TestTableEngines extends TestDb {
 
     @Override
     public void test() throws Exception {
+        testAdminPrivileges();
         testQueryExpressionFlag();
         testSubQueryInfo();
         testEngineParams();
         testSchemaEngineParams();
         testSimpleQuery();
         testMultiColumnTreeSetIndex();
+    }
+
+    private void testAdminPrivileges() throws SQLException {
+        deleteDb("tableEngine");
+        Connection conn = getConnection("tableEngine");
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE USER U PASSWORD '1'");
+        stat.execute("GRANT ALTER ANY SCHEMA TO U");
+        Connection connUser = getConnection("tableEngine", "U", getPassword("1"));
+        Statement statUser = connUser.createStatement();
+        assertThrows(ErrorCode.ADMIN_RIGHTS_REQUIRED, statUser)
+                .execute("CREATE TABLE T(ID INT, NAME VARCHAR) ENGINE \"" + EndlessTableEngine.class.getName() + '"');
+        connUser.close();
+        conn.close();
+        deleteDb("tableEngine");
     }
 
     private void testEngineParams() throws SQLException {

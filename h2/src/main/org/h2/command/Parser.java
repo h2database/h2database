@@ -1822,7 +1822,7 @@ public class Parser {
             schemaName = null;
             if (readIf(DOT)) {
                 tableName = readIdentifierWithSchema2(tableName);
-            } else if (!quoted && readIf(TABLE)) {
+            } else if (!quoted && readIf(TABLE, OPEN_PAREN)) {
                 table = readDataChangeDeltaTable(upperName(tableName), backupIndex);
                 break label;
             }
@@ -1949,7 +1949,6 @@ public class Parser {
     }
 
     private Table readDataChangeDeltaTable(String resultOptionName, int backupIndex) {
-        read(OPEN_PAREN);
         int start = tokenIndex;
         DataChangeStatement statement;
         ResultOption resultOption = ResultOption.FINAL;
@@ -5672,7 +5671,7 @@ public class Parser {
     }
 
     private void read(String expected) {
-        if (token.isQuoted() || !equalsToken(expected, currentToken)) {
+        if (!testToken(expected, token)) {
             addExpected(expected);
             throw getSyntaxError();
         }
@@ -5688,11 +5687,31 @@ public class Parser {
     }
 
     private boolean readIf(String tokenName) {
-        if (!token.isQuoted() && equalsToken(tokenName, currentToken)) {
+        if (testToken(tokenName, token)) {
             read();
             return true;
         }
         addExpected(tokenName);
+        return false;
+    }
+
+    private boolean readIf(String tokenName1, String tokenName2) {
+        int i = tokenIndex + 1;
+        if (i + 1 < tokens.size() && testToken(tokenName1, token) && testToken(tokenName2, tokens.get(i))) {
+            setTokenIndex(i + 1);
+            return true;
+        }
+        addExpected(tokenName1, tokenName2);
+        return false;
+    }
+
+    private boolean readIf(String tokenName1, int tokenType2) {
+        int i = tokenIndex + 1;
+        if (i + 1 < tokens.size() && tokens.get(i).tokenType() == tokenType2 && testToken(tokenName1, token)) {
+            setTokenIndex(i + 1);
+            return true;
+        }
+        addExpected(tokenName1, TOKENS[tokenType2]);
         return false;
     }
 
@@ -5706,10 +5725,9 @@ public class Parser {
     }
 
     private boolean readIf(int tokenType1, int tokenType2) {
-        int size = tokens.size();
         if (tokenType1 == currentTokenType) {
             int i = tokenIndex + 1;
-            if (i < size && tokens.get(i).tokenType() == tokenType2) {
+            if (tokens.get(i).tokenType() == tokenType2) {
                 setTokenIndex(i + 1);
                 return true;
             }
@@ -5719,15 +5737,11 @@ public class Parser {
     }
 
     private boolean readIf(int tokenType1, String tokenName2) {
-        int size = tokens.size();
         if (tokenType1 == currentTokenType) {
             int i = tokenIndex + 1;
-            if (i < size) {
-                Token token2 = tokens.get(i);
-                if (!token2.isQuoted() && equalsToken(tokenName2, token2.asIdentifier())) {
-                    setTokenIndex(i + 1);
-                    return true;
-                }
+            if (testToken(tokenName2, tokens.get(i))) {
+                setTokenIndex(i + 1);
+                return true;
             }
         }
         addExpected(TOKENS[tokenType1], tokenName2);
@@ -5752,7 +5766,7 @@ public class Parser {
     }
 
     private boolean isToken(String tokenName) {
-        if (!token.isQuoted() && equalsToken(tokenName, currentToken)) {
+        if (testToken(tokenName, token)) {
             return true;
         }
         addExpected(tokenName);
@@ -5760,8 +5774,15 @@ public class Parser {
     }
 
     private boolean testToken(Object expected, Token token) {
-        return expected instanceof Integer ? (int) expected == token.tokenType()
-                : !token.isQuoted() && equalsToken((String) expected, token.asIdentifier());
+        return expected instanceof Integer ? (int) expected == token.tokenType() : testToken((String) expected, token);
+    }
+
+    private boolean testToken(String tokenName, Token token) {
+        if (!token.isQuoted()) {
+            String s = token.asIdentifier();
+            return identifiersToUpper ? tokenName.equals(s) : tokenName.equalsIgnoreCase(s);
+        }
+        return false;
     }
 
     private boolean isToken(int tokenType) {

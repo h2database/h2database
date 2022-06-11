@@ -117,6 +117,7 @@ public class TestPreparedStatement extends TestDb {
         testColumnMetaDataWithEquals(conn);
         testColumnMetaDataWithIn(conn);
         testMultipleStatements(conn);
+        testParameterInSubquery(conn);
         testAfterRollback(conn);
         conn.close();
         testPreparedStatementWithLiteralsNone();
@@ -1722,6 +1723,30 @@ public class TestPreparedStatement extends TestDb {
                 + "CREATE TABLE B AS (SELECT C1 FROM A);");
         ps.executeUpdate();
         stmt.execute("DROP TABLE A, B");
+    }
+
+    private void testParameterInSubquery(Connection conn) throws SQLException {
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE TABLE T1(ID1 BIGINT PRIMARY KEY, S INT NOT NULL)");
+        stat.execute("CREATE TABLE T2(ID1 BIGINT REFERENCES T1, ID2 BIGINT)");
+
+        stat.executeUpdate("INSERT INTO T1(ID1, S) VALUES(1, 1), (2, 1)");
+        stat.executeUpdate("INSERT INTO T2(ID1, ID2) VALUES(1, 1), (2, 2)");
+
+        PreparedStatement query = conn.prepareStatement("SELECT ID2 FROM "
+                + "(SELECT * FROM T1 WHERE ID1 IN (SELECT ID1 FROM T2 WHERE ID2 = ?) AND S = ?) T1 "
+                + "JOIN T2 USING(ID1)");
+
+        query.setLong(1, 2L);
+        query.setInt(2, 1);
+        ResultSet rs = query.executeQuery();
+        rs.next();
+        assertEquals(2L, rs.getLong(1));
+        query.setLong(1, 1L);
+        rs = query.executeQuery();
+        rs.next();
+        assertEquals(1L, rs.getLong(1));
+        stat.execute("DROP TABLE T2, T1");
     }
 
     private void testAfterRollback(Connection conn) throws SQLException {

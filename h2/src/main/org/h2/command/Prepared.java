@@ -51,6 +51,8 @@ public abstract class Prepared {
      */
     protected ArrayList<Parameter> parameters;
 
+    private boolean withParamValues;
+
     /**
      * If the query should be prepared before each execution. This is set for
      * queries with LIKE ?, because the query plan depends on the parameter
@@ -168,6 +170,25 @@ public abstract class Prepared {
      */
     public ArrayList<Parameter> getParameters() {
         return parameters;
+    }
+
+    /**
+     * Returns whether values of parameters were specified in SQL.
+     *
+     * @return are values of parameters were specified in SQL
+     */
+    public boolean isWithParamValues() {
+        return withParamValues;
+    }
+
+    /**
+     * Sets whether values of parameters were specified in SQL.
+     *
+     * @param withParamValues
+     *            are values of parameters were specified in SQL
+     */
+    public void setWithParamValues(boolean withParamValues) {
+        this.withParamValues = withParamValues;
     }
 
     /**
@@ -470,4 +491,5 @@ public abstract class Prepared {
      * @param dependencies collection of dependencies to populate
      */
     public void collectDependencies(HashSet<DbObject> dependencies) {}
+
 }

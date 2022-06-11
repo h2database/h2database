@@ -118,7 +118,11 @@ public class CommandContainer extends Command {
 
     @Override
     public ArrayList<? extends ParameterInterface> getParameters() {
-        return prepared.getParameters();
+        ArrayList<Parameter> parameters = prepared.getParameters();
+        if (parameters.size() > 0 && prepared.isWithParamValues()) {
+            parameters = new ArrayList<>();
+        }
+        return parameters;
     }
 
     @Override
@@ -137,20 +141,11 @@ public class CommandContainer extends Command {
             prepared.setModificationMetaId(0);
             String sql = prepared.getSQL();
             ArrayList<Token> tokens = prepared.getSQLTokens();
-            ArrayList<Parameter> oldParams = prepared.getParameters();
             Parser parser = new Parser(session);
+            parser.setSuppliedParameters(prepared.getParameters());
             prepared = parser.parse(sql, tokens);
             long mod = prepared.getModificationMetaId();
             prepared.setModificationMetaId(0);
-            ArrayList<Parameter> newParams = prepared.getParameters();
-            for (int i = 0, size = Math.min(newParams.size(), oldParams.size()); i < size; i++) {
-                Parameter old = oldParams.get(i);
-                if (old.isValueSet()) {
-                    Value v = old.getValue(session);
-                    Parameter p = newParams.get(i);
-                    p.setValue(v);
-                }
-            }
             prepared.prepare();
             prepared.setModificationMetaId(mod);
         }

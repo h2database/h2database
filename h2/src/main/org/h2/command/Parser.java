@@ -449,7 +449,7 @@ public class Parser {
     private Select currentSelect;
     private List<TableView> cteCleanups;
     private ArrayList<Parameter> parameters;
-    private ArrayList<Parameter> suppliedParameters;
+    private BitSet usedParameters = new BitSet();
     private String schemaName;
     private ArrayList<String> expectedList;
     private boolean rightsChecked;
@@ -604,7 +604,6 @@ public class Parser {
                     // Next commands may depend on results of this command.
                     return new CommandList(session, sql, command, list, parameters, remainingSql);
                 }
-                suppliedParameters = parameters;
                 try {
                     p = parse(remainingSql, remainingTokens);
                 } catch (DbException ex) {
@@ -669,8 +668,6 @@ public class Parser {
                 throw e.addSQL(sql);
             }
         }
-        p.setPrepareAlways(recompileAlways);
-        p.setParameterList(parameters);
         return p;
     }
 
@@ -680,12 +677,12 @@ public class Parser {
         } else {
             expectedList = null;
         }
-        parameters = suppliedParameters != null ? suppliedParameters : Utils.newSmallArrayList();
         currentSelect = null;
         currentPrepared = null;
         createView = null;
         cteCleanups = null;
         recompileAlways = false;
+        usedParameters.clear();
         read();
         Prepared p;
         try {
@@ -697,6 +694,8 @@ public class Parser {
             }
             throw t;
         }
+        p.setPrepareAlways(recompileAlways);
+        p.setParameterList(parameters);
         return p;
     }
 
@@ -866,13 +865,6 @@ public class Parser {
         if (c == null) {
             throw getSyntaxError();
         }
-        if (parameters != null) {
-            for (int i = 0, size = parameters.size(); i < size; i++) {
-                if (parameters.get(i) == null) {
-                    parameters.set(i, new Parameter(i));
-                }
-            }
-        }
         boolean withParamValues = readIf(OPEN_BRACE);
         if (withParamValues) {
             do {
@@ -893,7 +885,7 @@ public class Parser {
             for (Parameter p : parameters) {
                 p.checkSet();
             }
-            parameters.clear();
+            c.setWithParamValues(true);
         }
         if (withParamValues || c.getSQL() == null) {
             setSQL(c, start);
@@ -1808,9 +1800,11 @@ public class Parser {
                 return readCorrelation(tableFilter);
             }
         } else if (readIf(VALUES)) {
+            BitSet outerUsedParameters = initParametersScope();
             TableValueConstructor query = parseValues();
             alias = session.getNextSystemIdentifier(sqlCommand);
-            table = query.toTable(alias, null, parameters, createView != null, currentSelect);
+            table = query.toTable(alias, null, getUsedParameters(outerUsedParameters), createView != null,
+                    currentSelect);
         } else if (readIf(TABLE, OPEN_PAREN)) {
             // Table function derived table
             ArrayTableFunction function = readTableFunction(ArrayTableFunction.TABLE);
@@ -1898,7 +1892,9 @@ public class Parser {
     }
 
     private TableFilter readDerivedTableWithCorrelation() {
+        BitSet outerUsedParameters = initParametersScope();
         Query query = parseQueryExpression();
+        ArrayList<Parameter> queryParameters = getUsedParameters(outerUsedParameters);
         read(CLOSE_PAREN);
         Table table;
         String alias;
@@ -1906,7 +1902,7 @@ public class Parser {
         IndexHints indexHints = null;
         if (readIfUseIndex()) {
             alias = session.getNextSystemIdentifier(sqlCommand);
-            table = query.toTable(alias, null, parameters, createView != null, currentSelect);
+            table = query.toTable(alias, null, queryParameters, createView != null, currentSelect);
             indexHints = parseIndexHints(table);
         } else {
             alias = readFromAlias(null);
@@ -1919,13 +1915,13 @@ public class Parser {
                             derivedColumnNames.toArray(new String[0]), query, new String[1])
                             .toArray(new Column[0]);
                 }
-                table = query.toTable(alias, columnTemplates, parameters, createView != null, currentSelect);
+                table = query.toTable(alias, columnTemplates, queryParameters, createView != null, currentSelect);
                 if (readIfUseIndex()) {
                     indexHints = parseIndexHints(table);
                 }
             } else {
                 alias = session.getNextSystemIdentifier(sqlCommand);
-                table = query.toTable(alias, null, parameters, createView != null, currentSelect);
+                table = query.toTable(alias, null, queryParameters, createView != null, currentSelect);
             }
         }
         return buildTableFilter(table, alias, derivedColumnNames, indexHints);
@@ -2567,26 +2563,18 @@ public class Parser {
     }
 
     private Query parseQuery() {
-        int paramIndex = parameters.size();
+        BitSet outerUsedParameters = initParametersScope();
         Query command = parseQueryExpression();
-        int size = parameters.size();
-        ArrayList<Parameter> params = new ArrayList<>(size);
-        for (int i = paramIndex; i < size; i++) {
-            params.add(parameters.get(i));
-        }
+        ArrayList<Parameter> params = getUsedParameters(outerUsedParameters);
         command.setParameterList(params);
         command.init();
         return command;
     }
 
     private Prepared parseWithStatementOrQuery(int start) {
-        int paramIndex = parameters.size();
+        BitSet outerUsedParameters = initParametersScope();
         Prepared command = parseWith();
-        int size = parameters.size();
-        ArrayList<Parameter> params = new ArrayList<>(size);
-        for (int i = paramIndex; i < size; i++) {
-            params.add(parameters.get(i));
-        }
+        ArrayList<Parameter> params = getUsedParameters(outerUsedParameters);
         command.setParameterList(params);
         if (command instanceof Query) {
             Query query = (Query) command;
@@ -2877,6 +2865,7 @@ public class Parser {
         Select command = new Select(session, currentSelect);
         Select oldSelect = currentSelect;
         Prepared oldPrepared = currentPrepared;
+        BitSet outerUsedParameters = initParametersScope();
         currentSelect = command;
         currentPrepared = command;
         parseSelectExpressions(command);
@@ -2949,7 +2938,7 @@ public class Parser {
             command.setWindowQuery();
             command.setQualify(readExpressionWithGlobalConditions());
         }
-        command.setParameterList(parameters);
+        command.setParameterList(getUsedParameters(outerUsedParameters));
         currentSelect = oldSelect;
         currentPrepared = oldPrepared;
         setSQL(command, start);
@@ -4882,28 +4871,30 @@ public class Parser {
     }
 
     private Parameter readParameter() {
-        int index = ((Token.ParameterToken) token).index();
+        int index = ((Token.ParameterToken) token).index() - 1;
         read();
-        Parameter p;
-        if (parameters == null) {
-            parameters = Utils.newSmallArrayList();
-        }
-        if (index > Constants.MAX_PARAMETER_INDEX) {
-            throw DbException.getInvalidValueException("parameter index", index);
-        }
-        index--;
-        if (parameters.size() <= index) {
-            parameters.ensureCapacity(index + 1);
-            while (parameters.size() < index) {
-                parameters.add(null);
+        usedParameters.set(index);
+        return parameters.get(index);
+    }
+
+    private BitSet initParametersScope() {
+        BitSet outerUsedParameters = usedParameters;
+        usedParameters = new BitSet();
+        return outerUsedParameters;
+    }
+
+    private ArrayList<Parameter> getUsedParameters(BitSet outerUsedParameters) {
+        BitSet innerUsedParameters = usedParameters;
+        int size = innerUsedParameters.cardinality();
+        ArrayList<Parameter> params = new ArrayList<>(size);
+        if (size > 0) {
+            for (int i = -1; (i = innerUsedParameters.nextSetBit(i + 1)) >= 0;) {
+                params.add(parameters.get(i));
             }
-            p = new Parameter(index);
-            parameters.add(p);
-        } else if ((p = parameters.get(index)) == null) {
-            p = new Parameter(index);
-            parameters.set(index, p);
         }
-        return p;
+        outerUsedParameters.or(innerUsedParameters);
+        usedParameters = outerUsedParameters;
+        return params;
     }
 
     private Expression readTerm() {
@@ -5880,8 +5871,32 @@ public class Parser {
             sql = "";
         }
         sqlCommand = sql;
-        this.tokens = tokens == null ? new Tokenizer(database, identifiersToUpper, identifiersToLower, nonKeywords)
-                .tokenize(sql, stopOnCloseParen) : tokens;
+        if (tokens == null) {
+            BitSet usedParameters = new BitSet();
+            this.tokens = new Tokenizer(database, identifiersToUpper, identifiersToLower, nonKeywords)
+                    .tokenize(sql, stopOnCloseParen, usedParameters);
+            if (parameters == null) {
+                int l = usedParameters.length();
+                if (l > Constants.MAX_PARAMETER_INDEX) {
+                    throw DbException.getInvalidValueException("parameter index", l);
+                }
+                if (l > 0) {
+                    parameters = new ArrayList<>(l);
+                    for (int i = 0; i < l; i++) {
+                        /*
+                         * We need to create parameters even when they aren't
+                         * actually used, for example, VALUES ?1, ?3 needs
+                         * parameters ?1, ?2, and ?3.
+                         */
+                        parameters.add(new Parameter(i));
+                    }
+                } else {
+                    parameters = new ArrayList<>();
+                }
+            }
+        } else {
+            this.tokens = tokens;
+        }
         resetTokenIndex();
     }
 
@@ -7398,6 +7413,8 @@ public class Parser {
                 isTemporary, session, cteViewName, schema, columns, database);
         List<Column> columnTemplateList;
         String[] querySQLOutput = new String[1];
+        BitSet outerUsedParameters = initParametersScope();
+        ArrayList<Parameter> queryParameters;
         try {
             read(AS);
             read(OPEN_PAREN);
@@ -7409,17 +7426,18 @@ public class Parser {
             columnTemplateList = QueryExpressionTable.createQueryColumnTemplateList(cols, withQuery, querySQLOutput);
 
         } finally {
+            queryParameters = getUsedParameters(outerUsedParameters);
             TableView.destroyShadowTableForRecursiveExpression(isTemporary, session, recursiveTable);
         }
 
         return createCTEView(cteViewName,
-                querySQLOutput[0], columnTemplateList,
+                querySQLOutput[0], queryParameters, columnTemplateList,
                 true/* allowRecursiveQueryDetection */,
                 true/* add to session */,
                 isTemporary);
     }
 
-    private TableView createCTEView(String cteViewName, String querySQL,
+    private TableView createCTEView(String cteViewName, String querySQL, ArrayList<Parameter> queryParameters,
                                     List<Column> columnTemplateList, boolean allowRecursiveQueryDetection,
                                     boolean addViewToSession, boolean isTemporary) {
         Schema schema = getSchemaWithDefault();
@@ -7432,7 +7450,7 @@ public class Parser {
         TableView view;
         synchronized (session) {
             view = new TableView(schema, id, cteViewName, querySQL,
-                    parameters, columnTemplateArray, session,
+                    queryParameters, columnTemplateArray, session,
                     allowRecursiveQueryDetection, false, true,
                     isTemporary);
             if (!view.isRecursiveQueryDetected() && allowRecursiveQueryDetection) {
@@ -7443,7 +7461,7 @@ public class Parser {
                 } else {
                     session.removeLocalTempTable(view);
                 }
-                view = new TableView(schema, id, cteViewName, querySQL, parameters,
+                view = new TableView(schema, id, cteViewName, querySQL, queryParameters,
                         columnTemplateArray, session,
                         false/* assume recursive */, false, true,
                         isTemporary);
@@ -9583,7 +9601,7 @@ public class Parser {
     }
 
     public void setSuppliedParameters(ArrayList<Parameter> suppliedParameters) {
-        this.suppliedParameters = suppliedParameters;
+        this.parameters = suppliedParameters;
     }
 
     /**
@@ -9593,7 +9611,6 @@ public class Parser {
      * @return the expression object
      */
     public Expression parseExpression(String sql) {
-        parameters = Utils.newSmallArrayList();
         initialize(sql, null, false);
         read();
         return readExpression();
@@ -9606,7 +9623,6 @@ public class Parser {
      * @return the expression object
      */
     public Expression parseDomainConstraintExpression(String sql) {
-        parameters = Utils.newSmallArrayList();
         initialize(sql, null, false);
         read();
         try {
@@ -9624,7 +9640,6 @@ public class Parser {
      * @return the table object
      */
     public Table parseTableName(String sql) {
-        parameters = Utils.newSmallArrayList();
         initialize(sql, null, false);
         read();
         return readTableOrView();

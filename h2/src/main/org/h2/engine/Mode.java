@@ -424,6 +424,16 @@ public class Mode {
     public boolean autoIncrementClause;
 
     /**
+     * Whether DATE data type is parsed as TIMESTAMP(0).
+     */
+    public boolean dateIsTimestamp0;
+
+    /**
+     * Whether NUMERIC and DECIMAL/DEC without parameters are parsed as DECFLOAT.
+     */
+    public boolean numericIsDecfloat;
+
+    /**
      * An optional Set of hidden/disallowed column types.
      * Certain DBMSs don't support all column types provided by H2, such as
      * "NUMBER" when using PostgreSQL mode.
@@ -646,13 +656,9 @@ public class Mode {
         mode.minusIsExcept = true;
         mode.expressionNames = ExpressionNames.ORIGINAL_SQL;
         mode.viewExpressionNames = ViewExpressionNames.EXCEPTION;
+        mode.dateIsTimestamp0 = true;
         mode.typeByNameMap.put("BINARY_FLOAT", DataType.getDataType(Value.REAL));
         mode.typeByNameMap.put("BINARY_DOUBLE", DataType.getDataType(Value.DOUBLE));
-        dt = DataType.createDate(/* 2001-01-01 23:59:59 */ 19, 19, "DATE", false, 0, 0);
-        dt.type = Value.TIMESTAMP;
-        dt.sqlType = Types.TIMESTAMP;
-        dt.specialPrecisionScale = true;
-        mode.typeByNameMap.put("DATE", dt);
         add(mode);
 
         mode = new Mode(ModeEnum.PostgreSQL);
@@ -673,6 +679,7 @@ public class Mode {
         mode.allowUsingFromClauseInUpdateStatement = true;
         mode.limit = true;
         mode.serialDataTypes = true;
+        mode.numericIsDecfloat = true;
         // Enumerate all H2 types NOT supported by PostgreSQL:
         Set<String> disallowedTypes = new java.util.HashSet<>();
         disallowedTypes.add("NUMBER");

@@ -6164,6 +6164,9 @@ public class Parser {
                 original = "CHARACTER LARGE OBJECT";
             }
             break;
+        case "DATE":
+            return database.getMode().dateIsTimestamp0 ? TypeInfo.getTypeInfo(Value.TIMESTAMP, -1L, 0, null)
+                    : TypeInfo.TYPE_DATE;
         case "DATETIME":
         case "DATETIME2":
             return parseDateTimeType(false);
@@ -6370,6 +6373,8 @@ public class Parser {
                 }
             }
             read(CLOSE_PAREN);
+        } else if (database.getMode().numericIsDecfloat) {
+            return TypeInfo.TYPE_DECFLOAT;
         }
         return TypeInfo.getTypeInfo(Value.NUMERIC, precision, scale, decimal ? ExtTypeInfoNumeric.DECIMAL : null);
     }

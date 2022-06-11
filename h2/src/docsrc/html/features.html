@@ -1089,6 +1089,7 @@ Do not change value of DATABASE_TO_LOWER after creation of database.
 </li><li>ON CONFLICT DO NOTHING is supported in INSERT statements.
 </li><li>Spaces are trimmed from the right side of CHAR values, but CHAR values in result sets are right-padded with
     spaces to the declared length.
+</li><li>NUMERIC and DECIMAL/DEC data types without parameters are treated like DECFLOAT data type.
 </li><li>MONEY data type is treated like NUMERIC(19, 2) data type.
 </li><li>Datetime value functions return the same value within a transaction.
 </li><li>ARRAY_SLICE() out of bounds parameters are silently corrected.

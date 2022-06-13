@@ -85,6 +85,7 @@ public final class Store {
      * Creates the store.
      *
      * @param db the database
+     * @param key for file encryption
      */
     public Store(Database db, byte[] key) {
         String dbPath = db.getDatabasePath();

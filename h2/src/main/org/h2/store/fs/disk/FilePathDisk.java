@@ -23,6 +23,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
+import java.nio.file.AccessDeniedException;
 import java.nio.file.attribute.DosFileAttributeView;
 import java.nio.file.attribute.PosixFileAttributeView;
 import java.nio.file.attribute.PosixFilePermission;
@@ -201,6 +202,19 @@ public class FilePathDisk extends FilePath {
                 return;
             } catch (DirectoryNotEmptyException e) {
                 throw DbException.get(ErrorCode.FILE_DELETE_FAILED_1, e, name);
+            } catch (AccessDeniedException e) {
+                // On Windows file systems, delete a readonly file can cause AccessDeniedException,
+                // we should change readonly attribute to false and then delete file
+                try {
+                    FileStore fileStore = Files.getFileStore(file);
+                    if (!fileStore.supportsFileAttributeView(PosixFileAttributeView.class)
+                        && fileStore.supportsFileAttributeView(DosFileAttributeView.class)) {
+                        Files.setAttribute(file, "dos:readonly", false);
+                        Files.delete(file);
+                    }
+                } catch (IOException ioe) {
+                    cause = ioe;
+                }
             } catch (IOException e) {
                 cause = e;
             }

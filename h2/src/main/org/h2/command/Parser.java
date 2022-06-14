@@ -1106,7 +1106,7 @@ public class Parser {
         return columnName;
     }
 
-    private Update parseUpdate(int start) {
+    private DataChangeStatement parseUpdate(int start) {
         Update command = new Update(session);
         currentPrepared = command;
         Expression fetch = null;
@@ -1115,12 +1115,13 @@ public class Parser {
             fetch = readTerm().optimize(session);
             read(CLOSE_PAREN);
         }
-        TableFilter filter = readSimpleTableFilter();
-        command.setTableFilter(filter);
-        command.setSetClauseList(readUpdateSetClause(filter));
+        TableFilter targetTableFilter = readSimpleTableFilter();
+        command.setTableFilter(targetTableFilter);
+        int backupIndex = tokenIndex;
+        command.setSetClauseList(readUpdateSetClause(targetTableFilter));
         if (database.getMode().allowUsingFromClauseInUpdateStatement && readIf(FROM)) {
-            TableFilter fromTable = readTablePrimary();
-            command.setFromTableFilter(fromTable);
+            setTokenIndex(backupIndex);
+            return parseUpdateFrom(targetTableFilter, start);
         }
         if (readIf(WHERE)) {
             command.setCondition(readExpression());
@@ -1132,6 +1133,20 @@ public class Parser {
             fetch = readFetchOrLimit();
         }
         command.setFetch(fetch);
+        setSQL(command, start);
+        return command;
+    }
+
+    private MergeUsing parseUpdateFrom(TableFilter targetTableFilter, int start) {
+        MergeUsing command = new MergeUsing(session, targetTableFilter);
+        currentPrepared = command;
+        SetClauseList updateSetClause = readUpdateSetClause(targetTableFilter);
+        read(FROM);
+        command.setSourceTableFilter(readTableReference());
+        command.setOnCondition(readIf(WHERE) ? readExpression() : ValueExpression.TRUE);
+        MergeUsing.WhenMatchedThenUpdate update = command.new WhenMatchedThenUpdate();
+        update.setSetClauseList(updateSetClause);
+        command.addWhen(update);
         setSQL(command, start);
         return command;
     }

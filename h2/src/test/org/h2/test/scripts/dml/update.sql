@@ -293,32 +293,6 @@ SELECT SUM(V) FROM TEST;
 DROP TABLE TEST;
 > ok
 
-CREATE TABLE FOO (ID INT, VAL VARCHAR) AS VALUES(1, 'foo1'), (2, 'foo2'), (3, 'foo3');
-> ok
-
-CREATE TABLE BAR (ID INT, VAL VARCHAR) AS VALUES(1, 'bar1'), (3, 'bar3'), (4, 'bar4');
-> ok
-
-SET MODE PostgreSQL;
-> ok
-
-UPDATE FOO SET VAL = BAR.VAL FROM BAR WHERE FOO.ID = BAR.ID;
-> update count: 2
-
-TABLE FOO;
-> ID VAL
-> -- ----
-> 1  bar1
-> 2  foo2
-> 3  bar3
-> rows: 3
-
-UPDATE FOO SET BAR.VAL = FOO.VAL FROM BAR WHERE FOO.ID = BAR.ID;
-> exception TABLE_OR_VIEW_NOT_FOUND_1
-
-SET MODE Regular;
-> ok
-
 CREATE TABLE DEST(ID INT, X INT, Y INT);
 > ok
 

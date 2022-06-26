@@ -1839,7 +1839,7 @@ public class MVStore implements AutoCloseable {
     }
 
     private boolean isSeasonedChunk(Chunk chunk, long oldestVersionToKeep) {
-        return retentionSpaceVersions < 0 || chunk.version > oldestVersionToKeep + retentionSpaceVersions;
+        return retentionSpaceVersions < 0 || chunk.version + retentionSpaceVersions <= oldestVersionToKeep;
     }
 
     private long getTimeSinceCreation() {
@@ -2701,10 +2701,10 @@ public class MVStore implements AutoCloseable {
     }
 
     /**
-     * How long to retain old, persisted chunks, in megabytes. Chunks that
+     * How long to retain old, persisted chunks, in versions. Chunks that
      * are older may be overwritten once they contain no live data.
      * <p>
-     * The default value is 45000 (45 seconds) when using the default file
+     * The default value is 16 when using the default file
      * store. It is assumed that a file system and hard disk will flush all
      * write buffers within this time. Using a lower value might be dangerous,
      * unless the file system and hard disk flush the buffers earlier. To
@@ -2718,7 +2718,7 @@ public class MVStore implements AutoCloseable {
      * <p>
      * This setting is not persisted.
      *
-     * @param ms how many versions to retain old chunks (0 to overwrite them
+     * @param space how many versions to retain old chunks (0 to overwrite them
      *            as early as possible)
      */
     public void setRetentionSpaceVersions(int space) {

@@ -1415,11 +1415,11 @@ public class TestMVStore extends TestBase {
         FileUtils.delete(fileName);
         long v2;
         try (MVStore s = openStore(fileName)) {
-            assertEquals(4, s.getRetentionSpaceVersions());
+            assertEquals(16, s.getRetentionSpaceVersions());
             s.setRetentionSpaceVersions(0);
             assertEquals(0, s.getRetentionSpaceVersions());
-            s.setRetentionSpaceVersions(4);
-            assertEquals(4, s.getRetentionSpaceVersions());
+            s.setRetentionSpaceVersions(16);
+            assertEquals(16, s.getRetentionSpaceVersions());
             assertEquals(0, s.getCurrentVersion());
             assertFalse(s.hasUnsavedChanges());
             MVMap<String, String> m = s.openMap("data");
@@ -1441,7 +1441,7 @@ public class TestMVStore extends TestBase {
         }
 
         try (MVStore s = openStore(fileName)) {
-            s.setRetentionSpaceVersions(4);
+            s.setRetentionSpaceVersions(16);
             assertEquals(2, s.getCurrentVersion());
             MVMap<String, String> meta = s.getMetaMap();
             MVMap<String, String> m = s.openMap("data");
@@ -1466,7 +1466,7 @@ public class TestMVStore extends TestBase {
 
         long v3;
         try (MVStore s = openStore(fileName)) {
-            s.setRetentionSpaceVersions(4);
+            s.setRetentionSpaceVersions(16);
             assertEquals(2, s.getCurrentVersion());
             MVMap<String, String> meta = s.getMetaMap();
             assertNotNull(meta.get(DataUtils.META_NAME + "data"));
@@ -1484,7 +1484,7 @@ public class TestMVStore extends TestBase {
         }
 
         try (MVStore s = openStore(fileName)) {
-            s.setRetentionSpaceVersions(4);
+            s.setRetentionSpaceVersions(16);
             assertEquals(3, s.getCurrentVersion());
             MVMap<String, String> m = s.openMap("data");
             m.put("1", "Hi");
@@ -1499,7 +1499,7 @@ public class TestMVStore extends TestBase {
         }
 
         try (MVStore s = openStore(fileName)) {
-            s.setRetentionSpaceVersions(4);
+            s.setRetentionSpaceVersions(16);
             MVMap<String, String> m = s.openMap("data");
             assertEquals("Hallo", m.get("1"));
         }

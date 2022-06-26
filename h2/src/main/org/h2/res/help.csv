@@ -1946,7 +1946,7 @@ SET REFERENTIAL_INTEGRITY FALSE
 @h2@ SET RETENTION_SPACE_VERSIONS int
 ","
 How long to retain old, persisted data, in versions.
-The default is 0, 0 means overwrite data as early as possible.
+The default is 16, 0 means overwrite data as early as possible.
 Using a higher value might be advantageous if the filesystem or hard disk is being
 deceptive about when it actually commits data to persistence storage.
 To manually flush the buffers, use CHECKPOINT SYNC,

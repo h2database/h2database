@@ -263,7 +263,7 @@ public class TestRandomMapOps extends TestBase {
     private static MVStore openStore(String fileName) {
         MVStore s = new MVStore.Builder().fileName(fileName)
                 .keysPerPage(7).autoCommitDisabled().open();
-        s.setRetentionTime(1000);
+        s.setRetentionSpaceVersions(1);
         return s;
     }
 

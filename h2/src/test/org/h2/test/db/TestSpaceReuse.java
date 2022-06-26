@@ -42,7 +42,7 @@ public class TestSpaceReuse extends TestDb {
         for (int i = 0; i < 20; i++) {
             Connection conn = getConnection("spaceReuse");
             Statement stat = conn.createStatement();
-            stat.execute("set retention_time 0");
+            stat.execute("set retention_space_versions 0");
             stat.execute("set write_delay 0"); // disable auto-commit so that free-unused runs on commit
             stat.execute("create table if not exists t(i int)");
             stat.execute("insert into t select x from system_range(1, 500)");

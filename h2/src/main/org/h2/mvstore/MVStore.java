@@ -333,12 +333,12 @@ public class MVStore implements AutoCloseable {
     private long creationTime;
 
     /**
-     * How long to retain old, persisted chunks, in milliseconds. For larger or
+     * How long to retain old, persisted chunks, in versions. For larger or
      * equal to zero, a chunk is never directly overwritten if unused, but
-     * instead, the unused field is set. If smaller zero, chunks are directly
+     * instead, the unused field is set. If less than zero, chunks are directly
      * overwritten if unused.
      */
-    private int retentionTime;
+    private int retentionSpaceVersions;
 
     private long lastCommitTime;
 
@@ -434,7 +434,7 @@ public class MVStore implements AutoCloseable {
                 (UncaughtExceptionHandler)config.get("backgroundExceptionHandler");
         layout = new MVMap<>(this, 0, StringDataType.INSTANCE, StringDataType.INSTANCE);
         if (this.fileStore != null) {
-            retentionTime = this.fileStore.getDefaultRetentionTime();
+        	retentionSpaceVersions = this.fileStore.getDefaultRetentionSpaceVersions();
             // 19 KB memory is about 1 KB storage
             int kb = Math.max(1, Math.min(19, Utils.scaleForAvailableMemory(64))) * 1024;
             kb = DataUtils.getConfigParam(config, "autoCommitBufferSize", kb);
@@ -914,7 +914,7 @@ public class MVStore implements AutoCloseable {
             // we assume the system doesn't have a real-time clock,
             // and we set the creationTime to the past, so that
             // existing chunks are overwritten
-            creationTime = now - fileStore.getDefaultRetentionTime();
+            creationTime = now - 10_000_000;
         } else if (now < creationTime) {
             // the system time was set to the past:
             // we change the creation time
@@ -1323,7 +1323,7 @@ public class MVStore implements AutoCloseable {
                                         deregisterMapRoot(map.getId());
                                     }
                                 }
-                                setRetentionTime(0);
+                                setRetentionSpaceVersions(0);
                                 commit();
                                 if (allowedCompactionTime > 0) {
                                     compactFile(allowedCompactionTime);
@@ -1838,8 +1838,8 @@ public class MVStore implements AutoCloseable {
         return !c.isLive() && c.unusedAtVersion < oldestVersionToKeep;
     }
 
-    private boolean isSeasonedChunk(Chunk chunk, long time) {
-        return retentionTime < 0 || chunk.time + retentionTime <= time;
+    private boolean isSeasonedChunk(Chunk chunk, long oldestVersionToKeep) {
+        return retentionSpaceVersions < 0 || chunk.version > oldestVersionToKeep + retentionSpaceVersions;
     }
 
     private long getTimeSinceCreation() {
@@ -2275,7 +2275,7 @@ public class MVStore implements AutoCloseable {
      * @param maxCompactTime the maximum time in milliseconds to compact
      */
     public void compactFile(int maxCompactTime) {
-        setRetentionTime(0);
+        setRetentionSpaceVersions(0);
         long stopAt = System.nanoTime() + maxCompactTime * 1_000_000L;
         while (compact(95, 16 * 1024 * 1024)) {
             sync();
@@ -2696,12 +2696,12 @@ public class MVStore implements AutoCloseable {
         this.reuseSpace = reuseSpace;
     }
 
-    public int getRetentionTime() {
-        return retentionTime;
+    public int getRetentionSpaceVersions() {
+        return retentionSpaceVersions;
     }
 
     /**
-     * How long to retain old, persisted chunks, in milliseconds. Chunks that
+     * How long to retain old, persisted chunks, in megabytes. Chunks that
      * are older may be overwritten once they contain no live data.
      * <p>
      * The default value is 45000 (45 seconds) when using the default file
@@ -2713,16 +2713,16 @@ public class MVStore implements AutoCloseable {
      * according to various tests this does not always work as expected
      * depending on the operating system and hardware.
      * <p>
-     * The retention time needs to be long enough to allow reading old chunks
+     * The retention space needs to be long enough to allow reading old chunks
      * while traversing over the entries of a map.
      * <p>
      * This setting is not persisted.
      *
-     * @param ms how many milliseconds to retain old chunks (0 to overwrite them
+     * @param ms how many versions to retain old chunks (0 to overwrite them
      *            as early as possible)
      */
-    public void setRetentionTime(int ms) {
-        this.retentionTime = ms;
+    public void setRetentionSpaceVersions(int space) {
+        this.retentionSpaceVersions = space;
     }
 
     /**
@@ -3641,7 +3641,7 @@ public class MVStore implements AutoCloseable {
             try {
                 Chunk chunk;
                 while ((chunk = deadChunks.poll()) != null &&
-                        (isSeasonedChunk(chunk, time) && canOverwriteChunk(chunk, oldestVersionToKeep) ||
+                        (isSeasonedChunk(chunk, oldestVersionToKeep) && canOverwriteChunk(chunk, oldestVersionToKeep) ||
                                 // if chunk is not ready yet, put it back and exit
                                 // since this deque is unbounded, offerFirst() always return true
                                 !deadChunks.offerFirst(chunk))) {

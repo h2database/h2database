@@ -69,6 +69,7 @@ public class Set extends Prepared {
         case SetTypes.SCHEMA_SEARCH_PATH:
         case SetTypes.CATALOG:
         case SetTypes.RETENTION_TIME:
+        case SetTypes.RETENTION_SPACE_VERSIONS:
         case SetTypes.LAZY_QUERY_EXECUTION:
         case SetTypes.NON_KEYWORDS:
         case SetTypes.TIME_ZONE:
@@ -467,6 +468,7 @@ public class Set extends Prepared {
             }
             break;
         }
+        // This is deprecated, only kept for backwards compat.
         case SetTypes.RETENTION_TIME: {
             session.getUser().checkAdmin();
             int value = getIntValue();
@@ -474,7 +476,19 @@ public class Set extends Prepared {
                 throw DbException.getInvalidValueException("RETENTION_TIME", value);
             }
             synchronized (database) {
-                database.setRetentionTime(value);
+                database.setRetentionSpaceVersions(value/1000);
+                addOrUpdateSetting(name, null, value);
+            }
+            break;
+        }
+        case SetTypes.RETENTION_SPACE_VERSIONS: {
+            session.getUser().checkAdmin();
+            int value = getIntValue();
+            if (value < 0) {
+                throw DbException.getInvalidValueException("RETENTION_SPACE_VERSIONS", value);
+            }
+            synchronized (database) {
+                database.setRetentionSpaceVersions(value);
                 addOrUpdateSetting(name, null, value);
             }
             break;

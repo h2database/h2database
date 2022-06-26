@@ -60,7 +60,7 @@ public abstract class TestDb extends TestBase {
             return name;
         }
         if (admin) {
-            // name = addOption(name, "RETENTION_TIME", "10");
+            // name = addOption(name, "RETENTION_SPACE_VERSIONS", "10");
             // name = addOption(name, "WRITE_DELAY", "10");
         }
         int idx = name.indexOf(':');

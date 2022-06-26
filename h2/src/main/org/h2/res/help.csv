@@ -1942,10 +1942,10 @@ Admin rights are required to execute this command, as it affects all connections
 SET REFERENTIAL_INTEGRITY FALSE
 "
 
-"Commands (Other)","SET RETENTION_TIME","
-@h2@ SET RETENTION_TIME int
+"Commands (Other)","SET RETENTION_SPACE_VERSIONS","
+@h2@ SET RETENTION_SPACE_VERSIONS int
 ","
-How long to retain old, persisted data, in milliseconds.
+How long to retain old, persisted data, in versions.
 The default is 0, 0 means overwrite data as early as possible.
 Using a higher value might be advantageous if the filesystem or hard disk is being
 deceptive about when it actually commits data to persistence storage.
@@ -1956,9 +1956,9 @@ depending on the operating system and hardware.
 Admin rights are required to execute this command, as it affects all connections.
 This command commits an open transaction in this connection.
 This setting is persistent.
-This setting can be appended to the database URL: ""jdbc:h2:./test;RETENTION_TIME=0""
+This setting can be appended to the database URL: ""jdbc:h2:./test;RETENTION_SPACE_VERSIONS=0""
 ","
-SET RETENTION_TIME 0
+SET RETENTION_SPACE_VERSIONS 0
 "
 
 "Commands (Other)","SET SALT HASH","

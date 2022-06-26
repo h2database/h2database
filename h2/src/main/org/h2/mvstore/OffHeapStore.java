@@ -141,7 +141,7 @@ public class OffHeapStore extends FileStore {
     }
 
     @Override
-    public int getDefaultRetentionTime() {
+    public int getDefaultRetentionSpaceVersions() {
         return 0;
     }
 

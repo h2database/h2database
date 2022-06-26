@@ -422,7 +422,7 @@ public class TestMVStore extends TestBase {
                 encryptionKey("007".toCharArray()).
                 fileName(fileName).
                 open();
-        s.setRetentionTime(Integer.MAX_VALUE);
+        s.setRetentionSpaceVersions(Integer.MAX_VALUE);
         Map<String, Object> header = s.getStoreHeader();
         assertEquals("2", header.get("format").toString());
         header.put("formatRead", "2");
@@ -472,7 +472,7 @@ public class TestMVStore extends TestBase {
                 fileName(fileName).
                 autoCommitDisabled().
                 open();
-        s.setRetentionTime(0);
+        s.setRetentionSpaceVersions(0);
         s.setVersionsToKeep(0);
         MVMap<Integer, String> m;
         for (int i = 0; i < 100; i++) {
@@ -712,7 +712,7 @@ public class TestMVStore extends TestBase {
         String fileName = getBaseDir() + "/" + getTestName();
         FileUtils.delete(fileName);
         try (MVStore s = openStore(fileName)) {
-            s.setRetentionTime(Integer.MAX_VALUE);
+            s.setRetentionSpaceVersions(Integer.MAX_VALUE);
             MVMap<Integer, Integer> m = s.openMap("test");
             m.put(1, 1);
             Map<String, Object> header = s.getStoreHeader();
@@ -836,7 +836,7 @@ public class TestMVStore extends TestBase {
         String fileName = getBaseDir() + "/" + getTestName();
         FileUtils.delete(fileName);
         try (MVStore s = openStore(fileName)) {
-            s.setRetentionTime(Integer.MAX_VALUE);
+            s.setRetentionSpaceVersions(Integer.MAX_VALUE);
             long time = System.currentTimeMillis();
             Map<String, Object> m = s.getStoreHeader();
             assertEquals("2", m.get("format").toString());
@@ -860,7 +860,7 @@ public class TestMVStore extends TestBase {
         // the header is written at least every 20 commits
         for (int i = 0; i < 30; i++) {
             if (i > 5) {
-                s.setRetentionTime(0);
+                s.setRetentionSpaceVersions(0);
                 // ensure that the next save time is different,
                 // so that blocks can be reclaimed
                 // (on Windows, resolution is 10 ms)
@@ -890,7 +890,7 @@ public class TestMVStore extends TestBase {
         MVStore.Builder builder = new MVStore.Builder().
                 fileName(fileName).pageSplitSize(1000).autoCommitDisabled();
         try (MVStore s = builder.open()) {
-            s.setRetentionTime(0);
+            s.setRetentionSpaceVersions(0);
             MVMap<Integer, byte[]> map = s.openMap("test");
             map.put(0, new byte[100]);
             for (int i = 0; i < 10; i++) {
@@ -1285,7 +1285,7 @@ public class TestMVStore extends TestBase {
         try (MVStore s = openStore(fileName)) {
             s.setVersionsToKeep(100);
             s.setAutoCommitDelay(0);
-            s.setRetentionTime(Integer.MAX_VALUE);
+            s.setRetentionSpaceVersions(Integer.MAX_VALUE);
             MVMap<String, String> m = s.openMap("data");
             s.commit();
             long first = s.getCurrentVersion();
@@ -1350,7 +1350,7 @@ public class TestMVStore extends TestBase {
         }
         long len = FileUtils.size(fileName);
         try (MVStore s = openStore(fileName)) {
-            s.setRetentionTime(0);
+            s.setRetentionSpaceVersions(0);
             // remove 75%
             MVMap<Integer, String> m = s.openMap("data");
             for (int i = 0; i < 10; i++) {
@@ -1415,11 +1415,11 @@ public class TestMVStore extends TestBase {
         FileUtils.delete(fileName);
         long v2;
         try (MVStore s = openStore(fileName)) {
-            assertEquals(45000, s.getRetentionTime());
-            s.setRetentionTime(0);
-            assertEquals(0, s.getRetentionTime());
-            s.setRetentionTime(45000);
-            assertEquals(45000, s.getRetentionTime());
+            assertEquals(4, s.getRetentionSpaceVersions());
+            s.setRetentionSpaceVersions(0);
+            assertEquals(0, s.getRetentionSpaceVersions());
+            s.setRetentionSpaceVersions(4);
+            assertEquals(4, s.getRetentionSpaceVersions());
             assertEquals(0, s.getCurrentVersion());
             assertFalse(s.hasUnsavedChanges());
             MVMap<String, String> m = s.openMap("data");
@@ -1441,7 +1441,7 @@ public class TestMVStore extends TestBase {
         }
 
         try (MVStore s = openStore(fileName)) {
-            s.setRetentionTime(45000);
+            s.setRetentionSpaceVersions(4);
             assertEquals(2, s.getCurrentVersion());
             MVMap<String, String> meta = s.getMetaMap();
             MVMap<String, String> m = s.openMap("data");
@@ -1466,7 +1466,7 @@ public class TestMVStore extends TestBase {
 
         long v3;
         try (MVStore s = openStore(fileName)) {
-            s.setRetentionTime(45000);
+            s.setRetentionSpaceVersions(4);
             assertEquals(2, s.getCurrentVersion());
             MVMap<String, String> meta = s.getMetaMap();
             assertNotNull(meta.get(DataUtils.META_NAME + "data"));
@@ -1484,14 +1484,14 @@ public class TestMVStore extends TestBase {
         }
 
         try (MVStore s = openStore(fileName)) {
-            s.setRetentionTime(45000);
+            s.setRetentionSpaceVersions(4);
             assertEquals(3, s.getCurrentVersion());
             MVMap<String, String> m = s.openMap("data");
             m.put("1", "Hi");
         }
 
         try (MVStore s = openStore(fileName)) {
-            s.setRetentionTime(45000);
+            s.setRetentionSpaceVersions(4);
             MVMap<String, String> m = s.openMap("data");
             assertEquals("Hi", m.get("1"));
             s.rollbackTo(v3);
@@ -1499,7 +1499,7 @@ public class TestMVStore extends TestBase {
         }
 
         try (MVStore s = openStore(fileName)) {
-            s.setRetentionTime(45000);
+            s.setRetentionSpaceVersions(4);
             MVMap<String, String> m = s.openMap("data");
             assertEquals("Hallo", m.get("1"));
         }
@@ -1550,7 +1550,7 @@ public class TestMVStore extends TestBase {
         String fileName = getBaseDir() + "/" + getTestName();
         FileUtils.delete(fileName);
         try (MVStore s = openStore(fileName)) {
-            s.setRetentionTime(Integer.MAX_VALUE);
+            s.setRetentionSpaceVersions(Integer.MAX_VALUE);
             MVMap<String, String> m = s.getMetaMap();
             assertEquals("[]", s.getMapNames().toString());
             MVMap<String, String> data = s.openMap("data");
@@ -1696,7 +1696,7 @@ public class TestMVStore extends TestBase {
 
         try (MVStore s = openStore(fileName)) {
             s.setAutoCommitDelay(0);
-            s.setRetentionTime(0);
+            s.setRetentionSpaceVersions(0);
 
             Map<String, String> layout = s.getLayoutMap();
             int chunkCount1 = getChunkCount(layout);
@@ -1745,7 +1745,7 @@ public class TestMVStore extends TestBase {
         for (int j = 0; j < 20; j++) {
             sleep(2);
             try (MVStore s = openStore(fileName)) {
-                s.setRetentionTime(0);
+                s.setRetentionSpaceVersions(0);
                 s.setVersionsToKeep(0);
                 MVMap<Integer, String> m = s.openMap("data");
                 for (int i = 0; i < 100; i++) {
@@ -1794,7 +1794,7 @@ public class TestMVStore extends TestBase {
         for (int j = 0; j < 20; j++) {
             sleep(2);
             try (MVStore s = openStore(fileName)) {
-                s.setRetentionTime(0);
+                s.setRetentionSpaceVersions(0);
                 s.setVersionsToKeep(0);
                 MVMap<Integer, String> m = s.openMap("data");
                 for (int i = 0; i < 10; i++) {

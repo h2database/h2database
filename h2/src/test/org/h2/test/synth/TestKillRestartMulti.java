@@ -79,7 +79,7 @@ public class TestKillRestartMulti extends TestDb {
     @Override
     public void test() throws Exception {
         deleteDb("killRestartMulti");
-        url = getURL("killRestartMulti;RETENTION_TIME=0", true);
+        url = getURL("killRestartMulti;RETENTION_SPACE_VERSIONS=0", true);
         user = getUser();
         password = getPassword();
         String selfDestruct = SelfDestructor.getPropertyString(60);

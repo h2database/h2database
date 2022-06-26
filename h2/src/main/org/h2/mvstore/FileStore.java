@@ -326,12 +326,12 @@ public class FileStore {
     }
 
     /**
-     * Get the default retention time for this store in milliseconds.
+     * Get the default retention space for this store in versions.
      *
      * @return the retention time
      */
-    public int getDefaultRetentionTime() {
-        return 0;
+    public int getDefaultRetentionSpaceVersions() {
+        return 4;
     }
 
     /**

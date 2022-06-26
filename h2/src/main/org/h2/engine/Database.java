@@ -1733,12 +1733,12 @@ public final class Database implements DataHandler, CastDataProvider {
         store.getMvStore().setAutoCommitDelay(value < 0 ? 0 : value);
     }
 
-    public int getRetentionTime() {
-        return store.getMvStore().getRetentionTime();
+    public int getRetentionSpaceVersions() {
+        return store.getMvStore().getRetentionSpaceVersions();
     }
 
-    public void setRetentionTime(int value) {
-        store.getMvStore().setRetentionTime(value);
+    public void setRetentionSpaceVersions(int value) {
+        store.getMvStore().setRetentionSpaceVersions(value);
     }
 
     public void setAllowBuiltinAliasOverride(boolean b) {

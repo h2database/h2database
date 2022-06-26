@@ -30,14 +30,14 @@ public class TestMVStoreStopCompact extends TestBase {
 
     @Override
     public void test() throws Exception {
-        for(int retentionTime = 10; retentionTime < 1000; retentionTime *= 10) {
+        for(int retentionSpace = 1; retentionSpace < 100; retentionSpace *= 10) {
             for(int timeout = 100; timeout <= 1000; timeout *= 10) {
-                testStopCompact(retentionTime, timeout);
+                testStopCompact(retentionSpace, timeout);
             }
         }
     }
 
-    private void testStopCompact(int retentionTime, int timeout) throws InterruptedException {
+    private void testStopCompact(int retentionSpaceVersions, int timeout) throws InterruptedException {
         String fileName = getBaseDir() + "/testStopCompact.h3";
         FileUtils.createDirectories(getBaseDir());
         FileUtils.delete(fileName);
@@ -45,7 +45,7 @@ public class TestMVStoreStopCompact extends TestBase {
         // there are many leaf pages
         MVStore.Builder builder = new MVStore.Builder().fileName(fileName);
         try (MVStore s = builder.open()) {
-            s.setRetentionTime(retentionTime);
+            s.setRetentionSpaceVersions(retentionSpaceVersions);
             s.setVersionsToKeep(0);
             MVMap<Integer, String> map = s.openMap("data");
             long start = System.currentTimeMillis();
@@ -73,7 +73,7 @@ public class TestMVStoreStopCompact extends TestBase {
                 oldWriteCount = newWriteCount;
             }
             // expect that compaction didn't cause many writes
-            assertTrue("writeCount diff: " + retentionTime + "/" + timeout + " " + totalWrites,
+            assertTrue("writeCount diff: " + retentionSpaceVersions + "/" + timeout + " " + totalWrites,
                     totalWrites < 90);
         }
     }

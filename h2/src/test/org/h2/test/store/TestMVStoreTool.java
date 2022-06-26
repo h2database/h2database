@@ -51,7 +51,7 @@ public class TestMVStoreTool extends TestBase {
         MVStore s = new MVStore.Builder().
                 pageSplitSize(1000).
                 fileName(fileName).autoCommitDisabled().open();
-        s.setRetentionTime(0);
+        s.setRetentionSpaceVersions(0);
         long start = System.currentTimeMillis();
         MVMap<Integer, String> map = s.openMap("data");
         int size = config.big ? 2_000_000 : 20_000;

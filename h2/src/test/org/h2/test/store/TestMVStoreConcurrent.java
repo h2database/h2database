@@ -112,7 +112,7 @@ public class TestMVStoreConcurrent extends TestMVStore {
                 fileName(fileName).
                 cacheSize(0);
         try (final MVStore s = builder.open()) {
-            s.setRetentionTime(0);
+            s.setRetentionSpaceVersions(0);
             final MVMap<Integer, Integer> dataMap = s.openMap("data");
             Task task = new Task() {
                 @Override
@@ -206,7 +206,7 @@ public class TestMVStoreConcurrent extends TestMVStore {
                                     .fileName(fileName)
                                     .pageSplitSize(1000);
         try (MVStore s = builder.open()) {
-            s.setRetentionTime(1000);
+            s.setRetentionSpaceVersions(1);
             s.setAutoCommitDelay(1);
             final CountDownLatch latch = new CountDownLatch(2);
             Task task = new Task() {
@@ -290,7 +290,7 @@ public class TestMVStoreConcurrent extends TestMVStore {
                 fileName).
                 pageSplitSize(10).
                 autoCommitDisabled().open();
-        s.setRetentionTime(10000);
+        s.setRetentionSpaceVersions(1);
         try {
             Task task = new Task() {
                 @Override
@@ -372,7 +372,7 @@ public class TestMVStoreConcurrent extends TestMVStore {
             FileUtils.delete(fileName);
             final MVStore s1 = new MVStore.Builder().
                     fileName(fileName).autoCommitDisabled().open();
-            s1.setRetentionTime(0);
+            s1.setRetentionSpaceVersions(0);
             final int count = 200;
             for (int i = 0; i < count; i++) {
                 MVMap<Integer, Integer> m = s1.openMap("d" + i);
@@ -385,7 +385,7 @@ public class TestMVStoreConcurrent extends TestMVStore {
             MVStore.Builder builder = new MVStore.Builder().
                     fileName(fileName).autoCommitDisabled();
             try (final MVStore s = builder.open()) {
-                s.setRetentionTime(0);
+                s.setRetentionSpaceVersions(0);
                 s.setVersionsToKeep(0);
                 final ArrayList<MVMap<Integer, Integer>> list = new ArrayList<>(count);
                 for (int i = 0; i < count; i++) {

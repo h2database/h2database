@@ -273,7 +273,7 @@ public class TestMVTableEngine extends TestDb {
         deleteDb(getTestName());
         try (Connection conn = getConnection(getTestName())) {
             Statement stat = conn.createStatement();
-            stat.execute("set retention_time 0");
+            stat.execute("set retention_space_versions 0");
             for (int i = 0; i < 10; i++) {
                 stat.execute("create table dummy" + i +
                         " as select x, space(100) from system_range(1, 1000)");
@@ -287,7 +287,7 @@ public class TestMVTableEngine extends TestDb {
 
         try (Connection conn = getConnection(getTestName() + ";reuse_space=false")) {
             Statement stat = conn.createStatement();
-            stat.execute("set retention_time 0");
+            stat.execute("set retention_space_versions 0");
             for (int i = 0; i < 10; i++) {
                 stat.execute("drop table dummy" + i);
                 stat.execute("checkpoint");
@@ -312,7 +312,7 @@ public class TestMVTableEngine extends TestDb {
 
     private void testNoRetentionTime() throws SQLException {
         deleteDb(getTestName());
-        try (Connection conn = getConnection(getTestName() + ";RETENTION_TIME=0;WRITE_DELAY=10")) {
+        try (Connection conn = getConnection(getTestName() + ";RETENTION_SPACE_VERSIONS=0;WRITE_DELAY=10")) {
             Statement stat = conn.createStatement();
             try (Connection conn2 = getConnection(getTestName())) {
                 Statement stat2 = conn2.createStatement();
@@ -667,12 +667,12 @@ public class TestMVTableEngine extends TestDb {
             conn = getConnection(dbName);
             stat = conn.createStatement();
             if (i == 10) {
-                stat.execute("set retention_time 0");
+                stat.execute("set retention_space_versions 0");
                 retentionTime = 0;
             }
             ResultSet rs = stat.executeQuery(
                     "select setting_value from information_schema.settings " +
-                    "where setting_name='RETENTION_TIME'");
+                    "where setting_name='RETENTION_SPACE_VERSIONS'");
             assertTrue(rs.next());
             assertEquals(retentionTime, rs.getInt(1));
             stat.execute("create table test(id int primary key, data varchar)");
@@ -1094,7 +1094,7 @@ public class TestMVTableEngine extends TestDb {
     private void testReuseDiskSpace() throws Exception {
         deleteDb(getTestName());
         // set WRITE_DELAY=0 so the free-unused-space runs on commit
-        String dbName = getTestName() + ";MV_STORE=TRUE;WRITE_DELAY=0;RETENTION_TIME=0";
+        String dbName = getTestName() + ";MV_STORE=TRUE;WRITE_DELAY=0;RETENTION_SPACE_VERSIONS=0";
         Connection conn;
         Statement stat;
         long maxSize = 0;

@@ -179,13 +179,19 @@ public class SetTypes {
 
     /**
      * The type of a SET RETENTION_TIME statement.
+     * This is deprecated, only retained for backwards compat.
      */
     public static final int RETENTION_TIME = JAVA_OBJECT_SERIALIZER + 1;
 
     /**
+     * The type of a SET RETENTION_SPACE_VERSIONS statement.
+     */
+    public static final int RETENTION_SPACE_VERSIONS = RETENTION_TIME + 1;
+
+    /**
      * The type of a SET QUERY_STATISTICS statement.
      */
-    public static final int QUERY_STATISTICS = RETENTION_TIME + 1;
+    public static final int QUERY_STATISTICS = RETENTION_SPACE_VERSIONS + 1;
 
     /**
      * The type of a SET QUERY_STATISTICS_MAX_ENTRIES statement.
@@ -286,6 +292,7 @@ public class SetTypes {
         list.add("REDO_LOG_BINARY");
         list.add("JAVA_OBJECT_SERIALIZER");
         list.add("RETENTION_TIME");
+        list.add("RETENTION_SPACE_VERSIONS");
         list.add("QUERY_STATISTICS");
         list.add("QUERY_STATISTICS_MAX_ENTRIES");
         list.add("LAZY_QUERY_EXECUTION");

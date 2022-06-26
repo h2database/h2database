@@ -1112,7 +1112,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
             if (nonKeywords != null) {
                 add(session, rows, "NON_KEYWORDS", Parser.formatNonKeywords(nonKeywords));
             }
-            add(session, rows, "RETENTION_TIME", Integer.toString(database.getRetentionTime()));
+            add(session, rows, "RETENTION_SPACE_VERSIONS", Integer.toString(database.getRetentionSpaceVersions()));
             // database settings
             for (Map.Entry<String, String> entry : database.getSettings().getSortedSettings()) {
                 add(session, rows, entry.getKey(), entry.getValue());

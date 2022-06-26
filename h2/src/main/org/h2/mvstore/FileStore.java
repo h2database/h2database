@@ -331,7 +331,7 @@ public class FileStore {
      * @return the retention time
      */
     public int getDefaultRetentionTime() {
-        return 45_000;
+        return 0;
     }
 
     /**

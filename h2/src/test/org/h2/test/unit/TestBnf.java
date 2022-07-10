@@ -138,10 +138,10 @@ public class TestBnf extends TestDb {
         assertTrue(tokens.values().contains("INT"));
 
         // Test identifiers are working
-        tokens = bnf.getNextTokenList("create table \"test\" as s" + "el");
+        tokens = bnf.getNextTokenList("create table \"test\" as (s" + "el");
         assertTrue(tokens.values().contains("E" + "CT"));
 
-        tokens = bnf.getNextTokenList("create table test as s" + "el");
+        tokens = bnf.getNextTokenList("create table test as (s" + "el");
         assertTrue(tokens.values().contains("E" + "CT"));
 
         // Test || with and without spaces

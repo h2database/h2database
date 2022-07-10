@@ -8,3 +8,6 @@ select ltrim(null) en, '>' || ltrim('a') || '<' ea, '>' || ltrim(' a ') || '<' e
 > ---- --- ----
 > null >a< >a <
 > rows: 1
+
+VALUES LTRIM('__A__', '_');
+>> A__

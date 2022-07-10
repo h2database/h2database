@@ -12,10 +12,8 @@ import org.h2.engine.DbObject;
 import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.ValueExpression;
-import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.table.ColumnTemplate;
-import org.h2.table.Table;
 import org.h2.util.Utils;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
@@ -40,11 +38,6 @@ public final class Domain extends SchemaObject implements ColumnTemplate {
 
     public Domain(Schema schema, int id, String name) {
         super(schema, id, name, Trace.SCHEMA);
-    }
-
-    @Override
-    public String getCreateSQLForCopy(Table table, String quotedName) {
-        throw DbException.getInternalError(toString());
     }
 
     @Override

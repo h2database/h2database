@@ -401,11 +401,6 @@ public abstract class Table extends SchemaObject {
         return null;
     }
 
-    @Override
-    public String getCreateSQLForCopy(Table table, String quotedName) {
-        throw DbException.getInternalError(toString());
-    }
-
     /**
      * Check whether the table (or view) contains no columns that prevent index
      * conditions to be used. For example, a view that contains the ROWNUM()

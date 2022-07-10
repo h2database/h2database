@@ -899,6 +899,7 @@ or the SQL statement <code>SET MODE DB2</code>.
 </li><li>Timestamps with dash between date and time are supported.
 </li><li>Datetime value functions return the same value within a command.
 </li><li>Second and third arguments of TRANSLATE() function are swapped.
+</li><li>SEQUENCE.NEXTVAL and SEQUENCE.CURRVAL are supported
 </li><li>LIMIT / OFFSET clauses are supported.
 </li><li>MINUS can be used instead of EXCEPT.
 </li><li>Unsafe comparison operators between numeric and boolean values are allowed.
@@ -1088,11 +1089,12 @@ Do not change value of DATABASE_TO_LOWER after creation of database.
 </li><li>ON CONFLICT DO NOTHING is supported in INSERT statements.
 </li><li>Spaces are trimmed from the right side of CHAR values, but CHAR values in result sets are right-padded with
     spaces to the declared length.
+</li><li>NUMERIC and DECIMAL/DEC data types without parameters are treated like DECFLOAT data type.
 </li><li>MONEY data type is treated like NUMERIC(19, 2) data type.
 </li><li>Datetime value functions return the same value within a transaction.
 </li><li>ARRAY_SLICE() out of bounds parameters are silently corrected.
 </li><li>EXTRACT function with DOW field returns (0-6), Sunday is 0.
-</li><li>UPDATE with FROM is supported.
+</li><li>UPDATE with FROM is partially supported.
 </li><li>GROUP BY clause can contain 1-based positions of expressions from the SELECT list.
 </li></ul>
 

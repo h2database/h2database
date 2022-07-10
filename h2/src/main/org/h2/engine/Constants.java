@@ -15,7 +15,7 @@ public class Constants {
     /**
      * The build date is updated for each public release.
      */
-    public static final String BUILD_DATE = "2022-04-09";
+    public static final String BUILD_DATE = "2022-06-13";
 
     /**
      * Sequential version number. Even numbers are used for official releases,

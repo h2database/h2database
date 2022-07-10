@@ -11,6 +11,7 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.nio.channels.OverlappingFileLockException;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Function;
 import org.h2.mvstore.cache.FilePathCache;
 import org.h2.store.fs.FilePath;
 import org.h2.store.fs.encrypt.FileEncrypt;
@@ -124,6 +125,21 @@ public class FileStore {
      *            used
      */
     public void open(String fileName, boolean readOnly, char[] encryptionKey) {
+        open(fileName, readOnly,
+                encryptionKey == null ? null
+                        : fileChannel -> new FileEncrypt(fileName, FilePathEncrypt.getPasswordBytes(encryptionKey),
+                                fileChannel));
+    }
+
+    public FileStore open(String fileName, boolean readOnly) {
+
+        FileStore result = new FileStore();
+        result.open(fileName, readOnly, encryptedFile == null ? null :
+                fileChannel -> new FileEncrypt(fileName, (FileEncrypt)file, fileChannel));
+        return result;
+    }
+
+    private void open(String fileName, boolean readOnly, Function<FileChannel,FileChannel> encryptionTransformer) {
         if (file != null) {
             return;
         }
@@ -142,10 +158,9 @@ public class FileStore {
         this.readOnly = readOnly;
         try {
             file = f.open(readOnly ? "r" : "rw");
-            if (encryptionKey != null) {
-                byte[] key = FilePathEncrypt.getPasswordBytes(encryptionKey);
+            if (encryptionTransformer != null) {
                 encryptedFile = file;
-                file = new FileEncrypt(fileName, key, file);
+                file = encryptionTransformer.apply(file);
             }
             try {
                 if (readOnly) {

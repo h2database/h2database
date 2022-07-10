@@ -240,6 +240,8 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
                     webStart = true;
                 } else if ("-webAllowOthers".equals(arg)) {
                     // no parameters
+                } else if ("-webExternalNames".equals(arg)) {
+                    i++;
                 } else if ("-webDaemon".equals(arg)) {
                     // no parameters
                 } else if ("-webSSL".equals(arg)) {

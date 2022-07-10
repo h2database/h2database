@@ -184,5 +184,25 @@ INSERT INTO TEST VALUES CAST(20 AS NUMERIC(2));
 DROP TABLE TEST;
 > ok
 
+SET MODE PostgreSQL;
+> ok
+
+CREATE TABLE TEST(A NUMERIC, B DECIMAL, C DEC, D NUMERIC(1));
+> ok
+
+SELECT COLUMN_NAME, DATA_TYPE, NUMERIC_PRECISION, NUMERIC_PRECISION_RADIX, NUMERIC_SCALE,
+    DECLARED_DATA_TYPE, DECLARED_NUMERIC_PRECISION, DECLARED_NUMERIC_SCALE FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_NAME = 'TEST' ORDER BY ORDINAL_POSITION;
+> COLUMN_NAME DATA_TYPE NUMERIC_PRECISION NUMERIC_PRECISION_RADIX NUMERIC_SCALE DECLARED_DATA_TYPE DECLARED_NUMERIC_PRECISION DECLARED_NUMERIC_SCALE
+> ----------- --------- ----------------- ----------------------- ------------- ------------------ -------------------------- ----------------------
+> A           DECFLOAT  100000            10                      null          DECFLOAT           null                       null
+> B           DECFLOAT  100000            10                      null          DECFLOAT           null                       null
+> C           DECFLOAT  100000            10                      null          DECFLOAT           null                       null
+> D           NUMERIC   1                 10                      0             NUMERIC            1                          null
+> rows (ordered): 4
+
+DROP TABLE TEST;
+> ok
+
 SET MODE Regular;
 > ok

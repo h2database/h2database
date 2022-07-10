@@ -11,7 +11,6 @@ import org.h2.engine.DbObject;
 import org.h2.engine.SessionLocal;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
-import org.h2.table.Table;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueBigint;
@@ -348,11 +347,6 @@ public final class Sequence extends SchemaObject {
         }
         StringBuilder builder = new StringBuilder("DROP SEQUENCE IF EXISTS ");
         return getSQL(builder, DEFAULT_SQL_FLAGS).toString();
-    }
-
-    @Override
-    public String getCreateSQLForCopy(Table table, String quotedName) {
-        throw DbException.getInternalError(toString());
     }
 
     @Override

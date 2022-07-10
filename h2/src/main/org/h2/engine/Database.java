@@ -54,7 +54,6 @@ import org.h2.store.FileLock;
 import org.h2.store.FileLockMethod;
 import org.h2.store.FileStore;
 import org.h2.store.InDoubtTransaction;
-import org.h2.store.LobStorageFrontend;
 import org.h2.store.LobStorageInterface;
 import org.h2.store.fs.FileUtils;
 import org.h2.store.fs.encrypt.FileEncrypt;
@@ -131,7 +130,6 @@ public final class Database implements DataHandler, CastDataProvider {
     private final String databaseURL;
     private final String cipher;
     private final byte[] filePasswordHash;
-    private final byte[] fileEncryptionKey;
 
     private final ConcurrentHashMap<String, RightOwner> usersAndRoles = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, Setting> settings = new ConcurrentHashMap<>();
@@ -227,7 +225,6 @@ public final class Database implements DataHandler, CastDataProvider {
         this.compareMode = CompareMode.getInstance(null, 0);
         this.persistent = ci.isPersistent();
         this.filePasswordHash = ci.getFilePasswordHash();
-        this.fileEncryptionKey = ci.getFileEncryptionKey();
         this.databaseName = databaseName;
         this.databaseShortName = parseDatabaseShortName();
         this.maxLengthInplaceLob = Constants.DEFAULT_MAX_LENGTH_INPLACE_LOB;
@@ -272,6 +269,9 @@ public final class Database implements DataHandler, CastDataProvider {
         }
         this.allowBuiltinAliasOverride = ci.getProperty("BUILTIN_ALIAS_OVERRIDE", false);
         boolean closeAtVmShutdown = dbSettings.dbCloseOnExit;
+        if (autoServerMode && !closeAtVmShutdown) {
+            throw DbException.getUnsupportedException("AUTO_SERVER=TRUE && DB_CLOSE_ON_EXIT=FALSE");
+        }
         int traceLevelFile = ci.getIntProperty(SetTypes.TRACE_LEVEL_FILE, TraceSystem.DEFAULT_TRACE_LEVEL_FILE);
         int traceLevelSystemOut = ci.getIntProperty(SetTypes.TRACE_LEVEL_SYSTEM_OUT,
                 TraceSystem.DEFAULT_TRACE_LEVEL_SYSTEM_OUT);
@@ -321,7 +321,7 @@ public final class Database implements DataHandler, CastDataProvider {
             }
             starting = true;
             if (dbSettings.mvStore) {
-                store = new Store(this);
+                store = new Store(this, ci.getFileEncryptionKey());
             } else {
                 throw new UnsupportedOperationException();
             }
@@ -1181,9 +1181,6 @@ public final class Database implements DataHandler, CastDataProvider {
                     closeAllSessionsExcept(null);
                 }
             }
-            if (!this.isReadOnly()) {
-                removeOrphanedLobs();
-            }
         }
         try {
             try {
@@ -1192,7 +1189,7 @@ public final class Database implements DataHandler, CastDataProvider {
                         for (Schema schema : schemas.values()) {
                             for (Table table : schema.getAllTablesAndViews(null)) {
                                 if (table.isGlobalTemporary()) {
-                                    table.removeChildrenAndResources(systemSession);
+                                    removeSchemaObject(systemSession, table);
                                 } else {
                                     table.close(systemSession);
                                 }
@@ -1217,22 +1214,16 @@ public final class Database implements DataHandler, CastDataProvider {
                         meta.close(systemSession);
                         systemSession.commit(true);
                     }
-                }
-            } catch (DbException e) {
-                trace.error(e, "close");
-            }
-            tempFileDeleter.deleteAll();
-            try {
-                if (lobSession != null) {
-                    lobSession.close();
-                    lobSession = null;
-                }
-                if (systemSession != null) {
+                    if (lobSession != null) {
+                        lobSession.close();
+                        lobSession = null;
+                    }
                     systemSession.close();
                     systemSession = null;
                 }
+                tempFileDeleter.deleteAll();
                 closeOpenFilesAndUnlock();
-            } catch (DbException e) {
+            } catch (DbException | MVStoreException e) {
                 trace.error(e, "close");
             }
             trace.info("closed");
@@ -1253,23 +1244,12 @@ public final class Database implements DataHandler, CastDataProvider {
         }
     }
 
-    private void removeOrphanedLobs() {
-        // remove all session variables and temporary lobs
-        if (!persistent) {
-            return;
-        }
-        try {
-            lobStorage.removeAllForTable(LobStorageFrontend.TABLE_ID_SESSION_VARIABLE);
-        } catch (DbException e) {
-            trace.error(e, "close");
-        }
-    }
-
     /**
      * Close all open files and unlock the database.
      */
     private synchronized void closeOpenFilesAndUnlock() {
         try {
+            lobStorage.close();
             if (!store.getMvStore().isClosed()) {
                 if (compactMode == CommandInterface.SHUTDOWN_IMMEDIATELY) {
                     store.closeImmediately();
@@ -1719,10 +1699,13 @@ public final class Database implements DataHandler, CastDataProvider {
      * @return a unique name
      */
     public synchronized String getTempTableName(String baseName, SessionLocal session) {
+        int maxBaseLength = Constants.MAX_IDENTIFIER_LENGTH - (7 + ValueInteger.DISPLAY_SIZE * 2);
+        if (baseName.length() > maxBaseLength) {
+            baseName = baseName.substring(0, maxBaseLength);
+        }
         String tempName;
         do {
-            tempName = baseName + "_COPY_" + session.getId() +
-                    "_" + nextTempTableId++;
+            tempName = baseName + "_COPY_" + session.getId() + '_' + nextTempTableId++;
         } while (mainSchema.findTableOrView(session, tempName) != null);
         return tempName;
     }
@@ -2363,10 +2346,6 @@ public final class Database implements DataHandler, CastDataProvider {
     @Override
     public int readLob(long lobId, byte[] hmac, long offset, byte[] buff, int off, int length) {
         throw DbException.getInternalError();
-    }
-
-    public byte[] getFileEncryptionKey() {
-        return fileEncryptionKey;
     }
 
     public int getPageSize() {

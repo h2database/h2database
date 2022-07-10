@@ -496,6 +496,21 @@ SET MODE Regular;
 DROP TABLE TEST;
 > ok
 
+CREATE TABLE TEST(A INT, B INT) AS (VALUES (1, 2), (1, 3), (2, 4));
+> ok
+
+SET MODE Oracle;
+> ok
+
+EXPLAIN SELECT * FROM (SELECT A, SUM(B) FROM TEST HAVING COUNT(B) > 1 OR A = 1 OR A = 2) WHERE A <> 3;
+>> SELECT "_0"."A", "_0"."SUM(B)" FROM ( SELECT "A", SUM("B") FROM "PUBLIC"."TEST" HAVING ("A" IN(1, 2)) OR (COUNT("B") > 1) ) "_0" /* SELECT A, SUM(B) FROM PUBLIC.TEST /* PUBLIC.TEST.tableScan */ HAVING (A IN(1, 2)) OR (COUNT(B) > 1) */ WHERE "A" <> 3
+
+SET MODE Regular;
+> ok
+
+DROP TABLE TEST;
+> ok
+
 --- sequence with manual value ------------------
 
 SET MODE MySQL;
@@ -752,6 +767,66 @@ SET MODE Oracle;
 
 SELECT (SELECT * FROM (SELECT SYSDATE)) IS NOT NULL;
 >> TRUE
+
+SET MODE PostgreSQL;
+> ok
+
+CREATE TABLE TEST(ID1 INTEGER, ID2 INTEGER, V INTEGER, PRIMARY KEY(ID1, ID2));
+> ok
+
+INSERT INTO TEST (SELECT X, X + 1, X + 2 FROM SYSTEM_RANGE(1, 5));
+> update count: 5
+
+EXPLAIN UPDATE TEST T SET V = V.V FROM (VALUES (1, 2, 4)) V(ID1, ID2, V) WHERE (T.ID1, T.ID2) = (V.ID1, V.ID2);
+>> MERGE INTO "PUBLIC"."TEST" "T" /* PUBLIC.PRIMARY_KEY_2 */ USING (VALUES (1, 2, 4)) "V"("ID1", "ID2", "V") /* table scan */ ON (ROW ("T"."ID1", "T"."ID2") = ROW ("V"."ID1", "V"."ID2")) WHEN MATCHED THEN UPDATE SET "V" = "V"."V"
+
+UPDATE TEST T SET V = V.V FROM (VALUES (1, 2, 4)) V(ID1, ID2, V) WHERE (T.ID1, T.ID2) = (V.ID1, V.ID2);
+> update count: 1
+
+UPDATE TEST T SET V = V.V FROM (VALUES (2, 3, 5)) V(ID1, ID2, V) WHERE T.ID1 = V.ID1 AND T.ID2 = V.ID2;
+> update count: 1
+
+UPDATE TEST T SET V = V.V FROM (VALUES (3, 6)) V(ID1, V) WHERE T.ID1 = V.ID1;
+> update count: 1
+
+UPDATE TEST T SET V = 7 FROM (VALUES 4) V(A) WHERE T.ID1 = V.A;
+> update count: 1
+
+TABLE TEST ORDER BY ID1, ID2;
+> ID1 ID2 V
+> --- --- -
+> 1   2   4
+> 2   3   5
+> 3   4   6
+> 4   5   7
+> 5   6   7
+> rows (ordered): 5
+
+DROP TABLE TEST;
+> ok
+
+CREATE TABLE FOO (ID INT, VAL VARCHAR) AS VALUES(1, 'foo1'), (2, 'foo2'), (3, 'foo3');
+> ok
+
+CREATE TABLE BAR (ID INT, VAL VARCHAR) AS VALUES(1, 'bar1'), (3, 'bar3'), (4, 'bar4');
+> ok
+
+UPDATE FOO SET VAL = BAR.VAL FROM BAR WHERE FOO.ID = BAR.ID;
+> update count: 2
+
+TABLE FOO;
+> ID VAL
+> -- ----
+> 1  bar1
+> 2  foo2
+> 3  bar3
+> rows: 3
+
+UPDATE FOO SET BAR.VAL = FOO.VAL FROM BAR WHERE FOO.ID = BAR.ID;
+> exception TABLE_OR_VIEW_NOT_FOUND_1
+
+DROP TABLE FOO, BAR;
+> ok
 
 SET MODE Regular;
 > ok

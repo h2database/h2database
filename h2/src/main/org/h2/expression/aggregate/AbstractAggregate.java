@@ -61,6 +61,15 @@ public abstract class AbstractAggregate extends DataAnalysisOperation {
     }
 
     /**
+     * Returns the FILTER condition.
+     *
+     * @return the FILTER Condition
+     */
+    public Expression getFilterCondition() {
+        return filterCondition;
+    }
+
+    /**
      * Sets the FILTER condition.
      *
      * @param filterCondition

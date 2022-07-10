@@ -75,11 +75,6 @@ public final class User extends RightOwner {
     }
 
     @Override
-    public String getCreateSQLForCopy(Table table, String quotedName) {
-        throw DbException.getInternalError(toString());
-    }
-
-    @Override
     public String getCreateSQL() {
         return getCreateSQL(true);
     }

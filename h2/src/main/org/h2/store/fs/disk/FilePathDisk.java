@@ -23,6 +23,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
+import java.nio.file.AccessDeniedException;
 import java.nio.file.attribute.DosFileAttributeView;
 import java.nio.file.attribute.PosixFileAttributeView;
 import java.nio.file.attribute.PosixFilePermission;
@@ -201,6 +202,19 @@ public class FilePathDisk extends FilePath {
                 return;
             } catch (DirectoryNotEmptyException e) {
                 throw DbException.get(ErrorCode.FILE_DELETE_FAILED_1, e, name);
+            } catch (AccessDeniedException e) {
+                // On Windows file systems, delete a readonly file can cause AccessDeniedException,
+                // we should change readonly attribute to false and then delete file
+                try {
+                    FileStore fileStore = Files.getFileStore(file);
+                    if (!fileStore.supportsFileAttributeView(PosixFileAttributeView.class)
+                        && fileStore.supportsFileAttributeView(DosFileAttributeView.class)) {
+                        Files.setAttribute(file, "dos:readonly", false);
+                        Files.delete(file);
+                    }
+                } catch (IOException ioe) {
+                    cause = ioe;
+                }
             } catch (IOException e) {
                 cause = e;
             }
@@ -211,7 +225,7 @@ public class FilePathDisk extends FilePath {
 
     @Override
     public List<FilePath> newDirectoryStream() {
-        try (Stream<Path> files = Files.list(Paths.get(name).toRealPath())) {
+        try (Stream<Path> files = Files.list(toRealPath(Paths.get(name)))) {
             return files.collect(ArrayList::new, (t, u) -> t.add(getPath(u.toString())), ArrayList::addAll);
         } catch (NoSuchFileException e) {
             return Collections.emptyList();
@@ -267,19 +281,27 @@ public class FilePathDisk extends FilePath {
 
     @Override
     public FilePathDisk toRealPath() {
-        Path path = Paths.get(name);
+        return getPath(toRealPath(Paths.get(name)).toString());
+    }
+
+    private static Path toRealPath(Path path) {
         try {
-            return getPath(path.toRealPath().toString());
+            path = path.toRealPath();
         } catch (IOException e) {
             /*
              * File does not exist or isn't accessible, try to get the real path
              * of parent directory.
+             *
+             * toRealPath() can also throw AccessDeniedException on accessible
+             * remote directory on Windows if other directories on remote drive
+             * aren't accessible, but toAbsolutePath() should work.
              */
-            return getPath(toRealPath(path.toAbsolutePath().normalize()).toString());
+            path = parentToRealPath(path.toAbsolutePath().normalize());
         }
+        return path;
     }
 
-    private static Path toRealPath(Path path) {
+    private static Path parentToRealPath(Path path) {
         Path parent = path.getParent();
         if (parent == null) {
             return path;
@@ -287,7 +309,7 @@ public class FilePathDisk extends FilePath {
         try {
             parent = parent.toRealPath();
         } catch (IOException e) {
-            parent = toRealPath(parent);
+            parent = parentToRealPath(parent);
         }
         return parent.resolve(path.getFileName());
     }
@@ -437,7 +459,10 @@ public class FilePathDisk extends FilePath {
         Path file = Paths.get(name + '.').toAbsolutePath();
         String prefix = file.getFileName().toString();
         if (inTempDir) {
-            Files.createDirectories(Paths.get(System.getProperty("java.io.tmpdir", ".")));
+            final Path tempDir = Paths.get(System.getProperty("java.io.tmpdir", "."));
+            if (!Files.isDirectory(tempDir)) {
+                Files.createDirectories(tempDir);
+            }
             file = Files.createTempFile(prefix, suffix);
         } else {
             Path dir = file.getParent();

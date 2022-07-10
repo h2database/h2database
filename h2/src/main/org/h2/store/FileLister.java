@@ -86,10 +86,10 @@ public class FileLister {
     public static ArrayList<String> getDatabaseFiles(String dir, String db,
             boolean all) {
         ArrayList<String> files = new ArrayList<>();
-        // for Windows, File.getCanonicalPath("...b.") returns just "...b"
-        String start = db == null ? null : (FileUtils.toRealPath(dir + "/" + db) + ".");
-        for (String f : FileUtils.newDirectoryStream(dir)) {
+        String start = db == null ? null : db + '.';
+        for (FilePath path : FilePath.get(dir).newDirectoryStream()) {
             boolean ok = false;
+            String f = path.toString();
             if (f.endsWith(Constants.SUFFIX_MV_FILE)) {
                 ok = true;
             } else if (all) {
@@ -102,7 +102,7 @@ public class FileLister {
                 }
             }
             if (ok) {
-                if (db == null || f.startsWith(start)) {
+                if (db == null || path.getName().startsWith(start)) {
                     files.add(f);
                 }
             }

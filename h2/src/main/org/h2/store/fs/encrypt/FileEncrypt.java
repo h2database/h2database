@@ -12,6 +12,7 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import org.h2.mvstore.DataUtils;
 import org.h2.security.AES;
 import org.h2.security.SHA256;
 import org.h2.store.fs.FileBaseDefault;
@@ -65,6 +66,8 @@ public class FileEncrypt extends FileBaseDefault {
 
     private byte[] encryptionKey;
 
+    private FileEncrypt source;
+
     public FileEncrypt(String name, byte[] encryptionKey, FileChannel base) {
         // don't do any read or write operations here, because they could
         // fail if the file is locked, and we want to give the caller a
@@ -72,6 +75,21 @@ public class FileEncrypt extends FileBaseDefault {
         this.name = name;
         this.base = base;
         this.encryptionKey = encryptionKey;
+    }
+
+    public FileEncrypt(String name, FileEncrypt source, FileChannel base) {
+        // don't do any read or write operations here, because they could
+        // fail if the file is locked, and we want to give the caller a
+        // chance to lock the file first
+        this.name = name;
+        this.base = base;
+        this.source = source;
+        try {
+            source.init();
+        } catch (IOException e) {
+            throw DataUtils.newMVStoreException(DataUtils.ERROR_INTERNAL,
+                                        "Can not open {0} using encryption of {1}", name, source.name);
+        }
     }
 
     private XTS init() throws IOException {
@@ -88,26 +106,41 @@ public class FileEncrypt extends FileBaseDefault {
         if (xts != null) {
             return xts;
         }
-        this.size = base.size() - HEADER_LENGTH;
-        boolean newFile = size < 0;
-        byte[] salt;
-        if (newFile) {
-            byte[] header = Arrays.copyOf(HEADER, BLOCK_SIZE);
-            salt = MathUtils.secureRandomBytes(SALT_LENGTH);
-            System.arraycopy(salt, 0, header, SALT_POS, salt.length);
-            writeFully(base, 0, ByteBuffer.wrap(header));
-            size = 0;
-        } else {
-            salt = new byte[SALT_LENGTH];
-            readFully(base, SALT_POS, ByteBuffer.wrap(salt));
-            if ((size & BLOCK_SIZE_MASK) != 0) {
-                size -= BLOCK_SIZE;
+        assert size == 0;
+        long sz = base.size() - HEADER_LENGTH;
+        boolean existingFile = sz >= 0;
+        if (encryptionKey != null) {
+            byte[] salt;
+            if (existingFile) {
+                salt = new byte[SALT_LENGTH];
+                readFully(base, SALT_POS, ByteBuffer.wrap(salt));
+            } else {
+                byte[] header = Arrays.copyOf(HEADER, BLOCK_SIZE);
+                salt = MathUtils.secureRandomBytes(SALT_LENGTH);
+                System.arraycopy(salt, 0, header, SALT_POS, salt.length);
+                writeFully(base, 0, ByteBuffer.wrap(header));
             }
+            AES cipher = new AES();
+            cipher.setKey(SHA256.getPBKDF2(encryptionKey, salt, HASH_ITERATIONS, 16));
+            encryptionKey = null;
+            xts = new XTS(cipher);
+        } else {
+            if (!existingFile) {
+                ByteBuffer byteBuffer = ByteBuffer.allocateDirect(BLOCK_SIZE);
+                readFully(source.base, 0, byteBuffer);
+                byteBuffer.flip();
+                writeFully(base, 0, byteBuffer);
+            }
+            xts = source.xts;
+            source = null;
         }
-        AES cipher = new AES();
-        cipher.setKey(SHA256.getPBKDF2(encryptionKey, salt, HASH_ITERATIONS, 16));
-        encryptionKey = null;
-        return this.xts = new XTS(cipher);
+        if (existingFile) {
+            if ((sz & BLOCK_SIZE_MASK) != 0) {
+                sz -= BLOCK_SIZE;
+            }
+            size = sz;
+        }
+        return this.xts = xts;
     }
 
     @Override

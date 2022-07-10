@@ -93,11 +93,6 @@ public class Schema extends DbObject {
     }
 
     @Override
-    public String getCreateSQLForCopy(Table table, String quotedName) {
-        throw DbException.getInternalError(toString());
-    }
-
-    @Override
     public String getCreateSQL() {
         if (system) {
             return null;

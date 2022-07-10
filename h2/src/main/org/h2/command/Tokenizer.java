@@ -159,7 +159,7 @@ public final class Tokenizer {
         this.nonKeywords = nonKeywords;
     }
 
-    ArrayList<Token> tokenize(String sql, boolean stopOnCloseParen) {
+    ArrayList<Token> tokenize(String sql, boolean stopOnCloseParen, BitSet parameters) {
         ArrayList<Token> tokens = new ArrayList<>();
         int end = sql.length() - 1;
         boolean foundUnicode = false;
@@ -205,7 +205,7 @@ public final class Tokenizer {
                         i = stringEnd + 1;
                     } else {
                         i = parseParameterIndex(sql, end, i, tokens);
-                        lastParameter = assignParameterIndex(tokens, lastParameter);
+                        lastParameter = assignParameterIndex(tokens, lastParameter, parameters);
                         continue loop;
                     }
                 } else {
@@ -356,7 +356,7 @@ public final class Tokenizer {
                     }
                 }
                 i = parseParameterIndex(sql, end, i, tokens);
-                lastParameter = assignParameterIndex(tokens, lastParameter);
+                lastParameter = assignParameterIndex(tokens, lastParameter, parameters);
                 continue loop;
             }
             case '@':
@@ -1343,18 +1343,20 @@ public final class Tokenizer {
         return i;
     }
 
-    private static int assignParameterIndex(ArrayList<Token> tokens, int lastParameter) {
+    private static int assignParameterIndex(ArrayList<Token> tokens, int lastParameter, BitSet parameters) {
         Token.ParameterToken parameter = (Token.ParameterToken) tokens.get(tokens.size() - 1);
-        if (parameter.index == 0) {
+        int index = parameter.index;
+        if (index == 0) {
             if (lastParameter < 0) {
                 throw DbException.get(ErrorCode.CANNOT_MIX_INDEXED_AND_UNINDEXED_PARAMS);
             }
-            parameter.index = ++lastParameter;
+            parameter.index = index = ++lastParameter;
         } else if (lastParameter > 0) {
             throw DbException.get(ErrorCode.CANNOT_MIX_INDEXED_AND_UNINDEXED_PARAMS);
         } else {
             lastParameter = -1;
         }
+        parameters.set(index - 1);
         return lastParameter;
     }
 

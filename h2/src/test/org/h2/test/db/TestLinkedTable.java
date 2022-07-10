@@ -54,6 +54,7 @@ public class TestLinkedTable extends TestDb {
         testGeometry();
         testFetchSize();
         testFetchSizeWithAutoCommit();
+        testQuotedIdentifiers();
         deleteDb("linkedTable");
     }
 
@@ -770,6 +771,30 @@ public class TestLinkedTable extends TestDb {
         assertEquals("CREATE FORCE LINKED TABLE \"PUBLIC\".\"T\"(NULL, 'jdbc:h2:mem:one', 'sa', 'sa', 'TEST')"
                 + " FETCH_SIZE 10 AUTOCOMMIT OFF /*--hide--*/", res.getString(1));
         sb.execute("DROP TABLE T");
+        ca.close();
+        cb.close();
+    }
+
+    private void testQuotedIdentifiers() throws SQLException {
+        if (config.memory) {
+            return;
+        }
+        org.h2.Driver.load();
+        Connection ca = DriverManager.getConnection("jdbc:h2:mem:one", "sa", "sa");
+        Connection cb = DriverManager.getConnection("jdbc:h2:mem:two", "sa", "sa");
+        Statement sa = ca.createStatement();
+        Statement sb = cb.createStatement();
+        sa.execute("CREATE TABLE \"Test\" AS SELECT X \"Num\", X \"Column \"\"1\"\"\" FROM SYSTEM_RANGE(1, 100)");
+        sb.execute("CREATE LINKED TABLE T(NULL, 'jdbc:h2:mem:one', 'sa', 'sa', '\"Test\"')");
+        try (ResultSet rs = sb.executeQuery("SELECT SUM(\"Num\") FROM T WHERE \"Num\" > 1")) {
+            assertTrue(rs.next());
+            assertEquals(5049, rs.getInt(1));
+        }
+        try (ResultSet rs = sb.executeQuery(
+                "SELECT SUM(\"Column \"\"1\"\"\") FROM T WHERE \"Column \"\"1\"\"\" > 1")) {
+            assertTrue(rs.next());
+            assertEquals(5049, rs.getInt(1));
+        }
         ca.close();
         cb.close();
     }

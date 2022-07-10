@@ -49,7 +49,8 @@ public class TestAutoServer extends TestDb {
                 "jdbc:h2:" + getTestName() + ";file_lock=no;auto_server=true",
                 "jdbc:h2:" + getTestName() + ";file_lock=serialized;auto_server=true",
                 "jdbc:h2:" + getTestName() + ";access_mode_data=r;auto_server=true",
-                "jdbc:h2:mem:" + getTestName() + ";auto_server=true"
+                "jdbc:h2:" + getTestName() + ";AUTO_SERVER=TRUE;DB_CLOSE_ON_EXIT=FALSE",
+                "jdbc:h2:mem:" + getTestName() + ";AUTO_SERVER=TRUE",
         };
         for (String url : urls) {
             assertThrows(SQLException.class, () -> getConnection(url));

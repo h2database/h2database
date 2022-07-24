@@ -3576,7 +3576,7 @@ public class Parser {
             Expression key = readExpression();
             if (withKey) {
                 read(VALUE);
-            } else if (!readIf(VALUE)) {
+            } else if (!(readIf(VALUE) || (database.getMode().acceptsCommaAsJsonKeyValueSeparator && readIf(COMMA)))) {
                 read(COLON);
             }
             Expression value = readExpression();
@@ -4302,8 +4302,11 @@ public class Parser {
                     function.addParameter(readExpression());
                     if (withKey) {
                         read(VALUE);
-                    } else if (!readIf(VALUE)) {
-                        read(COLON);
+                    } else {
+                        if (!(readIf(VALUE) ||
+                                (database.getMode().acceptsCommaAsJsonKeyValueSeparator && readIf(COMMA)))) {
+                            read(COLON);
+                        }
                     }
                     function.addParameter(readExpression());
                 } while (readIf(COMMA));

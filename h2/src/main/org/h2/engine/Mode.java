@@ -455,6 +455,11 @@ public class Mode {
      */
     public boolean numericWithBooleanComparison;
 
+    /**
+     * Accepts comma ',' as key/value separator in JSON_OBJECT and JSON_OBJECTAGG functions.
+     */
+    public boolean acceptsCommaAsJsonKeyValueSeparator;
+
     private final String name;
 
     private final ModeEnum modeEnum;
@@ -606,6 +611,7 @@ public class Mode {
         mode.typeByNameMap.put("YEAR", DataType.getDataType(Value.SMALLINT));
         mode.groupByColumnIndex = true;
         mode.numericWithBooleanComparison = true;
+        mode.acceptsCommaAsJsonKeyValueSeparator = true;
         add(mode);
 
         mode = new Mode(ModeEnum.MySQL);
@@ -635,6 +641,7 @@ public class Mode {
         mode.typeByNameMap.put("YEAR", DataType.getDataType(Value.SMALLINT));
         mode.groupByColumnIndex = true;
         mode.numericWithBooleanComparison = true;
+        mode.acceptsCommaAsJsonKeyValueSeparator = true;
         add(mode);
 
         mode = new Mode(ModeEnum.Oracle);

@@ -1842,6 +1842,10 @@ public class MVStore implements AutoCloseable {
         return retentionTime < 0 || chunk.time + retentionTime <= time;
     }
 
+    private boolean isDeadChunk(Chunk chunk, long time) {
+        return retentionTime < 0 || chunk.unused + retentionTime <= time;
+    }
+
     private long getTimeSinceCreation() {
         return Math.max(0, getTimeAbsolute() - creationTime);
     }
@@ -3641,7 +3645,7 @@ public class MVStore implements AutoCloseable {
             try {
                 Chunk chunk;
                 while ((chunk = deadChunks.poll()) != null &&
-                        (isSeasonedChunk(chunk, time) && canOverwriteChunk(chunk, oldestVersionToKeep) ||
+                        (isDeadChunk(chunk, time) && canOverwriteChunk(chunk, oldestVersionToKeep) ||
                                 // if chunk is not ready yet, put it back and exit
                                 // since this deque is unbounded, offerFirst() always return true
                                 !deadChunks.offerFirst(chunk))) {

@@ -2371,9 +2371,9 @@ public class MVStore implements AutoCloseable {
     private int getChunksFillRate(boolean all) {
         long maxLengthSum = 1;
         long maxLengthLiveSum = 1;
-        long time = getTimeSinceCreation();
+        long oldestVersionToKeep = getOldestVersionToKeep();
         for (Chunk c : chunks.values()) {
-            if (all || isRewritable(c, time)) {
+            if (all || isRewritable(c, oldestVersionToKeep)) {
                 assert c.maxLen >= 0;
                 maxLengthSum += c.maxLen;
                 maxLengthLiveSum += c.maxLenLive;
@@ -2425,10 +2425,10 @@ public class MVStore implements AutoCloseable {
             int vacatedBlocks = 0;
             long maxLengthSum = 1;
             long maxLengthLiveSum = 1;
-            long time = getTimeSinceCreation();
+            long oldestVersionToKeep = getOldestVersionToKeep();
             for (Chunk c : chunks.values()) {
                 assert c.maxLen >= 0;
-                if (isRewritable(c, time) && c.getFillRate() <= thresholdChunkFillRate) {
+                if (isRewritable(c, oldestVersionToKeep) && c.getFillRate() <= thresholdChunkFillRate) {
                     assert c.maxLen >= c.maxLenLive;
                     vacatedBlocks += c.len;
                     maxLengthSum += c.maxLen;
@@ -2454,7 +2454,6 @@ public class MVStore implements AutoCloseable {
 
     private Iterable<Chunk> findOldChunks(int writeLimit, int targetFillRate) {
         assert lastChunk != null;
-        long time = getTimeSinceCreation();
 
         // the queue will contain chunks we want to free up
         // the smaller the collectionPriority, the more desirable this chunk's re-write is
@@ -2471,12 +2470,13 @@ public class MVStore implements AutoCloseable {
 
         long totalSize = 0;
         long latestVersion = lastChunk.version + 1;
+        long oldestVersionToKeep = getOldestVersionToKeep();
         for (Chunk chunk : chunks.values()) {
             // only look at chunk older than the retention time
             // (it's possible to compact chunks earlier, but right
             // now we don't do that)
             int fillRate = chunk.getFillRate();
-            if (isRewritable(chunk, time) && fillRate <= targetFillRate) {
+            if (isRewritable(chunk, oldestVersionToKeep) && fillRate <= targetFillRate) {
                 long age = Math.max(1, latestVersion - chunk.version);
                 chunk.collectPriority = (int) (fillRate * 1000 / age);
                 totalSize += chunk.maxLenLive;
@@ -2494,8 +2494,8 @@ public class MVStore implements AutoCloseable {
         return queue.isEmpty() ? null : queue;
     }
 
-    private boolean isRewritable(Chunk chunk, long time) {
-        return chunk.isRewritable() && isSeasonedChunk(chunk, time);
+    private boolean isRewritable(Chunk chunk, long oldestVersionToKeep) {
+        return chunk.isRewritable() && isSeasonedChunk(chunk, oldestVersionToKeep);
     }
 
     private int compactRewrite(Set<Integer> set) {
@@ -3640,7 +3640,6 @@ public class MVStore implements AutoCloseable {
         int count = 0;
         if (!deadChunks.isEmpty()) {
             long oldestVersionToKeep = getOldestVersionToKeep();
-            long time = getTimeSinceCreation();
             saveChunkLock.lock();
             try {
                 Chunk chunk;

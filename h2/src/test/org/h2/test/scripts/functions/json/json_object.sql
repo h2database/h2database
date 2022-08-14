@@ -56,3 +56,15 @@ SELECT JSON_OBJECT(NULL ON NULL WITHOUT);
 
 DROP TABLE TEST;
 > ok
+
+SET MODE MySQL;
+> ok
+
+SELECT JSON_OBJECT('key1', 10, 'key2', 'str');
+>> {"key1":10,"key2":"str"}
+
+SET MODE MariaDB;
+> ok
+
+SELECT JSON_OBJECT('key1', 10, 'key2', 'str');
+>> {"key1":10,"key2":"str"}

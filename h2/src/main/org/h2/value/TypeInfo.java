@@ -1456,7 +1456,7 @@ public class TypeInfo extends ExtTypeInfo implements Typed {
         case Value.REAL:
             return getTypeInfo(Value.DECFLOAT, ValueReal.DECIMAL_PRECISION, 0, null);
         case Value.DOUBLE:
-            return getTypeInfo(Value.DECFLOAT, ValueReal.DECIMAL_PRECISION, 0, null);
+            return getTypeInfo(Value.DECFLOAT, ValueDouble.DECIMAL_PRECISION, 0, null);
         case Value.DECFLOAT:
             return this;
         default:

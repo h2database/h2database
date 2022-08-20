@@ -169,7 +169,8 @@ public class Analyze extends DefineCommand {
      * @param manual whether the command was called by the user
      */
     public static void analyzeTable(SessionLocal session, Table table, int sample, boolean manual) {
-        if (table.getTableType() != TableType.TABLE //
+        if (!table.isValid()
+                || table.getTableType() != TableType.TABLE //
                 || table.isHidden() //
                 || session == null //
                 || !manual && (session.getDatabase().isSysTableLocked() || table.hasSelectTrigger()) //

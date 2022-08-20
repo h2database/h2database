@@ -1182,7 +1182,7 @@ public class Parser {
             fetch = readTerm().optimize(session);
         }
         currentPrepared = command;
-        if (!readIf(FROM) && database.getMode().getEnum() == ModeEnum.MySQL) {
+        if (!readIf(FROM) && database.getMode().deleteIdentifierFrom) {
             readIdentifierWithSchema();
             read(FROM);
         }
@@ -6047,7 +6047,7 @@ public class Parser {
         if (readIf("SELECTIVITY")) {
             column.setSelectivity(readNonNegativeInt());
         }
-        if (mode.getEnum() == ModeEnum.MySQL) {
+        if (mode.mySqlTableOptions) {
             if (readIf("CHARACTER")) {
                 readIf(SET);
                 readMySQLCharset();
@@ -8166,6 +8166,7 @@ public class Parser {
                 return command;
             }
             break;
+        case MariaDB:
         case MySQL:
             if (readIf("FOREIGN_KEY_CHECKS")) {
                 readIfEqualOrTo();
@@ -8906,7 +8907,7 @@ public class Parser {
                 break;
             case NO_NULL_CONSTRAINT_FOUND:
                 command = parseAlterTableAlterColumnType(schema, tableName, columnName, ifTableExists, false,
-                        mode.getEnum() != ModeEnum.MySQL);
+                        mode.alterTableModifyColumnPreserveNullability);
                 break;
             default:
                 throw DbException.get(ErrorCode.UNKNOWN_MODE_1,
@@ -9290,7 +9291,7 @@ public class Parser {
                 } while (readIfMore());
             }
         }
-        if (database.getMode().getEnum() == ModeEnum.MySQL) {
+        if (database.getMode().mySqlTableOptions) {
             parseCreateTableMySQLTableOptions(command);
         }
         if (readIf("ENGINE")) {

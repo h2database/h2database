@@ -57,6 +57,7 @@ public abstract class ModeFunction extends FunctionN {
             return FunctionsDB2Derby.getFunction(name);
         case MSSQLServer:
             return FunctionsMSSQLServer.getFunction(name);
+        case MariaDB:
         case MySQL:
             return FunctionsMySQL.getFunction(name);
         case Oracle:

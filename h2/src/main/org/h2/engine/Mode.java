@@ -286,6 +286,21 @@ public class Mode {
     public boolean alterTableModifyColumn;
 
     /**
+     * If {@code true} non-standard ALTER TABLE MODIFY COLUMN preserves nullability when changing data type.
+     */
+    public boolean alterTableModifyColumnPreserveNullability;
+
+    /**
+     * If {@code true} MySQL table and column options are allowed
+     */
+    public boolean mySqlTableOptions;
+
+    /**
+     * If {@code true} DELETE identifier FROM is allowed
+     */
+    public boolean deleteIdentifierFrom;
+
+    /**
      * If {@code true} TRUNCATE TABLE uses RESTART IDENTITY by default.
      */
     public boolean truncateTableRestartIdentity;
@@ -598,6 +613,8 @@ public class Mode {
         mode.allowUnrelatedOrderByExpressionsInDistinctQueries = true;
         mode.alterTableExtensionsMySQL = true;
         mode.alterTableModifyColumn = true;
+        mode.mySqlTableOptions = true;
+        mode.deleteIdentifierFrom = true;
         mode.truncateTableRestartIdentity = true;
         mode.allNumericTypesHavePrecision = true;
         mode.nextValueReturnsDifferentValues = true;
@@ -628,6 +645,8 @@ public class Mode {
         mode.allowUnrelatedOrderByExpressionsInDistinctQueries = true;
         mode.alterTableExtensionsMySQL = true;
         mode.alterTableModifyColumn = true;
+        mode.mySqlTableOptions = true;
+        mode.deleteIdentifierFrom = true;
         mode.truncateTableRestartIdentity = true;
         mode.allNumericTypesHavePrecision = true;
         mode.updateSequenceOnManualIdentityInsertion = true;
@@ -656,6 +675,7 @@ public class Mode {
         mode.supportedClientInfoPropertiesRegEx =
                 Pattern.compile(".*\\..*");
         mode.alterTableModifyColumn = true;
+        mode.alterTableModifyColumnPreserveNullability = true;
         mode.decimalSequences = true;
         mode.charAndByteLengthUnits = true;
         mode.nextvalAndCurrvalPseudoColumns = true;

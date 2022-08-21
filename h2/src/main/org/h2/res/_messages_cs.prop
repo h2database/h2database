@@ -7,6 +7,7 @@
 22003=Číselná hodnota je mimo rozsah: {0}
 22004=#Numeric value out of range: {0} in column {1}
 22007=Nelze zpracovat konstantu {0} {1}
+2200E=#Null value in array target.
 22012=Dělení nulou: {0}
 22013=#Invalid PRECEDING or FOLLOWING size in window function: {0}
 22018=Chyba při převodu dat {0}

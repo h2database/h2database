@@ -7,6 +7,7 @@
 22003=Numerischer Wert außerhalb des Bereichs: {0}
 22004=Numerischer Wert außerhalb des Bereichs: {0} in Feld {1}
 22007=Kann {0} {1} nicht umwandeln
+2200E=#Null value in array target.
 22012=Division durch 0: {0}
 22013=Ungültige PRECEDING oder FOLLOWING Größe in Window-Funktion: {0}
 22018=Datenumwandlungsfehler beim Umwandeln von {0}

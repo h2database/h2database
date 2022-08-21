@@ -6,8 +6,10 @@
 package org.h2.command.dml;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import org.h2.api.ErrorCode;
+import org.h2.engine.Constants;
 import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionList;
@@ -24,6 +26,7 @@ import org.h2.table.DataChangeDeltaTable.ResultOption;
 import org.h2.table.Table;
 import org.h2.util.HasSQL;
 import org.h2.value.Value;
+import org.h2.value.ValueArray;
 import org.h2.value.ValueNull;
 
 /**
@@ -46,15 +49,18 @@ public final class SetClauseList implements HasSQL {
      * Add a single column.
      *
      * @param column the column
+     * @param arrayIndexes
+     *            non-empty array of indexes for array element assignment, or
+     *            {@code null} for simple assignment
      * @param expression the expression
      */
-    public void addSingle(Column column, Expression expression) {
+    public void addSingle(Column column, Expression[] arrayIndexes, Expression expression) {
         int id = column.getColumnId();
         if (actions[id] != null) {
             throw DbException.get(ErrorCode.DUPLICATE_COLUMN_NAME_1, column.getName());
         }
         if (expression != ValueExpression.DEFAULT) {
-            actions[id] = new SetSimple(expression);
+            actions[id] = new SetSimple(arrayIndexes, expression);
             if (expression instanceof Parameter) {
                 ((Parameter) expression).setColumn(column);
             }
@@ -67,9 +73,12 @@ public final class SetClauseList implements HasSQL {
      * Add multiple columns.
      *
      * @param columns the columns
+     * @param allIndexes
+     *            list of non-empty arrays of indexes for array element
+     *            assignments, or {@code null} values for simple assignments
      * @param expression the expression (e.g. an expression list)
      */
-    public void addMultiple(ArrayList<Column> columns, Expression expression) {
+    public void addMultiple(ArrayList<Column> columns, ArrayList<Expression[]> allIndexes, Expression expression) {
         int columnCount = columns.size();
         if (expression instanceof ExpressionList) {
             ExpressionList expressions = (ExpressionList) expression;
@@ -78,14 +87,14 @@ public final class SetClauseList implements HasSQL {
                     throw DbException.get(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
                 }
                 for (int i = 0; i < columnCount; i++) {
-                    addSingle(columns.get(i), expressions.getSubexpression(i));
+                    addSingle(columns.get(i), allIndexes.get(i), expressions.getSubexpression(i));
                 }
                 return;
             }
         }
         if (columnCount == 1) {
             // Row value special case
-            addSingle(columns.get(0), expression);
+            addSingle(columns.get(0), allIndexes.get(0), expression);
         } else {
             int[] cols = new int[columnCount];
             RowExpression row = new RowExpression(expression, cols);
@@ -106,7 +115,7 @@ public final class SetClauseList implements HasSQL {
                 if (actions[id] != null) {
                     throw DbException.get(ErrorCode.DUPLICATE_COLUMN_NAME_1, column.getName());
                 }
-                actions[id] = new SetMultiple(row, i, id == minId, id == maxId);
+                actions[id] = new SetMultiple(allIndexes.get(i), row, i, id == minId, id == maxId);
             }
         }
     }
@@ -120,15 +129,15 @@ public final class SetClauseList implements HasSQL {
         for (int i = 0; i < columnCount; i++) {
             UpdateAction action = actions[i];
             Column column = columns[i];
-            Value newValue;
+            Value oldValue = oldRow.getValue(i), newValue;
             if (action == null || action == UpdateAction.ON_UPDATE) {
-                newValue = column.isGenerated() ? null : oldRow.getValue(i);
+                newValue = column.isGenerated() ? null : oldValue;
             } else if (action == UpdateAction.SET_DEFAULT) {
-                newValue = !column.isIdentity() ? null : oldRow.getValue(i);
+                newValue = !column.isIdentity() ? null : oldValue;
             } else {
-                newValue = action.update(session);
+                newValue = action.update(session, oldValue);
                 if (newValue == ValueNull.INSTANCE && column.isDefaultOnNull()) {
-                    newValue = !column.isIdentity() ? null : oldRow.getValue(i);
+                    newValue = !column.isIdentity() ? null : oldValue;
                 } else if (column.isGeneratedAlways()) {
                     throw DbException.get(ErrorCode.GENERATED_COLUMN_CANNOT_BE_ASSIGNED_1,
                             column.getSQLWithTable(new StringBuilder(), TRACE_SQL_FLAGS).toString());
@@ -271,7 +280,7 @@ public final class SetClauseList implements HasSQL {
         UpdateAction() {
         }
 
-        Value update(SessionLocal session) {
+        Value update(SessionLocal session, Value oldValue) {
             throw DbException.getInternalError();
         }
 
@@ -289,11 +298,94 @@ public final class SetClauseList implements HasSQL {
 
     }
 
-    private static final class SetSimple extends UpdateAction {
+    private static abstract class SetAction extends UpdateAction {
+
+        private final Expression[] arrayIndexes;
+
+        SetAction(Expression[] arrayIndexes) {
+            this.arrayIndexes = arrayIndexes;
+        }
+
+        @Override
+        boolean isEverything(ExpressionVisitor visitor) {
+            if (arrayIndexes != null) {
+                for (Expression e : arrayIndexes) {
+                    if (!e.isEverything(visitor)) {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+
+        @Override
+        void mapAndOptimize(SessionLocal session, ColumnResolver resolver1, ColumnResolver resolver2) {
+            if (arrayIndexes != null) {
+                for (int i = 0, l = arrayIndexes.length; i < l; i++) {
+                    Expression e = arrayIndexes[i];
+                    e.mapColumns(resolver1, 0, Expression.MAP_INITIAL);
+                    if (resolver2 != null) {
+                        e.mapColumns(resolver2, 0, Expression.MAP_INITIAL);
+                    }
+                    arrayIndexes[i] = e.optimize(session);
+                }
+            }
+        }
+
+        @Override
+        final Value update(SessionLocal session, Value oldValue) {
+            Value newValue = update(session);
+            if (arrayIndexes != null) {
+                newValue = updateArray(session, oldValue, newValue, 0);
+            }
+            return newValue;
+        }
+
+        private Value updateArray(SessionLocal session, Value oldValue, Value newValue, int indexNumber) {
+            int index = arrayIndexes[indexNumber++].getValue(session).getInt();
+            int cardinality = Constants.MAX_ARRAY_CARDINALITY;
+            if (index < 0 || index > cardinality) {
+                throw DbException.get(ErrorCode.ARRAY_ELEMENT_ERROR_2, Integer.toString(index),
+                        "1.." + cardinality);
+            }
+            Value[] values;
+            if (oldValue == null) {
+                values = new Value[index];
+                for (int i = 0; i < index - 1; i++) {
+                    values[i] = ValueNull.INSTANCE;
+                }
+            } else if (oldValue == ValueNull.INSTANCE) {
+                throw DbException.get(ErrorCode.NULL_VALUE_IN_ARRAY_TARGET);
+            } else if (oldValue.getValueType() != Value.ARRAY) {
+                throw DbException.get(ErrorCode.ARRAY_ELEMENT_ERROR_2, oldValue.getType().getTraceSQL(),
+                        "ARRAY");
+            } else {
+                values = ((ValueArray) oldValue).getList();
+                int length = values.length;
+                if (index <= length) {
+                    values = values.clone();
+                } else {
+                    values = Arrays.copyOf(values, index);
+                    for (int i = length; i < index - 1; i++) {
+                        values[i] = ValueNull.INSTANCE;
+                    }
+                }
+            }
+            values[index - 1] = indexNumber == arrayIndexes.length ? newValue
+                    : updateArray(session, values[index - 1], newValue, indexNumber);
+            return ValueArray.get(values, session);
+        }
+
+        abstract Value update(SessionLocal session);
+
+    }
+
+    private static final class SetSimple extends SetAction {
 
         private Expression expression;
 
-        SetSimple(Expression expression) {
+        SetSimple(Expression[] arrayIndexes, Expression expression) {
+            super(arrayIndexes);
             this.expression = expression;
         }
 
@@ -304,11 +396,12 @@ public final class SetClauseList implements HasSQL {
 
         @Override
         boolean isEverything(ExpressionVisitor visitor) {
-            return expression.isEverything(visitor);
+            return super.isEverything(visitor) && expression.isEverything(visitor);
         }
 
         @Override
         void mapAndOptimize(SessionLocal session, ColumnResolver resolver1, ColumnResolver resolver2) {
+            super.mapAndOptimize(session, resolver1, resolver2);
             expression.mapColumns(resolver1, 0, Expression.MAP_INITIAL);
             if (resolver2 != null) {
                 expression.mapColumns(resolver2, 0, Expression.MAP_INITIAL);
@@ -349,7 +442,7 @@ public final class SetClauseList implements HasSQL {
         }
     }
 
-    private static final class SetMultiple extends UpdateAction {
+    private static final class SetMultiple extends SetAction {
 
         final RowExpression row;
 
@@ -359,7 +452,8 @@ public final class SetClauseList implements HasSQL {
 
         private boolean last;
 
-        SetMultiple(RowExpression row, int position, boolean first, boolean last) {
+        SetMultiple(Expression[] arrayIndexes, RowExpression row, int position, boolean first, boolean last) {
+            super(arrayIndexes);
             this.row = row;
             this.position = position;
             this.first = first;
@@ -389,11 +483,12 @@ public final class SetClauseList implements HasSQL {
 
         @Override
         boolean isEverything(ExpressionVisitor visitor) {
-            return !first || row.isEverything(visitor);
+            return super.isEverything(visitor) && (!first || row.isEverything(visitor));
         }
 
         @Override
         void mapAndOptimize(SessionLocal session, ColumnResolver resolver1, ColumnResolver resolver2) {
+            super.mapAndOptimize(session, resolver1, resolver2);
             if (first) {
                 row.mapAndOptimize(session, resolver1, resolver2);
             }

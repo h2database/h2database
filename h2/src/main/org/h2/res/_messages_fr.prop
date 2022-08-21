@@ -7,6 +7,7 @@
 22003=Valeur numérique hors de portée: {0}
 22004=#Numeric value out of range: {0} in column {1}
 22007=Impossible d''analyser {0} constante {1}
+2200E=#Null value in array target.
 22012=Division par zéro: {0}
 22013=#Invalid PRECEDING or FOLLOWING size in window function: {0}
 22018=Erreur lors de la conversion de données {0}

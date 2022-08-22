@@ -1157,18 +1157,34 @@ public class Parser {
         do {
             if (readIf(OPEN_PAREN)) {
                 ArrayList<Column> columns = Utils.newSmallArrayList();
+                ArrayList<Expression[]> allIndexes = Utils.newSmallArrayList();
                 do {
                     columns.add(readTableColumn(filter));
+                    allIndexes.add(readUpdateSetClauseArrayIndexes());
                 } while (readIfMore());
                 read(EQUAL);
-                list.addMultiple(columns, readExpression());
+                list.addMultiple(columns, allIndexes, readExpression());
             } else {
                 Column column = readTableColumn(filter);
+                Expression[] arrayIndexes = readUpdateSetClauseArrayIndexes();
                 read(EQUAL);
-                list.addSingle(column, readExpressionOrDefault());
+                list.addSingle(column, arrayIndexes,
+                        arrayIndexes == null ? readExpressionOrDefault() : readExpression());
             }
         } while (readIf(COMMA));
         return list;
+    }
+
+    private Expression[] readUpdateSetClauseArrayIndexes() {
+        if (readIf(OPEN_BRACKET)) {
+            ArrayList<Expression> list = Utils.newSmallArrayList();
+            do {
+                list.add(readExpression());
+                read(CLOSE_BRACKET);
+            } while (readIf(OPEN_BRACKET));
+            return list.toArray(new Expression[0]);
+        }
+        return null;
     }
 
     private TableFilter readSimpleTableFilter() {

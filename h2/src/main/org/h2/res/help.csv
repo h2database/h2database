@@ -3673,10 +3673,12 @@ NO CACHE
 "
 
 "Other Grammar","Set clause list","
-{ { columnName = { DEFAULT | expression } }
-    | { ( columnName [,...] ) = { rowValueExpression | (query) } } } [,...]
+{ { updateTarget = { DEFAULT | expression } }
+    | { ( updateTarget [,...] ) = { rowValueExpression | (query) } } } [,...]
 ","
 List of SET clauses.
+
+Each column may be specified only once in update targets.
 ","
 NAME = 'Test', PRICE = 2
 (A, B) = (1, 2)
@@ -3727,6 +3729,21 @@ A natural join is an inner join, where the condition is automatically on the
 columns with the same name.
 ","
 TEST1 AS T1 LEFT JOIN TEST2 AS T2 ON T1.ID = T2.PARENT_ID
+"
+
+"Other Grammar","Update target","
+columnName [ '[' int ']' [...] ]
+","
+Column or element of a column of ARRAY data type.
+
+If array indexes are specified,
+column must have a compatible ARRAY data type and updated rows may not have NULL values in this column.
+It means for C[2][3] both C and C[2] may not be NULL.
+Too short arrays are expanded, missing elements are set to NULL.
+","
+A
+B[1]
+C[2][3]
 "
 
 "Other Grammar","Within group specification","

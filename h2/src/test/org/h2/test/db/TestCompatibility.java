@@ -320,6 +320,7 @@ public class TestCompatibility extends TestDb {
         stat.execute("DROP TABLE IF EXISTS TEST");
         stat.execute("CREATE TABLE `TEST`(ID INT PRIMARY KEY, NAME VARCHAR)");
         stat.execute("INSERT INTO TEST VALUES(1, 'Hello'), (2, 'World')");
+        assertResult(null, stat, "SELECT UNIX_TIMESTAMP(NULL)");
         assertResult("0", stat, "SELECT UNIX_TIMESTAMP('1970-01-01 00:00:00Z')");
         assertResult("1196418619", stat, "SELECT UNIX_TIMESTAMP('2007-11-30 10:30:19Z')");
         assertResult("1196418619", stat, "SELECT UNIX_TIMESTAMP(FROM_UNIXTIME(1196418619))");

@@ -171,7 +171,8 @@ public class Build extends BuildBase {
         }
         javac(args, files);
 
-        files = files("src/main/META-INF/services");
+        files = files("src/main/META-INF/native-image");
+        files.addAll(files("src/main/META-INF/services"));
         copy("temp", files, "src/main");
 
         files = files("src/test");

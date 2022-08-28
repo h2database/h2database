@@ -230,7 +230,7 @@ public class ErrorCode {
      * Example:
      * <pre>
      * CREATE TABLE TEST(A INTEGER ARRAY) AS VALUES NULL;
-     * UDPDATE TEST SET A[1] = 2;
+     * UPDATE TEST SET A[1] = 2;
      * </pre>
      */
     public static final int NULL_VALUE_IN_ARRAY_TARGET = 22035;

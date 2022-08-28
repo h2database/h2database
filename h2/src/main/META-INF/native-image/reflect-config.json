@@ -1,0 +1,530 @@
+[
+	{
+		"condition": {
+			"typeReachable": "org.h2.store.fs.FilePath"
+		},
+		"methods": [
+			{
+				"name": "<init>",
+				"parameterTypes": []
+			}
+		],
+		"name": "org.h2.store.fs.mem.FilePathMem"
+	},
+	{
+		"condition": {
+			"typeReachable": "org.h2.store.fs.FilePath"
+		},
+		"methods": [
+			{
+				"name": "<init>",
+				"parameterTypes": []
+			}
+		],
+		"name": "org.h2.store.fs.mem.FilePathMemLZF"
+	},
+	{
+		"condition": {
+			"typeReachable": "org.h2.store.fs.FilePath"
+		},
+		"methods": [
+			{
+				"name": "<init>",
+				"parameterTypes": []
+			}
+		],
+		"name": "org.h2.store.fs.niomem.FilePathNioMem"
+	},
+	{
+		"condition": {
+			"typeReachable": "org.h2.store.fs.FilePath"
+		},
+		"methods": [
+			{
+				"name": "<init>",
+				"parameterTypes": []
+			}
+		],
+		"name": "org.h2.store.fs.niomem.FilePathNioMemLZF"
+	},
+	{
+		"condition": {
+			"typeReachable": "org.h2.store.fs.FilePath"
+		},
+		"methods": [
+			{
+				"name": "<init>",
+				"parameterTypes": []
+			}
+		],
+		"name": "org.h2.store.fs.split.FilePathSplit"
+	},
+	{
+		"condition": {
+			"typeReachable": "org.h2.store.fs.FilePath"
+		},
+		"methods": [
+			{
+				"name": "<init>",
+				"parameterTypes": []
+			}
+		],
+		"name": "org.h2.store.fs.niomapped.FilePathNioMapped"
+	},
+	{
+		"condition": {
+			"typeReachable": "org.h2.store.fs.FilePath"
+		},
+		"methods": [
+			{
+				"name": "<init>",
+				"parameterTypes": []
+			}
+		],
+		"name": "org.h2.store.fs.async.FilePathAsync"
+	},
+	{
+		"condition": {
+			"typeReachable": "org.h2.store.fs.FilePath"
+		},
+		"methods": [
+			{
+				"name": "<init>",
+				"parameterTypes": []
+			}
+		],
+		"name": "org.h2.store.fs.zip.FilePathZip"
+	},
+	{
+		"condition": {
+			"typeReachable": "org.h2.store.fs.FilePath"
+		},
+		"methods": [
+			{
+				"name": "<init>",
+				"parameterTypes": []
+			}
+		],
+		"name": "org.h2.store.fs.retry.FilePathRetryOnInterrupt"
+	},
+	{
+		"condition": {
+			"typeReachable": "org.h2.mvstore.type.MetaType"
+		},
+		"fields": [
+			{
+				"name": "INSTANCE"
+			}
+		],
+		"name": "org.h2.mvstore.type.ByteArrayDataType"
+	},
+	{
+		"condition": {
+			"typeReachable": "org.h2.mvstore.type.MetaType"
+		},
+		"fields": [
+			{
+				"name": "INSTANCE"
+			}
+		],
+		"name": "org.h2.mvstore.type.LongDataType"
+	},
+	{
+		"condition": {
+			"typeReachable": "org.h2.mvstore.type.MetaType"
+		},
+		"fields": [
+			{
+				"name": "INSTANCE"
+			}
+		],
+		"name": "org.h2.mvstore.type.StringDataType"
+	},
+	{
+		"condition": {
+			"typeReachable": "org.h2.mvstore.type.MetaType"
+		},
+		"fields": [
+			{
+				"name": "INSTANCE"
+			}
+		],
+		"name": "org.h2.mvstore.db.NullValueDataType"
+	},
+	{
+		"condition": {
+			"typeReachable": "org.h2.mvstore.type.MetaType"
+		},
+		"fields": [
+			{
+				"name": "INSTANCE"
+			}
+		],
+		"name": "org.h2.mvstore.db.LobStorageMap$BlobReference$Type"
+	},
+	{
+		"condition": {
+			"typeReachable": "org.h2.mvstore.type.MetaType"
+		},
+		"fields": [
+			{
+				"name": "INSTANCE"
+			}
+		],
+		"name": "org.h2.mvstore.db.LobStorageMap$BlobMeta$Type"
+	},
+	{
+		"condition": {
+			"typeReachable": "org.h2.mvstore.type.MetaType"
+		},
+		"methods": [
+			{
+				"name": "<init>",
+				"parameterTypes": []
+			}
+		],
+		"name": "org.h2.mvstore.tx.VersionedValueType$Factory"
+	},
+	{
+		"condition": {
+			"typeReachable": "org.h2.mvstore.type.MetaType"
+		},
+		"methods": [
+			{
+				"name": "<init>",
+				"parameterTypes": []
+			}
+		],
+		"name": "org.h2.mvstore.db.RowDataType$Factory"
+	},
+	{
+		"condition": {
+			"typeReachable": "org.h2.server.TcpServer"
+		},
+		"methods": [
+			{
+				"name": "stopServer",
+				"parameterTypes": [
+					"int",
+					"java.lang.String",
+					"int"
+				]
+			}
+		],
+		"name": "org.h2.server.TcpServer"
+	},
+	{
+		"condition": {
+			"typeReachable": "org.h2.util.MathUtils"
+		},
+		"methods": [
+			{
+				"name": "getAddress",
+				"parameterTypes": []
+			},
+			{
+				"name": "getAllByName",
+				"parameterTypes": [
+					"java.lang.String"
+				]
+			},
+			{
+				"name": "getHostName",
+				"parameterTypes": []
+			},
+			{
+				"name": "getLocalHost",
+				"parameterTypes": []
+			}
+		],
+		"name": "java.net.InetAddress"
+	},
+	{
+		"condition": {
+			"typeReachable": "org.h2.util.MemoryUnmapper"
+		},
+		"fields": [
+			{
+				"name": "theUnsafe"
+			}
+		],
+		"methods": [
+			{
+				"name": "invokeCleaner",
+				"parameterTypes": [
+					"java.nio.ByteBuffer"
+				]
+			}
+		],
+		"name": "sun.misc.Unsafe"
+	},
+	{
+		"condition": {
+			"typeReachable": "org.h2.engine.Database"
+		},
+		"methods": [
+			{
+				"name": "createIndex",
+				"parameterTypes": [
+					"java.sql.Connection",
+					"java.lang.String",
+					"java.lang.String",
+					"java.lang.String"
+				]
+			},
+			{
+				"name": "dropAll",
+				"parameterTypes": [
+					"java.sql.Connection"
+				]
+			},
+			{
+				"name": "dropIndex",
+				"parameterTypes": [
+					"java.sql.Connection",
+					"java.lang.String",
+					"java.lang.String"
+				]
+			},
+			{
+				"name": "init",
+				"parameterTypes": [
+					"java.sql.Connection"
+				]
+			},
+			{
+				"name": "reindex",
+				"parameterTypes": [
+					"java.sql.Connection"
+				]
+			},
+			{
+				"name": "search",
+				"parameterTypes": [
+					"java.sql.Connection",
+					"java.lang.String",
+					"int",
+					"int"
+				]
+			},
+			{
+				"name": "searchData",
+				"parameterTypes": [
+					"java.sql.Connection",
+					"java.lang.String",
+					"int",
+					"int"
+				]
+			}
+		],
+		"name": "org.h2.fulltext.FullText"
+	},
+	{
+		"condition": {
+			"typeReachable": "org.h2.fulltext.FullText"
+		},
+		"methods": [
+			{
+				"name": "<init>",
+				"parameterTypes": []
+			}
+		],
+		"name": "org.h2.fulltext.FullText$FullTextTrigger"
+	},
+	{
+		"condition": {
+			"typeReachable": "org.h2.engine.Database"
+		},
+		"methods": [
+			{
+				"name": "createIndex",
+				"parameterTypes": [
+					"java.sql.Connection",
+					"java.lang.String",
+					"java.lang.String",
+					"java.lang.String"
+				]
+			},
+			{
+				"name": "dropAll",
+				"parameterTypes": [
+					"java.sql.Connection"
+				]
+			},
+			{
+				"name": "dropIndex",
+				"parameterTypes": [
+					"java.sql.Connection",
+					"java.lang.String",
+					"java.lang.String"
+				]
+			},
+			{
+				"name": "init",
+				"parameterTypes": [
+					"java.sql.Connection"
+				]
+			},
+			{
+				"name": "reindex",
+				"parameterTypes": [
+					"java.sql.Connection"
+				]
+			},
+			{
+				"name": "search",
+				"parameterTypes": [
+					"java.sql.Connection",
+					"java.lang.String",
+					"int",
+					"int"
+				]
+			},
+			{
+				"name": "searchData",
+				"parameterTypes": [
+					"java.sql.Connection",
+					"java.lang.String",
+					"int",
+					"int"
+				]
+			}
+		],
+		"name": "org.h2.fulltext.FullTextLucene"
+	},
+	{
+		"condition": {
+			"typeReachable": "org.h2.fulltext.FullTextLucene"
+		},
+		"methods": [
+			{
+				"name": "<init>",
+				"parameterTypes": []
+			}
+		],
+		"name": "org.h2.fulltext.FullTextLucene$FullTextTrigger"
+	},
+	{
+		"condition": {
+			"typeReachable": "org.slf4j.Logger"
+		},
+		"methods": [
+			{
+				"name": "<init>",
+				"parameterTypes": []
+			}
+		],
+		"name": "org.h2.message.TraceWriterAdapter"
+	},
+	{
+		"condition": {
+			"typeReachable": "com.ibm.icu.text.Collator"
+		},
+		"methods": [
+			{
+				"name": "getAvailableLocales",
+				"parameterTypes": []
+			},
+			{
+				"name": "getInstance",
+				"parameterTypes": [
+					"java.util.Locale"
+				]
+			},
+			{
+				"name": "setStrength",
+				"parameterTypes": [
+					"int"
+				]
+			}
+		],
+		"name": "com.ibm.icu.text.Collator"
+	},
+	{
+		"condition": {
+			"typeReachable": "org.h2.tools.Server"
+		},
+		"methods": [
+			{
+				"name": "browse",
+				"parameterTypes": [
+					"java.net.URI"
+				]
+			},
+			{
+				"name": "getDesktop",
+				"parameterTypes": []
+			},
+			{
+				"name": "isDesktopSupported",
+				"parameterTypes": []
+			}
+		],
+		"name": "java.awt.Desktop"
+	},
+	{
+		"condition": {
+			"typeReachable": "java.awt.SystemTray"
+		},
+		"methods": [
+			{
+				"name": "<init>",
+				"parameterTypes": []
+			}
+		],
+		"name": "org.h2.tools.GUIConsole"
+	},
+	{
+		"condition": {
+			"typeReachable": "java.awt.SystemTray"
+		},
+		"methods": [
+			{
+				"name": "add",
+				"parameterTypes": [
+					"java.awt.TrayIcon"
+				]
+			},
+			{
+				"name": "getSystemTray",
+				"parameterTypes": []
+			},
+			{
+				"name": "getTrayIconSize",
+				"parameterTypes": []
+			},
+			{
+				"name": "isSupported",
+				"parameterTypes": []
+			},
+			{
+				"name": "remove",
+				"parameterTypes": [
+					"java.awt.TrayIcon"
+				]
+			}
+		],
+		"name": "java.awt.SystemTray"
+	},
+	{
+		"condition": {
+			"typeReachable": "java.awt.SystemTray"
+		},
+		"methods": [
+			{
+				"name": "<init>",
+				"parameterTypes": [
+					"java.awt.Image",
+					"java.lang.String"
+				]
+			},
+			{
+				"name": "addMouseListener",
+				"parameterTypes": [
+					"java.awt.event.MouseListener"
+				]
+			}
+		],
+		"name": "java.awt.TrayIcon"
+	}
+]

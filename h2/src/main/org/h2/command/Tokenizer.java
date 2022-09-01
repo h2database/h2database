@@ -187,7 +187,7 @@ public final class Tokenizer {
                 continue loop;
             case '#':
                 if (provider.getMode().supportPoundSymbolForColumnNames) {
-                    i = readIdentifier(sql, end, i, i, c, tokens);
+                    i = readIdentifier(sql, end, i, i, tokens);
                     continue loop;
                 }
                 throw DbException.getSyntaxError(sql, i);
@@ -468,7 +468,7 @@ public final class Tokenizer {
                 if (i < end && sql.charAt(i + 1) == '\'') {
                     i = readBinaryString(sql, i, end, i + 1, tokens);
                 } else {
-                    i = readIdentifier(sql, end, i, i, c, tokens);
+                    i = readIdentifier(sql, end, i, i, tokens);
                 }
                 continue loop;
             case 'Y':
@@ -477,7 +477,7 @@ public final class Tokenizer {
                 continue loop;
             case 'Z':
             case 'z':
-                i = readIdentifier(sql, end, i, i, c, tokens);
+                i = readIdentifier(sql, end, i, i, tokens);
                 continue loop;
             case '[':
                 if (provider.getMode().squareBracketQuotedNames) {
@@ -526,7 +526,7 @@ public final class Tokenizer {
                         continue loop;
                     }
                     if (Character.isJavaIdentifierStart(cp)) {
-                        i = readIdentifier(sql, end, tokenStart, i, cp, tokens);
+                        i = readIdentifier(sql, end, tokenStart, i, tokens);
                         continue loop;
                     }
                     throw DbException.getSyntaxError(sql, tokenStart);
@@ -542,7 +542,7 @@ public final class Tokenizer {
         return tokens;
     }
 
-    private int readIdentifier(String sql, int end, int tokenStart, int i, int cp, ArrayList<Token> tokens) {
+    private int readIdentifier(String sql, int end, int tokenStart, int i, ArrayList<Token> tokens) {
         int endIndex = findIdentifierEnd(sql, end, i);
         tokens.add(new Token.IdentifierToken(tokenStart, extractIdentifier(sql, tokenStart, endIndex), false, false));
         return endIndex;

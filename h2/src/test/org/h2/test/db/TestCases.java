@@ -8,6 +8,7 @@ package org.h2.test.db;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.StringReader;
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
@@ -331,6 +332,10 @@ public class TestCases extends TestDb {
             assertEquals(data[i], rs.getString(2));
         }
         stat.execute("drop table test");
+        rs = stat.executeQuery("select floor(\u3000 1.2) \ud835\udca9");
+        rs.next();
+        assertEquals(BigDecimal.ONE, rs.getBigDecimal(1));
+        assertEquals("\ud835\udca9", rs.getMetaData().getColumnLabel(1));
         conn.close();
     }
 

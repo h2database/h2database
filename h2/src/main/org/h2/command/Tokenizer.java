@@ -526,6 +526,7 @@ public final class Tokenizer {
                 } else {
                     int cp = Character.isHighSurrogate(c) ? sql.codePointAt(i++) : c;
                     if (Character.isSpaceChar(cp)) {
+                        i++;
                         continue loop;
                     }
                     if (Character.isJavaIdentifierStart(cp)) {
@@ -546,10 +547,7 @@ public final class Tokenizer {
     }
 
     private int readIdentifier(String sql, int end, int tokenStart, int i, int cp, ArrayList<Token> tokens) {
-        if (cp >= Character.MIN_SUPPLEMENTARY_CODE_POINT) {
-            i++;
-        }
-        int endIndex = findIdentifierEnd(sql, end, i + Character.charCount(cp) - 1);
+        int endIndex = findIdentifierEnd(sql, end, i);
         tokens.add(new Token.IdentifierToken(tokenStart, extractIdentifier(sql, tokenStart, endIndex), false, false));
         return endIndex;
     }

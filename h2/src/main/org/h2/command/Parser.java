@@ -3495,23 +3495,23 @@ public class Parser {
             if ("STRING_AGG".equals(aggregateName)) {
                 // PostgreSQL compatibility: string_agg(expression, delimiter)
                 read(COMMA);
-                extraArguments.setSeparator(readString());
+                extraArguments.setSeparator(readStringOrParameter());
                 orderByList = readIfOrderBy();
             } else if ("GROUP_CONCAT".equals(aggregateName)) {
                 orderByList = readIfOrderBy();
                 if (readIf("SEPARATOR")) {
-                    extraArguments.setSeparator(readString());
+                    extraArguments.setSeparator(readStringOrParameter());
                 }
             } else {
                 if (readIf(COMMA)) {
-                    extraArguments.setSeparator(readString());
+                    extraArguments.setSeparator(readStringOrParameter());
                 }
                 if (readIf(ON)) {
                     read("OVERFLOW");
                     if (readIf("TRUNCATE")) {
                         extraArguments.setOnOverflowTruncate(true);
                         if (currentTokenType == LITERAL) {
-                            extraArguments.setFilter(readString());
+                            extraArguments.setFilter(readStringOrParameter());
                         }
                         if (!readIf(WITH)) {
                             read("WITHOUT");
@@ -5638,6 +5638,28 @@ public class Parser {
             String s = expr.optimize(session).getValue(session).getString();
             if (s == null || s.length() <= Constants.MAX_STRING_LENGTH) {
                 return s;
+            }
+        } catch (DbException e) {
+        }
+        throw DbException.getSyntaxError(sqlCommand, sqlIndex, "character string");
+    }
+
+    private Expression readStringOrParameter() {
+        int sqlIndex = token.start();
+        Expression expr = readExpression();
+        try {
+            expr = expr.optimize(session);
+            if (expr instanceof Parameter) {
+                return expr;
+            }
+            Value v = expr.getValue(session);
+            int valueType = v.getValueType();
+            if ((valueType == NULL || valueType == Value.VARCHAR) && expr instanceof ValueExpression) {
+                return expr;
+            }
+            String s = v.getString();
+            if (s == null || s.length() <= Constants.MAX_STRING_LENGTH) {
+                return s == null ? ValueExpression.NULL : ValueExpression.get(ValueVarchar.get(s, database));
             }
         } catch (DbException e) {
         }

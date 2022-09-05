@@ -216,3 +216,16 @@ EXPLAIN SELECT LISTAGG(V ON OVERFLOW TRUNCATE '..' WITHOUT COUNT) WITHIN GROUP (
 
 DROP TABLE TEST;
 > ok
+
+SELECT LISTAGG(V, ?) L FROM (VALUES 'a', 'b', 'c') T(V);
+{
+:
+> L
+> -----
+> a:b:c
+> rows: 1
+};
+> update count: 0
+
+SELECT LISTAGG(V, V) L FROM (VALUES 'a', 'b', 'c') T(V);
+> exception SYNTAX_ERROR_2

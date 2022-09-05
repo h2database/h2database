@@ -5,16 +5,18 @@
  */
 package org.h2.expression.aggregate;
 
+import org.h2.expression.Expression;
+
 /**
  * Additional arguments of LISTAGG aggregate function.
  */
 public final class ListaggArguments {
 
-    private String separator;
+    private Expression separator;
 
     private boolean onOverflowTruncate;
 
-    private String filter;
+    private Expression filter;
 
     private boolean withoutCount;
 
@@ -32,8 +34,8 @@ public final class ListaggArguments {
      *            the LISTAGG separator, {@code null} or empty string means no
      *            separator
      */
-    public void setSeparator(String separator) {
-        this.separator = separator != null ? separator : "";
+    public void setSeparator(Expression separator) {
+        this.separator = separator;
     }
 
     /**
@@ -41,7 +43,7 @@ public final class ListaggArguments {
      *
      * @return the LISTAGG separator, {@code null} means the default
      */
-    public String getSeparator() {
+    public Expression getSeparator() {
         return separator;
     }
 
@@ -51,7 +53,11 @@ public final class ListaggArguments {
      * @return the effective LISTAGG separator
      */
     public String getEffectiveSeparator() {
-        return separator != null ? separator : ",";
+        if (separator != null) {
+            String s = separator.getValue(null).getString();
+            return s != null ? s : "";
+        }
+        return ",";
     }
 
     /**
@@ -82,8 +88,8 @@ public final class ListaggArguments {
      *            the LISTAGG truncation filter, {@code null} or empty string
      *            means no truncation filter
      */
-    public void setFilter(String filter) {
-        this.filter = filter != null ? filter : "";
+    public void setFilter(Expression filter) {
+        this.filter = filter;
     }
 
     /**
@@ -91,7 +97,7 @@ public final class ListaggArguments {
      *
      * @return the LISTAGG truncation filter, {@code null} means the default
      */
-    public String getFilter() {
+    public Expression getFilter() {
         return filter;
     }
 
@@ -101,7 +107,11 @@ public final class ListaggArguments {
      * @return the effective LISTAGG truncation filter
      */
     public String getEffectiveFilter() {
-        return filter != null ? filter : "...";
+        if (filter != null) {
+            String f = filter.getValue(null).getString();
+            return f != null ? f : "";
+        }
+        return "...";
     }
 
     /**

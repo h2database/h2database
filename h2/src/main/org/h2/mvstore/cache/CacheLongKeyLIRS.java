@@ -150,7 +150,7 @@ public class CacheLongKeyLIRS<V> {
      * @param memory the memory used for the given entry
      * @return the old value, or null if there was no resident entry
      */
-    public V put(long key, V value, int memory) {
+    public V put(long key, V value, long memory) {
         if (value == null) {
             throw DataUtils.newIllegalArgumentException(
                     "The value may not be null");
@@ -190,8 +190,8 @@ public class CacheLongKeyLIRS<V> {
      * @return the size
      */
     @SuppressWarnings("unused")
-    protected int sizeOf(V value) {
         return 1;
+    protected long sizeOf(V value) {
     }
 
     /**
@@ -220,9 +220,9 @@ public class CacheLongKeyLIRS<V> {
      * @param key the key (may not be null)
      * @return the memory, or 0 if there is no resident entry
      */
-    public int getMemory(long key) {
+    public long getMemory(long key) {
         Entry<V> e = find(key);
-        return e == null ? 0 : e.getMemory();
+        return e == null ? 0L : e.getMemory();
     }
 
     /**
@@ -787,7 +787,7 @@ public class CacheLongKeyLIRS<V> {
          * @param memory the memory used for the given entry
          * @return the old value, or null if there was no resident entry
          */
-        synchronized V put(long key, int hash, V value, int memory) {
+        synchronized V put(long key, int hash, V value, long memory) {
             Entry<V> e = find(key, hash);
             boolean existed = e != null;
             V old = null;
@@ -1106,7 +1106,7 @@ public class CacheLongKeyLIRS<V> {
         /**
          * The estimated memory used.
          */
-        final int memory;
+        final long memory;
 
         /**
          * When the item was last moved to the top of the stack.
@@ -1144,7 +1144,7 @@ public class CacheLongKeyLIRS<V> {
             this(0L, null, 0);
         }
 
-        Entry(long key, V value, int memory) {
+        Entry(long key, V value, long memory) {
             this.key = key;
             this.memory = memory;
             this.value = value;
@@ -1169,8 +1169,8 @@ public class CacheLongKeyLIRS<V> {
             return value == null ? reference.get() : value;
         }
 
-        int getMemory() {
-            return value == null ? 0 : memory;
+        long getMemory() {
+            return value == null ? 0L : memory;
         }
     }
 

@@ -226,6 +226,15 @@ public class CacheLongKeyLIRS<V> {
     }
 
     /**
+     * Get the memory overhead per value.
+     *
+     * @return the memory overhead per value
+     */
+    public static int getMemoryOverhead() {
+        return Entry.TOTAL_MEMORY_OVERHEAD;
+    }
+
+    /**
      * Get the value for the given key if the entry is cached. This method
      * adjusts the internal state of the cache sometimes, to ensure commonly
      * used entries stay in the cache.
@@ -795,7 +804,7 @@ public class CacheLongKeyLIRS<V> {
                 old = e.getValue();
                 remove(key, hash);
             }
-            if (memory > maxMemory) {
+            if (memory + Entry.TOTAL_MEMORY_OVERHEAD > maxMemory) {
                 // the new entry is too big to fit
                 return old;
             }
@@ -803,7 +812,7 @@ public class CacheLongKeyLIRS<V> {
             int index = hash & mask;
             e.mapNext = entries[index];
             entries[index] = e;
-            usedMemory += memory;
+            usedMemory += e.memory;
             if (usedMemory > maxMemory) {
                 // old entries needs to be removed
                 evict();
@@ -1088,6 +1097,8 @@ public class CacheLongKeyLIRS<V> {
      */
     static class Entry<V> {
 
+        static final int TOTAL_MEMORY_OVERHEAD = 112;
+
         /**
          * The key.
          */
@@ -1141,17 +1152,19 @@ public class CacheLongKeyLIRS<V> {
 
 
         Entry() {
-            this(0L, null, 0);
+            this(0L, null, 0L);
         }
 
         Entry(long key, V value, long memory) {
             this.key = key;
-            this.memory = memory;
+            this.memory = memory + TOTAL_MEMORY_OVERHEAD;
             this.value = value;
         }
 
         Entry(Entry<V> old) {
-            this(old.key, old.value, old.memory);
+            this.key = old.key;
+            this.memory = old.memory;
+            this.value = old.value;
             this.reference = old.reference;
             this.topMove = old.topMove;
         }

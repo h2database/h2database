@@ -150,7 +150,7 @@ public class CacheLongKeyLIRS<V> {
      * @param memory the memory used for the given entry
      * @return the old value, or null if there was no resident entry
      */
-    public V put(long key, V value, int memory) {
+    public V put(long key, V value, long memory) {
         if (value == null) {
             throw DataUtils.newIllegalArgumentException(
                     "The value may not be null");
@@ -184,14 +184,14 @@ public class CacheLongKeyLIRS<V> {
     }
 
     /**
-     * Get the size of the given value. The default implementation returns 1.
+     * Get the size of the given value. The default implementation returns 16.
      *
      * @param value the value
      * @return the size
      */
     @SuppressWarnings("unused")
-    protected int sizeOf(V value) {
-        return 1;
+    protected long sizeOf(V value) {
+        return 16;
     }
 
     /**
@@ -220,9 +220,18 @@ public class CacheLongKeyLIRS<V> {
      * @param key the key (may not be null)
      * @return the memory, or 0 if there is no resident entry
      */
-    public int getMemory(long key) {
+    public long getMemory(long key) {
         Entry<V> e = find(key);
-        return e == null ? 0 : e.getMemory();
+        return e == null ? 0L : e.getMemory();
+    }
+
+    /**
+     * Get the memory overhead per value.
+     *
+     * @return the memory overhead per value
+     */
+    public static int getMemoryOverhead() {
+        return Entry.TOTAL_MEMORY_OVERHEAD;
     }
 
     /**
@@ -787,7 +796,7 @@ public class CacheLongKeyLIRS<V> {
          * @param memory the memory used for the given entry
          * @return the old value, or null if there was no resident entry
          */
-        synchronized V put(long key, int hash, V value, int memory) {
+        synchronized V put(long key, int hash, V value, long memory) {
             Entry<V> e = find(key, hash);
             boolean existed = e != null;
             V old = null;
@@ -795,7 +804,7 @@ public class CacheLongKeyLIRS<V> {
                 old = e.getValue();
                 remove(key, hash);
             }
-            if (memory > maxMemory) {
+            if (memory + Entry.TOTAL_MEMORY_OVERHEAD > maxMemory) {
                 // the new entry is too big to fit
                 return old;
             }
@@ -803,7 +812,7 @@ public class CacheLongKeyLIRS<V> {
             int index = hash & mask;
             e.mapNext = entries[index];
             entries[index] = e;
-            usedMemory += memory;
+            usedMemory += e.memory;
             if (usedMemory > maxMemory) {
                 // old entries needs to be removed
                 evict();
@@ -1088,6 +1097,8 @@ public class CacheLongKeyLIRS<V> {
      */
     static class Entry<V> {
 
+        static final int TOTAL_MEMORY_OVERHEAD = 112;
+
         /**
          * The key.
          */
@@ -1106,7 +1117,7 @@ public class CacheLongKeyLIRS<V> {
         /**
          * The estimated memory used.
          */
-        final int memory;
+        final long memory;
 
         /**
          * When the item was last moved to the top of the stack.
@@ -1141,17 +1152,19 @@ public class CacheLongKeyLIRS<V> {
 
 
         Entry() {
-            this(0L, null, 0);
+            this(0L, null, 0L);
         }
 
-        Entry(long key, V value, int memory) {
+        Entry(long key, V value, long memory) {
             this.key = key;
-            this.memory = memory;
+            this.memory = memory + TOTAL_MEMORY_OVERHEAD;
             this.value = value;
         }
 
         Entry(Entry<V> old) {
-            this(old.key, old.value, old.memory);
+            this.key = old.key;
+            this.memory = old.memory;
+            this.value = old.value;
             this.reference = old.reference;
             this.topMove = old.topMove;
         }
@@ -1169,8 +1182,8 @@ public class CacheLongKeyLIRS<V> {
             return value == null ? reference.get() : value;
         }
 
-        int getMemory() {
-            return value == null ? 0 : memory;
+        long getMemory() {
+            return value == null ? 0L : memory;
         }
     }
 

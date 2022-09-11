@@ -108,7 +108,7 @@ public class FilePathCache extends FilePathWrapper {
                 }
                 int read = buff.position();
                 if (read == CACHE_BLOCK_SIZE) {
-                    cache.put(cachePos, buff, CACHE_BLOCK_SIZE);
+                    cache.put(cachePos, buff, CACHE_BLOCK_SIZE + 80);
                 } else {
                     if (read <= 0) {
                         return -1;

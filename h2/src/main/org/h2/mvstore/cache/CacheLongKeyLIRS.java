@@ -184,14 +184,14 @@ public class CacheLongKeyLIRS<V> {
     }
 
     /**
-     * Get the size of the given value. The default implementation returns 1.
+     * Get the size of the given value. The default implementation returns 16.
      *
      * @param value the value
      * @return the size
      */
     @SuppressWarnings("unused")
-        return 1;
     protected long sizeOf(V value) {
+        return 16;
     }
 
     /**

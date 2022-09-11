@@ -102,7 +102,7 @@ public class TestCacheLongKeyLIRS extends TestBase {
 
         CacheLongKeyLIRS<Integer> test;
 
-        test = createCache(1000);
+        test = createCache(1000 * 16);
         for (int j = 0; j < 2000; j++) {
             test.put(j, j);
         }
@@ -117,18 +117,18 @@ public class TestCacheLongKeyLIRS extends TestBase {
 
     private void verifyMapSize(int elements, int expectedMapSize) {
         CacheLongKeyLIRS<Integer> test;
-        test = createCache(elements - 1);
+        test = createCache((elements - 1) * 16);
         for (int i = 0; i < elements - 1; i++) {
             test.put(i, i * 10);
         }
         assertTrue(test.sizeMapArray() + "<" + expectedMapSize,
                 test.sizeMapArray() < expectedMapSize);
-        test = createCache(elements);
+        test = createCache(elements * 16);
         for (int i = 0; i < elements + 1; i++) {
             test.put(i, i * 10);
         }
         assertEquals(expectedMapSize, test.sizeMapArray());
-        test = createCache(elements * 2);
+        test = createCache(elements * 2 * 16);
         for (int i = 0; i < elements * 2; i++) {
             test.put(i, i * 10);
         }
@@ -138,12 +138,12 @@ public class TestCacheLongKeyLIRS extends TestBase {
 
     private void testGetPutPeekRemove() {
         CacheLongKeyLIRS<Integer> test = createCache(4);
-        test.put(1,  10);
-        test.put(2,  20);
-        test.put(3,  30);
+        test.put(1,  10, 1);
+        test.put(2,  20, 1);
+        test.put(3,  30, 1);
         assertNull(test.peek(4));
         assertNull(test.get(4));
-        test.put(4,  40);
+        test.put(4,  40, 1);
         verify(test, "mem: 4 stack: 4 3 2 1 cold: non-resident:");
         // move middle to front
         assertEquals(30, test.get(3).intValue());
@@ -154,10 +154,10 @@ public class TestCacheLongKeyLIRS extends TestBase {
         assertEquals(10, test.peek(1).intValue());
         assertEquals(10, test.get(1).intValue());
         verify(test, "mem: 4 stack: 1 2 3 4 cold: non-resident:");
-        test.put(3,  30);
+        test.put(3,  30, 1);
         verify(test, "mem: 4 stack: 3 1 2 4 cold: non-resident:");
         // 5 is cold; will make 4 non-resident
-        test.put(5,  50);
+        test.put(5,  50, 1);
         verify(test, "mem: 4 stack: 5 3 1 2 cold: 5 non-resident: 4");
         assertEquals(1, test.getMemory(1));
         assertEquals(1, test.getMemory(5));
@@ -182,8 +182,8 @@ public class TestCacheLongKeyLIRS extends TestBase {
         verify(test, "mem: 3 stack: 3 2 1 cold: non-resident:");
         assertNull(test.remove(4));
         verify(test, "mem: 3 stack: 3 2 1 cold: non-resident:");
-        test.put(4,  40);
-        test.put(5,  50);
+        test.put(4,  40, 1);
+        test.put(5,  50, 1);
         verify(test, "mem: 4 stack: 5 4 3 2 cold: 5 non-resident: 1");
         test.get(5);
         test.get(2);
@@ -197,8 +197,8 @@ public class TestCacheLongKeyLIRS extends TestBase {
         assertEquals(10, test.remove(1).intValue());
         assertFalse(test.containsKey(1));
         verify(test, "mem: 2 stack: 4 3 cold: non-resident:");
-        test.put(1,  10);
-        test.put(2,  20);
+        test.put(1,  10, 1);
+        test.put(2,  20, 1);
         verify(test, "mem: 4 stack: 2 1 4 3 cold: non-resident:");
         test.get(1);
         test.get(3);
@@ -215,15 +215,15 @@ public class TestCacheLongKeyLIRS extends TestBase {
         verify(test, "mem: 0 stack: cold: non-resident:");
 
         // strange situation where there is only a non-resident entry
-        test.put(1, 10);
-        test.put(2, 20);
-        test.put(3, 30);
-        test.put(4, 40);
-        test.put(5, 50);
+        test.put(1, 10, 1);
+        test.put(2, 20, 1);
+        test.put(3, 30, 1);
+        test.put(4, 40, 1);
+        test.put(5, 50, 1);
         assertTrue(test.containsValue(50));
         verify(test, "mem: 4 stack: 5 4 3 2 cold: 5 non-resident: 1");
         // 1 was non-resident, so this should make it hot
-        test.put(1, 10);
+        test.put(1, 10, 1);
         verify(test, "mem: 4 stack: 1 5 4 3 cold: 2 non-resident: 5");
         assertTrue(test.containsValue(50));
         test.remove(2);
@@ -239,15 +239,15 @@ public class TestCacheLongKeyLIRS extends TestBase {
 
         // verify that converting a hot to cold entry will prune the stack
         test.clear();
-        test.put(1, 10);
-        test.put(2, 20);
-        test.put(3, 30);
-        test.put(4, 40);
-        test.put(5, 50);
+        test.put(1, 10, 1);
+        test.put(2, 20, 1);
+        test.put(3, 30, 1);
+        test.put(4, 40, 1);
+        test.put(5, 50, 1);
         test.get(4);
         test.get(3);
         verify(test, "mem: 4 stack: 3 4 5 2 cold: 5 non-resident: 1");
-        test.put(6, 60);
+        test.put(6, 60, 1);
         verify(test, "mem: 4 stack: 6 3 4 5 2 cold: 6 non-resident: 5 1");
         // this will prune the stack (remove entry 5 as entry 2 becomes cold)
         test.get(6);
@@ -257,7 +257,7 @@ public class TestCacheLongKeyLIRS extends TestBase {
     private void testPruneStack() {
         CacheLongKeyLIRS<Integer> test = createCache(5);
         for (int i = 0; i < 7; i++) {
-            test.put(i, i * 10);
+            test.put(i, i * 10, 1);
         }
         verify(test, "mem: 5 stack: 6 5 4 3 2 1 cold: 6 non-resident: 5 0");
         test.get(4);
@@ -267,8 +267,8 @@ public class TestCacheLongKeyLIRS extends TestBase {
         // this call needs to prune the stack
         test.remove(1);
         verify(test, "mem: 4 stack: 2 3 4 6 cold: non-resident: 5 0");
-        test.put(0,  0);
-        test.put(1,  10);
+        test.put(0,  0, 1);
+        test.put(1,  10, 1);
         // the stack was not pruned, the following will fail
         verify(test, "mem: 5 stack: 1 0 2 3 4 cold: 1 non-resident: 6 5");
     }
@@ -303,7 +303,7 @@ public class TestCacheLongKeyLIRS extends TestBase {
         verify(test, "mem: 36 stack: 4 3 2 1 cold: 4 non-resident: 0");
 
         test.putAll(test.getMap());
-        verify(test, "mem: 4 stack: 4 3 2 1 cold: non-resident: 0");
+        verify(test, "mem: 32 stack: 4 cold: 3 non-resident: 2 1 0");
 
         test.clear();
         verify(test, "mem: 0 stack: cold: non-resident:");
@@ -317,7 +317,7 @@ public class TestCacheLongKeyLIRS extends TestBase {
     }
 
     private void testLimitHot() {
-        CacheLongKeyLIRS<Integer> test = createCache(100);
+        CacheLongKeyLIRS<Integer> test = createCache(100 * 16);
         for (int i = 0; i < 300; i++) {
             test.put(i, 10 * i);
         }
@@ -329,7 +329,7 @@ public class TestCacheLongKeyLIRS extends TestBase {
     private void testLimitNonResident() {
         CacheLongKeyLIRS<Integer> test = createCache(4);
         for (int i = 0; i < 20; i++) {
-            test.put(i, 10 * i);
+            test.put(i, 10 * i, 1);
         }
         verify(test, "mem: 4 stack: 19 18 17 16 15 14 13 12 11 10 9 8 7 6 5 4 3 2 1 " +
                 "cold: 19 non-resident: 18 17 16 15 14 13 12 11 10 9 8 7 6 5 4 0");
@@ -357,7 +357,7 @@ public class TestCacheLongKeyLIRS extends TestBase {
         boolean log = false;
         int size = 20;
         // cache size 11 (10 hot, 2 cold)
-        CacheLongKeyLIRS<Integer> test = createCache(size / 2 + 2);
+        CacheLongKeyLIRS<Integer> test = createCache((size / 2 + 2) * 16);
         // init the cache with some dummy entries
         for (int i = 0; i < size; i++) {
             test.put(-i, -i * 10);
@@ -410,7 +410,7 @@ public class TestCacheLongKeyLIRS extends TestBase {
         int size = 10;
         Random r = new Random(1);
         for (int j = 0; j < 100; j++) {
-            CacheLongKeyLIRS<Integer> test = createCache(size / 2);
+            CacheLongKeyLIRS<Integer> test = createCache(size / 2 * 16);
             HashMap<Integer, Integer> good = new HashMap<>();
             for (int i = 0; i < 10000; i++) {
                 int key = r.nextInt(size);

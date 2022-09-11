@@ -1705,7 +1705,7 @@ public class MVStore implements AutoCloseable {
                 ++nonLeafCount;
             }
         }
-        chunksToC.put(c.id, tocArray);
+        chunksToC.put(c.id, tocArray, tocArray.length * 8L + 16);
         int chunkLength = buff.position();
 
         // add the store header and round to the next block
@@ -2598,7 +2598,7 @@ public class MVStore implements AutoCloseable {
         long[] toc = chunksToC.get(chunk.id);
         if (toc == null) {
             toc = chunk.readToC(fileStore);
-            chunksToC.put(chunk.id, toc, toc.length * 8);
+            chunksToC.put(chunk.id, toc, toc.length * 8L + 16);
         }
         assert toc.length == chunk.pageCount : toc.length + " != " + chunk.pageCount;
         return toc;

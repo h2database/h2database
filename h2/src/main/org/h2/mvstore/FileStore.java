@@ -5,6 +5,7 @@
  */
 package org.h2.mvstore;
 
+import org.h2.engine.Constants;
 import static org.h2.mvstore.MVStore.INITIAL_VERSION;
 import org.h2.mvstore.cache.CacheLongKeyLIRS;
 import org.h2.mvstore.type.StringDataType;
@@ -188,7 +189,7 @@ public abstract class FileStore<C extends Chunk<C>>
     private final Queue<WriteBuffer> writeBufferPool = new ArrayBlockingQueue<>(PIPE_LENGTH + 1);
 
     /**
-     * The layout map. Contains chunks metadata and root locations for all maps.
+     * The layout map. Contains chunk's metadata and root locations for all maps.
      * This is relatively fast changing part of metadata
      */
     private MVMap<String, String> layout;
@@ -250,29 +251,10 @@ public abstract class FileStore<C extends Chunk<C>>
     }
 
     public abstract void open(String fileName, boolean readOnly, char[] encryptionKey);
+
     public abstract FileStore<C> open(String fileName, boolean readOnly);
 
     protected final void init(String fileName, boolean readOnly) {
-        open(fileName, readOnly,
-                encryptionKey == null ? null
-                        : fileChannel -> new FileEncrypt(fileName, FilePathEncrypt.getPasswordBytes(encryptionKey),
-                                fileChannel));
-    }
-
-    public FileStore open(String fileName, boolean readOnly) {
-
-        FileStore result = new FileStore();
-        result.open(fileName, readOnly, encryptedFile == null ? null :
-                fileChannel -> new FileEncrypt(fileName, (FileEncrypt)file, fileChannel));
-        return result;
-    }
-
-    private void open(String fileName, boolean readOnly, Function<FileChannel,FileChannel> encryptionTransformer) {
-        if (file != null) {
-            return;
-        }
-        // ensure the Cache file system is registered
-        FilePathCache.INSTANCE.getScheme();
         this.fileName = fileName;
         this.readOnly = readOnly;
     }
@@ -1699,7 +1681,7 @@ public abstract class FileStore<C extends Chunk<C>>
     }
 
     private void cacheToC(C chunk, long[] toc) {
-        chunksToC.put(chunk.version, toc, toc.length * 8);
+        chunksToC.put(chunk.version, toc, toc.length * 8L + Constants.MEMORY_ARRAY);
     }
 
     private long[] cleanToCCache(C chunk) {

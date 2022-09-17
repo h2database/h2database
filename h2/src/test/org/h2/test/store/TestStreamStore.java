@@ -125,7 +125,7 @@ public class TestStreamStore extends TestBase {
         MVStore s = new MVStore.Builder().
                 fileName(fileName).
                 open();
-        FileStore fileStore = s.getFileStore();
+        FileStore<?> fileStore = s.getFileStore();
         fileStore.setCacheSize(1);
         StreamStore streamStore = getAutoCommitStreamStore(s);
         long size = fileStore.getMaxPageSize() * 2;

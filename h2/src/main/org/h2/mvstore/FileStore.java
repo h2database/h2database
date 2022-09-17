@@ -314,6 +314,7 @@ public abstract class FileStore<C extends Chunk<C>>
         return new TreeMap<>(layout);
     }
 
+    @SuppressWarnings("ReferenceEquality")
     public final boolean isRegularMap(MVMap<?,?> map) {
         return map != layout;
     }
@@ -817,6 +818,7 @@ public abstract class FileStore<C extends Chunk<C>>
      *
      * @param chunk to save
      */
+    @SuppressWarnings("ThreadPriorityCheck")
     public void saveChunkMetadataChanges(C chunk) {
         assert serializationLock.isHeldByCurrentThread();
         // chunk's location has to be determined before
@@ -983,8 +985,7 @@ public abstract class FileStore<C extends Chunk<C>>
                                                            boolean afterFullScan) {
         // this collection will hold potential candidates for lastChunk to fall back to,
         // in order from the most to least likely
-        @SuppressWarnings("unchecked")
-        C[] array = (C[]) new Chunk[validChunksByLocation.size()];
+        C[] array = createChunksArray(validChunksByLocation.size());
         C[] lastChunkCandidates = validChunksByLocation.values().toArray(array);
         Arrays.sort(lastChunkCandidates, chunkComparator);
         Map<Integer, C> validChunksById = new HashMap<>();
@@ -1728,6 +1729,7 @@ public abstract class FileStore<C extends Chunk<C>>
         return Thread.currentThread() == backgroundWriterThread.get();
     }
 
+    @SuppressWarnings("ThreadJoinLoop")
     private void stopBackgroundThread(boolean waitForIt) {
         // Loop here is not strictly necessary, except for case of a spurious failure,
         // which should not happen with non-weak flavour of CAS operation,
@@ -1907,7 +1909,7 @@ public abstract class FileStore<C extends Chunk<C>>
                             try {
                                 if (map.rewritePage(pagePos)) {
                                     ++rewrittenPageCount;
-                                    if (map == metaMap) {
+                                    if (mapId == metaMap.getId()) {
                                         mvStore.markMetaChanged();
                                     }
                                 }
@@ -1961,7 +1963,7 @@ public abstract class FileStore<C extends Chunk<C>>
                                 "Unable to read the page at position 0x{0}, chunk {1}, offset 0x{3}",
                                 Long.toHexString(pos), chunk, Long.toHexString(pageOffset), e);
                     }
-                    if (alreadySaved || buff == chunk.buffer) {
+                    if (alreadySaved) {
                         if (exception == null) {
                             break;
                         }
@@ -2228,8 +2230,7 @@ public abstract class FileStore<C extends Chunk<C>>
                 synchronized (sync) {
                     try {
                         sync.wait(sleep);
-                    } catch (InterruptedException ignore) {
-                    }
+                    } catch (InterruptedException ignore) {/**/}
                 }
                 if (!store.isBackgroundThread()) {
                     break;

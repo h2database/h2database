@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2020 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -24,11 +24,13 @@ import java.util.zip.ZipOutputStream;
  *
  * @author <a href="mailto:andrei.tokar@gmail.com">Andrei Tokar</a>
  */
+@SuppressWarnings("unused")
 public final class AppendOnlyMultiFileStore extends FileStore<MFChunk>
 {
     /**
      * Limit for the number of files used by this store
      */
+    @SuppressWarnings("FieldCanBeLocal")
     private final int maxFileCount;
 
     /**
@@ -58,6 +60,7 @@ public final class AppendOnlyMultiFileStore extends FileStore<MFChunk>
      * Previous files are opened in read-only mode.
      * Locical length of this array is determined by fileCount.
      */
+    @SuppressWarnings("MismatchedReadAndWriteOfArray")
     private final FileChannel[] fileChannels;
 
     /**
@@ -197,7 +200,7 @@ public final class AppendOnlyMultiFileStore extends FileStore<MFChunk>
     }
 
     protected void readStoreHeader(boolean recoveryMode) {
-        ByteBuffer fileHeaderBlocks = readFully((MFChunk)null, 0, FileStore.BLOCK_SIZE);
+        ByteBuffer fileHeaderBlocks = readFully(new MFChunk(""), 0, FileStore.BLOCK_SIZE);
         byte[] buff = new byte[FileStore.BLOCK_SIZE];
         fileHeaderBlocks.get(buff);
         // the following can fail for various reasons

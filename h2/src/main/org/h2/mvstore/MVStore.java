@@ -537,6 +537,7 @@ public class MVStore implements AutoCloseable {
         return fileStore == null ? null : fileStore.getLayoutMap();
     }
 
+    @SuppressWarnings("ReferenceEquality")
     private boolean isRegularMap(MVMap<?,?> map) {
         return map != meta && (fileStore == null || fileStore.isRegularMap(map));
     }
@@ -794,7 +795,7 @@ public class MVStore implements AutoCloseable {
         if (isOpenOrStopping() && hasUnsavedChanges() && storeOperationInProgress.compareAndSet(false, true)) {
             try {
                 storeOperationInProgress.compareAndSet(false, true);
-                //noinspection NonAtomicOperationOnVolatileField
+                @SuppressWarnings({"NonAtomicVolatileUpdate", "NonAtomicOperationOnVolatileField"})
                 long result = ++currentVersion;
                 if (fileStore == null) {
                     setWriteVersion(currentVersion);
@@ -826,9 +827,9 @@ public class MVStore implements AutoCloseable {
         onVersionChange(version);
     }
 
+    @SuppressWarnings({"NonAtomicVolatileUpdate", "NonAtomicOperationOnVolatileField"})
     void storeNow() {
         // it is ok, since that path suppose to be single-threaded under storeLock
-        //noinspection NonAtomicOperationOnVolatileField
         ++currentVersion;
         storeNow(true);
     }

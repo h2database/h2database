@@ -21,7 +21,7 @@ public final class ValueArray extends ValueCollectionBase {
 
     private TypeInfo type;
 
-    private TypeInfo componentType;
+    private final TypeInfo componentType;
 
     private ValueArray(TypeInfo componentType, Value[] list, CastDataProvider provider) {
         super(list);

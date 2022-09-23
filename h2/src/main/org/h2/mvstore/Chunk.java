@@ -23,7 +23,7 @@ import org.h2.util.StringUtils;
  * There are at most 67 million (2^26) chunks,
  * and each chunk is at most 2 GB large.
  */
-public final class Chunk {
+public abstract class Chunk<C extends Chunk<C>> {
 
     /**
      * The maximum chunk id.
@@ -32,15 +32,17 @@ public final class Chunk {
 
     /**
      * The maximum length of a chunk header, in bytes.
+     * chunk:ffffffff,len:ffffffff,pages:ffffffff,pinCount:ffffffff,map:ffffffff,
+     * root:ffffffffffffffff,time:ffffffffffffffff,toc:ffffffff,version:ffffffffffffffff,
+     * next:ffffffffffffffff
      */
-    static final int MAX_HEADER_LENGTH = 1024;
+    static final int MAX_HEADER_LENGTH = 178;
 
     /**
      * The length of the chunk footer. The longest footer is:
-     * chunk:ffffffff,block:ffffffffffffffff,
-     * version:ffffffffffffffff,fletcher:ffffffff
+     * chunk:ffffffff,len:ffffffff,version:ffffffffffffffff,fletcher:ffffffff
      */
-    static final int FOOTER_LENGTH = 128;
+    static final int FOOTER_LENGTH = 128; // it's really 70 now
 
     private static final String ATTR_CHUNK = "chunk";
     private static final String ATTR_BLOCK = "block";
@@ -87,12 +89,12 @@ public final class Chunk {
     int pageCountLive;
 
     /**
-     * Offset (from the beginning of the chunk) for the table of content.
+     * Byte offset (from the beginning of the chunk) for the table of content (ToC).
      * Table of content is holding a value of type "long" for each page in the chunk.
      * This value consists of map id, page offset, page length and page type.
      * Format is the same as page's position id, but with map id replacing chunk id.
      *
-     * @see DataUtils#getTocElement(int, int, int, int) for field format details
+     * @see DataUtils#composeTocElement(int, int, int, int) for field format details
      */
     int tocPos;
 
@@ -128,7 +130,7 @@ public final class Chunk {
     public long version;
 
     /**
-     * When this chunk was created, in milliseconds after the store was created.
+     * When this chunk was created, in milliseconds since the store was created.
      */
     public long time;
 
@@ -160,21 +162,22 @@ public final class Chunk {
      */
     private int pinCount;
 
+    /**
+     * ByteBuffer holding this Chunk's serialized content before it gets saved to file store.
+     * This allows to release pages of this Chunk earlier, allowing them to be garbage collected.
+     */
+    public volatile ByteBuffer buffer;
 
-    private Chunk(String s) {
+    Chunk(String s) {
         this(DataUtils.parseMap(s), true);
     }
 
-    Chunk(Map<String, String> map) {
-        this(map, false);
-    }
-
-    private Chunk(Map<String, String> map, boolean full) {
+    Chunk(Map<String, String> map, boolean full) {
         this(DataUtils.readHexInt(map, ATTR_CHUNK, 0));
         block = DataUtils.readHexLong(map, ATTR_BLOCK, 0);
+        len = DataUtils.readHexInt(map, ATTR_LEN, 0);
         version = DataUtils.readHexLong(map, ATTR_VERSION, id);
         if (full) {
-            len = DataUtils.readHexInt(map, ATTR_LEN, 0);
             pageCount = DataUtils.readHexInt(map, ATTR_PAGES, 0);
             pageCountLive = DataUtils.readHexInt(map, ATTR_LIVE_PAGES, pageCount);
             mapId = DataUtils.readHexInt(map, ATTR_MAP, 0);
@@ -190,6 +193,7 @@ public final class Chunk {
             byte[] bytes = DataUtils.parseHexBytes(map, ATTR_OCCUPANCY);
             if (bytes == null) {
                 occupancy = new BitSet();
+                assert pageCountLive == pageCount;
             } else {
                 occupancy = BitSet.valueOf(bytes);
                 if (pageCount - pageCountLive != occupancy.cardinality()) {
@@ -203,41 +207,33 @@ public final class Chunk {
 
     Chunk(int id) {
         this.id = id;
-        if (id <=  0) {
+        if (id <= 0) {
             throw DataUtils.newMVStoreException(
                     DataUtils.ERROR_FILE_CORRUPT, "Invalid chunk id {0}", id);
         }
     }
 
+    protected abstract ByteBuffer readFully(FileStore<C> fileStore, long filePos, int length);
+
     /**
      * Read the header from the byte buffer.
      *
      * @param buff the source buffer
-     * @param start the start of the chunk in the file
      * @return the chunk
      */
-    static Chunk readChunkHeader(ByteBuffer buff, long start) {
+    static String readChunkHeader(ByteBuffer buff) {
         int pos = buff.position();
         byte[] data = new byte[Math.min(buff.remaining(), MAX_HEADER_LENGTH)];
         buff.get(data);
-        try {
-            for (int i = 0; i < data.length; i++) {
-                if (data[i] == '\n') {
-                    // set the position to the start of the first page
-                    buff.position(pos + i + 1);
-                    String s = new String(data, 0, i, StandardCharsets.ISO_8859_1).trim();
-                    return fromString(s);
-                }
+        for (int i = 0; i < data.length; i++) {
+            if (data[i] == '\n') {
+                // set the position to the start of the first page
+                buff.position(pos + i + 1);
+                String s = new String(data, 0, i, StandardCharsets.ISO_8859_1).trim();
+                return s;
             }
-        } catch (Exception e) {
-            // there could be various reasons
-            throw DataUtils.newMVStoreException(
-                    DataUtils.ERROR_FILE_CORRUPT,
-                    "File corrupt reading chunk at position {0}", start, e);
         }
-        throw DataUtils.newMVStoreException(
-                DataUtils.ERROR_FILE_CORRUPT,
-                "File corrupt reading chunk at position {0}", start);
+        return null;
     }
 
     /**
@@ -248,14 +244,15 @@ public final class Chunk {
      */
     void writeChunkHeader(WriteBuffer buff, int minLength) {
         long delimiterPosition = buff.position() + minLength - 1;
-        buff.put(asString().getBytes(StandardCharsets.ISO_8859_1));
+        buff.put(getHeaderBytes());
         while (buff.position() < delimiterPosition) {
             buff.put((byte) ' ');
         }
         if (minLength != 0 && buff.position() > delimiterPosition) {
             throw DataUtils.newMVStoreException(
                     DataUtils.ERROR_INTERNAL,
-                    "Chunk metadata too long");
+                    "Chunk metadata too long {0} {1} {2}", delimiterPosition, buff.position(),
+                    new String(getHeaderBytes(), StandardCharsets.ISO_8859_1));
         }
         buff.put((byte) '\n');
     }
@@ -268,16 +265,6 @@ public final class Chunk {
      */
     static String getMetaKey(int chunkId) {
         return ATTR_CHUNK + "." + Integer.toHexString(chunkId);
-    }
-
-    /**
-     * Build a block from the given string.
-     *
-     * @param s the string
-     * @return the block
-     */
-    public static Chunk fromString(String s) {
-        return new Chunk(s);
     }
 
     /**
@@ -300,33 +287,39 @@ public final class Chunk {
         return id;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public boolean equals(Object o) {
-        return o instanceof Chunk && ((Chunk) o).id == id;
+        return o instanceof Chunk && ((Chunk<C>) o).id == id;
     }
 
     /**
-     * Get the chunk data as a string.
+     * Get the chunk metadata as a string to be stored in a layout map.
      *
      * @return the string
      */
-    public String asString() {
+    public final String asString() {
         StringBuilder buff = new StringBuilder(240);
+        dump(buff);
+        return buff.toString();
+    }
+
+    protected void dump(StringBuilder buff) {
         DataUtils.appendMap(buff, ATTR_CHUNK, id);
         DataUtils.appendMap(buff, ATTR_BLOCK, block);
         DataUtils.appendMap(buff, ATTR_LEN, len);
-        if (maxLen != maxLenLive) {
-            DataUtils.appendMap(buff, ATTR_LIVE_MAX, maxLenLive);
-        }
+        DataUtils.appendMap(buff, ATTR_PAGES, pageCount);
         if (pageCount != pageCountLive) {
             DataUtils.appendMap(buff, ATTR_LIVE_PAGES, pageCountLive);
         }
-        DataUtils.appendMap(buff, ATTR_MAP, mapId);
         DataUtils.appendMap(buff, ATTR_MAX, maxLen);
+        if (maxLen != maxLenLive) {
+            DataUtils.appendMap(buff, ATTR_LIVE_MAX, maxLenLive);
+        }
+        DataUtils.appendMap(buff, ATTR_MAP, mapId);
         if (next != 0) {
             DataUtils.appendMap(buff, ATTR_NEXT, next);
         }
-        DataUtils.appendMap(buff, ATTR_PAGES, pageCount);
         DataUtils.appendMap(buff, ATTR_ROOT, layoutRootPos);
         DataUtils.appendMap(buff, ATTR_TIME, time);
         if (unused != 0) {
@@ -342,17 +335,38 @@ public final class Chunk {
         if (tocPos > 0) {
             DataUtils.appendMap(buff, ATTR_TOC, tocPos);
         }
-        if (!occupancy.isEmpty()) {
+        if (occupancy != null && !occupancy.isEmpty()) {
             DataUtils.appendMap(buff, ATTR_OCCUPANCY,
                     StringUtils.convertBytesToHex(occupancy.toByteArray()));
         }
-        return buff.toString();
+    }
+
+    private byte[] getHeaderBytes() {
+        StringBuilder buff = new StringBuilder(240);
+        DataUtils.appendMap(buff, ATTR_CHUNK, id);
+        DataUtils.appendMap(buff, ATTR_LEN, len);
+        DataUtils.appendMap(buff, ATTR_PAGES, pageCount);
+        if (pinCount > 0) {
+            DataUtils.appendMap(buff, ATTR_PIN_COUNT, pinCount);
+        }
+        DataUtils.appendMap(buff, ATTR_MAX, maxLen);
+        DataUtils.appendMap(buff, ATTR_MAP, mapId);
+        DataUtils.appendMap(buff, ATTR_ROOT, layoutRootPos);
+        DataUtils.appendMap(buff, ATTR_TIME, time);
+        DataUtils.appendMap(buff, ATTR_VERSION, version);
+        if (next != 0) {
+            DataUtils.appendMap(buff, ATTR_NEXT, next);
+        }
+        if (tocPos > 0) {
+            DataUtils.appendMap(buff, ATTR_TOC, tocPos);
+        }
+        return buff.toString().getBytes(StandardCharsets.ISO_8859_1);
     }
 
     byte[] getFooterBytes() {
         StringBuilder buff = new StringBuilder(FOOTER_LENGTH);
         DataUtils.appendMap(buff, ATTR_CHUNK, id);
-        DataUtils.appendMap(buff, ATTR_BLOCK, block);
+        DataUtils.appendMap(buff, ATTR_LEN, len);
         DataUtils.appendMap(buff, ATTR_VERSION, version);
         byte[] bytes = buff.toString().getBytes(StandardCharsets.ISO_8859_1);
         int checksum = DataUtils.getFletcher32(bytes, 0, bytes.length);
@@ -364,8 +378,12 @@ public final class Chunk {
         return buff.toString().getBytes(StandardCharsets.ISO_8859_1);
     }
 
+    boolean isAllocated() {
+        return block != 0;
+    }
+
     boolean isSaved() {
-        return block != Long.MAX_VALUE;
+        return isAllocated() && buffer == null;
     }
 
     boolean isLive() {
@@ -391,13 +409,13 @@ public final class Chunk {
      * @param pos page pos
      * @return ByteBuffer containing page data.
      */
-    ByteBuffer readBufferForPage(FileStore fileStore, int offset, long pos) {
+    ByteBuffer readBufferForPage(FileStore<C> fileStore, int offset, long pos) {
         assert isSaved() : this;
         while (true) {
             long originalBlock = block;
             try {
-                long filePos = originalBlock * MVStore.BLOCK_SIZE;
-                long maxPos = filePos + (long) len * MVStore.BLOCK_SIZE;
+                long filePos = originalBlock * FileStore.BLOCK_SIZE;
+                long maxPos = filePos + (long) len * FileStore.BLOCK_SIZE;
                 filePos += offset;
                 if (filePos < 0) {
                     throw DataUtils.newMVStoreException(
@@ -408,7 +426,7 @@ public final class Chunk {
                 int length = DataUtils.getPageMaxLength(pos);
                 if (length == DataUtils.PAGE_LARGE) {
                     // read the first bytes to figure out actual length
-                    length = fileStore.readFully(filePos, 128).getInt();
+                    length = readFully(fileStore, filePos, 128).getInt();
                     // pageNo is deliberately not included into length to preserve compatibility
                     // TODO: remove this adjustment when page on disk format is re-organized
                     length += 4;
@@ -419,7 +437,15 @@ public final class Chunk {
                             "Illegal page length {0} reading at {1}; max pos {2} ", length, filePos, maxPos);
                 }
 
-                ByteBuffer buff = fileStore.readFully(filePos, length);
+                ByteBuffer buff = buffer;
+                if (buff == null) {
+                    buff = readFully(fileStore, filePos, length);
+                } else {
+                    buff = buff.duplicate();
+                    buff.position(offset);
+                    buff = buff.slice();
+                    buff.limit(length);
+                }
 
                 if (originalBlock == block) {
                     return buff;
@@ -432,16 +458,24 @@ public final class Chunk {
         }
     }
 
-    long[] readToC(FileStore fileStore) {
-        assert isSaved() : this;
+    long[] readToC(FileStore<C> fileStore) {
+        assert buffer != null || isAllocated() : this;
         assert tocPos > 0;
+        long[] toc = new long[pageCount];
         while (true) {
             long originalBlock = block;
             try {
-                long filePos = originalBlock * MVStore.BLOCK_SIZE + tocPos;
-                int length = pageCount * 8;
-                long[] toc = new long[pageCount];
-                fileStore.readFully(filePos, length).asLongBuffer().get(toc);
+                ByteBuffer buff = buffer;
+                if (buff == null) {
+                    int length = pageCount * 8;
+                    long filePos = originalBlock * FileStore.BLOCK_SIZE + tocPos;
+                    buff = readFully(fileStore, filePos, length);
+                } else {
+                    buff = buff.duplicate();
+                    buff.position(tocPos);
+                    buff = buff.slice();
+                }
+                buff.asLongBuffer().get(toc);
                 if (originalBlock == block) {
                     return toc;
                 }
@@ -494,7 +528,7 @@ public final class Chunk {
      *         removed, and false otherwise
      */
     boolean accountForRemovedPage(int pageNo, int pageLength, boolean pinned, long now, long version) {
-        assert isSaved() : this;
+        assert buffer != null || isAllocated() : this;
         // legacy chunks do not have a table of content,
         // therefore pageNo is not valid, skip
         if (tocPos > 0) {
@@ -530,17 +564,23 @@ public final class Chunk {
 
     @Override
     public String toString() {
-        return asString();
+        return asString() + (buffer == null ? "" : ", buf");
     }
 
 
-    public static final class PositionComparator implements Comparator<Chunk> {
-        public static final Comparator<Chunk> INSTANCE = new PositionComparator();
+    public static final class PositionComparator<C extends Chunk<C>> implements Comparator<C>
+    {
+        public static final Comparator<? extends Chunk<?>> INSTANCE = new PositionComparator<>();
+
+        @SuppressWarnings("unchecked")
+        public static <C extends Chunk<C>> Comparator<C> instance() {
+            return (Comparator<C>)INSTANCE;
+        }
 
         private PositionComparator() {}
 
         @Override
-        public int compare(Chunk one, Chunk two) {
+        public int compare(C one, C two) {
             return Long.compare(one.block, two.block);
         }
     }

@@ -141,8 +141,8 @@ public class TestRandomMapOps extends TestBase {
             case 10:
                 log(op, k, v, "s.commit()");
                 s.commit();
-                log(op, k, v, "s.compactMoveChunks()");
-                s.compactMoveChunks();
+                log(op, k, v, "s.compactFile(0)");
+                s.compactFile(0);
                 break;
             case 11: {
                 int rangeSize = r.nextInt(2 * keysPerPage);

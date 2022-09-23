@@ -6,7 +6,6 @@
 package org.h2.table;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
@@ -45,9 +44,6 @@ import org.h2.expression.ValueExpression;
 import org.h2.index.Index;
 import org.h2.index.MetaIndex;
 import org.h2.message.DbException;
-import org.h2.mvstore.FileStore;
-import org.h2.mvstore.MVStore;
-import org.h2.mvstore.db.Store;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
@@ -1117,50 +1113,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
             for (Map.Entry<String, String> entry : database.getSettings().getSortedSettings()) {
                 add(session, rows, entry.getKey(), entry.getValue());
             }
-            Store store = database.getStore();
-            MVStore mvStore = store.getMvStore();
-            FileStore fs = mvStore.getFileStore();
-            if (fs != null) {
-                add(session, rows,
-                        "info.FILE_WRITE", Long.toString(fs.getWriteCount()));
-                add(session, rows,
-                        "info.FILE_WRITE_BYTES", Long.toString(fs.getWriteBytes()));
-                add(session, rows,
-                        "info.FILE_READ", Long.toString(fs.getReadCount()));
-                add(session, rows,
-                        "info.FILE_READ_BYTES", Long.toString(fs.getReadBytes()));
-                add(session, rows,
-                        "info.UPDATE_FAILURE_PERCENT",
-                        String.format(Locale.ENGLISH, "%.2f%%", 100 * mvStore.getUpdateFailureRatio()));
-                add(session, rows,
-                        "info.FILL_RATE", Integer.toString(mvStore.getFillRate()));
-                add(session, rows,
-                        "info.CHUNKS_FILL_RATE", Integer.toString(mvStore.getChunksFillRate()));
-                add(session, rows,
-                        "info.CHUNKS_FILL_RATE_RW", Integer.toString(mvStore.getRewritableChunksFillRate()));
-                try {
-                    add(session, rows,
-                            "info.FILE_SIZE", Long.toString(fs.getFile().size()));
-                } catch (IOException ignore) {/**/}
-                add(session, rows,
-                        "info.CHUNK_COUNT", Long.toString(mvStore.getChunkCount()));
-                add(session, rows,
-                        "info.PAGE_COUNT", Long.toString(mvStore.getPageCount()));
-                add(session, rows,
-                        "info.PAGE_COUNT_LIVE", Long.toString(mvStore.getLivePageCount()));
-                add(session, rows,
-                        "info.PAGE_SIZE", Integer.toString(mvStore.getPageSplitSize()));
-                add(session, rows,
-                        "info.CACHE_MAX_SIZE", Integer.toString(mvStore.getCacheSize()));
-                add(session, rows,
-                        "info.CACHE_SIZE", Integer.toString(mvStore.getCacheSizeUsed()));
-                add(session, rows,
-                        "info.CACHE_HIT_RATIO", Integer.toString(mvStore.getCacheHitRatio()));
-                add(session, rows, "info.TOC_CACHE_HIT_RATIO",
-                        Integer.toString(mvStore.getTocCacheHitRatio()));
-                add(session, rows,
-                        "info.LEAF_RATIO", Integer.toString(mvStore.getLeafRatio()));
-            }
+            database.getStore().getMvStore().populateInfo((name, value) -> add(session, rows, name, value));
             break;
         }
         case HELP: {
@@ -1753,7 +1706,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                     continue;
                 }
                 if (constraintType == Constraint.Type.CHECK) {
-                    checkExpression = ((ConstraintCheck) constraint).getExpression().getSQL(HasSQL.DEFAULT_SQL_FLAGS);
+                    checkExpression = constraint.getExpression().getSQL(HasSQL.DEFAULT_SQL_FLAGS);
                 } else if (constraintType == Constraint.Type.UNIQUE ||
                         constraintType == Constraint.Type.PRIMARY_KEY) {
                     indexColumns = ((ConstraintUnique) constraint).getColumns();
@@ -2202,7 +2155,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                 }
                 ConstraintUnique referenced;
                 if (constraintType == Constraint.Type.REFERENTIAL) {
-                    referenced = ((ConstraintReferential) constraint).getReferencedConstraint();
+                    referenced = constraint.getReferencedConstraint();
                 } else {
                     referenced = null;
                 }

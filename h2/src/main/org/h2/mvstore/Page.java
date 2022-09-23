@@ -11,9 +11,9 @@ import static org.h2.engine.Constants.MEMORY_POINTER;
 import static org.h2.mvstore.DataUtils.PAGE_TYPE_LEAF;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 import org.h2.compress.Compressor;
+import org.h2.mvstore.FileStore.PageSerializationManager;
 import org.h2.util.Utils;
 
 /**
@@ -47,13 +47,13 @@ public abstract class Page<K,V> implements Cloneable {
      * or 1 if this page has not been saved yet, but already removed
      * This "removed" flag is to keep track of pages that concurrently
      * changed while they are being stored, in which case the live bookkeeping
-     * needs to be aware of such cases.
-     * Field need to be volatile to avoid races between saving thread setting it
+     * needs to be aware of this fact.
+     * Field needs to be volatile to avoid races between saving thread setting it
      * and other thread reading it to access the page.
      * On top of this update atomicity is required so removal mark and saved position
      * can be set concurrently.
      *
-     * @see DataUtils#getPagePos(int, int, int, int) for field format details
+     * @see DataUtils#composePagePos(int, int, int, int) for field format details
      */
     private volatile long pos;
 
@@ -364,7 +364,11 @@ public abstract class Page<K,V> implements Cloneable {
         buff.append("pos: ").append(Long.toHexString(pos)).append('\n');
         if (isSaved()) {
             int chunkId = DataUtils.getPageChunkId(pos);
-            buff.append("chunk: ").append(Long.toHexString(chunkId)).append('\n');
+            buff.append("chunk:").append(Long.toHexString(chunkId));
+            if (pageNo >= 0) {
+                buff.append(",no:").append(Long.toHexString(pageNo));
+            }
+            buff.append('\n');
         }
     }
 
@@ -376,6 +380,7 @@ public abstract class Page<K,V> implements Cloneable {
     public final Page<K,V> copy() {
         Page<K,V> newPage = clone();
         newPage.pos = 0;
+        newPage.pageNo = -1;
         return newPage;
     }
 
@@ -695,16 +700,18 @@ public abstract class Page<K,V> implements Cloneable {
     }
 
     /**
-     * Store the page and update the position.
+     * Serializes this page into provided buffer, which represents content of the specified
+     * chunk to be persisted and updates the "position" of the page.
      *
-     * @param chunk the chunk
-     * @param buff the target buffer
-     * @param toc prospective table of content
-     * @return the position of the buffer just after the type
+     * @param pageSerializationManager which provides a target buffer
+     *                                and can be queried for various attributes
+     *                                related to serialization
+     * @return the position of the buffer, where serialized child page references (if any) begin
      */
-    protected final int write(Chunk chunk, WriteBuffer buff, List<Long> toc) {
-        pageNo = toc.size();
+    protected final int write(FileStore<?>.PageSerializationManager pageSerializationManager) {
+        pageNo = pageSerializationManager.getPageNo();
         int keyCount = getKeyCount();
+        WriteBuffer buff = pageSerializationManager.getBuffer();
         int start = buff.position();
         buff.putInt(0)          // placeholder for pageLength
             .putShort((byte)0) // placeholder for check
@@ -756,36 +763,20 @@ public abstract class Page<K,V> implements Cloneable {
             }
         }
         int pageLength = buff.position() - start;
-        long tocElement = DataUtils.getTocElement(getMapId(), start, buff.position() - start, type);
-        toc.add(tocElement);
-        int chunkId = chunk.id;
-        int check = DataUtils.getCheckValue(chunkId)
-                ^ DataUtils.getCheckValue(start)
-                ^ DataUtils.getCheckValue(pageLength);
-        buff.putInt(start, pageLength).
-            putShort(start + 4, (short) check);
+        long pagePos = pageSerializationManager.getPagePosition(getMapId(), start, pageLength, type);
         if (isSaved()) {
             throw DataUtils.newMVStoreException(
                     DataUtils.ERROR_INTERNAL, "Page already stored");
         }
-        long pagePos = DataUtils.getPagePos(chunkId, tocElement);
         boolean isDeleted = isRemoved();
         while (!posUpdater.compareAndSet(this, isDeleted ? 1L : 0L, pagePos)) {
             isDeleted = isRemoved();
         }
-        store.cachePage(this);
-        if (type == DataUtils.PAGE_TYPE_NODE) {
-            // cache again - this will make sure nodes stays in the cache
-            // for a longer time
-            store.cachePage(this);
-        }
-        int pageLengthEncoded = DataUtils.getPageMaxLength(pos);
+        int pageLengthDecoded = DataUtils.getPageMaxLength(pagePos);
+        diskSpaceUsed = pageLengthDecoded != DataUtils.PAGE_LARGE ? pageLengthDecoded : pageLength;
         boolean singleWriter = map.isSingleWriter();
-        chunk.accountForWrittenPage(pageLengthEncoded, singleWriter);
-        if (isDeleted) {
-            store.accountForRemovedPage(pagePos, chunk.version + 1, singleWriter, pageNo);
-        }
-        diskSpaceUsed = pageLengthEncoded != DataUtils.PAGE_LARGE ? pageLengthEncoded : pageLength;
+
+        pageSerializationManager.onPageSerialized(this, isDeleted, pageLengthDecoded, singleWriter);
         return childrenPos;
     }
 
@@ -807,11 +798,12 @@ public abstract class Page<K,V> implements Cloneable {
     /**
      * Store this page and all children that are changed, in reverse order, and
      * update the position and the children.
-     * @param chunk the chunk
-     * @param buff the target buffer
-     * @param toc prospective table of content
+     *
+     * @param pageSerializationManager which provides a target buffer
+     *                                and can be queried for various attributes
+     *                                related to serialization
      */
-    abstract void writeUnsavedRecursive(Chunk chunk, WriteBuffer buff, List<Long> toc);
+    abstract void writeUnsavedRecursive(PageSerializationManager pageSerializationManager);
 
     /**
      * Unlink the children recursively after all data is written.
@@ -1324,10 +1316,11 @@ public abstract class Page<K,V> implements Cloneable {
         }
 
         @Override
-        void writeUnsavedRecursive(Chunk chunk, WriteBuffer buff, List<Long> toc) {
+        void writeUnsavedRecursive(PageSerializationManager pageSerializationManager) {
             if (!isSaved()) {
-                int patch = write(chunk, buff, toc);
-                writeChildrenRecursive(chunk, buff, toc);
+                int patch = write(pageSerializationManager);
+                writeChildrenRecursive(pageSerializationManager);
+                WriteBuffer buff = pageSerializationManager.getBuffer();
                 int old = buff.position();
                 buff.position(patch);
                 writeChildren(buff, false);
@@ -1335,13 +1328,13 @@ public abstract class Page<K,V> implements Cloneable {
             }
         }
 
-        void writeChildrenRecursive(Chunk chunk, WriteBuffer buff, List<Long> toc) {
+        void writeChildrenRecursive(PageSerializationManager pageSerializationManager) {
             int len = getRawChildPageCount();
             for (int i = 0; i < len; i++) {
                 PageReference<K,V> ref = children[i];
                 Page<K,V> p = ref.getPage();
                 if (p != null) {
-                    p.writeUnsavedRecursive(chunk, buff, toc);
+                    p.writeUnsavedRecursive(pageSerializationManager);
                     ref.resetPos();
                 }
             }
@@ -1399,11 +1392,11 @@ public abstract class Page<K,V> implements Cloneable {
         }
 
         @Override
-        void writeUnsavedRecursive(Chunk chunk, WriteBuffer buff, List<Long> toc) {
+        void writeUnsavedRecursive(PageSerializationManager pageSerializationManager) {
             if (complete) {
-                super.writeUnsavedRecursive(chunk, buff, toc);
+                super.writeUnsavedRecursive(pageSerializationManager);
             } else if (!isSaved()) {
-                writeChildrenRecursive(chunk, buff, toc);
+                writeChildrenRecursive(pageSerializationManager);
             }
         }
 
@@ -1613,9 +1606,9 @@ public abstract class Page<K,V> implements Cloneable {
         protected void writeChildren(WriteBuffer buff, boolean withCounts) {}
 
         @Override
-        void writeUnsavedRecursive(Chunk chunk, WriteBuffer buff, List<Long> toc) {
+        void writeUnsavedRecursive(PageSerializationManager pageSerializationManager) {
             if (!isSaved()) {
-                write(chunk, buff, toc);
+                write(pageSerializationManager);
             }
         }
 

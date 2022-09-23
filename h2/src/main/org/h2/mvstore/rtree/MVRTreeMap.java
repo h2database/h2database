@@ -149,9 +149,7 @@ public final class MVRTreeMap<V> extends MVMap<Spatial, V> {
                 children[1] = new Page.PageReference<>(split);
                 children[2] = Page.PageReference.empty();
                 p = Page.createNode(this, keys, children, totalCount, 0);
-                if(isPersistent()) {
-                    store.registerUnsavedMemory(p.getMemory());
-                }
+                registerUnsavedMemory(p.getMemory());
             }
 
             if (removedPages == null) {
@@ -169,9 +167,7 @@ public final class MVRTreeMap<V> extends MVMap<Spatial, V> {
                                 unsavedMemory += page.removePage(version);
                             }
                         }
-                        if (isPersistent()) {
-                            store.registerUnsavedMemory(unsavedMemory);
-                        }
+                        registerUnsavedMemory(unsavedMemory);
                     } finally {
                         unlockRoot(p);
                     }
@@ -403,9 +399,7 @@ public final class MVRTreeMap<V> extends MVMap<Spatial, V> {
 
     private Page<Spatial,V> newPage(boolean leaf) {
         Page<Spatial,V> page = leaf ? createEmptyLeaf() : createEmptyNode();
-        if(isPersistent()) {
-            store.registerUnsavedMemory(page.getMemory());
-        }
+        registerUnsavedMemory(page.getMemory());
         return page;
     }
 

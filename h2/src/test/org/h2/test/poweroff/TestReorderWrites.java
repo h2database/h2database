@@ -92,9 +92,10 @@ public class TestReorderWrites extends TestBase {
                             store.compact(100, 10 * 1024);
                             break;
                         case 1:
+                        default:
                             log("op compactMoveChunks");
-                            store.compactMoveChunks();
-                            log("op compactMoveChunks done");
+                            store.compactFile(1000);
+                            log("op compactFile done");
                             break;
                         }
                     }

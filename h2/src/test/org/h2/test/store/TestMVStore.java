@@ -17,14 +17,15 @@ import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import org.h2.mvstore.FileStore;
 import org.h2.mvstore.Chunk;
 import org.h2.mvstore.Cursor;
 import org.h2.mvstore.DataUtils;
-import org.h2.mvstore.FileStore;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
 import org.h2.mvstore.MVStoreException;
 import org.h2.mvstore.OffHeapStore;
+import org.h2.mvstore.RandomAccessStore;
 import org.h2.mvstore.type.DataType;
 import org.h2.mvstore.type.ObjectDataType;
 import org.h2.mvstore.type.StringDataType;
@@ -131,6 +132,7 @@ public class TestMVStore extends TestBase {
 
         FileUtils.createDirectories(getTestDir(""));
         String fileName = getBaseDir() + "/" + getTestName();
+        FileUtils.createDirectories(getBaseDir());
         FileUtils.delete(fileName);
         try (MVStore store = new MVStore.Builder().
                 autoCommitDisabled().
@@ -150,7 +152,7 @@ public class TestMVStore extends TestBase {
 
     private void testProvidedFileStoreNotOpenedAndClosed() {
         final AtomicInteger openClose = new AtomicInteger();
-        FileStore fileStore = new OffHeapStore() {
+        FileStore<?> fileStore = new OffHeapStore() {
 
             @Override
             public void open(String fileName, boolean readOnly, char[] encryptionKey) {
@@ -286,8 +288,8 @@ public class TestMVStore extends TestBase {
             s.commit();
             map.put(1, new byte[10 * 1024]);
             s.commit();
-            MVMap<String, String> layout = s.getLayoutMap();
-            Chunk c = Chunk.fromString(layout.get(DataUtils.META_CHUNK + "1"));
+            Map<String, String> layout = s.getLayoutMap();
+            Chunk<?> c = s.getFileStore().createChunk(layout.get(DataUtils.META_CHUNK + "1"));
             assertTrue(c.maxLen < Integer.MAX_VALUE);
             assertTrue(c.maxLenLive < Integer.MAX_VALUE);
         }
@@ -485,14 +487,22 @@ public class TestMVStore extends TestBase {
             s.removeMap(m);
             s.commit();
         }
-        long sizeOld = s.getFileStore().size();
-        s.compactMoveChunks();
+        FileStore fileStore = s.getFileStore();
+        long sizeOld = fileStore.size();
+        compactMoveChunks(s);
         s.close();
-        long sizeNew = s.getFileStore().size();
+        long sizeNew = fileStore.size();
         assertTrue("old: " + sizeOld + " new: " + sizeNew, sizeNew < sizeOld);
     }
 
-    private void testBackgroundExceptionListener() throws Exception {
+    private static void compactMoveChunks(MVStore s) {
+        FileStore fileStore = s.getFileStore();
+        if (fileStore instanceof RandomAccessStore) {
+            ((RandomAccessStore) fileStore).compactMoveChunks(100, Long.MAX_VALUE, s);
+        }
+    }
+
+    private void testBackgroundExceptionListener() {
         String fileName = getBaseDir() + "/" + getTestName();
         FileUtils.delete(fileName);
         AtomicReference<Throwable> exRef = new AtomicReference<>();
@@ -502,7 +512,7 @@ public class TestMVStore extends TestBase {
                 open();
         s.setAutoCommitDelay(10);
         MVMap<Integer, String> m = s.openMap("data");
-        s.getFileStore().getFile().close();
+        s.getFileStore().close();
         try {
             m.put(1, "Hello");
             for (int i = 0; i < 200; i++) {
@@ -513,7 +523,7 @@ public class TestMVStore extends TestBase {
             }
             Throwable e = exRef.get();
             assertNotNull(e);
-            checkErrorCode(DataUtils.ERROR_WRITING_FAILED, e);
+            checkErrorCode(DataUtils.ERROR_CLOSED, e);
         } catch (MVStoreException e) {
             // sometimes it is detected right away
             assertEquals(DataUtils.ERROR_CLOSED, e.getErrorCode());
@@ -786,17 +796,17 @@ public class TestMVStore extends TestBase {
             }
         }
         int[] expectedReadsForCacheSize = {
-                1880, 490, 476, 501, 476, 476, 541   // compressed
+                7176, 1750, 940, 940, 940, 940, 940   // compressed
+//                1880, 490, 476, 501, 476, 476, 541   // compressed
 //                1887, 1775, 1599, 1355, 1035, 732, 507    // uncompressed
         };
-        for (int cacheSize = 0; cacheSize <= 6; cacheSize += 1) {
-            int cacheMB = 1 + 3 * cacheSize;
+        for (int cacheSizeMB = 0; cacheSizeMB <= 6; cacheSizeMB += 1) {
             Utils.collectGarbage();
             try (MVStore s = new MVStore.Builder().
                     fileName(fileName).
                     autoCommitDisabled().
-                    cacheSize(cacheMB).open()) {
-                assertEquals(cacheMB, s.getCacheSize());
+                    cacheSize(cacheSizeMB).open()) {
+                assertEquals(cacheSizeMB, s.getCacheSize());
                 MVMap<Integer, String> map = s.openMap("test");
                 for (int i = 0; i < 1024; i += 128) {
                     for (int j = 0; j < i; j++) {
@@ -804,14 +814,14 @@ public class TestMVStore extends TestBase {
                         assertEquals(10240, x.length());
                     }
                 }
-                long readCount = s.getFileStore().getReadCount();
-                int expected = expectedReadsForCacheSize[cacheSize];
-                assertTrue("Cache " + cacheMB + "Mb, reads: " + readCount + " expected: " + expected +
-                                " size: " + s.getFileStore().getReadBytes() +
+                FileStore fileStore = s.getFileStore();
+                long readCount = fileStore.getReadCount();
+                int expected = expectedReadsForCacheSize[cacheSizeMB];
+                assertTrue("Cache " + cacheSizeMB + "Mb, reads: " + readCount + " expected: " + expected +
+                                " size: " + fileStore.getReadBytes() +
                                 " cache used: " + s.getCacheSizeUsed() +
-                                " cache hits: " + s.getCache().getHits() +
-                                " cache misses: " + s.getCache().getMisses() +
-                                " cache requests: " + (s.getCache().getHits() + s.getCache().getMisses()) +
+                                " cache hit ratio: " + s.getFileStore().getCacheHitRatio() +
+                                " cache ToC hit ratio: " + s.getFileStore().getTocCacheHitRatio() +
                                 "",
                         Math.abs(100 - (100 * expected / readCount)) < 15);
             }
@@ -899,13 +909,13 @@ public class TestMVStore extends TestBase {
                 s.commit();
             }
             FileStore fs = s.getFileStore();
-            long size = fs.getFile().size();
+            long size = fs.size();
             for (int i = 0; i < 100; i++) {
                 map = s.openMap("test" + i);
                 s.removeMap(map);
                 s.commit();
                 s.compact(100, 1);
-                if (fs.getFile().size() <= size) {
+                if (fs.size() <= size) {
                     break;
                 }
             }
@@ -986,6 +996,7 @@ public class TestMVStore extends TestBase {
             if (i < 0 || i >= 50) {
                 assertNull(k);
             } else {
+                assertNotNull(k);
                 assertEquals(i * 2, k.intValue());
             }
         }
@@ -1351,6 +1362,8 @@ public class TestMVStore extends TestBase {
         long len = FileUtils.size(fileName);
         try (MVStore s = openStore(fileName)) {
             s.setRetentionTime(0);
+            s.setVersionsToKeep(0);
+            s.setAutoCommitDelay(0);
             // remove 75%
             MVMap<Integer, String> m = s.openMap("data");
             for (int i = 0; i < 10; i++) {
@@ -1362,7 +1375,7 @@ public class TestMVStore extends TestBase {
             }
             assertTrue(s.compact(100, 50 * 1024));
             // compaction alone will not guarantee file size reduction
-            s.compactMoveChunks();
+            compactMoveChunks(s);
         }
         long len2 = FileUtils.size(fileName);
         assertTrue("len2: " + len2 + " len: " + len, len2 < len);
@@ -1461,7 +1474,7 @@ public class TestMVStore extends TestBase {
             assertNull(m0.get("1"));
             assertEquals("Hello", m.get("1"));
             // no changes - no real commit here
-            assertEquals(2, s.commit());
+            assertEquals(-1, s.commit());
         }
 
         long v3;
@@ -1551,7 +1564,7 @@ public class TestMVStore extends TestBase {
         FileUtils.delete(fileName);
         try (MVStore s = openStore(fileName)) {
             s.setRetentionTime(Integer.MAX_VALUE);
-            MVMap<String, String> m = s.getMetaMap();
+            Map<String, String> m = s.getMetaMap();
             assertEquals("[]", s.getMapNames().toString());
             MVMap<String, String> data = s.openMap("data");
             data.put("1", "Hello");
@@ -1697,18 +1710,17 @@ public class TestMVStore extends TestBase {
         try (MVStore s = openStore(fileName)) {
             s.setAutoCommitDelay(0);
             s.setRetentionTime(0);
+            s.setVersionsToKeep(0);
 
-            Map<String, String> layout = s.getLayoutMap();
-            int chunkCount1 = getChunkCount(layout);
+            int chunkCount1 = getChunkCount(s);
             s.compact(80, 1);
             s.compact(80, 1);
 
-            int chunkCount2 = getChunkCount(layout);
+            int chunkCount2 = getChunkCount(s);
             assertTrue(chunkCount2 >= chunkCount1);
 
             MVMap<Integer, String> m = s.openMap("data");
             for (int i = 0; i < 10; i++) {
-                sleep(1);
                 boolean result = s.compact(50, 50 * 1024);
                 s.commit();
                 if (!result) {
@@ -1716,10 +1728,11 @@ public class TestMVStore extends TestBase {
                 }
             }
             assertFalse(s.compact(50, 1024));
+            compactMoveChunks(s);
 
-            int chunkCount3 = getChunkCount(layout);
+            int chunkCount3 = getChunkCount(s);
 
-            assertTrue(chunkCount1 + ">" + chunkCount2 + ">" + chunkCount3,
+            assertTrue(chunkCount1 + " >= " + chunkCount2 + " > " + chunkCount3,
                     chunkCount3 < chunkCount1);
 
             for (int i = 0; i < 10 * factor; i++) {
@@ -1728,7 +1741,8 @@ public class TestMVStore extends TestBase {
         }
     }
 
-    private static int getChunkCount(Map<String, String> layout) {
+    private static int getChunkCount(MVStore s) {
+        Map<String, String> layout = s.getLayoutMap();
         int chunkCount = 0;
         for (String k : layout.keySet()) {
             if (k.startsWith(DataUtils.META_CHUNK)) {
@@ -1751,12 +1765,14 @@ public class TestMVStore extends TestBase {
                 for (int i = 0; i < 100; i++) {
                     m.put(j + i, "Hello " + j);
                 }
+                FileStore fileStore = s.getFileStore();
+                assertNotNull(fileStore);
                 trace("Before - fill rate: " + s.getFillRate() + "%, chunks fill rate: "
-                        + s.getChunksFillRate() + ", len: " + FileUtils.size(fileName));
+                        + fileStore.getChunksFillRate() + ", len: " + FileUtils.size(fileName));
                 s.compact(80, 2048);
-                s.compactMoveChunks();
+                compactMoveChunks(s);
                 trace("After  - fill rate: " + s.getFillRate() + "%, chunks fill rate: "
-                        + s.getChunksFillRate() + ", len: " + FileUtils.size(fileName));
+                        + fileStore.getChunksFillRate() + ", len: " + FileUtils.size(fileName));
             }
             long len = FileUtils.size(fileName);
             // System.out.println("   len:" + len);

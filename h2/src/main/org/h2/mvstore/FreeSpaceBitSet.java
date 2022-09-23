@@ -222,36 +222,9 @@ public class FreeSpaceBitSet {
      * @return the fill rate (0 - 100)
      */
     int getFillRate() {
-        return getProjectedFillRate(0);
-    }
-
-    /**
-     * Calculates a prospective fill rate, which store would have after rewrite
-     * of sparsely populated chunk(s) and evacuation of still live data into a
-     * new chunk.
-     *
-     * @param vacatedBlocks
-     *            number of blocks vacated  as a result of live data evacuation less
-     *            number of blocks in prospective chunk with evacuated live data
-     * @return prospective fill rate (0 - 100)
-     */
-    int getProjectedFillRate(int vacatedBlocks) {
-        // it's not bullet-proof against race condition but should be good enough
-        // to get approximation without holding a store lock
-        int usedBlocks;
-        int totalBlocks;
-        // to prevent infinite loop, which I saw once
-        int cnt = 3;
-        do {
-            if (--cnt == 0) {
-                return 100;
-            }
-            totalBlocks = set.length();
-            usedBlocks = set.cardinality();
-        } while (totalBlocks != set.length() || usedBlocks > totalBlocks);
-        usedBlocks -= firstFreeBlock + vacatedBlocks;
-        totalBlocks -= firstFreeBlock;
-        return usedBlocks == 0 ? 0 : (int)((100L * usedBlocks + totalBlocks - 1) / totalBlocks);
+        int usedBlocks = set.cardinality() - firstFreeBlock;
+        int totalBlocks = set.length() - firstFreeBlock;
+        return totalBlocks == 0 ? 0 : (int)((100L * usedBlocks + totalBlocks - 1) / totalBlocks);
     }
 
     /**

@@ -5,8 +5,6 @@
  */
 package org.h2.mvstore.db;
 
-import java.io.InputStream;
-import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.HashMap;
@@ -29,7 +27,6 @@ import org.h2.mvstore.tx.Transaction;
 import org.h2.mvstore.tx.TransactionStore;
 import org.h2.mvstore.type.MetaType;
 import org.h2.store.InDoubtTransaction;
-import org.h2.store.fs.FileChannelInputStream;
 import org.h2.store.fs.FileUtils;
 import org.h2.util.HasSQL;
 import org.h2.util.StringUtils;
@@ -241,11 +238,7 @@ public final class Store {
      * Store all pending changes.
      */
     public void flush() {
-        FileStore s = mvStore.getFileStore();
-        if (s == null || s.isReadOnly()) {
-            return;
-        }
-        if (!mvStore.compact(50, 4 * 1024 * 1024)) {
+        if (mvStore.isPersistent() && !mvStore.isReadOnly()) {
             mvStore.commit();
         }
     }
@@ -254,9 +247,7 @@ public final class Store {
      * Close the store, without persisting changes.
      */
     public void closeImmediately() {
-        if (!mvStore.isClosed()) {
-            mvStore.closeImmediately();
-        }
+        mvStore.closeImmediately();
     }
 
     /**
@@ -316,15 +307,7 @@ public final class Store {
      * @param kb the maximum size in KB
      */
     public void setCacheSize(int kb) {
-        mvStore.setCacheSize(Math.max(1, kb / 1024));
-    }
-
-    public InputStream getInputStream() {
-        FileChannel fc = mvStore.getFileStore().getEncryptedFile();
-        if (fc == null) {
-            fc = mvStore.getFileStore().getFile();
-        }
-        return new FileChannelInputStream(fc, false);
+        mvStore.setCacheSize(kb);
     }
 
     /**
@@ -350,19 +333,14 @@ public final class Store {
 
     /**
      * Close the store. Pending changes are persisted.
-     * If time is allocated for housekeeping, chunks with a low
-     * fill rate are compacted, and some chunks are put next to each other.
-     * If time is unlimited then full compaction is performed, which uses
-     * different algorithm - opens alternative temp store and writes all live
-     * data there, then replaces this store with a new one.
      *
-     * @param allowedCompactionTime time (in milliseconds) alloted for file
-     *                              compaction activity, 0 means no compaction,
-     *                              -1 means unlimited time (full compaction)
+     * @param allowedCompactionTime time (in milliseconds) allotted for store
+     *                              housekeeping activity, 0 means none,
+     *                              -1 means unlimited time (i.e.full compaction)
      */
     public void close(int allowedCompactionTime) {
         try {
-            FileStore fileStore = mvStore.getFileStore();
+            FileStore<?> fileStore = mvStore.getFileStore();
             if (!mvStore.isClosed() && fileStore != null) {
                 boolean compactFully = allowedCompactionTime == -1;
                 if (fileStore.isReadOnly()) {
@@ -375,7 +353,7 @@ public final class Store {
                 }
 
                 String fileName = null;
-                FileStore targetFileStore = null;
+                FileStore<?> targetFileStore = null;
                 if (compactFully) {
                     fileName = fileStore.getFileName();
                     String tempName = fileName + Constants.SUFFIX_MV_STORE_TEMP_FILE;
@@ -392,22 +370,16 @@ public final class Store {
                 }
             }
         } catch (MVStoreException e) {
-            int errorCode = e.getErrorCode();
-            if (errorCode == DataUtils.ERROR_WRITING_FAILED) {
-                // disk full - ok
-            } else if (errorCode == DataUtils.ERROR_FILE_CORRUPT) {
-                // wrong encryption key - ok
-            }
             mvStore.closeImmediately();
             throw DbException.get(ErrorCode.IO_EXCEPTION_1, e, "Closing");
         }
     }
 
 
-    private static void compact(String sourceFilename, FileStore targetFileStore) {
+    private static void compact(String sourceFilename, FileStore<?> targetFileStore) {
         MVStore.Builder targetBuilder = new MVStore.Builder().compress().adoptFileStore(targetFileStore);
         try (MVStore targetMVStore = targetBuilder.open()) {
-            FileStore sourceFileStore = targetFileStore.open(sourceFilename, true);
+            FileStore<?> sourceFileStore = targetFileStore.open(sourceFilename, true);
             MVStore.Builder sourceBuilder = new MVStore.Builder();
             sourceBuilder.readOnly().adoptFileStore(sourceFileStore);
             try (MVStore sourceMVStore = sourceBuilder.open()) {
@@ -421,7 +393,7 @@ public final class Store {
      * Start collecting statistics.
      */
     public void statisticsStart() {
-        FileStore fs = mvStore.getFileStore();
+        FileStore<?> fs = mvStore.getFileStore();
         statisticsStart = fs == null ? 0 : fs.getReadCount();
     }
 
@@ -432,7 +404,7 @@ public final class Store {
      */
     public Map<String, Integer> statisticsEnd() {
         HashMap<String, Integer> map = new HashMap<>();
-        FileStore fs = mvStore.getFileStore();
+        FileStore<?> fs = mvStore.getFileStore();
         int reads = fs == null ? 0 : (int) (fs.getReadCount() - statisticsStart);
         map.put("reads", reads);
         return map;

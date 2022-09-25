@@ -74,11 +74,11 @@ public class AlterTableAddConstraint extends AlterTable {
             try {
                 if (createdUniqueConstraint != null) {
                     Index index = createdUniqueConstraint.getIndex();
-                    session.getDatabase().removeSchemaObject(session, createdUniqueConstraint);
+                    getDatabase().removeSchemaObject(session, createdUniqueConstraint);
                     createdIndexes.remove(index);
                 }
                 for (Index index : createdIndexes) {
-                    session.getDatabase().removeSchemaObject(session, index);
+                    getDatabase().removeSchemaObject(session, index);
                 }
             } catch (Throwable ex) {
                 e.addSuppressed(ex);
@@ -110,7 +110,7 @@ public class AlterTableAddConstraint extends AlterTable {
             }
             constraintName = null;
         }
-        Database db = session.getDatabase();
+        Database db = getDatabase();
         db.lockMeta(session);
         table.lock(session, Table.EXCLUSIVE_LOCK);
         Constraint constraint;
@@ -142,7 +142,7 @@ public class AlterTableAddConstraint extends AlterTable {
                         table.isPersistIndexes(), primaryKeyHash);
                 String indexName = table.getSchema().getUniqueIndexName(
                         session, table, Constants.PREFIX_PRIMARY_KEY);
-                int indexId = session.getDatabase().allocateObjectId();
+                int indexId = getDatabase().allocateObjectId();
                 try {
                     index = table.addIndex(session, indexName, indexId, indexColumns, indexColumns.length, indexType,
                             true, null);
@@ -318,7 +318,7 @@ public class AlterTableAddConstraint extends AlterTable {
         String name;
         Schema tableSchema = table.getSchema();
         if (forForeignKey) {
-            id = session.getDatabase().allocateObjectId();
+            id = getDatabase().allocateObjectId();
             try {
                 tableSchema.reserveUniqueName(constraintName);
                 name = tableSchema.getUniqueConstraintName(session, table);
@@ -345,7 +345,7 @@ public class AlterTableAddConstraint extends AlterTable {
     }
 
     private Index createIndex(Table t, IndexColumn[] cols, boolean unique) {
-        int indexId = session.getDatabase().allocateObjectId();
+        int indexId = getDatabase().allocateObjectId();
         IndexType indexType;
         if (unique) {
             // for unique constraints

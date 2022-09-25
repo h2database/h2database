@@ -35,7 +35,7 @@ public class CreateConstant extends SchemaOwnerCommand {
 
     @Override
     long update(Schema schema) {
-        Database db = session.getDatabase();
+        Database db = getDatabase();
         if (schema.findConstant(constantName) != null) {
             if (ifNotExists) {
                 return 0;

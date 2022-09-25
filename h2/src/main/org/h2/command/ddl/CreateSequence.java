@@ -45,7 +45,7 @@ public class CreateSequence extends SchemaOwnerCommand {
 
     @Override
     long update(Schema schema) {
-        Database db = session.getDatabase();
+        Database db = getDatabase();
         if (schema.findSequence(sequenceName) != null) {
             if (ifNotExists) {
                 return 0;

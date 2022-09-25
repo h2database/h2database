@@ -83,7 +83,7 @@ public class Call extends Prepared {
             for (int i = 0; i < columnCount; i++) {
                 String name = result.getColumnName(i);
                 String alias = result.getAlias(i);
-                Expression e = new ExpressionColumn(session.getDatabase(), new Column(name, result.getColumnType(i)));
+                Expression e = new ExpressionColumn(getDatabase(), new Column(name, result.getColumnType(i)));
                 if (!alias.equals(name)) {
                     e = new Alias(e, alias, false);
                 }

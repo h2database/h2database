@@ -61,7 +61,7 @@ public class AlterDomainAddConstraint extends AlterDomain {
             }
             throw DbException.get(ErrorCode.CONSTRAINT_ALREADY_EXISTS_1, constraintName);
         }
-        Database db = session.getDatabase();
+        Database db = getDatabase();
         db.lockMeta(session);
 
         int id = getObjectId();

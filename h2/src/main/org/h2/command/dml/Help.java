@@ -39,7 +39,7 @@ public class Help extends Prepared {
     public Help(SessionLocal session, String[] conditions) {
         super(session);
         this.conditions = conditions;
-        Database db = session.getDatabase();
+        Database db = getDatabase();
         expressions = new Expression[] { //
                 new ExpressionColumn(db, new Column("SECTION", TypeInfo.TYPE_VARCHAR)), //
                 new ExpressionColumn(db, new Column("TOPIC", TypeInfo.TYPE_VARCHAR)), //

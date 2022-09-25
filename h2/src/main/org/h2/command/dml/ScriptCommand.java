@@ -153,14 +153,14 @@ public class ScriptCommand extends ScriptBase {
 
     private LocalResult createResult() {
         return new LocalResult(session, new Expression[] {
-                new ExpressionColumn(session.getDatabase(), new Column("SCRIPT", TypeInfo.TYPE_VARCHAR)) }, 1, 1);
+                new ExpressionColumn(getDatabase(), new Column("SCRIPT", TypeInfo.TYPE_VARCHAR)) }, 1, 1);
     }
 
     @Override
     public ResultInterface query(long maxrows) {
         session.getUser().checkAdmin();
         reset();
-        Database db = session.getDatabase();
+        Database db = getDatabase();
         if (schemaNames != null) {
             for (String schemaName : schemaNames) {
                 Schema schema = db.findSchema(schemaName);

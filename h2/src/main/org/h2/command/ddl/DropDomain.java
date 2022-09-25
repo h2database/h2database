@@ -29,7 +29,7 @@ public class DropDomain extends AlterDomain {
 
     public DropDomain(SessionLocal session, Schema schema) {
         super(session, schema);
-        dropAction = session.getDatabase().getSettings().dropRestrict ? ConstraintActionType.RESTRICT
+        dropAction = getDatabase().getSettings().dropRestrict ? ConstraintActionType.RESTRICT
                 : ConstraintActionType.CASCADE;
     }
 
@@ -40,7 +40,7 @@ public class DropDomain extends AlterDomain {
     @Override
     long update(Schema schema, Domain domain) {
         forAllDependencies(session, domain, this::copyColumn, this::copyDomain, true);
-        session.getDatabase().removeSchemaObject(session, domain);
+        getDatabase().removeSchemaObject(session, domain);
         return 0;
     }
 

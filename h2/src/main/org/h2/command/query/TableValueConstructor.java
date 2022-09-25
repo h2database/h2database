@@ -240,7 +240,7 @@ public class TableValueConstructor extends Query {
             expressions.add(new ExpressionColumn(database, null, null, columns[i].getName()));
         }
         this.expressions = expressions;
-        table = new TableValueConstructorTable(session.getDatabase().getMainSchema(), session, columns, rows);
+        table = new TableValueConstructorTable(database.getMainSchema(), session, columns, rows);
         columnResolver = new TableValueColumnResolver();
     }
 

@@ -51,7 +51,7 @@ public class BackupCommand extends Prepared {
     }
 
     private void backupTo(String fileName) {
-        Database db = session.getDatabase();
+        Database db = getDatabase();
         if (!db.isPersistent()) {
             throw DbException.get(ErrorCode.DATABASE_IS_NOT_PERSISTENT);
         }

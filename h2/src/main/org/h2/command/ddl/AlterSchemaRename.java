@@ -38,7 +38,7 @@ public class AlterSchemaRename extends DefineCommand {
     @Override
     public long update() {
         session.getUser().checkSchemaAdmin();
-        Database db = session.getDatabase();
+        Database db = getDatabase();
         if (!oldSchema.canDrop()) {
             throw DbException.get(ErrorCode.SCHEMA_CAN_NOT_BE_DROPPED_1, oldSchema.getName());
         }

@@ -93,7 +93,7 @@ public class AlterSequence extends SchemaOwnerCommand {
         sequence.flush(session);
         if (column != null && always != null) {
             column.setSequence(sequence, always);
-            session.getDatabase().updateMeta(session, column.getTable());
+            getDatabase().updateMeta(session, column.getTable());
         }
         return 0;
     }

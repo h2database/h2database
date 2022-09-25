@@ -44,7 +44,7 @@ public class DropSequence extends SchemaOwnerCommand {
             if (sequence.getBelongsToTable()) {
                 throw DbException.get(ErrorCode.SEQUENCE_BELONGS_TO_A_TABLE_1, sequenceName);
             }
-            session.getDatabase().removeSchemaObject(session, sequence);
+            getDatabase().removeSchemaObject(session, sequence);
         }
         return 0;
     }

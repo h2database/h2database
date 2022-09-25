@@ -38,7 +38,7 @@ public class DropTrigger extends SchemaCommand {
 
     @Override
     public long update() {
-        Database db = session.getDatabase();
+        Database db = getDatabase();
         TriggerObject trigger = getSchema().findTrigger(triggerName);
         if (trigger == null) {
             if (!ifExists) {

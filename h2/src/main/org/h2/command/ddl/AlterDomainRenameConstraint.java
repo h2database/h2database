@@ -47,7 +47,7 @@ public class AlterDomainRenameConstraint extends AlterDomain {
                 || newConstraintName.equals(constraintName)) {
             throw DbException.get(ErrorCode.CONSTRAINT_ALREADY_EXISTS_1, newConstraintName);
         }
-        session.getDatabase().renameSchemaObject(session, constraint, newConstraintName);
+        getDatabase().renameSchemaObject(session, constraint, newConstraintName);
         return 0;
     }
 

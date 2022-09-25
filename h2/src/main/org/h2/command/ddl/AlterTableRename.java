@@ -32,7 +32,7 @@ public class AlterTableRename extends AlterTable {
 
     @Override
     public long update(Table table) {
-        Database db = session.getDatabase();
+        Database db = getDatabase();
         Table t = getSchema().findTableOrView(session, newTableName);
         if (t != null && hidden && newTableName.equals(table.getName())) {
             if (!t.isHidden()) {

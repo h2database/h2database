@@ -41,7 +41,7 @@ public class AlterDomainDropConstraint extends AlterDomain {
                 throw DbException.get(ErrorCode.CONSTRAINT_NOT_FOUND_1, constraintName);
             }
         } else {
-            session.getDatabase().removeSchemaObject(session, constraint);
+            getDatabase().removeSchemaObject(session, constraint);
         }
         return 0;
     }

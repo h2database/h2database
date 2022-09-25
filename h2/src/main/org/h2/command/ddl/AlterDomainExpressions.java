@@ -51,7 +51,7 @@ public class AlterDomainExpressions extends AlterDomain {
         if (expression != null) {
             forAllDependencies(session, domain, this::copyColumn, this::copyDomain, true);
         }
-        session.getDatabase().updateMeta(session, domain);
+        getDatabase().updateMeta(session, domain);
         return 0;
     }
 

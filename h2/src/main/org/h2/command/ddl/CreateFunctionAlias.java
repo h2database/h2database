@@ -34,7 +34,7 @@ public class CreateFunctionAlias extends SchemaCommand {
     @Override
     public long update() {
         session.getUser().checkAdmin();
-        Database db = session.getDatabase();
+        Database db = getDatabase();
         Schema schema = getSchema();
         if (schema.findFunctionOrAggregate(aliasName) != null) {
             if (!ifNotExists) {

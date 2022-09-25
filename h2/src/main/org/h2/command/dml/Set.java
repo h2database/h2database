@@ -83,7 +83,7 @@ public class Set extends Prepared {
 
     @Override
     public long update() {
-        Database database = session.getDatabase();
+        Database database = getDatabase();
         String name = SetTypes.getTypeName(type);
         switch (type) {
         case SetTypes.ALLOW_LITERALS: {

@@ -50,7 +50,7 @@ public class TransactionCommand extends Prepared {
             break;
         case CommandInterface.CHECKPOINT:
             session.getUser().checkAdmin();
-            session.getDatabase().checkpoint();
+            getDatabase().checkpoint();
             break;
         case CommandInterface.SAVEPOINT:
             session.addSavepoint(savepointName);
@@ -60,7 +60,7 @@ public class TransactionCommand extends Prepared {
             break;
         case CommandInterface.CHECKPOINT_SYNC:
             session.getUser().checkAdmin();
-            session.getDatabase().sync();
+            getDatabase().sync();
             break;
         case CommandInterface.PREPARE_COMMIT:
             session.prepareCommit(transactionName);
@@ -83,7 +83,7 @@ public class TransactionCommand extends Prepared {
             // throttle, to allow testing concurrent
             // execution of shutdown and query
             session.throttle();
-            Database db = session.getDatabase();
+            Database db = getDatabase();
             if (db.setExclusiveSession(session, true)) {
                 db.setCompactMode(type);
                 // close the database, but don't update the persistent setting

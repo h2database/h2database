@@ -71,7 +71,7 @@ public class CreateTable extends CommandWithColumns {
     public long update() {
         Schema schema = getSchema();
         boolean isSessionTemporary = data.temporary && !data.globalTemporary;
-        Database db = session.getDatabase();
+        Database db = getDatabase();
         String tableEngine = data.tableEngine;
         if (tableEngine != null || db.getSettings().defaultTableEngine != null) {
             session.getUser().checkAdmin();

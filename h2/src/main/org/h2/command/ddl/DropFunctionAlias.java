@@ -28,7 +28,7 @@ public class DropFunctionAlias extends SchemaOwnerCommand {
 
     @Override
     long update(Schema schema) {
-        Database db = session.getDatabase();
+        Database db = getDatabase();
         FunctionAlias functionAlias = schema.findFunction(aliasName);
         if (functionAlias == null) {
             if (!ifExists) {

@@ -626,7 +626,7 @@ public class Select extends Query {
         ArrayList<Index> list = topTableFilter.getTable().getIndexes();
         if (list != null) {
             int[] sortTypes = sort.getSortTypesWithNullOrdering();
-            DefaultNullOrdering defaultNullOrdering = session.getDatabase().getDefaultNullOrdering();
+            DefaultNullOrdering defaultNullOrdering = getDatabase().getDefaultNullOrdering();
             loop: for (Index index : list) {
                 if (index.getCreateSQL() == null) {
                     // can't use the scan index
@@ -775,7 +775,7 @@ public class Select extends Query {
         int columnCount = expressions.size();
         LocalResult result = null;
         if (!lazy && (target == null ||
-                !session.getDatabase().getSettings().optimizeInsertFromSelect)) {
+                !getDatabase().getSettings().optimizeInsertFromSelect)) {
             result = createLocalResult(result);
         }
         // Do not add rows before OFFSET to result if possible
@@ -894,7 +894,7 @@ public class Select extends Query {
                     i = expandColumnList(filter, i, false, exceptTableColumns);
                 }
             } else {
-                Database db = session.getDatabase();
+                Database db = getDatabase();
                 String schemaName = w.getSchemaName();
                 TableFilter filter = null;
                 for (TableFilter f : filters) {
@@ -935,7 +935,7 @@ public class Select extends Query {
                     Column left = entry.getKey(), right = entry.getValue();
                     if (!filter.isCommonJoinColumnToExclude(right)
                             && (except == null || except.remove(left) == null && except.remove(right) == null)) {
-                        Database database = session.getDatabase();
+                        Database database = getDatabase();
                         Expression e;
                         if (left == right
                                 || DataType.hasTotalOrdering(left.getType().getValueType())
@@ -967,7 +967,7 @@ public class Select extends Query {
     private int addExpandedColumn(TableFilter filter, int index, HashMap<Column, ExpressionColumn> except,
             String schema, String alias, Column c) {
         if ((except == null || except.remove(c) == null) && c.getVisible()) {
-            ExpressionColumn ec = new ExpressionColumn(session.getDatabase(), schema, alias, filter.getColumnName(c));
+            ExpressionColumn ec = new ExpressionColumn(getDatabase(), schema, alias, filter.getColumnName(c));
             expressions.add(index++, ec);
         }
         return index;
@@ -1030,7 +1030,7 @@ public class Select extends Query {
             throw DbException.get(ErrorCode.WITH_TIES_WITHOUT_ORDER_BY);
         }
 
-        Database db = session.getDatabase();
+        Database db = getDatabase();
 
         // first the select list (visible columns),
         // then 'ORDER BY' expressions,
@@ -1200,7 +1200,7 @@ public class Select extends Query {
             }
         }
         cost = preparePlan(session.isParsingCreateView());
-        if (distinct && session.getDatabase().getSettings().optimizeDistinct &&
+        if (distinct && getDatabase().getSettings().optimizeDistinct &&
                 !isGroupQuery && filters.size() == 1 &&
                 expressions.size() == 1 && condition == null) {
             Expression expr = expressions.get(0);
@@ -1691,7 +1691,7 @@ public class Select extends Query {
             break;
         }
         case ExpressionVisitor.EVALUATABLE: {
-            if (!session.getDatabase().getSettings().optimizeEvaluatableSubqueries) {
+            if (!getDatabase().getSettings().optimizeEvaluatableSubqueries) {
                 return false;
             }
             break;

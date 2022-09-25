@@ -32,7 +32,7 @@ public class DropRole extends DefineCommand {
     @Override
     public long update() {
         session.getUser().checkAdmin();
-        Database db = session.getDatabase();
+        Database db = getDatabase();
         Role role = db.findRole(roleName);
         if (role == null) {
             if (!ifExists) {

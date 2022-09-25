@@ -37,7 +37,7 @@ public class DropSynonym extends SchemaOwnerCommand {
                 throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, synonymName);
             }
         } else {
-            session.getDatabase().removeSchemaObject(session, synonym);
+            getDatabase().removeSchemaObject(session, synonym);
         }
         return 0;
     }

@@ -41,7 +41,7 @@ public class DropIndex extends SchemaCommand {
 
     @Override
     public long update() {
-        Database db = session.getDatabase();
+        Database db = getDatabase();
         Index index = getSchema().findIndex(session, indexName);
         if (index == null) {
             if (!ifExists) {

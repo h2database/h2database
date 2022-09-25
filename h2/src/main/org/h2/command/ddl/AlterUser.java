@@ -63,7 +63,7 @@ public class AlterUser extends DefineCommand {
 
     @Override
     public long update() {
-        Database db = session.getDatabase();
+        Database db = getDatabase();
         switch (type) {
         case CommandInterface.ALTER_USER_SET_PASSWORD:
             if (user != session.getUser()) {

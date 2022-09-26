@@ -227,7 +227,7 @@ public final class Database implements DataHandler, CastDataProvider {
         this.filePasswordHash = ci.getFilePasswordHash();
         this.databaseName = databaseName;
         this.databaseShortName = parseDatabaseShortName();
-        this.maxLengthInplaceLob = persistent ? Constants.DEFAULT_MAX_LENGTH_INPLACE_LOB : Integer.MAX_VALUE;
+        this.maxLengthInplaceLob = persistent ? Constants.DEFAULT_MAX_LENGTH_INPLACE_LOB : Integer.MAX_VALUE - 8;
         this.cipher = cipher;
         this.autoServerMode = ci.getProperty("AUTO_SERVER", false);
         this.autoServerPort = ci.getProperty("AUTO_SERVER_PORT", 0);

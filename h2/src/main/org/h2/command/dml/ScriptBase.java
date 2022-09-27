@@ -111,7 +111,7 @@ abstract class ScriptBase extends Prepared {
     }
 
     private void initStore() {
-        Database db = session.getDatabase();
+        Database db = getDatabase();
         byte[] key = null;
         if (cipher != null && password != null) {
             char[] pass = password.optimize(session).

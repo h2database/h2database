@@ -35,7 +35,7 @@ public class DropTable extends DefineCommand {
 
     public DropTable(SessionLocal session) {
         super(session);
-        dropAction = session.getDatabase().getSettings().dropRestrict ?
+        dropAction = getDatabase().getSettings().dropRestrict ?
                 ConstraintActionType.RESTRICT :
                     ConstraintActionType.CASCADE;
     }
@@ -109,7 +109,7 @@ public class DropTable extends DefineCommand {
             Table table = schemaAndTable.schema.findTableOrView(session, schemaAndTable.tableName);
             if (table != null) {
                 table.setModified();
-                Database db = session.getDatabase();
+                Database db = getDatabase();
                 db.lockMeta(session);
                 db.removeSchemaObject(session, table);
             }

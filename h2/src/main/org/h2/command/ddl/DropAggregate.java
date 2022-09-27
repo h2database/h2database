@@ -28,7 +28,7 @@ public class DropAggregate extends SchemaOwnerCommand {
 
     @Override
     long update(Schema schema) {
-        Database db = session.getDatabase();
+        Database db = getDatabase();
         UserAggregate aggregate = schema.findAggregate(name);
         if (aggregate == null) {
             if (!ifExists) {

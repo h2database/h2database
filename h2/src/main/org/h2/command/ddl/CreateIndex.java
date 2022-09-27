@@ -58,7 +58,7 @@ public class CreateIndex extends SchemaCommand {
 
     @Override
     public long update() {
-        Database db = session.getDatabase();
+        Database db = getDatabase();
         boolean persistent = db.isPersistent();
         Table table = getSchema().findTableOrView(session, tableName);
         if (table == null) {

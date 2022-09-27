@@ -99,9 +99,9 @@ public abstract class CommandWithColumns extends SchemaCommand {
         if (columns != null) {
             for (Column c : columns) {
                 if (c.hasIdentityOptions()) {
-                    int objId = session.getDatabase().allocateObjectId();
+                    int objId = getDatabase().allocateObjectId();
                     c.initializeSequence(session, getSchema(), objId, temporary);
-                    if (!Constants.CLUSTERING_DISABLED.equals(session.getDatabase().getCluster())) {
+                    if (!Constants.CLUSTERING_DISABLED.equals(getDatabase().getCluster())) {
                         throw DbException.getUnsupportedException("CLUSTERING && identity columns");
                     }
                 }

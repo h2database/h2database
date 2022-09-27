@@ -137,7 +137,7 @@ public class Analyze extends DefineCommand {
 
     public Analyze(SessionLocal session) {
         super(session);
-        sampleRows = session.getDatabase().getSettings().analyzeSample;
+        sampleRows = getDatabase().getSettings().analyzeSample;
     }
 
     public void setTable(Table table) {
@@ -147,7 +147,7 @@ public class Analyze extends DefineCommand {
     @Override
     public long update() {
         session.getUser().checkAdmin();
-        Database db = session.getDatabase();
+        Database db = getDatabase();
         if (table != null) {
             analyzeTable(session, table, sampleRows, true);
         } else {

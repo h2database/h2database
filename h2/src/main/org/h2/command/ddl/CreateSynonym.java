@@ -48,7 +48,7 @@ public class CreateSynonym extends SchemaOwnerCommand {
 
     @Override
     long update(Schema schema) {
-        Database db = session.getDatabase();
+        Database db = getDatabase();
         data.session = session;
         db.lockMeta(session);
 

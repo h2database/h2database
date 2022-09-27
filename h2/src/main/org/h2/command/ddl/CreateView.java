@@ -79,7 +79,7 @@ public class CreateView extends SchemaOwnerCommand {
 
     @Override
     long update(Schema schema) {
-        Database db = session.getDatabase();
+        Database db = getDatabase();
         TableView view = null;
         Table old = schema.findTableOrView(session, viewName);
         if (old != null) {

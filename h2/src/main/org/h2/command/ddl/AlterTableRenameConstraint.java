@@ -41,7 +41,7 @@ public class AlterTableRenameConstraint extends AlterTable {
     @Override
     public long update(Table table) {
         Constraint constraint = getSchema().findConstraint(session, constraintName);
-        Database db = session.getDatabase();
+        Database db = getDatabase();
         if (constraint == null || constraint.getConstraintType() == Type.DOMAIN || constraint.getTable() != table) {
             throw DbException.get(ErrorCode.CONSTRAINT_NOT_FOUND_1, constraintName);
         }

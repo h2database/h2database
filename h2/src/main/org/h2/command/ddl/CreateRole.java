@@ -37,7 +37,7 @@ public class CreateRole extends DefineCommand {
     @Override
     public long update() {
         session.getUser().checkAdmin();
-        Database db = session.getDatabase();
+        Database db = getDatabase();
         RightOwner rightOwner = db.findUserOrRole(roleName);
         if (rightOwner != null) {
             if (rightOwner instanceof Role) {

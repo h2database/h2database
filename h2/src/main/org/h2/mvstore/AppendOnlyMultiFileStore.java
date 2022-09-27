@@ -58,7 +58,7 @@ public final class AppendOnlyMultiFileStore extends FileStore<MFChunk>
     /**
      * All files currently used by this store. This includes current one at first position.
      * Previous files are opened in read-only mode.
-     * Locical length of this array is determined by fileCount.
+     * Logical length of this array is defined by fileCount.
      */
     @SuppressWarnings("MismatchedReadAndWriteOfArray")
     private final FileChannel[] fileChannels;
@@ -89,7 +89,6 @@ public final class AppendOnlyMultiFileStore extends FileStore<MFChunk>
     protected MFChunk createChunk(Map<String, String> map) {
         return new MFChunk(map);
     }
-
 
     @Override
     public boolean shouldSaveNow(int unsavedMemory, int autoCommitMemory) {

@@ -84,7 +84,7 @@ public class CreateLinkedTable extends SchemaCommand {
     @Override
     public long update() {
         session.getUser().checkAdmin();
-        Database db = session.getDatabase();
+        Database db = getDatabase();
         if (getSchema().resolveTableOrView(session, tableName) != null) {
             if (ifNotExists) {
                 return 0;

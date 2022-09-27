@@ -36,7 +36,7 @@ public class DropConstant extends SchemaOwnerCommand {
 
     @Override
     long update(Schema schema) {
-        Database db = session.getDatabase();
+        Database db = getDatabase();
         Constant constant = schema.findConstant(constantName);
         if (constant == null) {
             if (!ifExists) {

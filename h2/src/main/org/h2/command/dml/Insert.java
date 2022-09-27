@@ -412,7 +412,7 @@ public final class Insert extends CommandWithValues implements ResultTarget {
 
         Expression condition = null;
         for (Column column : indexedColumns) {
-            ExpressionColumn expr = new ExpressionColumn(session.getDatabase(),
+            ExpressionColumn expr = new ExpressionColumn(getDatabase(),
                     table.getSchema().getName(), table.getName(), column.getName());
             for (int i = 0; i < columns.length; i++) {
                 if (expr.getColumnName(session, i).equals(columns[i].getName())) {

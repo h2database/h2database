@@ -227,7 +227,7 @@ public final class Database implements DataHandler, CastDataProvider {
         this.filePasswordHash = ci.getFilePasswordHash();
         this.databaseName = databaseName;
         this.databaseShortName = parseDatabaseShortName();
-        this.maxLengthInplaceLob = Constants.DEFAULT_MAX_LENGTH_INPLACE_LOB;
+        this.maxLengthInplaceLob = persistent ? Constants.DEFAULT_MAX_LENGTH_INPLACE_LOB : Integer.MAX_VALUE - 8;
         this.cipher = cipher;
         this.autoServerMode = ci.getProperty("AUTO_SERVER", false);
         this.autoServerPort = ci.getProperty("AUTO_SERVER_PORT", 0);
@@ -1249,8 +1249,10 @@ public final class Database implements DataHandler, CastDataProvider {
      */
     private synchronized void closeOpenFilesAndUnlock() {
         try {
-            lobStorage.close();
-            if (!store.getMvStore().isClosed()) {
+            if (lobStorage != null) {
+                lobStorage.close();
+            }
+            if (store != null && !store.getMvStore().isClosed()) {
                 if (compactMode == CommandInterface.SHUTDOWN_IMMEDIATELY) {
                     store.closeImmediately();
                 } else {
@@ -1260,13 +1262,13 @@ public final class Database implements DataHandler, CastDataProvider {
                             dbSettings.defragAlways ? -1 : dbSettings.maxCompactTime;
                     store.close(allowedCompactionTime);
                 }
-            }
-            if (persistent) {
-                // Don't delete temp files if everything is already closed
-                // (maybe in checkPowerOff), the database could be open now
-                // (even from within another process).
-                if (lock != null || fileLockMethod == FileLockMethod.NO || fileLockMethod == FileLockMethod.FS) {
-                    deleteOldTempFiles();
+                if (persistent) {
+                    // Don't delete temp files if everything is already closed
+                    // (maybe in checkPowerOff), the database could be open now
+                    // (even from within another process).
+                    if (lock != null || fileLockMethod == FileLockMethod.NO || fileLockMethod == FileLockMethod.FS) {
+                        deleteOldTempFiles();
+                    }
                 }
             }
         } finally {

@@ -42,7 +42,7 @@ public class DropDatabase extends DefineCommand {
             dropAllObjects();
         }
         if (deleteFiles) {
-            session.getDatabase().setDeleteFilesOnDisconnect(true);
+            getDatabase().setDeleteFilesOnDisconnect(true);
         }
         return 0;
     }
@@ -50,7 +50,7 @@ public class DropDatabase extends DefineCommand {
     private void dropAllObjects() {
         User user = session.getUser();
         user.checkAdmin();
-        Database db = session.getDatabase();
+        Database db = getDatabase();
         db.lockMeta(session);
 
         // There can be dependencies between tables e.g. using computed columns,

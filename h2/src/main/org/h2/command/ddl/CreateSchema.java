@@ -36,7 +36,7 @@ public class CreateSchema extends DefineCommand {
     @Override
     public long update() {
         session.getUser().checkSchemaAdmin();
-        Database db = session.getDatabase();
+        Database db = getDatabase();
         RightOwner owner = db.findUserOrRole(authorization);
         if (owner == null) {
             throw DbException.get(ErrorCode.USER_OR_ROLE_NOT_FOUND_1, authorization);

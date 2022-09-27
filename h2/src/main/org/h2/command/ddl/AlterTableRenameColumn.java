@@ -49,7 +49,7 @@ public class AlterTableRenameColumn extends AlterTable {
         table.checkSupportAlter();
         table.renameColumn(column, newName);
         table.setModified();
-        Database db = session.getDatabase();
+        Database db = getDatabase();
         db.updateMeta(session, table);
 
         // if we have foreign key constraints pointing at this table, we need to update them

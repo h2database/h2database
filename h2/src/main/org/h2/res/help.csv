@@ -5552,7 +5552,7 @@ REPLACE(NAME, ' ')
 "Functions (String)","SOUNDEX","
 @h2@ SOUNDEX(string)
 ","
-Returns a four character code representing the sound of a string.
+Returns a four character upper-case code representing the sound of a string as pronounced in English.
 This method returns a string, or null if parameter is null.
 See https://en.wikipedia.org/wiki/Soundex for more information.
 ","

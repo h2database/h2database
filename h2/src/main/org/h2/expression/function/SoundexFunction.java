@@ -83,7 +83,7 @@ public final class SoundexFunction extends Function1_2 {
                 byte newDigit = SOUNDEX_INDEX[c - 'A'];
                 if (newDigit != 0) {
                     if (j == 0) {
-                        chars[j++] = (byte) c;
+                        chars[j++] = (byte) (c & 0xdf); // Converts a-z to A-Z
                         lastDigit = newDigit;
                     } else if (newDigit <= '6') {
                         if (newDigit != lastDigit) {

@@ -494,7 +494,7 @@ public class MVStore implements AutoCloseable {
      * @return Map
      */
     public <K, V> MVMap<K,V> getMap(int id) {
-        checkOpen();
+        checkNotClosed();
         @SuppressWarnings("unchecked")
         MVMap<K, V> map = (MVMap<K, V>) maps.get(id);
         return map;
@@ -507,7 +507,7 @@ public class MVStore implements AutoCloseable {
      */
     public Set<String> getMapNames() {
         HashSet<String> set = new HashSet<>();
-        checkOpen();
+        checkNotClosed();
         for (Iterator<String> it = meta.keyIterator(DataUtils.META_NAME); it.hasNext();) {
             String x = it.next();
             if (!x.startsWith(DataUtils.META_NAME)) {
@@ -558,7 +558,7 @@ public class MVStore implements AutoCloseable {
      * @return the metadata map
      */
     public MVMap<String, String> getMetaMap() {
-        checkOpen();
+        checkNotClosed();
         return meta;
     }
 
@@ -928,7 +928,7 @@ public class MVStore implements AutoCloseable {
     public void executeFilestoreOperation(Runnable operation) {
         storeLock.lock();
         try {
-            checkOpen();
+            checkNotClosed();
             fileStore.executeFilestoreOperation(operation);
         } catch (MVStoreException e) {
             panic(e);

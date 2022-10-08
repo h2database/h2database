@@ -36,7 +36,7 @@ public abstract class Chunk<C extends Chunk<C>> {
      * root:ffffffffffffffff,time:ffffffffffffffff,toc:ffffffff,version:ffffffffffffffff,
      * next:ffffffffffffffff
      */
-    static final int MAX_HEADER_LENGTH = 178;
+    static final int MAX_HEADER_LENGTH = 1024;
 
     /**
      * The length of the chunk footer. The longest footer is:

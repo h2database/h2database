@@ -6,7 +6,7 @@
 select soundex(null) en, soundex('tom') et;
 > EN   ET
 > ---- ----
-> null t500
+> null T500
 > rows: 1
 
 select

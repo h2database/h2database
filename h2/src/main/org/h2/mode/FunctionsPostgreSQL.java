@@ -17,6 +17,7 @@ import org.h2.engine.User;
 import org.h2.expression.Expression;
 import org.h2.expression.ValueExpression;
 import org.h2.expression.function.CurrentGeneralValueSpecification;
+import org.h2.expression.function.RandFunction;
 import org.h2.index.Index;
 import org.h2.message.DbException;
 import org.h2.schema.Schema;
@@ -81,6 +82,8 @@ public final class FunctionsPostgreSQL extends ModeFunction {
 
     private static final int TO_TIMESTAMP = TO_DATE + 1;
 
+    private static final int GEN_RANDOM_UUID = TO_TIMESTAMP + 1;
+
     private static final HashMap<String, FunctionInfo> FUNCTIONS = new HashMap<>(32);
 
     static {
@@ -121,7 +124,8 @@ public final class FunctionsPostgreSQL extends ModeFunction {
         FUNCTIONS.put("TO_DATE", new FunctionInfo("TO_DATE", TO_DATE, 2, Value.DATE, true, true));
         FUNCTIONS.put("TO_TIMESTAMP",
                 new FunctionInfo("TO_TIMESTAMP", TO_TIMESTAMP, 2, Value.TIMESTAMP_TZ, true, true));
-
+        FUNCTIONS.put("GEN_RANDOM_UUID",
+                new FunctionInfo("GEN_RANDOM_UUID", GEN_RANDOM_UUID, 0, Value.UUID, true, false));
     }
 
     /**
@@ -182,6 +186,8 @@ public final class FunctionsPostgreSQL extends ModeFunction {
         case CURRENT_DATABASE:
             return new CurrentGeneralValueSpecification(CurrentGeneralValueSpecification.CURRENT_CATALOG)
                     .optimize(session);
+        case GEN_RANDOM_UUID:
+            return new RandFunction(null, RandFunction.RANDOM_UUID).optimize(session);
         default:
             boolean allConst = optimizeArguments(session);
             type = TypeInfo.getTypeInfo(info.returnDataType);

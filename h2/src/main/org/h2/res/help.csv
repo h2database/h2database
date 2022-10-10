@@ -1101,6 +1101,23 @@ This command commits an open transaction in this connection.
 CREATE VIEW TEST_VIEW AS SELECT * FROM TEST WHERE ID < 100
 "
 
+"Commands (DDL)","CREATE MATERIALIZED VIEW","
+CREATE @h2@ [ OR REPLACE ] @h2@
+MATERIALIZED VIEW @h2@ [ IF NOT EXISTS ] [schemaName.]viewName
+[ ( columnName [,...] ) ] AS query
+","
+Creates a new materialized view.
+Schema owner rights are required to execute this command.
+
+If the OR REPLACE clause is used an existing view will be replaced.
+
+Views are not updatable except using REFRESH MATERIALIZED VIEW.
+
+This command commits an open transaction in this connection.
+","
+CREATE MATERIALIZED VIEW TEST_VIEW AS SELECT * FROM TEST WHERE ID < 100
+"
+
 "Commands (DDL)","DROP AGGREGATE","
 @h2@ DROP AGGREGATE [ IF EXISTS ] aggregateName
 ","
@@ -1247,6 +1264,26 @@ The command will fail if dependent views exist and the RESTRICT clause is used.
 This command commits an open transaction in this connection.
 ","
 DROP VIEW TEST_VIEW
+"
+
+"Commands (DDL)","DROP MATERIALIZED VIEW","
+DROP MATERIALIZED VIEW @h2@ [ IF EXISTS ] [schemaName.]viewName
+","
+Drops an existing materialized view.
+Schema owner rights are required to execute this command.
+This command commits an open transaction in this connection.
+","
+DROP MATERIALIZED VIEW TEST_VIEW
+"
+
+"Commands (DDL)","REFRESH MATERIALIZED VIEW","
+DROP MATERIALIZED VIEW @h2@ [ IF EXISTS ] [schemaName.]viewName
+","
+Recreates an existing materialized view.
+Schema owner rights are required to execute this command.
+This command commits an open transaction in this connection.
+","
+REFRESH MATERIALIZED VIEW TEST_VIEW
 "
 
 "Commands (DDL)","TRUNCATE TABLE","

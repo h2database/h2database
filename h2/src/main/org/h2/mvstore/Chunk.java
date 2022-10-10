@@ -261,16 +261,16 @@ public abstract class Chunk<C extends Chunk<C>> {
      * @param maxLength length of the area reserved for the header
      */
     void writeChunkHeader(WriteBuffer buff, int maxLength) {
-        long delimiterPosition = buff.position() + maxLength - 1;
+        int terminatorPosition = buff.position() + maxLength - 1;
         byte[] headerBytes = getHeaderBytes();
         buff.put(headerBytes);
-        while (buff.position() < delimiterPosition) {
+        while (buff.position() < terminatorPosition) {
             buff.put((byte) ' ');
         }
-        if (maxLength != 0 && buff.position() > delimiterPosition) {
+        if (maxLength != 0 && buff.position() > terminatorPosition) {
             throw DataUtils.newMVStoreException(
                     DataUtils.ERROR_INTERNAL,
-                    "Chunk metadata too long {0} {1} {2}", delimiterPosition, buff.position(),
+                    "Chunk metadata too long {0} {1} {2}", terminatorPosition, buff.position(),
                     getHeader());
         }
         buff.put((byte) '\n');

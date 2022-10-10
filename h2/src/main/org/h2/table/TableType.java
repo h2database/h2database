@@ -33,7 +33,12 @@ public enum TableType {
     /**
      * The table type name for external table engines.
      */
-    EXTERNAL_TABLE_ENGINE;
+    EXTERNAL_TABLE_ENGINE,
+
+    /**
+     * The table type name for materialized views.
+     */
+    MATERIALIZED_VIEW;
 
     @Override
     public String toString() {
@@ -43,6 +48,8 @@ public enum TableType {
             return "SYSTEM TABLE";
         } else if (this == TABLE_LINK) {
             return "TABLE LINK";
+        } else if (this == MATERIALIZED_VIEW) {
+            return "MATERIALIZED VIEW";
         } else {
             return super.toString();
         }

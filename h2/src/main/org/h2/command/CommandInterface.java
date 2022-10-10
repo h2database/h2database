@@ -542,6 +542,21 @@ public interface CommandInterface extends AutoCloseable {
     int ALTER_DOMAIN_RENAME_CONSTRAINT = 101;
 
     /**
+     * The type of a CREATE MATERIALIZED VIEW statement.
+     */
+    int CREATE_MATERIALIZED_VIEW = 102;
+
+    /**
+     * The type of a REFRESH MATERIALIZED VIEW statement.
+     */
+    int REFRESH_MATERIALIZED_VIEW = 103;
+
+    /**
+     * The type of a DROP MATERIALIZED VIEW statement.
+     */
+    int DROP_MATERIALIZED_VIEW = 104;
+
+    /**
      * Get command type.
      *
      * @return one of the constants above

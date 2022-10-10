@@ -145,6 +145,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.StringJoiner;
 import java.util.TreeSet;
+
 import org.h2.api.ErrorCode;
 import org.h2.api.IntervalQualifier;
 import org.h2.api.Trigger;
@@ -172,6 +173,7 @@ import org.h2.command.ddl.CreateDomain;
 import org.h2.command.ddl.CreateFunctionAlias;
 import org.h2.command.ddl.CreateIndex;
 import org.h2.command.ddl.CreateLinkedTable;
+import org.h2.command.ddl.CreateMaterializedView;
 import org.h2.command.ddl.CreateRole;
 import org.h2.command.ddl.CreateSchema;
 import org.h2.command.ddl.CreateSequence;
@@ -188,6 +190,7 @@ import org.h2.command.ddl.DropDatabase;
 import org.h2.command.ddl.DropDomain;
 import org.h2.command.ddl.DropFunctionAlias;
 import org.h2.command.ddl.DropIndex;
+import org.h2.command.ddl.DropMaterializedView;
 import org.h2.command.ddl.DropRole;
 import org.h2.command.ddl.DropSchema;
 import org.h2.command.ddl.DropSequence;
@@ -198,6 +201,7 @@ import org.h2.command.ddl.DropUser;
 import org.h2.command.ddl.DropView;
 import org.h2.command.ddl.GrantRevoke;
 import org.h2.command.ddl.PrepareProcedure;
+import org.h2.command.ddl.RefreshMaterializedView;
 import org.h2.command.ddl.SequenceOptions;
 import org.h2.command.ddl.SetComment;
 import org.h2.command.ddl.TruncateTable;
@@ -367,6 +371,7 @@ import org.h2.table.DualTable;
 import org.h2.table.FunctionTable;
 import org.h2.table.IndexColumn;
 import org.h2.table.IndexHints;
+import org.h2.table.MaterializedView;
 import org.h2.table.QueryExpressionTable;
 import org.h2.table.RangeTable;
 import org.h2.table.Table;
@@ -835,7 +840,9 @@ public class Parser {
                     c = parseReleaseSavepoint();
                 } else if (database.getMode().replaceInto && readIf("REPLACE")) {
                     c = parseReplace(start);
-                }
+	            } else if (readIf("REFRESH")) {
+	                c = parseRefresh(start);
+	            }
                 break;
             case 'S':
                 if (readIf("SAVEPOINT")) {
@@ -1794,6 +1801,23 @@ public class Parser {
         return command;
     }
 
+    /**
+     * REFRESH MATERIALIZED VIEW
+     */
+    private RefreshMaterializedView parseRefresh(int start) {
+    	read("MATERIALIZED");
+    	read("VIEW");
+        Table table = readTableOrView(/*resolveMaterializedView*/false);
+        if (!(table instanceof MaterializedView)) {
+            throw DbException.get(ErrorCode.VIEW_NOT_FOUND_1, table.getName());
+        }
+    	RefreshMaterializedView command = new RefreshMaterializedView(session, getSchema());
+        currentPrepared = command;
+        command.setView((MaterializedView) table);
+        setSQL(command, start);
+        return command;
+    }
+
     private void parseValuesForCommand(CommandWithValues command) {
         ArrayList<Expression> values = Utils.newSmallArrayList();
         do {
@@ -1891,7 +1915,7 @@ public class Parser {
                     table = new FunctionTable(mainSchema, session, readTableFunction(tableName, schema));
                 }
             } else {
-                table = readTableOrView(tableName);
+                table = readTableOrView(tableName, /*resolveMaterializedView*/true);
             }
         }
         ArrayList<String> derivedColumnNames = null;
@@ -2272,6 +2296,15 @@ public class Parser {
             String triggerName = readIdentifierWithSchema();
             DropTrigger command = new DropTrigger(session, getSchema());
             command.setTriggerName(triggerName);
+            ifExists = readIfExists(ifExists);
+            command.setIfExists(ifExists);
+            return command;
+        } else if (readIf("MATERIALIZED")) {
+        	read("VIEW");
+            boolean ifExists = readIfExists(false);
+            String viewName = readIdentifierWithSchema();
+            DropMaterializedView command = new DropMaterializedView(session, getSchema());
+            command.setViewName(viewName);
             ifExists = readIfExists(ifExists);
             command.setIfExists(ifExists);
             return command;
@@ -6787,6 +6820,9 @@ public class Parser {
         boolean force = readIf("FORCE");
         if (readIf("VIEW")) {
             return parseCreateView(force, orReplace);
+        } else if (readIf("MATERIALIZED")) {
+        	read("VIEW");
+            return parseCreateMaterializedView(force, orReplace);
         } else if (readIf("ALIAS")) {
             return parseCreateFunctionAlias(force);
         } else if (readIf("SEQUENCE")) {
@@ -7587,6 +7623,31 @@ public class Parser {
         return command;
     }
 
+    private CreateMaterializedView parseCreateMaterializedView(boolean force, boolean orReplace) {
+        boolean ifNotExists = readIfNotExists();
+        String viewName = readIdentifierWithSchema();
+        read(AS);
+        CreateMaterializedView command = new CreateMaterializedView(session, getSchema());
+        command.setViewName(viewName);
+        command.setIfNotExists(ifNotExists);
+        command.setComment(readCommentIf());
+        command.setOrReplace(orReplace);
+        if (force) {
+        	throw new UnsupportedOperationException("not yet implemented");
+        }
+        String select = StringUtils.cache(sqlCommand.substring(token.start()));
+        Query query;
+        session.setParsingCreateView(true);
+        try {
+            query = parseQuery();
+        } finally {
+            session.setParsingCreateView(false);
+        }
+        command.setSelect(query);
+        command.setSelectSQL(select);
+        return command;
+    }
+
     private TransactionCommand parseCheckpoint() {
         TransactionCommand command;
         if (readIf("SYNC")) {
@@ -8382,18 +8443,22 @@ public class Parser {
     }
 
     private Table readTableOrView() {
-        return readTableOrView(readIdentifierWithSchema(null));
+        return readTableOrView(readIdentifierWithSchema(null), /*resolveMaterializedView*/true);
     }
 
-    private Table readTableOrView(String tableName) {
+    private Table readTableOrView(boolean resolveMaterializedView) {
+        return readTableOrView(readIdentifierWithSchema(null), resolveMaterializedView);
+    }
+
+    private Table readTableOrView(String tableName, boolean resolveMaterializedView) {
         if (schemaName != null) {
-            Table table = getSchema().resolveTableOrView(session, tableName);
+            Table table = getSchema().resolveTableOrView(session, tableName, resolveMaterializedView);
             if (table != null) {
                 return table;
             }
         } else {
             Table table = database.getSchema(session.getCurrentSchemaName())
-                    .resolveTableOrView(session, tableName);
+                    .resolveTableOrView(session, tableName, resolveMaterializedView);
             if (table != null) {
                 return table;
             }
@@ -8401,7 +8466,7 @@ public class Parser {
             if (schemaNames != null) {
                 for (String name : schemaNames) {
                     Schema s = database.getSchema(name);
-                    table = s.resolveTableOrView(session, tableName);
+                    table = s.resolveTableOrView(session, tableName, resolveMaterializedView);
                     if (table != null) {
                         return table;
                     }

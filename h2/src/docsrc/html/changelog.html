@@ -21,6 +21,14 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul>
+<li>Issue #3645: The BITCOUNT function incorrectly counts BINARY/VARBINARY values of &gt;=16 bytes.
+</li>
+<li>Issue #3637: DB content massacred when opening a 2.1.214 DB with current master
+</li>
+<li>Issue #3636: "This store is closed" after two-phase commit
+</li>
+<li>PR #3639: Add random_uuid() alias to be compatible with postgres
+</li>
 <li>Issue #3640: SOUNDEX function should not be case-sensitive
 </li>
 <li>Issue #3633: Memory leak in case of in-memory database

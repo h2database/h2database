@@ -32,11 +32,10 @@ public abstract class Chunk<C extends Chunk<C>> {
 
     /**
      * The maximum length of a chunk header, in bytes.
-     * chunk:ffffffff,len:ffffffff,pages:ffffffff,pinCount:ffffffff,map:ffffffff,
-     * root:ffffffffffffffff,time:ffffffffffffffff,toc:ffffffff,version:ffffffffffffffff,
-     * next:ffffffffffffffff
+     * chunk:ffffffff,len:ffffffff,pages:ffffffff,pinCount:ffffffff,max:ffffffffffffffff,map:ffffffff,
+     * root:ffffffffffffffff,time:ffffffffffffffff,version:ffffffffffffffff,next:ffffffffffffffff,toc:ffffffff
      */
-    static final int MAX_HEADER_LENGTH = 1024;
+    static final int MAX_HEADER_LENGTH = 1024;  // 199 really
 
     /**
      * The length of the chunk footer. The longest footer is:
@@ -239,20 +238,40 @@ public abstract class Chunk<C extends Chunk<C>> {
     /**
      * Write the chunk header.
      *
-     * @param buff the target buffer
-     * @param minLength the minimum length
+     * @return estimated size of the header
      */
-    void writeChunkHeader(WriteBuffer buff, int minLength) {
-        long delimiterPosition = buff.position() + minLength - 1;
-        buff.put(getHeaderBytes());
-        while (buff.position() < delimiterPosition) {
+    int estimateHeaderSize() {
+        byte[] headerBytes = getHeaderBytes();
+        int headerLength = headerBytes.length;
+        // Initial chunk will look like (length-wise) something in between those two lines:
+        // chunk:0,len:0,pages:0,max:0,map:0,root:0,time:0,version:0                                      // 57
+        // chunk:ffffffff,len:0,pages:0,max:0,map:0,root:0,time:ffffffffffffffff,version:ffffffffffffffff // 94
+        assert 57 <= headerLength && headerLength <= 94 : headerLength + " " + getHeader();
+        // When header is fully formed, it will grow and here are fields,
+        // which do not exist in initial header or may grow from their initial values:
+        // len:0[fffffff],pages:0[fffffff][,pinCount:ffffffff],max:0[fffffffffffffff],map:0[fffffff],
+        // root:0[fffffffffffffff,next:ffffffffffffffff,toc:fffffffff]                       // 104 extra chars
+        return headerLength + 104 + 1; // extra one for the terminator
+    }
+
+    /**
+     * Write the chunk header.
+     *
+     * @param buff the target buffer
+     * @param maxLength length of the area reserved for the header
+     */
+    void writeChunkHeader(WriteBuffer buff, int maxLength) {
+        int terminatorPosition = buff.position() + maxLength - 1;
+        byte[] headerBytes = getHeaderBytes();
+        buff.put(headerBytes);
+        while (buff.position() < terminatorPosition) {
             buff.put((byte) ' ');
         }
-        if (minLength != 0 && buff.position() > delimiterPosition) {
+        if (maxLength != 0 && buff.position() > terminatorPosition) {
             throw DataUtils.newMVStoreException(
                     DataUtils.ERROR_INTERNAL,
-                    "Chunk metadata too long {0} {1} {2}", delimiterPosition, buff.position(),
-                    new String(getHeaderBytes(), StandardCharsets.ISO_8859_1));
+                    "Chunk metadata too long {0} {1} {2}", terminatorPosition, buff.position(),
+                    getHeader());
         }
         buff.put((byte) '\n');
     }
@@ -339,6 +358,10 @@ public abstract class Chunk<C extends Chunk<C>> {
             DataUtils.appendMap(buff, ATTR_OCCUPANCY,
                     StringUtils.convertBytesToHex(occupancy.toByteArray()));
         }
+    }
+
+    public String getHeader() {
+        return new String(getHeaderBytes(), StandardCharsets.ISO_8859_1);
     }
 
     private byte[] getHeaderBytes() {

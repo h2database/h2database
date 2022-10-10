@@ -1436,8 +1436,7 @@ public abstract class FileStore<C extends Chunk<C>>
 
     private void serializeToBuffer(WriteBuffer buff, ArrayList<Page<?, ?>> changed, C c, C previousChunk) {
         // need to patch the header later
-        c.writeChunkHeader(buff, 0);
-        int headerLength = buff.position() + 58; // len:0[fffffff]map:0[fffffff],toc:0[ffffffff],root:0[fffffffffffffff,next:ffffffffffffffff]
+        int headerLength = c.estimateHeaderSize();
         buff.position(headerLength);
         c.next = headerLength;
 

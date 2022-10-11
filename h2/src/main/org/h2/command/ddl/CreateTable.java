@@ -154,38 +154,7 @@ public class CreateTable extends CommandWithColumns {
                 }
             }
             if (asQuery != null && !withNoData) {
-                boolean flushSequences = false;
-                if (!isSessionTemporary) {
-                    db.unlockMeta(session);
-                    for (Column c : table.getColumns()) {
-                        Sequence s = c.getSequence();
-                        if (s != null) {
-                            flushSequences = true;
-                            s.setTemporary(true);
-                        }
-                    }
-                }
-                try {
-                    session.startStatementWithinTransaction(null);
-                    Insert insert = new Insert(session);
-                    insert.setQuery(asQuery);
-                    insert.setTable(table);
-                    insert.setInsertFromSelect(true);
-                    insert.prepare();
-                    insert.update();
-                } finally {
-                    session.endStatement();
-                }
-                if (flushSequences) {
-                    db.lockMeta(session);
-                    for (Column c : table.getColumns()) {
-                        Sequence s = c.getSequence();
-                        if (s != null) {
-                            s.setTemporary(false);
-                            s.flush(session);
-                        }
-                    }
-                }
+                insertAsData(isSessionTemporary, db, table);
             }
         } catch (DbException e) {
             try {
@@ -201,6 +170,47 @@ public class CreateTable extends CommandWithColumns {
         }
         return 0;
     }
+
+    /** This is called from REFRESH MATERIALIZED VIEW */
+	public void insertAsData(Table table) {
+		insertAsData(false, getDatabase(), table);
+	}
+
+	/** Insert data for the CREATE TABLE .. AS */
+	private void insertAsData(boolean isSessionTemporary, Database db, Table table) {
+		boolean flushSequences = false;
+		if (!isSessionTemporary) {
+		    db.unlockMeta(session);
+		    for (Column c : table.getColumns()) {
+		        Sequence s = c.getSequence();
+		        if (s != null) {
+		            flushSequences = true;
+		            s.setTemporary(true);
+		        }
+		    }
+		}
+		try {
+		    session.startStatementWithinTransaction(null);
+		    Insert insert = new Insert(session);
+		    insert.setQuery(asQuery);
+		    insert.setTable(table);
+		    insert.setInsertFromSelect(true);
+		    insert.prepare();
+		    insert.update();
+		} finally {
+		    session.endStatement();
+		}
+		if (flushSequences) {
+		    db.lockMeta(session);
+		    for (Column c : table.getColumns()) {
+		        Sequence s = c.getSequence();
+		        if (s != null) {
+		            s.setTemporary(false);
+		            s.flush(session);
+		        }
+		    }
+		}
+	}
 
     private void generateColumnsFromQuery() {
         int columnCount = asQuery.getColumnCount();

@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.constraint.Constraint;
@@ -18,6 +19,7 @@ import org.h2.engine.Right;
 import org.h2.engine.SessionLocal;
 import org.h2.message.DbException;
 import org.h2.schema.Schema;
+import org.h2.table.MaterializedView;
 import org.h2.table.Table;
 import org.h2.table.TableView;
 import org.h2.util.Utils;
@@ -80,6 +82,14 @@ public class DropTable extends DefineCommand {
                 CopyOnWriteArrayList<TableView> dependentViews = table.getDependentViews();
                 if (dependentViews != null && !dependentViews.isEmpty()) {
                     for (TableView v : dependentViews) {
+                        if (!tablesToDrop.contains(v)) {
+                            dependencies.add(v.getName());
+                        }
+                    }
+                }
+                CopyOnWriteArrayList<MaterializedView> dependentMaterializedViews = table.getDependentMaterializedViews();
+                if (dependentMaterializedViews != null && !dependentMaterializedViews.isEmpty()) {
+                    for (MaterializedView v : dependentMaterializedViews) {
                         if (!tablesToDrop.contains(v)) {
                             dependencies.add(v.getName());
                         }

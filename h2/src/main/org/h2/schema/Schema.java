@@ -25,6 +25,7 @@ import org.h2.engine.SysProperties;
 import org.h2.index.Index;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
+import org.h2.table.MaterializedView;
 import org.h2.table.MetaTable;
 import org.h2.table.Table;
 import org.h2.table.TableLink;
@@ -328,12 +329,32 @@ public class Schema extends DbObject {
      * @return the object or null
      */
     public Table resolveTableOrView(SessionLocal session, String name) {
+    	return resolveTableOrView(session, name, /*resolveMaterializedView*/true);
+    }
+
+    /**
+     * Try to find a table or view with this name. This method returns null if
+     * no object with this name exists. Local temporary tables are also
+     * returned. If a synonym with this name exists, the backing table of the
+     * synonym is returned
+     *
+     * @param session the session
+     * @param name the object name
+     * @param resolveMaterializedView if true, and the object is a materialized
+     * 			view, return the underlying Table object.
+     * @return the object or null
+     */
+    public Table resolveTableOrView(SessionLocal session, String name, boolean resolveMaterializedView) {
         Table table = findTableOrView(session, name);
         if (table == null) {
             TableSynonym synonym = synonyms.get(name);
             if (synonym != null) {
                 return synonym.getSynonymFor();
             }
+        }
+        if (resolveMaterializedView && table instanceof MaterializedView) {
+            MaterializedView matView = (MaterializedView) table;
+        	return matView.getUnderlyingTable();
         }
         return table;
     }

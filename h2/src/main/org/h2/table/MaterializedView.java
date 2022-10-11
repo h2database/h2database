@@ -63,7 +63,7 @@ public class MaterializedView extends Table {
 
 	@Override
 	public final boolean isView() {
-		return false;
+		return true;
 	}
 
 	@Override

@@ -143,7 +143,19 @@ public final class SortOrder implements Comparator<Value[]> {
      */
     @Override
     public int compare(Value[] a, Value[] b) {
-        for (int i = 0, len = queryColumnIndexes.length; i < len; i++) {
+        return compare(a, b, Integer.MAX_VALUE);
+    }
+
+    /**
+     * Compare two expression lists.
+     *
+     * @param a the first expression list
+     * @param b the second expression list
+     * @return the result of the comparison
+     */
+    public int compare(Value[] a, Value[] b, int onlyFirst) {
+        int bound = Math.min(onlyFirst, queryColumnIndexes.length);
+        for (int i = 0; i < bound; i++) {
             int idx = queryColumnIndexes[i];
             int type = sortTypes[i];
             Value ao = a[idx];

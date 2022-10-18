@@ -13,6 +13,7 @@ import java.sql.Statement;
 import java.util.concurrent.TimeUnit;
 
 import org.h2.api.DatabaseEventListener;
+import org.h2.engine.Database;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
 
@@ -114,7 +115,7 @@ public class TestListener extends TestDb implements DatabaseEventListener {
     }
 
     @Override
-    public void closingDatabase() {
+    public void closingDatabase(Database database) {
         if (databaseUrl.toUpperCase().contains("CIPHER")) {
             return;
         }
@@ -128,12 +129,12 @@ public class TestListener extends TestDb implements DatabaseEventListener {
     }
 
     @Override
-    public void init(String url) {
+    public void init(String url, Database database) {
         this.databaseUrl = url;
     }
 
     @Override
-    public void opened() {
+    public void opened(Database database) {
         if (databaseUrl.toUpperCase().contains("CIPHER")) {
             return;
         }

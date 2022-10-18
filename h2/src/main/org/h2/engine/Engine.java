@@ -8,6 +8,7 @@ package org.h2.engine;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.command.dml.SetTypes;
@@ -37,6 +38,8 @@ public final class Engine {
     private static volatile long WRONG_PASSWORD_DELAY = SysProperties.DELAY_WRONG_PASSWORD_MIN;
 
     private static boolean JMX;
+
+    private static String defaultDatabaseEventListenerClass;
 
     static {
         if (SysProperties.THREAD_DEADLOCK_DETECTOR) {
@@ -393,6 +396,24 @@ public final class Engine {
                 throw DbException.get(ErrorCode.WRONG_USER_OR_PASSWORD);
             }
         }
+    }
+
+    /**
+     *  Set the global default listening class
+     *  Exposed for use by business callers
+     * @return
+     */
+    public static String getDefaultDatabaseEventListenerClass() {
+        return defaultDatabaseEventListenerClass;
+    }
+
+    /**
+     * Get the global default listening class
+     *
+     * @param defaultDatabaseEventListenerClass
+     */
+    public static void setDefaultDatabaseEventListenerClass(String defaultDatabaseEventListenerClass) {
+        Engine.defaultDatabaseEventListenerClass = defaultDatabaseEventListenerClass;
     }
 
     private Engine() {

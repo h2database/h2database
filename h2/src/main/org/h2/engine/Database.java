@@ -246,6 +246,9 @@ public final class Database implements DataHandler, CastDataProvider {
         String s = ci.removeProperty("DATABASE_EVENT_LISTENER", null);
         if (s != null) {
             setEventListenerClass(StringUtils.trim(s, true, true, "'"));
+        } else if(Engine.getDefaultDatabaseEventListenerClass() != null) {
+            // If no listener class is specified, the default listener class is used
+            setEventListenerClass(Engine.getDefaultDatabaseEventListenerClass());
         }
         s = ci.removeProperty("MODE", null);
         if (s != null) {
@@ -1173,7 +1176,7 @@ public final class Database implements DataHandler, CastDataProvider {
                 DatabaseEventListener e = eventListener;
                 // set it to null, to make sure it's called only once
                 eventListener = null;
-                e.closingDatabase();
+                e.closingDatabase(this);
                 closing = true;
                 if (!userSessions.isEmpty()) {
                     trace.info("event listener {0} left connection open", e.getClass().getName());
@@ -1831,7 +1834,7 @@ public final class Database implements DataHandler, CastDataProvider {
                 if (cipher != null) {
                     url += ";CIPHER=" + cipher;
                 }
-                eventListener.init(url);
+                eventListener.init(url, this);
             } catch (Throwable e) {
                 throw DbException.get(
                         ErrorCode.ERROR_SETTING_DATABASE_EVENT_LISTENER_2, e,
@@ -2048,7 +2051,7 @@ public final class Database implements DataHandler, CastDataProvider {
      */
     void opened() {
         if (eventListener != null) {
-            eventListener.opened();
+            eventListener.opened(this);
         }
     }
 

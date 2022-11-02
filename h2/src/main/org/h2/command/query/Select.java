@@ -788,9 +788,9 @@ public class Select extends Query {
             }
         }
         if (distinct) {
+            result = createLocalResult(result);
             if (!isDistinctQuery) {
                 quickOffset = false;
-                result = createLocalResult(result);
                 result.setDistinct();
             }
         } else if (distinctExpressions != null) {

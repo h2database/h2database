@@ -746,6 +746,11 @@ public class TestOptimizations extends TestDb {
             assertEquals(i, rs.getInt(1));
         }
         assertFalse(rs.next());
+        rs = stat.executeQuery("SELECT DISTINCT TYPE FROM TEST");
+        for (int i = 0; rs.next(); i++) {
+            assertEquals(i, rs.getInt(1));
+        }
+        assertFalse(rs.next());
         stat.execute("ANALYZE");
         rs = stat.executeQuery("SELECT DISTINCT TYPE FROM TEST " +
                 "ORDER BY TYPE");

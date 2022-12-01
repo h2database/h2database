@@ -866,28 +866,18 @@ public class MVStore implements AutoCloseable {
                     !map.isVolatile() &&
                     map.hasChangesSince(lastStoredVersion)) {
                 assert rootReference.version <= version : rootReference.version + " > " + version;
-                Page<?,?> rootPage = rootReference.root;
-                if (!rootPage.isSaved() ||
-                        // after deletion previously saved leaf
-                        // may pop up as a root, but we still need
-                        // to save new root pos in meta
-                        rootPage.isLeaf()) {
-                    changed.add(rootPage);
-                }
+                // simply checking rootPage.isSaved() won't work here because
+                // after deletion previously saved page
+                // may pop up as a root, but we still need
+                // to save new root pos in meta
+                changed.add(rootReference.root);
             }
         }
         RootReference<?,?> rootReference = meta.setWriteVersion(version);
         if (meta.hasChangesSince(lastStoredVersion) || metaChanged) {
             assert rootReference != null && rootReference.version <= version
                     : rootReference == null ? "null" : rootReference.version + " > " + version;
-            Page<?, ?> rootPage = rootReference.root;
-            if (!rootPage.isSaved() ||
-                    // after deletion previously saved leaf
-                    // may pop up as a root, but we still need
-                    // to save new root pos in meta
-                    rootPage.isLeaf()) {
-                changed.add(rootPage);
-            }
+            changed.add(rootReference.root);
         }
         return changed;
     }

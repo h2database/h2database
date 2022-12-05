@@ -617,7 +617,24 @@ final class ToDateTokenizer {
 
         private static final List<FormatTokenEnum> INLINE_LIST = Collections.singletonList(INLINE);
 
-        private static List<FormatTokenEnum>[] TOKENS;
+        private static final List<FormatTokenEnum>[] TOKENS;
+
+        static {
+            @SuppressWarnings("unchecked")
+            List<FormatTokenEnum>[] tokens = new List[25];
+            for (FormatTokenEnum token : FormatTokenEnum.values()) {
+                String name = token.name();
+                if (name.indexOf('_') >= 0) {
+                    for (String tokenLets : name.split("_")) {
+                        putToCache(tokens, token, tokenLets);
+                    }
+                } else {
+                    putToCache(tokens, token, name);
+                }
+            }
+            TOKENS = tokens;
+        }
+
         private final ToDateParslet toDateParslet;
         private final Pattern patternToUse;
 
@@ -655,32 +672,12 @@ final class ToDateTokenizer {
             if (formatStr != null && !formatStr.isEmpty()) {
                 char key = Character.toUpperCase(formatStr.charAt(0));
                 if (key >= 'A' && key <= 'Y') {
-                    List<FormatTokenEnum>[] tokens = TOKENS;
-                    if (tokens == null) {
-                        tokens = initTokens();
-                    }
-                    return tokens[key - 'A'];
+                    return TOKENS[key - 'A'];
                 } else if (key == '"') {
                     return INLINE_LIST;
                 }
             }
             return null;
-        }
-
-        @SuppressWarnings("unchecked")
-        private static List<FormatTokenEnum>[] initTokens() {
-            List<FormatTokenEnum>[] tokens = new List[25];
-            for (FormatTokenEnum token : FormatTokenEnum.values()) {
-                String name = token.name();
-                if (name.indexOf('_') >= 0) {
-                    for (String tokenLets : name.split("_")) {
-                        putToCache(tokens, token, tokenLets);
-                    }
-                } else {
-                    putToCache(tokens, token, name);
-                }
-            }
-            return TOKENS = tokens;
         }
 
         private static void putToCache(List<FormatTokenEnum>[] cache, FormatTokenEnum token, String name) {

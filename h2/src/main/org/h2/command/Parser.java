@@ -4541,8 +4541,11 @@ public class Parser {
             do {
                 Expression expr = readExpression();
                 TypeInfo columnType = TypeInfo.TYPE_NULL;
-                if (expr.isConstant()) {
-                    expr = expr.optimize(session);
+                boolean constant = expr.isConstant();
+                if (constant || expr instanceof CastSpecification) {
+                    if (constant) {
+                        expr = expr.optimize(session);
+                    }
                     TypeInfo exprType = expr.getType();
                     if (exprType.getValueType() == Value.ARRAY) {
                         columnType = (TypeInfo) exprType.getExtTypeInfo();

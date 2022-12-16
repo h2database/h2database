@@ -119,6 +119,7 @@ public class TestPreparedStatement extends TestDb {
         testMultipleStatements(conn);
         testParameterInSubquery(conn);
         testAfterRollback(conn);
+        testUnnestWithArrayParameter(conn);
         conn.close();
         testPreparedStatementWithLiteralsNone();
         testPreparedStatementWithIndexedParameterAndLiteralsNone();
@@ -1778,6 +1779,22 @@ public class TestPreparedStatement extends TestDb {
                 stat.execute("DROP TABLE IF EXISTS TEST");
                 conn.setAutoCommit(true);
             }
+        }
+    }
+
+    private void testUnnestWithArrayParameter(Connection conn) throws SQLException {
+        PreparedStatement prep = conn.prepareStatement(
+                "SELECT * FROM ("
+                + "SELECT * FROM UNNEST(CAST(? AS INTEGER ARRAY)) UNION SELECT * FROM UNNEST(CAST(? AS INTEGER ARRAY))"
+                + ") ORDER BY 1");
+        prep.setObject(1, new Integer[] {1, 2, 3});
+        prep.setObject(2, new Integer[] {3, 4, 5});
+        try (ResultSet rs = prep.executeQuery()) {
+            for (int i = 1; i <= 5; i++) {
+                assertTrue(rs.next());
+                assertEquals(i, rs.getInt(1));
+            }
+            assertFalse(rs.next());
         }
     }
 

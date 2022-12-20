@@ -208,3 +208,41 @@ EXPLAIN SELECT T AT TIME ZONE 'UTC' FROM TEST GROUP BY T;
 
 DROP TABLE TEST;
 > ok
+
+CREATE TABLE T1(A INT, B INT, C INT) AS VALUES (1, 1, 1), (1, 2, 2), (2, 1, 3), (2, 2, 4);
+> ok
+
+CREATE TABLE T2(D INT, E INT) AS VALUES (1, 1), (2, 2);
+> ok
+
+SET @V = 1;
+> ok
+
+CREATE VIEW V1 AS SELECT T2.D, T1.C FROM T2 LEFT JOIN T1 ON T2.E = T1.A AND T1.B = @V;
+> ok
+
+TABLE V1;
+> D C
+> - -
+> 1 1
+> 2 3
+> rows: 2
+
+SET @V = 2;
+> ok
+
+TABLE V1;
+> D C
+> - -
+> 1 2
+> 2 4
+> rows: 2
+
+DROP VIEW V1;
+> ok
+
+DROP TABLE T1, T2;
+> ok
+
+SET @V = NULL;
+> ok

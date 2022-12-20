@@ -1712,6 +1712,12 @@ public class Select extends Query {
                 return false;
             }
         }
+        for (TableFilter f : filters) {
+            Expression c = f.getJoinCondition();
+            if (c != null && !c.isEverything(v2)) {
+                return false;
+            }
+        }
         if (condition != null && !condition.isEverything(v2)) {
             return false;
         }

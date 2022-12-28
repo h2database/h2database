@@ -52,6 +52,8 @@ public class Build extends BuildBase {
     private static final String MYSQL_CONNECTOR_VERSION = "8.0.27";
 
     private static final String OSGI_VERSION = "5.0.0";
+    
+    private static final String OSGI_JDBC_VERSION = "1.1.0";
 
     private static final String PGJDBC_VERSION = "42.4.0";
 
@@ -159,7 +161,7 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/lucene-queryparser-" + LUCENE_VERSION + ".jar" +
                 File.pathSeparator + "ext/slf4j-api-" + SLF4J_VERSION + ".jar" +
                 File.pathSeparator + "ext/org.osgi.core-" + OSGI_VERSION + ".jar" +
-                File.pathSeparator + "ext/org.osgi.enterprise-" + OSGI_VERSION + ".jar" +
+                File.pathSeparator + "ext/org.osgi.service.jdbc-" + OSGI_JDBC_VERSION + ".jar" +
                 File.pathSeparator + "ext/jts-core-" + JTS_VERSION + ".jar" +
                 File.pathSeparator + "ext/asm-" + ASM_VERSION + ".jar" +
                 File.pathSeparator + javaToolsJar;
@@ -200,7 +202,7 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/lucene-analyzers-common-" + LUCENE_VERSION + ".jar" +
                 File.pathSeparator + "ext/lucene-queryparser-" + LUCENE_VERSION + ".jar" +
                 File.pathSeparator + "ext/org.osgi.core-" + OSGI_VERSION + ".jar" +
-                File.pathSeparator + "ext/org.osgi.enterprise-" + OSGI_VERSION + ".jar" +
+                File.pathSeparator + "ext/org.osgi.service.jdbc-" + OSGI_JDBC_VERSION + ".jar" +
                 File.pathSeparator + "ext/jts-core-" + JTS_VERSION + ".jar");
 
         files = files("src/main").
@@ -275,7 +277,7 @@ public class Build extends BuildBase {
             File.pathSeparator + "ext/lucene-analyzers-common-" + LUCENE_VERSION + ".jar" +
             File.pathSeparator + "ext/lucene-queryparser-" + LUCENE_VERSION + ".jar" +
             File.pathSeparator + "ext/org.osgi.core-" + OSGI_VERSION + ".jar" +
-            File.pathSeparator + "ext/org.osgi.enterprise-" + OSGI_VERSION + ".jar" +
+            File.pathSeparator + "ext/org.osgi.service.jdbc-" + OSGI_JDBC_VERSION + ".jar" +
             File.pathSeparator + "ext/jts-core-" + JTS_VERSION + ".jar" +
             File.pathSeparator + "ext/slf4j-api-" + SLF4J_VERSION + ".jar" +
             File.pathSeparator + "ext/slf4j-nop-" + SLF4J_VERSION + ".jar" +
@@ -404,9 +406,9 @@ public class Build extends BuildBase {
         downloadOrVerify("ext/org.osgi.core-" + OSGI_VERSION + ".jar",
                 "org/osgi", "org.osgi.core", OSGI_VERSION,
                 "6e5e8cd3c9059c08e1085540442a490b59a7783c", offline);
-        downloadOrVerify("ext/org.osgi.enterprise-" + OSGI_VERSION + ".jar",
-                "org/osgi", "org.osgi.enterprise", OSGI_VERSION,
-                "4f6e081c38b951204e2b6a60d33ab0a90bfa1ad3", offline);
+        downloadOrVerify("ext/org.osgi.service.jdbc-" + OSGI_JDBC_VERSION + ".jar",
+                "org/osgi", "org.osgi.service.jdbc", OSGI_JDBC_VERSION,
+                "07673601d60c98d876b82530ff4363ed9e428c1e", offline);
         downloadOrVerify("ext/jts-core-" + JTS_VERSION + ".jar",
                 "org/locationtech/jts", "jts-core", JTS_VERSION,
                 "7e1973b5babdd98734b1ab903fc1155714402eec", offline);
@@ -604,7 +606,7 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/lucene-analyzers-common-" + LUCENE_VERSION + ".jar" +
                 File.pathSeparator + "ext/lucene-queryparser-" + LUCENE_VERSION + ".jar" +
                 File.pathSeparator + "ext/org.osgi.core-" + OSGI_VERSION + ".jar" +
-                File.pathSeparator + "ext/org.osgi.enterprise-" + OSGI_VERSION + ".jar" +
+                File.pathSeparator + "ext/org.osgi.service.jdbc-" + OSGI_JDBC_VERSION + ".jar" +
                 File.pathSeparator + "ext/jts-core-" + JTS_VERSION + ".jar");
     }
 
@@ -629,7 +631,7 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/lucene-analyzers-common-" + LUCENE_VERSION + ".jar" +
                 File.pathSeparator + "ext/lucene-queryparser-" + LUCENE_VERSION + ".jar" +
                 File.pathSeparator + "ext/org.osgi.core-" + OSGI_VERSION + ".jar" +
-                File.pathSeparator + "ext/org.osgi.enterprise-" + OSGI_VERSION + ".jar" +
+                File.pathSeparator + "ext/org.osgi.service.jdbc-" + OSGI_JDBC_VERSION + ".jar" +
                 File.pathSeparator + "ext/jts-core-" + JTS_VERSION + ".jar" +
                 File.pathSeparator + "ext/asm-" + ASM_VERSION + ".jar" +
                 File.pathSeparator + "ext/junit-jupiter-api-" + JUNIT_VERSION + ".jar" +
@@ -649,7 +651,7 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/lucene-analyzers-common-" + LUCENE_VERSION + ".jar" +
                 File.pathSeparator + "ext/lucene-queryparser-" + LUCENE_VERSION + ".jar" +
                 File.pathSeparator + "ext/org.osgi.core-" + OSGI_VERSION + ".jar" +
-                File.pathSeparator + "ext/org.osgi.enterprise-" + OSGI_VERSION + ".jar" +
+                File.pathSeparator + "ext/org.osgi.service.jdbc-" + OSGI_JDBC_VERSION + ".jar" +
                 File.pathSeparator + "ext/jts-core-" + JTS_VERSION + ".jar",
                 "-subpackages", "org.h2.mvstore",
                 "-exclude", "org.h2.mvstore.db");
@@ -669,7 +671,7 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/lucene-analyzers-common-" + LUCENE_VERSION + ".jar" +
                 File.pathSeparator + "ext/lucene-queryparser-" + LUCENE_VERSION + ".jar" +
                 File.pathSeparator + "ext/org.osgi.core-" + OSGI_VERSION + ".jar" +
-                File.pathSeparator + "ext/org.osgi.enterprise-" + OSGI_VERSION + ".jar" +
+                File.pathSeparator + "ext/org.osgi.service.jdbc-" + OSGI_JDBC_VERSION + ".jar" +
                 File.pathSeparator + "ext/jts-core-" + JTS_VERSION + ".jar" +
                 File.pathSeparator + "ext/asm-" + ASM_VERSION + ".jar" +
                 File.pathSeparator + "ext/junit-jupiter-api-" + JUNIT_VERSION + ".jar" +
@@ -896,7 +898,7 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/lucene-analyzers-common-" + LUCENE_VERSION + ".jar" +
                 File.pathSeparator + "ext/lucene-queryparser-" + LUCENE_VERSION + ".jar" +
                 File.pathSeparator + "ext/org.osgi.core-" + OSGI_VERSION + ".jar" +
-                File.pathSeparator + "ext/org.osgi.enterprise-" + OSGI_VERSION + ".jar" +
+                File.pathSeparator + "ext/org.osgi.service.jdbc-" + OSGI_JDBC_VERSION + ".jar" +
                 File.pathSeparator + "ext/jts-core-" + JTS_VERSION + ".jar" +
                 File.pathSeparator + "ext/slf4j-api-" + SLF4J_VERSION + ".jar" +
                 File.pathSeparator + "ext/slf4j-nop-" + SLF4J_VERSION + ".jar" +

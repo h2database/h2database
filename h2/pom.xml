@@ -44,6 +44,7 @@
     <junit.version>5.6.2</junit.version>
     <lucene.version>8.5.2</lucene.version>
     <osgi.version>5.0.0</osgi.version>
+    <osgi.jdbc.version>1.1.0</osgi.jdbc.version>
     <pgjdbc.version>42.4.0</pgjdbc.version>
     <javax.servlet.version>4.0.1</javax.servlet.version>
     <jakarta.servlet.version>5.0.0</jakarta.servlet.version>
@@ -90,9 +91,10 @@
       <version>${osgi.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.osgi</groupId>
-      <artifactId>org.osgi.enterprise</artifactId>
-      <version>${osgi.version}</version>
+        <groupId>org.osgi</groupId>
+        <artifactId>org.osgi.service.jdbc</artifactId>
+        <version>${osgi.jdbc.version}</version>
+        <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.locationtech.jts</groupId>

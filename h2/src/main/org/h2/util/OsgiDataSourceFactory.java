@@ -289,7 +289,7 @@ public class OsgiDataSourceFactory implements DataSourceFactory {
      */
     static void registerService(BundleContext bundleContext,
             org.h2.Driver driver) {
-        Hashtable<String, String> properties = new Hashtable<>();
+        Hashtable<String, Object> properties = new Hashtable<>();
         properties.put(
                 DataSourceFactory.OSGI_JDBC_DRIVER_CLASS,
                 org.h2.Driver.class.getName());
@@ -299,6 +299,12 @@ public class OsgiDataSourceFactory implements DataSourceFactory {
         properties.put(
                 DataSourceFactory.OSGI_JDBC_DRIVER_VERSION,
                 Constants.FULL_VERSION);
+        properties.put(DataSourceFactory.OSGI_JDBC_CAPABILITY, new String[] {
+                DataSourceFactory.OSGI_JDBC_CAPABILITY_DRIVER,
+                DataSourceFactory.OSGI_JDBC_CAPABILITY_DATASOURCE,
+                DataSourceFactory.OSGI_JDBC_CAPABILITY_CONNECTIONPOOLDATASOURCE,
+                DataSourceFactory.OSGI_JDBC_CAPABILITY_XADATASOURCE
+        });
         bundleContext.registerService(
                 DataSourceFactory.class.getName(),
                 new OsgiDataSourceFactory(driver), properties);

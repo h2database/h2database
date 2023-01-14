@@ -1317,7 +1317,6 @@ public class Parser {
     }
 
     private Prepared parseShow() {
-        ArrayList<Value> paramValues = Utils.newSmallArrayList();
         StringBuilder buff = new StringBuilder("SELECT ");
         if (readIf("CLIENT_ENCODING")) {
             // for PostgreSQL compatibility
@@ -1365,22 +1364,25 @@ public class Parser {
             }
             buff.append("TABLE_NAME, TABLE_SCHEMA FROM "
                     + "INFORMATION_SCHEMA.TABLES "
-                    + "WHERE TABLE_SCHEMA=? ORDER BY TABLE_NAME");
-            paramValues.add(ValueVarchar.get(schema));
+                    + "WHERE TABLE_SCHEMA=");
+            StringUtils.quoteStringSQL(buff, schema).append(" ORDER BY TABLE_NAME");
         } else if (readIf("COLUMNS")) {
             // for MySQL compatibility
             read(FROM);
             String tableName = readIdentifierWithSchema();
             String schemaName = getSchema().getName();
-            paramValues.add(ValueVarchar.get(tableName));
             if (readIf(FROM)) {
                 schemaName = readIdentifier();
             }
             buff.append("C.COLUMN_NAME FIELD, ");
             boolean oldInformationSchema = session.isOldInformationSchema();
-            buff.append(oldInformationSchema
-                    ? "C.COLUMN_TYPE"
-                    : "DATA_TYPE_SQL(?2, ?1, 'TABLE', C.DTD_IDENTIFIER)");
+            if (oldInformationSchema) {
+                buff.append("C.COLUMN_TYPE");
+            } else {
+                buff.append("DATA_TYPE_SQL(");
+                StringUtils.quoteStringSQL(buff, schemaName).append(", ");
+                StringUtils.quoteStringSQL(buff, tableName).append(", 'TABLE', C.DTD_IDENTIFIER)");
+            }
             buff.append(" TYPE, "
                     + "C.IS_NULLABLE \"NULL\", "
                     + "CASE (SELECT MAX(I.INDEX_TYPE_NAME) FROM "
@@ -1404,9 +1406,9 @@ public class Parser {
                     + "WHEN 'UNIQUE INDEX' THEN 'UNI' ELSE '' END `KEY`, "
                     + "COALESCE(COLUMN_DEFAULT, 'NULL') `DEFAULT` "
                     + "FROM INFORMATION_SCHEMA.COLUMNS C "
-                    + "WHERE C.TABLE_NAME=?1 AND C.TABLE_SCHEMA=?2 "
-                    + "ORDER BY C.ORDINAL_POSITION");
-            paramValues.add(ValueVarchar.get(schemaName));
+                    + "WHERE C.TABLE_SCHEMA=");
+            StringUtils.quoteStringSQL(buff, schemaName).append(" AND C.TABLE_NAME=");
+            StringUtils.quoteStringSQL(buff, tableName).append(" ORDER BY C.ORDINAL_POSITION");
         } else if (readIf("DATABASES") || readIf("SCHEMAS")) {
             // for MySQL compatibility
             buff.append("SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA");
@@ -1416,26 +1418,12 @@ public class Parser {
         }
         boolean b = session.getAllowLiterals();
         try {
-            // need to temporarily enable it, in case we are in
-            // ALLOW_LITERALS_NUMBERS mode
+            // need to temporarily enable it
             session.setAllowLiterals(true);
-            return prepare(session, buff.toString(), paramValues);
+            return session.prepare(buff.toString());
         } finally {
             session.setAllowLiterals(b);
         }
-    }
-
-    private static Prepared prepare(SessionLocal s, String sql,
-            ArrayList<Value> paramValues) {
-        Prepared prep = s.prepare(sql);
-        ArrayList<Parameter> params = prep.getParameters();
-        if (params != null) {
-            for (int i = 0, size = params.size(); i < size; i++) {
-                Parameter p = params.get(i);
-                p.setValue(paramValues.get(i));
-            }
-        }
-        return prep;
     }
 
     private boolean isDerivedTable() {

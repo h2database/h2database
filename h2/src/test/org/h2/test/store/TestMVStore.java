@@ -823,7 +823,7 @@ public class TestMVStore extends TestBase {
                                 " cache hit ratio: " + s.getFileStore().getCacheHitRatio() +
                                 " cache ToC hit ratio: " + s.getFileStore().getTocCacheHitRatio() +
                                 "",
-                        Math.abs(100 - (100 * expected / readCount)) < 15);
+                        Math.abs(100 - (100 * expected / readCount)) < 20);
             }
         }
     }

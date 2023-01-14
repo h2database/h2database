@@ -278,9 +278,7 @@ public final class ValueClob extends ValueLob {
         if ((sqlFlags & REPLACE_LOBS_FOR_TRACE) != 0
                 && (!(lobData instanceof LobDataInMemory) || charLength > SysProperties.MAX_TRACE_DATA_LENGTH)) {
             builder.append("SPACE(").append(charLength);
-            LobDataDatabase lobDb = (LobDataDatabase) lobData;
-            builder.append(" /* table: ").append(lobDb.getTableId()).append(" id: ").append(lobDb.getLobId())
-                    .append(" */)");
+            formatLobDataComment(builder);
         } else {
             if ((sqlFlags & (REPLACE_LOBS_FOR_TRACE | NO_CASTS)) == 0) {
                 StringUtils.quoteStringSQL(builder.append("CAST("), getString()).append(" AS CHARACTER LARGE OBJECT(")

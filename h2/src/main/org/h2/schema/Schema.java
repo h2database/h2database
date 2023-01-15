@@ -329,7 +329,7 @@ public class Schema extends DbObject {
      * @return the object or null
      */
     public Table resolveTableOrView(SessionLocal session, String name) {
-    	return resolveTableOrView(session, name, /*resolveMaterializedView*/true);
+        return resolveTableOrView(session, name, /*resolveMaterializedView*/true);
     }
 
     /**
@@ -341,7 +341,7 @@ public class Schema extends DbObject {
      * @param session the session
      * @param name the object name
      * @param resolveMaterializedView if true, and the object is a materialized
-     * 			view, return the underlying Table object.
+     *             view, return the underlying Table object.
      * @return the object or null
      */
     public Table resolveTableOrView(SessionLocal session, String name, boolean resolveMaterializedView) {
@@ -354,7 +354,7 @@ public class Schema extends DbObject {
         }
         if (resolveMaterializedView && table instanceof MaterializedView) {
             MaterializedView matView = (MaterializedView) table;
-        	return matView.getUnderlyingTable();
+            return matView.getUnderlyingTable();
         }
         return table;
     }

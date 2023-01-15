@@ -688,7 +688,8 @@ public class MVStore implements AutoCloseable {
                                 }
                                 setRetentionTime(0);
                                 commit();
-                                assert oldestVersionToKeep.get() == currentVersion : oldestVersionToKeep.get() + " != " + currentVersion;
+                                assert oldestVersionToKeep.get() == currentVersion : oldestVersionToKeep.get() + " != "
+                                        + currentVersion;
                                 fileStore.stop(allowedCompactionTime);
                             }
 
@@ -717,7 +718,7 @@ public class MVStore implements AutoCloseable {
     /**
      * Indicates whether this MVStore is backed by FileStore,
      * and therefore it's data will survive this store closure
-     * (but not neccessary process termination in case of in-memory store).
+     * (but not necessary process termination in case of in-memory store).
      * @return true if persistent
      */
     public boolean isPersistent() {

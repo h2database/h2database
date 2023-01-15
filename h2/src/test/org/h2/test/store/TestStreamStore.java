@@ -359,8 +359,7 @@ public class TestStreamStore extends TestBase {
         }
     }
 
-    private void test(int minBlockSize, int maxBlockSize,
-                      int length) throws IOException {
+    private void test(int minBlockSize, int maxBlockSize, int length) throws IOException {
         Map<Long, byte[]> map = new HashMap<>();
         StreamStore store = new StreamStore(map, minBlockSize, maxBlockSize);
         assertEquals(minBlockSize, store.getMinBlockSize());

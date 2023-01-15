@@ -36,7 +36,7 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
     /**
      * Allocation mode:
      * false - new chunk is always allocated at the end of file
-     * true - new chunk is allocated as close to the begining of file, as possible
+     * true - new chunk is allocated as close to the beginning of file, as possible
      */
     private volatile boolean reuseSpace = true;
 
@@ -306,7 +306,7 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
                 }
 
                 if (!findLastChunkWithCompleteValidChunkSet(chunkComparator, validChunksByLocation, true)
-                        && hasPersitentData()) {
+                        && hasPersistentData()) {
                     throw DataUtils.newMVStoreException(
                             DataUtils.ERROR_FILE_CORRUPT,
                             "File is corrupted - unable to recover a valid set of chunks");
@@ -382,7 +382,7 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
                     writeStoreHeader = true;
                 } else {
                     for (int chunkId = DataUtils.readHexInt(storeHeader, HDR_CHUNK, 0);
-                         !writeStoreHeader && chunkId <= chunk.id; ++chunkId) {
+                            !writeStoreHeader && chunkId <= chunk.id; ++chunkId) {
                         // one of the chunks in between
                         // was removed
                         writeStoreHeader = !getChunks().containsKey(chunkId);
@@ -415,16 +415,16 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
      * shrink the file. Changes are flushed to the file, and old
      * chunks are overwritten.
      *
-     * @param thresholdFildRate do not compact if store fill rate above this value (0-100)
+     * @param thresholdFillRate do not compact if store fill rate above this value (0-100)
      * @param maxCompactTime the maximum time in milliseconds to compact
      * @param maxWriteSize the maximum amount of data to be written as part of this call
      */
-    protected void compactStore(int thresholdFildRate, long maxCompactTime, int maxWriteSize, MVStore mvStore) {
+    protected void compactStore(int thresholdFillRate, long maxCompactTime, int maxWriteSize, MVStore mvStore) {
         setRetentionTime(0);
         long stopAt = System.nanoTime() + maxCompactTime * 1_000_000L;
-        while (compact(thresholdFildRate, maxWriteSize)) {
+        while (compact(thresholdFillRate, maxWriteSize)) {
             sync();
-            compactMoveChunks(thresholdFildRate, maxWriteSize, mvStore);
+            compactMoveChunks(thresholdFillRate, maxWriteSize, mvStore);
             if (System.nanoTime() - stopAt > 0L) {
                 break;
             }
@@ -448,7 +448,7 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
                 dropUnusedChunks();
                 saveChunkLock.lock();
                 try {
-                    if (hasPersitentData() && getFillRate() <= targetFillRate) {
+                    if (hasPersistentData() && getFillRate() <= targetFillRate) {
                         compactMoveChunks(moveSize);
                     }
                 } finally {
@@ -575,7 +575,7 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
 
     private void writeStoreHeader() {
         StringBuilder buff = new StringBuilder(112);
-        if (hasPersitentData()) {
+        if (hasPersistentData()) {
             storeHeader.put(HDR_BLOCK, lastChunk.block);
             storeHeader.put(HDR_CHUNK, lastChunk.id);
             storeHeader.put(HDR_VERSION, lastChunk.version);
@@ -697,7 +697,7 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
                 compactMoveChunks(101, moveSize, mvStore);
                 return true;
             });
-        } else if (fillRate >= getAutoCompactFillRate() && hasPersitentData()) {
+        } else if (fillRate >= getAutoCompactFillRate() && hasPersistentData()) {
             int chunksFillRate = getRewritableChunksFillRate();
             int _chunksFillRate = isIdle() ? 100 - (100 - chunksFillRate) / 2 : chunksFillRate;
             if (_chunksFillRate < getTargetFillRate()) {

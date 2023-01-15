@@ -52,7 +52,7 @@ public class Build extends BuildBase {
     private static final String MYSQL_CONNECTOR_VERSION = "8.0.27";
 
     private static final String OSGI_VERSION = "5.0.0";
-    
+
     private static final String OSGI_JDBC_VERSION = "1.1.0";
 
     private static final String PGJDBC_VERSION = "42.4.0";

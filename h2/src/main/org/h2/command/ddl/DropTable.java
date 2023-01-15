@@ -87,7 +87,8 @@ public class DropTable extends DefineCommand {
                         }
                     }
                 }
-                CopyOnWriteArrayList<MaterializedView> dependentMaterializedViews = table.getDependentMaterializedViews();
+                CopyOnWriteArrayList<MaterializedView> dependentMaterializedViews = table
+                        .getDependentMaterializedViews();
                 if (dependentMaterializedViews != null && !dependentMaterializedViews.isEmpty()) {
                     for (MaterializedView v : dependentMaterializedViews) {
                         if (!tablesToDrop.contains(v)) {

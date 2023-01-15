@@ -58,10 +58,10 @@ public class TestMaterializedView extends TestDb {
         assertFalse(rs.next());
         // cannot drop table until the materialized view is dropped
         assertThrows(ErrorCode.CANNOT_DROP_2, () -> {
-        	stat.execute("drop table test");
+            stat.execute("drop table test");
         });
         stat.execute("drop materialized view test_view");
-    	stat.execute("drop table test");
+        stat.execute("drop table test");
         conn.close();
     }
 

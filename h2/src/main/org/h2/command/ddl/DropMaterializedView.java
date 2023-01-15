@@ -20,53 +20,53 @@ import org.h2.table.TableType;
  */
 public class DropMaterializedView extends SchemaCommand {
 
-	private String viewName;
-	private boolean ifExists;
+    private String viewName;
+    private boolean ifExists;
 
-	public DropMaterializedView(SessionLocal session, Schema schema) {
-		super(session, schema);
-	}
+    public DropMaterializedView(SessionLocal session, Schema schema) {
+        super(session, schema);
+    }
 
-	public void setIfExists(boolean b) {
-		ifExists = b;
-	}
+    public void setIfExists(boolean b) {
+        ifExists = b;
+    }
 
-	public void setViewName(String viewName) {
-		this.viewName = viewName;
-	}
+    public void setViewName(String viewName) {
+        this.viewName = viewName;
+    }
 
-	@Override
-	public long update() {
-		Table view = getSchema().findTableOrView(session, viewName);
-		if (view == null) {
-			if (!ifExists) {
-				throw DbException.get(ErrorCode.VIEW_NOT_FOUND_1, viewName);
-			}
-		} else {
-			if (TableType.MATERIALIZED_VIEW != view.getTableType()) {
-				throw DbException.get(ErrorCode.VIEW_NOT_FOUND_1, viewName);
-			}
-			session.getUser().checkSchemaOwner(view.getSchema());
+    @Override
+    public long update() {
+        Table view = getSchema().findTableOrView(session, viewName);
+        if (view == null) {
+            if (!ifExists) {
+                throw DbException.get(ErrorCode.VIEW_NOT_FOUND_1, viewName);
+            }
+        } else {
+            if (TableType.MATERIALIZED_VIEW != view.getTableType()) {
+                throw DbException.get(ErrorCode.VIEW_NOT_FOUND_1, viewName);
+            }
+            session.getUser().checkSchemaOwner(view.getSchema());
 
-			final MaterializedView materializedView = (MaterializedView) view;
-			
-	        for (Table table : materializedView.getSelect().getTables()) {
-	        	table.removeDependentMaterializedView(materializedView);
-	        }
+            final MaterializedView materializedView = (MaterializedView) view;
 
-			final Database database = getDatabase();
-			database.lockMeta(session);
-			database.removeSchemaObject(session, view);
+            for (Table table : materializedView.getSelect().getTables()) {
+                table.removeDependentMaterializedView(materializedView);
+            }
 
-			// make sure its all unlocked
-			database.unlockMeta(session);
-		}
-		return 0;
-	}
+            final Database database = getDatabase();
+            database.lockMeta(session);
+            database.removeSchemaObject(session, view);
 
-	@Override
-	public int getType() {
-		return CommandInterface.DROP_MATERIALIZED_VIEW;
-	}
+            // make sure its all unlocked
+            database.unlockMeta(session);
+        }
+        return 0;
+    }
+
+    @Override
+    public int getType() {
+        return CommandInterface.DROP_MATERIALIZED_VIEW;
+    }
 
 }

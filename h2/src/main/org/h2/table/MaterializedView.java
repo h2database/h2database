@@ -25,206 +25,208 @@ import org.h2.util.StringUtils;
  */
 public class MaterializedView extends Table {
 
-	private Table table;
-	private String querySQL;
-	private Query query;
+    private Table table;
+    private String querySQL;
+    private Query query;
 
-	public MaterializedView(Schema schema, int id, String name, Table table, Query query, String querySQL) {
-		super(schema, id, name, false, true);
-		this.table = table;
-		this.query = query;
-		this.querySQL = querySQL;
-	}
-	
-	public void replace(Table table, Query query, String querySQL) {
-		this.table = table;
-		this.query = query;
-		this.querySQL = querySQL;
-	}
-	
-	public Table getUnderlyingTable() {
-		return table;
-	}
+    public MaterializedView(Schema schema, int id, String name, Table table, Query query, String querySQL) {
+        super(schema, id, name, false, true);
+        this.table = table;
+        this.query = query;
+        this.querySQL = querySQL;
+    }
 
-	public Query getSelect() {
-		return query;
-	}
+    public void replace(Table table, Query query, String querySQL) {
+        this.table = table;
+        this.query = query;
+        this.querySQL = querySQL;
+    }
 
-	@Override
-	public final void close(SessionLocal session) {
-		table.close(session);
-	}
+    public Table getUnderlyingTable() {
+        return table;
+    }
 
-	@Override
-	public final Index addIndex(SessionLocal session, String indexName, int indexId, IndexColumn[] cols,
-			int uniqueColumnCount, IndexType indexType, boolean create, String indexComment) {
-		return table.addIndex(session, indexName, indexId, cols, uniqueColumnCount, indexType, create, indexComment);
-	}
+    public Query getSelect() {
+        return query;
+    }
 
-	@Override
-	public final boolean isView() {
-		return true;
-	}
+    @Override
+    public final void close(SessionLocal session) {
+        table.close(session);
+    }
 
-	@Override
-	public final PlanItem getBestPlanItem(SessionLocal session, int[] masks, TableFilter[] filters, int filter,
-			SortOrder sortOrder, AllColumnsForPlan allColumnsSet) {
-		return table.getBestPlanItem(session, masks, filters, filter, sortOrder, allColumnsSet);
-	}
+    @Override
+    public final Index addIndex(SessionLocal session, String indexName, int indexId, IndexColumn[] cols,
+            int uniqueColumnCount, IndexType indexType, boolean create, String indexComment) {
+        return table.addIndex(session, indexName, indexId, cols, uniqueColumnCount, indexType, create, indexComment);
+    }
 
-	@Override
-	public boolean isQueryComparable() {
-		return table.isQueryComparable();
-	}
+    @Override
+    public final boolean isView() {
+        return true;
+    }
 
-	@Override
-	public final boolean isInsertable() {
-		return false;
-	}
+    @Override
+    public final PlanItem getBestPlanItem(SessionLocal session, int[] masks, TableFilter[] filters, int filter,
+            SortOrder sortOrder, AllColumnsForPlan allColumnsSet) {
+        return table.getBestPlanItem(session, masks, filters, filter, sortOrder, allColumnsSet);
+    }
 
-	@Override
-	public final void removeRow(SessionLocal session, Row row) {
-		throw DbException.getUnsupportedException(getClass().getSimpleName() + ".removeRow");
-	}
+    @Override
+    public boolean isQueryComparable() {
+        return table.isQueryComparable();
+    }
 
-	@Override
-	public final void addRow(SessionLocal session, Row row) {
-		throw DbException.getUnsupportedException(getClass().getSimpleName() + ".addRow");
-	}
+    @Override
+    public final boolean isInsertable() {
+        return false;
+    }
 
-	@Override
-	public final void checkSupportAlter() {
-		throw DbException.getUnsupportedException(getClass().getSimpleName() + ".checkSupportAlter");
-	}
+    @Override
+    public final void removeRow(SessionLocal session, Row row) {
+        throw DbException.getUnsupportedException(getClass().getSimpleName() + ".removeRow");
+    }
 
-	@Override
-	public final long truncate(SessionLocal session) {
-		throw DbException.getUnsupportedException(getClass().getSimpleName() + ".truncate");
-	}
+    @Override
+    public final void addRow(SessionLocal session, Row row) {
+        throw DbException.getUnsupportedException(getClass().getSimpleName() + ".addRow");
+    }
 
-	@Override
-	public final long getRowCount(SessionLocal session) {
-		return table.getRowCount(session);
-	}
+    @Override
+    public final void checkSupportAlter() {
+        throw DbException.getUnsupportedException(getClass().getSimpleName() + ".checkSupportAlter");
+    }
 
-	@Override
-	public final boolean canGetRowCount(SessionLocal session) {
-		return table.canGetRowCount(session);
-	}
+    @Override
+    public final long truncate(SessionLocal session) {
+        throw DbException.getUnsupportedException(getClass().getSimpleName() + ".truncate");
+    }
 
-	@Override
-	public final long getRowCountApproximation(SessionLocal session) {
-		return table.getRowCountApproximation(session);
-	}
+    @Override
+    public final long getRowCount(SessionLocal session) {
+        return table.getRowCount(session);
+    }
 
-	@Override
-	public final boolean canReference() {
-		return false;
-	}
+    @Override
+    public final boolean canGetRowCount(SessionLocal session) {
+        return table.canGetRowCount(session);
+    }
 
-	@Override
-	public final ArrayList<Index> getIndexes() {
-		return table.getIndexes();
-	}
+    @Override
+    public final long getRowCountApproximation(SessionLocal session) {
+        return table.getRowCountApproximation(session);
+    }
 
-	@Override
-	public final Index getScanIndex(SessionLocal session) {
-		return getBestPlanItem(session, null, null, -1, null, null).getIndex();
-	}
+    @Override
+    public final boolean canReference() {
+        return false;
+    }
 
-	@Override
-	public Index getScanIndex(SessionLocal session, int[] masks, TableFilter[] filters, int filter, //
-			SortOrder sortOrder, AllColumnsForPlan allColumnsSet) {
-		return getBestPlanItem(session, masks, filters, filter, sortOrder, allColumnsSet).getIndex();
-	}
+    @Override
+    public final ArrayList<Index> getIndexes() {
+        return table.getIndexes();
+    }
 
-	@Override
-	public boolean isDeterministic() {
-		return table.isDeterministic();
-	}
+    @Override
+    public final Index getScanIndex(SessionLocal session) {
+        return getBestPlanItem(session, null, null, -1, null, null).getIndex();
+    }
 
-	@Override
-	public final void addDependencies(HashSet<DbObject> dependencies) {
-		table.addDependencies(dependencies);
-	}
+    @Override
+    public Index getScanIndex(SessionLocal session, int[] masks, TableFilter[] filters, int filter, //
+            SortOrder sortOrder, AllColumnsForPlan allColumnsSet) {
+        return getBestPlanItem(session, masks, filters, filter, sortOrder, allColumnsSet).getIndex();
+    }
 
-	@Override
-	public String getDropSQL() {
-		return getSQL(new StringBuilder("DROP MATERIALIZED VIEW IF EXISTS "), DEFAULT_SQL_FLAGS).toString();
-	}
+    @Override
+    public boolean isDeterministic() {
+        return table.isDeterministic();
+    }
 
-	@Override
-	public String getCreateSQLForCopy(Table table, String quotedName) {
-		return getCreateSQL(false, true, quotedName);
-	}
+    @Override
+    public final void addDependencies(HashSet<DbObject> dependencies) {
+        table.addDependencies(dependencies);
+    }
 
-	@Override
-	public String getCreateSQL() {
-		return getCreateSQL(false, true);
-	}
+    @Override
+    public String getDropSQL() {
+        return getSQL(new StringBuilder("DROP MATERIALIZED VIEW IF EXISTS "), DEFAULT_SQL_FLAGS).toString();
+    }
 
-	/**
-	 * Generate "CREATE" SQL statement for the materialized view.
-	 *
-	 * @param orReplace if true, then include the OR REPLACE clause
-	 * @param force     if true, then include the FORCE clause
-	 * @return the SQL statement
-	 */
-	public String getCreateSQL(boolean orReplace, boolean force) {
-		return getCreateSQL(orReplace, force, getSQL(DEFAULT_SQL_FLAGS));
-	}
+    @Override
+    public String getCreateSQLForCopy(Table table, String quotedName) {
+        return getCreateSQL(false, true, quotedName);
+    }
 
-	private String getCreateSQL(boolean orReplace, boolean force, String quotedName) {
-		StringBuilder builder = new StringBuilder("CREATE ");
-		if (orReplace) {
-			builder.append("OR REPLACE ");
-		}
-		if (force) {
-			builder.append("FORCE ");
-		}
-		builder.append("MATERIALIZED VIEW ");
-		builder.append(quotedName);
-		if (comment != null) {
-			builder.append(" COMMENT ");
-			StringUtils.quoteStringSQL(builder, comment);
-		}
-		return builder.append(" AS\n").append(querySQL).toString();
-	}
+    @Override
+    public String getCreateSQL() {
+        return getCreateSQL(false, true);
+    }
 
-	@Override
-	public boolean canDrop() {
-		return true;
-	}
+    /**
+     * Generate "CREATE" SQL statement for the materialized view.
+     *
+     * @param orReplace
+     *            if true, then include the OR REPLACE clause
+     * @param force
+     *            if true, then include the FORCE clause
+     * @return the SQL statement
+     */
+    public String getCreateSQL(boolean orReplace, boolean force) {
+        return getCreateSQL(orReplace, force, getSQL(DEFAULT_SQL_FLAGS));
+    }
 
-	@Override
-	public TableType getTableType() {
-		return TableType.MATERIALIZED_VIEW;
-	}
+    private String getCreateSQL(boolean orReplace, boolean force, String quotedName) {
+        StringBuilder builder = new StringBuilder("CREATE ");
+        if (orReplace) {
+            builder.append("OR REPLACE ");
+        }
+        if (force) {
+            builder.append("FORCE ");
+        }
+        builder.append("MATERIALIZED VIEW ");
+        builder.append(quotedName);
+        if (comment != null) {
+            builder.append(" COMMENT ");
+            StringUtils.quoteStringSQL(builder, comment);
+        }
+        return builder.append(" AS\n").append(querySQL).toString();
+    }
 
-	@Override
-	public void removeChildrenAndResources(SessionLocal session) {
-		table.removeChildrenAndResources(session);
-		database.removeMeta(session, getId());
-		querySQL = null;
-		invalidate();
-	}
+    @Override
+    public boolean canDrop() {
+        return true;
+    }
 
-	@Override
-	public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
-		if (isTemporary() && querySQL != null) {
-			builder.append("(\n");
-			return StringUtils.indent(builder, querySQL, 4, true).append(')');
-		}
-		return super.getSQL(builder, sqlFlags);
-	}
+    @Override
+    public TableType getTableType() {
+        return TableType.MATERIALIZED_VIEW;
+    }
 
-	public String getQuerySQL() {
-		return querySQL;
-	}
+    @Override
+    public void removeChildrenAndResources(SessionLocal session) {
+        table.removeChildrenAndResources(session);
+        database.removeMeta(session, getId());
+        querySQL = null;
+        invalidate();
+    }
 
-	@Override
-	public long getMaxDataModificationId() {
-		return table.getMaxDataModificationId();
-	}
+    @Override
+    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
+        if (isTemporary() && querySQL != null) {
+            builder.append("(\n");
+            return StringUtils.indent(builder, querySQL, 4, true).append(')');
+        }
+        return super.getSQL(builder, sqlFlags);
+    }
+
+    public String getQuerySQL() {
+        return querySQL;
+    }
+
+    @Override
+    public long getMaxDataModificationId() {
+        return table.getMaxDataModificationId();
+    }
 
 }

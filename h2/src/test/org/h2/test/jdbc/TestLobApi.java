@@ -278,6 +278,7 @@ public class TestLobApi extends TestDb {
         rs = stat.executeQuery("select * from test");
         rs.next();
         Blob b3 = rs.getBlob(2);
+        b3.toString();
         assertEquals(length, b3.length());
         byte[] bytes = b.getBytes(1, length);
         byte[] bytes2 = b3.getBytes(1, length);
@@ -370,6 +371,7 @@ public class TestLobApi extends TestDb {
         rs = stat.executeQuery("select * from test");
         rs.next();
         Clob c2 = rs.getClob(2);
+        c2.toString();
         assertEquals(length, c2.length());
         String s = c.getSubString(1, length);
         String s2 = c2.getSubString(1, length);

@@ -83,6 +83,7 @@ public class TestCases extends TestDb {
         testExplainAnalyze();
         testDataChangeDeltaTable();
         testGroupSortedReset();
+        testShowColumns();
         if (config.memory) {
             return;
         }
@@ -1764,6 +1765,24 @@ public class TestCases extends TestDb {
         stat.execute(sql);
         stat.execute("UPDATE T1 SET B = 7 WHERE A = 3");
         stat.execute(sql);
+        conn.close();
+    }
+
+    private void testShowColumns() throws SQLException {
+        // This test requires a PreparedStatement
+        deleteDb("cases");
+        Connection conn = getConnection("cases");
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE TABLE TEST(A INTEGER)");
+        PreparedStatement prep = conn.prepareStatement("SHOW COLUMNS FROM TEST");
+        ResultSet rs = prep.executeQuery();
+        assertTrue(rs.next());
+        assertFalse(rs.next());
+        stat.execute("ALTER TABLE TEST ADD COLUMN B INTEGER");
+        rs = prep.executeQuery();
+        assertTrue(rs.next());
+        assertTrue(rs.next());
+        assertFalse(rs.next());
         conn.close();
     }
 

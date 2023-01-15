@@ -6,10 +6,8 @@
 package org.h2.command.dml;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
@@ -19,12 +17,10 @@ import org.h2.engine.Database;
 import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.message.DbException;
-import org.h2.mvstore.MVStore;
 import org.h2.mvstore.db.Store;
 import org.h2.result.ResultInterface;
 import org.h2.store.FileLister;
 import org.h2.store.fs.FileUtils;
-import org.h2.util.IOUtils;
 
 /**
  * This class represents the statement
@@ -65,7 +61,6 @@ public class BackupCommand extends Prepared {
                 db.flush();
                 // synchronize on the database, to avoid concurrent temp file
                 // creation / deletion / backup
-                String base = FileUtils.getParent(db.getName());
                 synchronized (db.getLobSyncObject()) {
                     String prefix = db.getDatabasePath();
                     String dir = FileUtils.getParent(prefix);
@@ -82,20 +77,6 @@ public class BackupCommand extends Prepared {
         } catch (IOException e) {
             throw DbException.convertIOException(e, fileName);
         }
-    }
-
-    private static void backupFile(ZipOutputStream out, String base, String fn,
-            InputStream in) throws IOException {
-        String f = FileUtils.toRealPath(fn);
-        base = FileUtils.toRealPath(base);
-        if (!f.startsWith(base)) {
-            throw DbException.getInternalError(f + " does not start with " + base);
-        }
-        f = f.substring(base.length());
-        f = correctFileName(f);
-        out.putNextEntry(new ZipEntry(f));
-        IOUtils.copyAndCloseInput(in, out);
-        out.closeEntry();
     }
 
     @Override

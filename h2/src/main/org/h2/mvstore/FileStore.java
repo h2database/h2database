@@ -85,7 +85,7 @@ public abstract class FileStore<C extends Chunk<C>>
     private static final int FORMAT_READ_MIN = 2;
     private static final int FORMAT_READ_MAX = 2;
 
-    private MVStore mvStore;
+    MVStore mvStore;
     private boolean closed;
 
     /**
@@ -176,7 +176,7 @@ public abstract class FileStore<C extends Chunk<C>>
     /**
      * The map of chunks.
      */
-    private final ConcurrentHashMap<Integer, C> chunks = new ConcurrentHashMap<>();
+    final ConcurrentHashMap<Integer, C> chunks = new ConcurrentHashMap<>();
 
     protected final HashMap<String, Object> storeHeader = new HashMap<>();
 
@@ -1633,7 +1633,7 @@ public abstract class FileStore<C extends Chunk<C>>
      * Put the page in the cache.
      * @param page the page
      */
-    private void cachePage(Page<?,?> page) {
+    void cachePage(Page<?,?> page) {
         if (cache != null) {
             cache.put(page.getPos(), page, page.getMemory());
         }
@@ -1680,7 +1680,7 @@ public abstract class FileStore<C extends Chunk<C>>
         }
     }
 
-    private void cacheToC(C chunk, long[] toc) {
+    void cacheToC(C chunk, long[] toc) {
         chunksToC.put(chunk.version, toc, toc.length * 8L + Constants.MEMORY_ARRAY);
     }
 
@@ -1724,7 +1724,7 @@ public abstract class FileStore<C extends Chunk<C>>
         return (int) (100 * hits / (hits + cache.getMisses() + 1));
     }
 
-    private boolean isBackgroundThread() {
+    boolean isBackgroundThread() {
         return Thread.currentThread() == backgroundWriterThread.get();
     }
 

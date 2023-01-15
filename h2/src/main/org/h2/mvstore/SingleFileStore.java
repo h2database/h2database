@@ -55,10 +55,12 @@ public class SingleFileStore extends RandomAccessStore {
         return getFileName();
     }
 
+    @Override
     public ByteBuffer readFully(SFChunk chunk, long pos, int len) {
         return readFully(fileChannel, pos, len);
     }
 
+    @Override
     protected void writeFully(SFChunk chunk, long pos, ByteBuffer src) {
         int len = src.remaining();
         setSize(Math.max(super.size(), pos + len));
@@ -188,6 +190,7 @@ public class SingleFileStore extends RandomAccessStore {
      *
      * @param size the new file size
      */
+    @Override
     @SuppressWarnings("ThreadPriorityCheck")
     public void truncate(long size) {
         int attemptCount = 0;
@@ -216,14 +219,17 @@ public class SingleFileStore extends RandomAccessStore {
      * @param block where chunk starts
      * @return priority, bigger number indicate that chunk need to be moved sooner
      */
+    @Override
     public int getMovePriority(int block) {
         return freeSpace.getMovePriority(block);
     }
 
+    @Override
     protected long getAfterLastBlock_() {
         return freeSpace.getAfterLastBlock();
     }
 
+    @Override
     public void backup(ZipOutputStream out) throws IOException {
         boolean before = isSpaceReused();
         setReuseSpace(false);

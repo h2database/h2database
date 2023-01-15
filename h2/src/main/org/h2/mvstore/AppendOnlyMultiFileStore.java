@@ -78,14 +78,17 @@ public final class AppendOnlyMultiFileStore extends FileStore<MFChunk>
         fileChannels = new FileChannel[maxFileCount];
     }
 
+    @Override
     protected final MFChunk createChunk(int newChunkId) {
         return new MFChunk(newChunkId);
     }
 
+    @Override
     public MFChunk createChunk(String s) {
         return new MFChunk(s);
     }
 
+    @Override
     protected MFChunk createChunk(Map<String, String> map) {
         return new MFChunk(map);
     }
@@ -192,14 +195,17 @@ public final class AppendOnlyMultiFileStore extends FileStore<MFChunk>
         writeBytes.addAndGet(len);
     }
 
+    @Override
     public ByteBuffer readFully(MFChunk chunk, long pos, int len) {
         int volumeId = chunk.volumeId;
         return readFully(fileChannels[volumeId], pos, len);
     }
 
+    @Override
     protected void initializeStoreHeader(long time) {
     }
 
+    @Override
     protected void readStoreHeader(boolean recoveryMode) {
         ByteBuffer fileHeaderBlocks = readFully(new MFChunk(""), 0, FileStore.BLOCK_SIZE);
         byte[] buff = new byte[FileStore.BLOCK_SIZE];
@@ -243,15 +249,18 @@ public final class AppendOnlyMultiFileStore extends FileStore<MFChunk>
         setSize((chunk.block + chunk.len) * BLOCK_SIZE);
     }
 
+    @Override
     protected void writeChunk(MFChunk chunk, WriteBuffer buff) {
         long filePos = chunk.block * BLOCK_SIZE;
         writeFully(chunk, filePos, buff.getBuffer());
     }
 
+    @Override
     protected void writeCleanShutdownMark() {
 
     }
 
+    @Override
     protected void adjustStoreToLastChunk() {
 
     }
@@ -278,6 +287,7 @@ public final class AppendOnlyMultiFileStore extends FileStore<MFChunk>
     @Override
     protected void freeChunkSpace(Iterable<MFChunk> chunks) {}
 
+    @Override
     protected boolean validateFileLength(String msg) {
         return true;
     }

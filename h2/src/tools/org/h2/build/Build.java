@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2023 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -52,7 +52,7 @@ public class Build extends BuildBase {
     private static final String MYSQL_CONNECTOR_VERSION = "8.0.27";
 
     private static final String OSGI_VERSION = "5.0.0";
-    
+
     private static final String OSGI_JDBC_VERSION = "1.1.0";
 
     private static final String PGJDBC_VERSION = "42.4.0";

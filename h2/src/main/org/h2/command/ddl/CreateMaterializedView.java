@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2023 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -21,68 +21,68 @@ import org.h2.table.TableType;
  */
 public class CreateMaterializedView extends SchemaOwnerCommand {
 
-	/** Re-use the CREATE TABLE functionality to avoid duplicating a bunch of logic */
-	private final CreateTable createTable;
-	private boolean orReplace;
-	private boolean ifNotExists;
-	private String viewName;
-	private String comment;
-	private Query select;
-	private String selectSQL;
+    /** Re-use the CREATE TABLE functionality to avoid duplicating a bunch of logic */
+    private final CreateTable createTable;
+    private boolean orReplace;
+    private boolean ifNotExists;
+    private String viewName;
+    private String comment;
+    private Query select;
+    private String selectSQL;
 
-	public CreateMaterializedView(SessionLocal session, Schema schema) {
-		super(session, schema);
-		createTable = new CreateTable(session, schema);
-	}
+    public CreateMaterializedView(SessionLocal session, Schema schema) {
+        super(session, schema);
+        createTable = new CreateTable(session, schema);
+    }
 
-	public void setViewName(String name) {
-		this.viewName = name;
-		this.createTable.setTableName(name + "$1");
-	}
+    public void setViewName(String name) {
+        this.viewName = name;
+        this.createTable.setTableName(name + "$1");
+    }
 
-	public void setComment(String comment) {
-		this.comment = comment;
-	}
+    public void setComment(String comment) {
+        this.comment = comment;
+    }
 
-	public void setSelectSQL(String selectSQL) {
-		this.selectSQL = selectSQL;
-	}
+    public void setSelectSQL(String selectSQL) {
+        this.selectSQL = selectSQL;
+    }
 
-	public void setIfNotExists(boolean ifNotExists) {
-		this.ifNotExists = ifNotExists;
-		this.createTable.setIfNotExists(ifNotExists);
-	}
+    public void setIfNotExists(boolean ifNotExists) {
+        this.ifNotExists = ifNotExists;
+        this.createTable.setIfNotExists(ifNotExists);
+    }
 
-	public void setSelect(Query query) {
-		this.select = query;
-		this.createTable.setQuery(query);
-	}
+    public void setSelect(Query query) {
+        this.select = query;
+        this.createTable.setQuery(query);
+    }
 
-	public void setOrReplace(boolean orReplace) {
-		this.orReplace = orReplace;
-	}
+    public void setOrReplace(boolean orReplace) {
+        this.orReplace = orReplace;
+    }
 
-	@Override
-	long update(Schema schema) {
+    @Override
+    long update(Schema schema) {
         final Database db = getDatabase();
-		final Table old = schema.findTableOrView(session, viewName);
+        final Table old = schema.findTableOrView(session, viewName);
         MaterializedView view = null;
-		if (old != null) {
-			if (ifNotExists) {
-				return 0;
-			}
+        if (old != null) {
+            if (ifNotExists) {
+                return 0;
+            }
             if (!orReplace || TableType.MATERIALIZED_VIEW != old.getTableType()) {
                 throw DbException.get(ErrorCode.VIEW_ALREADY_EXISTS_1, viewName);
             }
             view = (MaterializedView) old;
-		}
+        }
         final int id = getObjectId();
-    	// Re-use the CREATE TABLE functionality to avoid duplicating a bunch of logic.
-		createTable.update();
-		// Look up the freshly created table.
-		final Table underlyingTable = schema.getTableOrView(session, viewName + "$1");
+        // Re-use the CREATE TABLE functionality to avoid duplicating a bunch of logic.
+        createTable.update();
+        // Look up the freshly created table.
+        final Table underlyingTable = schema.getTableOrView(session, viewName + "$1");
         if (view == null) {
-        	view = new MaterializedView(schema, id, viewName, underlyingTable, select, selectSQL);
+            view = new MaterializedView(schema, id, viewName, underlyingTable, select, selectSQL);
         } else {
             view.replace(underlyingTable, select, selectSQL);
             view.setModified();
@@ -91,7 +91,7 @@ public class CreateMaterializedView extends SchemaOwnerCommand {
             view.setComment(comment);
         }
         for (Table table : select.getTables()) {
-        	table.addDependentMaterializedView(view);
+            table.addDependentMaterializedView(view);
         }
         if (old == null) {
             db.addSchemaObject(session, view);
@@ -99,12 +99,12 @@ public class CreateMaterializedView extends SchemaOwnerCommand {
         } else {
             db.updateMeta(session, view);
         }
-		return 0;
-	}
+        return 0;
+    }
 
-	@Override
-	public int getType() {
-		return CommandInterface.CREATE_MATERIALIZED_VIEW;
-	}
+    @Override
+    public int getType() {
+        return CommandInterface.CREATE_MATERIALIZED_VIEW;
+    }
 
 }

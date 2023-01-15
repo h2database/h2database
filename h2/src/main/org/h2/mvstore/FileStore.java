@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2023 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -85,7 +85,7 @@ public abstract class FileStore<C extends Chunk<C>>
     private static final int FORMAT_READ_MIN = 2;
     private static final int FORMAT_READ_MAX = 2;
 
-    private MVStore mvStore;
+    MVStore mvStore;
     private boolean closed;
 
     /**
@@ -176,7 +176,7 @@ public abstract class FileStore<C extends Chunk<C>>
     /**
      * The map of chunks.
      */
-    private final ConcurrentHashMap<Integer, C> chunks = new ConcurrentHashMap<>();
+    final ConcurrentHashMap<Integer, C> chunks = new ConcurrentHashMap<>();
 
     protected final HashMap<String, Object> storeHeader = new HashMap<>();
 
@@ -615,7 +615,7 @@ public abstract class FileStore<C extends Chunk<C>>
         }
     }
 
-    protected final boolean hasPersitentData() {
+    protected final boolean hasPersistentData() {
         return lastChunk != null;
     }
 
@@ -866,7 +866,7 @@ public abstract class FileStore<C extends Chunk<C>>
      * @return if any chunk was re-written
      */
     public boolean compact(int targetFillRate, int write) {
-        if (hasPersitentData()) {
+        if (hasPersistentData()) {
             if (targetFillRate > 0 && getChunksFillRate() < targetFillRate) {
                 // We can't wait forever for the lock here,
                 // because if called from the background thread,
@@ -893,11 +893,12 @@ public abstract class FileStore<C extends Chunk<C>>
      * shrink the file. Changes are flushed to the file, and old
      * chunks are overwritten.
      *
-     * @param thresholdFildRate do not compact if store fill rate above this value (0-100)
+     * @param thresholdFillRate do not compact if store fill rate above this value (0-100)
      * @param maxCompactTime the maximum time in milliseconds to compact
      * @param maxWriteSize the maximum amount of data to be written as part of this call
      */
-    protected abstract void compactStore(int thresholdFildRate, long maxCompactTime, int maxWriteSize, MVStore mvStore);
+    protected abstract void compactStore(int thresholdFillRate, long maxCompactTime, int maxWriteSize, //
+            MVStore mvStore);
 
     protected abstract void doHousekeeping(MVStore mvStore) throws InterruptedException;
 
@@ -981,8 +982,7 @@ public abstract class FileStore<C extends Chunk<C>>
     }
 
     protected final boolean findLastChunkWithCompleteValidChunkSet(Comparator<C> chunkComparator,
-                                                           Map<Long, C> validChunksByLocation,
-                                                           boolean afterFullScan) {
+            Map<Long, C> validChunksByLocation, boolean afterFullScan) {
         // this collection will hold potential candidates for lastChunk to fall back to,
         // in order from the most to least likely
         C[] array = createChunksArray(validChunksByLocation.size());
@@ -1457,7 +1457,7 @@ public abstract class FileStore<C extends Chunk<C>>
 
         if (previousChunk != null) {
             // the metadata of the last chunk was not stored in the layout map yet,
-            // just was embeded into the chunk itself, and this need to be done now
+            // just was embedded into the chunk itself, and this need to be done now
             // (it's better not to update right after storing, because that
             // would modify the meta map again)
             if (!layout.containsKey(Chunk.getMetaKey(previousChunk.id))) {
@@ -1532,7 +1532,7 @@ public abstract class FileStore<C extends Chunk<C>>
      */
     private void acceptChunkOccupancyChanges(long time, long version) {
         assert serializationLock.isHeldByCurrentThread();
-        if (hasPersitentData()) {
+        if (hasPersistentData()) {
             Set<C> modifiedChunks = new HashSet<>();
             while (true) {
                 RemovedPageInfo rpi;
@@ -1633,7 +1633,7 @@ public abstract class FileStore<C extends Chunk<C>>
      * Put the page in the cache.
      * @param page the page
      */
-    private void cachePage(Page<?,?> page) {
+    void cachePage(Page<?,?> page) {
         if (cache != null) {
             cache.put(page.getPos(), page, page.getMemory());
         }
@@ -1680,7 +1680,7 @@ public abstract class FileStore<C extends Chunk<C>>
         }
     }
 
-    private void cacheToC(C chunk, long[] toc) {
+    void cacheToC(C chunk, long[] toc) {
         chunksToC.put(chunk.version, toc, toc.length * 8L + Constants.MEMORY_ARRAY);
     }
 
@@ -1724,7 +1724,7 @@ public abstract class FileStore<C extends Chunk<C>>
         return (int) (100 * hits / (hits + cache.getMisses() + 1));
     }
 
-    private boolean isBackgroundThread() {
+    boolean isBackgroundThread() {
         return Thread.currentThread() == backgroundWriterThread.get();
     }
 
@@ -1764,7 +1764,7 @@ public abstract class FileStore<C extends Chunk<C>>
     }
 
     private Iterable<C> findOldChunks(int writeLimit, int targetFillRate) {
-        assert hasPersitentData();
+        assert hasPersistentData();
         long time = getTimeSinceCreation();
 
         // the queue will contain chunks we want to free up
@@ -1899,7 +1899,8 @@ public abstract class FileStore<C extends Chunk<C>>
                     long tocElement = toc[pageNo];
                     int mapId = DataUtils.getPageMapId(tocElement);
                     MVMap<String, String> metaMap = mvStore.getMetaMap();
-                    MVMap<?, ?> map = mapId == layout.getId() ? layout : mapId == metaMap.getId() ? metaMap : mvStore.getMap(mapId);
+                    MVMap<?, ?> map = mapId == layout.getId() ? layout
+                            : mapId == metaMap.getId() ? metaMap : mvStore.getMap(mapId);
                     if (map != null && !map.isClosed()) {
                         assert !map.isSingleWriter();
                         if (secondPass || DataUtils.isLeafPosition(tocElement)) {

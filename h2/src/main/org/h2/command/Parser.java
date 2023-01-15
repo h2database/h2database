@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2023 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  *
@@ -840,9 +840,9 @@ public class Parser {
                     c = parseReleaseSavepoint();
                 } else if (database.getMode().replaceInto && readIf("REPLACE")) {
                     c = parseReplace(start);
-	            } else if (readIf("REFRESH")) {
-	                c = parseRefresh(start);
-	            }
+                } else if (readIf("REFRESH")) {
+                    c = parseRefresh(start);
+                }
                 break;
             case 'S':
                 if (readIf("SAVEPOINT")) {
@@ -1793,13 +1793,13 @@ public class Parser {
      * REFRESH MATERIALIZED VIEW
      */
     private RefreshMaterializedView parseRefresh(int start) {
-    	read("MATERIALIZED");
-    	read("VIEW");
+        read("MATERIALIZED");
+        read("VIEW");
         Table table = readTableOrView(/*resolveMaterializedView*/false);
         if (!(table instanceof MaterializedView)) {
             throw DbException.get(ErrorCode.VIEW_NOT_FOUND_1, table.getName());
         }
-    	RefreshMaterializedView command = new RefreshMaterializedView(session, getSchema());
+        RefreshMaterializedView command = new RefreshMaterializedView(session, getSchema());
         currentPrepared = command;
         command.setView((MaterializedView) table);
         setSQL(command, start);
@@ -2288,7 +2288,7 @@ public class Parser {
             command.setIfExists(ifExists);
             return command;
         } else if (readIf("MATERIALIZED")) {
-        	read("VIEW");
+            read("VIEW");
             boolean ifExists = readIfExists(false);
             String viewName = readIdentifierWithSchema();
             DropMaterializedView command = new DropMaterializedView(session, getSchema());
@@ -6812,7 +6812,7 @@ public class Parser {
         if (readIf("VIEW")) {
             return parseCreateView(force, orReplace);
         } else if (readIf("MATERIALIZED")) {
-        	read("VIEW");
+            read("VIEW");
             return parseCreateMaterializedView(force, orReplace);
         } else if (readIf("ALIAS")) {
             return parseCreateFunctionAlias(force);
@@ -7624,7 +7624,7 @@ public class Parser {
         command.setComment(readCommentIf());
         command.setOrReplace(orReplace);
         if (force) {
-        	throw new UnsupportedOperationException("not yet implemented");
+            throw new UnsupportedOperationException("not yet implemented");
         }
         String select = StringUtils.cache(sqlCommand.substring(token.start()));
         Query query;

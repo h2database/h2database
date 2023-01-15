@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2023 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -36,7 +36,7 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
     /**
      * Allocation mode:
      * false - new chunk is always allocated at the end of file
-     * true - new chunk is allocated as close to the begining of file, as possible
+     * true - new chunk is allocated as close to the beginning of file, as possible
      */
     private volatile boolean reuseSpace = true;
 
@@ -49,14 +49,17 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
         super(config);
     }
 
+    @Override
     protected final SFChunk createChunk(int newChunkId) {
         return new SFChunk(newChunkId);
     }
 
+    @Override
     public SFChunk createChunk(String s) {
         return new SFChunk(s);
     }
 
+    @Override
     protected SFChunk createChunk(Map<String, String> map) {
         return new SFChunk(map);
     }
@@ -67,6 +70,7 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
      * @param pos the position in bytes
      * @param length the number of bytes
      */
+    @Override
     public void markUsed(long pos, int length) {
         freeSpace.markUsed(pos, length);
     }
@@ -97,6 +101,7 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
         return freeSpace.predictAllocation(blocks, reservedLow, reservedHigh);
     }
 
+    @Override
     public boolean shouldSaveNow(int unsavedMemory, int autoCommitMemory) {
         return unsavedMemory > autoCommitMemory;
     }
@@ -105,14 +110,17 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
         return freeSpace.isFragmented();
     }
 
+    @Override
     public boolean isSpaceReused() {
         return reuseSpace;
     }
 
+    @Override
     public void setReuseSpace(boolean reuseSpace) {
         this.reuseSpace = reuseSpace;
     }
 
+    @Override
     protected void freeChunkSpace(Iterable<SFChunk> chunks) {
         for (SFChunk chunk : chunks) {
             freeChunkSpace(chunk);
@@ -136,6 +144,7 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
         freeSpace.free(pos, length);
     }
 
+    @Override
     public int getFillRate() {
         saveChunkLock.lock();
         try {
@@ -172,6 +181,7 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
         return freeSpace.getLastFree();
     }
 
+    @Override
     protected void readStoreHeader(boolean recoveryMode) {
         SFChunk newest = null;
         boolean assumeCleanShutdown = true;
@@ -306,7 +316,7 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
                 }
 
                 if (!findLastChunkWithCompleteValidChunkSet(chunkComparator, validChunksByLocation, true)
-                        && hasPersitentData()) {
+                        && hasPersistentData()) {
                     throw DataUtils.newMVStoreException(
                             DataUtils.ERROR_FILE_CORRUPT,
                             "File is corrupted - unable to recover a valid set of chunks");
@@ -329,11 +339,13 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
         assert validateFileLength("on open");
     }
 
+    @Override
     protected void initializeStoreHeader(long time) {
         initializeCommonHeaderAttributes(time);
         writeStoreHeader();
     }
 
+    @Override
     protected final void allocateChunkSpace(SFChunk chunk, WriteBuffer buff) {
         long reservedLow = this.reservedLow;
         long reservedHigh = this.reservedHigh > 0 ? this.reservedHigh : isSpaceReused() ? 0 : getAfterLastBlock();
@@ -348,6 +360,7 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
         chunk.block = filePos / BLOCK_SIZE;
     }
 
+    @Override
     protected final void writeChunk(SFChunk chunk, WriteBuffer buffer) {
         long filePos = chunk.block * BLOCK_SIZE;
         writeFully(chunk, filePos, buffer.getBuffer());
@@ -382,7 +395,7 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
                     writeStoreHeader = true;
                 } else {
                     for (int chunkId = DataUtils.readHexInt(storeHeader, HDR_CHUNK, 0);
-                         !writeStoreHeader && chunkId <= chunk.id; ++chunkId) {
+                            !writeStoreHeader && chunkId <= chunk.id; ++chunkId) {
                         // one of the chunks in between
                         // was removed
                         writeStoreHeader = !getChunks().containsKey(chunkId);
@@ -397,12 +410,14 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
         return writeStoreHeader;
     }
 
+    @Override
     protected final void writeCleanShutdownMark() {
         shrinkStoreIfPossible(0);
         storeHeader.put(HDR_CLEAN, 1);
         writeStoreHeader();
     }
 
+    @Override
     protected final void adjustStoreToLastChunk() {
         storeHeader.put(HDR_CLEAN, 1);
         writeStoreHeader();
@@ -415,16 +430,17 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
      * shrink the file. Changes are flushed to the file, and old
      * chunks are overwritten.
      *
-     * @param thresholdFildRate do not compact if store fill rate above this value (0-100)
+     * @param thresholdFillRate do not compact if store fill rate above this value (0-100)
      * @param maxCompactTime the maximum time in milliseconds to compact
      * @param maxWriteSize the maximum amount of data to be written as part of this call
      */
-    protected void compactStore(int thresholdFildRate, long maxCompactTime, int maxWriteSize, MVStore mvStore) {
+    @Override
+    protected void compactStore(int thresholdFillRate, long maxCompactTime, int maxWriteSize, MVStore mvStore) {
         setRetentionTime(0);
         long stopAt = System.nanoTime() + maxCompactTime * 1_000_000L;
-        while (compact(thresholdFildRate, maxWriteSize)) {
+        while (compact(thresholdFillRate, maxWriteSize)) {
             sync();
-            compactMoveChunks(thresholdFildRate, maxWriteSize, mvStore);
+            compactMoveChunks(thresholdFillRate, maxWriteSize, mvStore);
             if (System.nanoTime() - stopAt > 0L) {
                 break;
             }
@@ -448,7 +464,7 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
                 dropUnusedChunks();
                 saveChunkLock.lock();
                 try {
-                    if (hasPersitentData() && getFillRate() <= targetFillRate) {
+                    if (hasPersistentData() && getFillRate() <= targetFillRate) {
                         compactMoveChunks(moveSize);
                     }
                 } finally {
@@ -575,7 +591,7 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
 
     private void writeStoreHeader() {
         StringBuilder buff = new StringBuilder(112);
-        if (hasPersitentData()) {
+        if (hasPersistentData()) {
             storeHeader.put(HDR_BLOCK, lastChunk.block);
             storeHeader.put(HDR_CHUNK, lastChunk.id);
             storeHeader.put(HDR_VERSION, lastChunk.version);
@@ -656,6 +672,7 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
      *
      * @param minPercent the minimum percentage to save
      */
+    @Override
     protected void shrinkStoreIfPossible(int minPercent) {
         assert saveChunkLock.isHeldByCurrentThread();
         long result = getFileLengthInUse();
@@ -697,7 +714,7 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
                 compactMoveChunks(101, moveSize, mvStore);
                 return true;
             });
-        } else if (fillRate >= getAutoCompactFillRate() && hasPersitentData()) {
+        } else if (fillRate >= getAutoCompactFillRate() && hasPersistentData()) {
             int chunksFillRate = getRewritableChunksFillRate();
             int _chunksFillRate = isIdle() ? 100 - (100 - chunksFillRate) / 2 : chunksFillRate;
             if (_chunksFillRate < getTargetFillRate()) {
@@ -759,6 +776,7 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
         return freeSpace.getAfterLastBlock();
     }
 
+    @Override
     public Collection<SFChunk> getRewriteCandidates() {
         return isSpaceReused() ? null : Collections.emptyList();
     }

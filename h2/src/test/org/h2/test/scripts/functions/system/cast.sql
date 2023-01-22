@@ -201,3 +201,6 @@ SELECT CAST('true ' AS BOOLEAN) V, CAST(CAST('true' AS CHAR(10)) AS BOOLEAN) F;
 > ---- ----
 > TRUE TRUE
 > rows: 1
+
+VALUES CAST(1 AS 1);
+> exception SYNTAX_ERROR_2

@@ -24,3 +24,6 @@ HELP he lp;
 > ---------------- ----- ----------------------- ----------------------------------------------------
 > Commands (Other) HELP  HELP [ anything [...] ] Displays the help pages of SQL commands or keywords.
 > rows: 1
+
+HELP 1;
+> exception SYNTAX_ERROR_2

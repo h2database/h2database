@@ -154,3 +154,6 @@ SELECT * FROM V_TEST;
 > 1  val1
 > 2  val2
 > rows: 2
+
+CREATE ALIAS 1;
+> exception SYNTAX_ERROR_2

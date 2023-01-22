@@ -1310,8 +1310,7 @@ public class Parser {
     private Prepared parseHelp() {
         HashSet<String> conditions = new HashSet<>();
         while (currentTokenType != END_OF_INPUT) {
-            conditions.add(StringUtils.toUpperEnglish(currentToken));
-            read();
+            conditions.add(StringUtils.toUpperEnglish(readIdentifierOrKeyword()));
         }
         return new Help(session, conditions.toArray(new String[0]));
     }
@@ -5741,6 +5740,16 @@ public class Parser {
         return s;
     }
 
+    private String readIdentifierOrKeyword() {
+        if (currentTokenType < IDENTIFIER || currentTokenType > LAST_KEYWORD) {
+            addExpected("identifier or keyword");
+            throw getSyntaxError();
+        }
+        String s = currentToken;
+        read();
+        return s;
+    }
+
     private void read(String expected) {
         if (!testToken(expected, token)) {
             addExpected(expected);
@@ -6203,7 +6212,7 @@ public class Parser {
             addExpected("data type");
             throw getSyntaxError();
         default:
-            if (isKeyword(currentToken)) {
+            if (isKeyword(currentTokenType)) {
                 break;
             }
             addExpected("data type");
@@ -7320,12 +7329,15 @@ public class Parser {
     private CreateFunctionAlias parseCreateFunctionAlias(boolean force) {
         boolean ifNotExists = readIfNotExists();
         String aliasName;
-        if (currentTokenType != IDENTIFIER) {
+        if (currentTokenType == IDENTIFIER) {
+            aliasName = readIdentifierWithSchema();
+        } else if (isKeyword(currentTokenType)) {
             aliasName = currentToken;
             read();
             schemaName = session.getCurrentSchemaName();
         } else {
-            aliasName = readIdentifierWithSchema();
+            addExpected("identifier");
+            throw getSyntaxError();
         }
         String upperName = upperName(aliasName);
         if (isReservedFunctionName(upperName)) {
@@ -8121,11 +8133,7 @@ public class Parser {
             ArrayList<String> list = Utils.newSmallArrayList();
             if (currentTokenType != END_OF_INPUT && currentTokenType != SEMICOLON) {
                 do {
-                    if (currentTokenType < IDENTIFIER || currentTokenType > LAST_KEYWORD) {
-                        throw getSyntaxError();
-                    }
-                    list.add(StringUtils.toUpperEnglish(currentToken));
-                    read();
+                    list.add(StringUtils.toUpperEnglish(readIdentifierOrKeyword()));
                 } while (readIf(COMMA));
             }
             command.setStringArray(list.toArray(new String[0]));

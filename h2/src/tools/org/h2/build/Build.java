@@ -33,7 +33,7 @@ import org.h2.build.doc.XMLParser;
  */
 public class Build extends BuildBase {
 
-    private static final String ASM_VERSION = "8.0.1";
+    private static final String ASM_VERSION = "9.4";
 
     private static final String ARGS4J_VERSION = "2.33";
 
@@ -256,10 +256,10 @@ public class Build extends BuildBase {
                 "421e4aab2aaa809d1e66a96feb11f61ea698da19");
         downloadUsingMaven("ext/asm-commons-" + ASM_VERSION + ".jar",
                 "org.ow2.asm", "asm-commons", ASM_VERSION,
-                "019c7ba355f0737815205518e332a8dc08b417c6");
+                "8fc2810ddbcbbec0a8bbccb3f8eda58321839912");
         downloadUsingMaven("ext/asm-tree-" + ASM_VERSION + ".jar",
                 "org.ow2.asm", "asm-tree", ASM_VERSION,
-                "dfcad5abbcff36f8bdad5647fe6f4972e958ad59");
+                "a99175a17d7fdc18cbcbd0e8ea6a5d276844190a");
         downloadUsingMaven("ext/args4j-" + ARGS4J_VERSION + ".jar",
                 "args4j", "args4j", ARGS4J_VERSION,
                 "bd87a75374a6d6523de82fef51fc3cfe9baf9fc9");
@@ -417,7 +417,7 @@ public class Build extends BuildBase {
                 "c9ba885abfe975cda123bf6f8f0a69a1b46956d0", offline);
         downloadUsingMaven("ext/asm-" + ASM_VERSION + ".jar",
                 "org.ow2.asm", "asm", ASM_VERSION,
-                "3f5199523fb95304b44563f5d56d9f5a07270669");
+                "b4e0e2d2e023aa317b7cfcfc916377ea348e07d1");
         downloadUsingMaven("ext/apiguardian-" + APIGUARDIAN_VERSION + ".jar",
                 "org.apiguardian", "apiguardian-api", APIGUARDIAN_VERSION,
                 "fc9dff4bb36d627bdc553de77e1f17efd790876c");

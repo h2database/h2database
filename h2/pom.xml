@@ -49,8 +49,21 @@
     <javax.servlet.version>4.0.1</javax.servlet.version>
     <jakarta.servlet.version>5.0.0</jakarta.servlet.version>
     <slf4j.version>1.7.30</slf4j.version>
+    <nashorn.version>15.4</nashorn.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.ow2.asm</groupId>
+        <artifactId>asm-bom</artifactId>
+        <version>${asm.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
 
   <dependencies>
 
@@ -126,7 +139,6 @@
     <dependency>
       <groupId>org.ow2.asm</groupId>
       <artifactId>asm</artifactId>
-      <version>${asm.version}</version>
       <scope>test</scope>
     </dependency>
     <!-- END TEST DEPENDENCIES !-->
@@ -173,6 +185,20 @@
           <scope>system</scope>
           <version>1.8</version>
           <systemPath>${java.home}/../Classes/classes.jar</systemPath>
+        </dependency>
+      </dependencies>
+    </profile>
+    <profile>
+      <id>nashorn</id>
+      <activation>
+        <jdk>[15,)</jdk>
+      </activation>
+      <dependencies>
+        <dependency>
+          <groupId>org.openjdk.nashorn</groupId>
+          <artifactId>nashorn-core</artifactId>
+          <version>${nashorn.version}</version>
+          <scope>test</scope>
         </dependency>
       </dependencies>
     </profile>

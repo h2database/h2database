@@ -33,7 +33,7 @@ import org.h2.build.doc.XMLParser;
  */
 public class Build extends BuildBase {
 
-    private static final String ASM_VERSION = "8.0.1";
+    private static final String ASM_VERSION = "9.4";
 
     private static final String ARGS4J_VERSION = "2.33";
 
@@ -68,6 +68,8 @@ public class Build extends BuildBase {
     private static final String APIGUARDIAN_VERSION = "1.1.0";
 
     private static final String SQLITE_VERSION = "3.36.0.3";
+
+    private static final String NASHORN_VERSION = "15.4";
 
     private boolean filesMissing;
 
@@ -254,12 +256,6 @@ public class Build extends BuildBase {
         downloadUsingMaven("ext/org.jacoco.report-" + JACOCO_VERSION + ".jar",
                 "org.jacoco", "org.jacoco.report", JACOCO_VERSION,
                 "421e4aab2aaa809d1e66a96feb11f61ea698da19");
-        downloadUsingMaven("ext/asm-commons-" + ASM_VERSION + ".jar",
-                "org.ow2.asm", "asm-commons", ASM_VERSION,
-                "019c7ba355f0737815205518e332a8dc08b417c6");
-        downloadUsingMaven("ext/asm-tree-" + ASM_VERSION + ".jar",
-                "org.ow2.asm", "asm-tree", ASM_VERSION,
-                "dfcad5abbcff36f8bdad5647fe6f4972e958ad59");
         downloadUsingMaven("ext/args4j-" + ARGS4J_VERSION + ".jar",
                 "args4j", "args4j", ARGS4J_VERSION,
                 "bd87a75374a6d6523de82fef51fc3cfe9baf9fc9");
@@ -282,6 +278,7 @@ public class Build extends BuildBase {
             File.pathSeparator + "ext/slf4j-api-" + SLF4J_VERSION + ".jar" +
             File.pathSeparator + "ext/slf4j-nop-" + SLF4J_VERSION + ".jar" +
             File.pathSeparator + javaToolsJar;
+        cp = addNashornJavaScriptEngineIfNecessary(cp);
         // Run tests
         execJava(args(
                 "-Xmx128m",
@@ -417,7 +414,7 @@ public class Build extends BuildBase {
                 "c9ba885abfe975cda123bf6f8f0a69a1b46956d0", offline);
         downloadUsingMaven("ext/asm-" + ASM_VERSION + ".jar",
                 "org.ow2.asm", "asm", ASM_VERSION,
-                "3f5199523fb95304b44563f5d56d9f5a07270669");
+                "b4e0e2d2e023aa317b7cfcfc916377ea348e07d1");
         downloadUsingMaven("ext/apiguardian-" + APIGUARDIAN_VERSION + ".jar",
                 "org.apiguardian", "apiguardian-api", APIGUARDIAN_VERSION,
                 "fc9dff4bb36d627bdc553de77e1f17efd790876c");
@@ -449,6 +446,21 @@ public class Build extends BuildBase {
         downloadUsingMaven("ext/slf4j-nop-" + SLF4J_VERSION + ".jar",
                 "org/slf4j", "slf4j-nop", SLF4J_VERSION,
                 "55d4c73dd343efebd236abfeb367c9ef41d55063");
+        // for TestTriggersConstraints
+        if (requiresNashornJavaScriptEngine()) {
+            downloadUsingMaven("ext/nashorn-core-" + NASHORN_VERSION + ".jar",
+                    "org/openjdk/nashorn", "nashorn-core", NASHORN_VERSION,
+                    "f67f5ffaa5f5130cf6fb9b133da00c7df3b532a5");
+            downloadUsingMaven("ext/asm-util-" + ASM_VERSION + ".jar",
+                    "org.ow2.asm", "asm-util", ASM_VERSION,
+                    "ab1e0a84b72561dbaf1ee260321e72148ebf4b19");
+        }
+        downloadUsingMaven("ext/asm-commons-" + ASM_VERSION + ".jar",
+                "org.ow2.asm", "asm-commons", ASM_VERSION,
+                "8fc2810ddbcbbec0a8bbccb3f8eda58321839912");
+        downloadUsingMaven("ext/asm-tree-" + ASM_VERSION + ".jar",
+                "org.ow2.asm", "asm-tree", ASM_VERSION,
+                "a99175a17d7fdc18cbcbd0e8ea6a5d276844190a");
     }
 
     private static String getVersion() {
@@ -904,6 +916,7 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/slf4j-nop-" + SLF4J_VERSION + ".jar" +
                 File.pathSeparator + "ext/asm-" + ASM_VERSION + ".jar" +
                 File.pathSeparator + javaToolsJar;
+        cp = addNashornJavaScriptEngineIfNecessary(cp);
         int version = getJavaVersion();
         if (version >= 9) {
             cp = "src/java9/precompiled" + File.pathSeparator + cp;
@@ -1122,6 +1135,21 @@ public class Build extends BuildBase {
         }
         local = replaceAll(local, "${user.home}", userHome);
         return local;
+    }
+
+    private String addNashornJavaScriptEngineIfNecessary(String cp) {
+        if (requiresNashornJavaScriptEngine()) {
+            return cp +
+                    File.pathSeparator + "ext/nashorn-core-" + NASHORN_VERSION + ".jar" +
+                    File.pathSeparator + "ext/asm-commons-" + ASM_VERSION + ".jar" +
+                    File.pathSeparator + "ext/asm-tree-" + ASM_VERSION + ".jar" +
+                    File.pathSeparator + "ext/asm-util-" + ASM_VERSION + ".jar";
+        }
+        return cp;
+    }
+
+    private boolean requiresNashornJavaScriptEngine() {
+        return getJavaVersion() >= 15; // Nashorn was removed in Java 15
     }
 
 }

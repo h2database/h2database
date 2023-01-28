@@ -1149,11 +1149,7 @@ public class Build extends BuildBase {
     }
 
     private boolean requiresNashornJavaScriptEngine() {
-        String version = System.getProperty("java.specification.version");
-        if (version.startsWith("1.")) {
-            version = version.substring(2);
-        }
-        return Integer.parseInt(version) >= 15; // Nashorn was removed in Java 15
+        return getJavaVersion() >= 15; // Nashorn was removed in Java 15
     }
 
 }

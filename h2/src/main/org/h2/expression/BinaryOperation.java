@@ -5,6 +5,7 @@
  */
 package org.h2.expression;
 
+import org.h2.engine.Constants;
 import org.h2.engine.SessionLocal;
 import org.h2.expression.IntervalOperation.IntervalOpType;
 import org.h2.expression.function.DateTimeFunction;
@@ -214,6 +215,12 @@ public class BinaryOperation extends Operation2 {
             // 10^rightScale, so add rightScale to its precision and adjust the
             // result to the changes in scale.
             precision = leftPrecision + rightScale - leftScale + scale;
+            // If precision is too large, reduce it together with scale
+            if (precision > Constants.MAX_NUMERIC_PRECISION) {
+                long sub = Math.min(precision - Constants.MAX_NUMERIC_PRECISION, scale);
+                precision -= sub;
+                scale -= sub;
+            }
             break;
         }
         default:

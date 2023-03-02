@@ -760,11 +760,11 @@ The initial start value.
 "
 
 "SEQUENCES","MINIMUM_VALUE","
-The maximum value.
+The minimum value.
 "
 
 "SEQUENCES","MAXIMUM_VALUE","
-The minimum value.
+The maximum value.
 "
 
 "SEQUENCES","INCREMENT","

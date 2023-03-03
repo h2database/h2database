@@ -38,10 +38,12 @@ import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalQueries;
 import java.time.temporal.WeekFields;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Currency;
 import java.util.Date;
+import java.util.Enumeration;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -49,6 +51,8 @@ import java.util.Locale;
 import java.util.Properties;
 import java.util.TimeZone;
 import java.util.UUID;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 
 import org.h2.api.Aggregate;
 import org.h2.api.AggregateFunction;
@@ -617,6 +621,21 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         rs = stat.executeQuery("SELECT LENGTH(FILE_READ('classpath:" + fileName + "')) LEN");
         rs.next();
         int fileSize = rs.getInt(1);
+        assertTrue(fileSize > 0);
+        //test classpath resource from jar - grab a class file from a loaded jar in the classpath
+        String[] classPathItems = this.getClassPath().split(System.getProperty("path.separator"));
+        JarFile jarFile = new JarFile(Arrays.stream(classPathItems).filter(x -> x.endsWith(".jar")).findFirst().get());
+        Enumeration<JarEntry> e = jarFile.entries();
+        while (e.hasMoreElements()) {
+            JarEntry jarEntry = e.nextElement();
+            if (!jarEntry.isDirectory() && jarEntry.getName().endsWith(".class")) {
+                fileName = jarEntry.getName();
+                break;
+            }
+        }
+        rs = stat.executeQuery("SELECT LENGTH(FILE_READ('classpath:" + fileName + "')) LEN");
+        rs.next();
+        fileSize = rs.getInt(1);
         assertTrue(fileSize > 0);
         conn.close();
     }

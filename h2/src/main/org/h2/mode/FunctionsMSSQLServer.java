@@ -39,7 +39,9 @@ public final class FunctionsMSSQLServer extends ModeFunction {
 
     private static final int NEWID = LEN + 1;
 
-    private static final int SCOPE_IDENTITY = NEWID + 1;
+    private static final int NEWSEQUENTIALID = NEWID + 1;
+
+    private static final int SCOPE_IDENTITY = NEWSEQUENTIALID + 1;
 
     private static final TypeInfo SCOPE_IDENTITY_TYPE = TypeInfo.getTypeInfo(Value.NUMERIC, 38, 0, null);
 
@@ -48,6 +50,7 @@ public final class FunctionsMSSQLServer extends ModeFunction {
         FUNCTIONS.put("GETDATE", new FunctionInfo("GETDATE", GETDATE, 0, Value.TIMESTAMP, false, true));
         FUNCTIONS.put("LEN", new FunctionInfo("LEN", LEN, 1, Value.INTEGER, true, true));
         FUNCTIONS.put("NEWID", new FunctionInfo("NEWID", NEWID, 0, Value.UUID, true, false));
+        FUNCTIONS.put("NEWSEQUENTIALID", new FunctionInfo("NEWSEQUENTIALID", NEWSEQUENTIALID, 0, Value.UUID, true, false));
         FUNCTIONS.put("ISNULL", new FunctionInfo("ISNULL", ISNULL, 2, Value.NULL, false, true));
         FUNCTIONS.put("SCOPE_IDENTITY",
                 new FunctionInfo("SCOPE_IDENTITY", SCOPE_IDENTITY, 0, Value.NUMERIC, true, false));
@@ -127,6 +130,7 @@ public final class FunctionsMSSQLServer extends ModeFunction {
         case ISNULL:
             return new CoalesceFunction(CoalesceFunction.COALESCE, args).optimize(session);
         case NEWID:
+        case NEWSEQUENTIALID:
             return new RandFunction(null, RandFunction.RANDOM_UUID).optimize(session);
         case SCOPE_IDENTITY:
             type = SCOPE_IDENTITY_TYPE;

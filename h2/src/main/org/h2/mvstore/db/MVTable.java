@@ -418,7 +418,7 @@ public class MVTable extends TableBase {
         long i = 0;
         Store store = session.getDatabase().getStore();
 
-        int bufferSize = database.getMaxMemoryRows() / 2;
+        int bufferSize = (int) Math.min(total, database.getMaxMemoryRows() / 2);
         ArrayList<Row> buffer = new ArrayList<>(bufferSize);
         String n = getName() + ':' + index.getName();
         ArrayList<String> bufferNames = Utils.newSmallArrayList();

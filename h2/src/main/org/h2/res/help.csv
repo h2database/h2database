@@ -5938,8 +5938,13 @@ Formats a date, time or timestamp as a string.
 The most important format characters are:
 y year, M month, d day, H hour, m minute, s second.
 For details of the format, see ""java.time.format.DateTimeFormatter"".
+Allowed format characters depend on data type of passed date/time value.
 
 If timeZoneString is specified, it is used in formatted string if formatString has time zone.
+For TIME and TIME WITH TIME ZONE values the specified time zone must have a fixed offset.
+
+If TIME WITH TIME ZONE is passed and timeZoneString is specified,
+the time is converted to the specified time zone offset and its UTC value is preserved.
 If TIMESTAMP WITH TIME ZONE is passed and timeZoneString is specified,
 the timestamp is converted to the specified time zone and its UTC value is preserved.
 

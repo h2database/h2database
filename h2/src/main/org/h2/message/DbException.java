@@ -299,6 +299,18 @@ public class DbException extends RuntimeException {
     }
 
     /**
+     * Gets a SQL exception meaning this value is invalid.
+     *
+     * @param cause the cause of the exception
+     * @param param the name of the parameter
+     * @param value the value passed
+     * @return the exception
+     */
+    public static DbException getInvalidValueException(Throwable cause, String param, Object value) {
+        return get(INVALID_VALUE_2, cause, value == null ? "null" : value.toString(), param);
+    }
+
+    /**
      * Gets a SQL exception meaning this value is too long.
      *
      * @param columnOrType

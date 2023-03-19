@@ -7874,7 +7874,8 @@ public class Parser {
                             .getSQL(new StringBuilder("CREATE SEQUENCE AS "), HasSQL.TRACE_SQL_FLAGS).toString());
                 }
                 options.setDataType(dataType);
-            } else if (readIf("START", WITH)) {
+            } else if (readIf("START", WITH)
+                    || (database.getMode().getEnum() == ModeEnum.PostgreSQL && readIf("START"))) {
                 options.setStartValue(readExpression());
             } else if (readIf("RESTART")) {
                 options.setRestartValue(readIf(WITH) ? readExpression() : ValueExpression.DEFAULT);

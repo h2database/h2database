@@ -142,7 +142,6 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         testCompatibilityDateTime();
         testAnnotationProcessorsOutput();
         testSignal();
-        testLegacyDateTime();
 
         deleteDb("functions");
     }
@@ -1927,36 +1926,6 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         conn.close();
     }
 
-    private void testLegacyDateTime() throws SQLException {
-        deleteDb("functions");
-        TimeZone tz = TimeZone.getDefault();
-        try {
-            TimeZone.setDefault(TimeZone.getTimeZone("GMT+1"));
-            Connection conn = getConnection("functions;MODE=LEGACY");
-            conn.setAutoCommit(false);
-            Statement stat = conn.createStatement();
-            ResultSet rs = stat.executeQuery("SELECT SYSDATE, SYSTIMESTAMP, SYSTIMESTAMP(0), SYSTIMESTAMP(9)");
-            rs.next();
-            LocalDateTime ldt = rs.getObject(1, LocalDateTime.class);
-            OffsetDateTime odt = rs.getObject(2, OffsetDateTime.class);
-            OffsetDateTime odt0 = rs.getObject(3, OffsetDateTime.class);
-            OffsetDateTime odt9 = rs.getObject(4, OffsetDateTime.class);
-            assertEquals(3_600, odt.getOffset().getTotalSeconds());
-            assertEquals(3_600, odt9.getOffset().getTotalSeconds());
-            assertEquals(ldt, odt0.toLocalDateTime());
-            stat.execute("SET TIME ZONE '2:00'");
-            rs = stat.executeQuery("SELECT SYSDATE, SYSTIMESTAMP, SYSTIMESTAMP(0), SYSTIMESTAMP(9)");
-            rs.next();
-            assertEquals(ldt, rs.getObject(1, LocalDateTime.class));
-            assertEquals(odt, rs.getObject(2, OffsetDateTime.class));
-            assertEquals(odt0, rs.getObject(3, OffsetDateTime.class));
-            assertEquals(odt9, rs.getObject(4, OffsetDateTime.class));
-            conn.close();
-        } finally {
-            TimeZone.setDefault(tz);
-        }
-    }
-
     private void testThatCurrentTimestampIsSane() throws SQLException,
             ParseException {
         deleteDb("functions");
@@ -2057,7 +2026,7 @@ public class TestFunctions extends TestDb implements AggregateFunction {
                 OffsetDateTime odt9 = rs.getObject(4, OffsetDateTime.class);
                 assertEquals(3_600, odt.getOffset().getTotalSeconds());
                 assertEquals(3_600, odt9.getOffset().getTotalSeconds());
-                assertEquals(ldt, odt0.toLocalDateTime());
+                assertEquals(ldt, odt9.toLocalDateTime().withNano(0));
                 if (mode.equals("LEGACY")) {
                     stat.execute("SET TIME ZONE '3:00'");
                     rs = stat.executeQuery("SELECT SYSDATE, SYSTIMESTAMP, SYSTIMESTAMP(0), SYSTIMESTAMP(9) FROM DUAL");

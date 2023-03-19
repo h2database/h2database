@@ -936,8 +936,9 @@ or the SQL statement <code>SET MODE HSQLDB</code>.
 
 <h3>MS SQL Server Compatibility Mode</h3>
 <p>
-To use the MS SQL Server mode, use the database URL <code>jdbc:h2:~/test;MODE=MSSQLServer</code>
-or the SQL statement <code>SET MODE MSSQLServer</code>.
+To use the MS SQL Server mode, use the database URL
+<code>jdbc:h2:~/test;MODE=MSSQLServer;DATABASE_TO_UPPER=FALSE;CASE_INSENSITIVE_IDENTIFIERS=TRUE</code>.
+Do not change value of DATABASE_TO_LOWER and CASE_INSENSITIVE_IDENTIFIERS after creation of database.
 </p>
 <ul><li>For aliased columns, <code>ResultSetMetaData.getColumnName()</code>
     returns the alias name and <code>getTableName()</code> returns

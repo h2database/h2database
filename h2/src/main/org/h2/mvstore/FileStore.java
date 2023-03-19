@@ -1414,10 +1414,17 @@ public abstract class FileStore<C extends Chunk<C>>
                 // never go backward in time
                 time = Math.max(lastChunk.time, time);
             }
-            C c = createChunk(time, version);
-            WriteBuffer buff = getWriteBuffer();
-            serializeToBuffer(buff, changed, c, lastChunk);
-            chunks.put(c.id, c);
+            C c;
+            WriteBuffer buff;
+            try {
+                c = createChunk(time, version);
+                buff = getWriteBuffer();
+                serializeToBuffer(buff, changed, c, lastChunk);
+                chunks.put(c.id, c);
+            } catch (Throwable t) {
+                lastChunkId = chunkId;
+                throw t;
+            }
 
             bufferSaveExecutorHWM = submitOrRun(bufferSaveExecutor, () -> storeBuffer(c, buff),
                     syncRun, 5, bufferSaveExecutorHWM);

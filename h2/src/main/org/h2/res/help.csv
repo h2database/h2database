@@ -5865,11 +5865,20 @@ DATEDIFF(YEAR, T1.CREATED, T2.CREATED)
 "
 
 "Functions (Time and Date)","DATE_TRUNC","
-@h2@ DATE_TRUNC (datetimeField, dateAndTime)
+@h2@ DATE_TRUNC(datetimeField, dateAndTime)
 ","
 Truncates the specified date-time value to the specified field.
 ","
 DATE_TRUNC(DAY, TIMESTAMP '2010-01-03 10:40:00');
+"
+
+"Functions (Time and Date)","LAST_DAY","
+@h2@ LAST_DAY(date | timestamp | timestampWithTimeZone | string)
+","
+Returns the last day of the month that contains the specified date-time value.
+This function returns a date.
+","
+LAST_DAY(DAY, DATE '2020-02-05');
 "
 
 "Functions (Time and Date)","DAYNAME","

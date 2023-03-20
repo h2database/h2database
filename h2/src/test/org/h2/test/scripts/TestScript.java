@@ -213,7 +213,7 @@ public class TestScript extends TestDb {
         for (String s : new String[] { "current_date", "current_timestamp",
                 "current-time", "dateadd", "datediff", "dayname",
                 "day-of-month", "day-of-week", "day-of-year", "extract",
-                "formatdatetime", "hour", "minute", "month", "monthname",
+                "formatdatetime", "hour", "last_day", "minute", "month", "monthname",
                 "parsedatetime", "quarter", "second", "truncate", "week", "year", "date_trunc" }) {
             testScript("functions/timeanddate/" + s + ".sql");
         }

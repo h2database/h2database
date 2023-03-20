@@ -4221,6 +4221,8 @@ public class Parser {
         case "TIMESTAMPDIFF":
             return new DateTimeFunction(DateTimeFunction.DATEDIFF, readDateTimeField(), readNextArgument(),
                     readLastArgument());
+        case "LAST_DAY":
+            return new DateTimeFunction(DateTimeFunction.LAST_DAY, -1, readSingleArgument(), null);
         case "FORMATDATETIME":
             return readDateTimeFormatFunction(DateTimeFormatFunction.FORMATDATETIME);
         case "PARSEDATETIME":

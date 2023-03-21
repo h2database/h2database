@@ -778,7 +778,7 @@ INSERT INTO TEST (SELECT X, X + 1, X + 2 FROM SYSTEM_RANGE(1, 5));
 > update count: 5
 
 EXPLAIN UPDATE TEST T SET V = V.V FROM (VALUES (1, 2, 4)) V(ID1, ID2, V) WHERE (T.ID1, T.ID2) = (V.ID1, V.ID2);
->> MERGE INTO "PUBLIC"."TEST" "T" /* PUBLIC.PRIMARY_KEY_2 */ USING (VALUES (1, 2, 4)) "V"("ID1", "ID2", "V") /* table scan */ ON (ROW ("T"."ID1", "T"."ID2") = ROW ("V"."ID1", "V"."ID2")) WHEN MATCHED THEN UPDATE SET "V" = "V"."V"
+>> MERGE INTO "PUBLIC"."TEST" "T" /* PUBLIC.PRIMARY_KEY_2: ID1 = V.ID1 AND ID2 = V.ID2 */ USING (VALUES (1, 2, 4)) "V"("ID1", "ID2", "V") /* table scan */ ON (ROW ("T"."ID1", "T"."ID2") = ROW ("V"."ID1", "V"."ID2")) WHEN MATCHED THEN UPDATE SET "V" = "V"."V"
 
 UPDATE TEST T SET V = V.V FROM (VALUES (1, 2, 4)) V(ID1, ID2, V) WHERE (T.ID1, T.ID2) = (V.ID1, V.ID2);
 > update count: 1

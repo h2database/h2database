@@ -221,10 +221,8 @@ public final class ConditionInQuery extends PredicateWithSubquery {
 
     @Override
     public void createIndexConditions(SessionLocal session, TableFilter filter) {
-        if (!session.getDatabase().getSettings().optimizeInList) {
-            return;
-        }
-        if (not || compareType != Comparison.EQUAL) {
+        if (not || whenOperand || compareType != Comparison.EQUAL
+                || !session.getDatabase().getSettings().optimizeInList) {
             return;
         }
         if (query.getColumnCount() != 1) {

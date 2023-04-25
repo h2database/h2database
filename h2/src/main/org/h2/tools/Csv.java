@@ -555,7 +555,14 @@ public class Csv implements SimpleRowSource {
                     }
                 }
                 if (i < row.length) {
-                    row[i++] = v;
+                    // Empty Strings should be NULL 
+                    // in order to prevent conversion of zero-length String 
+                    // to Number
+                    row[i++] = v!=null && v.length() > 0 
+                            ? v 
+                            : nullString!=null && nullString.equals("") 
+                                ? null
+                                : v;
                 }
                 if (endOfLine) {
                     break;

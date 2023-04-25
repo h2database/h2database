@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0, and the
+ * Copyright 2004-2023 H2 Group. Multiple-Licensed under the MPL 2.0, and the
  * EPL 1.0 (https://h2database.com/html/license.html). Initial Developer: H2
  * Group
  */
@@ -24,6 +24,7 @@ import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 import org.h2.value.lob.LobData;
 import org.h2.value.lob.LobDataDatabase;
+import org.h2.value.lob.LobDataFetchOnDemand;
 import org.h2.value.lob.LobDataInMemory;
 
 /**
@@ -292,6 +293,21 @@ public abstract class ValueLob extends Value {
             }
         }
         return this;
+    }
+
+    final void formatLobDataComment(StringBuilder builder) {
+        if (lobData instanceof LobDataDatabase) {
+            LobDataDatabase lobDb = (LobDataDatabase) lobData;
+            builder.append(" /* table: ").append(lobDb.getTableId()).append(" id: ").append(lobDb.getLobId())
+                    .append(" */)");
+        } else if (lobData instanceof LobDataFetchOnDemand) {
+            LobDataFetchOnDemand lobDemand = (LobDataFetchOnDemand) lobData;
+            builder.append(" /* table: ").append(lobDemand.getTableId()).append(" id: ")
+                    .append(lobDemand.getLobId()).append(" */)");
+        } else {
+            builder.append(" /* ").append(lobData.toString().replaceAll("\\*/", "\\\\*\\\\/"))
+                    .append(" */");
+        }
     }
 
 }

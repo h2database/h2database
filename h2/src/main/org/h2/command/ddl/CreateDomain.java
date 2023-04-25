@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2023 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -82,12 +82,12 @@ public class CreateDomain extends SchemaOwnerCommand {
             throw DbException.get(ErrorCode.DOMAIN_ALREADY_EXISTS_1, typeName);
         }
         if (typeName.indexOf(' ') < 0) {
-            DataType builtIn = DataType.getTypeByName(typeName, session.getDatabase().getMode());
+            DataType builtIn = DataType.getTypeByName(typeName, getDatabase().getMode());
             if (builtIn != null) {
-                if (session.getDatabase().equalsIdentifiers(typeName, Value.getTypeName(builtIn.type))) {
+                if (getDatabase().equalsIdentifiers(typeName, Value.getTypeName(builtIn.type))) {
                     throw DbException.get(ErrorCode.DOMAIN_ALREADY_EXISTS_1, typeName);
                 }
-                Table table = session.getDatabase().getFirstUserTable();
+                Table table = getDatabase().getFirstUserTable();
                 if (table != null) {
                     StringBuilder builder = new StringBuilder(typeName).append(" (");
                     table.getSQL(builder, HasSQL.TRACE_SQL_FLAGS).append(')');

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2023 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -9,6 +9,8 @@ import org.h2.api.ErrorCode;
 import org.h2.engine.CastDataProvider;
 import org.h2.message.DbException;
 import org.h2.util.DateTimeUtils;
+
+import static org.h2.util.DateTimeUtils.NANOS_PER_HOUR;
 
 /**
  * Implementation of the TIME data type.
@@ -37,10 +39,20 @@ public final class ValueTime extends Value {
      */
     public static final int MAXIMUM_SCALE = 9;
 
+    private static final ValueTime[] STATIC_CACHE;
+
     /**
      * Nanoseconds since midnight
      */
     private final long nanos;
+
+    static {
+        ValueTime[] cache = new ValueTime[24];
+        for (int hour = 0; hour < 24; hour++) {
+            cache[hour] = new ValueTime(hour * NANOS_PER_HOUR);
+        }
+        STATIC_CACHE = cache;
+    }
 
     /**
      * @param nanos nanoseconds since midnight
@@ -59,6 +71,9 @@ public final class ValueTime extends Value {
         if (nanos < 0L || nanos >= DateTimeUtils.NANOS_PER_DAY) {
             throw DbException.get(ErrorCode.INVALID_DATETIME_CONSTANT_2, "TIME",
                     DateTimeUtils.appendTime(new StringBuilder(), nanos).toString());
+        }
+        if (nanos % NANOS_PER_HOUR == 0L) {
+            return STATIC_CACHE[(int) (nanos / NANOS_PER_HOUR)];
         }
         return (ValueTime) Value.cache(new ValueTime(nanos));
     }

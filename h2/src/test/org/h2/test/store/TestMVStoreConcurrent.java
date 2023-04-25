@@ -1,16 +1,12 @@
 /*
- * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2023 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.test.store;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.ConcurrentModificationException;
@@ -19,6 +15,10 @@ import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
+import java.util.zip.ZipOutputStream;
+
 import org.h2.mvstore.Chunk;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVMap;
@@ -26,9 +26,10 @@ import org.h2.mvstore.MVStore;
 import org.h2.mvstore.MVStoreException;
 import org.h2.mvstore.WriteBuffer;
 import org.h2.mvstore.type.ObjectDataType;
-import org.h2.store.fs.FileChannelInputStream;
+import org.h2.store.fs.FilePath;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
+import org.h2.util.IOUtils;
 import org.h2.util.Task;
 
 /**
@@ -159,7 +160,7 @@ public class TestMVStoreConcurrent extends TestMVStore {
                 new Object[]{ new byte[]{(byte) -1, (byte) 1}, 20L},
                 new Object[]{ new byte[]{(byte) 1, (byte) -1}, 5},
         };
-        Arrays.sort(data, type::compare);
+        Arrays.sort(data, type);
         Task[] tasks = new Task[2];
         for (int i = 0; i < tasks.length; i++) {
             tasks[i] = new Task() {
@@ -313,8 +314,6 @@ public class TestMVStoreConcurrent extends TestMVStore {
             Thread.sleep(1);
             for (int i = 0; !task.isFinished() && !task2.isFinished() && i < 1000; i++) {
                 MVMap<Integer, Integer> map = s.openMap("d" + (i % 3));
-                // MVMap<Integer, Integer> map = s.openMap("d" + (i % 3),
-                //         new MVMapConcurrent.Builder<Integer, Integer>());
                 map.put(0, i);
                 map.get(0);
                 s.commit();
@@ -435,13 +434,13 @@ public class TestMVStoreConcurrent extends TestMVStore {
                 m.put(2, 2);
                 s.commit();
 
-                MVMap<String, String> layoutMap = s.getLayoutMap();
+                Map<String, String> layoutMap = s.getLayoutMap();
                 int chunkCount = 0;
-                for (String k : layoutMap.keyList()) {
+                for (String k : layoutMap.keySet()) {
                     if (k.startsWith(DataUtils.META_CHUNK)) {
                         // dead chunks may stay around for a little while
                         // discount them
-                        Chunk chunk = Chunk.fromString(layoutMap.get(k));
+                        Chunk<?> chunk = s.getFileStore().createChunk(layoutMap.get(k));
                         if (chunk.maxLenLive > 0) {
                             chunkCount++;
                         }
@@ -581,7 +580,9 @@ public class TestMVStoreConcurrent extends TestMVStore {
 
     private void testConcurrentOnlineBackup() throws Exception {
         String fileName = getBaseDir() + "/" + getTestName();
-        String fileNameRestore = getBaseDir() + "/" + getTestName() + "2";
+        String fileNameRestore = getBaseDir() + "/" + getTestName() + ".bck";
+        FileUtils.delete(fileName);
+        FileUtils.delete(fileNameRestore);
         try (final MVStore s = openStore(fileName)) {
             final MVMap<Integer, byte[]> map = s.openMap("test");
             final Random r = new Random();
@@ -608,42 +609,36 @@ public class TestMVStoreConcurrent extends TestMVStore {
             };
             task.execute();
             try {
+                String archiveName = fileNameRestore + ".zip";
                 for (int i = 0; i < 10; i++) {
-                    // System.out.println("test " + i);
-                    s.setReuseSpace(false);
-                    OutputStream out = new BufferedOutputStream(
-                            new FileOutputStream(fileNameRestore));
-                    long len = s.getFileStore().size();
-                    copyFileSlowly(s.getFileStore().getFile(),
-                            len, out);
-                    out.close();
-                    s.setReuseSpace(true);
-                    MVStore s2 = openStore(fileNameRestore);
-                    MVMap<Integer, byte[]> test = s2.openMap("test");
-                    for (Integer k : test.keySet()) {
-                        test.get(k);
+                    FileUtils.delete(archiveName);
+                    try (OutputStream out = FileUtils.newOutputStream(archiveName, false)) {
+                        try (ZipOutputStream zip = new ZipOutputStream(out)) {
+                            s.getFileStore().backup(zip);
+                        }
                     }
-                    s2.close();
+
+                    try (ZipFile zipFile = new ZipFile(archiveName)) {
+                        String name = FilePath.get(s.getFileStore().getFileName()).getName();
+                        ZipEntry zipEntry = zipFile.getEntry(name);
+                        try (InputStream inputStream = zipFile.getInputStream(zipEntry)) {
+                            try (OutputStream out = FilePath.get(fileNameRestore).newOutputStream(false)) {
+                                IOUtils.copy(inputStream, out);
+                            }
+                        }
+                    }
+
+                    try (MVStore s2 = openStore(fileNameRestore)) {
+                        MVMap<Integer, byte[]> test = s2.openMap("test");
+                        for (Integer k : test.keySet()) {
+                            test.get(k);
+                        }
+                    }
                     // let it compact
                     Thread.sleep(10);
                 }
             } finally {
                 task.get();
-            }
-        }
-    }
-
-    private static void copyFileSlowly(FileChannel file, long length, OutputStream out)
-            throws Exception {
-        file.position(0);
-        try (InputStream in = new BufferedInputStream(new FileChannelInputStream(
-                file, false))) {
-            for (int j = 0; j < length; j++) {
-                int x = in.read();
-                if (x < 0) {
-                    break;
-                }
-                out.write(x);
             }
         }
     }

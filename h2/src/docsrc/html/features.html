@@ -1,6 +1,6 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <!--
-Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
+Copyright 2004-2023 H2 Group. Multiple-Licensed under the MPL 2.0,
 and the EPL 1.0 (https://h2database.com/html/license.html).
 Initial Developer: H2 Group
 -->
@@ -936,8 +936,9 @@ or the SQL statement <code>SET MODE HSQLDB</code>.
 
 <h3>MS SQL Server Compatibility Mode</h3>
 <p>
-To use the MS SQL Server mode, use the database URL <code>jdbc:h2:~/test;MODE=MSSQLServer</code>
-or the SQL statement <code>SET MODE MSSQLServer</code>.
+To use the MS SQL Server mode, use the database URL
+<code>jdbc:h2:~/test;MODE=MSSQLServer;DATABASE_TO_UPPER=FALSE;CASE_INSENSITIVE_IDENTIFIERS=TRUE</code>.
+Do not change value of DATABASE_TO_LOWER and CASE_INSENSITIVE_IDENTIFIERS after creation of database.
 </p>
 <ul><li>For aliased columns, <code>ResultSetMetaData.getColumnName()</code>
     returns the alias name and <code>getTableName()</code> returns
@@ -990,6 +991,7 @@ inserted.
 </li><li>YEAR data type is treated like SMALLINT data type.
 </li><li>GROUP BY clause can contain 1-based positions of expressions from the SELECT list.
 </li><li>Unsafe comparison operators between numeric and boolean values are allowed.
+</li><li>Accepts non-standard JSON_OBJECT and JSON_OBJECTAGG syntax using comma as key/value separator.
 </li></ul>
 <p>
 Text comparison in MariaDB is case insensitive by default, while in H2 it is case sensitive (as in most other databases).
@@ -1031,6 +1033,7 @@ and create a unique constraint automatically if such constraint doesn't exist.
 </li><li>YEAR data type is treated like SMALLINT data type.
 </li><li>GROUP BY clause can contain 1-based positions of expressions from the SELECT list.
 </li><li>Unsafe comparison operators between numeric and boolean values are allowed.
+</li><li>Accepts non-standard JSON_OBJECT and JSON_OBJECTAGG syntax using comma as key/value separator.
 </li></ul>
 <p>
 Text comparison in MySQL is case insensitive by default, while in H2 it is case sensitive (as in most other databases).

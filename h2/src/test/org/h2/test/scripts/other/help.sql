@@ -1,4 +1,4 @@
--- Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
+-- Copyright 2004-2023 H2 Group. Multiple-Licensed under the MPL 2.0,
 -- and the EPL 1.0 (https://h2database.com/html/license.html).
 -- Initial Developer: H2 Group
 --
@@ -24,3 +24,6 @@ HELP he lp;
 > ---------------- ----- ----------------------- ----------------------------------------------------
 > Commands (Other) HELP  HELP [ anything [...] ] Displays the help pages of SQL commands or keywords.
 > rows: 1
+
+HELP 1;
+> exception SYNTAX_ERROR_2

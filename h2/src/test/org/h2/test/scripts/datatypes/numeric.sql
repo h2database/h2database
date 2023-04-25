@@ -1,4 +1,4 @@
--- Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
+-- Copyright 2004-2023 H2 Group. Multiple-Licensed under the MPL 2.0,
 -- and the EPL 1.0 (https://h2database.com/html/license.html).
 -- Initial Developer: H2 Group
 --
@@ -205,4 +205,16 @@ DROP TABLE TEST;
 > ok
 
 SET MODE Regular;
+> ok
+
+CREATE TABLE TEST(A NUMERIC(100000), B NUMERIC(100)) AS VALUES (1E99999, 1E99);
+> ok
+
+SELECT CHAR_LENGTH(CAST(A / B AS VARCHAR)) FROM TEST;
+>> 99901
+
+SELECT CHAR_LENGTH(CAST(A / CAST(B AS NUMERIC(200, 100)) AS VARCHAR)) FROM TEST;
+>> 99901
+
+DROP TABLE TEST;
 > ok

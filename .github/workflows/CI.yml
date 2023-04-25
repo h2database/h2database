@@ -2,29 +2,26 @@ name: CI
 
 on: [push, pull_request]
 
+permissions:
+  contents: read #  to fetch code (actions/checkout)
+
 jobs:
-  java-8:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        java-version: [8, 11, 17]
+    name: Java ${{ matrix.java-version }}
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up JDK 1.8
-      uses: actions/setup-java@v1
+    - uses: actions/checkout@v3
       with:
-        java-version: 1.8
-    - name: Test
-      run: |
-        cd h2
-        echo $JAVA_OPTS
-        export JAVA_OPTS=-Xmx512m
-        ./build.sh jar testCI
-  java-11:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-    - name: Set up JDK 11
-      uses: actions/setup-java@v1
+        fetch-depth: 1
+    - name: Set up JDK ${{ matrix.java-version }}
+      uses: actions/setup-java@v3
       with:
-        java-version: 11
+        java-version: ${{ matrix.java-version }}
+        distribution: temurin
     - name: Test
       run: |
         cd h2

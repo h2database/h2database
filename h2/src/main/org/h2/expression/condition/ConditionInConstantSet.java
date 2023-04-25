@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2023 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -11,7 +11,9 @@ import java.util.TreeSet;
 import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
+import org.h2.expression.ExpressionList;
 import org.h2.expression.ExpressionVisitor;
+import org.h2.expression.ValueExpression;
 import org.h2.index.IndexCondition;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
@@ -19,6 +21,7 @@ import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueNull;
+import org.h2.value.ValueRow;
 
 /**
  * Used for optimised IN(...) queries where the contents of the IN list are all
@@ -125,18 +128,66 @@ public final class ConditionInConstantSet extends Condition {
 
     @Override
     public void createIndexConditions(SessionLocal session, TableFilter filter) {
-        if (not || whenOperand || !(left instanceof ExpressionColumn)) {
+        if (not || whenOperand || !session.getDatabase().getSettings().optimizeInList) {
             return;
         }
-        ExpressionColumn l = (ExpressionColumn) left;
-        if (filter != l.getTableFilter()) {
-            return;
-        }
-        if (session.getDatabase().getSettings().optimizeInList) {
-            TypeInfo colType = l.getType();
-            if (TypeInfo.haveSameOrdering(colType, TypeInfo.getHigherType(colType, type))) {
-                filter.addIndexCondition(IndexCondition.getInList(l, valueList));
+        if (left instanceof ExpressionColumn) {
+            ExpressionColumn l = (ExpressionColumn) left;
+            if (filter == l.getTableFilter()) {
+                createIndexConditions(filter, l, valueList, type);
             }
+        } else if (left instanceof ExpressionList) {
+            ExpressionList list = (ExpressionList) left;
+            if (!list.isArray()) {
+                createIndexConditions(filter, list);
+            }
+        }
+    }
+
+    private void createIndexConditions(TableFilter filter, ExpressionList list) {
+        int c = list.getSubexpressionCount();
+        for (int i = 0; i < c; i++) {
+            Expression e = list.getSubexpression(i);
+            if (e instanceof ExpressionColumn) {
+                ExpressionColumn l = (ExpressionColumn) e;
+                if (filter == l.getTableFilter()) {
+                    ArrayList<Expression> subList = new ArrayList<>(valueList.size());
+                    for (Expression row : valueList) {
+                        if (row instanceof ExpressionList) {
+                            ExpressionList r = (ExpressionList) row;
+                            if (r.isArray() || r.getSubexpressionCount() != c) {
+                                return;
+                            }
+                            subList.add(r.getSubexpression(i));
+                        } else if (row instanceof ValueExpression) {
+                            Value v = row.getValue(null);
+                            if (v.getValueType() != Value.ROW) {
+                                return;
+                            }
+                            Value[] values = ((ValueRow) v).getList();
+                            if (c != values.length) {
+                                return;
+                            }
+                            subList.add(ValueExpression.get(values[i]));
+                        } else {
+                            return;
+                        }
+                    }
+                    TypeInfo type = l.getType();
+                    for (Expression expression : subList) {
+                        type = TypeInfo.getHigherType(type, expression.getType());
+                    }
+                    createIndexConditions(filter, l, subList, type);
+                }
+            }
+        }
+    }
+
+    private static void createIndexConditions(TableFilter filter, ExpressionColumn l, ArrayList<Expression> valueList,
+            TypeInfo type) {
+        TypeInfo colType = l.getType();
+        if (TypeInfo.haveSameOrdering(colType, TypeInfo.getHigherType(colType, type))) {
+            filter.addIndexCondition(IndexCondition.getInList(l, valueList));
         }
     }
 

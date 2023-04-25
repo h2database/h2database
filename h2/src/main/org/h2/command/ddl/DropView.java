@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2023 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.constraint.ConstraintActionType;
+import org.h2.engine.Database;
 import org.h2.engine.DbObject;
 import org.h2.engine.SessionLocal;
 import org.h2.message.DbException;
@@ -29,7 +30,7 @@ public class DropView extends SchemaCommand {
 
     public DropView(SessionLocal session, Schema schema) {
         super(session, schema);
-        dropAction = session.getDatabase().getSettings().dropRestrict ?
+        dropAction = getDatabase().getSettings().dropRestrict ?
                 ConstraintActionType.RESTRICT :
                 ConstraintActionType.CASCADE;
     }
@@ -74,19 +75,20 @@ public class DropView extends SchemaCommand {
             ArrayList<Table> copyOfDependencies = new ArrayList<>(tableView.getTables());
 
             view.lock(session, Table.EXCLUSIVE_LOCK);
-            session.getDatabase().removeSchemaObject(session, view);
+            Database database = getDatabase();
+            database.removeSchemaObject(session, view);
 
             // remove dependent table expressions
             for (Table childTable: copyOfDependencies) {
                 if (TableType.VIEW == childTable.getTableType()) {
                     TableView childTableView = (TableView) childTable;
                     if (childTableView.isTableExpression() && childTableView.getName() != null) {
-                        session.getDatabase().removeSchemaObject(session, childTableView);
+                        database.removeSchemaObject(session, childTableView);
                     }
                 }
             }
             // make sure its all unlocked
-            session.getDatabase().unlockMeta(session);
+            database.unlockMeta(session);
         }
         return 0;
     }

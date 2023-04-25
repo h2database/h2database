@@ -1,21 +1,24 @@
 /*
- * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2023 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.expression.function;
 
+import java.time.DateTimeException;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
+import java.time.OffsetTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoField;
 import java.time.temporal.TemporalAccessor;
 import java.time.temporal.TemporalQueries;
+import java.time.zone.ZoneRules;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Objects;
@@ -162,7 +165,23 @@ public final class DateTimeFormatFunction extends FunctionN {
         CacheValue formatAndZone = getDateFormat(format, locale, timeZone);
         ZoneId zoneId = formatAndZone.zoneId;
         TemporalAccessor value;
-        if (date instanceof ValueTimestampTimeZone) {
+        switch (date.getValueType()) {
+        case Value.DATE:
+        case Value.TIMESTAMP:
+            value = JSR310Utils.valueToLocalDateTime(date, session)
+                    .atZone(zoneId != null ? zoneId : ZoneId.of(session.currentTimeZone().getId()));
+            break;
+        case Value.TIME: {
+            LocalTime time = JSR310Utils.valueToLocalTime(date, session);
+            value = zoneId != null ? time.atOffset(getTimeOffset(zoneId, timeZone)) : time;
+            break;
+        }
+        case Value.TIME_TZ: {
+            OffsetTime time = JSR310Utils.valueToOffsetTime(date, session);
+            value = zoneId != null ? time.withOffsetSameInstant(getTimeOffset(zoneId, timeZone)) : time;
+            break;
+        }
+        case Value.TIMESTAMP_TZ: {
             OffsetDateTime dateTime = JSR310Utils.valueToOffsetDateTime(date, session);
             ZoneId zoneToSet;
             if (zoneId != null) {
@@ -172,11 +191,27 @@ public final class DateTimeFormatFunction extends FunctionN {
                 zoneToSet = ZoneId.ofOffset(offset.getTotalSeconds() == 0 ? "UTC" : "GMT", offset);
             }
             value = dateTime.atZoneSameInstant(zoneToSet);
-        } else {
-            LocalDateTime dateTime = JSR310Utils.valueToLocalDateTime(date, session);
-            value = dateTime.atZone(zoneId != null ? zoneId : ZoneId.of(session.currentTimeZone().getId()));
+            break;
         }
-        return formatAndZone.formatter.format(value);
+        default:
+            throw DbException.getInvalidValueException("dateTime", date.getTraceSQL());
+        }
+        try {
+            return formatAndZone.formatter.format(value);
+        } catch (DateTimeException e) {
+            throw DbException.getInvalidValueException(e, "format", format);
+        }
+    }
+
+    private static ZoneOffset getTimeOffset(ZoneId zoneId, String timeZone) {
+        if (zoneId instanceof ZoneOffset) {
+            return (ZoneOffset) zoneId;
+        }
+        ZoneRules zoneRules = zoneId.getRules();
+        if (!zoneRules.isFixedOffset()) {
+            throw DbException.getInvalidValueException("timeZone", timeZone);
+        }
+        return zoneRules.getOffset(Instant.EPOCH);
     }
 
     /**

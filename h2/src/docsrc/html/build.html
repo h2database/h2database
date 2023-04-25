@@ -1,6 +1,6 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <!--
-Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
+Copyright 2004-2023 H2 Group. Multiple-Licensed under the MPL 2.0,
 and the EPL 1.0 (https://h2database.com/html/license.html).
 Initial Developer: H2 Group
 -->
@@ -27,6 +27,8 @@ Build
     Building the Software</a><br />
 <a href="#maven2">
     Using Maven 2</a><br />
+<a href="#native_image">
+    Native Image</a><br />
 <a href="#using_eclipse">
     Using Eclipse</a><br />
 <a href="#translating">
@@ -48,6 +50,8 @@ This database is written in Java and therefore works on many platforms.
 <h2 id="environment">Environment</h2>
 <p>
 To run this database, a Java Runtime Environment (JRE) version 8 or higher is required.
+It it also possible to compile a standalone executable with
+experimental <a href="#native_image">native image</a> build.
 </p>
 <p>
 To create the database executables, the following software stack was used.
@@ -147,6 +151,34 @@ Afterwards, you can include the database in your Maven 2 project as a dependency
     &lt;version&gt;1.0-SNAPSHOT&lt;/version&gt;
 &lt;/dependency&gt;
 </pre>
+
+<h2 id="native_image">Native Image</h2>
+
+<p>
+There is an experimental support for compilation of native executables with native-image tool.
+To build an executable with H2 install GraalVM and use its updater to get the native-image tool:
+</p>
+<pre>
+gu install native-image
+</pre>
+This tool can be used for compilation of native executables:
+<pre>
+native-image --no-fallback -jar h2-VERSION.jar h2
+</pre>
+
+<p>Known limitations:</p>
+<ul><li>
+If <code>--no-fallback</code> parameter was specified, system tray icon may not appear
+even if <code>-Djava.awt.headless=false</code> parameter of native-image tool was used,
+because native-image doesn't add all necessary configuration for working GUI.
+</li><li>
+If <code>--no-fallback</code> parameter was specified,
+user-defined functions and triggers need an additional configuration.
+</li><li>
+JAVA_OBJECT data type wasn't tested and may not work at all.
+</li><li>
+Third-party loggers, ICU4J collators, and fulltext search weren't tested.
+</li></ul>
 
 <h2 id="using_eclipse">Using Eclipse</h2>
 <p>

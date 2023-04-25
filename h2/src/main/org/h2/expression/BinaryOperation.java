@@ -1,10 +1,11 @@
 /*
- * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2023 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.expression;
 
+import org.h2.engine.Constants;
 import org.h2.engine.SessionLocal;
 import org.h2.expression.IntervalOperation.IntervalOpType;
 import org.h2.expression.function.DateTimeFunction;
@@ -214,6 +215,12 @@ public class BinaryOperation extends Operation2 {
             // 10^rightScale, so add rightScale to its precision and adjust the
             // result to the changes in scale.
             precision = leftPrecision + rightScale - leftScale + scale;
+            // If precision is too large, reduce it together with scale
+            if (precision > Constants.MAX_NUMERIC_PRECISION) {
+                long sub = Math.min(precision - Constants.MAX_NUMERIC_PRECISION, scale);
+                precision -= sub;
+                scale -= sub;
+            }
             break;
         }
         default:

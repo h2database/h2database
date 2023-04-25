@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2023 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -9,13 +9,18 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URI;
 import java.net.URL;
 import java.nio.channels.FileChannel;
+import java.nio.file.AccessDeniedException;
 import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.CopyOption;
 import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.FileStore;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystemNotFoundException;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.OpenOption;
@@ -23,14 +28,15 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
-import java.nio.file.AccessDeniedException;
 import java.nio.file.attribute.DosFileAttributeView;
 import java.nio.file.attribute.PosixFileAttributeView;
 import java.nio.file.attribute.PosixFilePermission;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 
 import org.h2.api.ErrorCode;
@@ -55,23 +61,38 @@ public class FilePathDisk extends FilePath {
         return p;
     }
 
+
     @Override
     public long size() {
         if (name.startsWith(CLASSPATH_PREFIX)) {
+            String path = this.name.substring("classpath:".length());
+            if (!path.startsWith("/")) {
+                path = "/" + path;
+            }
+            URL url = this.getClass().getResource(path);
+            if (url == null) {
+                return 0L;
+            }
             try {
-                String fileName = name.substring(CLASSPATH_PREFIX.length());
-                // Force absolute resolution in Class.getResource
-                if (!fileName.startsWith("/")) {
-                    fileName = "/" + fileName;
+                URI uri = url.toURI();
+                if ("file".equals(url.getProtocol())) {
+                    return Files.size(Paths.get(uri));
                 }
-                URL resource = this.getClass().getResource(fileName);
-                if (resource != null) {
-                    return Files.size(Paths.get(resource.toURI()));
-                } else {
-                    return 0;
+                try {
+                    // If filesystem is opened, let it be closed by the code that opened it.
+                    // This way subsequent access to the FS does not fail
+                    FileSystems.getFileSystem(uri);
+                    return Files.size(Paths.get(uri));
+                } catch (FileSystemNotFoundException e) {
+                    Map<String, String> env = new HashMap<>();
+                    env.put("create", "true");
+                    // If filesystem was not opened, open it and close it after access to avoid resource leak.
+                    try (FileSystem fs = FileSystems.newFileSystem(uri, env)) {
+                        return Files.size(Paths.get(uri));
+                    }
                 }
-            } catch (Exception e) {
-                return 0;
+            } catch (Exception ex) {
+                return 0L;
             }
         }
         try {

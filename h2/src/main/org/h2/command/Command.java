@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2023 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -55,7 +55,7 @@ public abstract class Command implements CommandInterface {
     Command(SessionLocal session, String sql) {
         this.session = session;
         this.sql = sql;
-        trace = session.getDatabase().getTrace(Trace.COMMAND);
+        trace = getDatabase().getTrace(Trace.COMMAND);
     }
 
     /**
@@ -129,13 +129,13 @@ public abstract class Command implements CommandInterface {
      * Start the stopwatch.
      */
     void start() {
-        if (trace.isInfoEnabled() || session.getDatabase().getQueryStatistics()) {
+        if (trace.isInfoEnabled() || getDatabase().getQueryStatistics()) {
             startTimeNanos = Utils.currentNanoTime();
         }
     }
 
-    void setProgress(int state) {
-        session.getDatabase().setProgress(state, sql, 0, 0);
+    void setProgress(Database database, int state) {
+        database.setProgress(state, sql, 0, 0);
     }
 
     /**
@@ -152,9 +152,11 @@ public abstract class Command implements CommandInterface {
 
     @Override
     public void stop() {
-        commitIfNonTransactional();
-        if (isTransactional() && session.getAutoCommit()) {
-            session.commit(false);
+        if (session.isOpen()) {
+            commitIfNonTransactional();
+            if (isTransactional() && session.getAutoCommit()) {
+                session.commit(false);
+            }
         }
         if (trace.isInfoEnabled() && startTimeNanos != 0L) {
             long timeMillis = (System.nanoTime() - startTimeNanos) / 1_000_000L;
@@ -176,10 +178,9 @@ public abstract class Command implements CommandInterface {
     public ResultInterface executeQuery(long maxrows, boolean scrollable) {
         startTimeNanos = 0L;
         long start = 0L;
-        Database database = session.getDatabase();
+        Database database = getDatabase();
         session.waitIfExclusiveModeEnabled();
         boolean callStop = true;
-        //noinspection SynchronizationOnLocalVariableOrMethodParameter
         synchronized (session) {
             session.startStatementWithinTransaction(this);
             Session oldSession = session.setThreadLocalSession();
@@ -235,11 +236,10 @@ public abstract class Command implements CommandInterface {
     @Override
     public ResultWithGeneratedKeys executeUpdate(Object generatedKeysRequest) {
         long start = 0;
-        Database database = session.getDatabase();
-        session.waitIfExclusiveModeEnabled();
         boolean callStop = true;
-        //noinspection SynchronizationOnLocalVariableOrMethodParameter
         synchronized (session) {
+            Database database = getDatabase();
+            session.waitIfExclusiveModeEnabled();
             commitIfNonTransactional();
             SessionLocal.Savepoint rollback = session.setSavepoint();
             session.startStatementWithinTransaction(this);
@@ -378,4 +378,8 @@ public abstract class Command implements CommandInterface {
      * @return true if yes
      */
     protected abstract boolean isCurrentCommandADefineCommand();
+
+    protected final Database getDatabase() {
+        return session.getDatabase();
+    }
 }

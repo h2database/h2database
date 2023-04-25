@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2023 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -12,7 +12,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.sql.Types;
-import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Locale;
 
@@ -353,11 +353,9 @@ public class TestCompatibilityOracle extends TestDb {
 
     private void assertResultDate(String expected, Statement stat, String sql)
             throws SQLException {
-        SimpleDateFormat iso8601 = new SimpleDateFormat(
-                "yyyy-MM-dd'T'HH:mm:ss");
         ResultSet rs = stat.executeQuery(sql);
         if (rs.next()) {
-            assertEquals(expected, iso8601.format(rs.getTimestamp(1)));
+            assertEquals(LocalDateTime.parse(expected), rs.getObject(1, LocalDateTime.class));
         } else {
             assertEquals(expected, null);
         }

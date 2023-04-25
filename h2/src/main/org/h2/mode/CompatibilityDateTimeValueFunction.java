@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2023 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -31,8 +31,6 @@ final class CompatibilityDateTimeValueFunction extends Operation0 implements Nam
      */
     static final int SYSTIMESTAMP = 1;
 
-    private static final int[] TYPES = { Value.TIMESTAMP, Value.TIMESTAMP_TZ };
-
     private static final String[] NAMES = { "SYSDATE", "SYSTIMESTAMP" };
 
     private final int function, scale;
@@ -42,10 +40,11 @@ final class CompatibilityDateTimeValueFunction extends Operation0 implements Nam
     CompatibilityDateTimeValueFunction(int function, int scale) {
         this.function = function;
         this.scale = scale;
-        if (scale < 0) {
-            scale = function == SYSDATE ? 0 : ValueTimestamp.DEFAULT_SCALE;
+        if (function == SYSDATE) {
+            type = TypeInfo.getTypeInfo(Value.TIMESTAMP, 0L, 0, null);
+        } else {
+            type = TypeInfo.getTypeInfo(Value.TIMESTAMP_TZ, 0L, scale, null);
         }
-        type = TypeInfo.getTypeInfo(TYPES[function], 0L, scale, null);
     }
 
     @Override
@@ -59,8 +58,11 @@ final class CompatibilityDateTimeValueFunction extends Operation0 implements Nam
         if (offsetSeconds != newOffset) {
             v = DateTimeUtils.timestampTimeZoneAtOffset(dateValue, timeNanos, offsetSeconds, newOffset);
         }
-        return (function == SYSDATE ? ValueTimestamp.fromDateValueAndNanos(v.getDateValue(), v.getTimeNanos()) : v)
-                .castTo(type, session);
+        if (function == SYSDATE) {
+            return ValueTimestamp.fromDateValueAndNanos(v.getDateValue(),
+                    v.getTimeNanos() / DateTimeUtils.NANOS_PER_SECOND * DateTimeUtils.NANOS_PER_SECOND);
+        }
+        return v.castTo(type, session);
     }
 
     @Override

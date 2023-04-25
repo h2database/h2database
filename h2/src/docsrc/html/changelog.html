@@ -1,6 +1,6 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <!--
-Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
+Copyright 2004-2023 H2 Group. Multiple-Licensed under the MPL 2.0,
 and the EPL 1.0 (https://h2database.com/html/license.html).
 Initial Developer: H2 Group
 -->
@@ -21,6 +21,105 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul>
+<li>Issue #3762: Comparison predicates with row values don't create index conditions
+</li>
+<li>PR #3761: LAST_DAY function and other changes
+</li>
+<li>Issue #3705: Oracle DATE type: milliseconds (second fractions) rounded in H2 but truncated in Oracle (fixed in SYSDATE only)
+</li>
+<li>Issue #3642: AssertionError in mvstore.FileStore.serializeAndStore
+</li>
+<li>Issue #3675: H2 2.x cannot read PostgreSQL-style sequence generator start with option without WITH keyword
+</li>
+<li>Issue #3757: FORMATDATETIME function doesn't handle time with time zone properly
+</li>
+<li>PR #3756: Limit the row list allocation based on the row count
+</li>
+<li>PR #3753: Add missing NEWSEQUENTIALID function in MSSQLServer mode
+</li>
+<li>Issue #3730: FILE_READ from JAR filesystem on classpath results in file of length 0
+</li>
+<li>PR #3749: Fix min/max description for sequences
+</li>
+<li>PR #3739: Fix count(*) for linked table to Oracle
+</li>
+<li>Issue #3731: Division result exceeds numeric precision constraint
+</li>
+<li>PR #3718: Add test coverage for JDK 17
+</li>
+<li>Issue #3580: TestCrashAPI: NPE in ParserUtil.getTokenType() (called by Parser.readIfDataType1())
+</li>
+<li>PR #3709: Update copyright years and fix building of documentation
+</li>
+<li>Issue #3701: CLOBs can cause ClassCastExceptions
+</li>
+<li>Issue #3698: MySQL mode show columns from table, if modificationMetaId changed between prepared and execute.
+Then error occurred.
+</li>
+<li>PR #3699: Upgrade to the latest OSGi JDBC specification
+</li>
+<li>Issue #3659: User-defined variable "sticky" if used in view with join
+</li>
+<li>Issue #3693: Wrong result when intersecting unnested arrays
+</li>
+<li>PR #3691: GitHub Workflows security hardening
+</li>
+<li>PR #3688: Construct FormatTokenEnum.TOKENS during class initialization
+</li>
+<li>Issue #3682: MVStoreException at accountForRemovedPage
+</li>
+<li>Issue #3664: [2.1.214] NullPointerException in org.h2.command.query.Select.queryDistinct
+</li>
+<li>PR #3650: fix version number in the archives html table
+</li>
+<li>PR #3649: Basic implementation of materialized view
+</li>
+<li>Issue #3646: org.h2.mvstore.MVStoreException: Chunk metadata too long
+</li>
+<li>Issue #3645: The BITCOUNT function incorrectly counts BINARY/VARBINARY values of &gt;=16 bytes.
+</li>
+<li>Issue #3637: DB content massacred when opening a 2.1.214 DB with current master
+</li>
+<li>Issue #3636: "This store is closed" after two-phase commit
+</li>
+<li>PR #3639: Add random_uuid() alias to be compatible with postgres
+</li>
+<li>Issue #3640: SOUNDEX function should not be case-sensitive
+</li>
+<li>Issue #3633: Memory leak in case of in-memory database
+</li>
+<li>PR #3629 Better separation between MVStore and FileStore
+</li>
+<li>PR #3626: Improve memory estimation of CacheLongKeyLIRS and correct some passed memory sizes
+</li>
+<li>Issue #3619: PostgreSQL mode: STRING_AGG with prepared statement parameter not working
+</li>
+<li>Issue #3615: H2 Console connecting to Oracle DB will not show the list of tables
+</li>
+<li>PR #3613: Fix infinite loop in Tokenizer when special whitespace character is used
+</li>
+<li>Issue #3606: Support for GraalVMs native-image
+</li>
+<li>Issue #3607: [MySQL] UNIX_TIMESTAMP should return NULL
+</li>
+<li>Issue #3604: Improper FROM_1X implementation corrupts some BLOBs during migration
+</li>
+<li>Issue #3597: Support array element assignments in UPDATE statements
+</li>
+<li>Issue #3599: [2.1.214][MariaDB] DELETE query failure
+</li>
+<li>Issue #3600: NPE in MVTable.lock(), version 2.1.214
+</li>
+<li>Issue #3601: InvalidPathException when saving lock file
+</li>
+<li>Issue #3583: lob cleaner issue
+</li>
+<li>Issue #3585: Misuse ValueReal.DECIMAL_PRECISION when optimize typeinfo from DOUBLE to DECFLOAT
+</li>
+<li>Issue #3575: Possible syntax mismatch for json_object in MySQL compatibility mode
+</li>
+<li>PR #3577: Add support of TINYINT and DECFLOAT to TO_CHAR
+</li>
 <li>Issue #3567: No AUTO_INCREMENT in DatabaseMetaData.getTypeInfo()
 </li>
 <li>PR #3555: Add missing check for -webExternalNames flag

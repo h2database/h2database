@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2023 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -49,7 +49,7 @@ public class AlterTableRenameColumn extends AlterTable {
         table.checkSupportAlter();
         table.renameColumn(column, newName);
         table.setModified();
-        Database db = session.getDatabase();
+        Database db = getDatabase();
         db.updateMeta(session, table);
 
         // if we have foreign key constraints pointing at this table, we need to update them

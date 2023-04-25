@@ -1,4 +1,4 @@
--- Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
+-- Copyright 2004-2023 H2 Group. Multiple-Licensed under the MPL 2.0,
 -- and the EPL 1.0 (https://h2database.com/html/license.html).
 -- Initial Developer: H2 Group
 --
@@ -207,4 +207,96 @@ EXPLAIN SELECT T AT TIME ZONE 'UTC' FROM TEST GROUP BY T;
 >> SELECT "T" AT TIME ZONE 'UTC' FROM "PUBLIC"."TEST" /* PUBLIC.TEST_T_IDX */ GROUP BY "T" /* group sorted */
 
 DROP TABLE TEST;
+> ok
+
+CREATE TABLE T1(A INT, B INT, C INT) AS VALUES (1, 1, 1), (1, 2, 2), (2, 1, 3), (2, 2, 4);
+> ok
+
+CREATE TABLE T2(D INT, E INT) AS VALUES (1, 1), (2, 2);
+> ok
+
+SET @V = 1;
+> ok
+
+CREATE VIEW V1 AS SELECT T2.D, T1.C FROM T2 LEFT JOIN T1 ON T2.E = T1.A AND T1.B = @V;
+> ok
+
+TABLE V1;
+> D C
+> - -
+> 1 1
+> 2 3
+> rows: 2
+
+SET @V = 2;
+> ok
+
+TABLE V1;
+> D C
+> - -
+> 1 2
+> 2 4
+> rows: 2
+
+DROP VIEW V1;
+> ok
+
+DROP TABLE T1, T2;
+> ok
+
+SET @V = NULL;
+> ok
+
+CREATE TABLE T1(A INT, B INT);
+> ok
+
+CREATE INDEX T1_A_IDX ON T1(A);
+> ok
+
+EXPLAIN SELECT * FROM T1 WHERE (A, B) = (1, 2);
+>> SELECT "PUBLIC"."T1"."A", "PUBLIC"."T1"."B" FROM "PUBLIC"."T1" /* PUBLIC.T1_A_IDX: A = 1 */ WHERE ROW ("A", "B") = ROW (1, 2)
+
+EXPLAIN SELECT * FROM T1 WHERE (A, B) > (1, 2);
+>> SELECT "PUBLIC"."T1"."A", "PUBLIC"."T1"."B" FROM "PUBLIC"."T1" /* PUBLIC.T1_A_IDX: A >= 1 */ WHERE ROW ("A", "B") > ROW (1, 2)
+
+EXPLAIN SELECT * FROM T1 WHERE (A, B) >= (1, 2);
+>> SELECT "PUBLIC"."T1"."A", "PUBLIC"."T1"."B" FROM "PUBLIC"."T1" /* PUBLIC.T1_A_IDX: A >= 1 */ WHERE ROW ("A", "B") >= ROW (1, 2)
+
+EXPLAIN SELECT * FROM T1 WHERE (A, B) < (1, 2);
+>> SELECT "PUBLIC"."T1"."A", "PUBLIC"."T1"."B" FROM "PUBLIC"."T1" /* PUBLIC.T1_A_IDX: A <= 1 */ WHERE ROW ("A", "B") < ROW (1, 2)
+
+EXPLAIN SELECT * FROM T1 WHERE (A, B) <= (1, 2);
+>> SELECT "PUBLIC"."T1"."A", "PUBLIC"."T1"."B" FROM "PUBLIC"."T1" /* PUBLIC.T1_A_IDX: A <= 1 */ WHERE ROW ("A", "B") <= ROW (1, 2)
+
+EXPLAIN SELECT * FROM T1 WHERE ROW (A) = 1;
+>> SELECT "PUBLIC"."T1"."A", "PUBLIC"."T1"."B" FROM "PUBLIC"."T1" /* PUBLIC.T1_A_IDX: A = 1 */ WHERE ROW ("A") = 1
+
+EXPLAIN SELECT * FROM T1 JOIN T1 T2 ON (T1.A, T1.B) IN ((1, T2.A), (2, T2.B));
+>> SELECT "PUBLIC"."T1"."A", "PUBLIC"."T1"."B", "T2"."A", "T2"."B" FROM "PUBLIC"."T1" /* PUBLIC.T1_A_IDX: A IN(1, 2) */ INNER JOIN "PUBLIC"."T1" "T2" /* PUBLIC.T1.tableScan */ ON 1=1 WHERE ROW ("T1"."A", "T1"."B") IN(ROW (1, "T2"."A"), ROW (2, "T2"."B"))
+
+EXPLAIN SELECT * FROM T1 WHERE (A, B) IN ((1, 2), (3, 4));
+>> SELECT "PUBLIC"."T1"."A", "PUBLIC"."T1"."B" FROM "PUBLIC"."T1" /* PUBLIC.T1_A_IDX: A IN(1, 3) */ WHERE ROW ("A", "B") IN(ROW (1, 2), ROW (3, 4))
+
+DROP INDEX T1_A_IDX;
+> ok
+
+CREATE INDEX T1_B_IDX ON T1(B);
+> ok
+
+EXPLAIN SELECT * FROM T1 WHERE (A, B) = (1, 2);
+>> SELECT "PUBLIC"."T1"."A", "PUBLIC"."T1"."B" FROM "PUBLIC"."T1" /* PUBLIC.T1_B_IDX: B = 2 */ WHERE ROW ("A", "B") = ROW (1, 2)
+
+EXPLAIN SELECT * FROM T1 WHERE (A, B) > (1, 2);
+>> SELECT "PUBLIC"."T1"."A", "PUBLIC"."T1"."B" FROM "PUBLIC"."T1" /* PUBLIC.T1.tableScan */ WHERE ROW ("A", "B") > ROW (1, 2)
+
+CREATE INDEX T1_A_B_IDX ON T1(A, B);
+> ok
+
+EXPLAIN SELECT * FROM T1 WHERE (A, B) = (1, 2);
+>> SELECT "PUBLIC"."T1"."A", "PUBLIC"."T1"."B" FROM "PUBLIC"."T1" /* PUBLIC.T1_A_B_IDX: A = 1 AND B = 2 */ WHERE ROW ("A", "B") = ROW (1, 2)
+
+EXPLAIN SELECT * FROM T1 WHERE (A, B) > (1, 2);
+>> SELECT "PUBLIC"."T1"."A", "PUBLIC"."T1"."B" FROM "PUBLIC"."T1" /* PUBLIC.T1_A_B_IDX: A >= 1 */ WHERE ROW ("A", "B") > ROW (1, 2)
+
+DROP TABLE T1;
 > ok

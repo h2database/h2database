@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2023 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.constraint.Constraint;
@@ -18,6 +19,7 @@ import org.h2.engine.Right;
 import org.h2.engine.SessionLocal;
 import org.h2.message.DbException;
 import org.h2.schema.Schema;
+import org.h2.table.MaterializedView;
 import org.h2.table.Table;
 import org.h2.table.TableView;
 import org.h2.util.Utils;
@@ -35,7 +37,7 @@ public class DropTable extends DefineCommand {
 
     public DropTable(SessionLocal session) {
         super(session);
-        dropAction = session.getDatabase().getSettings().dropRestrict ?
+        dropAction = getDatabase().getSettings().dropRestrict ?
                 ConstraintActionType.RESTRICT :
                     ConstraintActionType.CASCADE;
     }
@@ -85,6 +87,15 @@ public class DropTable extends DefineCommand {
                         }
                     }
                 }
+                CopyOnWriteArrayList<MaterializedView> dependentMaterializedViews = table
+                        .getDependentMaterializedViews();
+                if (dependentMaterializedViews != null && !dependentMaterializedViews.isEmpty()) {
+                    for (MaterializedView v : dependentMaterializedViews) {
+                        if (!tablesToDrop.contains(v)) {
+                            dependencies.add(v.getName());
+                        }
+                    }
+                }
                 final List<Constraint> constraints = table.getConstraints();
                 if (constraints != null && !constraints.isEmpty()) {
                     for (Constraint c : constraints) {
@@ -109,7 +120,7 @@ public class DropTable extends DefineCommand {
             Table table = schemaAndTable.schema.findTableOrView(session, schemaAndTable.tableName);
             if (table != null) {
                 table.setModified();
-                Database db = session.getDatabase();
+                Database db = getDatabase();
                 db.lockMeta(session);
                 db.removeSchemaObject(session, table);
             }

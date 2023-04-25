@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2023 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -27,7 +27,7 @@ public class DropSchema extends DefineCommand {
 
     public DropSchema(SessionLocal session) {
         super(session);
-        dropAction = session.getDatabase().getSettings().dropRestrict ?
+        dropAction = getDatabase().getSettings().dropRestrict ?
                 ConstraintActionType.RESTRICT : ConstraintActionType.CASCADE;
     }
 
@@ -37,7 +37,7 @@ public class DropSchema extends DefineCommand {
 
     @Override
     public long update() {
-        Database db = session.getDatabase();
+        Database db = getDatabase();
         Schema schema = db.findSchema(schemaName);
         if (schema == null) {
             if (!ifExists) {

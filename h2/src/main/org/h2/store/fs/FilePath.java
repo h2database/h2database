@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2023 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -40,10 +40,12 @@ public abstract class FilePath {
     public String name;
 
     static {
-        FilePath def = null;
         ConcurrentHashMap<String, FilePath> map = new ConcurrentHashMap<>();
+        FilePath p = new FilePathDisk();
+        map.put(p.getScheme(), p);
+        map.put("nio", p);
+        defaultProvider = p;
         for (String c : new String[] {
-                "org.h2.store.fs.disk.FilePathDisk",
                 "org.h2.store.fs.mem.FilePathMem",
                 "org.h2.store.fs.mem.FilePathMemLZF",
                 "org.h2.store.fs.niomem.FilePathNioMem",
@@ -55,19 +57,12 @@ public abstract class FilePath {
                 "org.h2.store.fs.retry.FilePathRetryOnInterrupt"
         }) {
             try {
-                FilePath p = (FilePath) Class.forName(c).getDeclaredConstructor().newInstance();
+                p = (FilePath) Class.forName(c).getDeclaredConstructor().newInstance();
                 map.put(p.getScheme(), p);
-                if (p.getClass() == FilePathDisk.class) {
-                    map.put("nio", p);
-                }
-                if (def == null) {
-                    def = p;
-                }
             } catch (Exception e) {
                 // ignore - the files may be excluded in purpose
             }
         }
-        defaultProvider = def;
         providers = map;
     }
 
@@ -240,7 +235,7 @@ public abstract class FilePath {
      * @return the output stream
      * @throws IOException on I/O exception
      */
-    public static final OutputStream newFileChannelOutputStream(FileChannel channel, boolean append)
+    public static OutputStream newFileChannelOutputStream(FileChannel channel, boolean append)
             throws IOException {
         if (append) {
             channel.position(channel.size());

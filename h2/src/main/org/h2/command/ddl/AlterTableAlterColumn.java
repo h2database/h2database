@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2023 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -107,7 +107,7 @@ public class AlterTableAlterColumn extends CommandWithColumns {
 
     @Override
     public long update() {
-        Database db = session.getDatabase();
+        Database db = getDatabase();
         Table table = getSchema().resolveTableOrView(session, tableName);
         if (table == null) {
             if (ifTableExists) {
@@ -300,7 +300,7 @@ public class AlterTableAlterColumn extends CommandWithColumns {
 
     private void checkClustering(Column c) {
         if (!Constants.CLUSTERING_DISABLED
-                .equals(session.getDatabase().getCluster())
+                .equals(getDatabase().getCluster())
                 && c.hasIdentityOptions()) {
             throw DbException.getUnsupportedException(
                     "CLUSTERING && identity columns");
@@ -322,7 +322,7 @@ public class AlterTableAlterColumn extends CommandWithColumns {
         if (sequence != null) {
             table.removeSequence(sequence);
             sequence.setBelongsToTable(false);
-            Database db = session.getDatabase();
+            Database db = getDatabase();
             db.removeSchemaObject(session, sequence);
         }
     }
@@ -331,7 +331,7 @@ public class AlterTableAlterColumn extends CommandWithColumns {
         if (table.isTemporary()) {
             throw DbException.getUnsupportedException("TEMP TABLE");
         }
-        Database db = session.getDatabase();
+        Database db = getDatabase();
         String baseName = table.getName();
         String tempName = db.getTempTableName(baseName, session);
         Column[] columns = table.getColumns();

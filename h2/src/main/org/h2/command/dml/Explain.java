@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2023 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -70,7 +70,7 @@ public class Explain extends Prepared {
 
     @Override
     public ResultInterface query(long maxrows) {
-        Database db = session.getDatabase();
+        Database db = getDatabase();
         Expression[] expressions = { new ExpressionColumn(db, new Column("PLAN", TypeInfo.TYPE_VARCHAR)) };
         result = new LocalResult(session, expressions, 1, 1);
         int sqlFlags = HasSQL.ADD_PLAN_INFORMATION;
@@ -94,8 +94,8 @@ public class Explain extends Prepared {
                 }
                 if (statistics != null) {
                     int total = 0;
-                    for (Entry<String, Integer> e : statistics.entrySet()) {
-                        total += e.getValue();
+                    for (Integer value : statistics.values()) {
+                        total += value;
                     }
                     if (total > 0) {
                         statistics = new TreeMap<>(statistics);
@@ -112,7 +112,7 @@ public class Explain extends Prepared {
                             }
                             buff.append('\n');
                         }
-                        plan += "\n/*\n" + buff.toString() + "*/";
+                        plan += "\n/*\n" + buff + "*/";
                     }
                 }
             } else {

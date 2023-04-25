@@ -1,4 +1,4 @@
-# Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
+# Copyright 2004-2023 H2 Group. Multiple-Licensed under the MPL 2.0,
 # and the EPL 1.0 (https://h2database.com/html/license.html).
 # Initial Developer: H2 Group
 
@@ -1101,6 +1101,23 @@ This command commits an open transaction in this connection.
 CREATE VIEW TEST_VIEW AS SELECT * FROM TEST WHERE ID < 100
 "
 
+"Commands (DDL)","CREATE MATERIALIZED VIEW","
+@h2@ CREATE [ OR REPLACE ]
+@h2@ MATERIALIZED VIEW [ IF NOT EXISTS ] [schemaName.]viewName
+[ ( columnName [,...] ) ] AS query
+","
+Creates a new materialized view.
+Schema owner rights are required to execute this command.
+
+If the OR REPLACE clause is used an existing view will be replaced.
+
+Views are not updatable except using REFRESH MATERIALIZED VIEW.
+
+This command commits an open transaction in this connection.
+","
+CREATE MATERIALIZED VIEW TEST_VIEW AS SELECT * FROM TEST WHERE ID < 100
+"
+
 "Commands (DDL)","DROP AGGREGATE","
 @h2@ DROP AGGREGATE [ IF EXISTS ] aggregateName
 ","
@@ -1247,6 +1264,26 @@ The command will fail if dependent views exist and the RESTRICT clause is used.
 This command commits an open transaction in this connection.
 ","
 DROP VIEW TEST_VIEW
+"
+
+"Commands (DDL)","DROP MATERIALIZED VIEW","
+@h2@ DROP MATERIALIZED VIEW [ IF EXISTS ] [schemaName.]viewName
+","
+Drops an existing materialized view.
+Schema owner rights are required to execute this command.
+This command commits an open transaction in this connection.
+","
+DROP MATERIALIZED VIEW TEST_VIEW
+"
+
+"Commands (DDL)","REFRESH MATERIALIZED VIEW","
+@h2@ REFRESH MATERIALIZED VIEW [ IF EXISTS ] [schemaName.]viewName
+","
+Recreates an existing materialized view.
+Schema owner rights are required to execute this command.
+This command commits an open transaction in this connection.
+","
+REFRESH MATERIALIZED VIEW TEST_VIEW
 "
 
 "Commands (DDL)","TRUNCATE TABLE","
@@ -3673,10 +3710,12 @@ NO CACHE
 "
 
 "Other Grammar","Set clause list","
-{ { columnName = { DEFAULT | expression } }
-    | { ( columnName [,...] ) = { rowValueExpression | (query) } } } [,...]
+{ { updateTarget = { DEFAULT | expression } }
+    | { ( updateTarget [,...] ) = { rowValueExpression | (query) } } } [,...]
 ","
 List of SET clauses.
+
+Each column may be specified only once in update targets.
 ","
 NAME = 'Test', PRICE = 2
 (A, B) = (1, 2)
@@ -3727,6 +3766,21 @@ A natural join is an inner join, where the condition is automatically on the
 columns with the same name.
 ","
 TEST1 AS T1 LEFT JOIN TEST2 AS T2 ON T1.ID = T2.PARENT_ID
+"
+
+"Other Grammar","Update target","
+columnName [ '[' int ']' [...] ]
+","
+Column or element of a column of ARRAY data type.
+
+If array indexes are specified,
+column must have a compatible ARRAY data type and updated rows may not have NULL values in this column.
+It means for C[2][3] both C and C[2] may not be NULL.
+Too short arrays are expanded, missing elements are set to NULL.
+","
+A
+B[1]
+C[2][3]
 "
 
 "Other Grammar","Within group specification","
@@ -5535,7 +5589,7 @@ REPLACE(NAME, ' ')
 "Functions (String)","SOUNDEX","
 @h2@ SOUNDEX(string)
 ","
-Returns a four character code representing the sound of a string.
+Returns a four character upper-case code representing the sound of a string as pronounced in English.
 This method returns a string, or null if parameter is null.
 See https://en.wikipedia.org/wiki/Soundex for more information.
 ","
@@ -5811,11 +5865,20 @@ DATEDIFF(YEAR, T1.CREATED, T2.CREATED)
 "
 
 "Functions (Time and Date)","DATE_TRUNC","
-@h2@ DATE_TRUNC (datetimeField, dateAndTime)
+@h2@ DATE_TRUNC(datetimeField, dateAndTime)
 ","
 Truncates the specified date-time value to the specified field.
 ","
 DATE_TRUNC(DAY, TIMESTAMP '2010-01-03 10:40:00');
+"
+
+"Functions (Time and Date)","LAST_DAY","
+@h2@ LAST_DAY(date | timestamp | timestampWithTimeZone | string)
+","
+Returns the last day of the month that contains the specified date-time value.
+This function returns a date.
+","
+LAST_DAY(DAY, DATE '2020-02-05');
 "
 
 "Functions (Time and Date)","DAYNAME","
@@ -5884,8 +5947,13 @@ Formats a date, time or timestamp as a string.
 The most important format characters are:
 y year, M month, d day, H hour, m minute, s second.
 For details of the format, see ""java.time.format.DateTimeFormatter"".
+Allowed format characters depend on data type of passed date/time value.
 
 If timeZoneString is specified, it is used in formatted string if formatString has time zone.
+For TIME and TIME WITH TIME ZONE values the specified time zone must have a fixed offset.
+
+If TIME WITH TIME ZONE is passed and timeZoneString is specified,
+the time is converted to the specified time zone offset and its UTC value is preserved.
 If TIMESTAMP WITH TIME ZONE is passed and timeZoneString is specified,
 the timestamp is converted to the specified time zone and its UTC value is preserved.
 

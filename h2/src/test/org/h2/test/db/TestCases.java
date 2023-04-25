@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2023 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -8,6 +8,7 @@ package org.h2.test.db;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.StringReader;
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
@@ -82,6 +83,7 @@ public class TestCases extends TestDb {
         testExplainAnalyze();
         testDataChangeDeltaTable();
         testGroupSortedReset();
+        testShowColumns();
         if (config.memory) {
             return;
         }
@@ -331,6 +333,10 @@ public class TestCases extends TestDb {
             assertEquals(data[i], rs.getString(2));
         }
         stat.execute("drop table test");
+        rs = stat.executeQuery("select floor(\u3000 1.2) \ud835\udca9");
+        rs.next();
+        assertEquals(BigDecimal.ONE, rs.getBigDecimal(1));
+        assertEquals("\ud835\udca9", rs.getMetaData().getColumnLabel(1));
         conn.close();
     }
 
@@ -1759,6 +1765,24 @@ public class TestCases extends TestDb {
         stat.execute(sql);
         stat.execute("UPDATE T1 SET B = 7 WHERE A = 3");
         stat.execute(sql);
+        conn.close();
+    }
+
+    private void testShowColumns() throws SQLException {
+        // This test requires a PreparedStatement
+        deleteDb("cases");
+        Connection conn = getConnection("cases");
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE TABLE TEST(A INTEGER)");
+        PreparedStatement prep = conn.prepareStatement("SHOW COLUMNS FROM TEST");
+        ResultSet rs = prep.executeQuery();
+        assertTrue(rs.next());
+        assertFalse(rs.next());
+        stat.execute("ALTER TABLE TEST ADD COLUMN B INTEGER");
+        rs = prep.executeQuery();
+        assertTrue(rs.next());
+        assertTrue(rs.next());
+        assertFalse(rs.next());
         conn.close();
     }
 

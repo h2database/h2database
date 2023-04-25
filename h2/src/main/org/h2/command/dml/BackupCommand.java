@@ -1,15 +1,13 @@
 /*
- * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2023 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.command.dml;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
@@ -19,12 +17,10 @@ import org.h2.engine.Database;
 import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.message.DbException;
-import org.h2.mvstore.MVStore;
 import org.h2.mvstore.db.Store;
 import org.h2.result.ResultInterface;
 import org.h2.store.FileLister;
 import org.h2.store.fs.FileUtils;
-import org.h2.util.IOUtils;
 
 /**
  * This class represents the statement
@@ -51,7 +47,7 @@ public class BackupCommand extends Prepared {
     }
 
     private void backupTo(String fileName) {
-        Database db = session.getDatabase();
+        Database db = getDatabase();
         if (!db.isPersistent()) {
             throw DbException.get(ErrorCode.DATABASE_IS_NOT_PERSISTENT);
         }
@@ -65,7 +61,6 @@ public class BackupCommand extends Prepared {
                 db.flush();
                 // synchronize on the database, to avoid concurrent temp file
                 // creation / deletion / backup
-                String base = FileUtils.getParent(db.getName());
                 synchronized (db.getLobSyncObject()) {
                     String prefix = db.getDatabasePath();
                     String dir = FileUtils.getParent(prefix);
@@ -73,15 +68,7 @@ public class BackupCommand extends Prepared {
                     ArrayList<String> fileList = FileLister.getDatabaseFiles(dir, name, true);
                     for (String n : fileList) {
                         if (n.endsWith(Constants.SUFFIX_MV_FILE)) {
-                            MVStore s = store.getMvStore();
-                            boolean before = s.getReuseSpace();
-                            s.setReuseSpace(false);
-                            try {
-                                InputStream in = store.getInputStream();
-                                backupFile(out, base, n, in);
-                            } finally {
-                                s.setReuseSpace(before);
-                            }
+                            store.getMvStore().getFileStore().backup(out);
                         }
                     }
                 }
@@ -90,20 +77,6 @@ public class BackupCommand extends Prepared {
         } catch (IOException e) {
             throw DbException.convertIOException(e, fileName);
         }
-    }
-
-    private static void backupFile(ZipOutputStream out, String base, String fn,
-            InputStream in) throws IOException {
-        String f = FileUtils.toRealPath(fn);
-        base = FileUtils.toRealPath(base);
-        if (!f.startsWith(base)) {
-            throw DbException.getInternalError(f + " does not start with " + base);
-        }
-        f = f.substring(base.length());
-        f = correctFileName(f);
-        out.putNextEntry(new ZipEntry(f));
-        IOUtils.copyAndCloseInput(in, out);
-        out.closeEntry();
     }
 
     @Override

@@ -53,7 +53,7 @@ Import-Package: javax.crypto,
  org.apache.lucene.util;version="[8.5.2,9.0.0)";resolution:=optional,
  org.locationtech.jts.geom;version="1.17.0";resolution:=optional,
  org.osgi.framework;version="1.5",
- org.osgi.service.jdbc;version="1.0";resolution:=optional,
+ org.osgi.service.jdbc;version="1.1";resolution:=optional,
  org.slf4j;version="[1.7.0,1.8.0)";resolution:=optional
 Export-Package: org.h2;version="${version}",
  org.h2.api;version="${version}",

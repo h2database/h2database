@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2023 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -768,7 +768,7 @@ public class Utils {
      * Makes sure that all currently submitted tasks are processed before this method returns.
      * It is assumed that there will be no new submissions to this executor, once this method has started.
      * It is assumed that executor is single-threaded, and flush is done by submitting a dummy task
-     * and waiting for it's completion.
+     * and waiting for its completion.
      * @param executor to flush
      */
     public static void flushExecutor(ThreadPoolExecutor executor) {
@@ -788,11 +788,8 @@ public class Utils {
         if (executor != null) {
             executor.shutdown();
             try {
-                if (executor.awaitTermination(10, TimeUnit.SECONDS)) {
-                    return;
-                }
+                executor.awaitTermination(1, TimeUnit.DAYS);
             } catch (InterruptedException ignore) {/**/}
-            executor.shutdownNow();
         }
     }
 

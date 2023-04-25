@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2023 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: Jason Brittain (jason.brittain at gmail.com)
  */
@@ -40,10 +40,10 @@ public final class FunctionsMySQL extends ModeFunction {
 
     static {
         FUNCTIONS.put("UNIX_TIMESTAMP",
-                new FunctionInfo("UNIX_TIMESTAMP", UNIX_TIMESTAMP, VAR_ARGS, Value.INTEGER, false, false));
+                new FunctionInfo("UNIX_TIMESTAMP", UNIX_TIMESTAMP, VAR_ARGS, Value.INTEGER, true, false));
         FUNCTIONS.put("FROM_UNIXTIME",
-                new FunctionInfo("FROM_UNIXTIME", FROM_UNIXTIME, VAR_ARGS, Value.VARCHAR, false, true));
-        FUNCTIONS.put("DATE", new FunctionInfo("DATE", DATE, 1, Value.DATE, false, true));
+                new FunctionInfo("FROM_UNIXTIME", FROM_UNIXTIME, VAR_ARGS, Value.VARCHAR, true, true));
+        FUNCTIONS.put("DATE", new FunctionInfo("DATE", DATE, 1, Value.DATE, true, true));
         FUNCTIONS.put("LAST_INSERT_ID",
                 new FunctionInfo("LAST_INSERT_ID", LAST_INSERT_ID, VAR_ARGS, Value.BIGINT, false, false));
     }
@@ -201,7 +201,10 @@ public final class FunctionsMySQL extends ModeFunction {
 
     @Override
     public Value getValue(SessionLocal session) {
-        Value[] values = new Value[args.length];
+        Value[] values = getArgumentsValues(session, args);
+        if (values == null) {
+            return ValueNull.INSTANCE;
+        }
         Value v0 = getNullOrValue(session, args, values, 0);
         Value v1 = getNullOrValue(session, args, values, 1);
         Value result;
@@ -215,7 +218,6 @@ public final class FunctionsMySQL extends ModeFunction {
             break;
         case DATE:
             switch (v0.getValueType()) {
-            case Value.NULL:
             case Value.DATE:
                 result = v0;
                 break;

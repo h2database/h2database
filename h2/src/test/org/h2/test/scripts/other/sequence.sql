@@ -1,4 +1,4 @@
--- Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
+-- Copyright 2004-2023 H2 Group. Multiple-Licensed under the MPL 2.0,
 -- and the EPL 1.0 (https://h2database.com/html/license.html).
 -- Initial Developer: H2 Group
 --
@@ -487,4 +487,19 @@ SELECT NEXT VALUE FOR SEQ;
 > exception SEQUENCE_EXHAUSTED
 
 DROP SEQUENCE SEQ;
+> ok
+
+CREATE SEQUENCE SEQ START 1;
+> exception SYNTAX_ERROR_1
+
+SET MODE PostgreSQL;
+> ok
+
+CREATE SEQUENCE SEQ START 1;
+> ok
+
+DROP SEQUENCE SEQ;
+> ok
+
+SET MODE Regular;
 > ok

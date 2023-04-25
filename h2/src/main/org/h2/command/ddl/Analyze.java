@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2023 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -137,7 +137,7 @@ public class Analyze extends DefineCommand {
 
     public Analyze(SessionLocal session) {
         super(session);
-        sampleRows = session.getDatabase().getSettings().analyzeSample;
+        sampleRows = getDatabase().getSettings().analyzeSample;
     }
 
     public void setTable(Table table) {
@@ -147,7 +147,7 @@ public class Analyze extends DefineCommand {
     @Override
     public long update() {
         session.getUser().checkAdmin();
-        Database db = session.getDatabase();
+        Database db = getDatabase();
         if (table != null) {
             analyzeTable(session, table, sampleRows, true);
         } else {
@@ -169,7 +169,8 @@ public class Analyze extends DefineCommand {
      * @param manual whether the command was called by the user
      */
     public static void analyzeTable(SessionLocal session, Table table, int sample, boolean manual) {
-        if (table.getTableType() != TableType.TABLE //
+        if (!table.isValid()
+                || table.getTableType() != TableType.TABLE //
                 || table.isHidden() //
                 || session == null //
                 || !manual && (session.getDatabase().isSysTableLocked() || table.hasSelectTrigger()) //

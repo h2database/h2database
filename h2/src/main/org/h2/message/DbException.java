@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2023 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -296,6 +296,18 @@ public class DbException extends RuntimeException {
      */
     public static DbException getInvalidValueException(String param, Object value) {
         return get(INVALID_VALUE_2, value == null ? "null" : value.toString(), param);
+    }
+
+    /**
+     * Gets a SQL exception meaning this value is invalid.
+     *
+     * @param cause the cause of the exception
+     * @param param the name of the parameter
+     * @param value the value passed
+     * @return the exception
+     */
+    public static DbException getInvalidValueException(Throwable cause, String param, Object value) {
+        return get(INVALID_VALUE_2, cause, value == null ? "null" : value.toString(), param);
     }
 
     /**

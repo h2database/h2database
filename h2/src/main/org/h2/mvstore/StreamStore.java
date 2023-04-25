@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2023 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -14,6 +14,7 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.IntConsumer;
 
 /**
  * A facility to store streams in a map. Streams are split into blocks, which
@@ -34,14 +35,14 @@ import java.util.concurrent.atomic.AtomicReference;
  * encoded as 2, the total length (a variable size long), and the key of the
  * block that contains the id (a variable size long).
  */
-public class StreamStore {
-
+public final class StreamStore
+{
     private final Map<Long, byte[]> map;
-    private int minBlockSize = 256;
-    private int maxBlockSize = 256 * 1024;
+    private final int minBlockSize;
+    private final int maxBlockSize;
     private final AtomicLong nextKey = new AtomicLong();
-    private final AtomicReference<byte[]> nextBuffer =
-            new AtomicReference<>();
+    private final AtomicReference<byte[]> nextBuffer = new AtomicReference<>();
+    private final IntConsumer onStoreCallback;
 
     /**
      * Create a stream store instance.
@@ -49,7 +50,22 @@ public class StreamStore {
      * @param map the map to store blocks of data
      */
     public StreamStore(Map<Long, byte[]> map) {
+        this(map, 256, 256 * 1024, null);
+    }
+
+    public StreamStore(Map<Long, byte[]> map, int minBlockSize, int maxBlockSize) {
+        this(map, minBlockSize, maxBlockSize, null);
+    }
+
+    public StreamStore(Map<Long, byte[]> map, IntConsumer onStoreCallback) {
+        this(map, 256, 256 * 1024, onStoreCallback);
+    }
+
+    public StreamStore(Map<Long, byte[]> map, int minBlockSize, int maxBlockSize, IntConsumer onStoreCallback) {
         this.map = map;
+        this.minBlockSize = minBlockSize;
+        this.maxBlockSize = maxBlockSize;
+        this.onStoreCallback = onStoreCallback;
     }
 
     public Map<Long, byte[]> getMap() {
@@ -64,26 +80,8 @@ public class StreamStore {
         return nextKey.get();
     }
 
-    /**
-     * Set the minimum block size. The default is 256 bytes.
-     *
-     * @param minBlockSize the new value
-     */
-    public void setMinBlockSize(int minBlockSize) {
-        this.minBlockSize = minBlockSize;
-    }
-
     public int getMinBlockSize() {
         return minBlockSize;
-    }
-
-    /**
-     * Set the maximum block size. The default is 256 KB.
-     *
-     * @param maxBlockSize the new value
-     */
-    public void setMaxBlockSize(int maxBlockSize) {
-        this.maxBlockSize = maxBlockSize;
     }
 
     public long getMaxBlockSize() {
@@ -97,7 +95,6 @@ public class StreamStore {
      * @return the id (potentially an empty array)
      * @throws IOException If an I/O error occurs
      */
-    @SuppressWarnings("resource")
     public byte[] put(InputStream in) throws IOException {
         ByteArrayOutputStream id = new ByteArrayOutputStream();
         int level = 0;
@@ -195,19 +192,10 @@ public class StreamStore {
     private long writeBlock(byte[] data) {
         long key = getAndIncrementNextKey();
         map.put(key, data);
-        onStore(data.length);
+        if (onStoreCallback != null) {
+            onStoreCallback.accept(data.length);
+        }
         return key;
-    }
-
-    /**
-     * This method is called after a block of data is stored. Override this
-     * method to persist data if necessary.
-     *
-     * @param len the length of the stored block.
-     */
-    @SuppressWarnings("unused")
-    protected void onStore(int len) {
-        // do nothing by default
     }
 
     /**

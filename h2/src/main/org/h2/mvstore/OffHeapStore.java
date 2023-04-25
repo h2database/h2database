@@ -1,26 +1,41 @@
 /*
- * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2023 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.mvstore;
 
 import java.nio.ByteBuffer;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.TreeMap;
+import java.util.zip.ZipOutputStream;
 
 /**
- * A storage mechanism that "persists" data in the off-heap area of the main
- * memory.
+ * A storage mechanism that "persists" data in the off-heap area of the main memory.
  */
-public class OffHeapStore extends FileStore {
+public class OffHeapStore extends RandomAccessStore {
 
-    private final TreeMap<Long, ByteBuffer> memory =
-            new TreeMap<>();
+    private final TreeMap<Long, ByteBuffer> memory = new TreeMap<>();
+
+    public OffHeapStore() {
+        super(new HashMap<>());
+    }
 
     @Override
     public void open(String fileName, boolean readOnly, char[] encryptionKey) {
+        init();
+    }
+
+    @Override
+    public OffHeapStore open(String fileName, boolean readOnly) {
+        OffHeapStore result = new OffHeapStore();
+        result.init();
+        return result;
+    }
+
+    private void init() {
         memory.clear();
     }
 
@@ -30,7 +45,7 @@ public class OffHeapStore extends FileStore {
     }
 
     @Override
-    public ByteBuffer readFully(long pos, int len) {
+    public ByteBuffer readFully(SFChunk chunk, long pos, int len) {
         Entry<Long, ByteBuffer> memEntry = memory.floorEntry(pos);
         if (memEntry == null) {
             throw DataUtils.newMVStoreException(
@@ -49,7 +64,7 @@ public class OffHeapStore extends FileStore {
 
     @Override
     public void free(long pos, int length) {
-        freeSpace.free(pos, length);
+        super.free(pos, length);
         ByteBuffer buff = memory.remove(pos);
         if (buff == null) {
             // nothing was written (just allocated)
@@ -61,8 +76,8 @@ public class OffHeapStore extends FileStore {
     }
 
     @Override
-    public void writeFully(long pos, ByteBuffer src) {
-        fileSize = Math.max(fileSize, pos + src.remaining());
+    public void writeFully(SFChunk chunk, long pos, ByteBuffer src) {
+        setSize(Math.max(size(), pos + src.remaining()));
         Entry<Long, ByteBuffer> mem = memory.floorEntry(pos);
         if (mem == null) {
             // not found: create a new entry
@@ -108,36 +123,25 @@ public class OffHeapStore extends FileStore {
     @Override
     public void truncate(long size) {
         writeCount.incrementAndGet();
+        setSize(size);
         if (size == 0) {
-            fileSize = 0;
             memory.clear();
-            return;
-        }
-        fileSize = size;
-        for (Iterator<Long> it = memory.keySet().iterator(); it.hasNext();) {
-            long pos = it.next();
-            if (pos < size) {
-                break;
+        } else {
+            for (Iterator<Long> it = memory.keySet().iterator(); it.hasNext(); ) {
+                long pos = it.next();
+                if (pos < size) {
+                    break;
+                }
+                ByteBuffer buff = memory.get(pos);
+                if (buff.capacity() > size) {
+                    throw DataUtils.newMVStoreException(
+                            DataUtils.ERROR_READING_FAILED,
+                            "Could not truncate to {0}; " +
+                                    "partial truncate is not supported", pos);
+                }
+                it.remove();
             }
-            ByteBuffer buff = memory.get(pos);
-            if (buff.capacity() > size) {
-                throw DataUtils.newMVStoreException(
-                        DataUtils.ERROR_READING_FAILED,
-                        "Could not truncate to {0}; " +
-                        "partial truncate is not supported", pos);
-            }
-            it.remove();
         }
-    }
-
-    @Override
-    public void close() {
-        memory.clear();
-    }
-
-    @Override
-    public void sync() {
-        // nothing to do
     }
 
     @Override
@@ -145,4 +149,8 @@ public class OffHeapStore extends FileStore {
         return 0;
     }
 
+    @Override
+    public void backup(ZipOutputStream out) {
+        throw new UnsupportedOperationException();
+    }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2023 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -418,7 +418,7 @@ public class MVTable extends TableBase {
         long i = 0;
         Store store = session.getDatabase().getStore();
 
-        int bufferSize = database.getMaxMemoryRows() / 2;
+        int bufferSize = (int) Math.min(total, database.getMaxMemoryRows() / 2);
         ArrayList<Row> buffer = new ArrayList<>(bufferSize);
         String n = getName() + ':' + index.getName();
         ArrayList<String> bufferNames = Utils.newSmallArrayList();

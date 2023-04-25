@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2023 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -278,9 +278,7 @@ public final class ValueClob extends ValueLob {
         if ((sqlFlags & REPLACE_LOBS_FOR_TRACE) != 0
                 && (!(lobData instanceof LobDataInMemory) || charLength > SysProperties.MAX_TRACE_DATA_LENGTH)) {
             builder.append("SPACE(").append(charLength);
-            LobDataDatabase lobDb = (LobDataDatabase) lobData;
-            builder.append(" /* table: ").append(lobDb.getTableId()).append(" id: ").append(lobDb.getLobId())
-                    .append(" */)");
+            formatLobDataComment(builder);
         } else {
             if ((sqlFlags & (REPLACE_LOBS_FOR_TRACE | NO_CASTS)) == 0) {
                 StringUtils.quoteStringSQL(builder.append("CAST("), getString()).append(" AS CHARACTER LARGE OBJECT(")

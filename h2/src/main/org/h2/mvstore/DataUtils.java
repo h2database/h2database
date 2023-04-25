@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2023 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -133,21 +133,6 @@ public final class DataUtils {
      * The bit mask for compressed pages (compression level high).
      */
     public static final int PAGE_COMPRESSED_HIGH = 2 + 4;
-
-    /**
-     * The bit mask for pages with page sequential number.
-     */
-    public static final int PAGE_HAS_PAGE_NO = 8;
-
-    /**
-     * The maximum length of a variable size int.
-     */
-    public static final int MAX_VAR_INT_LEN = 5;
-
-    /**
-     * The maximum length of a variable size long.
-     */
-    public static final int MAX_VAR_LONG_LEN = 10;
 
     /**
      * The maximum integer that needs less space when using variable size
@@ -504,6 +489,7 @@ public final class DataUtils {
      * @return the length code
      */
     public static int encodeLength(int len) {
+        assert len >= 0;
         if (len <= 32) {
             return 0;
         }
@@ -636,10 +622,13 @@ public final class DataUtils {
      * @param type the page type (1 for node, 0 for leaf)
      * @return the position
      */
-    public static long getPagePos(int chunkId, int offset, int length, int type) {
+    public static long composePagePos(int chunkId, int offset, int length, int type) {
+        assert offset >= 0;
+        assert type == DataUtils.PAGE_TYPE_LEAF || type == DataUtils.PAGE_TYPE_NODE;
+
         long pos = (long) chunkId << 38;
         pos |= (long) offset << 6;
-        pos |= encodeLength(length) << 1;
+        pos |= (long) encodeLength(length) << 1;
         pos |= type;
         return pos;
     }
@@ -651,7 +640,7 @@ public final class DataUtils {
      * @param tocElement the element
      * @return the page position
      */
-    public static long getPagePos(int chunkId, long tocElement) {
+    public static long composePagePos(int chunkId, long tocElement) {
         return (tocElement & 0x3FFFFFFFFFL) | ((long) chunkId << 38);
     }
 
@@ -666,10 +655,13 @@ public final class DataUtils {
      * @param type the page type (1 for node, 0 for leaf)
      * @return the position
      */
-    public static long getTocElement(int mapId, int offset, int length, int type) {
+    public static long composeTocElement(int mapId, int offset, int length, int type) {
+        assert mapId >= 0;
+        assert offset >= 0;
+        assert type == DataUtils.PAGE_TYPE_LEAF || type == DataUtils.PAGE_TYPE_NODE;
         long pos = (long) mapId << 38;
         pos |= (long) offset << 6;
-        pos |= encodeLength(length) << 1;
+        pos |= (long) encodeLength(length) << 1;
         pos |= type;
         return pos;
     }

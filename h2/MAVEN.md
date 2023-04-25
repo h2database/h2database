@@ -44,7 +44,8 @@ or
 ```
 
 Please note that jar generated with Maven is larger than official one and it does not include OSGi attributes.
-Use build script with `jar` target instead if you need a compatible jar.
+Its configuration for native-image tool is also incomplete.
+Use build script with `jar` target instead if you need a jar compatible with official builds.
 
 ### Testing
 

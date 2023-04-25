@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2023 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -83,7 +83,7 @@ public final class SoundexFunction extends Function1_2 {
                 byte newDigit = SOUNDEX_INDEX[c - 'A'];
                 if (newDigit != 0) {
                     if (j == 0) {
-                        chars[j++] = (byte) c;
+                        chars[j++] = (byte) (c & 0xdf); // Converts a-z to A-Z
                         lastDigit = newDigit;
                     } else if (newDigit <= '6') {
                         if (newDigit != lastDigit) {

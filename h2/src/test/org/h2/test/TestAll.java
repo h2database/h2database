@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2023 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -14,6 +14,7 @@ import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
+
 import org.h2.Driver;
 import org.h2.engine.Constants;
 import org.h2.store.fs.FileUtils;
@@ -51,6 +52,7 @@ import org.h2.test.db.TestLargeBlob;
 import org.h2.test.db.TestLinkedTable;
 import org.h2.test.db.TestListener;
 import org.h2.test.db.TestLob;
+import org.h2.test.db.TestMaterializedView;
 import org.h2.test.db.TestMemoryUsage;
 import org.h2.test.db.TestMergeUsing;
 import org.h2.test.db.TestMultiConn;
@@ -734,6 +736,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
             addTest(new TestLinkedTable());
             addTest(new TestListener());
             addTest(new TestLob());
+            addTest(new TestMaterializedView());
             addTest(new TestMergeUsing());
             addTest(new TestMultiConn());
             addTest(new TestMultiDimension());

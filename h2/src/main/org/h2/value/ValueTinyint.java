@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2023 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -32,7 +32,17 @@ public final class ValueTinyint extends Value {
      */
     static final int DISPLAY_SIZE = 4;
 
+    private static final ValueTinyint[] STATIC_CACHE;
+
     private final byte value;
+
+    static {
+        ValueTinyint[] cache = new ValueTinyint[256];
+        for (int i = 0; i < 256; i++) {
+            cache[i] = new ValueTinyint((byte) (i - 128));
+        }
+        STATIC_CACHE = cache;
+    }
 
     private ValueTinyint(byte value) {
         this.value = value;
@@ -111,6 +121,12 @@ public final class ValueTinyint extends Value {
     }
 
     @Override
+    public int getMemory() {
+        // All possible values are statically initialized
+        return 0;
+    }
+
+    @Override
     public byte[] getBytes() {
         return new byte[] { value };
     }
@@ -166,13 +182,13 @@ public final class ValueTinyint extends Value {
     }
 
     /**
-     * Get or create a TINYINT value for the given byte.
+     * Get a TINYINT value for the given byte.
      *
      * @param i the byte
      * @return the value
      */
     public static ValueTinyint get(byte i) {
-        return (ValueTinyint) Value.cache(new ValueTinyint(i));
+        return STATIC_CACHE[i + 128];
     }
 
     @Override

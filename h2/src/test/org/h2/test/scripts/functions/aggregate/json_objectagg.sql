@@ -1,4 +1,4 @@
--- Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
+-- Copyright 2004-2023 H2 Group. Multiple-Licensed under the MPL 2.0,
 -- and the EPL 1.0 (https://h2database.com/html/license.html).
 -- Initial Developer: H2 Group
 --
@@ -68,6 +68,18 @@ EXPLAIN SELECT JSON_OBJECTAGG(N: J NULL ON NULL WITHOUT UNIQUE KEYS) FROM TEST;
 
 EXPLAIN SELECT JSON_OBJECTAGG(N: J ABSENT ON NULL WITHOUT UNIQUE KEYS) FROM TEST;
 >> SELECT JSON_OBJECTAGG("N": "J" ABSENT ON NULL) FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */
+
+SET MODE MySQL;
+> ok
+
+SELECT JSON_OBJECTAGG(N, J) FROM TEST;
+>> {"Ten":10,"Null":null,"False":false,"Ten":-10}
+
+SET MODE MariaDB;
+> ok
+
+SELECT JSON_OBJECTAGG(N, J) FROM TEST;
+>> {"Ten":10,"Null":null,"False":false,"Ten":-10}
 
 DROP TABLE TEST;
 > ok

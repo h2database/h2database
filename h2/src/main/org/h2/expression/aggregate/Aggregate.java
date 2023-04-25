@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2023 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -41,7 +41,6 @@ import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
-import org.h2.util.StringUtils;
 import org.h2.util.json.JsonConstructorUtils;
 import org.h2.value.CompareMode;
 import org.h2.value.DataType;
@@ -1207,15 +1206,15 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
         }
         args[0].getUnenclosedSQL(builder, sqlFlags);
         ListaggArguments arguments = (ListaggArguments) extraArguments;
-        String s = arguments.getSeparator();
-        if (s != null) {
-            StringUtils.quoteStringSQL(builder.append(", "), s);
+        Expression e = arguments.getSeparator();
+        if (e != null) {
+            e.getUnenclosedSQL(builder.append(", "), sqlFlags);
         }
         if (arguments.getOnOverflowTruncate()) {
             builder.append(" ON OVERFLOW TRUNCATE ");
-            s = arguments.getFilter();
-            if (s != null) {
-                StringUtils.quoteStringSQL(builder, s).append(' ');
+            e = arguments.getFilter();
+            if (e != null) {
+                e.getUnenclosedSQL(builder, sqlFlags).append(' ');
             }
             builder.append(arguments.isWithoutCount() ? "WITHOUT" : "WITH").append(" COUNT");
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2023 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -185,11 +185,11 @@ public final class BitFunction extends Function1_2 {
             byte[] bytes = v1.getBytesNoCopy();
             int l = bytes.length;
             c = 0L;
-            int blocks = l >>> 3;
-            for (int i = 0; i < blocks; i++) {
+            int i = 0;
+            for (int bound = l & 0xfffffff8; i < bound; i += 8) {
                 c += Long.bitCount(Bits.readLong(bytes, i));
             }
-            for (int i = blocks << 3; i < l; i++) {
+            for (; i < l; i++) {
                 c += Integer.bitCount(bytes[i] & 0xff);
             }
             break;

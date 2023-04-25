@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2023 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -154,7 +154,8 @@ public class CommandContainer extends Command {
     @Override
     public ResultWithGeneratedKeys update(Object generatedKeysRequest) {
         recompileIfRequired();
-        setProgress(DatabaseEventListener.STATE_STATEMENT_START);
+        Database database = getDatabase();
+        setProgress(database, DatabaseEventListener.STATE_STATEMENT_START);
         start();
         prepared.checkParameters();
         ResultWithGeneratedKeys result;
@@ -168,14 +169,14 @@ public class CommandContainer extends Command {
         } else {
             result = ResultWithGeneratedKeys.of(prepared.update());
         }
-        prepared.trace(startTimeNanos, result.getUpdateCount());
-        setProgress(DatabaseEventListener.STATE_STATEMENT_END);
+        prepared.trace(database, startTimeNanos, result.getUpdateCount());
+        setProgress(database, DatabaseEventListener.STATE_STATEMENT_END);
         return result;
     }
 
     private ResultWithGeneratedKeys executeUpdateWithGeneratedKeys(DataChangeStatement statement,
             Object generatedKeysRequest) {
-        Database db = session.getDatabase();
+        Database db = getDatabase();
         Table table = statement.getTable();
         ArrayList<ExpressionColumn> expressionColumns;
         if (Boolean.TRUE.equals(generatedKeysRequest)) {
@@ -245,12 +246,13 @@ public class CommandContainer extends Command {
     @Override
     public ResultInterface query(long maxrows) {
         recompileIfRequired();
-        setProgress(DatabaseEventListener.STATE_STATEMENT_START);
+        Database database = getDatabase();
+        setProgress(database, DatabaseEventListener.STATE_STATEMENT_START);
         start();
         prepared.checkParameters();
         ResultInterface result = prepared.query(maxrows);
-        prepared.trace(startTimeNanos, result.isLazy() ? 0 : result.getRowCount());
-        setProgress(DatabaseEventListener.STATE_STATEMENT_END);
+        prepared.trace(database, startTimeNanos, result.isLazy() ? 0 : result.getRowCount());
+        setProgress(database, DatabaseEventListener.STATE_STATEMENT_END);
         return result;
     }
 

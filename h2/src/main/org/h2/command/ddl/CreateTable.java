@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2023 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -71,7 +71,7 @@ public class CreateTable extends CommandWithColumns {
     public long update() {
         Schema schema = getSchema();
         boolean isSessionTemporary = data.temporary && !data.globalTemporary;
-        Database db = session.getDatabase();
+        Database db = getDatabase();
         String tableEngine = data.tableEngine;
         if (tableEngine != null || db.getSettings().defaultTableEngine != null) {
             session.getUser().checkAdmin();
@@ -154,38 +154,7 @@ public class CreateTable extends CommandWithColumns {
                 }
             }
             if (asQuery != null && !withNoData) {
-                boolean flushSequences = false;
-                if (!isSessionTemporary) {
-                    db.unlockMeta(session);
-                    for (Column c : table.getColumns()) {
-                        Sequence s = c.getSequence();
-                        if (s != null) {
-                            flushSequences = true;
-                            s.setTemporary(true);
-                        }
-                    }
-                }
-                try {
-                    session.startStatementWithinTransaction(null);
-                    Insert insert = new Insert(session);
-                    insert.setQuery(asQuery);
-                    insert.setTable(table);
-                    insert.setInsertFromSelect(true);
-                    insert.prepare();
-                    insert.update();
-                } finally {
-                    session.endStatement();
-                }
-                if (flushSequences) {
-                    db.lockMeta(session);
-                    for (Column c : table.getColumns()) {
-                        Sequence s = c.getSequence();
-                        if (s != null) {
-                            s.setTemporary(false);
-                            s.flush(session);
-                        }
-                    }
-                }
+                insertAsData(isSessionTemporary, db, table);
             }
         } catch (DbException e) {
             try {
@@ -200,6 +169,47 @@ public class CreateTable extends CommandWithColumns {
             throw e;
         }
         return 0;
+    }
+
+    /** This is called from REFRESH MATERIALIZED VIEW */
+    public void insertAsData(Table table) {
+        insertAsData(false, getDatabase(), table);
+    }
+
+    /** Insert data for the CREATE TABLE .. AS */
+    private void insertAsData(boolean isSessionTemporary, Database db, Table table) {
+        boolean flushSequences = false;
+        if (!isSessionTemporary) {
+            db.unlockMeta(session);
+            for (Column c : table.getColumns()) {
+                Sequence s = c.getSequence();
+                if (s != null) {
+                    flushSequences = true;
+                    s.setTemporary(true);
+                }
+            }
+        }
+        try {
+            session.startStatementWithinTransaction(null);
+            Insert insert = new Insert(session);
+            insert.setQuery(asQuery);
+            insert.setTable(table);
+            insert.setInsertFromSelect(true);
+            insert.prepare();
+            insert.update();
+        } finally {
+            session.endStatement();
+        }
+        if (flushSequences) {
+            db.lockMeta(session);
+            for (Column c : table.getColumns()) {
+                Sequence s = c.getSequence();
+                if (s != null) {
+                    s.setTemporary(false);
+                    s.flush(session);
+                }
+            }
+        }
     }
 
     private void generateColumnsFromQuery() {

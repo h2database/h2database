@@ -7,6 +7,7 @@
 22003=Valor númerico não esta dentro do limite: {0}
 22004=#Numeric value out of range: {0} in column {1}
 22007=Não é possível converter {1} para {0}
+2200E=#Null value in array target.
 22012=Divisão por zero: {0}
 22013=#Invalid PRECEDING or FOLLOWING size in window function: {0}
 22018=Erro na conversão de dado, convertendo {0}

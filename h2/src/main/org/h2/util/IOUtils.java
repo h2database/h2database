@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2023 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -19,6 +19,8 @@ import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 
 import org.h2.engine.Constants;
@@ -180,6 +182,57 @@ public class IOUtils {
                 copied += len;
                 length -= len;
                 len = (int) Math.min(length, Constants.IO_BUFFER_SIZE);
+            }
+            return copied;
+        } catch (Exception e) {
+            throw DataUtils.convertToIOException(e);
+        }
+    }
+
+    /**
+     * Copy all data from the input FileChannel to the output stream. Both source and destination
+     * are kept open.
+     *
+     * @param in the input FileChannel
+     * @param out the output stream (null if writing is not required)
+     * @return the number of bytes copied
+     * @throws IOException on failure
+     */
+    public static long copy(FileChannel in, OutputStream out)
+            throws IOException {
+        return copy(in, out, Long.MAX_VALUE);
+    }
+
+    /**
+     * Copy all data from the input FileChannel to the output stream. Both source and destination
+     * are kept open.
+     *
+     * @param in the input FileChannel
+     * @param out the output stream (null if writing is not required)
+     * @param length the maximum number of bytes to copy
+     * @return the number of bytes copied
+     * @throws IOException on failure
+     */
+    public static long copy(FileChannel in, OutputStream out, long length)
+            throws IOException {
+        try {
+            long copied = 0;
+            byte[] buffer = new byte[(int) Math.min(length, Constants.IO_BUFFER_SIZE)];
+            ByteBuffer wrap = ByteBuffer.wrap(buffer);
+            while (length > 0) {
+                int len = in.read(wrap, copied);
+                if (len < 0) {
+                    break;
+                }
+                if (out != null) {
+                    out.write(buffer, 0, len);
+                }
+                copied += len;
+                length -= len;
+                wrap.rewind();
+                if (length < wrap.limit()) {
+                    wrap.limit((int)length);
+                }
             }
             return copied;
         } catch (Exception e) {

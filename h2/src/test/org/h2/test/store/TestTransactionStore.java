@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2023 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -488,7 +488,6 @@ public class TestTransactionStore extends TestBase {
             assertTrue(tx.getId() == txOld.getId());
             assertEquals("first transaction", txOld.getName());
             s.commit();
-            ts.close();
         }
 
         try (MVStore s = MVStore.open(fileName)) {
@@ -564,8 +563,6 @@ public class TestTransactionStore extends TestBase {
             assertNull(m.get("1"));
             assertNull(m.get("2"));
             assertNull(m.get("3"));
-
-            ts.close();
         }
     }
 
@@ -718,7 +715,6 @@ public class TestTransactionStore extends TestBase {
             for (Statement stat : statements) {
                 stat.getConnection().close();
             }
-            ts.close();
         }
     }
 
@@ -787,8 +783,6 @@ public class TestTransactionStore extends TestBase {
             tx1 = ts.begin();
             m1 = tx1.openMap("test");
             assertNull(m1.get("2"));
-
-            ts.close();
         }
     }
 
@@ -854,8 +848,6 @@ public class TestTransactionStore extends TestBase {
             assertEquals("Hallo", m.get("1"));
             assertNull(m.get("2"));
             assertEquals("!", m.get("3"));
-
-            ts.close();
         }
     }
 
@@ -909,7 +901,6 @@ public class TestTransactionStore extends TestBase {
             } finally {
                 task.get();
             }
-            ts.close();
         }
     }
 

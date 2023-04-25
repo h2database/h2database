@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2022 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2023 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -39,7 +39,7 @@ public class Help extends Prepared {
     public Help(SessionLocal session, String[] conditions) {
         super(session);
         this.conditions = conditions;
-        Database db = session.getDatabase();
+        Database db = getDatabase();
         expressions = new Expression[] { //
                 new ExpressionColumn(db, new Column("SECTION", TypeInfo.TYPE_VARCHAR)), //
                 new ExpressionColumn(db, new Column("TOPIC", TypeInfo.TYPE_VARCHAR)), //

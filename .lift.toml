@@ -6,3 +6,4 @@
 # Tell sonatype where our pom file lives, so it can build it again
 #
 build = "maven -f h2/pom.xml compile"
+ignoreRules = [ "missingoverride", "none", "assert_used", "OperatorPrecedence" ]

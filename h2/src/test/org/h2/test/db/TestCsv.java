@@ -32,7 +32,6 @@ import org.h2.test.TestDb;
 import org.h2.tools.Csv;
 import org.h2.util.IOUtils;
 import org.h2.util.StringUtils;
-import org.junit.jupiter.api.Test;
 
 /**
  * CSVREAD and CSVWRITE tests.
@@ -594,7 +593,7 @@ public class TestCsv extends TestDb {
      * 
      * @throws java.lang.Exception
      */
-    @Test public void testReadEmptyNumbers1() throws Exception {
+    public void testReadEmptyNumbers1() throws Exception {
         String fileName = getBaseDir() + "/test.csv";
         FileUtils.delete(fileName);
         OutputStream out = FileUtils.newOutputStream(fileName, false);
@@ -621,7 +620,7 @@ public class TestCsv extends TestDb {
      * 
      * @throws java.lang.Exception
      */
-    @Test public void testReadEmptyNumbers2() throws Exception {
+    public void testReadEmptyNumbers2() throws Exception {
         String fileName = getBaseDir() + "/test.csv";
         FileUtils.delete(fileName);
         OutputStream out = FileUtils.newOutputStream(fileName, false);

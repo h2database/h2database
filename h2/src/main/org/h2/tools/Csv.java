@@ -560,9 +560,7 @@ public class Csv implements SimpleRowSource {
                     // to Number
                     row[i++] = v!=null && v.length() > 0 
                             ? v 
-                            : nullString!=null && nullString.equals("") 
-                                ? null
-                                : v;
+                            : null;
                 }
                 if (endOfLine) {
                     break;

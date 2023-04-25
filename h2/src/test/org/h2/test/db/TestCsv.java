@@ -71,6 +71,8 @@ public class TestCsv extends TestDb {
         testAsTable();
         testRead();
         testPipe();
+        testReadEmptyNumbers1();
+        testReadEmptyNumbers2();
         deleteDb("csv");
     }
 
@@ -317,7 +319,7 @@ public class TestCsv extends TestDb {
         assertEquals("D", meta.getColumnLabel(4));
         assertTrue(rs.next());
         assertEquals(null, rs.getString(1));
-        assertEquals("", rs.getString(2));
+        assertEquals(null, rs.getString(2));
         // null is never quoted
         assertEquals("\\N", rs.getString(3));
         // an empty string is always parsed as null
@@ -593,7 +595,7 @@ public class TestCsv extends TestDb {
      * 
      * @throws java.lang.Exception
      */
-    public void testReadEmptyNumbers1() throws Exception {
+    private void testReadEmptyNumbers1() throws Exception {
         String fileName = getBaseDir() + "/test.csv";
         FileUtils.delete(fileName);
         OutputStream out = FileUtils.newOutputStream(fileName, false);
@@ -620,7 +622,7 @@ public class TestCsv extends TestDb {
      * 
      * @throws java.lang.Exception
      */
-    public void testReadEmptyNumbers2() throws Exception {
+    private void testReadEmptyNumbers2() throws Exception {
         String fileName = getBaseDir() + "/test.csv";
         FileUtils.delete(fileName);
         OutputStream out = FileUtils.newOutputStream(fileName, false);

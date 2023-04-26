@@ -15,6 +15,7 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -70,6 +71,8 @@ public class TestCsv extends TestDb {
         testAsTable();
         testRead();
         testPipe();
+        testReadEmptyNumbers1();
+        testReadEmptyNumbers2();
         deleteDb("csv");
     }
 
@@ -316,7 +319,7 @@ public class TestCsv extends TestDb {
         assertEquals("D", meta.getColumnLabel(4));
         assertTrue(rs.next());
         assertEquals(null, rs.getString(1));
-        assertEquals("", rs.getString(2));
+        assertEquals(null, rs.getString(2));
         // null is never quoted
         assertEquals("\\N", rs.getString(3));
         // an empty string is always parsed as null
@@ -366,8 +369,8 @@ public class TestCsv extends TestDb {
         for (int i = 0; i < len; i++) {
             assertTrue(rs.next());
             String[] pair = list.get(i);
-            assertEquals(pair[0], rs.getString(1));
-            assertEquals(pair[1], rs.getString(2));
+            assertEquals(pair[0]!=null && pair[0].isEmpty() ? null : pair[0], rs.getString(1));
+            assertEquals(pair[1]!=null && pair[1].isEmpty() ? null : pair[1], rs.getString(2));
         }
         assertFalse(rs.next());
         conn.close();
@@ -520,7 +523,7 @@ public class TestCsv extends TestDb {
         assertEquals(null, rs.getString(1));
         assertEquals("abc\"", rs.getString(2));
         assertEquals(null, rs.getString(3));
-        assertEquals("", rs.getString(4));
+        assertEquals(null, rs.getString(4));
         assertTrue(rs.next());
         assertEquals("1", rs.getString(1));
         assertEquals("2", rs.getString(2));
@@ -580,6 +583,60 @@ public class TestCsv extends TestDb {
         rs.close();
         conn.close();
         FileUtils.delete(getBaseDir() + "/testRW.csv");
+    }
+    
+    /**
+     * Reads a CSV file with a Number Column, having empty Cells
+     * Those empty Cells must be returned as NULL but not as a Zero-length
+     * String or else the Number conversion will fail.
+     * 
+     * Furthermore, number of rows still must be correct when such an empty Cell
+     * has been found.
+     * 
+     * @throws java.lang.Exception
+     */
+    private void testReadEmptyNumbers1() throws Exception {
+        String fileName = getBaseDir() + "/test.csv";
+        FileUtils.delete(fileName);
+        OutputStream out = FileUtils.newOutputStream(fileName, false);
+        byte[] b = ("\"TEST\"\n\"100.22\"\n\"\"\n").getBytes();
+        out.write(b, 0, b.length);
+        out.close();
+
+        ResultSet rs = new Csv().read(fileName, null, "UTF8");
+        assertTrue(rs.next());
+        assertNotNull(rs.getString(1));
+
+        assertTrue(rs.next());
+        assertNull(rs.getString(1));
+
+        assertFalse(rs.next());
+
+        FileUtils.delete(fileName);
+    }
+
+    /**
+     * Insert a CSV with empty Number Cells into a Table with NUMERIC columns
+     * The empty Cell must return NULL to prevent failure from the String to
+     * Number conversion
+     * 
+     * @throws java.lang.Exception
+     */
+    private void testReadEmptyNumbers2() throws Exception {
+        String fileName = getBaseDir() + "/test.csv";
+        FileUtils.delete(fileName);
+        OutputStream out = FileUtils.newOutputStream(fileName, false);
+        byte[] b = ("\"TEST\"\n\"100.22\"\n\"\"").getBytes();
+        out.write(b, 0, b.length);
+        out.close();
+
+        deleteDb("csv");
+        Connection conn = DriverManager.getConnection("jdbc:h2:mem:test");
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE TABLE TEST(TEST DECIMAL(12,2) NULL)");
+        stat.execute("INSERT INTO TEST SELECT * FROM CsvRead('" + fileName + "')");
+
+        FileUtils.delete(fileName);
     }
 
 }

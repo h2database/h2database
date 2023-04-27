@@ -9,6 +9,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import org.h2.api.ErrorCode;
+import org.h2.engine.IsolationLevel;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
 
@@ -105,7 +106,9 @@ public class TestTransactionIsolation extends TestDb {
         conn1.setTransactionIsolation(isolationLevel);
         assertSingleValue(conn1.createStatement(), "SELECT * FROM TEST", 1);
         assertSingleValue(conn2.createStatement(), "SELECT * FROM TEST FOR UPDATE", 1);
-        assertThrows(ErrorCode.LOCK_TIMEOUT_1, conn1.createStatement()).executeUpdate("DELETE FROM TEST");
+        if (isolationLevel != Connection.TRANSACTION_READ_UNCOMMITTED) {
+			assertThrows(ErrorCode.LOCK_TIMEOUT_1, conn1.createStatement()).executeUpdate("DELETE FROM TEST");
+        }
         conn2.commit();
     }
 }

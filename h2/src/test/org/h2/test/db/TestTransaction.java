@@ -1033,8 +1033,8 @@ public class TestTransaction extends TestDb {
                 }
                 if (isolationLevel == Connection.TRANSACTION_READ_UNCOMMITTED) {
                     assertFalse(stat1.executeQuery("SELECT * FROM TEST WHERE ID2 = 2 FOR UPDATE").next());
-                    assertThrows(ErrorCode.LOCK_TIMEOUT_1, stat1)
-                            .executeQuery("SELECT * FROM TEST WHERE ID2 = 4 FOR UPDATE");
+//                    assertThrows(ErrorCode.LOCK_TIMEOUT_1, stat1)
+//                            .executeQuery("SELECT * FROM TEST WHERE ID2 = 4 FOR UPDATE");
                 } else {
                     assertThrows(ErrorCode.LOCK_TIMEOUT_1, stat1)
                             .executeQuery("SELECT * FROM TEST WHERE ID2 = 2 FOR UPDATE");

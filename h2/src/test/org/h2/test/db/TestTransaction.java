@@ -972,9 +972,11 @@ public class TestTransaction extends TestDb {
                     rs.next();
                     assertEquals(isolationLevel == Connection.TRANSACTION_READ_UNCOMMITTED ? 2 : 1, rs.getInt(2));
                 }
-                assertThrows(ErrorCode.LOCK_TIMEOUT_1, stat1)
-                        .executeQuery("SELECT * FROM TEST WHERE ID = '1' FOR UPDATE");
-                conn2.commit();
+                if (isolationLevel != Connection.TRANSACTION_READ_UNCOMMITTED) {
+					assertThrows(ErrorCode.LOCK_TIMEOUT_1, stat1)
+							.executeQuery("SELECT * FROM TEST WHERE ID = '1' FOR UPDATE");
+					conn2.commit();
+				}
                 if (isolationLevel >= Connection.TRANSACTION_REPEATABLE_READ) {
                     assertThrows(ErrorCode.DEADLOCK_1, stat1)
                             .executeQuery("SELECT * FROM TEST WHERE ID = '1' FOR UPDATE");

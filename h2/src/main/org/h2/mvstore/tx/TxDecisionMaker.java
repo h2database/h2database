@@ -6,6 +6,7 @@
 package org.h2.mvstore.tx;
 
 import java.util.function.Function;
+import org.h2.engine.IsolationLevel;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVMap.Decision;
@@ -76,7 +77,8 @@ class TxDecisionMaker<K,V> extends MVMap.DecisionMaker<VersionedValue<V>> {
                 // or entry is a committed one
                 (id = existingValue.getOperationId()) == 0 ||
                 // or it came from the same transaction
-                isThisTransaction(blockingId = TransactionStore.getTransactionId(id))) {
+               (transaction.isolationLevel == IsolationLevel.READ_UNCOMMITTED ||
+				 isThisTransaction(blockingId = TransactionStore.getTransactionId(id)))) {
             logAndDecideToPut(existingValue, existingValue == null ? null : existingValue.getCommittedValue());
         } else if (isCommitted(blockingId)) {
             // Condition above means that entry belongs to a committing transaction.

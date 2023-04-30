@@ -584,15 +584,15 @@ public class TestCsv extends TestDb {
         conn.close();
         FileUtils.delete(getBaseDir() + "/testRW.csv");
     }
-    
+
     /**
      * Reads a CSV file with a Number Column, having empty Cells
      * Those empty Cells must be returned as NULL but not as a Zero-length
      * String or else the Number conversion will fail.
-     * 
+     *
      * Furthermore, number of rows still must be correct when such an empty Cell
      * has been found.
-     * 
+     *
      * @throws java.lang.Exception
      */
     private void testReadEmptyNumbers1() throws Exception {
@@ -619,7 +619,7 @@ public class TestCsv extends TestDb {
      * Insert a CSV with empty Number Cells into a Table with NUMERIC columns
      * The empty Cell must return NULL to prevent failure from the String to
      * Number conversion
-     * 
+     *
      * @throws java.lang.Exception
      */
     private void testReadEmptyNumbers2() throws Exception {

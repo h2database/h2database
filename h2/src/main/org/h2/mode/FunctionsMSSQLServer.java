@@ -50,7 +50,8 @@ public final class FunctionsMSSQLServer extends ModeFunction {
         FUNCTIONS.put("GETDATE", new FunctionInfo("GETDATE", GETDATE, 0, Value.TIMESTAMP, false, true));
         FUNCTIONS.put("LEN", new FunctionInfo("LEN", LEN, 1, Value.INTEGER, true, true));
         FUNCTIONS.put("NEWID", new FunctionInfo("NEWID", NEWID, 0, Value.UUID, true, false));
-        FUNCTIONS.put("NEWSEQUENTIALID", new FunctionInfo("NEWSEQUENTIALID", NEWSEQUENTIALID, 0, Value.UUID, true, false));
+        FUNCTIONS.put("NEWSEQUENTIALID",
+                new FunctionInfo("NEWSEQUENTIALID", NEWSEQUENTIALID, 0, Value.UUID, true, false));
         FUNCTIONS.put("ISNULL", new FunctionInfo("ISNULL", ISNULL, 2, Value.NULL, false, true));
         FUNCTIONS.put("SCOPE_IDENTITY",
                 new FunctionInfo("SCOPE_IDENTITY", SCOPE_IDENTITY, 0, Value.NUMERIC, true, false));

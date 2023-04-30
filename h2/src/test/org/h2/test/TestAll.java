@@ -179,6 +179,7 @@ import org.h2.test.unit.TestConcurrentJdbc;
 import org.h2.test.unit.TestConnectionInfo;
 import org.h2.test.unit.TestDate;
 import org.h2.test.unit.TestDateIso8601;
+import org.h2.test.unit.TestDateTimeTemplate;
 import org.h2.test.unit.TestDateTimeUtils;
 import org.h2.test.unit.TestDbException;
 import org.h2.test.unit.TestExit;
@@ -927,6 +928,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestBitStream());
         addTest(new TestCharsetCollator());
         addTest(new TestDateIso8601());
+        addTest(new TestDateTimeTemplate());
         addTest(new TestDbException());
         addTest(new TestFile());
         addTest(new TestFileSystem());

@@ -5164,8 +5164,9 @@ public class Parser {
             Expression arg = readExpression();
             read(AS);
             Column column = parseColumnWithType(null);
+            String template = readIf("FORMAT") ? readString() : null;
             read(CLOSE_PAREN);
-            r = new CastSpecification(arg, column);
+            r = new CastSpecification(arg, column, template);
             break;
         }
         case CURRENT_CATALOG:

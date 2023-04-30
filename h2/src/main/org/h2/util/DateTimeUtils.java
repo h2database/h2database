@@ -89,7 +89,7 @@ public class DateTimeUtils {
      * Multipliers for {@link #convertScale(long, int, long)} and
      * {@link #appendNanos(StringBuilder, int)}.
      */
-    private static final int[] FRACTIONAL_SECONDS_TABLE = { 1_000_000_000, 100_000_000,
+    static final int[] FRACTIONAL_SECONDS_TABLE = { 1_000_000_000, 100_000_000,
             10_000_000, 1_000_000, 100_000, 10_000, 1_000, 100, 10, 1 };
 
     private static volatile TimeZoneProvider LOCAL;
@@ -696,7 +696,11 @@ public class DateTimeUtils {
         if (month != 2) {
             return NORMAL_DAYS_PER_MONTH[month];
         }
-        return (year & 3) == 0 && (year % 100 != 0 || year % 400 == 0) ? 29 : 28;
+        return isLeapYear(year) ? 29 : 28;
+    }
+
+    static boolean isLeapYear(int year) {
+        return (year & 3) == 0 && (year % 100 != 0 || year % 400 == 0);
     }
 
     /**

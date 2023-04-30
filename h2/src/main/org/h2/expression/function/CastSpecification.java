@@ -9,11 +9,17 @@ import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.TypedValueExpression;
 import org.h2.expression.ValueExpression;
+import org.h2.message.DbException;
 import org.h2.schema.Domain;
 import org.h2.table.Column;
+import org.h2.util.DateTimeTemplate;
+import org.h2.util.HasSQL;
+import org.h2.util.StringUtils;
+import org.h2.value.DataType;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
+import org.h2.value.ValueVarchar;
 
 /**
  * A cast specification.
@@ -21,6 +27,15 @@ import org.h2.value.ValueNull;
 public final class CastSpecification extends Function1 {
 
     private Domain domain;
+
+    private String template;
+
+    public CastSpecification(Expression arg, Column column, String template) {
+        super(arg);
+        type = column.getType();
+        domain = column.getDomain();
+        this.template = template;
+    }
 
     public CastSpecification(Expression arg, Column column) {
         super(arg);
@@ -35,11 +50,34 @@ public final class CastSpecification extends Function1 {
 
     @Override
     public Value getValue(SessionLocal session) {
-        Value v = arg.getValue(session).castTo(type, session);
+        Value v = arg.getValue(session);
+        if (template != null) {
+            v = getValueWithTemplate(v, session);
+        }
+        v = v.castTo(type, session);
         if (domain != null) {
             domain.checkConstraints(session, v);
         }
         return v;
+    }
+
+    private Value getValueWithTemplate(Value v, SessionLocal session) {
+        if (v == ValueNull.INSTANCE) {
+            return ValueNull.INSTANCE;
+        }
+        int valueType = v.getValueType();
+        if (DataType.isDateTimeType(valueType)) {
+            if (DataType.isCharacterStringType(type.getValueType())) {
+                return ValueVarchar.get(DateTimeTemplate.of(template).format(v), session);
+            }
+        } else if (DataType.isCharacterStringType(valueType)) {
+            if (DataType.isDateTimeType(type.getValueType())) {
+                return DateTimeTemplate.of(template).parse(v.getString(), type, session);
+            }
+        }
+        throw DbException.getUnsupportedException(
+                type.getSQL(v.getType().getSQL(new StringBuilder("CAST with template from "), HasSQL.TRACE_SQL_FLAGS)
+                        .append(" to "), HasSQL.DEFAULT_SQL_FLAGS).toString());
     }
 
     @Override
@@ -104,7 +142,11 @@ public final class CastSpecification extends Function1 {
     public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
         builder.append("CAST(");
         arg.getUnenclosedSQL(builder, arg instanceof ValueExpression ? sqlFlags | NO_CASTS : sqlFlags).append(" AS ");
-        return (domain != null ? domain : type).getSQL(builder, sqlFlags).append(')');
+        (domain != null ? domain : type).getSQL(builder, sqlFlags);
+        if (template != null) {
+            StringUtils.quoteStringSQL(builder.append(" FORMAT "), template);
+        }
+        return builder.append(')');
     }
 
     @Override

@@ -234,7 +234,7 @@ public class TestInterval extends TestBase {
     private void testOfNanosGood(long nanos) {
         Interval i = Interval.ofNanos(nanos);
         long seconds = nanos / NANOS_PER_SECOND;
-        long nanosOfSecond = nanos % NANOS_PER_SECOND;
+        int nanosOfSecond = (int) (nanos % NANOS_PER_SECOND);
         assertEquals(seconds, i.getSeconds());
         assertEquals(nanosOfSecond, i.getNanosOfSecond());
         assertEquals(nanos, i.getSecondsAndNanos());

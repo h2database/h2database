@@ -5164,7 +5164,7 @@ public class Parser {
             Expression arg = readExpression();
             read(AS);
             Column column = parseColumnWithType(null);
-            String template = readIf("FORMAT") ? readString() : null;
+            Expression template = readIf("FORMAT") ? readExpression() : null;
             read(CLOSE_PAREN);
             r = new CastSpecification(arg, column, template);
             break;

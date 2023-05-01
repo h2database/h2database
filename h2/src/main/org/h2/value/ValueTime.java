@@ -82,11 +82,14 @@ public final class ValueTime extends Value {
      * Parse a string to a ValueTime.
      *
      * @param s the string to parse
+     * @param provider
+     *            the cast information provider, may be {@code null} for
+     *            literals without time zone
      * @return the time
      */
-    public static ValueTime parse(String s) {
+    public static ValueTime parse(String s, CastDataProvider provider) {
         try {
-            return fromNanos(DateTimeUtils.parseTimeNanos(s, 0, s.length()));
+            return (ValueTime) DateTimeUtils.parseTime(s, provider, false);
         } catch (Exception e) {
             throw DbException.get(ErrorCode.INVALID_DATETIME_CONSTANT_2,
                     e, "TIME", s);

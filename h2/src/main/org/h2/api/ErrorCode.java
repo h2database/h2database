@@ -1140,7 +1140,7 @@ public class ErrorCode {
 
     /**
     * The error with code <code>90056</code> is thrown when trying to format a
-    * timestamp using TO_DATE and TO_TIMESTAMP  with an invalid format.
+    * timestamp using TO_DATE and TO_TIMESTAMP with an invalid format.
     */
     public static final int INVALID_TO_DATE_FORMAT = 90056;
 

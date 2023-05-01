@@ -448,7 +448,7 @@ public abstract class TestBase {
         }
         StringUtils.appendTwoDigits(builder, m).append(':');
         StringUtils.appendTwoDigits(builder, s).append('.');
-        StringUtils.appendZeroPadded(builder, 3, millis % 1_000);
+        StringUtils.appendZeroPadded(builder, 3, (int) (millis % 1_000));
         return builder;
     }
 

@@ -77,11 +77,14 @@ public final class ValueTimeTimeZone extends Value {
      *
      * @param s
      *            the string to parse
+     * @param provider
+     *            the cast information provider, may be {@code null} for
+     *            literals with time zone
      * @return the time
      */
-    public static ValueTimeTimeZone parse(String s) {
+    public static ValueTimeTimeZone parse(String s, CastDataProvider provider) {
         try {
-            return DateTimeUtils.parseTimeWithTimeZone(s, null);
+            return (ValueTimeTimeZone) DateTimeUtils.parseTime(s, provider, true);
         } catch (Exception e) {
             throw DbException.get(ErrorCode.INVALID_DATETIME_CONSTANT_2, e, "TIME WITH TIME ZONE", s);
         }

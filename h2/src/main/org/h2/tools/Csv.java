@@ -555,11 +555,11 @@ public class Csv implements SimpleRowSource {
                     }
                 }
                 if (i < row.length) {
-                    // Empty Strings should be NULL 
-                    // in order to prevent conversion of zero-length String 
+                    // Empty Strings should be NULL
+                    // in order to prevent conversion of zero-length String
                     // to Number
-                    row[i++] = v!=null && v.length() > 0 
-                            ? v 
+                    row[i++] = v!=null && v.length() > 0
+                            ? v
                             : null;
                 }
                 if (endOfLine) {

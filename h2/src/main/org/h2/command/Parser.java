@@ -5164,8 +5164,9 @@ public class Parser {
             Expression arg = readExpression();
             read(AS);
             Column column = parseColumnWithType(null);
+            Expression template = readIf("FORMAT") ? readExpression() : null;
             read(CLOSE_PAREN);
-            r = new CastSpecification(arg, column);
+            r = new CastSpecification(arg, column, template);
             break;
         }
         case CURRENT_CATALOG:
@@ -5415,13 +5416,13 @@ public class Parser {
                     }
                     String time = token.value(session).getString();
                     read();
-                    return ValueExpression.get(ValueTimeTimeZone.parse(time));
+                    return ValueExpression.get(ValueTimeTimeZone.parse(time, session));
                 } else {
                     boolean without = readIf("WITHOUT", "TIME", "ZONE");
                     if (currentTokenType == LITERAL && token.value(session).getValueType() == Value.VARCHAR) {
                         String time = token.value(session).getString();
                         read();
-                        return ValueExpression.get(ValueTime.parse(time));
+                        return ValueExpression.get(ValueTime.parse(time, session));
                     } else if (without) {
                         throw getSyntaxError();
                     }
@@ -5448,7 +5449,7 @@ public class Parser {
                 if (equalsToken("T", name)) {
                     String time = token.value(session).getString();
                     read();
-                    return ValueExpression.get(ValueTime.parse(time));
+                    return ValueExpression.get(ValueTime.parse(time, session));
                 } else if (equalsToken("TS", name)) {
                     String timestamp = token.value(session).getString();
                     read();

@@ -279,7 +279,7 @@ public final class ValueToObjectConverter2 extends TraceObject {
                 if (obj == null) {
                     v = ValueNull.INSTANCE;
                 } else {
-                    v = ValueTimeTimeZone.parse(obj.toString());
+                    v = ValueTimeTimeZone.parse(obj.toString(), session);
                 }
             }
             break;

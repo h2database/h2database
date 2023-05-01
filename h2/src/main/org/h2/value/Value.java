@@ -1885,7 +1885,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         case VARCHAR:
         case VARCHAR_IGNORECASE:
         case CHAR:
-            v = ValueTime.parse(getString().trim());
+            v = ValueTime.parse(getString().trim(), provider);
             break;
         default:
             throw getDataConversionError(TIME);
@@ -1929,7 +1929,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         case VARCHAR:
         case VARCHAR_IGNORECASE:
         case CHAR:
-            v = ValueTimeTimeZone.parse(getString().trim());
+            v = ValueTimeTimeZone.parse(getString().trim(), provider);
             break;
         default:
             throw getDataConversionError(TIME_TZ);
@@ -2004,7 +2004,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         ValueTimeTimeZone ts = (ValueTimeTimeZone) this;
         int localOffset = provider.currentTimestamp().getTimeZoneOffsetSeconds();
         return DateTimeUtils.normalizeNanosOfDay(ts.getNanos() +
-                (ts.getTimeZoneOffsetSeconds() - localOffset) * DateTimeUtils.NANOS_PER_DAY);
+                (localOffset - ts.getTimeZoneOffsetSeconds()) * DateTimeUtils.NANOS_PER_SECOND);
     }
 
     private ValueTimestampTimeZone convertToTimestampTimeZone(TypeInfo targetType, CastDataProvider provider,

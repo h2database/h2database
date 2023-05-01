@@ -6000,6 +6000,8 @@ If TIMESTAMP WITH TIME ZONE is passed and timeZoneString is specified,
 the timestamp is converted to the specified time zone and its UTC value is preserved.
 
 This method returns a string.
+
+See also [cast specification](https://h2database.com/html/grammar.html#cast_specification).
 ","
 CALL FORMATDATETIME(TIMESTAMP '2001-02-03 04:05:06',
     'EEE, d MMM yyyy HH:mm:ss z', 'en', 'GMT')
@@ -6053,6 +6055,8 @@ y year, M month, d day, H hour, m minute, s second.
 For details of the format, see ""java.time.format.DateTimeFormatter"".
 
 If timeZoneString is specified, it is used as default.
+
+See also [cast specification](https://h2database.com/html/grammar.html#cast_specification).
 ","
 CALL PARSEDATETIME('Sat, 3 Feb 2001 03:05:06 GMT',
     'EEE, d MMM yyyy HH:mm:ss z', 'en', 'GMT')

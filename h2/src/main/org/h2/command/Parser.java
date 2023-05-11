@@ -1125,6 +1125,9 @@ public class Parser {
         TableFilter targetTableFilter = readSimpleTableFilter();
         command.setTableFilter(targetTableFilter);
         int backupIndex = tokenIndex;
+        if (database.getMode().discardWithTableHints) {
+            discardWithTableHints();
+        }
         command.setSetClauseList(readUpdateSetClause(targetTableFilter));
         if (database.getMode().allowUsingFromClauseInUpdateStatement && readIf(FROM)) {
             setTokenIndex(backupIndex);

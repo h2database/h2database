@@ -13,6 +13,7 @@ import java.util.Properties;
 
 import org.h2.Driver;
 import org.h2.api.DatabaseEventListener;
+import org.h2.engine.Database;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
 
@@ -57,12 +58,12 @@ public class TestDatabaseEventListener extends TestDb {
         private String databaseUrl;
 
         @Override
-        public void init(String url) {
+        public void init(String url, Database database) {
             databaseUrl = url;
         }
 
         @Override
-        public void opened() {
+        public void opened(Database database) {
             try {
                 // using DriverManager.getConnection could result in a deadlock
                 // when using the server mode, but within the same process
@@ -232,12 +233,12 @@ public class TestDatabaseEventListener extends TestDb {
     public static final class MyDatabaseEventListener implements DatabaseEventListener {
 
         @Override
-        public void closingDatabase() {
+        public void closingDatabase(Database database) {
             calledClosingDatabase = true;
         }
 
         @Override
-        public void opened() {
+        public void opened(Database database) {
             calledOpened = true;
         }
 

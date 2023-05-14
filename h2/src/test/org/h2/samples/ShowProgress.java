@@ -13,6 +13,7 @@ import java.sql.Statement;
 import java.util.concurrent.TimeUnit;
 
 import org.h2.api.DatabaseEventListener;
+import org.h2.engine.Database;
 import org.h2.engine.SessionLocal;
 import org.h2.jdbc.JdbcConnection;
 
@@ -149,7 +150,7 @@ public class ShowProgress implements DatabaseEventListener {
      * This method is called when the database is closed.
      */
     @Override
-    public void closingDatabase() {
+    public void closingDatabase(Database database) {
         System.out.println("Closing the database");
     }
 
@@ -159,7 +160,7 @@ public class ShowProgress implements DatabaseEventListener {
      * @param url the database URL
      */
     @Override
-    public void init(String url) {
+    public void init(String url, Database database) {
         System.out.println("Initializing the event listener for database " + url);
     }
 
@@ -167,7 +168,7 @@ public class ShowProgress implements DatabaseEventListener {
      * This method is called when the database is open.
      */
     @Override
-    public void opened() {
+    public void opened(Database database) {
         // do nothing
     }
 

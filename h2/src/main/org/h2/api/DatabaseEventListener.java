@@ -5,6 +5,8 @@
  */
 package org.h2.api;
 
+import org.h2.engine.Database;
+
 import java.sql.SQLException;
 import java.util.EventListener;
 
@@ -65,15 +67,18 @@ public interface DatabaseEventListener extends EventListener {
      * runtime with the SET SQL statement.
      *
      * @param url - the database URL
+     * @param database - the database reference
      */
-    default void init(String url) {
+    default void init(String url, Database database) {
     }
 
     /**
      * This method is called after the database has been opened. It is safe to
      * connect to the database and execute statements at this point.
+     *
+     * @param database - the database reference
      */
-    default void opened() {
+    default void opened(Database database) {
     }
 
     /**
@@ -105,8 +110,10 @@ public interface DatabaseEventListener extends EventListener {
      * This method is called before the database is closed normally. It is safe
      * to connect to the database and execute statements at this point, however
      * the connection must be closed before the method returns.
+     *
+     * @param database - the database reference
      */
-    default void closingDatabase() {
+    default void closingDatabase(Database database) {
     }
 
 }

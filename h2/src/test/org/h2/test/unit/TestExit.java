@@ -12,6 +12,7 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 import org.h2.api.DatabaseEventListener;
+import org.h2.engine.Database;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
 import org.h2.test.utils.SelfDestructor;
@@ -136,7 +137,7 @@ public class TestExit extends TestDb {
     public static final class MyDatabaseEventListener implements DatabaseEventListener {
 
         @Override
-        public void closingDatabase() {
+        public void closingDatabase(Database database) {
             try {
                 getClosedFile().createNewFile();
             } catch (IOException e) {

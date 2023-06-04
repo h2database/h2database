@@ -859,19 +859,22 @@ public class StringUtils {
         } else if (n == string.length()) {
             return string;
         }
-        char paddingChar;
+        int paddingChar;
         if (padding == null || padding.isEmpty()) {
             paddingChar = ' ';
         } else {
-            paddingChar = padding.charAt(0);
+            paddingChar = padding.codePointAt(0);
         }
         StringBuilder buff = new StringBuilder(n);
         n -= string.length();
+        if (Character.isSupplementaryCodePoint(paddingChar)) {
+            n >>= 1;
+        }
         if (right) {
             buff.append(string);
         }
         for (int i = 0; i < n; i++) {
-            buff.append(paddingChar);
+            buff.appendCodePoint(paddingChar);
         }
         if (!right) {
             buff.append(string);

@@ -4961,22 +4961,24 @@ public class Parser {
 
     private Expression readTerm() {
         Expression r = currentTokenType == IDENTIFIER ? readTermWithIdentifier() : readTermWithoutIdentifier();
-        if (readIf(OPEN_BRACKET)) {
-            r = new ArrayElementReference(r, readExpression());
-            read(CLOSE_BRACKET);
-        }
-        if (readIf(COLON_COLON)) {
-            r = readColonColonAfterTerm(r);
-        }
         for (;;) {
+            if (readIf(OPEN_BRACKET)) {
+                r = new ArrayElementReference(r, readExpression());
+                read(CLOSE_BRACKET);
+                continue;
+            }
+            if (readIf(COLON_COLON)) {
+                r = readColonColonAfterTerm(r);
+                continue;
+            }
             TypeInfo ti = readIntervalQualifier();
             if (ti != null) {
                 r = new CastSpecification(r, ti);
+                continue;
             }
             int index = tokenIndex;
             if (readIf("AT")) {
-                if (readIf("TIME")) {
-                    read("ZONE");
+                if (readIf("TIME", "ZONE")) {
                     r = new TimeZoneOperation(r, readExpression());
                     continue;
                 } else if (readIf("LOCAL")) {

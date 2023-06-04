@@ -276,8 +276,14 @@ public final class Tokenizer {
                 break;
             case '0':
                 if (i < end) {
-                    char c2 = sql.charAt(i + 1);
-                    if (c2 == 'X' || c2 == 'x') {
+                    switch (sql.charAt(i + 1) & 0xffdf) {
+                    case 'B':
+                        i = readIntegerNumber(sql, i, end, i + 2, tokens, "Binary number", 2);
+                        continue loop;
+                    case 'O':
+                        i = readIntegerNumber(sql, i, end, i + 2, tokens, "Octal number", 8);
+                        continue loop;
+                    case 'X':
                         i = readHexNumber(sql, provider, i, end, i + 2, tokens);
                         continue loop;
                     }
@@ -1182,7 +1188,6 @@ public final class Tokenizer {
                     return finishBigInteger(sql, tokenStart, end, i, start, i <= end && c == 'L', 16, tokens);
                 }
             } while (++i <= end);
-
             boolean bigint = i <= end && c == 'L';
             if (bigint) {
                 i++;
@@ -1193,6 +1198,41 @@ public final class Tokenizer {
             tokens.add(bigint ? new Token.BigintToken(start, number) : new Token.IntegerToken(start, (int) number));
             return i;
         }
+    }
+
+    private static int readIntegerNumber(String sql, int tokenStart, int end, int i, ArrayList<Token> tokens,
+            String name, int radix) {
+        if (i > end) {
+            throw DbException.getSyntaxError(sql, tokenStart, name);
+        }
+        char maxDigit = (char) (('0' - 1) + radix);
+        int start = i;
+        long number = 0;
+        char c;
+        do {
+            c = sql.charAt(i);
+            if (c >= '0' && c <= maxDigit) {
+                number = (number * radix) + c - '0';
+            } else if (i == start) {
+                throw DbException.getSyntaxError(sql, tokenStart, name);
+            } else {
+                break;
+            }
+            if (number > Integer.MAX_VALUE) {
+                while (++i <= end && (c = sql.charAt(i)) >= '0' && c <= maxDigit) {
+                }
+                return finishBigInteger(sql, tokenStart, end, i, start, i <= end && c == 'L', radix, tokens);
+            }
+        } while (++i <= end);
+        boolean bigint = i <= end && c == 'L';
+        if (bigint) {
+            i++;
+        }
+        if (i <= end && Character.isJavaIdentifierPart(sql.codePointAt(i))) {
+            throw DbException.getSyntaxError(sql, tokenStart, name);
+        }
+        tokens.add(bigint ? new Token.BigintToken(start, number) : new Token.IntegerToken(start, (int) number));
+        return i;
     }
 
     private static int readNumeric(String sql, int tokenStart, int end, int i, char c, ArrayList<Token> tokens) {

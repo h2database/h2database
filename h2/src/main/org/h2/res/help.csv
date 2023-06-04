@@ -2271,11 +2271,27 @@ type have this type, others also have NUMERIC data type.
 "
 
 "Literals","Hex Number","
-@h2@ [ + | - ] @h2@ 0x { digit | a-f | A-F } [...]
+[+|-] 0{x|X}{ digit | a-f | A-F } [...]
 ","
 A number written in hexadecimal notation.
 ","
 0xff
+"
+
+"Literals","Octal Number","
+[+|-] 0{o|O}{ 0-7 } [...]
+","
+A number written in octal notation.
+","
+0o664
+"
+
+"Literals","Binary Number","
+[+|-] 0{b|B}{ 0-1 } [...]
+","
+A number written in binary notation.
+","
+0b101
 "
 
 "Literals","Int","
@@ -2342,7 +2358,7 @@ The maximum length of the number depends on the data type used.
 "
 
 "Literals","Numeric","
-exactNumeric | approximateNumeric | int | long | @h2@ { hexNumber }
+exactNumeric | approximateNumeric | int | long | hexNumber | octalNumber | binaryNumber
 ","
 The data type of a numeric literal is the one of numeric data types, such as NUMERIC, DECFLOAT, BIGINT, or INTEGER
 depending on format and value.

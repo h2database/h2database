@@ -5487,7 +5487,7 @@ LOCATE('.', NAME)
 "
 
 "Functions (String)","LPAD","
-@h2@ LPAD(string, int[, paddingString])
+LPAD(string, int[, paddingString])
 ","
 Left pad the string to the specified length.
 If the length is shorter than the string, it will be truncated at the end.
@@ -5497,7 +5497,7 @@ LPAD(AMOUNT, 10, '*')
 "
 
 "Functions (String)","RPAD","
-@h2@ RPAD(string, int[, paddingString])
+RPAD(string, int[, paddingString])
 ","
 Right pad the string to the specified length.
 If the length is shorter than the string, it will be truncated.
@@ -6476,7 +6476,7 @@ SELECT FILE_WRITE('Hello world', '/tmp/hello.txt')) LEN;
 "
 
 "Functions (System)","GREATEST","
-@h2@ GREATEST(aValue, bValue [,...])
+GREATEST(aValue, bValue [,...])
 ","
 Returns the largest value that is not NULL, or NULL if all values are NULL.
 ","
@@ -6484,7 +6484,7 @@ CALL GREATEST(1, 2, 3);
 "
 
 "Functions (System)","LEAST","
-@h2@ LEAST(aValue, bValue [,...])
+LEAST(aValue, bValue [,...])
 ","
 Returns the smallest value that is not NULL, or NULL if all values are NULL.
 ","

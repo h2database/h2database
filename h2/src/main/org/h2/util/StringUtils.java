@@ -11,8 +11,10 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
+import java.util.function.IntPredicate;
 
 import org.h2.api.ErrorCode;
 import org.h2.engine.SysProperties;
@@ -901,21 +903,73 @@ public class StringUtils {
      * @param s the string
      * @param leading if leading characters should be removed
      * @param trailing if trailing characters should be removed
-     * @param sp what to remove (only the first character is used)
-     *      or null for a space
+     * @param characters what to remove or {@code null} for a space
      * @return the trimmed string
      */
-    public static String trim(String s, boolean leading, boolean trailing,
-            String sp) {
-        char space = sp == null || sp.isEmpty() ? ' ' : sp.charAt(0);
+    public static String trim(String s, boolean leading, boolean trailing, String characters) {
+        if (characters == null || characters.isEmpty()) {
+            return trim(s, leading, trailing, ' ');
+        }
+        int length = characters.length();
+        if (length == 1) {
+            return trim(s, leading, trailing, characters.charAt(0));
+        }
+        IntPredicate test;
+        int count = characters.codePointCount(0, length);
+        check: if (count <= 2) {
+            int cp = characters.codePointAt(0);
+            if (count > 1) {
+                int cp2 = characters.codePointAt(Character.charCount(cp));
+                if (cp != cp2) {
+                    test = value -> value == cp || value == cp2;
+                    break check;
+                }
+            }
+            test = value -> value == cp;
+        } else {
+            HashSet<Integer> set = new HashSet<>();
+            characters.codePoints().forEach(set::add);
+            test = set::contains;
+        }
+        return trim(s, leading, trailing, test);
+    }
+
+    private static String trim(String s, boolean leading, boolean trailing, IntPredicate test) {
         int begin = 0, end = s.length();
         if (leading) {
-            while (begin < end && s.charAt(begin) == space) {
+            int cp;
+            while (begin < end && test.test(cp = s.codePointAt(begin))) {
+                begin += Character.charCount(cp);
+            }
+        }
+        if (trailing) {
+            int cp;
+            while (end > begin && test.test(cp = s.codePointBefore(end))) {
+                end -= Character.charCount(cp);
+            }
+        }
+        // substring() returns self if start == 0 && end == length()
+        return s.substring(begin, end);
+    }
+
+    /**
+     * Trim a character from a string.
+     *
+     * @param s the string
+     * @param leading if leading characters should be removed
+     * @param trailing if trailing characters should be removed
+     * @param character what to remove
+     * @return the trimmed string
+     */
+    public static String trim(String s, boolean leading, boolean trailing, char character) {
+        int begin = 0, end = s.length();
+        if (leading) {
+            while (begin < end && s.charAt(begin) == character) {
                 begin++;
             }
         }
         if (trailing) {
-            while (end > begin && s.charAt(end - 1) == space) {
+            while (end > begin && s.charAt(end - 1) == character) {
                 end--;
             }
         }

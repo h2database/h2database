@@ -5507,31 +5507,46 @@ RPAD(TEXT, 10, '-')
 "
 
 "Functions (String)","LTRIM","
-@c@ LTRIM(string [, characterToTrimString])
+LTRIM(string [, charactersToTrimString])
 ","
-Removes all leading spaces or other specified characters from a string.
-
-This function is deprecated, use [TRIM](https://h2database.com/html/functions.html#trim) instead of it.
+Removes all leading spaces or other specified characters from a string, multiple characters can be specified.
 ","
 LTRIM(NAME)
+LTRIM(NAME, ' _~');
 "
 
 "Functions (String)","RTRIM","
-@c@ RTRIM(string [, characterToTrimString])
+RTRIM(string [, charactersToTrimString])
 ","
-Removes all trailing spaces or other specified characters from a string.
-
-This function is deprecated, use [TRIM](https://h2database.com/html/functions.html#trim) instead of it.
+Removes all trailing spaces or other specified characters from a string, multiple characters can be specified.
 ","
 RTRIM(NAME)
+RTRIM(NAME, ' _~');
+"
+
+"Functions (String)","BTRIM","
+BTRIM(string [, charactersToTrimString])
+","
+Removes all leading and trailing spaces or other specified characters from a string,
+multiple characters can be specified.
+","
+BTRIM(NAME)
+BTRIM(NAME, ' _~');
 "
 
 "Functions (String)","TRIM","
-TRIM ( [ [ LEADING | TRAILING | BOTH ] [ string ] FROM ] string )
+TRIM ( [ [ LEADING | TRAILING | BOTH ] [ characterToTrimString ] FROM ] string )
 ","
-Removes all leading spaces, trailing spaces, or spaces at both ends, from a string.
-Other characters can be removed as well.
+Removes all leading spaces, trailing spaces, or spaces at both ends from a string.
+If character to trim is specified, these characters are removed instead of spaces, only one character can be specified.
+To trim multiple different characters use [LTRIM](https://h2database.com/html/functions.html#ltrim),
+[RTRIM](https://h2database.com/html/functions.html#rtrim),
+or [BTRIM](https://h2database.com/html/functions.html#btrim).
+
+If neither LEADING, TRAILING, nor BOTH are specified, BOTH is implicit.
 ","
+TRIM(NAME)
+TRIM(LEADING FROM NAME)
 TRIM(BOTH '_' FROM NAME)
 "
 

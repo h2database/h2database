@@ -818,7 +818,7 @@ public class Csv implements SimpleRowSource {
                 continue;
             }
             int index = pair.indexOf('=');
-            String key = StringUtils.trim(pair.substring(0, index), true, true, " ");
+            String key = StringUtils.trimSubstring(pair, 0, index);
             String value = pair.substring(index + 1);
             char ch = value.isEmpty() ? 0 : value.charAt(0);
             if (isParam(key, "escape", "esc", "escapeCharacter")) {

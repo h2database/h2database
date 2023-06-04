@@ -187,7 +187,7 @@ public class TestScript extends TestDb {
             testScript("functions/numeric/" + s + ".sql");
         }
         for (String s : new String[] { "array-to-string",
-                "ascii", "bit-length", "char", "concat",
+                "ascii", "bit-length", "btrim", "char", "concat",
                 "concat-ws", "difference", "hextoraw", "insert",
                 "left", "length", "locate", "lower", "lpad", "ltrim",
                 "octet-length", "quote_ident", "rawtohex", "regexp-like",

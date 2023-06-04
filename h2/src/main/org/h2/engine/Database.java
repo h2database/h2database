@@ -245,7 +245,7 @@ public final class Database implements DataHandler, CastDataProvider {
         this.databaseURL = ci.getURL();
         String s = ci.removeProperty("DATABASE_EVENT_LISTENER", null);
         if (s != null) {
-            setEventListenerClass(StringUtils.trim(s, true, true, "'"));
+            setEventListenerClass(StringUtils.trim(s, true, true, '\''));
         }
         s = ci.removeProperty("MODE", null);
         if (s != null) {
@@ -264,7 +264,7 @@ public final class Database implements DataHandler, CastDataProvider {
         }
         s = ci.getProperty("JAVA_OBJECT_SERIALIZER", null);
         if (s != null) {
-            s = StringUtils.trim(s, true, true, "'");
+            s = StringUtils.trim(s, true, true, '\'');
             javaObjectSerializerName = s;
         }
         this.allowBuiltinAliasOverride = ci.getProperty("BUILTIN_ALIAS_OVERRIDE", false);

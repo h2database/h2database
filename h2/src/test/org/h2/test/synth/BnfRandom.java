@@ -132,6 +132,10 @@ public class BnfRandom implements BnfVisitor {
         }
         case RuleFixed.HEX_START:
             return "0x";
+        case RuleFixed.OCTAL_START:
+            return "0b";
+        case RuleFixed.BINARY_START:
+            return "0b";
         case RuleFixed.CONCAT:
             return "||";
         case RuleFixed.AZ_UNDERSCORE:

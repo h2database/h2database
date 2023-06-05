@@ -38,12 +38,12 @@ public final class StringFunction extends FunctionN {
     public static final int REPLACE = INSERT + 1;
 
     /**
-     * LPAD() (non-standard).
+     * LPAD().
      */
     public static final int LPAD = REPLACE + 1;
 
     /**
-     * RPAD() (non-standard).
+     * RPAD().
      */
     public static final int RPAD = LPAD + 1;
 

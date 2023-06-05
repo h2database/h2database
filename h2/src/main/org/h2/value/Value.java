@@ -445,7 +445,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
      */
     public int getMemory() {
         /*
-         * Java 11 with -XX:-UseCompressedOops for all values up to ValueLong
+         * Java 11 with -XX:-UseCompressedOops for all values up to ValueBigint
          * and ValueDouble.
          */
         return 24;
@@ -500,6 +500,18 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         }
         if (t2 == NULL) {
             return t1;
+        }
+        return getHigherOrderKnown(t1, t2);
+    }
+
+    private static int getHigherOrderNonNull(int t1, int t2) {
+        if (t1 == t2) {
+            return t1;
+        }
+        if (t1 < t2) {
+            int t = t1;
+            t1 = t2;
+            t2 = t;
         }
         return getHigherOrderKnown(t1, t2);
     }
@@ -2604,19 +2616,21 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         } else if (v == ValueNull.INSTANCE) {
             return 1;
         }
-        return compareToNotNullable(v, provider, compareMode);
+        return compareToNotNullable(this, v, provider, compareMode);
     }
 
-    private int compareToNotNullable(Value v, CastDataProvider provider, CompareMode compareMode) {
-        Value l = this;
+    private static int compareToNotNullable(Value l, Value r, CastDataProvider provider, CompareMode compareMode) {
         int leftType = l.getValueType();
-        int rightType = v.getValueType();
+        int rightType = r.getValueType();
         if (leftType != rightType || leftType == ENUM) {
-            int dataType = getHigherOrder(leftType, rightType);
+            int dataType = getHigherOrderNonNull(leftType, rightType);
+            if (DataType.isNumericType(dataType)) {
+                return compareNumeric(l, r, leftType, rightType, dataType);
+            }
             if (dataType == ENUM) {
-                ExtTypeInfoEnum enumerators = ExtTypeInfoEnum.getEnumeratorsForBinaryOperation(l, v);
-                l = l.convertToEnum(enumerators, provider);
-                v = v.convertToEnum(enumerators, provider);
+                ExtTypeInfoEnum enumerators = ExtTypeInfoEnum.getEnumeratorsForBinaryOperation(l, r);
+                return Integer.compare(l.convertToEnum(enumerators, provider).getInt(),
+                        r.convertToEnum(enumerators, provider).getInt());
             } else {
                 if (dataType <= BLOB) {
                     if (dataType <= CLOB) {
@@ -2628,10 +2642,28 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
                     }
                 }
                 l = l.convertTo(dataType, provider);
-                v = v.convertTo(dataType, provider);
+                r = r.convertTo(dataType, provider);
             }
         }
-        return l.compareTypeSafe(v, compareMode, provider);
+        return l.compareTypeSafe(r, compareMode, provider);
+    }
+
+    private static int compareNumeric(Value l, Value r, int leftType, int rightType, int dataType) {
+        if (DataType.isNumericType(leftType) && DataType.isNumericType(rightType)) {
+            switch (dataType) {
+            case TINYINT:
+            case SMALLINT:
+            case INTEGER:
+                return Integer.compare(l.getInt(), r.getInt());
+            case BIGINT:
+                return Long.compare(l.getLong(), r.getLong());
+            case REAL:
+                return Float.compare(l.getFloat(), r.getFloat());
+            case DOUBLE:
+                return Double.compare(l.getDouble(), r.getDouble());
+            }
+        }
+        return l.getBigDecimal().compareTo(r.getBigDecimal());
     }
 
     /**
@@ -2651,7 +2683,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         if (this == ValueNull.INSTANCE || v == ValueNull.INSTANCE) {
             return Integer.MIN_VALUE;
         }
-        return compareToNotNullable(v, provider, compareMode);
+        return compareToNotNullable(this, v, provider, compareMode);
     }
 
     /**

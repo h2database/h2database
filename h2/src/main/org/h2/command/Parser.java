@@ -4067,11 +4067,6 @@ public class Parser {
         // SUBSTRING
         case "SUBSTR":
             return readSubstringFunction();
-        // TRIM
-        case "LTRIM":
-            return new TrimFunction(readExpression(), readIfArgument(), TrimFunction.LEADING);
-        case "RTRIM":
-            return new TrimFunction(readExpression(), readIfArgument(), TrimFunction.TRAILING);
         // UPPER
         case "UCASE":
             return new StringFunction1(readSingleArgument(), StringFunction1.UPPER);
@@ -4302,6 +4297,15 @@ public class Parser {
             return new LengthFunction(readIfSingleArgument(), LengthFunction.BIT_LENGTH);
         case "TRIM":
             return readTrimFunction();
+        case "LTRIM":
+            return new TrimFunction(readExpression(), readIfArgument(),
+                    TrimFunction.LEADING | TrimFunction.MULTI_CHARACTER);
+        case "RTRIM":
+            return new TrimFunction(readExpression(), readIfArgument(),
+                    TrimFunction.TRAILING | TrimFunction.MULTI_CHARACTER);
+        case "BTRIM":
+            return new TrimFunction(readExpression(), readIfArgument(),
+                    TrimFunction.LEADING | TrimFunction.TRAILING | TrimFunction.MULTI_CHARACTER);
         case "REGEXP_LIKE":
             return readParameters(new RegexpFunction(RegexpFunction.REGEXP_LIKE));
         case "REGEXP_REPLACE":
@@ -4961,22 +4965,24 @@ public class Parser {
 
     private Expression readTerm() {
         Expression r = currentTokenType == IDENTIFIER ? readTermWithIdentifier() : readTermWithoutIdentifier();
-        if (readIf(OPEN_BRACKET)) {
-            r = new ArrayElementReference(r, readExpression());
-            read(CLOSE_BRACKET);
-        }
-        if (readIf(COLON_COLON)) {
-            r = readColonColonAfterTerm(r);
-        }
         for (;;) {
+            if (readIf(OPEN_BRACKET)) {
+                r = new ArrayElementReference(r, readExpression());
+                read(CLOSE_BRACKET);
+                continue;
+            }
+            if (readIf(COLON_COLON)) {
+                r = readColonColonAfterTerm(r);
+                continue;
+            }
             TypeInfo ti = readIntervalQualifier();
             if (ti != null) {
                 r = new CastSpecification(r, ti);
+                continue;
             }
             int index = tokenIndex;
             if (readIf("AT")) {
-                if (readIf("TIME")) {
-                    read("ZONE");
+                if (readIf("TIME", "ZONE")) {
                     r = new TimeZoneOperation(r, readExpression());
                     continue;
                 } else if (readIf("LOCAL")) {

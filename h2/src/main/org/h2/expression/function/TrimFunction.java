@@ -14,7 +14,7 @@ import org.h2.value.Value;
 import org.h2.value.ValueVarchar;
 
 /**
- * A TRIM function.
+ * A TRIM, LTRIM, RTRIM, or BTRIM function.
  */
 public final class TrimFunction extends Function1_2 {
 
@@ -27,6 +27,11 @@ public final class TrimFunction extends Function1_2 {
      * The TRAILING flag.
      */
     public static final int TRAILING = 2;
+
+    /**
+     * The multi-character flag.
+     */
+    public static final int MULTI_CHARACTER = 4;
 
     private int flags;
 
@@ -57,30 +62,47 @@ public final class TrimFunction extends Function1_2 {
     @Override
     public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
         builder.append(getName()).append('(');
-        boolean needFrom = false;
-        switch (flags) {
-        case LEADING:
-            builder.append("LEADING ");
-            needFrom = true;
-            break;
-        case TRAILING:
-            builder.append("TRAILING ");
-            needFrom = true;
-            break;
+        if ((flags & MULTI_CHARACTER) != 0) {
+            left.getUnenclosedSQL(builder, sqlFlags);
+            if (right != null) {
+                right.getUnenclosedSQL(builder.append(", "), sqlFlags);
+            }
+        } else {
+            boolean needFrom = false;
+            switch (flags) {
+            case LEADING:
+                builder.append("LEADING ");
+                needFrom = true;
+                break;
+            case TRAILING:
+                builder.append("TRAILING ");
+                needFrom = true;
+                break;
+            }
+            if (right != null) {
+                right.getUnenclosedSQL(builder, sqlFlags);
+                needFrom = true;
+            }
+            if (needFrom) {
+                builder.append(" FROM ");
+            }
+            left.getUnenclosedSQL(builder, sqlFlags);
         }
-        if (right != null) {
-            right.getUnenclosedSQL(builder, sqlFlags);
-            needFrom = true;
-        }
-        if (needFrom) {
-            builder.append(" FROM ");
-        }
-        return left.getUnenclosedSQL(builder, sqlFlags).append(')');
+        return builder.append(')');
     }
 
     @Override
     public String getName() {
-        return "TRIM";
+        switch (flags) {
+        case LEADING | MULTI_CHARACTER:
+            return "LTRIM";
+        case TRAILING | MULTI_CHARACTER:
+            return "RTRIM";
+        case LEADING | TRAILING | MULTI_CHARACTER:
+            return "BTRIM";
+        default:
+            return "TRIM";
+        }
     }
 
 }

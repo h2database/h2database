@@ -408,7 +408,7 @@ public final class SessionRemote extends Session implements DataHandler {
         if (autoReconnect) {
             String className = ci.getProperty("DATABASE_EVENT_LISTENER");
             if (className != null) {
-                className = StringUtils.trim(className, true, true, "'");
+                className = StringUtils.trim(className, true, true, '\'');
                 try {
                     eventListener = (DatabaseEventListener) JdbcUtils
                             .loadUserClass(className).getDeclaredConstructor().newInstance();

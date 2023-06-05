@@ -824,7 +824,7 @@ CREATE DOMAIN EMAIL AS VARCHAR(255) CHECK (POSITION('@', VALUE) > 1)
 "
 
 "Commands (DDL)","CREATE INDEX","
-@h2@ CREATE [ UNIQUE | SPATIAL ] INDEX
+@h2@ CREATE [ UNIQUE [ nullsDistinct ] | SPATIAL ] INDEX
 @h2@ [ [ IF NOT EXISTS ] [schemaName.]indexName ]
 @h2@ ON [schemaName.]tableName ( indexColumn [,...] )
 @h2@ [ INCLUDE ( indexColumn [,...] ) ]
@@ -834,6 +834,7 @@ This command commits an open transaction in this connection.
 
 INCLUDE clause may only be specified for UNIQUE indexes.
 With this clause additional columns are included into index, but aren't used in unique checks.
+If nulls distinct clause is not specified, the default is NULLS DISTINCT, excluding some compatibility modes.
 
 Spatial indexes are supported only on GEOMETRY columns.
 They may contain only one column and are used by the
@@ -2993,12 +2994,14 @@ CREATE TABLE TEST(ID BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
 
 "Other Grammar","Column Constraint Definition","
 [ constraintNameDefinition ]
-NOT NULL | PRIMARY KEY | UNIQUE | referencesSpecification | CHECK (condition)
+NOT NULL | PRIMARY KEY | UNIQUE [ nullsDistinct ] | referencesSpecification | CHECK (condition)
 ","
 NOT NULL disallows NULL value for a column.
 
 PRIMARY KEY and UNIQUE require unique values.
 PRIMARY KEY also disallows NULL values and marks the column as a primary key.
+UNIQUE constraint allows NULL values, if nulls distinct clause is not specified, the default is NULLS DISTINCT,
+excluding some compatibility modes.
 
 Referential constraint requires values that exist in other column (usually in another table).
 
@@ -3046,7 +3049,7 @@ The operator ""&&"" means overlapping; it can only be used with geometry types.
 operand [ conditionRightHandSide ]
     | NOT condition
     | EXISTS ( query )
-    | UNIQUE ( query )
+    | UNIQUE [ nullsDistinct ] ( query )
     | @h2@ INTERSECTS (operand, operand)
 ","
 Boolean value or condition.
@@ -3056,7 +3059,7 @@ Boolean value or condition.
 ""EXISTS"" predicate tests whether the result of the specified subquery is not empty and returns ""TRUE"" or ""FALSE"".
 
 ""UNIQUE"" predicate tests absence of duplicate rows in the specified subquery and returns ""TRUE"" or ""FALSE"".
-Rows with ""NULL"" value in any column are ignored.
+If nulls distinct clause is not specified, NULLS DISTINCT is implicit.
 
 ""INTERSECTS"" checks whether 2D bounding boxes of specified geometries intersect with each other
 and returns ""TRUE"" or ""FALSE"".
@@ -3268,10 +3271,25 @@ See Java ""Matcher.find"" for details.
 REGEXP '[a-z]'
 "
 
+"Other Grammar","Nulls Distinct","
+NULLS { DISTINCT | NOT DISTINCT | @h2@ { ALL DISTINCT } }
+","
+Are nulls distinct for unique constraint, index, or predicate.
+
+If NULLS DISTINCT is specified, rows with null value in any column are distinct.
+If NULLS ALL DISTINCT is specified, rows with null value in all columns are distinct.
+If NULLS NOT DISTINCT is specified, null values are identical.
+
+Treatment of null values inside composite data types is not affected.
+","
+NULLS DISTINCT
+NULLS NOT DISTINCT
+"
+
 "Other Grammar","Table Constraint Definition","
 [ constraintNameDefinition ]
 { PRIMARY KEY @h2@ [ HASH ] ( columnName [,...] ) }
-    | UNIQUE ( { columnName [,...] | VALUE } )
+    | UNIQUE [ nullsDistinct ] ( { columnName [,...] | VALUE } )
     | referentialConstraint
     | CHECK (condition)
 ","
@@ -3280,6 +3298,8 @@ Defines a constraint.
 PRIMARY KEY and UNIQUE require unique values.
 PRIMARY KEY also disallows NULL values and marks the column as a primary key, a table can have only one primary key.
 UNIQUE constraint supports NULL values and rows with NULL value in any column are considered as unique.
+UNIQUE constraint allows NULL values, if nulls distinct clause is not specified, the default is NULLS DISTINCT,
+excluding some compatibility modes.
 UNIQUE (VALUE) creates a unique constraint on entire row, excluding invisible columns;
 but if new columns will be added to the table, they will not be included into this constraint.
 

@@ -5,7 +5,6 @@
  */
 package org.h2.mvstore.db;
 
-import org.h2.mvstore.rtree.Spatial;
 import static org.h2.util.geometry.GeometryUtils.MAX_X;
 import static org.h2.util.geometry.GeometryUtils.MAX_Y;
 import static org.h2.util.geometry.GeometryUtils.MIN_X;
@@ -27,6 +26,7 @@ import org.h2.mvstore.MVStoreException;
 import org.h2.mvstore.Page;
 import org.h2.mvstore.rtree.MVRTreeMap;
 import org.h2.mvstore.rtree.MVRTreeMap.RTreeCursor;
+import org.h2.mvstore.rtree.Spatial;
 import org.h2.mvstore.tx.Transaction;
 import org.h2.mvstore.tx.TransactionMap;
 import org.h2.mvstore.tx.VersionedValueType;

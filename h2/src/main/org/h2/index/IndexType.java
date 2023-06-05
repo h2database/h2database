@@ -5,13 +5,18 @@
  */
 package org.h2.index;
 
+import java.util.Objects;
+
+import org.h2.engine.NullsDistinct;
+
 /**
  * Represents information about the properties of an index
  */
 public class IndexType {
 
-    private boolean primaryKey, persistent, unique, hash, scan, spatial;
+    private boolean primaryKey, persistent, hash, scan, spatial;
     private boolean belongsToConstraint;
+    private NullsDistinct nullsDistinct;
 
     /**
      * Create a primary key index.
@@ -25,7 +30,6 @@ public class IndexType {
         type.primaryKey = true;
         type.persistent = persistent;
         type.hash = hash;
-        type.unique = true;
         return type;
     }
 
@@ -34,13 +38,18 @@ public class IndexType {
      *
      * @param persistent if the index is persistent
      * @param hash if a hash index should be used
+     * @param uniqueColumnCount count of unique columns (not stored)
+     * @param nullsDistinct are nulls distinct
      * @return the index type
      */
-    public static IndexType createUnique(boolean persistent, boolean hash) {
+    public static IndexType createUnique(boolean persistent, boolean hash, int uniqueColumnCount,
+            NullsDistinct nullsDistinct) {
         IndexType type = new IndexType();
-        type.unique = true;
         type.persistent = persistent;
         type.hash = hash;
+        type.nullsDistinct = uniqueColumnCount == 1 && nullsDistinct == NullsDistinct.ALL_DISTINCT
+                ? NullsDistinct.DISTINCT
+                : Objects.requireNonNull(nullsDistinct);
         return type;
     }
 
@@ -145,34 +154,38 @@ public class IndexType {
      * @return true if it is
      */
     public boolean isUnique() {
-        return unique;
+        return primaryKey || nullsDistinct != null;
     }
 
     /**
      * Get the SQL snippet to create such an index.
      *
+     * @param addNullsDistinct {@code true} to add nulls distinct clause
      * @return the SQL snippet
      */
-    public String getSQL() {
-        StringBuilder buff = new StringBuilder();
+    public String getSQL(boolean addNullsDistinct) {
+        StringBuilder builder = new StringBuilder();
         if (primaryKey) {
-            buff.append("PRIMARY KEY");
+            builder.append("PRIMARY KEY");
             if (hash) {
-                buff.append(" HASH");
+                builder.append(" HASH");
             }
         } else {
-            if (unique) {
-                buff.append("UNIQUE ");
+            if (nullsDistinct != null) {
+                builder.append("UNIQUE ");
+                if (addNullsDistinct) {
+                    nullsDistinct.getSQL(builder, 0).append(' ');
+                }
             }
             if (hash) {
-                buff.append("HASH ");
+                builder.append("HASH ");
             }
             if (spatial) {
-                buff.append("SPATIAL ");
+                builder.append("SPATIAL ");
             }
-            buff.append("INDEX");
+            builder.append("INDEX");
         }
-        return buff.toString();
+        return builder.toString();
     }
 
     /**
@@ -182,6 +195,20 @@ public class IndexType {
      */
     public boolean isScan() {
         return scan;
+    }
+
+    /**
+     * @return are nulls distinct, or {@code null} for non-unique and primary key indexes
+     */
+    public NullsDistinct getNullsDistinct() {
+        return nullsDistinct;
+    }
+
+    /**
+     * @return are nulls distinct, not allowed, or {@code null} for non-unique indexes
+     */
+    public NullsDistinct getEffectiveNullsDistinct() {
+        return nullsDistinct != null ? nullsDistinct : primaryKey ? NullsDistinct.NOT_DISTINCT : null;
     }
 
 }

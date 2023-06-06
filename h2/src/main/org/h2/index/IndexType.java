@@ -198,6 +198,9 @@ public class IndexType {
     }
 
     /**
+     * Returns nulls distinct treatment for unique indexes (excluding primary key indexes).
+     * For primary key and other types of indexes returns {@code null}.
+     *
      * @return are nulls distinct, or {@code null} for non-unique and primary key indexes
      */
     public NullsDistinct getNullsDistinct() {
@@ -205,7 +208,11 @@ public class IndexType {
     }
 
     /**
-     * @return are nulls distinct, not allowed, or {@code null} for non-unique indexes
+     * Returns nulls distinct treatment for unique indexes,
+     * {@link NullsDistinct#NOT_DISTINCT} for primary key indexes,
+     * and {@code null} for other types of indexes.
+     *
+     * @return are nulls distinct, or {@code null} for non-unique indexes
      */
     public NullsDistinct getEffectiveNullsDistinct() {
         return nullsDistinct != null ? nullsDistinct : primaryKey ? NullsDistinct.NOT_DISTINCT : null;

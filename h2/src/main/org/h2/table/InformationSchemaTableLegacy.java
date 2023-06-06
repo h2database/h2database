@@ -991,7 +991,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                                 // PRIMARY_KEY
                                 ValueBoolean.get(index.getIndexType().isPrimaryKey()),
                                 // INDEX_TYPE_NAME
-                                index.getIndexType().getSQL(),
+                                index.getIndexType().getSQL(false),
                                 // IS_GENERATED
                                 ValueBoolean.get(index.getIndexType().getBelongsToConstraint()),
                                 // INDEX_TYPE

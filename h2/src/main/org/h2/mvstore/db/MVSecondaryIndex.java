@@ -135,7 +135,7 @@ public final class MVSecondaryIndex extends MVIndex<SearchRow, Value> {
                 Source s = queue.poll();
                 SearchRow row = s.next();
 
-                if (uniqueColumnColumn > 0 && !mayHaveNullDuplicates(row)) {
+                if (needsUniqueCheck(row)) {
                     checkUnique(false, dataMap, row, Long.MIN_VALUE);
                 }
 
@@ -178,7 +178,7 @@ public final class MVSecondaryIndex extends MVIndex<SearchRow, Value> {
     public void add(SessionLocal session, Row row) {
         TransactionMap<SearchRow,Value> map = getMap(session);
         SearchRow key = convertToKey(row, null);
-        boolean checkRequired = uniqueColumnColumn > 0 && !mayHaveNullDuplicates(row);
+        boolean checkRequired = needsUniqueCheck(row);
         if (checkRequired) {
             boolean repeatableRead = !session.getTransaction().allowNonRepeatableRead();
             checkUnique(repeatableRead, map, row, Long.MIN_VALUE);

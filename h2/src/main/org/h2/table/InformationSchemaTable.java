@@ -30,11 +30,13 @@ import org.h2.engine.Role;
 import org.h2.engine.SessionLocal;
 import org.h2.engine.SessionLocal.State;
 import org.h2.engine.Setting;
+import org.h2.engine.NullsDistinct;
 import org.h2.engine.User;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.ValueExpression;
 import org.h2.index.Index;
+import org.h2.index.IndexType;
 import org.h2.index.MetaIndex;
 import org.h2.message.DbException;
 import org.h2.result.Row;
@@ -589,6 +591,7 @@ public final class InformationSchemaTable extends MetaTable {
                     column("IS_DEFERRABLE"), //
                     column("INITIALLY_DEFERRED"), //
                     column("ENFORCED"), //
+                    column("NULLS_DISTINCT"), //
                     // extensions
                     column("INDEX_CATALOG"), //
                     column("INDEX_SCHEMA"), //
@@ -710,6 +713,7 @@ public final class InformationSchemaTable extends MetaTable {
                     column("TABLE_SCHEMA"), //
                     column("TABLE_NAME"), //
                     column("INDEX_TYPE_NAME"), //
+                    column("NULLS_DISTINCT"), //
                     column("IS_GENERATED", TypeInfo.TYPE_BOOLEAN), //
                     column("REMARKS"), //
                     column("INDEX_CLASS"), //
@@ -2284,6 +2288,10 @@ public final class InformationSchemaTable extends MetaTable {
                 "NO",
                 // ENFORCED
                 enforced ? "YES" : "NO",
+                // NULLS_DISTINCT
+                constraintType == Constraint.Type.UNIQUE
+                        ? nullsDistinctToString(((ConstraintUnique) constraint).getNullsDistinct())
+                        : null,
                 // extensions
                 // INDEX_CATALOG
                 index != null ? catalog : null,
@@ -2615,6 +2623,7 @@ public final class InformationSchemaTable extends MetaTable {
 
     private void indexes(SessionLocal session, ArrayList<Row> rows, String catalog, Table table, String tableName,
             Index index) {
+        IndexType indexType = index.getIndexType();
         add(session, rows,
                 // INDEX_CATALOG
                 catalog,
@@ -2629,9 +2638,11 @@ public final class InformationSchemaTable extends MetaTable {
                 // TABLE_NAME
                 tableName,
                 // INDEX_TYPE_NAME
-                index.getIndexType().getSQL(),
+                indexType.getSQL(false),
+                // NULLS_DISTINCT
+                nullsDistinctToString(indexType.getNullsDistinct()),
                 // IS_GENERATED
-                ValueBoolean.get(index.getIndexType().getBelongsToConstraint()),
+                ValueBoolean.get(indexType.getBelongsToConstraint()),
                 // REMARKS
                 index.getComment(),
                 // INDEX_CLASS
@@ -3099,6 +3110,20 @@ public final class InformationSchemaTable extends MetaTable {
                     isGrantable
             );
         }
+    }
+
+    private static String nullsDistinctToString(NullsDistinct nullsDistinct) {
+        if (nullsDistinct != null) {
+            switch (nullsDistinct) {
+            case DISTINCT:
+                return "YES";
+            case ALL_DISTINCT:
+                return "ALL";
+            case NOT_DISTINCT:
+                return "NO";
+            }
+        }
+        return null;
     }
 
     @Override

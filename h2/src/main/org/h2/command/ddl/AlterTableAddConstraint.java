@@ -18,6 +18,7 @@ import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Right;
 import org.h2.engine.SessionLocal;
+import org.h2.engine.NullsDistinct;
 import org.h2.expression.Expression;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
@@ -38,6 +39,7 @@ public class AlterTableAddConstraint extends AlterTable {
 
     private final int type;
     private String constraintName;
+    private NullsDistinct nullsDistinct;
     private IndexColumn[] indexColumns;
     private ConstraintActionType deleteAction = ConstraintActionType.RESTRICT;
     private ConstraintActionType updateAction = ConstraintActionType.RESTRICT;
@@ -153,8 +155,7 @@ public class AlterTableAddConstraint extends AlterTable {
             index.getIndexType().setBelongsToConstraint(true);
             int id = getObjectId();
             String name = generateConstraintName(table);
-            ConstraintUnique pk = new ConstraintUnique(getSchema(),
-                    id, name, table, true);
+            ConstraintUnique pk = new ConstraintUnique(getSchema(), id, name, table, true, null);
             pk.setColumns(indexColumns);
             pk.setIndex(index, true);
             constraint = pk;
@@ -259,13 +260,13 @@ public class AlterTableAddConstraint extends AlterTable {
                         new StringBuilder("PRIMARY KEY | UNIQUE ("), refIndexColumns, HasSQL.TRACE_SQL_FLAGS)
                         .append(')').toString());
             }
-            if (index != null && canUseIndex(index, table, indexColumns, false)) {
+            if (index != null && canUseIndex(index, table, indexColumns, null)) {
                 isOwner = true;
                 index.getIndexType().setBelongsToConstraint(true);
             } else {
-                index = getIndex(table, indexColumns, false);
+                index = getIndex(table, indexColumns, null);
                 if (index == null) {
-                    index = createIndex(table, indexColumns, false);
+                    index = createIndex(table, indexColumns, null);
                     isOwner = true;
                 }
             }
@@ -304,13 +305,15 @@ public class AlterTableAddConstraint extends AlterTable {
     private ConstraintUnique createUniqueConstraint(Table table, Index index, IndexColumn[] indexColumns,
             boolean forForeignKey) {
         boolean isOwner = false;
-        if (index != null && canUseIndex(index, table, indexColumns, true)) {
+        NullsDistinct needNullsDistinct = nullsDistinct != null ? nullsDistinct : NullsDistinct.DISTINCT;
+        if (index != null && canUseIndex(index, table, indexColumns, needNullsDistinct)) {
             isOwner = true;
             index.getIndexType().setBelongsToConstraint(true);
         } else {
-            index = getIndex(table, indexColumns, true);
+            index = getIndex(table, indexColumns, needNullsDistinct);
             if (index == null) {
-                index = createIndex(table, indexColumns, true);
+                index = createIndex(table, indexColumns,
+                        nullsDistinct != null ? nullsDistinct : session.getMode().nullsDistinct);
                 isOwner = true;
             }
         }
@@ -329,7 +332,10 @@ public class AlterTableAddConstraint extends AlterTable {
             id = getObjectId();
             name = generateConstraintName(table);
         }
-        ConstraintUnique unique = new ConstraintUnique(tableSchema, id, name, table, false);
+        if (indexColumns.length == 1 && needNullsDistinct == NullsDistinct.ALL_DISTINCT) {
+            needNullsDistinct = NullsDistinct.DISTINCT;
+        }
+        ConstraintUnique unique = new ConstraintUnique(tableSchema, id, name, table, false, needNullsDistinct);
         unique.setColumns(indexColumns);
         unique.setIndex(index, isOwner);
         return unique;
@@ -344,12 +350,12 @@ public class AlterTableAddConstraint extends AlterTable {
         table.addConstraint(constraint);
     }
 
-    private Index createIndex(Table t, IndexColumn[] cols, boolean unique) {
+    private Index createIndex(Table t, IndexColumn[] cols, NullsDistinct nullsDistinct) {
         int indexId = getDatabase().allocateObjectId();
         IndexType indexType;
-        if (unique) {
+        if (nullsDistinct != null) {
             // for unique constraints
-            indexType = IndexType.createUnique(t.isPersistIndexes(), false);
+            indexType = IndexType.createUnique(t.isPersistIndexes(), false, cols.length, nullsDistinct);
         } else {
             // constraints
             indexType = IndexType.createNonUnique(t.isPersistIndexes());
@@ -359,8 +365,8 @@ public class AlterTableAddConstraint extends AlterTable {
         String indexName = t.getSchema().getUniqueIndexName(session, t,
                 prefix + "_INDEX_");
         try {
-            Index index = t.addIndex(session, indexName, indexId, cols, unique ? cols.length : 0, indexType, true,
-                    null);
+            Index index = t.addIndex(session, indexName, indexId, cols, nullsDistinct != null ? cols.length : 0,
+                    indexType, true, null);
             createdIndexes.add(index);
             return index;
         } finally {
@@ -383,7 +389,7 @@ public class AlterTableAddConstraint extends AlterTable {
                 if (constraint.getTable() == t) {
                     Constraint.Type constraintType = constraint.getConstraintType();
                     if (constraintType == Constraint.Type.PRIMARY_KEY || constraintType == Constraint.Type.UNIQUE) {
-                        if (canUseIndex(constraint.getIndex(), t, cols, true)) {
+                        if (canUseIndex(constraint.getIndex(), t, cols, NullsDistinct.DISTINCT)) {
                             return (ConstraintUnique) constraint;
                         }
                     }
@@ -393,12 +399,12 @@ public class AlterTableAddConstraint extends AlterTable {
         return null;
     }
 
-    private static Index getIndex(Table t, IndexColumn[] cols, boolean unique) {
+    private static Index getIndex(Table t, IndexColumn[] cols, NullsDistinct nullsDistinct) {
         ArrayList<Index> indexes = t.getIndexes();
         Index index = null;
         if (indexes != null) {
             for (Index idx : indexes) {
-                if (canUseIndex(idx, t, cols, unique)) {
+                if (canUseIndex(idx, t, cols, nullsDistinct)) {
                     if (index == null || idx.getIndexColumns().length < index.getIndexColumns().length) {
                         index = idx;
                     }
@@ -408,14 +414,17 @@ public class AlterTableAddConstraint extends AlterTable {
         return index;
     }
 
-    private static boolean canUseIndex(Index index, Table table, IndexColumn[] cols, boolean unique) {
+    private static boolean canUseIndex(Index index, Table table, IndexColumn[] cols, NullsDistinct nullsDistinct) {
         if (index.getTable() != table) {
             return false;
         }
         int allowedColumns;
-        if (unique) {
+        if (nullsDistinct != null) {
             allowedColumns = index.getUniqueColumnCount();
             if (allowedColumns != cols.length) {
+                return false;
+            }
+            if (index.getIndexType().getEffectiveNullsDistinct().compareTo(nullsDistinct) < 0) {
                 return false;
             }
         } else {
@@ -444,6 +453,10 @@ public class AlterTableAddConstraint extends AlterTable {
     @Override
     public int getType() {
         return type;
+    }
+
+    public void setNullsDistinct(NullsDistinct nullsDistinct) {
+        this.nullsDistinct = nullsDistinct;
     }
 
     public void setCheckExpression(Expression expression) {

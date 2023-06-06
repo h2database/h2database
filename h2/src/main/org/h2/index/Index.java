@@ -12,6 +12,7 @@ import org.h2.api.ErrorCode;
 import org.h2.command.query.AllColumnsForPlan;
 import org.h2.engine.Constants;
 import org.h2.engine.DbObject;
+import org.h2.engine.NullsDistinct;
 import org.h2.engine.SessionLocal;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
@@ -150,7 +151,7 @@ public abstract class Index extends SchemaObject {
     @Override
     public String getCreateSQLForCopy(Table targetTable, String quotedName) {
         StringBuilder builder = new StringBuilder("CREATE ");
-        builder.append(indexType.getSQL());
+        builder.append(indexType.getSQL(true));
         builder.append(' ');
         if (table.isHidden()) {
             builder.append("IF NOT EXISTS ");
@@ -164,6 +165,7 @@ public abstract class Index extends SchemaObject {
         }
         return getColumnListSQL(builder, DEFAULT_SQL_FLAGS).toString();
     }
+
 
     /**
      * Get the list of columns as a string.
@@ -700,34 +702,35 @@ public abstract class Index extends SchemaObject {
 
 
     /**
-     * Check if this row may have duplicates with the same indexed values in the
-     * current compatibility mode. Duplicates with {@code NULL} values are
-     * allowed in some modes.
+     * Check if this row needs to be checked for duplicates.
      *
      * @param searchRow
      *            the row to check
-     * @return {@code true} if specified row may have duplicates,
+     * @return {@code true} if check for duplicates is required,
      *         {@code false otherwise}
      */
-    public final boolean mayHaveNullDuplicates(SearchRow searchRow) {
-        switch (database.getMode().uniqueIndexNullsHandling) {
-        case ALLOW_DUPLICATES_WITH_ANY_NULL:
+    public final boolean needsUniqueCheck(SearchRow searchRow) {
+        NullsDistinct nullsDistinct = indexType.getEffectiveNullsDistinct();
+        return nullsDistinct != null && (nullsDistinct == NullsDistinct.NOT_DISTINCT
+                || needsUniqueCheck(searchRow, nullsDistinct == NullsDistinct.DISTINCT));
+    }
+
+    private boolean needsUniqueCheck(SearchRow searchRow, boolean distinct) {
+        if (distinct) {
             for (int i = 0; i < uniqueColumnColumn; i++) {
                 int index = columnIds[i];
                 if (searchRow.getValue(index) == ValueNull.INSTANCE) {
-                    return true;
-                }
-            }
-            return false;
-        case ALLOW_DUPLICATES_WITH_ALL_NULLS:
-            for (int i = 0; i < uniqueColumnColumn; i++) {
-                int index = columnIds[i];
-                if (searchRow.getValue(index) != ValueNull.INSTANCE) {
                     return false;
                 }
             }
             return true;
-        default:
+        } else {
+            for (int i = 0; i < uniqueColumnColumn; i++) {
+                int index = columnIds[i];
+                if (searchRow.getValue(index) != ValueNull.INSTANCE) {
+                    return true;
+                }
+            }
             return false;
         }
     }

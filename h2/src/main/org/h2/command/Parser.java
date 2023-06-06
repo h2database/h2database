@@ -244,6 +244,7 @@ import org.h2.engine.Mode.ModeEnum;
 import org.h2.engine.Procedure;
 import org.h2.engine.Right;
 import org.h2.engine.SessionLocal;
+import org.h2.engine.NullsDistinct;
 import org.h2.engine.User;
 import org.h2.expression.Alias;
 import org.h2.expression.ArrayConstructorByQuery;
@@ -3165,10 +3166,11 @@ public class Parser {
         }
         case UNIQUE: {
             read();
+            NullsDistinct nullsDistinct = readNullsDistinct(NullsDistinct.DISTINCT);
             read(OPEN_PAREN);
             Query query = parseQuery();
             read(CLOSE_PAREN);
-            return new UniquePredicate(query);
+            return new UniquePredicate(query, nullsDistinct);
         }
         default:
             if (readIf("INTERSECTS", OPEN_PAREN)) {
@@ -6890,7 +6892,8 @@ public class Parser {
             return parseCreateSynonym(orReplace);
         } else {
             boolean hash = false, primaryKey = false;
-            boolean unique = false, spatial = false;
+            NullsDistinct nullsDistinct = null;
+            boolean spatial = false;
             String indexName = null;
             Schema oldSchema = null;
             boolean ifNotExists = false;
@@ -6906,11 +6909,11 @@ public class Parser {
                 }
             } else {
                 if (readIf(UNIQUE)) {
-                    unique = true;
+                    nullsDistinct = readNullsDistinct(database.getMode().nullsDistinct);
                 }
                 if (readIf("HASH")) {
                     hash = true;
-                } else if (!unique && readIf("SPATIAL")) {
+                } else if (nullsDistinct == null && readIf("SPATIAL")) {
                     spatial = true;
                 }
                 read("INDEX");
@@ -6952,13 +6955,13 @@ public class Parser {
             int uniqueColumnCount = 0;
             if (spatial) {
                 columns = new IndexColumn[] { new IndexColumn(readIdentifier()) };
-                if (unique) {
+                if (nullsDistinct != null) {
                     uniqueColumnCount = 1;
                 }
                 read(CLOSE_PAREN);
             } else {
                 columns = parseIndexColumnList();
-                if (unique) {
+                if (nullsDistinct != null) {
                     uniqueColumnCount = columns.length;
                     if (readIf("INCLUDE")) {
                         read(OPEN_PAREN);
@@ -6972,9 +6975,25 @@ public class Parser {
                 }
             }
             command.setIndexColumns(columns);
-            command.setUniqueColumnCount(uniqueColumnCount);
+            command.setUnique(nullsDistinct, uniqueColumnCount);
             return command;
         }
+    }
+
+    private NullsDistinct readNullsDistinct(NullsDistinct defaultDistinct) {
+        if (readIf("NULLS")) {
+            if (readIf(DISTINCT)) {
+                return NullsDistinct.DISTINCT;
+            }
+            if (readIf(NOT, DISTINCT)) {
+                return NullsDistinct.NOT_DISTINCT;
+            }
+            if (readIf(ALL, DISTINCT)) {
+                return NullsDistinct.ALL_DISTINCT;
+            }
+            throw getSyntaxError();
+        }
+        return defaultDistinct;
     }
 
     /**
@@ -9205,8 +9224,9 @@ public class Parser {
                 command.setIndex(getSchema().findIndex(session, indexName));
             }
             break;
-        case UNIQUE:
+        case UNIQUE: {
             read();
+            NullsDistinct nullsDistinct = readNullsDistinct(database.getMode().nullsDistinct);
             // MySQL compatibility
             boolean compatibility = database.getMode().indexDefinitionInCreateTable;
             if (compatibility) {
@@ -9220,6 +9240,7 @@ public class Parser {
             read(OPEN_PAREN);
             command = new AlterTableAddConstraint(session, schema, CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_UNIQUE,
                     ifNotExists);
+            command.setNullsDistinct(nullsDistinct);
             if (readIf(VALUE, CLOSE_PAREN)) {
                 command.setIndexColumns(null);
             } else {
@@ -9233,6 +9254,7 @@ public class Parser {
                 readIf(USING, "BTREE");
             }
             break;
+        }
         case FOREIGN:
             read();
             read(KEY);
@@ -9516,9 +9538,11 @@ public class Parser {
                 pk.setIndexColumns(new IndexColumn[] { new IndexColumn(column.getName()) });
                 command.addConstraintCommand(pk);
             } else if (readIf(UNIQUE)) {
+                NullsDistinct nullsDistinct = readNullsDistinct(database.getMode().nullsDistinct);
                 AlterTableAddConstraint unique = new AlterTableAddConstraint(session, schema,
                         CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_UNIQUE, false);
                 unique.setConstraintName(constraintName);
+                unique.setNullsDistinct(nullsDistinct);
                 unique.setIndexColumns(new IndexColumn[] { new IndexColumn(column.getName()) });
                 unique.setTableName(tableName);
                 command.addConstraintCommand(unique);

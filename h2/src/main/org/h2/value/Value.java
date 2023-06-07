@@ -2657,13 +2657,16 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
                 return Integer.compare(l.getInt(), r.getInt());
             case BIGINT:
                 return Long.compare(l.getLong(), r.getLong());
+            case NUMERIC:
+                return l.getBigDecimal().compareTo(r.getBigDecimal());
             case REAL:
                 return Float.compare(l.getFloat(), r.getFloat());
             case DOUBLE:
                 return Double.compare(l.getDouble(), r.getDouble());
             }
         }
-        return l.getBigDecimal().compareTo(r.getBigDecimal());
+        return l.convertToDecfloat(null, CONVERT_TO).compareTypeSafe( //
+                r.convertToDecfloat(null, CONVERT_TO), null, null);
     }
 
     /**

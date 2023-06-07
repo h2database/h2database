@@ -7561,16 +7561,11 @@ public class Parser {
             TableView.destroyShadowTableForRecursiveExpression(isTemporary, session, recursiveTable);
         }
 
-        return createCTEView(cteViewName,
-                querySQLOutput[0], queryParameters, columnTemplateList,
-                true/* allowRecursiveQueryDetection */,
-                true/* add to session */,
-                isTemporary);
+        return createCTEView(cteViewName, querySQLOutput[0], queryParameters, columnTemplateList, isTemporary);
     }
 
     private TableView createCTEView(String cteViewName, String querySQL, ArrayList<Parameter> queryParameters,
-                                    List<Column> columnTemplateList, boolean allowRecursiveQueryDetection,
-                                    boolean addViewToSession, boolean isTemporary) {
+                                    List<Column> columnTemplateList, boolean isTemporary) {
         Schema schema = getSchemaWithDefault();
         int id = database.allocateObjectId();
         Column[] columnTemplateArray = columnTemplateList.toArray(new Column[0]);
@@ -7582,16 +7577,18 @@ public class Parser {
         synchronized (session) {
             view = new TableView(schema, id, cteViewName, querySQL,
                     queryParameters, columnTemplateArray, session,
-                    allowRecursiveQueryDetection, false, true,
+                    true, false, true,
                     isTemporary);
-            if (!view.isRecursiveQueryDetected() && allowRecursiveQueryDetection) {
+            if (!view.isRecursiveQueryDetected()) {
                 if (!isTemporary) {
                     database.addSchemaObject(session, view);
                     view.lock(session, Table.EXCLUSIVE_LOCK);
                     database.removeSchemaObject(session, view);
                 } else {
+                    session.addLocalTempTable(view);
                     session.removeLocalTempTable(view);
                 }
+                id = database.allocateObjectId();
                 view = new TableView(schema, id, cteViewName, querySQL, queryParameters,
                         columnTemplateArray, session,
                         false/* assume recursive */, false, true,
@@ -7604,14 +7601,12 @@ public class Parser {
         view.setTemporary(isTemporary);
         view.setHidden(true);
         view.setOnCommitDrop(false);
-        if (addViewToSession) {
-            if (!isTemporary) {
-                database.addSchemaObject(session, view);
-                view.unlock(session);
-                database.unlockMeta(session);
-            } else {
-                session.addLocalTempTable(view);
-            }
+        if (!isTemporary) {
+            database.addSchemaObject(session, view);
+            view.unlock(session);
+            database.unlockMeta(session);
+        } else {
+            session.addLocalTempTable(view);
         }
         return view;
     }

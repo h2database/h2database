@@ -128,6 +128,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
         addAggregate("VAR_SAMP", AggregateType.VAR_SAMP);
         addAggregate("VAR", AggregateType.VAR_SAMP);
         addAggregate("VARIANCE", AggregateType.VAR_SAMP);
+        addAggregate("ANY_VALUE", AggregateType.ANY_VALUE);
         addAggregate("ANY", AggregateType.ANY);
         addAggregate("SOME", AggregateType.ANY);
         // PostgreSQL compatibility
@@ -474,6 +475,11 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
         case REGR_INTERCEPT:
         case REGR_R2:
             return new AggregateDataCorr(aggregateType);
+        case ANY_VALUE:
+            if (!distinct) {
+                return new AggregateDataAnyValue();
+            }
+            break;
         case LISTAGG: // NULL values are excluded by Aggregate
         case ARRAY_AGG:
             return new AggregateDataCollecting(distinct, orderByList != null, NullCollectionMode.USED_OR_IMPOSSIBLE);
@@ -589,6 +595,15 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
                     return ValueNull.INSTANCE;
                 }
                 return collect(session, c, new AggregateDataStdVar(aggregateType));
+            }
+            break;
+        case ANY_VALUE:
+            if (distinct) {
+                AggregateDataCollecting c = ((AggregateDataCollecting) data);
+                if (c.getCount() == 0) {
+                    return ValueNull.INSTANCE;
+                }
+                return collect(session, c, new AggregateDataAnyValue());
             }
             break;
         case HISTOGRAM:
@@ -987,6 +1002,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             break;
         case MIN:
         case MAX:
+        case ANY_VALUE:
             break;
         case STDDEV_POP:
         case STDDEV_SAMP:
@@ -1267,7 +1283,8 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
         if (filterCondition != null && !filterCondition.isEverything(visitor)) {
             return false;
         }
-        if (visitor.getType() == ExpressionVisitor.OPTIMIZABLE_AGGREGATE) {
+        switch (visitor.getType()) {
+        case ExpressionVisitor.OPTIMIZABLE_AGGREGATE:
             switch (aggregateType) {
             case COUNT:
                 if (distinct || args[0].getNullable() != Column.NOT_NULLABLE) {
@@ -1291,6 +1308,10 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             case ENVELOPE:
                 return AggregateDataEnvelope.getGeometryColumnIndex(args[0]) != null;
             default:
+                return false;
+            }
+        case ExpressionVisitor.DETERMINISTIC:
+            if (aggregateType == AggregateType.ANY_VALUE) {
                 return false;
             }
         }

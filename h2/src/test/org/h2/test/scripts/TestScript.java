@@ -162,7 +162,8 @@ public class TestScript extends TestDb {
                 "merge", "mergeUsing", "replace", "script", "show", "update", "with" }) {
             testScript("dml/" + s + ".sql");
         }
-        for (String s : new String[] { "any", "array_agg", "avg", "bit_and_agg", "bit_or_agg", "bit_xor_agg",
+        for (String s : new String[] { "any_value", "any", "array_agg", "avg",
+                "bit_and_agg", "bit_or_agg", "bit_xor_agg",
                 "corr",
                 "count",
                 "covar_pop", "covar_samp",

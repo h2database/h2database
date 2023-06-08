@@ -105,7 +105,8 @@ public class DropTable extends DefineCommand {
                     }
                 }
                 if (!dependencies.isEmpty()) {
-                    throw DbException.get(ErrorCode.CANNOT_DROP_2, table.getName(), String.join(", ", new HashSet<>(dependencies)));
+                    throw DbException.get(ErrorCode.CANNOT_DROP_2, table.getName(),
+                            String.join(", ", new HashSet<>(dependencies)));
                 }
             }
             table.lock(session, Table.EXCLUSIVE_LOCK);

@@ -586,8 +586,7 @@ public abstract class Table extends SchemaObject {
     @Override
     public void removeChildrenAndResources(SessionLocal session) {
         while (!dependentViews.isEmpty()) {
-            TableView view = dependentViews.get(0);
-            dependentViews.remove(0);
+            TableView view = dependentViews.remove(0);
             database.removeSchemaObject(session, view);
         }
         while (synonyms != null && !synonyms.isEmpty()) {

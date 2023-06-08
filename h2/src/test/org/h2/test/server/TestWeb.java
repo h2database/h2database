@@ -130,19 +130,24 @@ public class TestWeb extends TestDb {
         Server server = Server.createWebServer(
                 "-webPort", "8182", "-properties", "null");
         server.start();
-        assertContains(server.getStatus(), "server running");
-        Server server2 = Server.createWebServer(
-                "-webPort", "8182", "-properties", "null");
-        assertEquals("Not started", server2.getStatus());
         try {
-            server2.start();
-            fail();
-        } catch (Exception e) {
-            assertContains(e.toString(), "port may be in use");
-            assertContains(server2.getStatus(),
-                    "could not be started");
+            assertContains(server.getStatus(), "server running");
+            Server server2 = Server.createWebServer(
+                    "-webPort", "8182", "-properties", "null");
+            assertEquals("Not started", server2.getStatus());
+            try {
+                server2.start();
+                fail();
+            } catch (Exception e) {
+                assertContains(e.toString(), "port may be in use");
+                assertContains(server2.getStatus(),
+                        "could not be started");
+            } finally {
+                server2.stop();
+            }
+        } finally {
+            server.stop();
         }
-        server.stop();
     }
 
     private void testTools() throws Exception {

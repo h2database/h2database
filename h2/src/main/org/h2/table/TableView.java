@@ -264,7 +264,6 @@ public final class TableView extends QueryExpressionTable {
     public void removeChildrenAndResources(SessionLocal session) {
         removeCurrentViewFromOtherTables();
         super.removeChildrenAndResources(session);
-        database.removeMeta(session, getId());
         querySQL = null;
         index = null;
         clearIndexCaches(database);

@@ -408,14 +408,13 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
      * @param table the table
      */
     public void removeLocalTempTable(Table table) {
-        modificationId++;
-        if (localTempTables != null) {
-            localTempTables.remove(table.getName());
-        }
-        Database db = database;
-        if (db != null) {
-            synchronized (db) {
-                table.removeChildrenAndResources(this);
+        if (localTempTables != null && localTempTables.remove(table.getName()) != null) {
+            modificationId++;
+            Database db = database;
+            if (db != null) {
+                synchronized (db) {
+                    table.removeChildrenAndResources(this);
+                }
             }
         }
     }

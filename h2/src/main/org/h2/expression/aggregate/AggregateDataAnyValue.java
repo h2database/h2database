@@ -46,13 +46,14 @@ final class AggregateDataAnyValue extends AggregateData {
     private void compact(SessionLocal session) {
         filter <<= 1;
         Random random = session.getRandom();
-        for (int i = MAX_VALUES - 2; i >= 0; i -= 2) {
-            int idx = i;
+        for (int s = 0, t = 0; t < MAX_VALUES / 2; s += 2, t++) {
+            int idx = s;
             if (random.nextBoolean()) {
                 idx++;
             }
-            values.remove(idx);
+            values.set(t, values.get(idx));
         }
+        values.subList(MAX_VALUES / 2, MAX_VALUES).clear();
     }
 
     @Override

@@ -599,11 +599,11 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             break;
         case ANY_VALUE:
             if (distinct) {
-                AggregateDataCollecting c = ((AggregateDataCollecting) data);
-                if (c.getCount() == 0) {
+                Value[] values = ((AggregateDataCollecting) data).getArray();
+                if (values == null) {
                     return ValueNull.INSTANCE;
                 }
-                return collect(session, c, new AggregateDataAnyValue());
+                return values[session.getRandom().nextInt(values.length)];
             }
             break;
         case HISTOGRAM:

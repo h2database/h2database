@@ -284,7 +284,11 @@ public final class Tokenizer {
                         i = readIntegerNumber(sql, i, end, i + 2, tokens, "Octal number", 8);
                         continue loop;
                     case 'X':
-                        i = readHexNumber(sql, provider, i, end, i + 2, tokens);
+                        if (provider.getMode().zeroExLiteralsAreBinaryStrings) {
+                            i = read0xBinaryString(sql, end, i + 2, tokens);
+                        } else {
+                            i = readIntegerNumber(sql, i, end, i + 2, tokens, "Hex number", 16);
+                        }
                         continue loop;
                     }
                 }
@@ -492,8 +496,7 @@ public final class Tokenizer {
                     if (identifierEnd < 0) {
                         throw DbException.getSyntaxError(sql, i);
                     }
-                    token = new Token.IdentifierToken(i, sql.substring(identifierStart, identifierEnd), true,
-                            false);
+                    token = new Token.IdentifierToken(i, sql.substring(identifierStart, identifierEnd), true, false);
                     i = identifierEnd;
                 } else {
                     token = new Token.KeywordToken(i, OPEN_BRACKET);
@@ -1149,55 +1152,16 @@ public final class Tokenizer {
         return i;
     }
 
-    private static int readHexNumber(String sql, CastDataProvider provider, int tokenStart, int end, int i,
-            ArrayList<Token> tokens) {
-        if (provider.getMode().zeroExLiteralsAreBinaryStrings) {
-            int start = i;
-            for (char c; i <= end
-                    && (((c = sql.charAt(i)) >= '0' && c <= '9') || ((c &= 0xffdf) >= 'A' && c <= 'F'));) {
-                i++;
-            }
-            if (i <= end && Character.isJavaIdentifierPart(sql.codePointAt(i))) {
-                throw DbException.get(ErrorCode.HEX_STRING_WRONG_1, sql.substring(start, i + 1));
-            }
-            tokens.add(new Token.BinaryStringToken(start, StringUtils.convertHexToBytes(sql.substring(start, i))));
-            return i;
-        } else {
-            if (i > end) {
-                throw DbException.getSyntaxError(sql, tokenStart, "Hex number");
-            }
-            int start = i;
-            long number = 0;
-            char c;
-            do {
-                c = sql.charAt(i);
-                if (c >= '0' && c <= '9') {
-                    number = (number << 4) + c - '0';
-                    // Convert a-z to A-Z
-                } else if ((c &= 0xffdf) >= 'A' && c <= 'F') {
-                    number = (number << 4) + c - ('A' - 10);
-                } else if (i == start) {
-                    throw DbException.getSyntaxError(sql, tokenStart, "Hex number");
-                } else {
-                    break;
-                }
-                if (number > Integer.MAX_VALUE) {
-                    while (++i <= end
-                            && (((c = sql.charAt(i)) >= '0' && c <= '9') || ((c &= 0xffdf) >= 'A' && c <= 'F'))) {
-                    }
-                    return finishBigInteger(sql, tokenStart, end, i, start, i <= end && c == 'L', 16, tokens);
-                }
-            } while (++i <= end);
-            boolean bigint = i <= end && c == 'L';
-            if (bigint) {
-                i++;
-            }
-            if (i <= end && Character.isJavaIdentifierPart(sql.codePointAt(i))) {
-                throw DbException.getSyntaxError(sql, tokenStart, "Hex number");
-            }
-            tokens.add(bigint ? new Token.BigintToken(start, number) : new Token.IntegerToken(start, (int) number));
-            return i;
+    private static int read0xBinaryString(String sql, int end, int i, ArrayList<Token> tokens) {
+        int start = i;
+        for (char c; i <= end && (((c = sql.charAt(i)) >= '0' && c <= '9') || ((c &= 0xffdf) >= 'A' && c <= 'F'));) {
+            i++;
         }
+        if (i <= end && Character.isJavaIdentifierPart(sql.codePointAt(i))) {
+            throw DbException.get(ErrorCode.HEX_STRING_WRONG_1, sql.substring(start, i + 1));
+        }
+        tokens.add(new Token.BinaryStringToken(start, StringUtils.convertHexToBytes(sql.substring(start, i))));
+        return i;
     }
 
     private static int readIntegerNumber(String sql, int tokenStart, int end, int i, ArrayList<Token> tokens,
@@ -1205,7 +1169,14 @@ public final class Tokenizer {
         if (i > end) {
             throw DbException.getSyntaxError(sql, tokenStart, name);
         }
-        char maxDigit = (char) (('0' - 1) + radix);
+        int maxDigit, maxLetter;
+        if (radix > 10) {
+            maxDigit = '9';
+            maxLetter = ('A' - 11) + radix;
+        } else {
+            maxDigit = ('0' - 1) + radix;
+            maxLetter = -1;
+        }
         int start = i;
         long number = 0;
         char c;
@@ -1213,13 +1184,17 @@ public final class Tokenizer {
             c = sql.charAt(i);
             if (c >= '0' && c <= maxDigit) {
                 number = (number * radix) + c - '0';
+            } else if (maxLetter >= 0 && (c &= 0xffdf) >= 'A' && c <= maxLetter) {
+                number = (number * radix) + c - ('A' - 10);
             } else if (i == start) {
                 throw DbException.getSyntaxError(sql, tokenStart, name);
             } else {
                 break;
             }
             if (number > Integer.MAX_VALUE) {
-                while (++i <= end && (c = sql.charAt(i)) >= '0' && c <= maxDigit) {
+                while (++i <= end && //
+                        (((c = sql.charAt(i)) >= '0' && c <= maxDigit)
+                                || (maxLetter >= 0 && (c &= 0xffdf) >= 'A' && c <= 'F'))) {
                 }
                 return finishBigInteger(sql, tokenStart, end, i, start, i <= end && c == 'L', radix, tokens);
             }

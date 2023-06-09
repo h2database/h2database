@@ -6976,6 +6976,24 @@ Aggregates are only allowed in select statements.
 VAR_SAMP(X)
 "
 
+"Aggregate Functions (General)","ANY_VALUE","
+ANY_VALUE( @h2@ [ DISTINCT|ALL ] value )
+[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+","
+Returns any non-NULL value from aggregated values.
+If no rows are selected, the result is NULL.
+This function uses the same pseudo random generator as [RAND()](https://h2database.com/html/functions.html#rand)
+function.
+
+If DISTINCT is specified, each distinct value will be returned with approximately the same probability
+as other distinct values. If it isn't specified, more frequent values will be returned with higher probability
+than less frequent.
+
+Aggregates are only allowed in select statements.
+","
+ANY_VALUE(X)
+"
+
 "Aggregate Functions (General)","BIT_AND_AGG","
 {@h2@{BIT_AND_AGG}|@c@{BIT_AND}}@h2@(expression)
 @h2@ [FILTER (WHERE expression)] @h2@ [OVER windowNameOrSpecification]

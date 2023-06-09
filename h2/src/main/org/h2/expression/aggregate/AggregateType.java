@@ -61,6 +61,11 @@ public enum AggregateType {
     VAR_SAMP,
 
     /**
+     * The aggregate type for ANY_VALUE(expression).
+     */
+    ANY_VALUE,
+
+    /**
      * The aggregate type for ANY(expression).
      */
     ANY,

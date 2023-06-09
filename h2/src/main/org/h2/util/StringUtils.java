@@ -1349,6 +1349,28 @@ public class StringUtils {
     }
 
     /**
+     * Appends the specified string or its part to the specified builder with
+     * maximum builder length limit.
+     *
+     * @param builder the string builder
+     * @param s the string to append
+     * @param length the length limit
+     * @return the specified string builder
+     */
+    public static StringBuilder appendToLength(StringBuilder builder, String s, int length) {
+        int builderLength = builder.length();
+        if (builderLength < length) {
+            int need = length - builderLength;
+            if (need >= s.length()) {
+                builder.append(s);
+            } else {
+                builder.append(s, 0, need);
+            }
+        }
+        return builder;
+    }
+
+    /**
      * Escape table or schema patterns used for DatabaseMetaData functions.
      *
      * @param pattern the pattern

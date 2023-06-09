@@ -41,6 +41,7 @@ import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
+import org.h2.util.StringUtils;
 import org.h2.util.json.JsonConstructorUtils;
 import org.h2.value.CompareMode;
 import org.h2.value.DataType;
@@ -813,10 +814,15 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
     private StringBuilder getListaggError(Value[] array, String separator) {
         StringBuilder builder = new StringBuilder(getListaggItem(array[0]));
         for (int i = 1, count = array.length; i < count; i++) {
-            builder.append(separator).append(getListaggItem(array[i]));
-            if (builder.length() > Constants.MAX_STRING_LENGTH) {
-                throw DbException.getValueTooLongException("CHARACTER VARYING", builder.substring(0, 81), -1L);
+            String s = getListaggItem(array[i]);
+            long length = (long) builder.length() + separator.length() + s.length();
+            if (length > Constants.MAX_STRING_LENGTH) {
+                int limit = 81;
+                StringUtils.appendToLength(builder, separator, limit);
+                StringUtils.appendToLength(builder, s, limit);
+                throw DbException.getValueTooLongException("CHARACTER VARYING", builder.substring(0, limit), -1L);
             }
+            builder.append(separator).append(s);
         }
         return builder;
     }
@@ -827,17 +833,24 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
         String[] strings = new String[count];
         String s = getListaggItem(array[0]);
         strings[0] = s;
-        final int estimatedLength = (int) Math.min(Integer.MAX_VALUE, s.length() * (long)count);
+        final int estimatedLength = (int) Math.min(Constants.MAX_STRING_LENGTH, s.length() * (long) count);
         final StringBuilder builder = new StringBuilder(estimatedLength);
         builder.append(s);
         loop: for (int i = 1; i < count; i++) {
-            builder.append(separator).append(strings[i] = s = getListaggItem(array[i]));
+            strings[i] = s = getListaggItem(array[i]);
             int length = builder.length();
-            if (length > Constants.MAX_STRING_LENGTH) {
+            long longLength = (long) length + separator.length() + s.length();
+            if (longLength > Constants.MAX_STRING_LENGTH) {
+                if (longLength - s.length() >= Constants.MAX_STRING_LENGTH) {
+                    i--;
+                } else {
+                    builder.append(separator);
+                    length = (int) longLength;
+                }
                 for (; i > 0; i--) {
                     length -= strings[i].length();
                     builder.setLength(length);
-                    builder.append(filter);
+                    StringUtils.appendToLength(builder, filter, Constants.MAX_STRING_LENGTH + 1);
                     if (!withoutCount) {
                         builder.append('(').append(count - i).append(')');
                     }
@@ -850,6 +863,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
                 builder.append(filter).append('(').append(count).append(')');
                 break;
             }
+            builder.append(separator).append(s);
         }
         return builder;
     }

@@ -136,6 +136,8 @@ public class Bnf {
         addFixedRule("@open_bracket@", RuleFixed.OPEN_BRACKET);
         addFixedRule("@close_bracket@", RuleFixed.CLOSE_BRACKET);
         addFixedRule("json_text", RuleFixed.JSON_TEXT);
+        Rule digit = ruleMap.get("digit").getRule();
+        ruleMap.get("number").setRule(new RuleList(digit, new RuleOptional(new RuleRepeat(digit, false)), false));
     }
 
     /**

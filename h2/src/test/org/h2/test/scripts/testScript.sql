@@ -5109,7 +5109,7 @@ SELECT T1.* T2;
 > exception SYNTAX_ERROR_1
 
 select replace('abchihihi', 'i', 'o') abcehohoho, replace('this is tom', 'i') 1e_th_st_om from test;
-> exception SYNTAX_ERROR_1
+> exception SYNTAX_ERROR_2
 
 select monthname(date )'005-0E9-12') d_set fm test;
 > exception SYNTAX_ERROR_1

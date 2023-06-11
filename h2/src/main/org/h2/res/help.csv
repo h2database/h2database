@@ -2184,7 +2184,7 @@ A literal value of any data type, or null.
 "
 
 "Literals","Approximate numeric","
-[ + | - ] { { number [ . number ] } | { . number } }
+[ + | - ] { { number [ . [ number ] ] } | { . number } }
 E [ + | - ] expNumber
 ","
 An approximate numeric value.
@@ -2198,6 +2198,7 @@ for negative infinity, use ""CAST('-Infinity' AS dataType)"";
 for ""NaN"" (not a number), use ""CAST('NaN' AS dataType)"".
 ","
 -1.4e-10
+1.111_111E3
 CAST(1e2 AS REAL)
 CAST('NaN' AS DOUBLE PRECISION)
 "
@@ -2269,30 +2270,34 @@ this type, larger values small enough to fit into [BIGINT](https://h2database.co
 type have this type, others also have NUMERIC data type.
 ","
 -1600.05
+134_518.235_114
 "
 
 "Literals","Hex Number","
-[+|-] {0x|0X}{ digit | a-f | A-F } [...]
+[+|-] {0x|0X} { [_] { digit | a-f | A-F } [...] } [...]
 ","
 A number written in hexadecimal notation.
 ","
 0xff
+0x_ABCD_1234
 "
 
 "Literals","Octal Number","
-[+|-] {0o|0O}{ 0-7 } [...]
+[+|-] {0o|0O} { [_] { 0-7 } [...] } [...]
 ","
 A number written in octal notation.
 ","
 0o664
+0o_123_777
 "
 
 "Literals","Binary Number","
-[+|-] {0b|0B}{ 0-1 } [...]
+[+|-] {0b|0B} { [_] { 0-1 } [...] } [...]
 ","
 A number written in binary notation.
 ","
 0b101
+0b_01010101_10101010
 "
 
 "Literals","Int","
@@ -2301,6 +2306,7 @@ A number written in binary notation.
 The maximum integer number is 2147483647, the minimum is -2147483648.
 ","
 10
+65_536
 "
 
 "Literals","GEOMETRY","
@@ -2340,6 +2346,7 @@ JSON X'7472' '7565'
 Long numbers are between -9223372036854775808 and 9223372036854775807.
 ","
 100000
+1_000_000_000
 "
 
 "Literals","Null","
@@ -2351,11 +2358,12 @@ NULL
 "
 
 "Literals","Number","
-digit [...]
+digit [ [_] digit [...] ] [...]
 ","
 The maximum length of the number depends on the data type used.
 ","
 100
+10_000
 "
 
 "Literals","Numeric","
@@ -2369,6 +2377,7 @@ An explicit CAST can be used to change the data type.
 -1600.05
 CAST(0 AS DOUBLE PRECISION)
 -1.4e-10
+999_999_999.999_999
 "
 
 "Literals","String","

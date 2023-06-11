@@ -255,7 +255,7 @@ public final class Tokenizer {
                 if (i < end) {
                     char c2 = sql.charAt(i + 1);
                     if (c2 >= '0' && c2 <= '9') {
-                        i = readNumeric(sql, i, end, i + 1, c2, false, false, tokens);
+                        i = readFloat(sql, i, end, i + 1, false, tokens);
                         continue loop;
                     }
                 }
@@ -1180,10 +1180,17 @@ public final class Tokenizer {
         int start = i;
         long number = 0;
         char c;
+        int lastUnderscore = Integer.MIN_VALUE;
         do {
             c = sql.charAt(i);
             if (c >= '0' && c <= maxDigit) {
                 number = (number * radix) + c - '0';
+            } else if (c == '_') {
+                if (lastUnderscore == i - 1) {
+                    throw DbException.getSyntaxError(sql, tokenStart, name);
+                }
+                lastUnderscore = i;
+                continue;
             } else if (maxLetter >= 0 && (c &= 0xffdf) >= 'A' && c <= maxLetter) {
                 number = (number * radix) + c - ('A' - 10);
             } else if (i == start) {
@@ -1192,13 +1199,31 @@ public final class Tokenizer {
                 break;
             }
             if (number > Integer.MAX_VALUE) {
-                while (++i <= end && //
-                        (((c = sql.charAt(i)) >= '0' && c <= maxDigit)
-                                || (maxLetter >= 0 && (c &= 0xffdf) >= 'A' && c <= 'F'))) {
+                while (++i <= end) {
+                    if ((c = sql.charAt(i)) >= '0' && c <= maxDigit) {
+                        //
+                    } else if (c == '_') {
+                        if (lastUnderscore == i - 1) {
+                            throw DbException.getSyntaxError(sql, tokenStart, name);
+                        }
+                        lastUnderscore = i;
+                        continue;
+                    } else if (maxLetter >= 0 && (c &= 0xffdf) >= 'A' && c <= 'F') {
+                        //
+                    } else {
+                        break;
+                    }
                 }
-                return finishBigInteger(sql, tokenStart, end, i, start, i <= end && c == 'L', radix, tokens);
+                if (lastUnderscore == i - 1) {
+                    throw DbException.getSyntaxError(sql, tokenStart, name);
+                }
+                return finishBigInteger(sql, tokenStart, end, i, start, i <= end && c == 'L', lastUnderscore >= 0,
+                        radix, tokens);
             }
         } while (++i <= end);
+        if (lastUnderscore == i - 1) {
+            throw DbException.getSyntaxError(sql, tokenStart, name);
+        }
         boolean bigint = i <= end && c == 'L';
         if (bigint) {
             i++;
@@ -1212,78 +1237,148 @@ public final class Tokenizer {
 
     private static int readNumeric(String sql, int tokenStart, int end, int i, char c, ArrayList<Token> tokens) {
         long number = c - '0';
+        int lastUnderscore = Integer.MIN_VALUE;
         for (; i <= end; i++) {
             c = sql.charAt(i);
             if (c < '0' || c > '9') {
+                if (lastUnderscore == i - 1) {
+                    throw DbException.getSyntaxError(sql, tokenStart, "Numeric");
+                }
                 switch (c) {
                 case '.':
-                    return readNumeric(sql, tokenStart, end, i, c, false, false, tokens);
+                    return readFloat(sql, tokenStart, end, i, lastUnderscore >= 0, tokens);
                 case 'E':
                 case 'e':
-                    return readNumeric(sql, tokenStart, end, i, c, false, true, tokens);
+                    return readApproximateNumeric(sql, tokenStart, end, i, lastUnderscore >= 0, tokens);
                 case 'L':
                 case 'l':
-                    return finishBigInteger(sql, tokenStart, end, i, tokenStart, true, 10, tokens);
+                    return finishBigInteger(sql, tokenStart, end, i, tokenStart, true, lastUnderscore >= 0, 10, //
+                            tokens);
+                case '_':
+                    lastUnderscore = i;
+                    continue;
                 }
                 break;
             }
             number = number * 10 + (c - '0');
             if (number > Integer.MAX_VALUE) {
-                return readNumeric(sql, tokenStart, end, i, c, true, false, tokens);
+                while (++i <= end) {
+                    c = sql.charAt(i);
+                    if (c < '0' || c > '9') {
+                        if (lastUnderscore == i - 1) {
+                            throw DbException.getSyntaxError(sql, tokenStart, "Numeric");
+                        }
+                        switch (c) {
+                        case '.':
+                            return readFloat(sql, tokenStart, end, i, lastUnderscore >= 0, tokens);
+                        case 'E':
+                        case 'e':
+                            return readApproximateNumeric(sql, tokenStart, end, i, lastUnderscore >= 0, tokens);
+                        case '_':
+                            lastUnderscore = i;
+                            continue;
+                        }
+                        break;
+                    }
+                }
+                if (lastUnderscore == i - 1) {
+                    throw DbException.getSyntaxError(sql, tokenStart, "Numeric");
+                }
+                return finishBigInteger(sql, tokenStart, end, i, tokenStart, c == 'L' || c == 'l', lastUnderscore >= 0,
+                        10, tokens);
             }
+        }
+        if (lastUnderscore == i - 1) {
+            throw DbException.getSyntaxError(sql, tokenStart, "Numeric");
         }
         tokens.add(new Token.IntegerToken(tokenStart, (int) number));
         return i;
     }
 
-    private static int readNumeric(String sql, int tokenStart, int end, int i, char c, boolean integer,
-            boolean approximate, ArrayList<Token> tokens) {
-        if (!approximate) {
-            while (++i <= end) {
-                c = sql.charAt(i);
-                if (c == '.') {
-                    integer = false;
-                } else if (c < '0' || c > '9') {
-                    break;
-                }
-            }
-        }
-        if (i <= end && (c == 'E' || c == 'e')) {
-            integer = false;
-            approximate = true;
-            if (i == end) {
-                throw DbException.getSyntaxError(sql, tokenStart);
-            }
-            c = sql.charAt(++i);
-            if (c == '+' || c == '-') {
-                if (i == end) {
-                    throw DbException.getSyntaxError(sql, tokenStart);
-                }
-                c = sql.charAt(++i);
-            }
+    private static int readFloat(String sql, int tokenStart, int end, int i, boolean withUnderscore,
+            ArrayList<Token> tokens) {
+        int start = i + 1;
+        int lastUnderscore = Integer.MIN_VALUE;
+        while (++i <= end) {
+            char c = sql.charAt(i);
             if (c < '0' || c > '9') {
-                throw DbException.getSyntaxError(sql, tokenStart);
+                if (lastUnderscore == i - 1) {
+                    throw DbException.getSyntaxError(sql, tokenStart, "Numeric");
+                }
+                switch (c) {
+                case 'E':
+                case 'e':
+                    return readApproximateNumeric(sql, tokenStart, end, i, withUnderscore, tokens);
+                case '_':
+                    if (i == start) {
+                        throw DbException.getSyntaxError(sql, tokenStart, "Numeric");
+                    }
+                    lastUnderscore = i;
+                    withUnderscore = true;
+                    continue;
+                }
+                break;
             }
-            while (++i <= end && (c = sql.charAt(i)) >= '0' && c <= '9') {
-                // go until the first non-number
-            }
         }
-        if (integer) {
-            return finishBigInteger(sql, tokenStart, end, i, tokenStart, i < end && c == 'L' || c == 'l', 10, tokens);
+        if (lastUnderscore == i - 1) {
+            throw DbException.getSyntaxError(sql, tokenStart, "Numeric");
         }
-        BigDecimal bd;
-        String string = sql.substring(tokenStart, i);
-        try {
-            bd = new BigDecimal(string);
-        } catch (NumberFormatException e) {
-            throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, e, string);
-        }
-        tokens.add(new Token.ValueToken(tokenStart, approximate ? ValueDecfloat.get(bd) : ValueNumeric.get(bd)));
+        tokens.add(new Token.ValueToken(tokenStart, //
+                ValueNumeric.get(readBigDecimal(sql, tokenStart, i, withUnderscore))));
         return i;
     }
 
+    private static int readApproximateNumeric(String sql, int tokenStart, int end, int i, boolean withUnderscore,
+            ArrayList<Token> tokens) {
+        if (i == end) {
+            throw DbException.getSyntaxError(sql, tokenStart, "Approximate numeric");
+        }
+        char c = sql.charAt(++i);
+        if (c == '+' || c == '-') {
+            if (i == end) {
+                throw DbException.getSyntaxError(sql, tokenStart, "Approximate numeric");
+            }
+            c = sql.charAt(++i);
+        }
+        if (c < '0' || c > '9') {
+            throw DbException.getSyntaxError(sql, tokenStart, "Approximate numeric");
+        }
+        int lastUnderscore = Integer.MIN_VALUE;
+        while (++i <= end) {
+            c = sql.charAt(i);
+            if (c < '0' || c > '9') {
+                if (lastUnderscore == i - 1) {
+                    throw DbException.getSyntaxError(sql, tokenStart, "Approximate numeric");
+                }
+                if (c == '_') {
+                    lastUnderscore = i;
+                    withUnderscore = true;
+                    continue;
+                }
+                break;
+            }
+        }
+        if (lastUnderscore == i - 1) {
+            throw DbException.getSyntaxError(sql, tokenStart, "Approximate numeric");
+        }
+        tokens.add(new Token.ValueToken(tokenStart,
+                ValueDecfloat.get(readBigDecimal(sql, tokenStart, i, withUnderscore))));
+        return i;
+    }
+
+    private static BigDecimal readBigDecimal(String sql, int tokenStart, int i, boolean withUnderscore) {
+        String string = readAndRemoveUnderscores(sql, tokenStart, i, withUnderscore);
+        BigDecimal bd;
+        try {
+            bd = new BigDecimal(string);
+        } catch (NumberFormatException e) {
+            throw DbException.getSyntaxError(sql, tokenStart, "Numeric");
+        }
+        return bd;
+    }
+
     private static int finishBigInteger(String sql, int tokenStart, int end, int i, int start, boolean asBigint,
-            int radix, ArrayList<Token> tokens) {
+            boolean withUnderscore, int radix, ArrayList<Token> tokens) {
         int endIndex = i;
         if (asBigint) {
             i++;
@@ -1291,18 +1386,32 @@ public final class Tokenizer {
         if (radix == 16 && i <= end && Character.isJavaIdentifierPart(sql.codePointAt(i))) {
             throw DbException.getSyntaxError(sql, tokenStart, "Hex number");
         }
-        BigInteger bigInteger = new BigInteger(sql.substring(start, endIndex), radix);
+        BigInteger bigInteger = new BigInteger(readAndRemoveUnderscores(sql, start, endIndex, withUnderscore), radix);
         Token token;
         if (bigInteger.compareTo(ValueBigint.MAX_BI) > 0) {
             if (asBigint) {
-                throw DbException.getSyntaxError(sql, tokenStart);
+                throw DbException.getSyntaxError(sql, tokenStart, "BIGINT");
             }
             token = new Token.ValueToken(tokenStart, ValueNumeric.get(bigInteger));
         } else {
-            token = new Token.BigintToken(start, bigInteger.longValue());
+            token = new Token.BigintToken(tokenStart, bigInteger.longValue());
         }
         tokens.add(token);
         return i;
+    }
+
+    private static String readAndRemoveUnderscores(String sql, int start, int endIndex, boolean withUnderscore) {
+        if (!withUnderscore) {
+            return sql.substring(start, endIndex);
+        }
+        StringBuilder builder = new StringBuilder(endIndex - start - 1);
+        for (; start < endIndex; start++) {
+            char c = sql.charAt(start);
+            if (c != '_') {
+                builder.append(c);
+            }
+        }
+        return builder.toString();
     }
 
     private static int skipBracketedComment(String sql, int end, int i) {

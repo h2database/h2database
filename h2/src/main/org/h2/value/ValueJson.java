@@ -105,7 +105,7 @@ public final class ValueJson extends ValueBytesBase {
     public JSONValue getDecomposition() {
         SoftReference<JSONValue> decompositionRef = this.decompositionRef;
         JSONValue decomposition;
-        if (decompositionRef ==  null || (decomposition = decompositionRef.get()) == null) {
+        if (decompositionRef == null || (decomposition = decompositionRef.get()) == null) {
             decomposition = JSONBytesSource.parse(value, new JSONValueTarget());
             this.decompositionRef = new SoftReference<>(decomposition);
         }

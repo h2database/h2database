@@ -65,3 +65,16 @@ SELECT X, X IN(SELECT * FROM UNNEST(ARRAY[2, 4])) FROM SYSTEM_RANGE(1, 5);
 > 4 TRUE
 > 5 FALSE
 > rows: 5
+
+SELECT V FROM (UNNEST(JSON '[1, "2", 3]') WITH ORDINALITY) T(V, N) ORDER BY N;
+> V
+> ---
+> 1
+> "2"
+> 3
+> rows (ordered): 3
+
+SELECT * FROM (UNNEST(JSON 'null'));
+> C1
+> --
+> rows: 0

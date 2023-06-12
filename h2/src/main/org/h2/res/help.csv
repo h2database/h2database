@@ -6223,10 +6223,11 @@ CALL ARRAY_GET(ARRAY['Hello', 'World'], 2)
 "Functions (System)","CARDINALITY","
 { CARDINALITY | @c@ { ARRAY_LENGTH } } (arrayExpression)
 ","
-Returns the length of an array.
+Returns the length of an array or JSON array.
 Returns NULL if the specified array is NULL.
 ","
 CALL CARDINALITY(ARRAY['Hello', 'World'])
+CALL CARDINALITY(JSON '[1, 2, 3]')
 "
 
 "Functions (System)","ARRAY_CONTAINS","
@@ -6835,7 +6836,7 @@ SELECT * FROM TABLE(ID INT=(1, 2), NAME VARCHAR=('Hello', 'World'));
 "
 
 "Functions (Table)","UNNEST","
-UNNEST(array, [,...]) [WITH ORDINALITY]
+UNNEST(arrayExpression, [,...]) [WITH ORDINALITY]
 ","
 Returns the result set.
 Number of columns is equal to number of arguments,
@@ -6844,6 +6845,7 @@ Number of rows is equal to length of longest specified array.
 If multiple arguments are specified and they have different length, cells with missing values will contain null values.
 ","
 SELECT * FROM UNNEST(ARRAY['a', 'b', 'c']);
+SELECT * FROM UNNEST(JSON '[""a"", ""b"", ""c""]');
 "
 
 "Aggregate Functions (General)","AVG","

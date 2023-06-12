@@ -5,7 +5,9 @@
  */
 package org.h2.util.json;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.function.Function;
 
 /**
  * JSON array.
@@ -37,12 +39,42 @@ public final class JSONArray extends JSONValue {
     }
 
     /**
+     * Returns the array length
+     *
+     * @return the array length
+     */
+    public int length() {
+        return elements.size();
+    }
+
+    /**
      * Returns the value.
      *
      * @return the value
      */
     public JSONValue[] getArray() {
         return elements.toArray(new JSONValue[0]);
+    }
+
+    /**
+     * Returns the value.
+     *
+     * @param elementType
+     *            the type of array elements
+     * @param converter
+     *            a converter to the specified type
+     * @param <E>
+     *            type of elements
+     * @return the value
+     */
+    public <E> E[] getArray(Class<E> elementType, Function<JSONValue, E> converter) {
+        int length = elements.size();
+        @SuppressWarnings("unchecked")
+        E[] array = (E[]) Array.newInstance(elementType, length);
+        for (int i = 0; i < length; i++) {
+            array[i] = converter.apply(elements.get(i));
+        }
+        return array;
     }
 
     /**

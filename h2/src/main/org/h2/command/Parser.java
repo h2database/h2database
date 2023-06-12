@@ -4545,8 +4545,13 @@ public class Parser {
                         expr = expr.optimize(session);
                     }
                     TypeInfo exprType = expr.getType();
-                    if (exprType.getValueType() == Value.ARRAY) {
+                    switch (exprType.getValueType()) {
+                    case Value.JSON:
+                        columnType = TypeInfo.TYPE_JSON;
+                        break;
+                    case Value.ARRAY:
                         columnType = (TypeInfo) exprType.getExtTypeInfo();
+                        break;
                     }
                 }
                 f.addParameter(expr);

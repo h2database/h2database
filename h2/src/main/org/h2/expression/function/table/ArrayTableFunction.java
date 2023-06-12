@@ -16,9 +16,12 @@ import org.h2.message.DbException;
 import org.h2.result.LocalResult;
 import org.h2.result.ResultInterface;
 import org.h2.table.Column;
+import org.h2.util.json.JSONArray;
+import org.h2.util.json.JSONValue;
 import org.h2.value.Value;
 import org.h2.value.ValueCollectionBase;
 import org.h2.value.ValueInteger;
+import org.h2.value.ValueJson;
 import org.h2.value.ValueNull;
 
 /**
@@ -126,11 +129,25 @@ public final class ArrayTableFunction extends TableFunction {
                 if (v == ValueNull.INSTANCE) {
                     list[i] = Value.EMPTY_VALUES;
                 } else {
-                    int type = v.getValueType();
-                    if (type != Value.ARRAY && type != Value.ROW) {
-                        v = v.convertToAnyArray(session);
+                    Value[] l;
+                    switch (v.getValueType()) {
+                    case Value.JSON: {
+                        JSONValue value = v.convertToAnyJson().getDecomposition();
+                        if (value instanceof JSONArray) {
+                            l = ((JSONArray) value).getArray(Value.class, ValueJson::fromJson);
+                        } else {
+                            l = Value.EMPTY_VALUES;
+                        }
+                        break;
                     }
-                    Value[] l = ((ValueCollectionBase) v).getList();
+                    case Value.ARRAY:
+                    case Value.ROW: {
+                        l = ((ValueCollectionBase) v).getList();
+                        break;
+                    }
+                    default:
+                        l = new Value[] { v };
+                    }
                     list[i] = l;
                     rows = Math.max(rows, l.length);
                 }

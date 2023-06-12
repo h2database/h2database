@@ -10,6 +10,8 @@ import org.h2.expression.Expression;
 import org.h2.expression.TypedValueExpression;
 import org.h2.message.DbException;
 import org.h2.util.MathUtils;
+import org.h2.util.json.JSONArray;
+import org.h2.util.json.JSONValue;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
@@ -52,10 +54,22 @@ public final class CardinalityExpression extends Function1 {
             if (v == ValueNull.INSTANCE) {
                 return ValueNull.INSTANCE;
             }
-            if (v.getValueType() != Value.ARRAY) {
+            switch (v.getValueType()) {
+            case Value.JSON: {
+                JSONValue value = v.convertToAnyJson().getDecomposition();
+                if (value instanceof JSONArray) {
+                    result = ((JSONArray) value).length();
+                } else {
+                    return ValueNull.INSTANCE;
+                }
+                break;
+            }
+            case Value.ARRAY:
+                result = ((ValueArray) v).getList().length;
+                break;
+            default:
                 throw DbException.getInvalidValueException("array", v.getTraceSQL());
             }
-            result = ((ValueArray) v).getList().length;
         }
         return ValueInteger.get(result);
     }

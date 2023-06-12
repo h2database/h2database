@@ -8,7 +8,7 @@ package org.h2.util.json;
 /**
  * JSON string.
  */
-public class JSONString extends JSONValue {
+public final class JSONString extends JSONValue {
 
     private final String value;
 

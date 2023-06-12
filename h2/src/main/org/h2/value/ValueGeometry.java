@@ -10,6 +10,7 @@ import static org.h2.util.geometry.EWKBUtils.EWKB_SRID;
 import org.h2.api.ErrorCode;
 import org.h2.message.DbException;
 import org.h2.util.Bits;
+import org.h2.util.MathUtils;
 import org.h2.util.StringUtils;
 import org.h2.util.geometry.EWKBUtils;
 import org.h2.util.geometry.EWKTUtils;
@@ -254,7 +255,7 @@ public final class ValueGeometry extends ValueBytesBase {
 
     @Override
     public int getMemory() {
-        return value.length * 20 + 24;
+        return MathUtils.convertLongToInt(value.length * 20L + 24);
     }
 
 }

@@ -4545,8 +4545,13 @@ public class Parser {
                         expr = expr.optimize(session);
                     }
                     TypeInfo exprType = expr.getType();
-                    if (exprType.getValueType() == Value.ARRAY) {
+                    switch (exprType.getValueType()) {
+                    case Value.JSON:
+                        columnType = TypeInfo.TYPE_JSON;
+                        break;
+                    case Value.ARRAY:
                         columnType = (TypeInfo) exprType.getExtTypeInfo();
+                        break;
                     }
                 }
                 f.addParameter(expr);
@@ -4973,6 +4978,10 @@ public class Parser {
                 read(CLOSE_BRACKET);
                 continue;
             }
+            if (readIf(DOT)) {
+                r = new FieldReference(r, readIdentifier());
+                continue;
+            }
             if (readIf(COLON_COLON)) {
                 r = readColonColonAfterTerm(r);
                 continue;
@@ -5074,9 +5083,6 @@ public class Parser {
                         }
                     }
                 }
-            }
-            if (readIf(DOT)) {
-                r = new FieldReference(r, readIdentifier());
             }
             break;
         case ARRAY:

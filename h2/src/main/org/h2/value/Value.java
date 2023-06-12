@@ -1048,6 +1048,15 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
     }
 
     /**
+     * Convert this value to JSON data type.
+     *
+     * @return a JSON value
+     */
+    public final ValueJson convertToAnyJson() {
+        return this != ValueNull.INSTANCE ? convertToJson(TypeInfo.TYPE_JSON, CONVERT_TO, null) : ValueJson.NULL;
+    }
+
+    /**
      * Convert this value to any ARRAY data type.
      *
      * @param provider

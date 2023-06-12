@@ -358,3 +358,15 @@ SELECT CAST(ARRAY[JSON '[]', JSON '{}'] AS JSON);
 
 SELECT CAST(ARRAY[1, 2] AS JSON);
 >> [1,2]
+
+SELECT JSON '[0, 1, 2, 3]'[2];
+>> 1
+
+SELECT JSON '[[1, 2], [3, 4]]'[2][1];
+>> 3
+
+SELECT JSON '[0, 1]'[3];
+>> null
+
+SELECT JSON '{"a": 8}'[1];
+>> null

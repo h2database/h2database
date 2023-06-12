@@ -12,7 +12,7 @@ import java.util.Map.Entry;
 /**
  * JSON object.
  */
-public class JSONObject extends JSONValue {
+public final class JSONObject extends JSONValue {
 
     private final ArrayList<SimpleImmutableEntry<String, JSONValue>> members = new ArrayList<>();
 

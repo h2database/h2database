@@ -9,9 +9,12 @@ import org.h2.api.ErrorCode;
 import org.h2.engine.SessionLocal;
 import org.h2.message.DbException;
 import org.h2.mvstore.db.Store;
+import org.h2.util.json.JSONArray;
+import org.h2.util.json.JSONValue;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
+import org.h2.value.ValueJson;
 import org.h2.value.ValueNull;
 
 /**
@@ -34,13 +37,23 @@ public final class ArrayElementReference extends Operation2 {
         Value l = left.getValue(session);
         Value r = right.getValue(session);
         if (l != ValueNull.INSTANCE && r != ValueNull.INSTANCE) {
-            Value[] list = ((ValueArray) l).getList();
             int element = r.getInt();
-            int cardinality = list.length;
-            if (element >= 1 && element <= cardinality) {
-                return list[element - 1];
+            if (left.getType().getValueType() == Value.ARRAY) {
+                Value[] list = ((ValueArray) l).getList();
+                int cardinality = list.length;
+                if (element >= 1 && element <= cardinality) {
+                    return list[element - 1];
+                }
+                throw DbException.get(ErrorCode.ARRAY_ELEMENT_ERROR_2, Integer.toString(element), "1.." + cardinality);
+            } else {
+                JSONValue value = l.convertToAnyJson().getDecomposition();
+                if (value instanceof JSONArray) {
+                    JSONValue jsonValue = ((JSONArray) value).getElement(element - 1);
+                    if (jsonValue != null) {
+                        return ValueJson.fromJson(jsonValue);
+                    }
+                }
             }
-            throw DbException.get(ErrorCode.ARRAY_ELEMENT_ERROR_2, Integer.toString(element), "1.." + cardinality);
         }
         return ValueNull.INSTANCE;
     }
@@ -53,6 +66,12 @@ public final class ArrayElementReference extends Operation2 {
         switch (leftType.getValueType()) {
         case Value.NULL:
             return ValueExpression.NULL;
+        case Value.JSON:
+            type = TypeInfo.TYPE_JSON;
+            if (left.isConstant() && right.isConstant()) {
+                return TypedValueExpression.getTypedIfNull(getValue(session), type);
+            }
+            break;
         case Value.ARRAY:
             type = (TypeInfo) leftType.getExtTypeInfo();
             if (left.isConstant() && right.isConstant()) {

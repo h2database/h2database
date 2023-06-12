@@ -10,7 +10,7 @@ import java.util.ArrayList;
 /**
  * JSON array.
  */
-public class JSONArray extends JSONValue {
+public final class JSONArray extends JSONValue {
 
     private final ArrayList<JSONValue> elements = new ArrayList<>();
 
@@ -20,7 +20,8 @@ public class JSONArray extends JSONValue {
     /**
      * Add a value to the array.
      *
-     * @param value the value to add
+     * @param value
+     *            the value to add
      */
     void addElement(JSONValue value) {
         elements.add(value);
@@ -42,6 +43,20 @@ public class JSONArray extends JSONValue {
      */
     public JSONValue[] getArray() {
         return elements.toArray(new JSONValue[0]);
+    }
+
+    /**
+     * Returns the value at specified 0-based index, or {@code null}.
+     *
+     * @param index
+     *            0-based index
+     * @return the value at specified 0-based index, or {@code null}.
+     */
+    public JSONValue getElement(int index) {
+        if (index >= 0 && index < elements.size()) {
+            return elements.get(index);
+        }
+        return null;
     }
 
 }

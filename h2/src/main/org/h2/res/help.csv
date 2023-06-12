@@ -2825,20 +2825,26 @@ ID=1 AND NAME='Hi'
 "
 
 "Other Grammar","Array element reference","
-array '[' indexInt ']'
+{ array | json } '[' indexInt ']'
 ","
-Returns array element at specified index or NULL if array is null or index is null.
+Returns array element at specified 1-based index.
+Returns NULL if array or json is null, index is null, or element with specified index isn't found in JSON.
 ","
 A[2]
+M[5][8]
 "
 
 "Other Grammar","Field reference","
 (expression).fieldName
 ","
-Returns field value from the row value or NULL if row value is null.
-Row value expression must be enclosed in parentheses.
+Returns field value from the row value or JSON value.
+Returns NULL if value is null or field with specified name isn't found in JSON.
+Expression on the left must be enclosed in parentheses if it is an identifier (column name),
+in other cases they aren't required.
 ","
-(R).COL1
+(R).FIELD1
+(TABLE1.COLUMN2).FIELD.SUBFIELD
+JSON '{""a"": 1, ""b"": 2}'.""b""
 "
 
 "Other Grammar","Array value constructor by query","

@@ -4973,6 +4973,10 @@ public class Parser {
                 read(CLOSE_BRACKET);
                 continue;
             }
+            if (readIf(DOT)) {
+                r = new FieldReference(r, readIdentifier());
+                continue;
+            }
             if (readIf(COLON_COLON)) {
                 r = readColonColonAfterTerm(r);
                 continue;
@@ -5074,9 +5078,6 @@ public class Parser {
                         }
                     }
                 }
-            }
-            if (readIf(DOT)) {
-                r = new FieldReference(r, readIdentifier());
             }
             break;
         case ARRAY:

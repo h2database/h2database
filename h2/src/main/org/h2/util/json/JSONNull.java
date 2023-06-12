@@ -8,7 +8,7 @@ package org.h2.util.json;
 /**
  * JSON null.
  */
-public class JSONNull extends JSONValue {
+public final class JSONNull extends JSONValue {
 
     /**
      * {@code null} value.

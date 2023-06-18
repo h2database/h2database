@@ -228,7 +228,8 @@ public class TestScript extends TestDb {
         for (String s : new String[] { "comments", "identifiers" }) {
             testScript("parser/" + s + ".sql");
         }
-        for (String s : new String[] { "between", "distinct", "in", "like", "null", "type", "unique" }) {
+        for (String s : new String[] { "between", "distinct", "in", "like", "null", "quantified-comparison-with-array",
+                "type", "unique" }) {
             testScript("predicates/" + s + ".sql");
         }
         for (String s : new String[] { "derived-column-names", "distinct", "joins", "query-optimisations", "select",

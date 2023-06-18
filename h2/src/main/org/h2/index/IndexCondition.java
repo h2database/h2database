@@ -21,6 +21,7 @@ import org.h2.result.ResultInterface;
 import org.h2.table.Column;
 import org.h2.table.TableType;
 import org.h2.value.Value;
+import org.h2.value.ValueArray;
 
 /**
  * A index condition object is made for each condition that can potentially use
@@ -115,6 +116,18 @@ public class IndexCondition {
     }
 
     /**
+     * Create an index condition with the compare type IN_ARRAY and with the
+     * given parameters.
+     *
+     * @param column the column
+     * @param array the array
+     * @return the index condition
+     */
+    public static IndexCondition getInArray(ExpressionColumn column, Expression array) {
+        return new IndexCondition(Comparison.IN_ARRAY, column, array);
+    }
+
+    /**
      * Create an index condition with the compare type IN_QUERY and with the
      * given parameters.
      *
@@ -148,10 +161,21 @@ public class IndexCondition {
      */
     public Value[] getCurrentValueList(SessionLocal session) {
         TreeSet<Value> valueSet = new TreeSet<>(session.getDatabase().getCompareMode());
-        for (Expression e : expressionList) {
-            Value v = e.getValue(session);
-            v = column.convert(session, v);
-            valueSet.add(v);
+        if (compareType == Comparison.IN_LIST) {
+            for (Expression e : expressionList) {
+                Value v = e.getValue(session);
+                v = column.convert(session, v);
+                valueSet.add(v);
+            }
+        } else if (compareType == Comparison.IN_ARRAY) {
+            Value v = expression.getValue(session);
+            if (v instanceof ValueArray) {
+                for (Value e : ((ValueArray) v).getList()) {
+                    valueSet.add(e);
+                }
+            }
+        } else {
+            throw DbException.getInternalError("compareType = " + compareType);
         }
         Value[] array = valueSet.toArray(new Value[valueSet.size()]);
         Arrays.sort(array, session.getDatabase().getCompareMode());
@@ -205,6 +229,9 @@ public class IndexCondition {
         case Comparison.IN_LIST:
             Expression.writeExpressions(builder.append(" IN("), expressionList, sqlFlags).append(')');
             break;
+        case Comparison.IN_ARRAY:
+            return expression.getSQL(builder.append(" = ANY("), sqlFlags, Expression.AUTO_PARENTHESES).append(')')
+                    .toString();
         case Comparison.IN_QUERY:
             builder.append(" IN(");
             builder.append(expressionQuery.getPlanSQL(sqlFlags));
@@ -236,6 +263,7 @@ public class IndexCondition {
         case Comparison.EQUAL_NULL_SAFE:
             return EQUALITY;
         case Comparison.IN_LIST:
+        case Comparison.IN_ARRAY:
         case Comparison.IN_QUERY:
             if (indexConditions.size() > 1) {
                 if (TableType.TABLE != column.getTable().getTableType()) {

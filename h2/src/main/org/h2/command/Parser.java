@@ -241,10 +241,10 @@ import org.h2.engine.DbSettings;
 import org.h2.engine.IsolationLevel;
 import org.h2.engine.Mode;
 import org.h2.engine.Mode.ModeEnum;
+import org.h2.engine.NullsDistinct;
 import org.h2.engine.Procedure;
 import org.h2.engine.Right;
 import org.h2.engine.SessionLocal;
-import org.h2.engine.NullsDistinct;
 import org.h2.engine.User;
 import org.h2.expression.Alias;
 import org.h2.expression.ArrayConstructorByQuery;
@@ -295,7 +295,7 @@ import org.h2.expression.condition.Comparison;
 import org.h2.expression.condition.ConditionAndOr;
 import org.h2.expression.condition.ConditionAndOrN;
 import org.h2.expression.condition.ConditionIn;
-import org.h2.expression.condition.ConditionInParameter;
+import org.h2.expression.condition.ConditionInArray;
 import org.h2.expression.condition.ConditionInQuery;
 import org.h2.expression.condition.ConditionLocalAndGlobal;
 import org.h2.expression.condition.ConditionNot;
@@ -1341,7 +1341,7 @@ public class Parser {
             String[] searchPath = session.getSchemaSearchPath();
             StringBuilder searchPathBuff = new StringBuilder();
             if (searchPath != null) {
-                for (int i = 0; i < searchPath.length; i ++) {
+                for (int i = 0; i < searchPath.length; i++) {
                     if (i > 0) {
                         searchPathBuff.append(", ");
                     }
@@ -2963,7 +2963,7 @@ public class Parser {
                             throw DbException.get(ErrorCode.GROUP_BY_NOT_IN_THE_RESULT, Integer.toString(idx),
                                     Integer.toString(expressions.size()));
                         }
-                        list.add(expressions.get(idx-1));
+                        list.add(expressions.get(idx - 1));
                     } else {
                         list.add(expr);
                     }
@@ -3369,13 +3369,11 @@ public class Parser {
         int start = tokenIndex;
         if (readIf(ALL, OPEN_PAREN)) {
             if (isQuery()) {
-                Query query = parseQuery();
-                left = new ConditionInQuery(left, false, whenOperand, query, true, compareType);
-                read(CLOSE_PAREN);
+                left = new ConditionInQuery(left, false, whenOperand, parseQuery(), true, compareType);
             } else {
-                setTokenIndex(start);
-                left = new Comparison(compareType, left, readConcat(), whenOperand);
+                left = new ConditionInArray(left, whenOperand, readExpression(), true, compareType);
             }
+            read(CLOSE_PAREN);
         } else if (readIf(ANY, OPEN_PAREN)) {
             left = readAnyComparison(left, compareType, whenOperand, start);
         } else if (readIf(SOME, OPEN_PAREN)) {
@@ -3387,18 +3385,12 @@ public class Parser {
     }
 
     private Expression readAnyComparison(Expression left, int compareType, boolean whenOperand, int start) {
-        if (currentTokenType == PARAMETER && compareType == Comparison.EQUAL) {
-            Parameter p = readParameter();
-            left = new ConditionInParameter(left, false, whenOperand, p);
-            read(CLOSE_PAREN);
-        } else if (isQuery()) {
-            Query query = parseQuery();
-            left = new ConditionInQuery(left, false, whenOperand, query, false, compareType);
-            read(CLOSE_PAREN);
+        if (isQuery()) {
+            left = new ConditionInQuery(left, false, whenOperand, parseQuery(), false, compareType);
         } else {
-            setTokenIndex(start);
-            left = new Comparison(compareType, left, readConcat(), whenOperand);
+            left = new ConditionInArray(left, whenOperand, readExpression(), false, compareType);
         }
+        read(CLOSE_PAREN);
         return left;
     }
 
@@ -9393,11 +9385,10 @@ public class Parser {
         if (readIf("FETCH_SIZE")) {
             command.setFetchSize(readNonNegativeInt());
         }
-        if(readIf("AUTOCOMMIT")){
-            if(readIf("ON")) {
+        if (readIf("AUTOCOMMIT")) {
+            if (readIf("ON")) {
                 command.setAutoCommit(true);
-            }
-            else if(readIf("OFF")){
+            } else if (readIf("OFF")) {
                 command.setAutoCommit(false);
             }
         }

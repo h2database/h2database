@@ -3120,24 +3120,30 @@ Right side of comparison predicates.
 "
 
 "Other Grammar","Quantified Comparison Right Hand Side","
-compare { ALL | ANY | SOME } ( query )
+compare { ALL | ANY | SOME } ( { query | @h2@ { array } } )
 ","
 Right side of quantified comparison predicates.
 
 Quantified comparison predicate ALL returns TRUE if specified comparison operation between
-left size of condition and each row from a subquery returns TRUE, including case when there are no rows.
+left size of condition and each row from a subquery or each element of array returns TRUE,
+including case when there are no rows (elements).
 ALL predicate returns FALSE if at least one such comparison returns FALSE.
 Otherwise it returns UNKNOWN.
 
 Quantified comparison predicates ANY and SOME return TRUE if specified comparison operation between
-left size of condition and at least one row from a subquery returns TRUE.
+left size of condition and at least one row from a subquery or at least one element of array returns TRUE.
 ANY and SOME predicates return FALSE if all such comparisons return FALSE.
 Otherwise they return UNKNOWN.
 
 Note that these predicates have priority over ANY and SOME aggregate functions with subquery on the right side.
 Use parentheses around aggregate function.
+
+If version with array is required and this array is returned from a subquery, wrap this subquery with a cast
+to distinguish this operation from standard quantified comparison predicate with a query.
 ","
 < ALL(SELECT V FROM TEST)
+= ANY(ARRAY_COLUMN)
+= ANY(CAST((SELECT ARRAY_COLUMN FROM OTHER_TABLE WHERE ID = 5) AS INTEGER ARRAY)
 "
 
 "Other Grammar","Null Predicate Right Hand Side","
@@ -3165,7 +3171,7 @@ IS NOT DISTINCT FROM OTHER
 "
 
 "Other Grammar","Quantified Distinct Predicate Right Hand Side","
-@h2@ IS [ NOT ] [ DISTINCT FROM ] { ALL | ANY | SOME } ( query )
+@h2@ IS [ NOT ] [ DISTINCT FROM ] { ALL | ANY | SOME } ( { query | array } )
 ","
 Right side of quantified distinct predicate.
 
@@ -3173,17 +3179,23 @@ Quantified distinct predicate is null-safe, meaning NULL is considered the same 
 and the condition never evaluates to UNKNOWN.
 
 Quantified distinct predicate ALL returns TRUE if specified distinct predicate between
-left size of condition and each row from a subquery returns TRUE, including case when there are no rows.
+left size of condition and each row from a subquery or each element of array returns TRUE,
+including case when there are no rows.
 Otherwise it returns FALSE.
 
 Quantified distinct predicates ANY and SOME return TRUE if specified distinct predicate between
-left size of condition and at least one row from a subquery returns TRUE.
+left size of condition and at least one row from a subquery or at least one element of array returns TRUE.
 Otherwise they return FALSE.
 
 Note that these predicates have priority over ANY and SOME aggregate functions with subquery on the right side.
 Use parentheses around aggregate function.
+
+If version with array is required and this array is returned from a subquery, wrap this subquery with a cast
+to distinguish this operation from quantified comparison predicate with a query.
 ","
 IS DISTINCT FROM ALL(SELECT V FROM TEST)
+IS NOT DISTINCT FROM ANY(ARRAY_COLUMN)
+IS NOT DISTINCT FROM ANY(CAST((SELECT ARRAY_COLUMN FROM OTHER_TABLE WHERE ID = 5) AS INTEGER ARRAY)
 "
 
 "Other Grammar","Boolean Test Right Hand Side","

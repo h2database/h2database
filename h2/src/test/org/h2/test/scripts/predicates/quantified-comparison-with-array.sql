@@ -259,3 +259,43 @@ SELECT * FROM T1 WHERE T1.V = ANY(CAST((SELECT ARRAY_AGG(S.V) FROM T1 S) AS INTE
 > 2
 > 3
 > rows: 4
+
+SELECT V, A, CASE V WHEN = ANY(A) THEN 1 WHEN > ANY(A) THEN 2 WHEN < ANY(A) THEN 3 ELSE 4 END C FROM T1 JOIN T2;
+> V    A            C
+> ---- ------------ -
+> 0    [1, 2, null] 3
+> 0    [1, 2]       3
+> 0    [1, null]    3
+> 0    [1]          3
+> 0    []           4
+> 0    [null]       4
+> 0    null         4
+> 1    [1, 2, null] 1
+> 1    [1, 2]       1
+> 1    [1, null]    1
+> 1    [1]          1
+> 1    []           4
+> 1    [null]       4
+> 1    null         4
+> 2    [1, 2, null] 1
+> 2    [1, 2]       1
+> 2    [1, null]    2
+> 2    [1]          2
+> 2    []           4
+> 2    [null]       4
+> 2    null         4
+> 3    [1, 2, null] 2
+> 3    [1, 2]       2
+> 3    [1, null]    2
+> 3    [1]          2
+> 3    []           4
+> 3    [null]       4
+> 3    null         4
+> null [1, 2, null] 4
+> null [1, 2]       4
+> null [1, null]    4
+> null [1]          4
+> null []           4
+> null [null]       4
+> null null         4
+> rows: 35

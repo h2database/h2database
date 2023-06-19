@@ -1167,7 +1167,10 @@ public class TableFilter implements ColumnResolver {
     public boolean hasInComparisons() {
         for (IndexCondition cond : indexConditions) {
             int compareType = cond.getCompareType();
-            if (compareType == Comparison.IN_QUERY || compareType == Comparison.IN_LIST) {
+            switch (compareType) {
+            case Comparison.IN_LIST:
+            case Comparison.IN_ARRAY:
+            case Comparison.IN_QUERY:
                 return true;
             }
         }

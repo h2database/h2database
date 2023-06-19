@@ -1167,7 +1167,7 @@ SELECT A, 1 AS X, B FROM TEST ORDER BY A, X, B DESC;
 > rows (ordered): 4
 
 EXPLAIN SELECT A, 1 AS X, B FROM TEST ORDER BY A, X, B DESC;
->> SELECT "A", 1 AS "X", "B" FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */ ORDER BY 1, 2, 3 DESC
+>> SELECT "A", 1 AS "X", "B" FROM "PUBLIC"."TEST" /* PUBLIC.TEST_IDX */ ORDER BY 1, 2, 3 DESC /* incrementally index sorted */
 
 DROP TABLE TEST;
 > ok

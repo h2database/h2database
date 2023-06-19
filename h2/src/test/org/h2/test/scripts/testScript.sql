@@ -2558,7 +2558,7 @@ INSERT INTO TEST VALUES(1, 'Hello');
 > update count: 1
 
 explain select t0.id, t1.id from test t0, test t1 order by t0.id, t1.id;
->> SELECT "T0"."ID", "T1"."ID" FROM "PUBLIC"."TEST" "T0" /* PUBLIC.TEST.tableScan */ INNER JOIN "PUBLIC"."TEST" "T1" /* PUBLIC.TEST.tableScan */ ON 1=1 ORDER BY 1, 2
+>> SELECT "T0"."ID", "T1"."ID" FROM "PUBLIC"."TEST" "T0" /* PUBLIC.PRIMARY_KEY_2 */ INNER JOIN "PUBLIC"."TEST" "T1" /* PUBLIC.TEST.tableScan */ ON 1=1 ORDER BY 1, 2 /* incrementally index sorted */
 
 INSERT INTO TEST VALUES(2, 'World');
 > update count: 1

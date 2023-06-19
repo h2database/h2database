@@ -12,9 +12,12 @@ import static org.h2.util.HasSQL.DEFAULT_SQL_FLAGS;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map.Entry;
 import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
@@ -150,7 +153,13 @@ public class Select extends Query {
     private boolean isForUpdate;
     private double cost;
     private boolean isQuickAggregateQuery, isDistinctQuery;
-    private boolean sortUsingIndex;
+
+    /**
+     * The length of the order-by prefix which is already sorted.
+     * A positive value triggers incremental sorting at the end.
+     * {@code Integer.MAX_VALUE} means that no final sort is needed.
+     */
+    private int numIndexSortedColumns;
 
     private boolean isGroupWindowStage2;
 
@@ -583,14 +592,16 @@ public class Select extends Query {
     }
 
     /**
-     * Get the index that matches the ORDER BY list, if one exists. This is to
-     * avoid running a separate ORDER BY if an index can be used. This is
-     * specially important for large result sets, if only the first few rows are
-     * important (LIMIT is used)
+     * Get an array of indexes that match a non-empty prefix of the ORDER BY list. This is to
+     * avoid running a separate ORDER BY if an index which covers all ORDER BY elements exists.
+     * Indexes which cover a prefix can be used to boost the performance of ORDER BY. This is
+     * specially important for large result sets, if only the first few rows are important
+     * (LIMIT is used).
      *
-     * @return the index if one is found
+     * @return a list of {@code SortIndex} wrappers ordered by the length of the prefix covered
+     *         in descending order. The first index can provide better performance than the latter.
      */
-    private Index getSortIndex() {
+    private List<SortIndex> getBestSortIndexes() {
         if (sort == null) {
             return null;
         }
@@ -598,6 +609,7 @@ public class Select extends Query {
         int[] queryColumnIndexes = sort.getQueryColumnIndexes();
         int queryIndexesLength = queryColumnIndexes.length;
         int[] sortIndex = new int[queryIndexesLength];
+        boolean partial = false;
         for (int i = 0, j = 0; i < queryIndexesLength; i++) {
             int idx = queryColumnIndexes[i];
             if (idx < 0 || idx >= expressions.size()) {
@@ -613,7 +625,10 @@ public class Select extends Query {
             }
             ExpressionColumn exprCol = (ExpressionColumn) expr;
             if (exprCol.getTableFilter() != topTableFilter) {
-                return null;
+                // any index to be picked will only cover a partial number of columns
+                // there is no "multi-table" index
+                partial = true;
+                break;
             }
             sortColumns.add(exprCol.getColumn());
             sortIndex[j++] = i;
@@ -621,12 +636,22 @@ public class Select extends Query {
         Column[] sortCols = sortColumns.toArray(new Column[0]);
         if (sortCols.length == 0) {
             // sort just on constants - can use scan index
-            return topTableFilter.getTable().getScanIndex(session);
+            return partial ? null :
+                Collections.singletonList(
+                        new SortIndex(topTableFilter.getTable().getScanIndex(session), Integer.MAX_VALUE));
+        }
+        if (sortCols.length == 1 && sortCols[0].getColumnId() == -1 && !partial) {
+            // special case: order by _ROWID_
+            Index index = topTableFilter.getTable().getScanIndex(session);
+            if (index.isRowIdIndex()) {
+                return Collections.singletonList(new SortIndex(index, Integer.MAX_VALUE));
+            }
         }
         ArrayList<Index> list = topTableFilter.getTable().getIndexes();
         if (list != null) {
             int[] sortTypes = sort.getSortTypesWithNullOrdering();
             DefaultNullOrdering defaultNullOrdering = getDatabase().getDefaultNullOrdering();
+            List<SortIndex> candidates = new ArrayList<>();
             loop: for (Index index : list) {
                 if (index.getCreateSQL() == null) {
                     // can't use the scan index
@@ -645,24 +670,27 @@ public class Select extends Query {
                     IndexColumn idxCol = indexCols[j];
                     Column sortCol = sortCols[j];
                     if (idxCol.column != sortCol) {
+                        if (j > 0) {
+                            // good candidate as it matches a part of the prefix
+                            candidates.add(new SortIndex(index, j));
+                        }
                         continue loop;
                     }
                     int sortType = sortTypes[sortIndex[j]];
                     if (sortCol.isNullable()
                             ? defaultNullOrdering.addExplicitNullOrdering(idxCol.sortType) != sortType
                             : (idxCol.sortType & SortOrder.DESCENDING) != (sortType & SortOrder.DESCENDING)) {
+                        if (j > 0) {
+                            // good candidate as it matches a part of the prefix
+                            candidates.add(new SortIndex(index, j));
+                        }
                         continue loop;
                     }
                 }
-                return index;
+                candidates.add(new SortIndex(index, partial ? sortCols.length : Integer.MAX_VALUE));
             }
-        }
-        if (sortCols.length == 1 && sortCols[0].getColumnId() == -1) {
-            // special case: order by _ROWID_
-            Index index = topTableFilter.getTable().getScanIndex(session);
-            if (index.isRowIdIndex()) {
-                return index;
-            }
+            candidates.sort(Comparator.comparingInt(SortIndex::getPrefixCovered).reversed());
+            return candidates;
         }
         return null;
     }
@@ -701,7 +729,7 @@ public class Select extends Query {
                 continue;
             }
             result.addRow(value);
-            if ((sort == null || sortUsingIndex) && limitRows > 0 && rowNumber >= limitRows && !withTies) {
+            if ((sort == null || numIndexSortedColumns == Integer.MAX_VALUE) && limitRows > 0 && rowNumber >= limitRows && !withTies) {
                 break;
             }
         }
@@ -721,7 +749,7 @@ public class Select extends Query {
         if (result == null) {
             return lazyResult;
         }
-        if (limitRows < 0 || sort != null && !sortUsingIndex || withTies && !quickOffset) {
+        if (limitRows < 0 || sort != null && numIndexSortedColumns == 0 || withTies && !quickOffset) {
             limitRows = Long.MAX_VALUE;
         }
         Value[] row = null;
@@ -729,16 +757,34 @@ public class Select extends Query {
             row = lazyResult.currentRow();
             result.addRow(row);
         }
-        if (limitRows != Long.MAX_VALUE && withTies && sort != null && row != null) {
+        // alreadySorted may not cover the whole order-by clause; fetch until you ensure that the prefix changes
+        if (limitRows != Long.MAX_VALUE && (withTies || numIndexSortedColumns != Integer.MAX_VALUE) && sort != null && row != null) {
             Value[] expected = row;
+            boolean fixSort = numIndexSortedColumns == Integer.MAX_VALUE;
+            boolean fixWithTies = !withTies;
             while (lazyResult.next()) {
                 row = lazyResult.currentRow();
-                if (sort.compare(expected, row) != 0) {
+                // we still need to fetch some records to ensure completeness in case of partial sorting
+                if (!fixSort) {
+                    if (sort.compare(expected, row, numIndexSortedColumns) != 0) {
+                        fixSort = true;
+                    }
+                }
+                // we still need to fetch some records to ensure withTies is honored
+                if (fixSort && !fixWithTies && sort.compare(expected, row) != 0) {
+                    fixWithTies = true;
+                }
+                if (fixSort && fixWithTies)
+                {
                     break;
                 }
                 result.addRow(row);
             }
-            result.limitsWereApplied();
+
+            if (withTies)
+            {
+                result.limitsWereApplied();
+            }
         }
         return null;
     }
@@ -780,10 +826,10 @@ public class Select extends Query {
         }
         // Do not add rows before OFFSET to result if possible
         boolean quickOffset = !fetchPercent;
-        if (sort != null && (!sortUsingIndex || isAnyDistinct())) {
+        if (sort != null && (numIndexSortedColumns != Integer.MAX_VALUE || isAnyDistinct())) {
             result = createLocalResult(result);
             result.setSortOrder(sort);
-            if (!sortUsingIndex) {
+            if (numIndexSortedColumns != Integer.MAX_VALUE) {
                 quickOffset = false;
             }
         }
@@ -1223,39 +1269,50 @@ public class Select extends Query {
             }
         }
         if (sort != null && !isQuickAggregateQuery && !isGroupQuery) {
-            Index index = getSortIndex();
+            List<SortIndex> sortIndexes = getBestSortIndexes();
             Index current = topTableFilter.getIndex();
-            if (index != null && current != null) {
-                if (current.getIndexType().isScan() || current == index) {
-                    topTableFilter.setIndex(index);
-                    if (!topTableFilter.hasInComparisons()) {
-                        // in(select ...) and in(1,2,3) may return the key in
-                        // another order
-                        sortUsingIndex = true;
-                    }
-                } else if (index.getIndexColumns() != null
-                        && index.getIndexColumns().length >= current
-                                .getIndexColumns().length) {
-                    IndexColumn[] sortColumns = index.getIndexColumns();
-                    IndexColumn[] currentColumns = current.getIndexColumns();
-                    boolean swapIndex = false;
-                    for (int i = 0; i < currentColumns.length; i++) {
-                        if (sortColumns[i].column != currentColumns[i].column) {
-                            swapIndex = false;
+            if (sortIndexes != null && current != null) {
+                // the sort indexes are sorted by the length of the prefix they cover
+                // the first which matches should be picked
+                for (SortIndex sortIndex : sortIndexes) {
+                    Index index = sortIndex.index;
+                    if (current.getIndexType().isScan() || current == index) {
+                        // free upgrade
+                        topTableFilter.setIndex(index);
+                        if (!topTableFilter.hasInComparisons()) {
+                            // in(select ...) and in(1,2,3) may return the key in
+                            // another order
+                            numIndexSortedColumns = sortIndex.prefixCovered;
                             break;
                         }
-                        if (sortColumns[i].sortType != currentColumns[i].sortType) {
-                            swapIndex = true;
+                    } else if (index.getIndexColumns() != null
+                            && index.getIndexColumns().length >= current
+                            .getIndexColumns().length) {
+                        // this sort index may have potential to be used as long as it
+                        // satisfies the invariants from the currently picked index
+                        IndexColumn[] sortColumns = index.getIndexColumns();
+                        IndexColumn[] currentColumns = current.getIndexColumns();
+                        boolean swapIndex = false;
+                        for (int i = 0; i < currentColumns.length; i++) {
+                            if (sortColumns[i].column != currentColumns[i].column) {
+                                swapIndex = false;
+                                break;
+                            }
+                            if (sortColumns[i].sortType != currentColumns[i].sortType) {
+                                swapIndex = true;
+                            }
                         }
-                    }
-                    if (swapIndex) {
-                        topTableFilter.setIndex(index);
-                        sortUsingIndex = true;
+                        if (swapIndex) {
+                            // do the swap now as this is the best sort index we may use
+                            topTableFilter.setIndex(index);
+                            numIndexSortedColumns = sortIndex.prefixCovered;
+                            break;
+                        }
                     }
                 }
             }
-            if (sortUsingIndex && isForUpdate && !topTableFilter.getIndex().isRowIdIndex()) {
-                sortUsingIndex = false;
+            if (numIndexSortedColumns > 0 && isForUpdate && !topTableFilter.getIndex().isRowIdIndex()) {
+                numIndexSortedColumns = 0;
             }
         }
         if (!isQuickAggregateQuery && isGroupQuery) {
@@ -1468,8 +1525,10 @@ public class Select extends Query {
             if (isDistinctQuery) {
                 builder.append("\n/* distinct */");
             }
-            if (sortUsingIndex) {
+            if (numIndexSortedColumns == Integer.MAX_VALUE) {
                 builder.append("\n/* index sorted */");
+            } else if (numIndexSortedColumns > 0) {
+                builder.append("\n/* incrementally index sorted */");
             }
             if (isGroupQuery) {
                 if (isGroupSortedQuery) {
@@ -1934,6 +1993,22 @@ public class Select extends Query {
                 previousKeyValues = null;
             }
             return row;
+        }
+    }
+
+    static class SortIndex
+    {
+        Index index;
+        int prefixCovered;
+
+        public SortIndex(Index index, int prefixCovered) {
+            this.index = index;
+            this.prefixCovered = prefixCovered;
+        }
+
+        public Integer getPrefixCovered()
+        {
+            return prefixCovered;
         }
     }
 

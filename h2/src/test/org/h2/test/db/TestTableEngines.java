@@ -238,7 +238,7 @@ public class TestTableEngines extends TestDb {
         checkPlan(stat, "select * from t order by c, b", "IDX_C_B_A");
         checkPlan(stat, "select * from t order by b", "IDX_B_A");
         checkPlan(stat, "select * from t order by b, a", "IDX_B_A");
-        checkPlan(stat, "select * from t order by b, c", "scan");
+        checkPlan(stat, "select * from t order by b, c", "IDX_B_A");
         checkPlan(stat, "select * from t order by a, b", "scan");
         checkPlan(stat, "select * from t order by a, c, b", "scan");
 

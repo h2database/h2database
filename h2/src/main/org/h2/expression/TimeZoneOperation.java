@@ -131,7 +131,8 @@ public final class TimeZoneOperation extends Operation1_2 {
         }
         TypeInfo type = left.getType();
         int valueType = Value.TIMESTAMP_TZ, scale = ValueTimestamp.MAXIMUM_SCALE;
-        switch (type.getValueType()) {
+        int lType = type.getValueType();
+        switch (lType) {
         case Value.TIMESTAMP:
         case Value.TIMESTAMP_TZ:
             scale = type.getScale();
@@ -153,10 +154,25 @@ public final class TimeZoneOperation extends Operation1_2 {
             throw DbException.getSyntaxError(builder.toString(), offset, "time, timestamp");
         }
         this.type = TypeInfo.getTypeInfo(valueType, -1, scale, null);
-        if (left.isConstant() && (right == null || right.isConstant())) {
+        if (left.isConstant() && (lType == Value.TIME_TZ || lType == Value.TIMESTAMP_TZ) && right != null
+                && right.isConstant()) {
             return ValueExpression.get(getValue(session));
         }
         return this;
+    }
+
+    @Override
+    public boolean isEverything(ExpressionVisitor visitor) {
+        if (visitor.getType() == ExpressionVisitor.DETERMINISTIC) {
+            if (right == null) {
+                return false;
+            }
+            int lType = left.getType().getValueType();
+            if (lType == Value.TIME || lType == Value.TIMESTAMP) {
+                return false;
+            }
+        }
+        return left.isEverything(visitor) && (right == null || right.isEverything(visitor));
     }
 
 }

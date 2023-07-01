@@ -40,32 +40,48 @@ public final class TimeZoneOperation extends Operation1_2 {
 
     @Override
     public Value getValue(SessionLocal session) {
-        Value a = left.getValue(session).convertTo(type, session);
-        int valueType = a.getValueType();
-        if ((valueType == Value.TIMESTAMP_TZ || valueType == Value.TIME_TZ) && right != null) {
-            Value b = right.getValue(session);
-            if (b != ValueNull.INSTANCE) {
-                if (valueType == Value.TIMESTAMP_TZ) {
-                    ValueTimestampTimeZone v = (ValueTimestampTimeZone) a;
-                    long dateValue = v.getDateValue();
-                    long timeNanos = v.getTimeNanos();
-                    int offsetSeconds = v.getTimeZoneOffsetSeconds();
-                    int newOffset = parseTimeZone(b, dateValue, timeNanos, offsetSeconds, true);
-                    if (offsetSeconds != newOffset) {
-                        a = DateTimeUtils.timestampTimeZoneAtOffset(dateValue, timeNanos, offsetSeconds, newOffset);
-                    }
-                } else {
-                    ValueTimeTimeZone v = (ValueTimeTimeZone) a;
-                    long timeNanos = v.getNanos();
-                    int offsetSeconds = v.getTimeZoneOffsetSeconds();
-                    int newOffset = parseTimeZone(b, DateTimeUtils.EPOCH_DATE_VALUE, timeNanos, offsetSeconds, false);
-                    if (offsetSeconds != newOffset) {
-                        timeNanos += (newOffset - offsetSeconds) * DateTimeUtils.NANOS_PER_SECOND;
-                        a = ValueTimeTimeZone.fromNanos(DateTimeUtils.normalizeNanosOfDay(timeNanos), newOffset);
-                    }
-                }
-            } else {
-                a = ValueNull.INSTANCE;
+        Value l = left.getValue(session);
+        Value a = l.convertTo(type, session);
+        if (a == ValueNull.INSTANCE) {
+            return ValueNull.INSTANCE;
+        }
+        Value b;
+        if (right == null) {
+            int t = l.getValueType();
+            if (t == Value.TIME || t == Value.TIMESTAMP) {
+                // Already in time zone of the session
+                return a;
+            }
+            b = null;
+        } else {
+            b = right.getValue(session);
+            if (b == ValueNull.INSTANCE) {
+                return ValueNull.INSTANCE;
+            }
+        }
+        if (a.getValueType() == Value.TIMESTAMP_TZ) {
+            ValueTimestampTimeZone v = (ValueTimestampTimeZone) a;
+            long dateValue = v.getDateValue();
+            long timeNanos = v.getTimeNanos();
+            int offsetSeconds = v.getTimeZoneOffsetSeconds();
+            int newOffset = b != null //
+                    ? parseTimeZone(b, dateValue, timeNanos, offsetSeconds, true)
+                    : session.currentTimeZone()
+                            .getTimeZoneOffsetUTC(DateTimeUtils.getEpochSeconds(dateValue, timeNanos, offsetSeconds));
+            if (offsetSeconds != newOffset) {
+                a = DateTimeUtils.timestampTimeZoneAtOffset(dateValue, timeNanos, offsetSeconds, newOffset);
+            }
+        } else {
+            ValueTimeTimeZone v = (ValueTimeTimeZone) a;
+            long timeNanos = v.getNanos();
+            int offsetSeconds = v.getTimeZoneOffsetSeconds();
+            int newOffset = b != null
+                    ? parseTimeZone(b, DateTimeUtils.EPOCH_DATE_VALUE, timeNanos, offsetSeconds, false)
+                    : session.currentTimeZone().getTimeZoneOffsetUTC(DateTimeUtils
+                            .getEpochSeconds(session.currentTimestamp().getDateValue(), timeNanos, offsetSeconds));
+            if (offsetSeconds != newOffset) {
+                timeNanos += (newOffset - offsetSeconds) * DateTimeUtils.NANOS_PER_SECOND;
+                a = ValueTimeTimeZone.fromNanos(DateTimeUtils.normalizeNanosOfDay(timeNanos), newOffset);
             }
         }
         return a;
@@ -115,7 +131,8 @@ public final class TimeZoneOperation extends Operation1_2 {
         }
         TypeInfo type = left.getType();
         int valueType = Value.TIMESTAMP_TZ, scale = ValueTimestamp.MAXIMUM_SCALE;
-        switch (type.getValueType()) {
+        int lType = type.getValueType();
+        switch (lType) {
         case Value.TIMESTAMP:
         case Value.TIMESTAMP_TZ:
             scale = type.getScale();
@@ -137,10 +154,25 @@ public final class TimeZoneOperation extends Operation1_2 {
             throw DbException.getSyntaxError(builder.toString(), offset, "time, timestamp");
         }
         this.type = TypeInfo.getTypeInfo(valueType, -1, scale, null);
-        if (left.isConstant() && (right == null || right.isConstant())) {
+        if (left.isConstant() && (lType == Value.TIME_TZ || lType == Value.TIMESTAMP_TZ) && right != null
+                && right.isConstant()) {
             return ValueExpression.get(getValue(session));
         }
         return this;
+    }
+
+    @Override
+    public boolean isEverything(ExpressionVisitor visitor) {
+        if (visitor.getType() == ExpressionVisitor.DETERMINISTIC) {
+            if (right == null) {
+                return false;
+            }
+            int lType = left.getType().getValueType();
+            if (lType == Value.TIME || lType == Value.TIMESTAMP) {
+                return false;
+            }
+        }
+        return left.isEverything(visitor) && (right == null || right.isEverything(visitor));
     }
 
 }

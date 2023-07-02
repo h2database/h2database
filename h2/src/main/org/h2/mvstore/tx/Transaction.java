@@ -674,7 +674,7 @@ public final class Transaction {
         if (isDeadlocked(toWaitFor)) {
             tryThrowDeadLockException(false);
         }
-        boolean result = toWaitFor.waitForThisToEnd(timeoutMillis < 0 ? this.timeoutMillis : timeoutMillis, this);
+        boolean result = toWaitFor.waitForThisToEnd(timeoutMillis == -1 ? this.timeoutMillis : timeoutMillis, this);
         blockingMapName = null;
         blockingKey = null;
         blockingTransaction = null;

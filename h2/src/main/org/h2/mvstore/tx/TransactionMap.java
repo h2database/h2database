@@ -372,7 +372,7 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
                 return res;
             }
             decisionMaker.reset();
-            if (timeoutMillis < -1) {
+            if (timeoutMillis == -2) {
                 return null;
             }
             if (mapName == null) {
@@ -384,7 +384,7 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
                 "Map entry <{0}> with key <{1}> and value {2} is locked by tx {3} and can not be updated by tx {4}"
                         + " within allocated time interval {5} ms.",
                 mapName, key, result, blockingTransaction.transactionId, transaction.transactionId,
-                timeoutMillis < 0 ? transaction.timeoutMillis : timeoutMillis);
+                timeoutMillis == -1 ? transaction.timeoutMillis : timeoutMillis);
     }
 
     /**

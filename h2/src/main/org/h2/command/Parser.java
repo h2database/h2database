@@ -2781,11 +2781,13 @@ public class Parser {
                     forUpdate = ForUpdate.NOWAIT;
                 } else if (readIf("WAIT")) {
                     BigDecimal timeout;
-                    if (currentTokenType != LITERAL || (timeout = token.value(session).getBigDecimal()) == null) {
-                        throw DbException.getSyntaxError(sqlCommand, token.start(), "numeric");
+                    if (currentTokenType != LITERAL || (timeout = token.value(session).getBigDecimal()) == null
+                            || timeout.signum() < 0
+                            || timeout.compareTo(BigDecimal.valueOf(Integer.MAX_VALUE, 3)) > 0) {
+                        throw DbException.getSyntaxError(sqlCommand, token.start(), "timeout (0..2147483.647)");
                     }
                     read();
-                    forUpdate = ForUpdate.wait(timeout.multiply(BigDecimal.valueOf(1_000L)).intValue());
+                    forUpdate = ForUpdate.wait(timeout.movePointRight(3).intValue());
                 } else if (readIf("SKIP", "LOCKED")) {
                     forUpdate = ForUpdate.SKIP_LOCKED;
                 } else {

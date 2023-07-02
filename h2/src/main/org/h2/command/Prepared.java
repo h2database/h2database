@@ -495,4 +495,14 @@ public abstract class Prepared {
     protected final Database getDatabase() {
         return session.getDatabase();
     }
+
+    /**
+     * Returns is this command can be repeated again on locking failure.
+     *
+     * @return is this command can be repeated again on locking failure
+     */
+    public boolean isRetryable() {
+        return true;
+    }
+
 }

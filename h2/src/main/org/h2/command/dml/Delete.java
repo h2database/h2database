@@ -58,7 +58,7 @@ public final class Delete extends FilteredDataChangeStatement {
             while (nextRow(limitRows, count)) {
                 Row row = targetTableFilter.get();
                 if (table.isRowLockable()) {
-                    Row lockedRow = table.lockRow(session, row);
+                    Row lockedRow = table.lockRow(session, row, -1);
                     if (lockedRow == null) {
                         continue;
                     }

@@ -74,8 +74,6 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
      * <td>The port (default: 8082)</td></tr>
      * <tr><td>[-webSSL]</td>
      * <td>Use encrypted (HTTPS) connections</td></tr>
-     * <tr><td>[-webAdminPassword]</td>
-     * <td>Password of DB Console administrator</td></tr>
      * <tr><td>[-browser]</td>
      * <td>Start a browser connecting to the web server</td></tr>
      * <tr><td>[-tcp]</td>
@@ -144,8 +142,6 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
                 } else if ("-webSSL".equals(arg)) {
                     // no parameters
                 } else if ("-webPort".equals(arg)) {
-                    i++;
-                } else if ("-webAdminPassword".equals(arg)) {
                     i++;
                 } else {
                     throwUnsupportedOption(arg);
@@ -247,8 +243,6 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
                 } else if ("-webSSL".equals(arg)) {
                     // no parameters
                 } else if ("-webPort".equals(arg)) {
-                    i++;
-                } else if ("-webAdminPassword".equals(arg)) {
                     i++;
                 } else {
                     showUsageAndThrowUnsupportedOption(arg);

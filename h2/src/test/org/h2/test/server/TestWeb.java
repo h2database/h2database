@@ -162,7 +162,7 @@ public class TestWeb extends TestDb {
         Server server = new Server();
         server.setOut(new PrintStream(new ByteArrayOutputStream()));
         server.runTool("-web", "-webPort", "8182",
-                "-properties", "null", "-tcp", "-tcpPort", "9101", "-webAdminPassword", "123");
+                "-properties", "src/test/org/h2/test", "-tcp", "-tcpPort", "9101");
         try {
             String url = "http://localhost:8182";
             WebClient client;

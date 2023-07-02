@@ -343,8 +343,6 @@ public class WebServer implements Service {
                 ifExists = true;
             } else if (Tool.isOption(a, "-ifNotExists")) {
                 ifExists = false;
-            } else if (Tool.isOption(a, "-webAdminPassword")) {
-                setAdminPassword(args[++i]);
             } else if (Tool.isOption(a, "-properties")) {
                 // already set
                 i++;

@@ -334,6 +334,7 @@ public abstract class FileStore<C extends Chunk<C>>
      * Specified map is supposedly closed, is anonymous and has no outstanding usage by now.
      *
      * @param mapId to deregister
+     * @return true if root was removed, false if it is not there
      */
     public final boolean deregisterMapRoot(int mapId) {
         return layout.remove(MVMap.getMapRootKey(mapId)) != null;
@@ -342,6 +343,7 @@ public abstract class FileStore<C extends Chunk<C>>
     /**
      * Check whether there are any unsaved changes since specified version.
      *
+     * @param lastStoredVersion version to take as a base for changes
      * @return if there are any changes
      */
     public final boolean hasChangesSince(long lastStoredVersion) {
@@ -814,7 +816,7 @@ public abstract class FileStore<C extends Chunk<C>>
 
     /**
      * Store chunk's serialized metadata as an entry in a layout map.
-     * Key for this entry would be "chunk.<id>"
+     * Key for this entry would be "chunk.&lt;id&gt;"
      *
      * @param chunk to save
      */
@@ -896,6 +898,7 @@ public abstract class FileStore<C extends Chunk<C>>
      * @param thresholdFillRate do not compact if store fill rate above this value (0-100)
      * @param maxCompactTime the maximum time in milliseconds to compact
      * @param maxWriteSize the maximum amount of data to be written as part of this call
+     * @param mvStore that owns this FileStore
      */
     protected abstract void compactStore(int thresholdFillRate, long maxCompactTime, int maxWriteSize, //
             MVStore mvStore);
@@ -1216,6 +1219,7 @@ public abstract class FileStore<C extends Chunk<C>>
 
     /**
      * The time the store was created, in milliseconds since 1970.
+     * @return creation time
      */
     public long getCreationTime() {
         return creationTime;

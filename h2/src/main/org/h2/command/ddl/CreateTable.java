@@ -172,7 +172,7 @@ public class CreateTable extends CommandWithColumns {
     }
 
     /** This is called from REFRESH MATERIALIZED VIEW */
-    public void insertAsData(Table table) {
+    void insertAsData(Table table) {
         insertAsData(false, getDatabase(), table);
     }
 

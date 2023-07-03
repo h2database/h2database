@@ -49,4 +49,9 @@ public abstract class DefineCommand extends Prepared {
         return transactional;
     }
 
+    @Override
+    public boolean isRetryable() {
+        return false;
+    }
+
 }

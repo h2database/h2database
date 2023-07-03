@@ -278,7 +278,7 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
     public V putIfAbsent(K key, V value) {
         DataUtils.checkArgument(value != null, "The value may not be null");
         ifAbsentDecisionMaker.initialize(key, value);
-        V result = set(key, ifAbsentDecisionMaker);
+        V result = set(key, ifAbsentDecisionMaker, -1);
         if (ifAbsentDecisionMaker.getDecision() == MVMap.Decision.ABORT) {
             result = ifAbsentDecisionMaker.getLastValue();
         }
@@ -308,8 +308,25 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
      * @throws MVStoreException if a lock timeout occurs
      */
     public V lock(K key) {
+        return lock(key, -1);
+    }
+
+    /**
+     * Lock row for the given key.
+     * <p>
+     * If the row is locked, this method will retry until the row could be
+     * updated or until a lock timeout.
+     *
+     * @param key the key
+     * @param timeoutMillis
+     *            timeout in milliseconds, {@code -1} for default, {@code -2} to
+     *            skip locking if row is already locked by another transaction
+     * @return the locked value
+     * @throws MVStoreException if a lock timeout occurs
+     */
+    public V lock(K key, int timeoutMillis) {
         lockDecisionMaker.initialize(key, null);
-        return set(key, lockDecisionMaker);
+        return set(key, lockDecisionMaker, timeoutMillis);
     }
 
     /**
@@ -330,10 +347,10 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
 
     private V set(K key, V value) {
         txDecisionMaker.initialize(key, value);
-        return set(key, txDecisionMaker);
+        return set(key, txDecisionMaker, -1);
     }
 
-    private V set(Object key, TxDecisionMaker<K,V> decisionMaker) {
+    private V set(Object key, TxDecisionMaker<K,V> decisionMaker, int timeoutMillis) {
         Transaction blockingTransaction;
         VersionedValue<V> result;
         String mapName = null;
@@ -355,16 +372,19 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
                 return res;
             }
             decisionMaker.reset();
+            if (timeoutMillis == -2) {
+                return null;
+            }
             if (mapName == null) {
                 mapName = map.getName();
             }
-        } while (transaction.waitFor(blockingTransaction, mapName, key));
+        } while (timeoutMillis != 0 && transaction.waitFor(blockingTransaction, mapName, key, timeoutMillis));
 
         throw DataUtils.newMVStoreException(DataUtils.ERROR_TRANSACTION_LOCKED,
                 "Map entry <{0}> with key <{1}> and value {2} is locked by tx {3} and can not be updated by tx {4}"
                         + " within allocated time interval {5} ms.",
                 mapName, key, result, blockingTransaction.transactionId, transaction.transactionId,
-                transaction.timeoutMillis);
+                timeoutMillis == -1 ? transaction.timeoutMillis : timeoutMillis);
     }
 
     /**

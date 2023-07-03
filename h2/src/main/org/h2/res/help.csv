@@ -17,7 +17,7 @@ selectExpression [,...]
 [ OFFSET expression { ROW | ROWS } ]
 [ FETCH { FIRST | NEXT } [ expression [ PERCENT ] ] { ROW | ROWS }
     { ONLY | WITH TIES } ]
-@h2@ [ FOR UPDATE ]
+@h2@ [ FOR UPDATE [ NOWAIT | WAIT secondsNumeric | SKIP LOCKED ] ]
 ","
 Selects data from a table or multiple tables.
 
@@ -67,6 +67,15 @@ WINDOW clause specifies window definitions for window functions and window aggre
 This clause can be used to reuse the same definition in multiple functions.
 
 If FOR UPDATE is specified, the tables or rows are locked for writing.
+If some rows are locked by another session, this query will wait some time for release of these locks,
+unless NOWAIT or SKIP LOCKED is specified.
+If SKIP LOCKED is specified, these locked rows will be excluded from result of this query.
+If NOWAIT is specified, presence of these rows will stop execution of this query immediately.
+If WAIT with timeout is specified and some rows are locked by another session,
+this timeout will be used instead of default timeout for this session.
+Please note that with current implementation the timeout doesn't limit execution time of the whole query,
+it only limits wait time for completion of particular transaction that holds a lock on a row selected by this query.
+
 This clause is not allowed in DISTINCT queries and in queries with non-window aggregates, GROUP BY, or HAVING clauses.
 Only the selected rows are locked as in an UPDATE statement.
 Rows from the right side of a left join and from the left side of a right join, including nested joins, aren't locked.
@@ -91,6 +100,7 @@ SELECT * FROM (SELECT ID, COUNT(*) FROM TEST
     ORDER BY 1 NULLS LAST;
 SELECT DISTINCT C1, C2 FROM TEST;
 SELECT DISTINCT ON(C1) C1, C2 FROM TEST ORDER BY C1;
+SELECT ID, V FROM TEST WHERE ID IN (1, 2, 3) FOR UPDATE WAIT 0.5;
 "
 
 "Commands (DML)","INSERT","

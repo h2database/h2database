@@ -279,11 +279,19 @@ public abstract class Query extends Prepared {
     }
 
     /**
-     * Set the 'for update' flag.
-     *
-     * @param forUpdate the new setting
+     * Returns FOR UPDATE clause, if any.
+     * @return FOR UPDATE clause or {@code null}
      */
-    public abstract void setForUpdate(boolean forUpdate);
+    public ForUpdate getForUpdate() {
+        return null;
+    }
+
+    /**
+     * Set the FOR UPDATE clause.
+     *
+     * @param forUpdate the new FOR UPDATE clause
+     */
+    public abstract void setForUpdate(ForUpdate forUpdate);
 
     /**
      * Get the column count of this query.
@@ -1031,6 +1039,12 @@ public abstract class Query extends Prepared {
      */
     public Expression getIfSingleRow() {
         return null;
+    }
+
+    @Override
+    public boolean isRetryable() {
+        ForUpdate forUpdate = getForUpdate();
+        return forUpdate == null || forUpdate.getType() == ForUpdate.Type.SKIP_LOCKED;
     }
 
 }

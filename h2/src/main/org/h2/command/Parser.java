@@ -132,6 +132,7 @@ import static org.h2.util.ParserUtil.WITH;
 import static org.h2.util.ParserUtil.YEAR;
 import static org.h2.util.ParserUtil._ROWID_;
 
+import java.math.BigDecimal;
 import java.nio.charset.Charset;
 import java.text.Collator;
 import java.util.ArrayList;
@@ -227,6 +228,7 @@ import org.h2.command.dml.SetSessionCharacteristics;
 import org.h2.command.dml.SetTypes;
 import org.h2.command.dml.TransactionCommand;
 import org.h2.command.dml.Update;
+import org.h2.command.query.ForUpdate;
 import org.h2.command.query.Query;
 import org.h2.command.query.QueryOrderBy;
 import org.h2.command.query.Select;
@@ -2773,10 +2775,25 @@ public class Parser {
                     do {
                         readIdentifierWithSchema();
                     } while (readIf(COMMA));
-                } else if (readIf("NOWAIT")) {
-                    // TODO parser: select for update nowait: should not wait
                 }
-                command.setForUpdate(true);
+                ForUpdate forUpdate;
+                if (readIf("NOWAIT")) {
+                    forUpdate = ForUpdate.NOWAIT;
+                } else if (readIf("WAIT")) {
+                    BigDecimal timeout;
+                    if (currentTokenType != LITERAL || (timeout = token.value(session).getBigDecimal()) == null
+                            || timeout.signum() < 0
+                            || timeout.compareTo(BigDecimal.valueOf(Integer.MAX_VALUE, 3)) > 0) {
+                        throw DbException.getSyntaxError(sqlCommand, token.start(), "timeout (0..2147483.647)");
+                    }
+                    read();
+                    forUpdate = ForUpdate.wait(timeout.movePointRight(3).intValue());
+                } else if (readIf("SKIP", "LOCKED")) {
+                    forUpdate = ForUpdate.SKIP_LOCKED;
+                } else {
+                    forUpdate = ForUpdate.DEFAULT;
+                }
+                command.setForUpdate(forUpdate);
             } else if (readIf("READ") || readIf(FETCH)) {
                 read("ONLY");
             }

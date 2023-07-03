@@ -257,7 +257,7 @@ public class TableValueConstructor extends Query {
     }
 
     @Override
-    public void setForUpdate(boolean forUpdate) {
+    public void setForUpdate(ForUpdate forUpdate) {
         throw DbException.get(ErrorCode.RESULT_SET_READONLY);
     }
 

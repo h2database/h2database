@@ -29,6 +29,7 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
     private final Service service;
     private Server web, tcp, pg;
     private ShutdownHandler shutdownHandler;
+    private boolean fromCommandLine;
     private boolean started;
 
     public Server() {
@@ -75,7 +76,11 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
      * <tr><td>[-webSSL]</td>
      * <td>Use encrypted (HTTPS) connections</td></tr>
      * <tr><td>[-webAdminPassword]</td>
-     * <td>Password of DB Console administrator</td></tr>
+     * <td>Hash of password of DB Console administrator, can be generated with
+     * {@linkplain WebServer#encodeAdminPassword(String)}. Can be passed only to
+     * the {@link #runTool(String...)} method, this method rejects it. It is
+     * also possible to store this setting in configuration file of H2
+     * Console.</td></tr>
      * <tr><td>[-browser]</td>
      * <td>Start a browser connecting to the web server</td></tr>
      * <tr><td>[-tcp]</td>
@@ -123,7 +128,9 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
      * @throws SQLException on failure
      */
     public static void main(String... args) throws SQLException {
-        new Server().runTool(args);
+        Server server = new Server();
+        server.fromCommandLine = true;
+        server.runTool(args);
     }
 
     private void verifyArgs(String... args) throws SQLException {
@@ -146,6 +153,9 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
                 } else if ("-webPort".equals(arg)) {
                     i++;
                 } else if ("-webAdminPassword".equals(arg)) {
+                    if (fromCommandLine) {
+                        throwUnsupportedOption(arg);
+                    }
                     i++;
                 } else {
                     throwUnsupportedOption(arg);
@@ -249,6 +259,9 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
                 } else if ("-webPort".equals(arg)) {
                     i++;
                 } else if ("-webAdminPassword".equals(arg)) {
+                    if (fromCommandLine) {
+                        throwUnsupportedOption(arg);
+                    }
                     i++;
                 } else {
                     showUsageAndThrowUnsupportedOption(arg);

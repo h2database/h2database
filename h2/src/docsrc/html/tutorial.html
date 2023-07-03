@@ -443,7 +443,9 @@ Supported settings are:
 <ul><li><code>webAllowOthers</code>: allow other computers to connect.
 </li><li><code>webPort</code>: the port of the H2 Console
 </li><li><code>webSSL</code>: use encrypted TLS (HTTPS) connections.
-</li><li><code>webAdminPassword</code>: password to access preferences and tools of H2 Console.
+</li><li><code>webAdminPassword</code>: hash of password to access preferences and tools of H2 Console,
+use <code>org.h2.server.web.WebServer.encodeAdminPassword(String)</code> to generate a hash for your password.
+Always use long complex passwords, especially when access from other hosts is enabled.
 </li></ul>
 <p>
 In addition to those settings, the properties of the last recently used connection

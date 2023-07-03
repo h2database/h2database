@@ -473,6 +473,11 @@ public class Constants {
     public static final int QUERY_STATISTICS_MAX_ENTRIES = 100;
 
     /**
+     * The minimum number of characters in web admin password.
+     */
+    public static final int MIN_WEB_ADMIN_PASSWORD_LENGTH = 12;
+
+    /**
      * Announced version for PgServer.
      */
     public static final String PG_VERSION = "8.2.23";

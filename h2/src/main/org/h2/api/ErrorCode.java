@@ -1890,9 +1890,8 @@ public class ErrorCode {
     /**
      * The error with code <code>90125</code> is thrown when
      * PreparedStatement.setBigDecimal is called with object that extends the
-     * class BigDecimal, and the system property h2.allowBigDecimalExtensions is
-     * not set. Using extensions of BigDecimal is dangerous because the database
-     * relies on the behavior of BigDecimal. Example of wrong usage:
+     * class BigDecimal. Using extensions of BigDecimal is dangerous because the
+     * database relies on the behavior of BigDecimal. Example of wrong usage:
      * <pre>
      * BigDecimal bd = new MyDecimal("$10.3");
      * prep.setBigDecimal(1, bd);

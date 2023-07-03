@@ -80,10 +80,10 @@ public abstract class FileStore<C extends Chunk<C>>
      */
     static final int BLOCK_SIZE = 4 * 1024;
 
-    private static final int FORMAT_WRITE_MIN = 2;
-    private static final int FORMAT_WRITE_MAX = 2;
-    private static final int FORMAT_READ_MIN = 2;
-    private static final int FORMAT_READ_MAX = 2;
+    private static final int FORMAT_WRITE_MIN = 3;
+    private static final int FORMAT_WRITE_MAX = 3;
+    private static final int FORMAT_READ_MIN = 3;
+    private static final int FORMAT_READ_MAX = 3;
 
     MVStore mvStore;
     private boolean closed;

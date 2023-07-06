@@ -319,7 +319,7 @@ public class TestCsv extends TestDb {
         assertEquals("D", meta.getColumnLabel(4));
         assertTrue(rs.next());
         assertEquals(null, rs.getString(1));
-        assertEquals(null, rs.getString(2));
+        assertEquals("", rs.getString(2));
         // null is never quoted
         assertEquals("\\N", rs.getString(3));
         // an empty string is always parsed as null

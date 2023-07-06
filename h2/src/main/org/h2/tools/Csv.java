@@ -537,6 +537,8 @@ public class Csv implements SimpleRowSource {
         if (input == null) {
             return null;
         }
+        
+        boolean nullStringIsEmpty = nullString==null || nullString.isEmpty();
         String[] row = new String[columnNames.length];
         try {
             int i = 0;
@@ -558,7 +560,7 @@ public class Csv implements SimpleRowSource {
                     // Empty Strings should be NULL
                     // in order to prevent conversion of zero-length String
                     // to Number
-                    row[i++] = v!=null && v.length() > 0
+                    row[i++] = v!=null && (v.length()>0 || !nullStringIsEmpty)
                             ? v
                             : null;
                 }

@@ -8,6 +8,7 @@ package org.h2.test.db;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.Reader;
@@ -21,6 +22,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
@@ -73,6 +75,12 @@ public class TestCsv extends TestDb {
         testPipe();
         testReadEmptyNumbers1();
         testReadEmptyNumbers2();
+        testCsvQuotedString1();
+        testCsvQuotedString2();
+        testCsvQuotedString3();
+        testCsvQuotedString4();
+        testCsvQuotedString5();
+        testCsvQuotedString6();
         deleteDb("csv");
     }
 
@@ -319,7 +327,7 @@ public class TestCsv extends TestDb {
         assertEquals("D", meta.getColumnLabel(4));
         assertTrue(rs.next());
         assertEquals(null, rs.getString(1));
-        assertEquals(null, rs.getString(2));
+        assertEquals("", rs.getString(2));
         // null is never quoted
         assertEquals("\\N", rs.getString(3));
         // an empty string is always parsed as null
@@ -369,8 +377,8 @@ public class TestCsv extends TestDb {
         for (int i = 0; i < len; i++) {
             assertTrue(rs.next());
             String[] pair = list.get(i);
-            assertEquals(pair[0]!=null && pair[0].isEmpty() ? null : pair[0], rs.getString(1));
-            assertEquals(pair[1]!=null && pair[1].isEmpty() ? null : pair[1], rs.getString(2));
+            assertEquals(pair[0], rs.getString(1));
+            assertEquals(pair[1], rs.getString(2));
         }
         assertFalse(rs.next());
         conn.close();
@@ -523,7 +531,7 @@ public class TestCsv extends TestDb {
         assertEquals(null, rs.getString(1));
         assertEquals("abc\"", rs.getString(2));
         assertEquals(null, rs.getString(3));
-        assertEquals(null, rs.getString(4));
+        assertEquals("", rs.getString(4));
         assertTrue(rs.next());
         assertEquals("1", rs.getString(1));
         assertEquals("2", rs.getString(2));
@@ -603,7 +611,9 @@ public class TestCsv extends TestDb {
         out.write(b, 0, b.length);
         out.close();
 
-        ResultSet rs = new Csv().read(fileName, null, "UTF8");
+        Csv csv = new Csv();
+        csv.setQuotedNulls(true);
+        ResultSet rs = csv.read(fileName, null, "UTF8");
         assertTrue(rs.next());
         assertNotNull(rs.getString(1));
 
@@ -634,9 +644,80 @@ public class TestCsv extends TestDb {
         Connection conn = DriverManager.getConnection("jdbc:h2:mem:test");
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE TEST(TEST DECIMAL(12,2) NULL)");
-        stat.execute("INSERT INTO TEST SELECT * FROM CsvRead('" + fileName + "')");
+        stat.execute("INSERT INTO TEST SELECT * FROM CsvRead('" + fileName + "', NULL, 'quotedNulls=true')");
 
         FileUtils.delete(fileName);
     }
 
+    private void testCsvQuotedString1() throws Exception { testCsvQuotedNullStrings(false, "NULL"); }
+    private void testCsvQuotedString2() throws Exception { testCsvQuotedNullStrings(true, "NULL"); }
+    private void testCsvQuotedString3() throws Exception { testCsvQuotedNullStrings(false, ""); }
+    private void testCsvQuotedString4() throws Exception { testCsvQuotedNullStrings(true, ""); }
+    private void testCsvQuotedString5() throws Exception { testCsvQuotedNullStrings(false, "$empty"); }
+    private void testCsvQuotedString6() throws Exception { testCsvQuotedNullStrings(true, "$empty"); }
+    
+    private void testCsvQuotedNullStrings(boolean quotedStrings, String nullString) throws Exception {
+        String fileName = getBaseDir() + "/test.csv";
+        FileUtils.delete(fileName);
+        
+        deleteDb("csv");
+        Connection conn = DriverManager.getConnection("jdbc:h2:mem:test");
+        Statement stat = conn.createStatement();
+        stat.execute("DROP TABLE IF EXISTS TEST");
+        stat.execute("CREATE TABLE TEST(ID char(2) NOT NULL, NAME varchar(255), HEIGHT integer, BIRTHDATE date, PRIMARY KEY (ID))");
+        stat.execute("INSERT INTO TEST VALUES('01', 'Penrosed Roberto', 511, '1958-03-29')");
+        stat.execute("INSERT INTO TEST VALUES('02', NULL, 512, '1975-07-12')");
+        stat.execute("INSERT INTO TEST VALUES('03', 'Smith John', NULL, '1971-11-03')");
+        stat.execute("INSERT INTO TEST VALUES('04', 'Hatchet Eve', 500, NULL)");
+        stat.execute("INSERT INTO TEST VALUES('05', NULL, NULL, NULL)");
+        stat.execute("CALL CSVWRITE('" + fileName + "', 'SELECT * FROM TEST ORDER BY ID','quotedNulls=" + quotedStrings + " nullString=" + nullString + "')");
+        
+        InputStream fis = FileUtils.newInputStream(fileName);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        byte[] buffer = new byte[1024];
+        int read = fis.read(buffer);
+        while (read >= 0) {
+            baos.write(buffer, 0, read);
+            read = fis.read(buffer);
+        }
+        baos.close();
+        fis.close();
+        
+        String csvWrittenContent = new String(baos.toByteArray());
+        if (quotedStrings) {
+            assertTrue(csvWrittenContent.contains("\""+nullString+"\""));
+        } else {
+            assertTrue(csvWrittenContent.contains(nullString));
+            assertFalse(csvWrittenContent.contains("\""+nullString+"\""));
+        }
+        
+        stat.execute("DELETE FROM TEST");
+        stat.execute("INSERT INTO TEST SELECT * FROM CSVREAD('" + fileName + "', NULL, 'quotedNulls="+quotedStrings+" nullString="+nullString+"')");
+        
+        //check imported results
+        ResultSet rs = stat.executeQuery("SELECT * FROM TEST ORDER BY ID");
+        for (int i = 1 ; i <= 5 ; ++i) {
+            assertTrue("Missing record " + i, rs.next());
+            
+            if (i == 1) {
+                assertEquals("Penrosed Roberto", rs.getString("NAME"));
+                assertEquals(511, rs.getInt("HEIGHT"));
+                assertEquals(LocalDate.of(1958, 3, 29), rs.getObject("BIRTHDATE", LocalDate.class));
+            } else if (i == 2) {
+                assertNull(rs.getString("NAME"));
+            } else if (i == 3) {
+                assertNull(rs.getObject("HEIGHT"));
+            } else if (i == 4) {
+                assertNull(rs.getDate("BIRTHDATE"));
+            } else {
+                assertNull(rs.getString("NAME"));
+                assertNull(rs.getObject("HEIGHT"));
+                assertNull(rs.getDate("BIRTHDATE"));
+            }
+        }
+        rs.close();
+        
+        FileUtils.delete(fileName);
+    }
 }
+

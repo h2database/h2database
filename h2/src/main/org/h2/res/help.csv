@@ -3382,8 +3382,10 @@ The following options are supported:
 
 ""lineSeparator"" (the line separator used for writing; ignored for reading),
 
-""null"", Support reading existing CSV files that contain explicit ""null"" delimiters.
+""null"" Support reading existing CSV files that contain explicit ""null"" delimiters.
 Note that an empty, unquoted values are also treated as null.
+
+""quotedNulls"" (quotes the nullString. true of false; disabled by default),
 
 ""preserveWhitespace"" (true or false; disabled by default),
 

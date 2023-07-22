@@ -89,13 +89,6 @@ public class DbSettings extends SettingsBase {
     public final boolean caseInsensitiveIdentifiers = get("CASE_INSENSITIVE_IDENTIFIERS", false);
 
     /**
-     * Database setting <code>DB_CLOSE_ON_EXIT</code> (default: true).
-     * Close the database when the virtual machine exits normally, using a
-     * shutdown hook.
-     */
-    public final boolean dbCloseOnExit = get("DB_CLOSE_ON_EXIT", true);
-
-    /**
      * Database setting <code>DEFAULT_CONNECTION</code> (default: false).
      * Whether Java functions can use
      * <code>DriverManager.getConnection("jdbc:default:connection")</code> to

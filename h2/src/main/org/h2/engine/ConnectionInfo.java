@@ -119,6 +119,7 @@ public class ConnectionInfo implements Cloneable {
         String[] commonSettings = { //
                 "ACCESS_MODE_DATA", "AUTO_RECONNECT", "AUTO_SERVER", "AUTO_SERVER_PORT", //
                 "CACHE_TYPE", //
+                "DB_CLOSE_ON_EXIT", //
                 "FILE_LOCK", //
                 "JMX", //
                 "NETWORK_TIMEOUT", //

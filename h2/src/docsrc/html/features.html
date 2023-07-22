@@ -549,7 +549,7 @@ It is possible to set the value in the database URL: <code>jdbc:h2:~/test;DB_CLO
 <h3 id="do_not_close_on_exit">Don't Close a Database when the VM Exits</h3>
 <p>
 By default, a database is closed when the last connection is closed. However, if it is never closed,
-the database is closed when the virtual machine exits normally, using a shutdown hook.
+a persistent database is closed when the virtual machine exits normally, using a shutdown hook.
 In some situations, the database should not be closed in this case, for example because the
 database is still used at virtual machine shutdown (to store the shutdown process in the database for example).
 For those cases, the automatic closing of the database can be disabled in the database URL.
@@ -560,6 +560,10 @@ The database URL to disable database closing on exit is:
 <pre>
 String url = "jdbc:h2:~/test;DB_CLOSE_ON_EXIT=FALSE";
 </pre>
+<b>Warning:</b> when database closing on exit is disabled, an application <b>must</b> execute the
+<a href="commands.html#shutdown">SHUTDOWN</a> command by itself in its own shutdown hook
+after completion of all operations with database to avoid data loss
+and should not try to establish new connections to database after that.
 
 <h2 id="execute_sql_on_connection">Execute SQL on Connection</h2>
 <p>

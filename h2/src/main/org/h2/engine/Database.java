@@ -189,6 +189,7 @@ public final class Database implements DataHandler, CastDataProvider {
     private int maxOperationMemory =
             Constants.DEFAULT_MAX_OPERATION_MEMORY;
     private SmallLRUCache<String, String[]> lobFileListCache;
+    private final boolean closeAtVmShutdown;
     private final boolean autoServerMode;
     private final int autoServerPort;
     private Server server;
@@ -268,7 +269,12 @@ public final class Database implements DataHandler, CastDataProvider {
             javaObjectSerializerName = s;
         }
         this.allowBuiltinAliasOverride = ci.getProperty("BUILTIN_ALIAS_OVERRIDE", false);
-        boolean closeAtVmShutdown = dbSettings.dbCloseOnExit;
+        if (autoServerMode && (readOnly || !persistent || fileLockMethod == FileLockMethod.NO
+                || fileLockMethod == FileLockMethod.FS)) {
+            throw DbException.getUnsupportedException(
+                    "AUTO_SERVER=TRUE && (readOnly || inMemory || FILE_LOCK=NO || FILE_LOCK=FS)");
+        }
+        closeAtVmShutdown = ci.getProperty("DB_CLOSE_ON_EXIT", persistent);
         if (autoServerMode && !closeAtVmShutdown) {
             throw DbException.getUnsupportedException("AUTO_SERVER=TRUE && DB_CLOSE_ON_EXIT=FALSE");
         }
@@ -299,11 +305,6 @@ public final class Database implements DataHandler, CastDataProvider {
         trace = traceSystem.getTrace(Trace.DATABASE);
         trace.info("opening {0} (build {1})", databaseName, Constants.BUILD_ID);
         try {
-            if (autoServerMode && (readOnly || !persistent || fileLockMethod == FileLockMethod.NO
-                    || fileLockMethod == FileLockMethod.FS)) {
-                throw DbException.getUnsupportedException(
-                        "AUTO_SERVER=TRUE && (readOnly || inMemory || FILE_LOCK=NO || FILE_LOCK=FS)");
-            }
             if (persistent) {
                 String lockFileName = databaseName + Constants.SUFFIX_LOCK_FILE;
                 if (readOnly) {
@@ -379,7 +380,7 @@ public final class Database implements DataHandler, CastDataProvider {
                 int writeDelay = ci.getProperty("WRITE_DELAY", Constants.DEFAULT_WRITE_DELAY);
                 setWriteDelay(writeDelay);
             }
-            if (closeAtVmShutdown) {
+            if (closeAtVmShutdown || persistent) {
                 OnExitDatabaseCloser.register(this);
             }
         } catch (Throwable e) {
@@ -1069,7 +1070,7 @@ public final class Database implements DataHandler, CastDataProvider {
         if (isUserSession(session)) {
             if (userSessions.isEmpty()) {
                 if (closeDelay == 0) {
-                    close(false);
+                    close();
                 } else if (closeDelay < 0) {
                     return;
                 } else {
@@ -1134,11 +1135,29 @@ public final class Database implements DataHandler, CastDataProvider {
 
     /**
      * Close the database.
+     */
+    void close() {
+        close(false);
+    }
+
+    /**
+     * Invoked by shutdown hook.
+     */
+    void onShutdown() {
+        if (closeAtVmShutdown) {
+            close(true);
+        } else if (persistent) {
+            checkpoint();
+        }
+    }
+
+    /**
+     * Close the database.
      *
      * @param fromShutdownHook true if this method is called from the shutdown
      *            hook
      */
-    void close(boolean fromShutdownHook) {
+    private void close(boolean fromShutdownHook) {
         DbException b = backgroundException.getAndSet(null);
         try {
             closeImpl(fromShutdownHook);

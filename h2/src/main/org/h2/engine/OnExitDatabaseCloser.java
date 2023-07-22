@@ -82,7 +82,7 @@ class OnExitDatabaseCloser extends Thread {
         RuntimeException root = null;
         for (Database database : DATABASES.keySet()) {
             try {
-                database.close(true);
+                database.onShutdown();
             } catch (RuntimeException e) {
                 // this can happen when stopping a web application,
                 // if loading classes is no longer allowed

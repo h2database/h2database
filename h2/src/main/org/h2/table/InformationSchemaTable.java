@@ -2847,9 +2847,9 @@ public final class InformationSchemaTable extends MetaTable {
         NetworkConnectionInfo networkConnectionInfo = s.getNetworkConnectionInfo();
         Command command = s.getCurrentCommand();
         int blockingSessionId = s.getBlockingSessionId();
-        //Fix bug the NullPointerException caused by accessing 'user' after the session has been closed.
         User user = s.getUser();
-        if(user==null) {
+        if (user == null) {
+            // Session was closed concurrently
             return;
         }
         add(session, rows,

@@ -655,23 +655,25 @@ public class TestCsv extends TestDb {
     private void testCsvQuotedString4() throws Exception { testCsvQuotedNullStrings(true, ""); }
     private void testCsvQuotedString5() throws Exception { testCsvQuotedNullStrings(false, "$empty"); }
     private void testCsvQuotedString6() throws Exception { testCsvQuotedNullStrings(true, "$empty"); }
-    
+
     private void testCsvQuotedNullStrings(boolean quotedStrings, String nullString) throws Exception {
         String fileName = getBaseDir() + "/test.csv";
         FileUtils.delete(fileName);
-        
+
         deleteDb("csv");
         Connection conn = DriverManager.getConnection("jdbc:h2:mem:test");
         Statement stat = conn.createStatement();
         stat.execute("DROP TABLE IF EXISTS TEST");
-        stat.execute("CREATE TABLE TEST(ID char(2) NOT NULL, NAME varchar(255), HEIGHT integer, BIRTHDATE date, PRIMARY KEY (ID))");
+        stat.execute("CREATE TABLE TEST(ID char(2) NOT NULL, NAME varchar(255), HEIGHT integer, BIRTHDATE date,"
+                + " PRIMARY KEY (ID))");
         stat.execute("INSERT INTO TEST VALUES('01', 'Penrosed Roberto', 511, '1958-03-29')");
         stat.execute("INSERT INTO TEST VALUES('02', NULL, 512, '1975-07-12')");
         stat.execute("INSERT INTO TEST VALUES('03', 'Smith John', NULL, '1971-11-03')");
         stat.execute("INSERT INTO TEST VALUES('04', 'Hatchet Eve', 500, NULL)");
         stat.execute("INSERT INTO TEST VALUES('05', NULL, NULL, NULL)");
-        stat.execute("CALL CSVWRITE('" + fileName + "', 'SELECT * FROM TEST ORDER BY ID','quotedNulls=" + quotedStrings + " nullString=" + nullString + "')");
-        
+        stat.execute("CALL CSVWRITE('" + fileName + "', 'SELECT * FROM TEST ORDER BY ID','quotedNulls=" + quotedStrings
+                + " nullString=" + nullString + "')");
+
         InputStream fis = FileUtils.newInputStream(fileName);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         byte[] buffer = new byte[1024];
@@ -682,7 +684,7 @@ public class TestCsv extends TestDb {
         }
         baos.close();
         fis.close();
-        
+
         String csvWrittenContent = new String(baos.toByteArray());
         if (quotedStrings) {
             assertTrue(csvWrittenContent.contains("\""+nullString+"\""));
@@ -690,15 +692,16 @@ public class TestCsv extends TestDb {
             assertTrue(csvWrittenContent.contains(nullString));
             assertFalse(csvWrittenContent.contains("\""+nullString+"\""));
         }
-        
+
         stat.execute("DELETE FROM TEST");
-        stat.execute("INSERT INTO TEST SELECT * FROM CSVREAD('" + fileName + "', NULL, 'quotedNulls="+quotedStrings+" nullString="+nullString+"')");
-        
+        stat.execute("INSERT INTO TEST SELECT * FROM CSVREAD('" + fileName + "', NULL, 'quotedNulls=" + quotedStrings
+                + " nullString=" + nullString + "')");
+
         //check imported results
         ResultSet rs = stat.executeQuery("SELECT * FROM TEST ORDER BY ID");
         for (int i = 1 ; i <= 5 ; ++i) {
             assertTrue("Missing record " + i, rs.next());
-            
+
             if (i == 1) {
                 assertEquals("Penrosed Roberto", rs.getString("NAME"));
                 assertEquals(511, rs.getInt("HEIGHT"));
@@ -716,7 +719,7 @@ public class TestCsv extends TestDb {
             }
         }
         rs.close();
-        
+
         FileUtils.delete(fileName);
     }
 }

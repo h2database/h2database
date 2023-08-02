@@ -868,7 +868,7 @@ public final class Database implements DataHandler, CastDataProvider {
     }
 
     @SuppressWarnings("unchecked")
-    private Map<String, DbObject> getMap(int type) {
+    private ConcurrentHashMap<String, DbObject> getMap(int type) {
         Map<String, ? extends DbObject> result;
         switch (type) {
         case DbObject.USER:
@@ -890,7 +890,7 @@ public final class Database implements DataHandler, CastDataProvider {
         default:
             throw DbException.getInternalError("type=" + type);
         }
-        return (Map<String, DbObject>) result;
+        return (ConcurrentHashMap<String, DbObject>) result;
     }
 
     /**
@@ -922,7 +922,7 @@ public final class Database implements DataHandler, CastDataProvider {
         if (id > 0 && !starting) {
             checkWritingAllowed();
         }
-        Map<String, DbObject> map = getMap(obj.getType());
+        ConcurrentHashMap<String, DbObject> map = getMap(obj.getType());
         if (obj.getType() == DbObject.USER) {
             User user = (User) obj;
             if (user.isAdmin() && systemUser.getName().equals(SYSTEM_USER_NAME)) {
@@ -1527,7 +1527,7 @@ public final class Database implements DataHandler, CastDataProvider {
             DbObject obj, String newName) {
         checkWritingAllowed();
         int type = obj.getType();
-        Map<String, DbObject> map = getMap(type);
+        ConcurrentHashMap<String, DbObject> map = getMap(type);
         if (SysProperties.CHECK) {
             if (!map.containsKey(obj.getName())) {
                 throw DbException.getInternalError("not found: " + obj.getName());
@@ -1579,7 +1579,7 @@ public final class Database implements DataHandler, CastDataProvider {
         checkWritingAllowed();
         String objName = obj.getName();
         int type = obj.getType();
-        Map<String, DbObject> map = getMap(type);
+        ConcurrentHashMap<String, DbObject> map = getMap(type);
         if (SysProperties.CHECK && !map.containsKey(objName)) {
             throw DbException.getInternalError("not found: " + objName);
         }

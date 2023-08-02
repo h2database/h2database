@@ -25,9 +25,13 @@ import java.security.SecureClassLoader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Predicate;
 
+import javax.script.Bindings;
 import javax.script.Compilable;
 import javax.script.CompiledScript;
+import javax.script.ScriptContext;
+import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import javax.tools.FileObject;
@@ -217,8 +221,13 @@ public class SourceCompiler {
                 throw new IllegalStateException("Unknown language for " + source);
             }
 
-            final Compilable jsEngine = (Compilable) new ScriptEngineManager().getEngineByName(lang);
-            compiledScript = jsEngine.compile(source);
+            final ScriptEngine jsEngine = new ScriptEngineManager().getEngineByName(lang);
+            if (jsEngine.getClass().getName().equals("com.oracle.truffle.js.scriptengine.GraalJSScriptEngine")) {
+                Bindings bindings = jsEngine.getBindings(ScriptContext.ENGINE_SCOPE);
+                bindings.put("polyglot.js.allowHostAccess", true);
+                bindings.put("polyglot.js.allowHostClassLookup", (Predicate<String>) s -> true);
+            }
+            compiledScript = ((Compilable) jsEngine).compile(source);
             compiledScripts.put(packageAndClassName, compiledScript);
         }
         return compiledScript;

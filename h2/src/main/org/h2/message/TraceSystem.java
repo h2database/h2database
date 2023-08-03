@@ -181,6 +181,9 @@ public class TraceSystem implements TraceWriter {
      * @param level the new level
      */
     public void setLevelSystemOut(int level) {
+        if (level < PARENT || level > DEBUG) {
+            throw DbException.getInvalidValueException("TRACE_LEVEL_SYSTEM_OUT", level);
+        }
         levelSystemOut = level;
         updateLevel();
     }
@@ -211,6 +214,8 @@ public class TraceSystem implements TraceWriter {
                 }
                 writer.setName(name);
             }
+        } else if (level < PARENT || level > DEBUG) {
+            throw DbException.getInvalidValueException("TRACE_LEVEL_FILE", level);
         }
         levelFile = level;
         updateLevel();

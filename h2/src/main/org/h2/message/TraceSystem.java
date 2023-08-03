@@ -5,12 +5,21 @@
  */
 package org.h2.message;
 
+import static java.time.temporal.ChronoField.HOUR_OF_DAY;
+import static java.time.temporal.ChronoField.MINUTE_OF_HOUR;
+import static java.time.temporal.ChronoField.NANO_OF_SECOND;
+import static java.time.temporal.ChronoField.SECOND_OF_MINUTE;
+
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.Writer;
-import java.text.SimpleDateFormat;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.util.Locale;
 import java.util.concurrent.atomic.AtomicReferenceArray;
+
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.jdbc.JdbcException;
@@ -76,6 +85,8 @@ public class TraceSystem implements TraceWriter {
 
     private static final int CHECK_SIZE_EACH_WRITES = 4096;
 
+    private static DateTimeFormatter DATE_TIME_FORMATTER;
+
     private int levelSystemOut = DEFAULT_TRACE_LEVEL_SYSTEM_OUT;
     private int levelFile = DEFAULT_TRACE_LEVEL_FILE;
     private int levelMax;
@@ -83,7 +94,6 @@ public class TraceSystem implements TraceWriter {
     private String fileName;
     private final AtomicReferenceArray<Trace> traces =
             new AtomicReferenceArray<>(Trace.MODULE_NAMES.length);
-    private SimpleDateFormat dateFormat;
     private Writer fileWriter;
     private PrintWriter printWriter;
     /**
@@ -225,11 +235,26 @@ public class TraceSystem implements TraceWriter {
         return levelFile;
     }
 
-    private synchronized String format(String module, String s) {
-        if (dateFormat == null) {
-            dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss ");
+    private static String format(String module, String s) {
+        DateTimeFormatter dateTimeFormatter = DATE_TIME_FORMATTER;
+        if (dateTimeFormatter == null) {
+            dateTimeFormatter = initTimeFormatter();
         }
-        return dateFormat.format(System.currentTimeMillis()) + module + ": " + s;
+        return dateTimeFormatter.format(OffsetDateTime.now()) + ' ' + module + ": " + s;
+    }
+
+    private static DateTimeFormatter initTimeFormatter() {
+        return DATE_TIME_FORMATTER = new DateTimeFormatterBuilder()
+                .append(DateTimeFormatter.ISO_LOCAL_DATE)
+                .appendLiteral(' ')
+                .appendValue(HOUR_OF_DAY, 2)
+                .appendLiteral(':')
+                .appendValue(MINUTE_OF_HOUR, 2)
+                .appendLiteral(':')
+                .appendValue(SECOND_OF_MINUTE, 2)
+                .appendFraction(NANO_OF_SECOND, 6, 6, true)
+                .appendOffsetId()
+                .toFormatter(Locale.ROOT);
     }
 
     @Override
@@ -239,17 +264,20 @@ public class TraceSystem implements TraceWriter {
 
     @Override
     public void write(int level, String module, String s, Throwable t) {
-        if (level <= levelSystemOut || level > this.levelMax) {
-            // level <= levelSystemOut: the system out level is set higher
-            // level > this.level: the level for this module is set higher
-            sysOut.println(format(module, s));
-            if (t != null && levelSystemOut == DEBUG) {
-                t.printStackTrace(sysOut);
+        // level <= levelSystemOut: the system out level is set higher
+        // level > levelMax: the level for this module is set higher
+        boolean logToSystemOut = level <= levelSystemOut || level > levelMax;
+        boolean logToFile = fileName != null && level <= levelFile;
+        if (logToSystemOut || logToFile) {
+            String row = format(module, s);
+            if (logToSystemOut) {
+                sysOut.println(row);
+                if (t != null && levelSystemOut == DEBUG) {
+                    t.printStackTrace(sysOut);
+                }
             }
-        }
-        if (fileName != null) {
-            if (level <= levelFile) {
-                writeFile(format(module, s), t);
+            if (logToFile) {
+                writeFile(row, t);
             }
         }
     }

@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import org.h2.api.DatabaseEventListener;
@@ -148,7 +149,7 @@ public final class Database implements DataHandler, CastDataProvider {
     private final Schema infoSchema;
     private final Schema pgCatalogSchema;
     private int nextSessionId;
-    private int nextTempTableId;
+    private final AtomicInteger nextTempTableId = new AtomicInteger();
     private final User systemUser;
     private SessionLocal systemSession;
     private SessionLocal lobSession;
@@ -868,7 +869,7 @@ public final class Database implements DataHandler, CastDataProvider {
     }
 
     @SuppressWarnings("unchecked")
-    private Map<String, DbObject> getMap(int type) {
+    private ConcurrentHashMap<String, DbObject> getMap(int type) {
         Map<String, ? extends DbObject> result;
         switch (type) {
         case DbObject.USER:
@@ -890,7 +891,7 @@ public final class Database implements DataHandler, CastDataProvider {
         default:
             throw DbException.getInternalError("type=" + type);
         }
-        return (Map<String, DbObject>) result;
+        return (ConcurrentHashMap<String, DbObject>) result;
     }
 
     /**
@@ -922,7 +923,7 @@ public final class Database implements DataHandler, CastDataProvider {
         if (id > 0 && !starting) {
             checkWritingAllowed();
         }
-        Map<String, DbObject> map = getMap(obj.getType());
+        ConcurrentHashMap<String, DbObject> map = getMap(obj.getType());
         if (obj.getType() == DbObject.USER) {
             User user = (User) obj;
             if (user.isAdmin() && systemUser.getName().equals(SYSTEM_USER_NAME)) {
@@ -1527,7 +1528,7 @@ public final class Database implements DataHandler, CastDataProvider {
             DbObject obj, String newName) {
         checkWritingAllowed();
         int type = obj.getType();
-        Map<String, DbObject> map = getMap(type);
+        ConcurrentHashMap<String, DbObject> map = getMap(type);
         if (SysProperties.CHECK) {
             if (!map.containsKey(obj.getName())) {
                 throw DbException.getInternalError("not found: " + obj.getName());
@@ -1579,7 +1580,7 @@ public final class Database implements DataHandler, CastDataProvider {
         checkWritingAllowed();
         String objName = obj.getName();
         int type = obj.getType();
-        Map<String, DbObject> map = getMap(type);
+        ConcurrentHashMap<String, DbObject> map = getMap(type);
         if (SysProperties.CHECK && !map.containsKey(objName)) {
             throw DbException.getInternalError("not found: " + objName);
         }
@@ -1719,14 +1720,14 @@ public final class Database implements DataHandler, CastDataProvider {
      * @param session the session
      * @return a unique name
      */
-    public synchronized String getTempTableName(String baseName, SessionLocal session) {
+    public String getTempTableName(String baseName, SessionLocal session) {
         int maxBaseLength = Constants.MAX_IDENTIFIER_LENGTH - (7 + ValueInteger.DISPLAY_SIZE * 2);
         if (baseName.length() > maxBaseLength) {
             baseName = baseName.substring(0, maxBaseLength);
         }
         String tempName;
         do {
-            tempName = baseName + "_COPY_" + session.getId() + '_' + nextTempTableId++;
+            tempName = baseName + "_COPY_" + session.getId() + '_' + nextTempTableId.getAndIncrement();
         } while (mainSchema.findTableOrView(session, tempName) != null);
         return tempName;
     }

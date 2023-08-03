@@ -16,6 +16,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicIntegerArray;
 
+import javax.script.ScriptEngineManager;
+
 import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
 import org.h2.message.DbException;
@@ -506,6 +508,10 @@ public class TestTriggersConstraints extends TestDb implements Trigger {
     }
 
     private void testTriggerAsJavascript() throws SQLException {
+        ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
+        if (scriptEngineManager.getEngineByName("javascript") == null) {
+            return;
+        }
         deleteDb("trigger");
         testTrigger("javascript");
     }
@@ -531,7 +537,7 @@ public class TestTriggersConstraints extends TestDb implements Trigger {
             String triggerClassName = this.getClass().getName() + "."
                     + TestTriggerAlterTable.class.getSimpleName();
             final String body = "//javascript\n"
-                    + "new Packages." + triggerClassName + "();";
+                    + "new (Java.type(\"" + triggerClassName + "\"))();";
             stat.execute("create trigger test_upd before insert on test as $$"
                     + body + " $$");
         } else {

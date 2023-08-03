@@ -544,7 +544,7 @@ public class Csv implements SimpleRowSource {
         if (input == null) {
             return null;
         }
-        
+
         String[] row = new String[columnNames.length];
         try {
             int i = 0;
@@ -769,7 +769,7 @@ public class Csv implements SimpleRowSource {
     public void setQuotedNulls(boolean quotedNulls) {
         this.quotedNulls = quotedNulls;
     }
-    
+
     /**
      * Returns true if the {@link #getNullString() null values} are quoted.
      *

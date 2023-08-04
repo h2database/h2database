@@ -209,7 +209,7 @@ public class AlterTableAlterColumn extends CommandWithColumns {
             // need to copy the table because the length is only a constraint,
             // and does not affect the storage structure.
             if (oldColumn.isWideningConversion(newColumn) && usingExpression == null) {
-                convertIdentityColumn(table, newColumn);
+                convertIdentityColumn(table, oldColumn, newColumn);
                 oldColumn.copy(newColumn);
                 db.updateMeta(session, table);
             } else {
@@ -223,7 +223,7 @@ public class AlterTableAlterColumn extends CommandWithColumns {
                 if (oldColumn.getVisible() ^ newColumn.getVisible()) {
                     oldColumn.setVisible(newColumn.getVisible());
                 }
-                convertIdentityColumn(table, newColumn);
+                convertIdentityColumn(table, oldColumn, newColumn);
                 copyData(table, null, true);
             }
             table.setModified();
@@ -307,14 +307,16 @@ public class AlterTableAlterColumn extends CommandWithColumns {
         }
     }
 
-    private void convertIdentityColumn(Table table, Column c) {
-        if (c.hasIdentityOptions()) {
-            if (c.isPrimaryKey()) {
+    private void convertIdentityColumn(Table table, Column oldColumn, Column newColumn) {
+        if (newColumn.hasIdentityOptions()) {
+            // Primary key creation is only needed for legacy
+            // ALTER TABLE name ALTER COLUMN columnName IDENTITY
+            if (newColumn.isPrimaryKey() && !oldColumn.isPrimaryKey()) {
                 addConstraintCommand(
-                        Parser.newPrimaryKeyConstraintCommand(session, table.getSchema(), table.getName(), c));
+                        Parser.newPrimaryKeyConstraintCommand(session, table.getSchema(), table.getName(), newColumn));
             }
             int objId = getObjectId();
-            c.initializeSequence(session, getSchema(), objId, table.isTemporary());
+            newColumn.initializeSequence(session, getSchema(), objId, table.isTemporary());
         }
     }
 

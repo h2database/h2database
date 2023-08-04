@@ -729,21 +729,21 @@ public final class Transaction {
     }
 
     private synchronized boolean waitForThisToEnd(int millis, Transaction waiter) {
-        long until = System.currentTimeMillis() + millis;
+        long time = System.nanoTime();
         notificationRequested = true;
         long state;
         int status;
-        while((status = getStatus(state = statusAndLogId.get())) != STATUS_CLOSED
+        while ((status = getStatus(state = statusAndLogId.get())) != STATUS_CLOSED
                 && status != STATUS_ROLLED_BACK && !hasRollback(state)) {
             if (waiter.getStatus() != STATUS_OPEN) {
                 waiter.tryThrowDeadLockException(true);
             }
-            long dur = until - System.currentTimeMillis();
-            if(dur <= 0) {
+            int remaining = millis - (int) ((System.nanoTime() - time) / 1_000_000L);
+            if (remaining <= 0) {
                 return false;
             }
             try {
-                wait(dur);
+                wait(remaining);
             } catch (InterruptedException ex) {
                 return false;
             }

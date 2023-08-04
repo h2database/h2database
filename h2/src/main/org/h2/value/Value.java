@@ -2707,6 +2707,25 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         return false;
     }
 
+    /**
+     * Scans this and specified values until a first NULL occurrence and returns
+     * a value where NULL appears earlier, or {@code null} if these two values
+     * have first NULL on the same position.
+     * 
+     * @param v
+     *            a value of the same data type as this value, must be neither
+     *            equal to nor smaller than nor greater than this value
+     * @return this value, the specified value, or {@code null}
+     */
+    public Value getValueWithFirstNull(Value v) {
+        return this == ValueNull.INSTANCE ? v == ValueNull.INSTANCE ? null : ValueNull.INSTANCE
+                : v == ValueNull.INSTANCE ? ValueNull.INSTANCE : getValueWithFirstNullImpl(v);
+    }
+
+    Value getValueWithFirstNullImpl(Value v) {
+        return this;
+    }
+
     private static byte convertToByte(long x, Object column) {
         if (x > Byte.MAX_VALUE || x < Byte.MIN_VALUE) {
             throw DbException.get(

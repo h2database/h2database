@@ -2440,7 +2440,7 @@ public final class Database implements DataHandler, CastDataProvider {
 
     /**
      * get authenticator for database users
-     * 
+     *
      * @return authenticator set for database
      */
     public Authenticator getAuthenticator() {

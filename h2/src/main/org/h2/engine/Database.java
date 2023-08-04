@@ -1090,45 +1090,51 @@ public final class Database implements DataHandler, CastDataProvider {
 
     private synchronized void closeAllSessionsExcept(SessionLocal except) {
         SessionLocal[] all = userSessions.toArray(EMPTY_SESSION_ARRAY);
+        boolean done = true;
         for (SessionLocal s : all) {
             if (s != except) {
                 // indicate that session need to be closed ASAP
                 s.suspend();
+                done = false;
             }
         }
-
-        int timeout = 2 * getLockTimeout();
-        long start = System.currentTimeMillis();
-        // 'sleep' should be strictly greater than zero, otherwise real time is not taken into consideration
+        if (done) {
+            return;
+        }
+        int lockTimeout = getLockTimeout();
+        // 'sleep' should be strictly greater than zero, otherwise real time is
+        // not taken into consideration
         // and the thread simply waits until notified
-        long sleep = Math.max(timeout / 20, 1);
-        boolean done = false;
-        while (!done) {
-            try {
-                // although nobody going to notify us
-                // it is vital to give up lock on a database
-                wait(sleep);
-            } catch (InterruptedException e1) {
-                // ignore
-            }
-            if (System.currentTimeMillis() - start > timeout) {
-                for (SessionLocal s : all) {
-                    if (s != except && !s.isClosed()) {
-                        try {
-                            // this will rollback outstanding transaction
-                            s.close();
-                        } catch (Throwable e) {
-                            trace.error(e, "disconnecting session #{0}", s.getId());
-                        }
-                    }
-                }
-                break;
-            }
+        long sleepMillis = Math.max(lockTimeout / 10, 1);
+        // LOCK_TIMEOUT * 2
+        long timeoutNanos = lockTimeout * 2_000_000L;
+        long start = System.nanoTime();
+        do {
             done = true;
             for (SessionLocal s : all) {
                 if (s != except && !s.isClosed()) {
                     done = false;
                     break;
+                }
+            }
+            if (done) {
+                return;
+            }
+            try {
+                // although nobody going to notify us
+                // it is vital to give up lock on a database
+                wait(sleepMillis);
+            } catch (InterruptedException e1) {
+                // ignore
+            }
+        } while (System.nanoTime() - start <= timeoutNanos);
+        for (SessionLocal s : all) {
+            if (s != except && !s.isClosed()) {
+                try {
+                    // this will rollback outstanding transaction
+                    s.close();
+                } catch (Throwable e) {
+                    trace.error(e, "disconnecting session #{0}", s.getId());
                 }
             }
         }
@@ -2434,6 +2440,7 @@ public final class Database implements DataHandler, CastDataProvider {
 
     /**
      * get authenticator for database users
+     * 
      * @return authenticator set for database
      */
     public Authenticator getAuthenticator() {
@@ -2443,13 +2450,15 @@ public final class Database implements DataHandler, CastDataProvider {
     /**
      * Set current database authenticator
      *
-     * @param authenticator = authenticator to set, null to revert to the Internal authenticator
+     * @param authenticator
+     *            = authenticator to set, null to revert to the Internal
+     *            authenticator
      */
     public void setAuthenticator(Authenticator authenticator) {
-        if (authenticator!=null) {
+        if (authenticator != null) {
             authenticator.init(this);
         }
-        this.authenticator=authenticator;
+        this.authenticator = authenticator;
     }
 
     @Override

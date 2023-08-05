@@ -359,12 +359,27 @@ public class ParserBase {
         read();
     }
 
+    final void readCompat(int tokenType) {
+        if (tokenType != currentTokenType) {
+            throw getSyntaxError();
+        }
+        read();
+    }
+
     final boolean readIf(String tokenName) {
         if (testToken(tokenName, token)) {
             read();
             return true;
         }
         addExpected(tokenName);
+        return false;
+    }
+
+    final boolean readIfCompat(String tokenName) {
+        if (testToken(tokenName, token)) {
+            read();
+            return true;
+        }
         return false;
     }
 
@@ -397,6 +412,14 @@ public class ParserBase {
         return false;
     }
 
+    final boolean readIfCompat(int tokenType) {
+        if (tokenType == currentTokenType) {
+            read();
+            return true;
+        }
+        return false;
+    }
+
     final boolean readIf(int tokenType1, int tokenType2) {
         if (tokenType1 == currentTokenType) {
             int i = tokenIndex + 1;
@@ -409,6 +432,17 @@ public class ParserBase {
         return false;
     }
 
+    final boolean readIfCompat(int tokenType1, int tokenType2) {
+        if (tokenType1 == currentTokenType) {
+            int i = tokenIndex + 1;
+            if (tokens.get(i).tokenType() == tokenType2) {
+                setTokenIndex(i + 1);
+                return true;
+            }
+        }
+        return false;
+    }
+
     final boolean readIf(int tokenType1, String tokenName2) {
         if (tokenType1 == currentTokenType) {
             int i = tokenIndex + 1;
@@ -418,6 +452,17 @@ public class ParserBase {
             }
         }
         addExpected(TOKENS[tokenType1], tokenName2);
+        return false;
+    }
+
+    final boolean readIfCompat(int tokenType1, String tokenName2) {
+        if (tokenType1 == currentTokenType) {
+            int i = tokenIndex + 1;
+            if (testToken(tokenName2, tokens.get(i))) {
+                setTokenIndex(i + 1);
+                return true;
+            }
+        }
         return false;
     }
 
@@ -438,12 +483,32 @@ public class ParserBase {
         return false;
     }
 
+    final boolean readIfCompat(Object... tokensTypesOrNames) {
+        int count = tokensTypesOrNames.length;
+        int size = tokens.size();
+        int i = tokenIndex;
+        check: if (i + count < size) {
+            for (Object tokenTypeOrName : tokensTypesOrNames) {
+                if (!testToken(tokenTypeOrName, tokens.get(i++))) {
+                    break check;
+                }
+            }
+            setTokenIndex(i);
+            return true;
+        }
+        return false;
+    }
+
     final boolean isToken(String tokenName) {
         if (testToken(tokenName, token)) {
             return true;
         }
         addExpected(tokenName);
         return false;
+    }
+
+    final boolean isTokenCompat(String tokenName) {
+        return testToken(tokenName, token);
     }
 
     private boolean testToken(Object expected, Token token) {

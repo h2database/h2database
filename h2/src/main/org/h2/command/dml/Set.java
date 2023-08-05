@@ -9,7 +9,7 @@ import java.text.Collator;
 
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
-import org.h2.command.Parser;
+import org.h2.command.ParserBase;
 import org.h2.command.Prepared;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
@@ -531,7 +531,7 @@ public class Set extends Prepared {
             break;
         }
         case SetTypes.NON_KEYWORDS:
-            session.setNonKeywords(Parser.parseNonKeywords(stringValueList));
+            session.setNonKeywords(ParserBase.parseNonKeywords(stringValueList));
             break;
         case SetTypes.TIME_ZONE:
             session.setTimeZone(expression == null ? DateTimeUtils.getTimeZone()

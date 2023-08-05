@@ -14,7 +14,7 @@ import java.util.Map;
 import org.h2.api.IntervalQualifier;
 import org.h2.api.Trigger;
 import org.h2.command.Command;
-import org.h2.command.Parser;
+import org.h2.command.ParserBase;
 import org.h2.constraint.Constraint;
 import org.h2.constraint.Constraint.Type;
 import org.h2.constraint.ConstraintCheck;
@@ -23,6 +23,7 @@ import org.h2.constraint.ConstraintReferential;
 import org.h2.constraint.ConstraintUnique;
 import org.h2.engine.Constants;
 import org.h2.engine.DbObject;
+import org.h2.engine.NullsDistinct;
 import org.h2.engine.QueryStatisticsData;
 import org.h2.engine.Right;
 import org.h2.engine.RightOwner;
@@ -30,7 +31,6 @@ import org.h2.engine.Role;
 import org.h2.engine.SessionLocal;
 import org.h2.engine.SessionLocal.State;
 import org.h2.engine.Setting;
-import org.h2.engine.NullsDistinct;
 import org.h2.engine.User;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
@@ -45,11 +45,11 @@ import org.h2.result.SortOrder;
 import org.h2.schema.Constant;
 import org.h2.schema.Domain;
 import org.h2.schema.FunctionAlias;
+import org.h2.schema.FunctionAlias.JavaMethod;
 import org.h2.schema.Schema;
 import org.h2.schema.Sequence;
 import org.h2.schema.TriggerObject;
 import org.h2.schema.UserDefinedFunction;
-import org.h2.schema.FunctionAlias.JavaMethod;
 import org.h2.store.InDoubtTransaction;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.MathUtils;
@@ -2972,7 +2972,7 @@ public final class InformationSchemaTable extends MetaTable {
         add(session, rows, "OLD_INFORMATION_SCHEMA", session.isOldInformationSchema() ? "TRUE" : "FALSE");
         BitSet nonKeywords = session.getNonKeywords();
         if (nonKeywords != null) {
-            add(session, rows, "NON_KEYWORDS", Parser.formatNonKeywords(nonKeywords));
+            add(session, rows, "NON_KEYWORDS", ParserBase.formatNonKeywords(nonKeywords));
         }
         add(session, rows, "RETENTION_TIME", Integer.toString(database.getRetentionTime()));
         // database settings

@@ -24,6 +24,7 @@ import org.h2.api.JavaObjectSerializer;
 import org.h2.command.Command;
 import org.h2.command.CommandInterface;
 import org.h2.command.Parser;
+import org.h2.command.ParserBase;
 import org.h2.command.Prepared;
 import org.h2.command.ddl.Analyze;
 import org.h2.command.query.Query;
@@ -396,7 +397,7 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
         if (localTempTables.putIfAbsent(table.getName(), table) != null) {
             StringBuilder builder = new StringBuilder();
             table.getSQL(builder, HasSQL.TRACE_SQL_FLAGS).append(" AS ");
-            Parser.quoteIdentifier(table.getName(), HasSQL.TRACE_SQL_FLAGS);
+            ParserBase.quoteIdentifier(table.getName(), HasSQL.TRACE_SQL_FLAGS);
             throw DbException.get(ErrorCode.TABLE_OR_VIEW_ALREADY_EXISTS_1, builder.toString());
         }
         modificationId++;

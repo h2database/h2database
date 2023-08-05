@@ -103,6 +103,25 @@ public abstract class ValueCollectionBase extends Value {
     }
 
     @Override
+    Value getValueWithFirstNullImpl(Value v) {
+        ValueCollectionBase r = (ValueCollectionBase) v;
+        Value[] leftArray = values, rightArray = r.values;
+        int leftLength = leftArray.length, rightLength = rightArray.length;
+        int len = Math.min(leftLength, rightLength);
+        for (int i = 0; i < len; i++) {
+            Value v1 = leftArray[i];
+            Value v2 = rightArray[i];
+            Value c = v1.getValueWithFirstNull(v2);
+            if (c == v1) {
+                return this;
+            } else if (c == v2) {
+                return v;
+            }
+        }
+        return null;
+    }
+
+    @Override
     public int getMemory() {
         int memory = 72 + values.length * Constants.MEMORY_POINTER;
         for (Value v : values) {

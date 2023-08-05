@@ -6568,17 +6568,21 @@ SELECT FILE_WRITE('Hello world', '/tmp/hello.txt')) LEN;
 "
 
 "Functions (System)","GREATEST","
-GREATEST(aValue, bValue [,...])
+GREATEST(aValue, bValue [,...]) @h2@ [{RESPECT|IGNORE} NULLS]
 ","
-Returns the largest value that is not NULL, or NULL if all values are NULL.
+Returns the largest value or NULL if any value is NULL or the largest value cannot be determined.
+For example, ROW (NULL, 1) is neither equal to nor smaller than nor larger than ROW (1, 1).
+If IGNORE NULLS is specified, NULL values are ignored.
 ","
 CALL GREATEST(1, 2, 3);
 "
 
 "Functions (System)","LEAST","
-LEAST(aValue, bValue [,...])
+LEAST(aValue, bValue [,...]) @h2@ [{RESPECT|IGNORE} NULLS]
 ","
-Returns the smallest value that is not NULL, or NULL if all values are NULL.
+Returns the smallest value or NULL if any value is NULL or the smallest value cannot be determined.
+For example, ROW (NULL, 1) is neither equal to nor smaller than nor larger than ROW (1, 1).
+If IGNORE NULLS is specified, NULL values are ignored.
 ","
 CALL LEAST(1, 2, 3);
 "

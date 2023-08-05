@@ -39,6 +39,8 @@ public final class CoalesceFunction extends FunctionN {
 
     private final int function;
 
+    private boolean ignoreNulls;
+
     public CoalesceFunction(int function) {
         this(function, new Expression[4]);
     }
@@ -48,11 +50,16 @@ public final class CoalesceFunction extends FunctionN {
         this.function = function;
     }
 
+    public void setIgnoreNulls(boolean ignoreNulls) {
+        this.ignoreNulls = ignoreNulls;
+    }
+
     @Override
     public Value getValue(SessionLocal session) {
-        Value v = ValueNull.INSTANCE;
+        Value v;
         switch (function) {
-        case COALESCE: {
+        case COALESCE:
+            v = ValueNull.INSTANCE;
             for (int i = 0, l = args.length; i < l; i++) {
                 Value v2 = args[i].getValue(session);
                 if (v2 != ValueNull.INSTANCE) {
@@ -61,33 +68,60 @@ public final class CoalesceFunction extends FunctionN {
                 }
             }
             break;
-        }
         case GREATEST:
-        case LEAST: {
-            for (int i = 0, l = args.length; i < l; i++) {
-                Value v2 = args[i].getValue(session);
-                if (v2 != ValueNull.INSTANCE) {
-                    v2 = v2.convertTo(type, session);
-                    if (v == ValueNull.INSTANCE) {
-                        v = v2;
-                    } else {
-                        int comp = session.compareTypeSafe(v, v2);
-                        if (function == GREATEST) {
-                            if (comp < 0) {
-                                v = v2;
-                            }
-                        } else if (comp > 0) {
-                            v = v2;
-                        }
-                    }
-                }
-            }
+        case LEAST:
+            v = greatestOrLeast(session);
             break;
-        }
         default:
             throw DbException.getInternalError("function=" + function);
         }
         return v;
+    }
+
+    private Value greatestOrLeast(SessionLocal session) {
+        Value v = ValueNull.INSTANCE, x = null;
+        for (int i = 0, l = args.length; i < l; i++) {
+            Value v2 = args[i].getValue(session);
+            if (v2 != ValueNull.INSTANCE) {
+                v2 = v2.convertTo(type, session);
+                if (v == ValueNull.INSTANCE) {
+                    if (x == null) {
+                        v = v2;
+                    } else {
+                        int comp = session.compareWithNull(x, v2, false);
+                        if (comp == Integer.MIN_VALUE) {
+                            x = getWithNull(x, v2);
+                        } else if (test(comp)) {
+                            v = v2;
+                            x = null;
+                        }
+                    }
+                } else {
+                    int comp = session.compareWithNull(v, v2, false);
+                    if (comp == Integer.MIN_VALUE) {
+                        if (i + 1 == l) {
+                            return ValueNull.INSTANCE;
+                        }
+                        x = getWithNull(v, v2);
+                        v = ValueNull.INSTANCE;
+                    } else if (test(comp)) {
+                        v = v2;
+                    }
+                }
+            } else if (!ignoreNulls) {
+                return ValueNull.INSTANCE;
+            }
+        }
+        return v;
+    }
+
+    private static Value getWithNull(Value v, Value v2) {
+        Value x = v.getValueWithFirstNull(v2);
+        return x != null ? x : v;
+    }
+
+    private boolean test(int comp) {
+        return function == GREATEST ? comp < 0 : comp > 0;
     }
 
     @Override
@@ -106,6 +140,15 @@ public final class CoalesceFunction extends FunctionN {
     @Override
     public String getName() {
         return NAMES[function];
+    }
+
+    @Override
+    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
+        super.getUnenclosedSQL(builder, sqlFlags);
+        if (function == GREATEST || function == LEAST) {
+            builder.append(ignoreNulls ? " IGNORE NULLS" : " RESPECT NULLS");
+        }
+        return builder;
     }
 
 }

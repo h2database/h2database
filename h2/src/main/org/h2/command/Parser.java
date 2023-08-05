@@ -4629,6 +4629,9 @@ public class Parser {
         while (readIfMore()) {
             f.addParameter(readExpression());
         }
+        if (function == CoalesceFunction.GREATEST || function == CoalesceFunction.LEAST) {
+            f.setIgnoreNulls(readIgnoreNulls(database.getMode().greatestLeastIgnoreNulls));
+        }
         f.doneWithParameters();
         return f;
     }
@@ -4764,7 +4767,7 @@ public class Parser {
         case LAG:
         case FIRST_VALUE:
         case LAST_VALUE:
-            readRespectOrIgnoreNulls(function);
+            function.setIgnoreNulls(readIgnoreNulls(false));
             //$FALL-THROUGH$
         default:
             // Avoid warning
@@ -4781,12 +4784,13 @@ public class Parser {
         }
     }
 
-    private void readRespectOrIgnoreNulls(WindowFunction function) {
+    private boolean readIgnoreNulls(boolean ignoreNulls) {
         if (readIf("IGNORE", "NULLS")) {
-            function.setIgnoreNulls(true);
-        } else {
-            readIf("RESPECT", "NULLS");
+            return true;
+        } else if (readIf("RESPECT", "NULLS")) {
+            return false;
         }
+        return ignoreNulls;
     }
 
     private boolean readJsonObjectFunctionFlags(ExpressionWithFlags function, boolean forArray) {

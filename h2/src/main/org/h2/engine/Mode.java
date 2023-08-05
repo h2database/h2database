@@ -152,6 +152,11 @@ public class Mode {
     public boolean treatEmptyStringsAsNull;
 
     /**
+     * If {@code true} GREATEST and LEAST ignore nulls
+     */
+    public boolean greatestLeastIgnoreNulls;
+
+    /**
      * Support the pseudo-table SYSIBM.SYSDUMMY1.
      */
     public boolean sysDummy1;
@@ -494,6 +499,8 @@ public class Mode {
         mode.createUniqueConstraintForReferencedColumns = true;
         // Legacy numeric with boolean comparison
         mode.numericWithBooleanComparison = true;
+        // Legacy GREATEST and LEAST null treatment
+        mode.greatestLeastIgnoreNulls = true;
         add(mode);
 
         mode = new Mode(ModeEnum.DB2);
@@ -547,6 +554,7 @@ public class Mode {
         mode.aliasColumnName = true;
         mode.squareBracketQuotedNames = true;
         mode.nullsDistinct = NullsDistinct.NOT_DISTINCT;
+        mode.greatestLeastIgnoreNulls = true;
         mode.allowPlusForStringConcat = true;
         mode.swapLogFunctionParameters = true;
         mode.swapConvertFunctionParameters = true;
@@ -667,6 +675,7 @@ public class Mode {
         mode = new Mode(ModeEnum.PostgreSQL);
         mode.aliasColumnName = true;
         mode.systemColumns = true;
+        mode.greatestLeastIgnoreNulls = true;
         mode.logIsLogBase10 = true;
         mode.regexpReplaceBackslashReferences = true;
         mode.insertOnConflict = true;

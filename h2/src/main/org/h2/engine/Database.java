@@ -607,7 +607,9 @@ public final class Database implements DataHandler, CastDataProvider {
                 lastRecords.add(rec);
             }
         }
-        synchronized (systemSession) {
+        final SessionLocal systemSession = this.systemSession;
+        systemSession.lock();
+        try {
             executeMeta(firstRecords);
             // Domains may depend on other domains
             int count = domainRecords.size();
@@ -652,6 +654,8 @@ public final class Database implements DataHandler, CastDataProvider {
                 }
             }
             executeMeta(lastRecords);
+        } finally {
+            systemSession.unlock();
         }
     }
 

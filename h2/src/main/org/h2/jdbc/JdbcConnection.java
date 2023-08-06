@@ -328,12 +328,14 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
     public synchronized void close() throws SQLException {
         try {
             debugCodeCall("close");
+            final Session session = this.session;
             if (session == null) {
                 return;
             }
             CloseWatcher.unregister(watcher);
             session.cancel();
-            synchronized (session) {
+            session.lock();
+            try {
                 if (executingStatement != null) {
                     try {
                         executingStatement.cancel();
@@ -361,8 +363,10 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
                         }
                     }
                 } finally {
-                    session = null;
+                    this.session = null;
                 }
+            } finally {
+                session.unlock();
             }
         } catch (Throwable e) {
             throw logAndConvert(e);
@@ -400,11 +404,15 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
                 debugCode("setAutoCommit(" + autoCommit + ')');
             }
             checkClosed();
-            synchronized (session) {
+            final Session session = this.session;
+            session.lock();
+            try {
                 if (autoCommit && !session.getAutoCommit()) {
                     commit();
                 }
                 session.setAutoCommit(autoCommit);
+            } finally {
+                session.unlock();
             }
         } catch (Exception e) {
             throw logAndConvert(e);

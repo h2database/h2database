@@ -120,7 +120,9 @@ public class CommandRemote implements CommandInterface {
 
     @Override
     public ResultInterface getMetaData() {
-        synchronized (session) {
+        final SessionRemote session = this.session;
+        session.lock();
+        try {
             if (!isQuery) {
                 return null;
             }
@@ -144,13 +146,17 @@ public class CommandRemote implements CommandInterface {
             }
             session.autoCommitIfCluster();
             return result;
+        } finally {
+            session.unlock();
         }
     }
 
     @Override
     public ResultInterface executeQuery(long maxRows, boolean scrollable) {
         checkParameters();
-        synchronized (session) {
+        final SessionRemote session = this.session;
+        session.lock();
+        try {
             int objectId = session.getNextId();
             ResultRemote result = null;
             for (int i = 0, count = 0; i < transferList.size(); i++) {
@@ -185,6 +191,8 @@ public class CommandRemote implements CommandInterface {
             session.autoCommitIfCluster();
             session.readSessionState();
             return result;
+        } finally {
+            session.unlock();
         }
     }
 
@@ -194,7 +202,9 @@ public class CommandRemote implements CommandInterface {
         int generatedKeysMode = GeneratedKeysMode.valueOf(generatedKeysRequest);
         boolean readGeneratedKeys = generatedKeysMode != GeneratedKeysMode.NONE;
         int objectId = readGeneratedKeys ? session.getNextId() : 0;
-        synchronized (session) {
+        final SessionRemote session = this.session;
+        session.lock();
+        try {
             long updateCount = 0L;
             ResultRemote generatedKeys = null;
             boolean autoCommit = false;
@@ -246,6 +256,8 @@ public class CommandRemote implements CommandInterface {
                 return new ResultWithGeneratedKeys.WithKeys(updateCount, generatedKeys);
             }
             return ResultWithGeneratedKeys.of(updateCount);
+        } finally {
+            session.unlock();
         }
     }
 
@@ -273,10 +285,12 @@ public class CommandRemote implements CommandInterface {
 
     @Override
     public void close() {
+        final SessionRemote session = this.session;
         if (session == null || session.isClosed()) {
             return;
         }
-        synchronized (session) {
+        session.lock();
+        try {
             session.traceOperation("COMMAND_CLOSE", id);
             for (Transfer transfer : transferList) {
                 try {
@@ -285,8 +299,10 @@ public class CommandRemote implements CommandInterface {
                     trace.error(e, "close");
                 }
             }
+        } finally {
+            session.unlock();
         }
-        session = null;
+        this.session = null;
         try {
             for (ParameterInterface p : parameters) {
                 Value v = p.getParamValue();

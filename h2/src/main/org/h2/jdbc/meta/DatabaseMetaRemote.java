@@ -330,7 +330,8 @@ public class DatabaseMetaRemote extends DatabaseMeta {
         if (session.isClosed()) {
             throw DbException.get(ErrorCode.DATABASE_CALLED_AT_SHUTDOWN);
         }
-        synchronized (session) {
+        session.lock();
+        try {
             int objectId = session.getNextId();
             for (int i = 0, count = 0; i < transferList.size(); i++) {
                 Transfer transfer = transferList.get(i);
@@ -349,6 +350,8 @@ public class DatabaseMetaRemote extends DatabaseMeta {
                 }
             }
             return null;
+        } finally {
+            session.unlock();
         }
     }
 

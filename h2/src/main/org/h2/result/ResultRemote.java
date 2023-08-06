@@ -53,7 +53,8 @@ public final class ResultRemote extends FetchedResult {
         } else {
             result = new ArrayList<>();
         }
-        synchronized (session) {
+        session.lock();
+        try {
             try {
                 if (fetchRows(fetchSize)) {
                     rowCount = result.size();
@@ -61,6 +62,8 @@ public final class ResultRemote extends FetchedResult {
             } catch (IOException e) {
                 throw DbException.convertIOException(e, null);
             }
+        } finally {
+            session.unlock();
         }
     }
 
@@ -113,10 +116,12 @@ public final class ResultRemote extends FetchedResult {
         currentRow = null;
         nextRow = null;
         afterLast = false;
+        final SessionRemote session = this.session;
         if (session == null) {
             return;
         }
-        synchronized (session) {
+        session.lock();
+        try {
             session.checkClosed();
             try {
                 session.traceOperation("RESULT_RESET", id);
@@ -124,6 +129,8 @@ public final class ResultRemote extends FetchedResult {
             } catch (IOException e) {
                 throw DbException.convertIOException(e, null);
             }
+        } finally {
+            session.unlock();
         }
     }
 
@@ -162,20 +169,21 @@ public final class ResultRemote extends FetchedResult {
     }
 
     private void sendClose() {
+        final SessionRemote session = this.session;
         if (session == null) {
             return;
         }
         // TODO result sets: no reset possible for larger remote result sets
+        session.lock();
         try {
-            synchronized (session) {
-                session.traceOperation("RESULT_CLOSE", id);
-                transfer.writeInt(SessionRemote.RESULT_CLOSE).writeInt(id);
-            }
+            session.traceOperation("RESULT_CLOSE", id);
+            transfer.writeInt(SessionRemote.RESULT_CLOSE).writeInt(id);
         } catch (IOException e) {
             trace.error(e, "close");
         } finally {
+            session.unlock();
             transfer = null;
-            session = null;
+            this.session = null;
         }
     }
 
@@ -203,7 +211,9 @@ public final class ResultRemote extends FetchedResult {
     }
 
     private void fetchAdditionalRows() {
-        synchronized (session) {
+        final SessionRemote session = this.session;
+        session.lock();
+        try {
             session.checkClosed();
             try {
                 rowOffset += result.size();
@@ -221,6 +231,8 @@ public final class ResultRemote extends FetchedResult {
             } catch (IOException e) {
                 throw DbException.convertIOException(e, null);
             }
+        } finally {
+            session.unlock();
         }
     }
 

@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.concurrent.Executor;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.regex.Pattern;
 
 import org.h2.api.ErrorCode;
@@ -61,7 +62,7 @@ import org.h2.value.ValueVarchar;
 /**
  * Represents a connection (session) to a database.
  * <p>
- * Thread safety: the connection is thread-safe, because access is synchronized.
+ * Thread safety: the connection is thread-safe.
  * Different statements from the same connection may try to execute their
  * commands in parallel, but they will be executed sequentially. If real
  * concurrent execution of these commands is needed, different connections
@@ -75,6 +76,8 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
     private static final String PREFIX_SERVER = "server";
 
     private static boolean keepOpenStackTrace;
+
+    private final ReentrantLock lock = new ReentrantLock();
 
     private final String url;
     private final String user;
@@ -169,6 +172,31 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
         this.user = user;
         this.url = url;
         this.watcher = null;
+    }
+
+    /**
+     * Locks this connection with a reentrant lock.
+     *
+     * <pre>
+     * lock();
+     * try {
+     *     ...
+     * } finally {
+     *     unlock();
+     * }
+     * </pre>
+     */
+    protected final void lock() {
+        lock.lock();
+    }
+
+    /**
+     * Unlocks this connection.
+     *
+     * @see #lock()
+     */
+    protected final void unlock() {
+        lock.unlock();
     }
 
     private void closeOld() {
@@ -325,7 +353,8 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
      * rolled back.
      */
     @Override
-    public synchronized void close() throws SQLException {
+    public void close() throws SQLException {
+        lock();
         try {
             debugCodeCall("close");
             final Session session = this.session;
@@ -370,6 +399,8 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
             }
         } catch (Throwable e) {
             throw logAndConvert(e);
+        } finally {
+            unlock();
         }
     }
 
@@ -397,8 +428,8 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
      * @throws SQLException if the connection is closed
      */
     @Override
-    public synchronized void setAutoCommit(boolean autoCommit)
-            throws SQLException {
+    public void setAutoCommit(boolean autoCommit) throws SQLException {
+        lock();
         try {
             if (isDebugEnabled()) {
                 debugCode("setAutoCommit(" + autoCommit + ')');
@@ -416,6 +447,8 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
             }
         } catch (Exception e) {
             throw logAndConvert(e);
+        } finally {
+            unlock();
         }
     }
 
@@ -426,13 +459,16 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
      * @throws SQLException if the connection is closed
      */
     @Override
-    public synchronized boolean getAutoCommit() throws SQLException {
+    public boolean getAutoCommit() throws SQLException {
+        lock();
         try {
             checkClosed();
             debugCodeCall("getAutoCommit");
             return session.getAutoCommit();
         } catch (Exception e) {
             throw logAndConvert(e);
+        } finally {
+            unlock();
         }
     }
 
@@ -443,7 +479,8 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
      * @throws SQLException if the connection is closed
      */
     @Override
-    public synchronized void commit() throws SQLException {
+    public void commit() throws SQLException {
+        lock();
         try {
             debugCodeCall("commit");
             checkClosed();
@@ -455,6 +492,8 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
             commit.executeUpdate(null);
         } catch (Exception e) {
             throw logAndConvert(e);
+        } finally {
+            unlock();
         }
     }
 
@@ -465,7 +504,8 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
      * @throws SQLException if the connection is closed
      */
     @Override
-    public synchronized void rollback() throws SQLException {
+    public void rollback() throws SQLException {
+        lock();
         try {
             debugCodeCall("rollback");
             checkClosed();
@@ -476,6 +516,8 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
             rollbackInternal();
         } catch (Exception e) {
             throw logAndConvert(e);
+        } finally {
+            unlock();
         }
     }
 
@@ -1512,7 +1554,8 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
      * @return true if the connection is valid.
      */
     @Override
-    public synchronized boolean isValid(int timeout) {
+    public boolean isValid(int timeout) {
+        lock();
         try {
             debugCodeCall("isValid", timeout);
             if (session == null || session.isClosed()) {
@@ -1525,6 +1568,8 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
             // this method doesn't throw an exception, but it logs it
             logAndConvert(e);
             return false;
+        } finally {
+            unlock();
         }
     }
 

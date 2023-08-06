@@ -7,10 +7,12 @@ package org.h2.command.ddl;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandContainer;
 import org.h2.command.CommandInterface;
 import org.h2.command.Parser;
+import org.h2.command.ParserBase;
 import org.h2.command.Prepared;
 import org.h2.constraint.Constraint;
 import org.h2.constraint.ConstraintReferential;
@@ -508,7 +510,7 @@ public class AlterTableAlterColumn extends CommandWithColumns {
             } else if (child.getType() == DbObject.TABLE_OR_VIEW) {
                 throw DbException.getInternalError();
             }
-            String quotedName = Parser.quoteIdentifier(tempName + "_" + child.getName(), HasSQL.DEFAULT_SQL_FLAGS);
+            String quotedName = ParserBase.quoteIdentifier(tempName + "_" + child.getName(), HasSQL.DEFAULT_SQL_FLAGS);
             String sql = null;
             if (child instanceof ConstraintReferential) {
                 ConstraintReferential r = (ConstraintReferential) child;

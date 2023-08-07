@@ -2711,7 +2711,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
      * Scans this and specified values until a first NULL occurrence and returns
      * a value where NULL appears earlier, or {@code null} if these two values
      * have first NULL on the same position.
-     * 
+     *
      * @param v
      *            a value of the same data type as this value, must be neither
      *            equal to nor smaller than nor greater than this value

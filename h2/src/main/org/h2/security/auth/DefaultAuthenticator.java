@@ -20,6 +20,7 @@ import org.h2.api.UserToRolesMapper;
 import org.h2.engine.Database;
 import org.h2.engine.Right;
 import org.h2.engine.Role;
+import org.h2.engine.SessionLocal;
 import org.h2.engine.SysProperties;
 import org.h2.engine.User;
 import org.h2.engine.UserBuilder;
@@ -311,11 +312,15 @@ public class DefaultAuthenticator implements Authenticator {
             }
             Role currentRole = database.findRole(currentRoleName);
             if (currentRole == null && isCreateMissingRoles()) {
-                synchronized (database.getSystemSession()) {
+                final SessionLocal systemSession = database.getSystemSession();
+                systemSession.lock();
+                try {
                     currentRole = new Role(database, database.allocateObjectId(), currentRoleName, false);
                     database.addDatabaseObject(database.getSystemSession(), currentRole);
                     database.getSystemSession().commit(false);
                     updatedDb = true;
+                } finally {
+                    systemSession.unlock();
                 }
             }
             if (currentRole == null) {
@@ -351,10 +356,14 @@ public class DefaultAuthenticator implements Authenticator {
             throw new AuthenticationException(e);
         }
         if (user == null) {
-            synchronized (database.getSystemSession()) {
+            final SessionLocal systemSession = database.getSystemSession();
+            systemSession.lock();
+            try {
                 user = UserBuilder.buildUser(authenticationInfo, database, isPersistUsers());
                 database.addDatabaseObject(database.getSystemSession(), user);
                 database.getSystemSession().commit(false);
+            } finally {
+                systemSession.unlock();
             }
         }
         user.revokeTemporaryRightsOnRoles();

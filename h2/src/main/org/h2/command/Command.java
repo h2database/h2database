@@ -181,7 +181,8 @@ public abstract class Command implements CommandInterface {
         Database database = getDatabase();
         session.waitIfExclusiveModeEnabled();
         boolean callStop = true;
-        synchronized (session) {
+        session.lock();
+        try {
             session.startStatementWithinTransaction(this);
             Session oldSession = session.setThreadLocalSession();
             try {
@@ -230,6 +231,8 @@ public abstract class Command implements CommandInterface {
                     stop();
                 }
             }
+        } finally {
+            session.unlock();
         }
     }
 
@@ -237,7 +240,8 @@ public abstract class Command implements CommandInterface {
     public ResultWithGeneratedKeys executeUpdate(Object generatedKeysRequest) {
         long start = 0;
         boolean callStop = true;
-        synchronized (session) {
+        session.lock();
+        try {
             Database database = getDatabase();
             session.waitIfExclusiveModeEnabled();
             commitIfNonTransactional();
@@ -300,6 +304,8 @@ public abstract class Command implements CommandInterface {
                     }
                 }
             }
+        } finally {
+            session.unlock();
         }
     }
 

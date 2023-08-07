@@ -553,9 +553,13 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
     }
 
     @Override
-    public synchronized CommandInterface prepareCommand(String sql,
-            int fetchSize) {
-        return prepareLocal(sql);
+    public CommandInterface prepareCommand(String sql, int fetchSize) {
+        lock();
+        try {
+            return prepareLocal(sql);
+        } finally {
+            unlock();
+        }
     }
 
     /**

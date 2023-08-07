@@ -7088,7 +7088,8 @@ public final class Parser extends ParserBase {
         // it twice - once without the flag set, and if we didn't see a recursive term,
         // then we just compile it again.
         TableView view;
-        synchronized (session) {
+        session.lock();
+        try {
             view = new TableView(schema, id, cteViewName, querySQL,
                     queryParameters, columnTemplateArray, session,
                     true, false, true,
@@ -7110,6 +7111,8 @@ public final class Parser extends ParserBase {
             }
             // both removeSchemaObject and removeLocalTempTable hold meta locks
             database.unlockMeta(session);
+        } finally {
+            session.unlock();
         }
         view.setTableExpression(true);
         view.setTemporary(isTemporary);

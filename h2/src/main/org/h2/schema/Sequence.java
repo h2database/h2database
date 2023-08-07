@@ -515,14 +515,20 @@ public final class Sequence extends SchemaObject {
             // This session may not lock the sys table (except if it has already
             // locked it) because it must be committed immediately, otherwise
             // other threads can not access the sys table.
-            SessionLocal sysSession = database.getSystemSession();
-            synchronized (sysSession) {
+            final SessionLocal sysSession = database.getSystemSession();
+            sysSession.lock();
+            try {
                 flushInternal(sysSession);
                 sysSession.commit(false);
+            } finally {
+                sysSession.unlock();
             }
         } else {
-            synchronized (session) {
+            session.lock();
+            try {
                 flushInternal(session);
+            } finally {
+                session.unlock();
             }
         }
     }

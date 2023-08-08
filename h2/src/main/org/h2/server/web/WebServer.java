@@ -177,6 +177,7 @@ public class WebServer implements Service {
     private ShutdownHandler shutdownHandler;
     private Thread listenerThread;
     private boolean ifExists = true;
+    boolean virtualThreads;
     private String key;
     private boolean allowSecureCreation;
     private boolean trace;
@@ -336,6 +337,8 @@ public class WebServer implements Service {
                 setExternalNames(args[++i]);
             } else if (Tool.isOption(a, "-webDaemon")) {
                 isDaemon = true;
+            } else if (Tool.isOption(a,  "-webVirtualThreads")) {
+                virtualThreads = Utils.parseBoolean(args[++i], virtualThreads, true);
             } else if (Tool.isOption(a, "-baseDir")) {
                 String baseDir = args[++i];
                 SysProperties.setBaseDir(baseDir);

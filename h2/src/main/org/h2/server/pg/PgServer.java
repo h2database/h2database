@@ -19,7 +19,9 @@ import org.h2.message.DbException;
 import org.h2.server.Service;
 import org.h2.util.NetUtils;
 import org.h2.util.Tool;
+import org.h2.util.Utils;
 import org.h2.util.Utils10;
+import org.h2.util.Utils21;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 
@@ -79,6 +81,7 @@ public class PgServer implements Service {
     private boolean allowOthers;
     private boolean isDaemon;
     private boolean ifExists = true;
+    private boolean virtualThreads;
     private String key, keyDatabase;
 
     @Override
@@ -97,6 +100,8 @@ public class PgServer implements Service {
                 allowOthers = true;
             } else if (Tool.isOption(a, "-pgDaemon")) {
                 isDaemon = true;
+            } else if (Tool.isOption(a,  "-pgVirtualThreads")) {
+                virtualThreads = Utils.parseBoolean(args[++i], virtualThreads, true);
             } else if (Tool.isOption(a, "-ifExists")) {
                 ifExists = true;
             } else if (Tool.isOption(a, "-ifNotExists")) {
@@ -197,8 +202,14 @@ public class PgServer implements Service {
                     running.add(c);
                     int id = pid.incrementAndGet();
                     c.setProcessId(id);
-                    Thread thread = new Thread(c, threadName + " thread-" + id);
-                    thread.setDaemon(isDaemon);
+                    Thread thread;
+                    if (virtualThreads) {
+                        thread = Utils21.newVirtualThread(c);
+                    } else {
+                        thread = new Thread(c);
+                        thread.setDaemon(isDaemon);
+                    }
+                    thread.setName(threadName + " thread-" + id);
                     c.setThread(thread);
                     thread.start();
                 }

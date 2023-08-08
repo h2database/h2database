@@ -71,6 +71,8 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
      * used together with -webAllowOthers</td></tr>
      * <tr><td>[-webDaemon]</td>
      * <td>Use a daemon thread</td></tr>
+     * <tr><td>[-webVirtualThreads &lt;true|false&gt;]</td>
+     * <td>Use virtual threads (on Java 21+ only)</td></tr>
      * <tr><td>[-webPort &lt;port&gt;]</td>
      * <td>The port (default: 8082)</td></tr>
      * <tr><td>[-webSSL]</td>
@@ -89,6 +91,8 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
      * <td>Allow other computers to connect - see below</td></tr>
      * <tr><td>[-tcpDaemon]</td>
      * <td>Use a daemon thread</td></tr>
+     * <tr><td>[-tcpVirtualThreads &lt;true|false&gt;]</td>
+     * <td>Use virtual threads (on Java 21+ only)</td></tr>
      * <tr><td>[-tcpPort &lt;port&gt;]</td>
      * <td>The port (default: 9092)</td></tr>
      * <tr><td>[-tcpSSL]</td>
@@ -105,6 +109,8 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
      * <td>Allow other computers to connect - see below</td></tr>
      * <tr><td>[-pgDaemon]</td>
      * <td>Use a daemon thread</td></tr>
+     * <tr><td>[-pgVirtualThreads &lt;true|false&gt;]</td>
+     * <td>Use virtual threads (on Java 21+ only)</td></tr>
      * <tr><td>[-pgPort &lt;port&gt;]</td>
      * <td>The port (default: 5435)</td></tr>
      * <tr><td>[-properties "&lt;dir&gt;"]</td>
@@ -148,6 +154,8 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
                     i++;
                 }  else if ("-webDaemon".equals(arg)) {
                     // no parameters
+                } else if ("-webVirtualThreads".equals(arg)) {
+                    i++;
                 } else if ("-webSSL".equals(arg)) {
                     // no parameters
                 } else if ("-webPort".equals(arg)) {
@@ -169,6 +177,8 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
                     // no parameters
                 } else if ("-tcpDaemon".equals(arg)) {
                     // no parameters
+                } else if ("-tcpVirtualThreads".equals(arg)) {
+                    i++;
                 } else if ("-tcpSSL".equals(arg)) {
                     // no parameters
                 } else if ("-tcpPort".equals(arg)) {
@@ -189,6 +199,8 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
                     // no parameters
                 } else if ("-pgDaemon".equals(arg)) {
                     // no parameters
+                } else if ("-pgVirtualThreads".equals(arg)) {
+                    i++;
                 } else if ("-pgPort".equals(arg)) {
                     i++;
                 } else {

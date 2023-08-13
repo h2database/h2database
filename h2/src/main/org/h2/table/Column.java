@@ -9,7 +9,7 @@ import java.sql.ResultSetMetaData;
 import java.util.Objects;
 
 import org.h2.api.ErrorCode;
-import org.h2.command.Parser;
+import org.h2.command.ParserBase;
 import org.h2.command.ddl.SequenceOptions;
 import org.h2.engine.CastDataProvider;
 import org.h2.engine.Constants;
@@ -274,7 +274,7 @@ public final class Column implements HasSQL, Typed, ColumnTemplate {
 
     @Override
     public String getSQL(int sqlFlags) {
-        return rowId ? name : Parser.quoteIdentifier(name, sqlFlags);
+        return rowId ? name : ParserBase.quoteIdentifier(name, sqlFlags);
     }
 
     @Override

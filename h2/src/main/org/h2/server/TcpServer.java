@@ -26,7 +26,9 @@ import org.h2.util.MathUtils;
 import org.h2.util.NetUtils;
 import org.h2.util.StringUtils;
 import org.h2.util.Tool;
+import org.h2.util.Utils;
 import org.h2.util.Utils10;
+import org.h2.util.Utils21;
 
 /**
  * The TCP server implements the native H2 database server protocol.
@@ -62,6 +64,7 @@ public class TcpServer implements Service {
     private boolean allowOthers;
     private boolean isDaemon;
     private boolean ifExists = true;
+    private boolean virtualThreads;
     private JdbcConnection managementDb;
     private PreparedStatement managementDbAdd;
     private PreparedStatement managementDbRemove;
@@ -182,6 +185,8 @@ public class TcpServer implements Service {
                 allowOthers = true;
             } else if (Tool.isOption(a, "-tcpDaemon")) {
                 isDaemon = true;
+            } else if (Tool.isOption(a,  "-tcpVirtualThreads")) {
+                virtualThreads = Utils.parseBoolean(args[++i], virtualThreads, true);
             } else if (Tool.isOption(a, "-ifExists")) {
                 ifExists = true;
             } else if (Tool.isOption(a, "-ifNotExists")) {
@@ -256,8 +261,14 @@ public class TcpServer implements Service {
                 int id = nextThreadId++;
                 TcpServerThread c = new TcpServerThread(s, this, id);
                 running.add(c);
-                Thread thread = new Thread(c, threadName + " thread-" + id);
-                thread.setDaemon(isDaemon);
+                Thread thread;
+                if (virtualThreads) {
+                    thread = Utils21.newVirtualThread(c);
+                } else {
+                    thread = new Thread(c);
+                    thread.setDaemon(isDaemon);
+                }
+                thread.setName(threadName + " thread-" + id);
                 c.setThread(thread);
                 thread.start();
             }

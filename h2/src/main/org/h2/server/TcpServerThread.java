@@ -278,6 +278,7 @@ public class TcpServerThread implements Runnable {
     }
 
     private void process() throws IOException {
+        final SessionLocal session = this.session;
         int operation = transfer.readInt();
         switch (operation) {
         case SessionRemote.SESSION_PREPARE:
@@ -349,8 +350,11 @@ public class TcpServerThread implements Runnable {
             setParameters(command);
             int old = session.getModificationId();
             ResultInterface result;
-            synchronized (session) {
+            session.lock();
+            try {
                 result = command.executeQuery(maxRows, false);
+            } finally {
+                session.unlock();
             }
             cache.addObject(objectId, result);
             int columnCount = result.getVisibleColumnCount();
@@ -404,8 +408,11 @@ public class TcpServerThread implements Runnable {
             }
             int old = session.getModificationId();
             ResultWithGeneratedKeys result;
-            synchronized (session) {
+            session.lock();
+            try {
                 result = command.executeUpdate(generatedKeysRequest);
+            } finally {
+                session.unlock();
             }
             int status;
             if (session.isClosed()) {
@@ -528,8 +535,11 @@ public class TcpServerThread implements Runnable {
             }
             int old = session.getModificationId();
             ResultInterface result;
-            synchronized (session) {
+            session.lock();
+            try {
                 result = DatabaseMetaServer.process(session, code, args);
+            } finally {
+                session.unlock();
             }
             int columnCount = result.getVisibleColumnCount();
             int state = getState(old);

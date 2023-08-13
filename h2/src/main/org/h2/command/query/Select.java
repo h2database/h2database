@@ -147,7 +147,7 @@ public class Select extends Query {
     boolean isGroupQuery;
     private boolean isGroupSortedQuery;
     private boolean isWindowQuery;
-    private boolean isForUpdate;
+    private ForUpdate forUpdate;
     private double cost;
     private boolean isQuickAggregateQuery, isDistinctQuery;
     private boolean sortUsingIndex;
@@ -429,7 +429,7 @@ public class Select extends Query {
                     Table table = tableFilter.getTable();
                     // Views, function tables, links, etc. do not support locks
                     if (table.isRowLockable()) {
-                        Row lockedRow = table.lockRow(session, row);
+                        Row lockedRow = table.lockRow(session, row, forUpdate.getTimeoutMillis());
                         if (lockedRow == null) {
                             return false;
                         }
@@ -516,7 +516,7 @@ public class Select extends Query {
         setCurrentRowNumber(0);
         while (topTableFilter.next()) {
             setCurrentRowNumber(rowNumber + 1);
-            if (isForUpdate ? isConditionMetForUpdate() : isConditionMet()) {
+            if (forUpdate != null ? isConditionMetForUpdate() : isConditionMet()) {
                 rowNumber++;
                 groupData.nextSource();
                 updateAgg(columnCount, stage);
@@ -716,7 +716,7 @@ public class Select extends Query {
                 limitRows = Long.MAX_VALUE;
             }
         }
-        LazyResultQueryFlat lazyResult = new LazyResultQueryFlat(expressionArray, columnCount, isForUpdate);
+        LazyResultQueryFlat lazyResult = new LazyResultQueryFlat(expressionArray, columnCount, forUpdate != null);
         skipOffset(lazyResult, offset, quickOffset);
         if (result == null) {
             return lazyResult;
@@ -770,7 +770,7 @@ public class Select extends Query {
         long fetch = offsetFetch.fetch;
         boolean fetchPercent = offsetFetch.fetchPercent;
         boolean lazy = session.isLazyQueryExecution() &&
-                target == null && !isForUpdate && !isQuickAggregateQuery &&
+                target == null && forUpdate == null && !isQuickAggregateQuery &&
                 fetch != 0 && !fetchPercent && !withTies && offset == 0 && isReadOnly();
         int columnCount = expressions.size();
         LocalResult result = null;
@@ -1254,7 +1254,7 @@ public class Select extends Query {
                     }
                 }
             }
-            if (sortUsingIndex && isForUpdate && !topTableFilter.getIndex().isRowIdIndex()) {
+            if (sortUsingIndex && forUpdate != null && !topTableFilter.getIndex().isRowIdIndex()) {
                 sortUsingIndex = false;
             }
         }
@@ -1458,8 +1458,8 @@ public class Select extends Query {
             getFilterSQL(builder, "\nQUALIFY ", exprList, qualify, qualifyIndex, sqlFlags);
         }
         appendEndOfQueryToSQL(builder, sqlFlags, exprList);
-        if (isForUpdate) {
-            builder.append("\nFOR UPDATE");
+        if (forUpdate != null) {
+            forUpdate.getSQL(builder, sqlFlags);
         }
         if ((sqlFlags & ADD_PLAN_INFORMATION) != 0) {
             if (isQuickAggregateQuery) {
@@ -1540,11 +1540,16 @@ public class Select extends Query {
     }
 
     @Override
-    public void setForUpdate(boolean b) {
-        if (b && (isAnyDistinct() || isGroupQuery)) {
+    public ForUpdate getForUpdate() {
+        return forUpdate;
+    }
+
+    @Override
+    public void setForUpdate(ForUpdate b) {
+        if (b != null && (isAnyDistinct() || isGroupQuery)) {
             throw DbException.get(ErrorCode.FOR_UPDATE_IS_NOT_ALLOWED_IN_DISTINCT_OR_GROUPED_SELECT);
         }
-        this.isForUpdate = b;
+        this.forUpdate = b;
     }
 
     @Override
@@ -1673,7 +1678,7 @@ public class Select extends Query {
     public boolean isEverything(ExpressionVisitor visitor) {
         switch (visitor.getType()) {
         case ExpressionVisitor.DETERMINISTIC: {
-            if (isForUpdate) {
+            if (forUpdate != null) {
                 return false;
             }
             for (TableFilter f : filters) {
@@ -1733,7 +1738,7 @@ public class Select extends Query {
 
     @Override
     public boolean isCacheable() {
-        return !isForUpdate;
+        return forUpdate == null;
     }
 
     @Override

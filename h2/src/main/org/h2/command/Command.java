@@ -181,7 +181,8 @@ public abstract class Command implements CommandInterface {
         Database database = getDatabase();
         session.waitIfExclusiveModeEnabled();
         boolean callStop = true;
-        synchronized (session) {
+        session.lock();
+        try {
             session.startStatementWithinTransaction(this);
             Session oldSession = session.setThreadLocalSession();
             try {
@@ -195,8 +196,8 @@ public abstract class Command implements CommandInterface {
                         }
                         return result;
                     } catch (DbException e) {
-                        // cannot retry DDL
-                        if (isCurrentCommandADefineCommand()) {
+                        // cannot retry some commands
+                        if (!isRetryable()) {
                             throw e;
                         }
                         start = filterConcurrentUpdate(e, start);
@@ -230,6 +231,8 @@ public abstract class Command implements CommandInterface {
                     stop();
                 }
             }
+        } finally {
+            session.unlock();
         }
     }
 
@@ -237,7 +240,8 @@ public abstract class Command implements CommandInterface {
     public ResultWithGeneratedKeys executeUpdate(Object generatedKeysRequest) {
         long start = 0;
         boolean callStop = true;
-        synchronized (session) {
+        session.lock();
+        try {
             Database database = getDatabase();
             session.waitIfExclusiveModeEnabled();
             commitIfNonTransactional();
@@ -251,8 +255,8 @@ public abstract class Command implements CommandInterface {
                     try {
                         return update(generatedKeysRequest);
                     } catch (DbException e) {
-                        // cannot retry DDL
-                        if (isCurrentCommandADefineCommand()) {
+                        // cannot retry some commands
+                        if (!isRetryable()) {
                             throw e;
                         }
                         start = filterConcurrentUpdate(e, start);
@@ -300,6 +304,8 @@ public abstract class Command implements CommandInterface {
                     }
                 }
             }
+        } finally {
+            session.unlock();
         }
     }
 
@@ -373,11 +379,11 @@ public abstract class Command implements CommandInterface {
     public abstract Set<DbObject> getDependencies();
 
     /**
-     * Is the command we just tried to execute a DefineCommand (i.e. DDL).
+     * Returns is this command can be repeated again on locking failure.
      *
-     * @return true if yes
+     * @return is this command can be repeated again on locking failure
      */
-    protected abstract boolean isCurrentCommandADefineCommand();
+    protected abstract boolean isRetryable();
 
     protected final Database getDatabase() {
         return session.getDatabase();

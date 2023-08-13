@@ -419,7 +419,7 @@ public class TestCompatibility extends TestDb {
         stat.execute("CREATE TABLE TEST_14(a VARCHAR(10) NULL CHARACTER SET UTF8MB4 COLLATE UTF8MB4_BIN)");
         stat.execute("ALTER TABLE TEST_14 CONVERT TO CHARACTER SET UTF8MB4 COLLATE UTF8MB4_UNICODE_CI");
         stat.execute("ALTER TABLE TEST_14 MODIFY a VARCHAR(10) NOT NULL CHARACTER SET UTF8MB4 COLLATE UTF8");
-        assertThrows(ErrorCode.SYNTAX_ERROR_2, stat).execute("CREATE TABLE TEST_99" +
+        assertThrows(ErrorCode.SYNTAX_ERROR_1, stat).execute("CREATE TABLE TEST_99" +
                 "(ID INT PRIMARY KEY) CHARSET UTF8,");
         assertThrows(ErrorCode.COLUMN_NOT_FOUND_1, stat).execute("CREATE TABLE TEST_99" +
                 "(ID INT PRIMARY KEY) AUTO_INCREMENT 100");

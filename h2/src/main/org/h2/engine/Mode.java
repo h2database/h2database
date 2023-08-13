@@ -26,30 +26,6 @@ public class Mode {
     }
 
     /**
-     * Determines how rows with {@code NULL} values in indexed columns are handled
-     * in unique indexes.
-     */
-    public enum UniqueIndexNullsHandling {
-        /**
-         * Multiple rows with identical values in indexed columns with at least one
-         * indexed {@code NULL} value are allowed in unique index.
-         */
-        ALLOW_DUPLICATES_WITH_ANY_NULL,
-
-        /**
-         * Multiple rows with identical values in indexed columns with all indexed
-         * {@code NULL} values are allowed in unique index.
-         */
-        ALLOW_DUPLICATES_WITH_ALL_NULLS,
-
-        /**
-         * Multiple rows with identical values in indexed columns are not allowed in
-         * unique index.
-         */
-        FORBID_ANY_DUPLICATES
-    }
-
-    /**
      * Generation of column names for expressions.
      */
     public enum ExpressionNames {
@@ -166,14 +142,19 @@ public class Mode {
 
     /**
      * Determines how rows with {@code NULL} values in indexed columns are handled
-     * in unique indexes.
+     * in unique indexes and constraints by default.
      */
-    public UniqueIndexNullsHandling uniqueIndexNullsHandling = UniqueIndexNullsHandling.ALLOW_DUPLICATES_WITH_ANY_NULL;
+    public NullsDistinct nullsDistinct = NullsDistinct.DISTINCT;
 
     /**
      * Empty strings are treated like NULL values. Useful for Oracle emulation.
      */
     public boolean treatEmptyStringsAsNull;
+
+    /**
+     * If {@code true} GREATEST and LEAST ignore nulls
+     */
+    public boolean greatestLeastIgnoreNulls;
 
     /**
      * Support the pseudo-table SYSIBM.SYSDUMMY1.
@@ -518,6 +499,8 @@ public class Mode {
         mode.createUniqueConstraintForReferencedColumns = true;
         // Legacy numeric with boolean comparison
         mode.numericWithBooleanComparison = true;
+        // Legacy GREATEST and LEAST null treatment
+        mode.greatestLeastIgnoreNulls = true;
         add(mode);
 
         mode = new Mode(ModeEnum.DB2);
@@ -543,7 +526,7 @@ public class Mode {
 
         mode = new Mode(ModeEnum.Derby);
         mode.aliasColumnName = true;
-        mode.uniqueIndexNullsHandling = UniqueIndexNullsHandling.FORBID_ANY_DUPLICATES;
+        mode.nullsDistinct = NullsDistinct.NOT_DISTINCT;
         mode.sysDummy1 = true;
         mode.isolationLevelInSelectOrInsertStatement = true;
         // Derby does not support client info properties as of version 10.12.1.1
@@ -570,7 +553,8 @@ public class Mode {
         mode = new Mode(ModeEnum.MSSQLServer);
         mode.aliasColumnName = true;
         mode.squareBracketQuotedNames = true;
-        mode.uniqueIndexNullsHandling = UniqueIndexNullsHandling.FORBID_ANY_DUPLICATES;
+        mode.nullsDistinct = NullsDistinct.NOT_DISTINCT;
+        mode.greatestLeastIgnoreNulls = true;
         mode.allowPlusForStringConcat = true;
         mode.swapLogFunctionParameters = true;
         mode.swapConvertFunctionParameters = true;
@@ -666,7 +650,7 @@ public class Mode {
         mode = new Mode(ModeEnum.Oracle);
         mode.aliasColumnName = true;
         mode.convertOnlyToSmallerScale = true;
-        mode.uniqueIndexNullsHandling = UniqueIndexNullsHandling.ALLOW_DUPLICATES_WITH_ALL_NULLS;
+        mode.nullsDistinct = NullsDistinct.ALL_DISTINCT;
         mode.treatEmptyStringsAsNull = true;
         mode.regexpReplaceBackslashReferences = true;
         mode.supportPoundSymbolForColumnNames = true;
@@ -691,6 +675,7 @@ public class Mode {
         mode = new Mode(ModeEnum.PostgreSQL);
         mode.aliasColumnName = true;
         mode.systemColumns = true;
+        mode.greatestLeastIgnoreNulls = true;
         mode.logIsLogBase10 = true;
         mode.regexpReplaceBackslashReferences = true;
         mode.insertOnConflict = true;

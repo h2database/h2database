@@ -209,19 +209,22 @@ public class MVPrimaryIndex extends MVIndex<Long, SearchRow> {
      *
      * @param session database session
      * @param row to lock
+     * @param timeoutMillis
+     *            timeout in milliseconds, {@code -1} for default, {@code -2} to
+     *            skip locking if row is already locked by another session
      * @return row object if it exists
      */
-    Row lockRow(SessionLocal session, Row row) {
+    Row lockRow(SessionLocal session, Row row, int timeoutMillis) {
         TransactionMap<Long,SearchRow> map = getMap(session);
         long key = row.getKey();
-        return lockRow(map, key);
+        return lockRow(map, key, timeoutMillis);
     }
 
-    private Row lockRow(TransactionMap<Long,SearchRow> map, long key) {
+    private Row lockRow(TransactionMap<Long,SearchRow> map, long key, int timeoutMillis) {
         try {
-            return setRowKey((Row) map.lock(key), key);
+            return setRowKey((Row) map.lock(key, timeoutMillis), key);
         } catch (MVStoreException ex) {
-            throw mvTable.convertException(ex);
+            throw mvTable.convertLockException(ex);
         }
     }
 

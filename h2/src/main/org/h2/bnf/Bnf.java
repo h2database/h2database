@@ -127,6 +127,8 @@ public class Bnf {
         addFixedRule("anything_except_two_dollar_signs", RuleFixed.ANY_EXCEPT_2_DOLLAR);
         addFixedRule("anything", RuleFixed.ANY_WORD);
         addFixedRule("@hex_start@", RuleFixed.HEX_START);
+        addFixedRule("@octal_start@", RuleFixed.OCTAL_START);
+        addFixedRule("@binary_start@", RuleFixed.BINARY_START);
         addFixedRule("@concat@", RuleFixed.CONCAT);
         addFixedRule("@az_@", RuleFixed.AZ_UNDERSCORE);
         addFixedRule("@af@", RuleFixed.AF);
@@ -134,6 +136,8 @@ public class Bnf {
         addFixedRule("@open_bracket@", RuleFixed.OPEN_BRACKET);
         addFixedRule("@close_bracket@", RuleFixed.CLOSE_BRACKET);
         addFixedRule("json_text", RuleFixed.JSON_TEXT);
+        Rule digit = ruleMap.get("digit").getRule();
+        ruleMap.get("number").setRule(new RuleList(digit, new RuleOptional(new RuleRepeat(digit, false)), false));
     }
 
     /**
@@ -309,6 +313,8 @@ public class Bnf {
         syntax = StringUtils.replaceAll(syntax, "nnnnnnnnn", "@nanos@");
         syntax = StringUtils.replaceAll(syntax, "function", "@func@");
         syntax = StringUtils.replaceAll(syntax, "0x", "@hexStart@");
+        syntax = StringUtils.replaceAll(syntax, "0o", "@octalStart@");
+        syntax = StringUtils.replaceAll(syntax, "0b", "@binaryStart@");
         syntax = StringUtils.replaceAll(syntax, ",...", "@commaDots@");
         syntax = StringUtils.replaceAll(syntax, "...", "@dots@");
         syntax = StringUtils.replaceAll(syntax, "||", "@concat@");

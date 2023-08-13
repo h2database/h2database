@@ -17,7 +17,7 @@ selectExpression [,...]
 [ OFFSET expression { ROW | ROWS } ]
 [ FETCH { FIRST | NEXT } [ expression [ PERCENT ] ] { ROW | ROWS }
     { ONLY | WITH TIES } ]
-@h2@ [ FOR UPDATE ]
+@h2@ [ FOR UPDATE [ NOWAIT | WAIT secondsNumeric | SKIP LOCKED ] ]
 ","
 Selects data from a table or multiple tables.
 
@@ -67,6 +67,15 @@ WINDOW clause specifies window definitions for window functions and window aggre
 This clause can be used to reuse the same definition in multiple functions.
 
 If FOR UPDATE is specified, the tables or rows are locked for writing.
+If some rows are locked by another session, this query will wait some time for release of these locks,
+unless NOWAIT or SKIP LOCKED is specified.
+If SKIP LOCKED is specified, these locked rows will be excluded from result of this query.
+If NOWAIT is specified, presence of these rows will stop execution of this query immediately.
+If WAIT with timeout is specified and some rows are locked by another session,
+this timeout will be used instead of default timeout for this session.
+Please note that with current implementation the timeout doesn't limit execution time of the whole query,
+it only limits wait time for completion of particular transaction that holds a lock on a row selected by this query.
+
 This clause is not allowed in DISTINCT queries and in queries with non-window aggregates, GROUP BY, or HAVING clauses.
 Only the selected rows are locked as in an UPDATE statement.
 Rows from the right side of a left join and from the left side of a right join, including nested joins, aren't locked.
@@ -91,6 +100,7 @@ SELECT * FROM (SELECT ID, COUNT(*) FROM TEST
     ORDER BY 1 NULLS LAST;
 SELECT DISTINCT C1, C2 FROM TEST;
 SELECT DISTINCT ON(C1) C1, C2 FROM TEST ORDER BY C1;
+SELECT ID, V FROM TEST WHERE ID IN (1, 2, 3) FOR UPDATE WAIT 0.5;
 "
 
 "Commands (DML)","INSERT","
@@ -824,7 +834,7 @@ CREATE DOMAIN EMAIL AS VARCHAR(255) CHECK (POSITION('@', VALUE) > 1)
 "
 
 "Commands (DDL)","CREATE INDEX","
-@h2@ CREATE [ UNIQUE | SPATIAL ] INDEX
+@h2@ CREATE [ UNIQUE [ nullsDistinct ] | SPATIAL ] INDEX
 @h2@ [ [ IF NOT EXISTS ] [schemaName.]indexName ]
 @h2@ ON [schemaName.]tableName ( indexColumn [,...] )
 @h2@ [ INCLUDE ( indexColumn [,...] ) ]
@@ -834,6 +844,7 @@ This command commits an open transaction in this connection.
 
 INCLUDE clause may only be specified for UNIQUE indexes.
 With this clause additional columns are included into index, but aren't used in unique checks.
+If nulls distinct clause is not specified, the default is NULLS DISTINCT, excluding some compatibility modes.
 
 Spatial indexes are supported only on GEOMETRY columns.
 They may contain only one column and are used by the
@@ -1017,7 +1028,8 @@ The class must be available in the classpath of the database engine
 The sourceCodeString must define a single method with no parameters that returns ""org.h2.api.Trigger"".
 See CREATE ALIAS for requirements regarding the compilation.
 Alternatively, javax.script.ScriptEngineManager can be used to create an instance of ""org.h2.api.Trigger"".
-Currently javascript (included in every JRE) and ruby (with JRuby) are supported.
+Currently JavaScript (included in older JREs or provided by org.graalvm.js:js-scriptengine library in newer JREs)
+and ruby (with JRuby) are supported.
 In that case the source must begin respectively with ""//javascript"" or ""#ruby"".
 
 BEFORE triggers are called after data conversion is made, default values are set,
@@ -1062,7 +1074,7 @@ CREATE TRIGGER TRIG_INS BEFORE INSERT ON TEST FOR EACH ROW CALL 'MyTrigger';
 CREATE TRIGGER TRIG_SRC BEFORE INSERT ON TEST AS
     'org.h2.api.Trigger create() { return new MyTrigger(""constructorParam""); }';
 CREATE TRIGGER TRIG_JS BEFORE INSERT ON TEST AS '//javascript
-return new Packages.MyTrigger(""constructorParam"");';
+return new (Java.type(""org.example.MyTrigger""))(""constructorParam"");';
 CREATE TRIGGER TRIG_RUBY BEFORE INSERT ON TEST AS '#ruby
 Java::MyPackage::MyTrigger.new(""constructorParam"")';
 "
@@ -2183,7 +2195,7 @@ A literal value of any data type, or null.
 "
 
 "Literals","Approximate numeric","
-[ + | - ] { { number [ . number ] } | { . number } }
+[ + | - ] { { number [ . [ number ] ] } | { . number } }
 E [ + | - ] expNumber
 ","
 An approximate numeric value.
@@ -2197,6 +2209,7 @@ for negative infinity, use ""CAST('-Infinity' AS dataType)"";
 for ""NaN"" (not a number), use ""CAST('NaN' AS dataType)"".
 ","
 -1.4e-10
+1.111_111E3
 CAST(1e2 AS REAL)
 CAST('NaN' AS DOUBLE PRECISION)
 "
@@ -2268,14 +2281,34 @@ this type, larger values small enough to fit into [BIGINT](https://h2database.co
 type have this type, others also have NUMERIC data type.
 ","
 -1600.05
+134_518.235_114
 "
 
 "Literals","Hex Number","
-@h2@ [ + | - ] @h2@ 0x { digit | a-f | A-F } [...]
+[+|-] {0x|0X} { [_] { digit | a-f | A-F } [...] } [...]
 ","
 A number written in hexadecimal notation.
 ","
 0xff
+0x_ABCD_1234
+"
+
+"Literals","Octal Number","
+[+|-] {0o|0O} { [_] { 0-7 } [...] } [...]
+","
+A number written in octal notation.
+","
+0o664
+0o_123_777
+"
+
+"Literals","Binary Number","
+[+|-] {0b|0B} { [_] { 0-1 } [...] } [...]
+","
+A number written in binary notation.
+","
+0b101
+0b_01010101_10101010
 "
 
 "Literals","Int","
@@ -2284,6 +2317,7 @@ A number written in hexadecimal notation.
 The maximum integer number is 2147483647, the minimum is -2147483648.
 ","
 10
+65_536
 "
 
 "Literals","GEOMETRY","
@@ -2323,6 +2357,7 @@ JSON X'7472' '7565'
 Long numbers are between -9223372036854775808 and 9223372036854775807.
 ","
 100000
+1_000_000_000
 "
 
 "Literals","Null","
@@ -2334,15 +2369,16 @@ NULL
 "
 
 "Literals","Number","
-digit [...]
+digit [ [_] digit [...] ] [...]
 ","
 The maximum length of the number depends on the data type used.
 ","
 100
+10_000
 "
 
 "Literals","Numeric","
-exactNumeric | approximateNumeric | int | long | @h2@ { hexNumber }
+exactNumeric | approximateNumeric | int | long | hexNumber | octalNumber | binaryNumber
 ","
 The data type of a numeric literal is the one of numeric data types, such as NUMERIC, DECFLOAT, BIGINT, or INTEGER
 depending on format and value.
@@ -2352,6 +2388,7 @@ An explicit CAST can be used to change the data type.
 -1600.05
 CAST(0 AS DOUBLE PRECISION)
 -1.4e-10
+999_999_999.999_999
 "
 
 "Literals","String","
@@ -2799,20 +2836,26 @@ ID=1 AND NAME='Hi'
 "
 
 "Other Grammar","Array element reference","
-array '[' indexInt ']'
+{ array | json } '[' indexInt ']'
 ","
-Returns array element at specified index or NULL if array is null or index is null.
+Returns array element at specified 1-based index.
+Returns NULL if array or json is null, index is null, or element with specified index isn't found in JSON.
 ","
 A[2]
+M[5][8]
 "
 
 "Other Grammar","Field reference","
 (expression).fieldName
 ","
-Returns field value from the row value or NULL if row value is null.
-Row value expression must be enclosed in parentheses.
+Returns field value from the row value or JSON value.
+Returns NULL if value is null or field with specified name isn't found in JSON.
+Expression on the left must be enclosed in parentheses if it is an identifier (column name),
+in other cases they aren't required.
 ","
-(R).COL1
+(R).FIELD1
+(TABLE1.COLUMN2).FIELD.SUBFIELD
+JSON '{""a"": 1, ""b"": 2}'.""b""
 "
 
 "Other Grammar","Array value constructor by query","
@@ -2864,7 +2907,7 @@ CASE WHEN A IS NULL THEN 'Null' ELSE 'Not null' END
 "
 
 "Other Grammar","Cast specification","
-CAST(value AS dataTypeOrDomain)
+CAST(value AS dataTypeOrDomain [ FORMAT templateString ])
 ","
 Converts a value to another data type. The following conversion rules are used:
 When converting a number to a boolean, 0 is false and every other value is true.
@@ -2872,9 +2915,51 @@ When converting a boolean to a number, false is 0 and true is 1.
 When converting a number to a number of another type, the value is checked for overflow.
 When converting a string to binary, UTF-8 encoding is used.
 Note that some data types may need explicitly specified precision to avoid overflow or rounding.
+
+Template may only be specified for casts from datetime data types to character string data types
+and for casts from character string data types to datetime data types.
+
+'-', '.', '/', ',', '''', ';', ':' and ' ' (space) characters can be used as delimiters.
+
+Y, YY, YYY, YYYY represent last 1, 2, 3, or 4 digits of year.
+YYYY, if delimited, can also be used to parse any year, including negative years.
+When a year is parsed with Y, YY, or YYY pattern missing leading digits are filled using digits from the current year.
+
+RR and RRRR have the same meaning as YY and YYYY for formatting.
+When a year is parsed with RR, the resulting year is within current year - 49 years and current year + 50 years in H2,
+other database systems may use different range of years.
+
+MM represent a month.
+
+DD represent a day of month.
+
+DDD represent a day of year, if this pattern in specified, MM and DD may not be specified.
+
+HH24 represent an hour (from 0 to 23).
+
+HH and HH12 represent an hour (from 1 to 12), this pattern may only be used together with A.M. or P.M. pattern.
+These patterns may not be used together with HH24.
+
+MI represent minutes.
+
+SS represent seconds of minute.
+
+SSSSS represent seconds of day, this pattern may not be used together with HH24, HH (HH12), A.M. (P.M.), MI or SS pattern.
+
+FF1, FF2, ..., FF9 represent fractional seconds.
+
+TZH, TZM and TZH represent hours, minutes and seconds of time zone offset.
+
+Multiple patterns for the same datetime field may not be specified.
+
+If year is not specified, current year is used. If month is not specified, current month is used. If day is not specified, 1 is used.
+
+If some fields of time or time zone are not specified, 0 is used.
+
 ","
 CAST(NAME AS INT);
-CAST(TIMESTAMP '2010-01-01 10:40:00.123456' AS TIME(6))
+CAST(TIMESTAMP '2010-01-01 10:40:00.123456' AS TIME(6));
+CAST('12:00:00 P.M.' AS TIME FORMAT 'HH:MI:SS A.M.');
 "
 
 "Other Grammar","Cipher","
@@ -2935,12 +3020,14 @@ CREATE TABLE TEST(ID BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
 
 "Other Grammar","Column Constraint Definition","
 [ constraintNameDefinition ]
-NOT NULL | PRIMARY KEY | UNIQUE | referencesSpecification | CHECK (condition)
+NOT NULL | PRIMARY KEY | UNIQUE [ nullsDistinct ] | referencesSpecification | CHECK (condition)
 ","
 NOT NULL disallows NULL value for a column.
 
 PRIMARY KEY and UNIQUE require unique values.
 PRIMARY KEY also disallows NULL values and marks the column as a primary key.
+UNIQUE constraint allows NULL values, if nulls distinct clause is not specified, the default is NULLS DISTINCT,
+excluding some compatibility modes.
 
 Referential constraint requires values that exist in other column (usually in another table).
 
@@ -2988,7 +3075,7 @@ The operator ""&&"" means overlapping; it can only be used with geometry types.
 operand [ conditionRightHandSide ]
     | NOT condition
     | EXISTS ( query )
-    | UNIQUE ( query )
+    | UNIQUE [ nullsDistinct ] ( query )
     | @h2@ INTERSECTS (operand, operand)
 ","
 Boolean value or condition.
@@ -2998,7 +3085,7 @@ Boolean value or condition.
 ""EXISTS"" predicate tests whether the result of the specified subquery is not empty and returns ""TRUE"" or ""FALSE"".
 
 ""UNIQUE"" predicate tests absence of duplicate rows in the specified subquery and returns ""TRUE"" or ""FALSE"".
-Rows with ""NULL"" value in any column are ignored.
+If nulls distinct clause is not specified, NULLS DISTINCT is implicit.
 
 ""INTERSECTS"" checks whether 2D bounding boxes of specified geometries intersect with each other
 and returns ""TRUE"" or ""FALSE"".
@@ -3044,24 +3131,30 @@ Right side of comparison predicates.
 "
 
 "Other Grammar","Quantified Comparison Right Hand Side","
-compare { ALL | ANY | SOME } ( query )
+compare { ALL | ANY | SOME } ( { query | @h2@ { array } } )
 ","
 Right side of quantified comparison predicates.
 
 Quantified comparison predicate ALL returns TRUE if specified comparison operation between
-left size of condition and each row from a subquery returns TRUE, including case when there are no rows.
+left size of condition and each row from a subquery or each element of array returns TRUE,
+including case when there are no rows (elements).
 ALL predicate returns FALSE if at least one such comparison returns FALSE.
 Otherwise it returns UNKNOWN.
 
 Quantified comparison predicates ANY and SOME return TRUE if specified comparison operation between
-left size of condition and at least one row from a subquery returns TRUE.
+left size of condition and at least one row from a subquery or at least one element of array returns TRUE.
 ANY and SOME predicates return FALSE if all such comparisons return FALSE.
 Otherwise they return UNKNOWN.
 
 Note that these predicates have priority over ANY and SOME aggregate functions with subquery on the right side.
 Use parentheses around aggregate function.
+
+If version with array is required and this array is returned from a subquery, wrap this subquery with a cast
+to distinguish this operation from standard quantified comparison predicate with a query.
 ","
 < ALL(SELECT V FROM TEST)
+= ANY(ARRAY_COLUMN)
+= ANY(CAST((SELECT ARRAY_COLUMN FROM OTHER_TABLE WHERE ID = 5) AS INTEGER ARRAY)
 "
 
 "Other Grammar","Null Predicate Right Hand Side","
@@ -3089,7 +3182,7 @@ IS NOT DISTINCT FROM OTHER
 "
 
 "Other Grammar","Quantified Distinct Predicate Right Hand Side","
-@h2@ IS [ NOT ] [ DISTINCT FROM ] { ALL | ANY | SOME } ( query )
+@h2@ IS [ NOT ] [ DISTINCT FROM ] { ALL | ANY | SOME } ( { query | array } )
 ","
 Right side of quantified distinct predicate.
 
@@ -3097,17 +3190,23 @@ Quantified distinct predicate is null-safe, meaning NULL is considered the same 
 and the condition never evaluates to UNKNOWN.
 
 Quantified distinct predicate ALL returns TRUE if specified distinct predicate between
-left size of condition and each row from a subquery returns TRUE, including case when there are no rows.
+left size of condition and each row from a subquery or each element of array returns TRUE,
+including case when there are no rows.
 Otherwise it returns FALSE.
 
 Quantified distinct predicates ANY and SOME return TRUE if specified distinct predicate between
-left size of condition and at least one row from a subquery returns TRUE.
+left size of condition and at least one row from a subquery or at least one element of array returns TRUE.
 Otherwise they return FALSE.
 
 Note that these predicates have priority over ANY and SOME aggregate functions with subquery on the right side.
 Use parentheses around aggregate function.
+
+If version with array is required and this array is returned from a subquery, wrap this subquery with a cast
+to distinguish this operation from quantified comparison predicate with a query.
 ","
 IS DISTINCT FROM ALL(SELECT V FROM TEST)
+IS NOT DISTINCT FROM ANY(ARRAY_COLUMN)
+IS NOT DISTINCT FROM ANY(CAST((SELECT ARRAY_COLUMN FROM OTHER_TABLE WHERE ID = 5) AS INTEGER ARRAY)
 "
 
 "Other Grammar","Boolean Test Right Hand Side","
@@ -3210,10 +3309,25 @@ See Java ""Matcher.find"" for details.
 REGEXP '[a-z]'
 "
 
+"Other Grammar","Nulls Distinct","
+NULLS { DISTINCT | NOT DISTINCT | @h2@ { ALL DISTINCT } }
+","
+Are nulls distinct for unique constraint, index, or predicate.
+
+If NULLS DISTINCT is specified, rows with null value in any column are distinct.
+If NULLS ALL DISTINCT is specified, rows with null value in all columns are distinct.
+If NULLS NOT DISTINCT is specified, null values are identical.
+
+Treatment of null values inside composite data types is not affected.
+","
+NULLS DISTINCT
+NULLS NOT DISTINCT
+"
+
 "Other Grammar","Table Constraint Definition","
 [ constraintNameDefinition ]
 { PRIMARY KEY @h2@ [ HASH ] ( columnName [,...] ) }
-    | UNIQUE ( { columnName [,...] | VALUE } )
+    | UNIQUE [ nullsDistinct ] ( { columnName [,...] | VALUE } )
     | referentialConstraint
     | CHECK (condition)
 ","
@@ -3222,6 +3336,8 @@ Defines a constraint.
 PRIMARY KEY and UNIQUE require unique values.
 PRIMARY KEY also disallows NULL values and marks the column as a primary key, a table can have only one primary key.
 UNIQUE constraint supports NULL values and rows with NULL value in any column are considered as unique.
+UNIQUE constraint allows NULL values, if nulls distinct clause is not specified, the default is NULLS DISTINCT,
+excluding some compatibility modes.
 UNIQUE (VALUE) creates a unique constraint on entire row, excluding invisible columns;
 but if new columns will be added to the table, they will not be included into this constraint.
 
@@ -3267,8 +3383,10 @@ The following options are supported:
 
 ""lineSeparator"" (the line separator used for writing; ignored for reading),
 
-""null"", Support reading existing CSV files that contain explicit ""null"" delimiters.
+""null"" Support reading existing CSV files that contain explicit ""null"" delimiters.
 Note that an empty, unquoted values are also treated as null.
+
+""quotedNulls"" (quotes the nullString. true of false; disabled by default),
 
 ""preserveWhitespace"" (true or false; disabled by default),
 
@@ -5445,7 +5563,7 @@ LOCATE('.', NAME)
 "
 
 "Functions (String)","LPAD","
-@h2@ LPAD(string, int[, paddingString])
+LPAD(string, int[, paddingString])
 ","
 Left pad the string to the specified length.
 If the length is shorter than the string, it will be truncated at the end.
@@ -5455,7 +5573,7 @@ LPAD(AMOUNT, 10, '*')
 "
 
 "Functions (String)","RPAD","
-@h2@ RPAD(string, int[, paddingString])
+RPAD(string, int[, paddingString])
 ","
 Right pad the string to the specified length.
 If the length is shorter than the string, it will be truncated.
@@ -5465,31 +5583,46 @@ RPAD(TEXT, 10, '-')
 "
 
 "Functions (String)","LTRIM","
-@c@ LTRIM(string [, characterToTrimString])
+LTRIM(string [, charactersToTrimString])
 ","
-Removes all leading spaces or other specified characters from a string.
-
-This function is deprecated, use [TRIM](https://h2database.com/html/functions.html#trim) instead of it.
+Removes all leading spaces or other specified characters from a string, multiple characters can be specified.
 ","
 LTRIM(NAME)
+LTRIM(NAME, ' _~');
 "
 
 "Functions (String)","RTRIM","
-@c@ RTRIM(string [, characterToTrimString])
+RTRIM(string [, charactersToTrimString])
 ","
-Removes all trailing spaces or other specified characters from a string.
-
-This function is deprecated, use [TRIM](https://h2database.com/html/functions.html#trim) instead of it.
+Removes all trailing spaces or other specified characters from a string, multiple characters can be specified.
 ","
 RTRIM(NAME)
+RTRIM(NAME, ' _~');
+"
+
+"Functions (String)","BTRIM","
+BTRIM(string [, charactersToTrimString])
+","
+Removes all leading and trailing spaces or other specified characters from a string,
+multiple characters can be specified.
+","
+BTRIM(NAME)
+BTRIM(NAME, ' _~');
 "
 
 "Functions (String)","TRIM","
-TRIM ( [ [ LEADING | TRAILING | BOTH ] [ string ] FROM ] string )
+TRIM ( [ [ LEADING | TRAILING | BOTH ] [ characterToTrimString ] FROM ] string )
 ","
-Removes all leading spaces, trailing spaces, or spaces at both ends, from a string.
-Other characters can be removed as well.
+Removes all leading spaces, trailing spaces, or spaces at both ends from a string.
+If character to trim is specified, these characters are removed instead of spaces, only one character can be specified.
+To trim multiple different characters use [LTRIM](https://h2database.com/html/functions.html#ltrim),
+[RTRIM](https://h2database.com/html/functions.html#rtrim),
+or [BTRIM](https://h2database.com/html/functions.html#btrim).
+
+If neither LEADING, TRAILING, nor BOTH are specified, BOTH is implicit.
 ","
+TRIM(NAME)
+TRIM(LEADING FROM NAME)
 TRIM(BOTH '_' FROM NAME)
 "
 
@@ -5958,6 +6091,8 @@ If TIMESTAMP WITH TIME ZONE is passed and timeZoneString is specified,
 the timestamp is converted to the specified time zone and its UTC value is preserved.
 
 This method returns a string.
+
+See also [cast specification](https://h2database.com/html/grammar.html#cast_specification).
 ","
 CALL FORMATDATETIME(TIMESTAMP '2001-02-03 04:05:06',
     'EEE, d MMM yyyy HH:mm:ss z', 'en', 'GMT')
@@ -6011,6 +6146,8 @@ y year, M month, d day, H hour, m minute, s second.
 For details of the format, see ""java.time.format.DateTimeFormatter"".
 
 If timeZoneString is specified, it is used as default.
+
+See also [cast specification](https://h2database.com/html/grammar.html#cast_specification).
 ","
 CALL PARSEDATETIME('Sat, 3 Feb 2001 03:05:06 GMT',
     'EEE, d MMM yyyy HH:mm:ss z', 'en', 'GMT')
@@ -6111,10 +6248,11 @@ CALL ARRAY_GET(ARRAY['Hello', 'World'], 2)
 "Functions (System)","CARDINALITY","
 { CARDINALITY | @c@ { ARRAY_LENGTH } } (arrayExpression)
 ","
-Returns the length of an array.
+Returns the length of an array or JSON array.
 Returns NULL if the specified array is NULL.
 ","
 CALL CARDINALITY(ARRAY['Hello', 'World'])
+CALL CARDINALITY(JSON '[1, 2, 3]')
 "
 
 "Functions (System)","ARRAY_CONTAINS","
@@ -6430,17 +6568,21 @@ SELECT FILE_WRITE('Hello world', '/tmp/hello.txt')) LEN;
 "
 
 "Functions (System)","GREATEST","
-@h2@ GREATEST(aValue, bValue [,...])
+GREATEST(aValue, bValue [,...]) @h2@ [{RESPECT|IGNORE} NULLS]
 ","
-Returns the largest value that is not NULL, or NULL if all values are NULL.
+Returns the largest value or NULL if any value is NULL or the largest value cannot be determined.
+For example, ROW (NULL, 1) is neither equal to nor smaller than nor larger than ROW (1, 1).
+If IGNORE NULLS is specified, NULL values are ignored.
 ","
 CALL GREATEST(1, 2, 3);
 "
 
 "Functions (System)","LEAST","
-@h2@ LEAST(aValue, bValue [,...])
+LEAST(aValue, bValue [,...]) @h2@ [{RESPECT|IGNORE} NULLS]
 ","
-Returns the smallest value that is not NULL, or NULL if all values are NULL.
+Returns the smallest value or NULL if any value is NULL or the smallest value cannot be determined.
+For example, ROW (NULL, 1) is neither equal to nor smaller than nor larger than ROW (1, 1).
+If IGNORE NULLS is specified, NULL values are ignored.
 ","
 CALL LEAST(1, 2, 3);
 "
@@ -6723,7 +6865,7 @@ SELECT * FROM TABLE(ID INT=(1, 2), NAME VARCHAR=('Hello', 'World'));
 "
 
 "Functions (Table)","UNNEST","
-UNNEST(array, [,...]) [WITH ORDINALITY]
+UNNEST(arrayExpression, [,...]) [WITH ORDINALITY]
 ","
 Returns the result set.
 Number of columns is equal to number of arguments,
@@ -6732,6 +6874,7 @@ Number of rows is equal to length of longest specified array.
 If multiple arguments are specified and they have different length, cells with missing values will contain null values.
 ","
 SELECT * FROM UNNEST(ARRAY['a', 'b', 'c']);
+SELECT * FROM UNNEST(JSON '[""a"", ""b"", ""c""]');
 "
 
 "Aggregate Functions (General)","AVG","
@@ -6877,6 +7020,24 @@ If less than two rows are selected, the result is NULL.
 Aggregates are only allowed in select statements.
 ","
 VAR_SAMP(X)
+"
+
+"Aggregate Functions (General)","ANY_VALUE","
+ANY_VALUE( @h2@ [ DISTINCT|ALL ] value )
+[FILTER (WHERE expression)] [OVER windowNameOrSpecification]
+","
+Returns any non-NULL value from aggregated values.
+If no rows are selected, the result is NULL.
+This function uses the same pseudo random generator as [RAND()](https://h2database.com/html/functions.html#rand)
+function.
+
+If DISTINCT is specified, each distinct value will be returned with approximately the same probability
+as other distinct values. If it isn't specified, more frequent values will be returned with higher probability
+than less frequent.
+
+Aggregates are only allowed in select statements.
+","
+ANY_VALUE(X)
 "
 
 "Aggregate Functions (General)","BIT_AND_AGG","

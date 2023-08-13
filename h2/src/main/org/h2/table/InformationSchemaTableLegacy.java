@@ -19,7 +19,7 @@ import java.util.Locale;
 import java.util.Map;
 
 import org.h2.command.Command;
-import org.h2.command.Parser;
+import org.h2.command.ParserBase;
 import org.h2.command.dml.Help;
 import org.h2.constraint.Constraint;
 import org.h2.constraint.Constraint.Type;
@@ -991,7 +991,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                                 // PRIMARY_KEY
                                 ValueBoolean.get(index.getIndexType().isPrimaryKey()),
                                 // INDEX_TYPE_NAME
-                                index.getIndexType().getSQL(),
+                                index.getIndexType().getSQL(false),
                                 // IS_GENERATED
                                 ValueBoolean.get(index.getIndexType().getBelongsToConstraint()),
                                 // INDEX_TYPE
@@ -1106,7 +1106,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
             add(session, rows, "OLD_INFORMATION_SCHEMA", session.isOldInformationSchema() ? "TRUE" : "FALSE");
             BitSet nonKeywords = session.getNonKeywords();
             if (nonKeywords != null) {
-                add(session, rows, "NON_KEYWORDS", Parser.formatNonKeywords(nonKeywords));
+                add(session, rows, "NON_KEYWORDS", ParserBase.formatNonKeywords(nonKeywords));
             }
             add(session, rows, "RETENTION_TIME", Integer.toString(database.getRetentionTime()));
             // database settings

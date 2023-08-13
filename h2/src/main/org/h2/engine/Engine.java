@@ -235,7 +235,8 @@ public final class Engine {
                 throw DbException.get(ErrorCode.DATABASE_CALLED_AT_SHUTDOWN);
             }
         }
-        synchronized (session) {
+        session.lock();
+        try {
             session.setAllowLiterals(true);
             DbSettings defaultSettings = DbSettings.DEFAULT;
             for (String setting : ci.getKeys()) {
@@ -286,6 +287,8 @@ public final class Engine {
             }
             session.setAllowLiterals(false);
             session.commit(true);
+        } finally {
+            session.unlock();
         }
         return session;
     }

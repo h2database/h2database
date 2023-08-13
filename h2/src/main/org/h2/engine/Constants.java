@@ -15,13 +15,13 @@ public class Constants {
     /**
      * The build date is updated for each public release.
      */
-    public static final String BUILD_DATE = "2022-06-13";
+    public static final String BUILD_DATE = "2023-07-04";
 
     /**
      * Sequential version number. Even numbers are used for official releases,
      * odd numbers are used for development builds.
      */
-    public static final int BUILD_ID = 219;
+    public static final int BUILD_ID = 229;
 
     /**
      * Whether this is a snapshot version.
@@ -471,6 +471,11 @@ public class Constants {
      * The maximum number of entries in query statistics.
      */
     public static final int QUERY_STATISTICS_MAX_ENTRIES = 100;
+
+    /**
+     * The minimum number of characters in web admin password.
+     */
+    public static final int MIN_WEB_ADMIN_PASSWORD_LENGTH = 12;
 
     /**
      * Announced version for PgServer.

@@ -118,6 +118,15 @@ public final class Upgrade {
             /* 1.4.198 */ "32dd6b149cb722aa4c2dd4d40a74a9cd41e32ac59a4e755a66e5753660d61d46",
             /* 1.4.199 */ "3125a16743bc6b4cfbb61abba783203f1fb68230aa0fdc97898f796f99a5d42e",
             /* 1.4.200 */ "3ad9ac4b6aae9cd9d3ac1c447465e1ed06019b851b893dd6a8d76ddb6d85bca6",
+            /* 2.0.202 */ "95090f0609aacb0ee339128ef04077145ef28320ee874ea2e33a692938da5b97",
+            /* 2.0.204 */ "712a616409580bd4ac7c10e48f2599cc32ba3a433a1804da619c3f0a5ef66a04",
+            /* 2.0.206 */ "3b9607c5673fd8b87e49e3ac46bd88fd3561e863dce673a35234e8b5708f3deb",
+            /* 2.0.208 */ null,
+            /* 2.1.210 */ "edc57299926297fd9315e04de75f8538c4cb5fe97fd3da2a1e5cee6a4c98b5cd",
+            /* 2.1.212 */ "db9284c6ff9bf3bc0087851edbd34563f1180df3ae87c67c5fe2203c0e67a536",
+            /* 2.1.214 */ "d623cdc0f61d218cf549a8d09f1c391ff91096116b22e2475475fce4fbe72bd0",
+            /* 2.1.216 */ null,
+            /* 2.1.218 */ null,
             //
     };
 
@@ -227,7 +236,9 @@ public final class Upgrade {
             if ((version & 1) != 0 || version > Constants.BUILD_ID) {
                 throw new IllegalArgumentException("version=" + version);
             }
-            prefix = "2.0.";
+            int major = version / 100;
+            int minor = version / 10 % 10;
+            prefix = new StringBuilder().append(major).append('.').append(minor).append('.').toString();
         } else if (version >= 177) {
             prefix = "1.4.";
         } else if (version >= 146 && version != 147) {
@@ -238,7 +249,8 @@ public final class Upgrade {
             throw new IllegalArgumentException("version=" + version);
         }
         String fullVersion = prefix + version;
-        byte[] data = downloadUsingMaven("com.h2database", "h2", fullVersion, CHECKSUMS[version - 120]);
+        byte[] data = downloadUsingMaven("com.h2database", "h2", fullVersion,
+                CHECKSUMS[version >= 202 ? (version >>> 1) - 20 : version - 120]);
         ZipInputStream is = new ZipInputStream(new ByteArrayInputStream(data));
         HashMap<String, byte[]> map = new HashMap<>(version >= 198 ? 2048 : 1024);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();

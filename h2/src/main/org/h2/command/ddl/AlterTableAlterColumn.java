@@ -7,10 +7,12 @@ package org.h2.command.ddl;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandContainer;
 import org.h2.command.CommandInterface;
 import org.h2.command.Parser;
+import org.h2.command.ParserBase;
 import org.h2.command.Prepared;
 import org.h2.constraint.Constraint;
 import org.h2.constraint.ConstraintReferential;
@@ -209,7 +211,7 @@ public class AlterTableAlterColumn extends CommandWithColumns {
             // need to copy the table because the length is only a constraint,
             // and does not affect the storage structure.
             if (oldColumn.isWideningConversion(newColumn) && usingExpression == null) {
-                convertIdentityColumn(table, newColumn);
+                convertIdentityColumn(table, oldColumn, newColumn);
                 oldColumn.copy(newColumn);
                 db.updateMeta(session, table);
             } else {
@@ -223,7 +225,7 @@ public class AlterTableAlterColumn extends CommandWithColumns {
                 if (oldColumn.getVisible() ^ newColumn.getVisible()) {
                     oldColumn.setVisible(newColumn.getVisible());
                 }
-                convertIdentityColumn(table, newColumn);
+                convertIdentityColumn(table, oldColumn, newColumn);
                 copyData(table, null, true);
             }
             table.setModified();
@@ -307,14 +309,16 @@ public class AlterTableAlterColumn extends CommandWithColumns {
         }
     }
 
-    private void convertIdentityColumn(Table table, Column c) {
-        if (c.hasIdentityOptions()) {
-            if (c.isPrimaryKey()) {
+    private void convertIdentityColumn(Table table, Column oldColumn, Column newColumn) {
+        if (newColumn.hasIdentityOptions()) {
+            // Primary key creation is only needed for legacy
+            // ALTER TABLE name ALTER COLUMN columnName IDENTITY
+            if (newColumn.isPrimaryKey() && !oldColumn.isPrimaryKey()) {
                 addConstraintCommand(
-                        Parser.newPrimaryKeyConstraintCommand(session, table.getSchema(), table.getName(), c));
+                        Parser.newPrimaryKeyConstraintCommand(session, table.getSchema(), table.getName(), newColumn));
             }
             int objId = getObjectId();
-            c.initializeSequence(session, getSchema(), objId, table.isTemporary());
+            newColumn.initializeSequence(session, getSchema(), objId, table.isTemporary());
         }
     }
 
@@ -506,7 +510,7 @@ public class AlterTableAlterColumn extends CommandWithColumns {
             } else if (child.getType() == DbObject.TABLE_OR_VIEW) {
                 throw DbException.getInternalError();
             }
-            String quotedName = Parser.quoteIdentifier(tempName + "_" + child.getName(), HasSQL.DEFAULT_SQL_FLAGS);
+            String quotedName = ParserBase.quoteIdentifier(tempName + "_" + child.getName(), HasSQL.DEFAULT_SQL_FLAGS);
             String sql = null;
             if (child instanceof ConstraintReferential) {
                 ConstraintReferential r = (ConstraintReferential) child;

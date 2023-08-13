@@ -56,7 +56,7 @@ class DelayedDatabaseCloser extends Thread {
         WeakReference<Database> ref = databaseRef;
         if (ref != null && (database = ref.get()) != null) {
             try {
-                database.close(false);
+                database.close();
             } catch (RuntimeException e) {
                 // this can happen when stopping a web application,
                 // if loading classes is no longer allowed

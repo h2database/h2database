@@ -664,16 +664,17 @@ public final class Transaction {
      * @param toWaitFor transaction to wait for
      * @param mapName name of the map containing blocking entry
      * @param key of the blocking entry
+     * @param timeoutMillis timeout in milliseconds, {@code -1} for default
      * @return true if other transaction was closed and this one can proceed, false if timed out
      */
-    public boolean waitFor(Transaction toWaitFor, String mapName, Object key) {
+    public boolean waitFor(Transaction toWaitFor, String mapName, Object key, int timeoutMillis) {
         blockingTransaction = toWaitFor;
         blockingMapName = mapName;
         blockingKey = key;
         if (isDeadlocked(toWaitFor)) {
             tryThrowDeadLockException(false);
         }
-        boolean result = toWaitFor.waitForThisToEnd(timeoutMillis, this);
+        boolean result = toWaitFor.waitForThisToEnd(timeoutMillis == -1 ? this.timeoutMillis : timeoutMillis, this);
         blockingMapName = null;
         blockingKey = null;
         blockingTransaction = null;
@@ -728,21 +729,21 @@ public final class Transaction {
     }
 
     private synchronized boolean waitForThisToEnd(int millis, Transaction waiter) {
-        long until = System.currentTimeMillis() + millis;
+        long time = System.nanoTime();
         notificationRequested = true;
         long state;
         int status;
-        while((status = getStatus(state = statusAndLogId.get())) != STATUS_CLOSED
+        while ((status = getStatus(state = statusAndLogId.get())) != STATUS_CLOSED
                 && status != STATUS_ROLLED_BACK && !hasRollback(state)) {
             if (waiter.getStatus() != STATUS_OPEN) {
                 waiter.tryThrowDeadLockException(true);
             }
-            long dur = until - System.currentTimeMillis();
-            if(dur <= 0) {
+            int remaining = millis - (int) ((System.nanoTime() - time) / 1_000_000L);
+            if (remaining <= 0) {
                 return false;
             }
             try {
-                wait(dur);
+                wait(remaining);
             } catch (InterruptedException ex) {
                 return false;
             }

@@ -162,7 +162,7 @@ public class WebServer implements Service {
     private String externalNames;
     private boolean isDaemon;
     private final Set<WebThread> running =
-            Collections.synchronizedSet(new HashSet<WebThread>());
+            Collections.synchronizedSet(new HashSet<>());
     private boolean ssl;
     private byte[] adminPassword;
     private final HashMap<String, ConnectionInfo> connInfoMap = new HashMap<>();
@@ -177,6 +177,7 @@ public class WebServer implements Service {
     private ShutdownHandler shutdownHandler;
     private Thread listenerThread;
     private boolean ifExists = true;
+    boolean virtualThreads;
     private String key;
     private boolean allowSecureCreation;
     private boolean trace;
@@ -336,6 +337,8 @@ public class WebServer implements Service {
                 setExternalNames(args[++i]);
             } else if (Tool.isOption(a, "-webDaemon")) {
                 isDaemon = true;
+            } else if (Tool.isOption(a,  "-webVirtualThreads")) {
+                virtualThreads = Utils.parseBoolean(args[++i], virtualThreads, true);
             } else if (Tool.isOption(a, "-baseDir")) {
                 String baseDir = args[++i];
                 SysProperties.setBaseDir(baseDir);
@@ -926,17 +929,32 @@ public class WebServer implements Service {
             adminPassword = null;
             return;
         }
-        if (password.length() == 128) {
-            try {
-                adminPassword = StringUtils.convertHexToBytes(password);
-                return;
-            } catch (Exception ex) {}
+        if (password.length() != 128) {
+            throw new IllegalArgumentException(
+                    "Use result of org.h2.server.web.WebServer.encodeAdminPassword(String)");
+        }
+        adminPassword = StringUtils.convertHexToBytes(password);
+    }
+
+    /**
+     * Generates a random salt and returns it with a hash of specified password
+     * with this salt.
+     *
+     * @param password
+     *            the password
+     * @return a salt and hash of salted password as a hex encoded string to be
+     *         used in configuration file
+     * @throws IllegalArgumentException when password is too short
+     */
+    public static String encodeAdminPassword(String password) {
+        if (password.length() < Constants.MIN_WEB_ADMIN_PASSWORD_LENGTH) {
+            throw new IllegalArgumentException("Min length: " + Constants.MIN_WEB_ADMIN_PASSWORD_LENGTH);
         }
         byte[] salt = MathUtils.secureRandomBytes(32);
         byte[] hash = SHA256.getHashWithSalt(password.getBytes(StandardCharsets.UTF_8), salt);
         byte[] total = Arrays.copyOf(salt, 64);
         System.arraycopy(hash, 0, total, 32, 32);
-        adminPassword = total;
+        return StringUtils.convertBytesToHex(total);
     }
 
     /**

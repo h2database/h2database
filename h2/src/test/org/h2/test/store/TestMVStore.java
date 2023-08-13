@@ -39,6 +39,8 @@ import org.h2.util.Utils;
  */
 public class TestMVStore extends TestBase {
 
+    private static final int CURRENT_FORMAT = 3;
+
     /**
      * Run just this test.
      *
@@ -426,9 +428,9 @@ public class TestMVStore extends TestBase {
                 open();
         s.setRetentionTime(Integer.MAX_VALUE);
         Map<String, Object> header = s.getStoreHeader();
-        assertEquals("2", header.get("format").toString());
-        header.put("formatRead", "2");
-        header.put("format", "3");
+        assertEquals(Integer.toString(CURRENT_FORMAT), header.get("format").toString());
+        header.put("formatRead", Integer.toString(CURRENT_FORMAT));
+        header.put("format", Integer.toString(CURRENT_FORMAT + 1));
         forceWriteStoreHeader(s);
         MVMap<Integer, String> m = s.openMap("data");
         forceWriteStoreHeader(s);
@@ -727,7 +729,7 @@ public class TestMVStore extends TestBase {
             m.put(1, 1);
             Map<String, Object> header = s.getStoreHeader();
             int format = Integer.parseInt(header.get("format").toString());
-            assertEquals(2, format);
+            assertEquals(CURRENT_FORMAT, format);
             header.put("format", Integer.toString(format + 1));
             forceWriteStoreHeader(s);
         }
@@ -849,7 +851,7 @@ public class TestMVStore extends TestBase {
             s.setRetentionTime(Integer.MAX_VALUE);
             long time = System.currentTimeMillis();
             Map<String, Object> m = s.getStoreHeader();
-            assertEquals("2", m.get("format").toString());
+            assertEquals(Integer.toString(CURRENT_FORMAT), m.get("format").toString());
             long creationTime = (Long) m.get("created");
             assertTrue(Math.abs(time - creationTime) < 100);
             m.put("test", "123");

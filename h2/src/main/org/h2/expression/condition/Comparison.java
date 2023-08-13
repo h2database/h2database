@@ -101,9 +101,15 @@ public final class Comparison extends Condition {
 
     /**
      * This is a pseudo comparison type that is only used for index conditions.
+     * It means equals any value of an ARRAY. Example: ARRAY[1, 2, 3].
+     */
+    public static final int IN_ARRAY = 11;
+
+    /**
+     * This is a pseudo comparison type that is only used for index conditions.
      * It means equals any value of a list. Example: IN(SELECT ...).
      */
-    public static final int IN_QUERY = 11;
+    public static final int IN_QUERY = 12;
 
     private int compareType;
     private Expression left;
@@ -361,12 +367,11 @@ public final class Comparison extends Condition {
         if (compareType == SPATIAL_INTERSECTS || whenOperand) {
             return null;
         }
-        int type = getNotCompareType();
-        return new Comparison(type, left, right, false);
+        return new Comparison(getNotCompareType(compareType), left, right, false);
     }
 
-    private int getNotCompareType() {
-        switch (compareType) {
+    static int getNotCompareType(int type) {
+        switch (type) {
         case EQUAL:
             return NOT_EQUAL;
         case EQUAL_NULL_SAFE:
@@ -384,7 +389,7 @@ public final class Comparison extends Condition {
         case SMALLER:
             return BIGGER_EQUAL;
         default:
-            throw DbException.getInternalError("type=" + compareType);
+            throw DbException.getInternalError("type=" + type);
         }
     }
 

@@ -29,6 +29,7 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
     private final Service service;
     private Server web, tcp, pg;
     private ShutdownHandler shutdownHandler;
+    private boolean fromCommandLine;
     private boolean started;
 
     public Server() {
@@ -70,12 +71,18 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
      * used together with -webAllowOthers</td></tr>
      * <tr><td>[-webDaemon]</td>
      * <td>Use a daemon thread</td></tr>
+     * <tr><td>[-webVirtualThreads &lt;true|false&gt;]</td>
+     * <td>Use virtual threads (on Java 21+ only)</td></tr>
      * <tr><td>[-webPort &lt;port&gt;]</td>
      * <td>The port (default: 8082)</td></tr>
      * <tr><td>[-webSSL]</td>
      * <td>Use encrypted (HTTPS) connections</td></tr>
      * <tr><td>[-webAdminPassword]</td>
-     * <td>Password of DB Console administrator</td></tr>
+     * <td>Hash of password of DB Console administrator, can be generated with
+     * {@linkplain WebServer#encodeAdminPassword(String)}. Can be passed only to
+     * the {@link #runTool(String...)} method, this method rejects it. It is
+     * also possible to store this setting in configuration file of H2
+     * Console.</td></tr>
      * <tr><td>[-browser]</td>
      * <td>Start a browser connecting to the web server</td></tr>
      * <tr><td>[-tcp]</td>
@@ -84,6 +91,8 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
      * <td>Allow other computers to connect - see below</td></tr>
      * <tr><td>[-tcpDaemon]</td>
      * <td>Use a daemon thread</td></tr>
+     * <tr><td>[-tcpVirtualThreads &lt;true|false&gt;]</td>
+     * <td>Use virtual threads (on Java 21+ only)</td></tr>
      * <tr><td>[-tcpPort &lt;port&gt;]</td>
      * <td>The port (default: 9092)</td></tr>
      * <tr><td>[-tcpSSL]</td>
@@ -100,6 +109,8 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
      * <td>Allow other computers to connect - see below</td></tr>
      * <tr><td>[-pgDaemon]</td>
      * <td>Use a daemon thread</td></tr>
+     * <tr><td>[-pgVirtualThreads &lt;true|false&gt;]</td>
+     * <td>Use virtual threads (on Java 21+ only)</td></tr>
      * <tr><td>[-pgPort &lt;port&gt;]</td>
      * <td>The port (default: 5435)</td></tr>
      * <tr><td>[-properties "&lt;dir&gt;"]</td>
@@ -123,7 +134,9 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
      * @throws SQLException on failure
      */
     public static void main(String... args) throws SQLException {
-        new Server().runTool(args);
+        Server server = new Server();
+        server.fromCommandLine = true;
+        server.runTool(args);
     }
 
     private void verifyArgs(String... args) throws SQLException {
@@ -141,11 +154,16 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
                     i++;
                 }  else if ("-webDaemon".equals(arg)) {
                     // no parameters
+                } else if ("-webVirtualThreads".equals(arg)) {
+                    i++;
                 } else if ("-webSSL".equals(arg)) {
                     // no parameters
                 } else if ("-webPort".equals(arg)) {
                     i++;
                 } else if ("-webAdminPassword".equals(arg)) {
+                    if (fromCommandLine) {
+                        throwUnsupportedOption(arg);
+                    }
                     i++;
                 } else {
                     throwUnsupportedOption(arg);
@@ -159,6 +177,8 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
                     // no parameters
                 } else if ("-tcpDaemon".equals(arg)) {
                     // no parameters
+                } else if ("-tcpVirtualThreads".equals(arg)) {
+                    i++;
                 } else if ("-tcpSSL".equals(arg)) {
                     // no parameters
                 } else if ("-tcpPort".equals(arg)) {
@@ -179,6 +199,8 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
                     // no parameters
                 } else if ("-pgDaemon".equals(arg)) {
                     // no parameters
+                } else if ("-pgVirtualThreads".equals(arg)) {
+                    i++;
                 } else if ("-pgPort".equals(arg)) {
                     i++;
                 } else {
@@ -249,6 +271,9 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
                 } else if ("-webPort".equals(arg)) {
                     i++;
                 } else if ("-webAdminPassword".equals(arg)) {
+                    if (fromCommandLine) {
+                        throwUnsupportedOption(arg);
+                    }
                     i++;
                 } else {
                     showUsageAndThrowUnsupportedOption(arg);

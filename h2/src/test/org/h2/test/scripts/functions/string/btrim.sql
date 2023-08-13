@@ -1,0 +1,22 @@
+-- Copyright 2004-2023 H2 Group. Multiple-Licensed under the MPL 2.0,
+-- and the EPL 1.0 (https://h2database.com/html/license.html).
+-- Initial Developer: H2 Group
+--
+
+SELECT QUOTE_IDENT(BTRIM(U&' _ABC_  '));
+>> "_ABC_"
+
+SELECT QUOTE_IDENT(BTRIM(U&' _ABC_  ', ' '));
+>> "_ABC_"
+
+SELECT QUOTE_IDENT(BTRIM(U&'\+01F600\+01F604\+01F600_ABC_ \+01F600\+01F604', U&'\+01F600'));
+>> U&"\+01f604\+01f600_ABC_ \+01f600\+01f604"
+
+SELECT QUOTE_IDENT(BTRIM(U&'\+01F600\+01F604\+01F600_ABC_ \+01F600\+01F604', U&'\+01F600\+01F600'));
+>> U&"\+01f604\+01f600_ABC_ \+01f600\+01f604"
+
+SELECT QUOTE_IDENT(BTRIM(U&'\+01F600\+01F604\+01F600_ABC_ \+01F600\+01F604', U&'\+01F600\+01F604'));
+>> "_ABC_ "
+
+SELECT QUOTE_IDENT(BTRIM(U&'\+01F600\+01F604\+01F600_ABC_ \+01F600\+01F604', U&'\+01F600\+01F603\+01F604'));
+>> "_ABC_ "

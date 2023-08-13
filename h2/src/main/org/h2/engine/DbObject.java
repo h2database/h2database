@@ -7,7 +7,7 @@ package org.h2.engine;
 
 import java.util.ArrayList;
 
-import org.h2.command.Parser;
+import org.h2.command.ParserBase;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.table.Table;
@@ -156,7 +156,7 @@ public abstract class DbObject implements HasSQL {
 
     @Override
     public String getSQL(int sqlFlags) {
-        return Parser.quoteIdentifier(objectName, sqlFlags);
+        return ParserBase.quoteIdentifier(objectName, sqlFlags);
     }
 
     @Override

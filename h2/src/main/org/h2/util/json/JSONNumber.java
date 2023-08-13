@@ -10,7 +10,7 @@ import java.math.BigDecimal;
 /**
  * JSON number.
  */
-public class JSONNumber extends JSONValue {
+public final class JSONNumber extends JSONValue {
 
     private final BigDecimal value;
 

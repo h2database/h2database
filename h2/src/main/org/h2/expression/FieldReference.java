@@ -12,9 +12,12 @@ import org.h2.engine.SessionLocal;
 import org.h2.message.DbException;
 import org.h2.mvstore.db.Store;
 import org.h2.util.ParserUtil;
+import org.h2.util.json.JSONObject;
+import org.h2.util.json.JSONValue;
 import org.h2.value.ExtTypeInfoRow;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
+import org.h2.value.ValueJson;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueRow;
 
@@ -41,7 +44,17 @@ public final class FieldReference extends Operation1 {
     public Value getValue(SessionLocal session) {
         Value l = arg.getValue(session);
         if (l != ValueNull.INSTANCE) {
-            return ((ValueRow) l).getList()[ordinal];
+            if (ordinal >= 0) {
+                return ((ValueRow) l).getList()[ordinal];
+            } else {
+                JSONValue value = l.convertToAnyJson().getDecomposition();
+                if (value instanceof JSONObject) {
+                    JSONValue jsonValue = ((JSONObject) value).getFirst(fieldName);
+                    if (jsonValue != null) {
+                        return ValueJson.fromJson(jsonValue);
+                    }
+                }
+            }
         }
         return ValueNull.INSTANCE;
     }
@@ -50,23 +63,33 @@ public final class FieldReference extends Operation1 {
     public Expression optimize(SessionLocal session) {
         arg = arg.optimize(session);
         TypeInfo type = arg.getType();
-        if (type.getValueType() != Value.ROW) {
-            throw Store.getInvalidExpressionTypeException("ROW", arg);
+        int valueType = type.getValueType();
+        c: switch (valueType) {
+        case Value.JSON: {
+            this.type = TypeInfo.TYPE_JSON;
+            this.ordinal = -1;
+            break;
         }
-        int ordinal = 0;
-        for (Entry<String, TypeInfo> entry : ((ExtTypeInfoRow) type.getExtTypeInfo()).getFields()) {
-            if (fieldName.equals(entry.getKey())) {
-                type = entry.getValue();
-                this.type = type;
-                this.ordinal = ordinal;
-                if (arg.isConstant()) {
-                    return TypedValueExpression.get(getValue(session), type);
+        case Value.ROW: {
+            int ordinal = 0;
+            for (Entry<String, TypeInfo> entry : ((ExtTypeInfoRow) type.getExtTypeInfo()).getFields()) {
+                if (fieldName.equals(entry.getKey())) {
+                    type = entry.getValue();
+                    this.type = type;
+                    this.ordinal = ordinal;
+                    break c;
                 }
-                return this;
+                ordinal++;
             }
-            ordinal++;
+            throw DbException.get(ErrorCode.COLUMN_NOT_FOUND_1, fieldName);
         }
-        throw DbException.get(ErrorCode.COLUMN_NOT_FOUND_1, fieldName);
+        default:
+            throw Store.getInvalidExpressionTypeException("JSON | ROW", arg);
+        }
+        if (arg.isConstant()) {
+            return TypedValueExpression.get(getValue(session), type);
+        }
+        return this;
     }
 
 }

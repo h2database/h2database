@@ -89,7 +89,7 @@ public class DateTimeUtils {
      * Multipliers for {@link #convertScale(long, int, long)} and
      * {@link #appendNanos(StringBuilder, int)}.
      */
-    private static final int[] FRACTIONAL_SECONDS_TABLE = { 1_000_000_000, 100_000_000,
+    static final int[] FRACTIONAL_SECONDS_TABLE = { 1_000_000_000, 100_000_000,
             10_000_000, 1_000_000, 100_000, 10_000, 1_000, 100, 10, 1 };
 
     private static volatile TimeZoneProvider LOCAL;
@@ -396,17 +396,20 @@ public class DateTimeUtils {
     }
 
     /**
-     * Parses TIME WITH TIME ZONE value from the specified string.
+     * Parses time value from the specified string.
      *
      * @param s
      *            string to parse
      * @param provider
      *            the cast information provider, or {@code null}
-     * @return parsed time with time zone
+     * @param withTimeZone
+     *            if {@code true} return {@link ValueTimeTimeZone} instead of
+     *            {@link ValueTime}
+     * @return parsed time
      */
-    public static ValueTimeTimeZone parseTimeWithTimeZone(String s, CastDataProvider provider) {
+    public static Value parseTime(String s, CastDataProvider provider, boolean withTimeZone) {
         int timeEnd;
-        TimeZoneProvider tz;
+        TimeZoneProvider tz = null;
         if (s.endsWith("Z")) {
             tz = TimeZoneProvider.UTC;
             timeEnd = s.length() - 1;
@@ -427,14 +430,26 @@ public class DateTimeUtils {
                     tz = TimeZoneProvider.ofId(s.substring(timeZoneStart + 1));
                     timeEnd = timeZoneStart;
                 } else {
-                    throw DbException.get(ErrorCode.INVALID_DATETIME_CONSTANT_2, "TIME WITH TIME ZONE", s);
+                    timeEnd = s.length();
                 }
             }
-            if (!tz.hasFixedOffset()) {
+            if (tz != null && !tz.hasFixedOffset()) {
                 throw DbException.get(ErrorCode.INVALID_DATETIME_CONSTANT_2, "TIME WITH TIME ZONE", s);
             }
         }
-        return ValueTimeTimeZone.fromNanos(parseTimeNanos(s, 0, timeEnd), tz.getTimeZoneOffsetUTC(0L));
+        long nanos = parseTimeNanos(s, 0, timeEnd);
+        if (withTimeZone) {
+            return ValueTimeTimeZone.fromNanos(nanos,
+                    tz != null ? tz.getTimeZoneOffsetUTC(0L)
+                            : (provider != null ? provider.currentTimestamp() : currentTimestamp(getTimeZone()))
+                                    .getTimeZoneOffsetSeconds());
+        }
+        if (tz != null) {
+            nanos = normalizeNanosOfDay(
+                    nanos + ((provider != null ? provider.currentTimestamp() : currentTimestamp(getTimeZone()))
+                            .getTimeZoneOffsetSeconds() - tz.getTimeZoneOffsetUTC(0L)) * NANOS_PER_SECOND);
+        }
+        return ValueTime.fromNanos(nanos);
     }
 
     /**
@@ -696,7 +711,11 @@ public class DateTimeUtils {
         if (month != 2) {
             return NORMAL_DAYS_PER_MONTH[month];
         }
-        return (year & 3) == 0 && (year % 100 != 0 || year % 400 == 0) ? 29 : 28;
+        return isLeapYear(year) ? 29 : 28;
+    }
+
+    static boolean isLeapYear(int year) {
+        return (year & 3) == 0 && (year % 100 != 0 || year % 400 == 0);
     }
 
     /**

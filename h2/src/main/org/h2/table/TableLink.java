@@ -19,6 +19,7 @@ import java.util.Objects;
 
 import org.h2.api.ErrorCode;
 import org.h2.command.Prepared;
+import org.h2.engine.NullsDistinct;
 import org.h2.engine.SessionLocal;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
@@ -293,8 +294,9 @@ public class TableLink extends Table {
             if (!rs.getBoolean("NON_UNIQUE")) {
                 uniqueColumnCount++;
             }
-            indexType = uniqueColumnCount > 0 ? IndexType.createUnique(false, false) :
-                    IndexType.createNonUnique(false);
+            indexType = uniqueColumnCount > 0
+                    ? IndexType.createUnique(false, false, uniqueColumnCount, /* TODO */ NullsDistinct.NOT_DISTINCT)
+                    : IndexType.createNonUnique(false);
             String col = rs.getString("COLUMN_NAME");
             col = convertColumnName(col);
             Column column = columnMap.get(col);

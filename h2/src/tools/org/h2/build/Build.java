@@ -557,6 +557,7 @@ public class Build extends BuildBase {
     private void addVersions() {
         copy("temp/META-INF/versions/9", files("src/java9/precompiled"), "src/java9/precompiled");
         copy("temp/META-INF/versions/10", files("src/java10/precompiled"), "src/java10/precompiled");
+        copy("temp/META-INF/versions/21", files("src/java21/precompiled"), "src/java21/precompiled");
     }
 
     /**
@@ -922,6 +923,9 @@ public class Build extends BuildBase {
             cp = "src/java9/precompiled" + File.pathSeparator + cp;
             if (version >= 10) {
                 cp = "src/java10/precompiled" + File.pathSeparator + cp;
+                if (version >= 21) {
+                    cp = "src/java21/precompiled" + File.pathSeparator + cp;
+                }
             }
         }
         int ret;

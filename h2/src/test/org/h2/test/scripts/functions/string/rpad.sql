@@ -5,3 +5,6 @@
 
 select rpad('string', 10, '+');
 >> string++++
+
+SELECT QUOTE_IDENT(RPAD('ABC', 5, U&'\+01F600'));
+>> U&"ABC\+01f600"

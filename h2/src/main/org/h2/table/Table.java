@@ -212,9 +212,12 @@ public abstract class Table extends SchemaObject {
      *
      * @param session the session
      * @param row to lock
-     * @return locked row, or null if row does not exist anymore
+     * @param timeoutMillis
+     *            timeout in milliseconds, {@code -1} for default, {@code -2} to
+     *            skip locking if row is already locked by another session
+     * @return locked row, or null if row does not exist anymore or if it was skipped
      */
-    public Row lockRow(SessionLocal session, Row row) {
+    public Row lockRow(SessionLocal session, Row row, int timeoutMillis) {
         throw DbException.getUnsupportedException("lockRow()");
     }
 
@@ -586,8 +589,7 @@ public abstract class Table extends SchemaObject {
     @Override
     public void removeChildrenAndResources(SessionLocal session) {
         while (!dependentViews.isEmpty()) {
-            TableView view = dependentViews.get(0);
-            dependentViews.remove(0);
+            TableView view = dependentViews.remove(0);
             database.removeSchemaObject(session, view);
         }
         while (synonyms != null && !synonyms.isEmpty()) {

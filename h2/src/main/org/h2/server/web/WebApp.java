@@ -39,7 +39,7 @@ import org.h2.bnf.context.DbColumn;
 import org.h2.bnf.context.DbContents;
 import org.h2.bnf.context.DbSchema;
 import org.h2.bnf.context.DbTableOrView;
-import org.h2.command.Parser;
+import org.h2.command.ParserBase;
 import org.h2.engine.Constants;
 import org.h2.engine.SysProperties;
 import org.h2.jdbc.JdbcException;
@@ -1252,7 +1252,7 @@ public class WebApp {
                 for (; offset < length; offset++) {
                     char c = sql.charAt(offset);
                     if (c == '(') {
-                        Parser p = new Parser();
+                        ParserBase p = new ParserBase();
                         generatedKeys = p.parseColumnList(sql, offset);
                         offset = p.getLastParseIndex();
                         break;

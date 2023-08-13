@@ -63,8 +63,9 @@ public class TestAutoReconnect extends TestDb {
 
     private void testWrongUrl() throws Exception {
         deleteDb(getTestName());
-        Server tcp = Server.createTcpServer().start();
+        Server tcp = null;
         try {
+            tcp = Server.createTcpServer().start();
             conn = getConnection("jdbc:h2:" + getBaseDir() + '/' + getTestName() + ";AUTO_SERVER=TRUE");
             assertThrows(ErrorCode.DATABASE_ALREADY_OPEN_1,
                     () -> getConnection("jdbc:h2:" + getBaseDir() + '/' + getTestName() + ";OPEN_NEW=TRUE"));
@@ -78,7 +79,7 @@ public class TestAutoReconnect extends TestDb {
                     "jdbc:h2:" + getBaseDir() + '/' + getTestName() + ";AUTO_SERVER=TRUE;OPEN_NEW=TRUE"));
             conn.close();
         } finally {
-            tcp.stop();
+            if (tcp != null) tcp.stop();
         }
     }
 

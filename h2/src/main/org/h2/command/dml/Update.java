@@ -67,7 +67,7 @@ public final class Update extends FilteredDataChangeStatement {
             while (nextRow(limitRows, count)) {
                 Row oldRow = targetTableFilter.get();
                 if (table.isRowLockable()) {
-                    Row lockedRow = table.lockRow(session, oldRow);
+                    Row lockedRow = table.lockRow(session, oldRow, -1);
                     if (lockedRow == null) {
                         continue;
                     }

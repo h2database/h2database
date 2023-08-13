@@ -136,7 +136,7 @@ public class TestPgServer extends TestDb {
             Connection conn = DriverManager.getConnection(
                     "jdbc:postgresql://localhost:5535/pgserver", "sa", "sa");
             Statement stat = conn.createStatement();
-            stat.execute("create alias sleep for 'java.lang.Thread.sleep'");
+            stat.execute("create alias sleep for 'java.lang.Thread.sleep(long)'");
 
             // create a table with 200 rows (cancel interval is 127)
             stat.execute("create table test(id int)");

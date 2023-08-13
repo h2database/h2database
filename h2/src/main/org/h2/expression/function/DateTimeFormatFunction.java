@@ -15,11 +15,11 @@ import java.time.OffsetTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
 import java.time.temporal.ChronoField;
 import java.time.temporal.TemporalAccessor;
 import java.time.temporal.TemporalQueries;
 import java.time.zone.ZoneRules;
-import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Objects;
 
@@ -29,6 +29,7 @@ import org.h2.expression.Expression;
 import org.h2.expression.TypedValueExpression;
 import org.h2.message.DbException;
 import org.h2.util.JSR310Utils;
+import org.h2.util.SmallLRUCache;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueTime;
@@ -105,16 +106,7 @@ public final class DateTimeFormatFunction extends FunctionN {
             "FORMATDATETIME", "PARSEDATETIME" //
     };
 
-    private static final LinkedHashMap<CacheKey, CacheValue> CACHE = new LinkedHashMap<CacheKey, CacheValue>() {
-
-        private static final long serialVersionUID = 1L;
-
-        @Override
-        protected boolean removeEldestEntry(java.util.Map.Entry<CacheKey, CacheValue> eldest) {
-            return size() > 100;
-        }
-
-    };
+    private static final SmallLRUCache<CacheKey, CacheValue> CACHE = SmallLRUCache.newInstance(100);
 
     private final int function;
 
@@ -288,12 +280,10 @@ public final class DateTimeFormatFunction extends FunctionN {
                 synchronized (CACHE) {
                     value = CACHE.get(key);
                     if (value == null) {
-                        DateTimeFormatter df;
-                        if (locale == null) {
-                            df = DateTimeFormatter.ofPattern(format);
-                        } else {
-                            df = DateTimeFormatter.ofPattern(format, new Locale(locale));
-                        }
+                        DateTimeFormatter df = new DateTimeFormatterBuilder().parseCaseInsensitive()
+                                .appendPattern(format)
+                                .toFormatter(locale == null ? Locale.getDefault(Locale.Category.FORMAT)
+                                        : new Locale(locale));
                         ZoneId zoneId;
                         if (timeZone != null) {
                             zoneId = getZoneId(timeZone);

@@ -447,30 +447,45 @@ public final class JdbcXAConnection extends TraceObject implements XAConnection,
         }
 
         @Override
-        public synchronized void close() throws SQLException {
-            if (!isClosed) {
-                try {
-                    rollback();
-                    setAutoCommit(true);
-                } catch (SQLException e) {
-                    // ignore
+        public void close() throws SQLException {
+            lock();
+            try {
+                if (!isClosed) {
+                    try {
+                        rollback();
+                        setAutoCommit(true);
+                    } catch (SQLException e) {
+                        // ignore
+                    }
+                    closedHandle();
+                    isClosed = true;
                 }
-                closedHandle();
-                isClosed = true;
+            } finally {
+                unlock();
             }
         }
 
         @Override
-        public synchronized boolean isClosed() throws SQLException {
-            return isClosed || super.isClosed();
+        public boolean isClosed() throws SQLException {
+            lock();
+            try {
+                return isClosed || super.isClosed();
+            } finally {
+                unlock();
+            }
         }
 
         @Override
-        protected synchronized void checkClosed() {
-            if (isClosed) {
-                throw DbException.get(ErrorCode.OBJECT_CLOSED);
+        protected void checkClosed() {
+            lock();
+            try {
+                if (isClosed) {
+                    throw DbException.get(ErrorCode.OBJECT_CLOSED);
+                }
+                super.checkClosed();
+            } finally {
+                unlock();
             }
-            super.checkClosed();
         }
 
     }

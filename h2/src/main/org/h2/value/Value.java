@@ -445,7 +445,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
      */
     public int getMemory() {
         /*
-         * Java 11 with -XX:-UseCompressedOops for all values up to ValueLong
+         * Java 11 with -XX:-UseCompressedOops for all values up to ValueBigint
          * and ValueDouble.
          */
         return 24;
@@ -500,6 +500,18 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         }
         if (t2 == NULL) {
             return t1;
+        }
+        return getHigherOrderKnown(t1, t2);
+    }
+
+    private static int getHigherOrderNonNull(int t1, int t2) {
+        if (t1 == t2) {
+            return t1;
+        }
+        if (t1 < t2) {
+            int t = t1;
+            t1 = t2;
+            t2 = t;
         }
         return getHigherOrderKnown(t1, t2);
     }
@@ -1033,6 +1045,15 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
      */
     public final Value convertTo(TypeInfo targetType, CastDataProvider provider, Object column) {
         return convertTo(targetType, provider, CONVERT_TO, column);
+    }
+
+    /**
+     * Convert this value to JSON data type.
+     *
+     * @return a JSON value
+     */
+    public final ValueJson convertToAnyJson() {
+        return this != ValueNull.INSTANCE ? convertToJson(TypeInfo.TYPE_JSON, CONVERT_TO, null) : ValueJson.NULL;
     }
 
     /**
@@ -1885,7 +1906,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         case VARCHAR:
         case VARCHAR_IGNORECASE:
         case CHAR:
-            v = ValueTime.parse(getString().trim());
+            v = ValueTime.parse(getString().trim(), provider);
             break;
         default:
             throw getDataConversionError(TIME);
@@ -1929,7 +1950,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         case VARCHAR:
         case VARCHAR_IGNORECASE:
         case CHAR:
-            v = ValueTimeTimeZone.parse(getString().trim());
+            v = ValueTimeTimeZone.parse(getString().trim(), provider);
             break;
         default:
             throw getDataConversionError(TIME_TZ);
@@ -2004,7 +2025,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         ValueTimeTimeZone ts = (ValueTimeTimeZone) this;
         int localOffset = provider.currentTimestamp().getTimeZoneOffsetSeconds();
         return DateTimeUtils.normalizeNanosOfDay(ts.getNanos() +
-                (ts.getTimeZoneOffsetSeconds() - localOffset) * DateTimeUtils.NANOS_PER_DAY);
+                (localOffset - ts.getTimeZoneOffsetSeconds()) * DateTimeUtils.NANOS_PER_SECOND);
     }
 
     private ValueTimestampTimeZone convertToTimestampTimeZone(TypeInfo targetType, CastDataProvider provider,
@@ -2604,19 +2625,21 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         } else if (v == ValueNull.INSTANCE) {
             return 1;
         }
-        return compareToNotNullable(v, provider, compareMode);
+        return compareToNotNullable(this, v, provider, compareMode);
     }
 
-    private int compareToNotNullable(Value v, CastDataProvider provider, CompareMode compareMode) {
-        Value l = this;
+    private static int compareToNotNullable(Value l, Value r, CastDataProvider provider, CompareMode compareMode) {
         int leftType = l.getValueType();
-        int rightType = v.getValueType();
+        int rightType = r.getValueType();
         if (leftType != rightType || leftType == ENUM) {
-            int dataType = getHigherOrder(leftType, rightType);
+            int dataType = getHigherOrderNonNull(leftType, rightType);
+            if (DataType.isNumericType(dataType)) {
+                return compareNumeric(l, r, leftType, rightType, dataType);
+            }
             if (dataType == ENUM) {
-                ExtTypeInfoEnum enumerators = ExtTypeInfoEnum.getEnumeratorsForBinaryOperation(l, v);
-                l = l.convertToEnum(enumerators, provider);
-                v = v.convertToEnum(enumerators, provider);
+                ExtTypeInfoEnum enumerators = ExtTypeInfoEnum.getEnumeratorsForBinaryOperation(l, r);
+                return Integer.compare(l.convertToEnum(enumerators, provider).getInt(),
+                        r.convertToEnum(enumerators, provider).getInt());
             } else {
                 if (dataType <= BLOB) {
                     if (dataType <= CLOB) {
@@ -2628,10 +2651,31 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
                     }
                 }
                 l = l.convertTo(dataType, provider);
-                v = v.convertTo(dataType, provider);
+                r = r.convertTo(dataType, provider);
             }
         }
-        return l.compareTypeSafe(v, compareMode, provider);
+        return l.compareTypeSafe(r, compareMode, provider);
+    }
+
+    private static int compareNumeric(Value l, Value r, int leftType, int rightType, int dataType) {
+        if (DataType.isNumericType(leftType) && DataType.isNumericType(rightType)) {
+            switch (dataType) {
+            case TINYINT:
+            case SMALLINT:
+            case INTEGER:
+                return Integer.compare(l.getInt(), r.getInt());
+            case BIGINT:
+                return Long.compare(l.getLong(), r.getLong());
+            case NUMERIC:
+                return l.getBigDecimal().compareTo(r.getBigDecimal());
+            case REAL:
+                return Float.compare(l.getFloat(), r.getFloat());
+            case DOUBLE:
+                return Double.compare(l.getDouble(), r.getDouble());
+            }
+        }
+        return l.convertToDecfloat(null, CONVERT_TO).compareTypeSafe( //
+                r.convertToDecfloat(null, CONVERT_TO), null, null);
     }
 
     /**
@@ -2651,7 +2695,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         if (this == ValueNull.INSTANCE || v == ValueNull.INSTANCE) {
             return Integer.MIN_VALUE;
         }
-        return compareToNotNullable(v, provider, compareMode);
+        return compareToNotNullable(this, v, provider, compareMode);
     }
 
     /**
@@ -2661,6 +2705,25 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
      */
     public boolean containsNull() {
         return false;
+    }
+
+    /**
+     * Scans this and specified values until a first NULL occurrence and returns
+     * a value where NULL appears earlier, or {@code null} if these two values
+     * have first NULL on the same position.
+     *
+     * @param v
+     *            a value of the same data type as this value, must be neither
+     *            equal to nor smaller than nor greater than this value
+     * @return this value, the specified value, or {@code null}
+     */
+    public Value getValueWithFirstNull(Value v) {
+        return this == ValueNull.INSTANCE ? v == ValueNull.INSTANCE ? null : ValueNull.INSTANCE
+                : v == ValueNull.INSTANCE ? ValueNull.INSTANCE : getValueWithFirstNullImpl(v);
+    }
+
+    Value getValueWithFirstNullImpl(Value v) {
+        return this;
     }
 
     private static byte convertToByte(long x, Object column) {

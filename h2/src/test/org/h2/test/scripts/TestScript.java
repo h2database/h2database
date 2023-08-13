@@ -162,7 +162,8 @@ public class TestScript extends TestDb {
                 "merge", "mergeUsing", "replace", "script", "show", "update", "with" }) {
             testScript("dml/" + s + ".sql");
         }
-        for (String s : new String[] { "any", "array_agg", "avg", "bit_and_agg", "bit_or_agg", "bit_xor_agg",
+        for (String s : new String[] { "any_value", "any", "array_agg", "avg",
+                "bit_and_agg", "bit_or_agg", "bit_xor_agg",
                 "corr",
                 "count",
                 "covar_pop", "covar_samp",
@@ -187,7 +188,7 @@ public class TestScript extends TestDb {
             testScript("functions/numeric/" + s + ".sql");
         }
         for (String s : new String[] { "array-to-string",
-                "ascii", "bit-length", "char", "concat",
+                "ascii", "bit-length", "btrim", "char", "concat",
                 "concat-ws", "difference", "hextoraw", "insert",
                 "left", "length", "locate", "lower", "lpad", "ltrim",
                 "octet-length", "quote_ident", "rawtohex", "regexp-like",
@@ -227,7 +228,8 @@ public class TestScript extends TestDb {
         for (String s : new String[] { "comments", "identifiers" }) {
             testScript("parser/" + s + ".sql");
         }
-        for (String s : new String[] { "between", "distinct", "in", "like", "null", "type", "unique" }) {
+        for (String s : new String[] { "between", "distinct", "in", "like", "null", "quantified-comparison-with-array",
+                "type", "unique" }) {
             testScript("predicates/" + s + ".sql");
         }
         for (String s : new String[] { "derived-column-names", "distinct", "joins", "query-optimisations", "select",

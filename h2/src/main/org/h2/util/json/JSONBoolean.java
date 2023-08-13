@@ -8,7 +8,7 @@ package org.h2.util.json;
 /**
  * JSON boolean.
  */
-public class JSONBoolean extends JSONValue {
+public final class JSONBoolean extends JSONValue {
 
     /**
      * {@code false} value.

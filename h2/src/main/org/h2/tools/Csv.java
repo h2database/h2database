@@ -54,6 +54,7 @@ public class Csv implements SimpleRowSource {
     private char lineComment;
     private String lineSeparator = System.lineSeparator();
     private String nullString = "";
+    private boolean quotedNulls = false;
 
     private String fileName;
     private BufferedReader input;
@@ -270,8 +271,14 @@ public class Csv implements SimpleRowSource {
                 } else {
                     output.write(s);
                 }
-            } else if (nullString != null && nullString.length() > 0) {
-                output.write(nullString);
+            } else if (nullString != null) {
+                if (quotedNulls && fieldDelimiter != 0) {
+                    output.write(fieldDelimiter);
+                    output.write(nullString);
+                    output.write(fieldDelimiter);
+                } else {
+                    output.write(nullString);
+                }
             }
         }
         output.write(lineSeparator);
@@ -537,6 +544,7 @@ public class Csv implements SimpleRowSource {
         if (input == null) {
             return null;
         }
+
         String[] row = new String[columnNames.length];
         try {
             int i = 0;
@@ -555,7 +563,16 @@ public class Csv implements SimpleRowSource {
                     }
                 }
                 if (i < row.length) {
-                    row[i++] = v;
+                    // Empty Strings should be NULL
+                    // in order to prevent conversion of zero-length String
+                    // to Number
+                    if (quotedNulls) {
+                        row[i++] = v != null && !v.equals(nullString)
+                                ? v
+                                : null;
+                    } else {
+                        row[i++] = v;
+                    }
                 }
                 if (endOfLine) {
                     break;
@@ -744,6 +761,25 @@ public class Csv implements SimpleRowSource {
     }
 
     /**
+     * Defines if the {@link #setNullString(java.lang.String) null values} must
+     * be quoted.
+     *
+     * @param quotedNulls True if the null values must be quoted.
+     */
+    public void setQuotedNulls(boolean quotedNulls) {
+        this.quotedNulls = quotedNulls;
+    }
+
+    /**
+     * Returns true if the {@link #getNullString() null values} are quoted.
+     *
+     * @return True if the null values are quoted.
+     */
+    public boolean isQuotedNulls() {
+        return quotedNulls;
+    }
+
+    /**
      * Set the value that represents NULL. It is only used for non-delimited
      * values.
      *
@@ -813,7 +849,7 @@ public class Csv implements SimpleRowSource {
                 continue;
             }
             int index = pair.indexOf('=');
-            String key = StringUtils.trim(pair.substring(0, index), true, true, " ");
+            String key = StringUtils.trimSubstring(pair, 0, index);
             String value = pair.substring(index + 1);
             char ch = value.isEmpty() ? 0 : value.charAt(0);
             if (isParam(key, "escape", "esc", "escapeCharacter")) {
@@ -829,6 +865,8 @@ public class Csv implements SimpleRowSource {
                 setLineSeparator(value);
             } else if (isParam(key, "null", "nullString")) {
                 setNullString(value);
+            } else if (isParam(key, "quotedNulls")) {
+                setQuotedNulls(Utils.parseBoolean(value, false, false));
             } else if (isParam(key, "charset", "characterSet")) {
                 charset = value;
             } else if (isParam(key, "preserveWhitespace")) {

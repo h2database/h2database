@@ -120,7 +120,16 @@ class CommandList extends Command {
     }
 
     @Override
-    protected boolean isCurrentCommandADefineCommand() {
-        return command.isCurrentCommandADefineCommand();
+    protected boolean isRetryable() {
+        if (!command.isRetryable()) {
+            return false;
+        }
+        for (Prepared prepared : commands) {
+            if (!prepared.isRetryable()) {
+                return false;
+            }
+        }
+        return remainingCommand == null || remainingCommand.isRetryable();
     }
+
 }

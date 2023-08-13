@@ -8,6 +8,7 @@ package org.h2.constraint;
 import java.util.ArrayList;
 import java.util.HashSet;
 import org.h2.engine.SessionLocal;
+import org.h2.engine.NullsDistinct;
 import org.h2.index.Index;
 import org.h2.result.Row;
 import org.h2.schema.Schema;
@@ -25,11 +26,13 @@ public class ConstraintUnique extends Constraint {
     private boolean indexOwner;
     private IndexColumn[] columns;
     private final boolean primaryKey;
+    private NullsDistinct nullsDistinct;
 
-    public ConstraintUnique(Schema schema, int id, String name, Table table,
-            boolean primaryKey) {
+    public ConstraintUnique(Schema schema, int id, String name, Table table, boolean primaryKey,
+            NullsDistinct nullsDistinct) {
         super(schema, id, name, table);
         this.primaryKey = primaryKey;
+        this.nullsDistinct = nullsDistinct;
     }
 
     @Override
@@ -157,6 +160,13 @@ public class ConstraintUnique extends Constraint {
     @Override
     public void rebuild() {
         // nothing to do
+    }
+
+    /**
+     * @return are nulls distinct
+     */
+    public NullsDistinct getNullsDistinct() {
+        return nullsDistinct;
     }
 
 }

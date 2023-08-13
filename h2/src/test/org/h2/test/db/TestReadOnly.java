@@ -72,10 +72,11 @@ public class TestReadOnly extends TestDb {
                 "jdbc:h2:zip:"+dir+"/readonly.zip!/readonlyInZip", getUser(), getPassword());
         conn.createStatement().execute("select * from test where id=1");
         conn.close();
-        Server server = Server.createTcpServer("-baseDir", dir);
-        server.start();
-        int port = server.getPort();
+        Server server = null;
         try {
+            server = Server.createTcpServer("-baseDir", dir);
+            server.start();
+            int port = server.getPort();
             conn = getConnection(
                     "jdbc:h2:tcp://localhost:" + port + "/zip:readonly.zip!/readonlyInZip",
                         getUser(), getPassword());
@@ -88,7 +89,7 @@ public class TestReadOnly extends TestDb {
             conn.createStatement().execute("select * from test where id=1");
             conn.close();
         } finally {
-            server.stop();
+            if (server != null) server.stop();
         }
         deleteDb("readonlyInZip");
     }

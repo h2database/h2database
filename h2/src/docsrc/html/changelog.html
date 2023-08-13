@@ -21,6 +21,66 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul>
+<li>RP #3865: Add possibility to enable virtual worker threads in TCP, Web, and PG servers on Java 21+
+</li>
+<li>PR #3864: Improve performance of TCP client driver when it is used from virtual threads
+</li>
+<li>Issue #2665: Parser shouldn't suggest compatibility syntax elements on parsing error
+</li>
+<li>Issue #3089: GREATEST and LEAST aren't fully compliant with the SQL Standard
+</li>
+<li>PR #3861: Improve SET EXCLUSIVE 2 and use stable time source for timeout exceptions
+</li>
+<li>PR #3859: Fix conversion of PK columns to identity columns
+</li>
+<li>Issue #3855: StackOverflowError when using TRACE_LEVEL_SYSTEM_OUT=4
+</li>
+<li>PR #3854: Fix issues with newer JVMs
+</li>
+<li>PR #3851: Remove lift configuration
+</li>
+<li>PR #3847: Fix the NullPointerException caused by accessing 'user' after the session has been closed
+</li>
+<li>PR #3846: Make DB_CLOSE_ON_EXIT safer
+</li>
+<li>PR #3842: Adds support of quotedNulls in CSV handling
+</li>
+</ul>
+
+<h2>Version 2.2.220 (2023-07-04)</h2>
+<ul>
+<li>PR #3834: Increase database format version
+</li>
+<li>PR #3833: Disallow plain webAdminPassword values to force usage of hashes
+</li>
+<li>PR #3831: Add Oracle-style NOWAIT, WAIT n, and SKIP LOCKED to FOR UPDATE clause
+</li>
+<li>PR #3830: Fix time zone of time/timestamp with time zone AT LOCAL
+</li>
+<li>PR #3822 / Issue #2671: Add quantified comparison predicates with array
+</li>
+<li>PR #3820: Add partial implementation of JSON simplified accessor
+</li>
+<li>PR #3818: Add support of underscores in numeric literals
+</li>
+<li>PR #3817: Add ANY_VALUE() aggregate function
+</li>
+<li>PR #3814: Fix regression in comparisons with infinities and NaNs
+</li>
+<li>Issue #3040: System objectIds are recycled twice when CTE queries are executed.
+</li>
+<li>PR #3812: UNIQUE null treatment
+</li>
+<li>PR #3811: BTRIM function, octal and binary literals and other changes
+</li>
+<li>Issue #352: In comparison text values are converted to INT even when they should be converted to BIGINT
+</li>
+<li>PR #3797: MSSQL mode: Discard table hints on plain UPDATE statements
+</li>
+<li>PR #3791: Formatted cast of datetimes to/from character strings
+</li>
+<li>Issue #3785: CSVRead: Fails to translate empty Numbers, when cells are quoted
+</li>
 <li>Issue #3762: Comparison predicates with row values don't create index conditions
 </li>
 <li>PR #3761: LAST_DAY function and other changes

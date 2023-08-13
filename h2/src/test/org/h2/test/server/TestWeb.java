@@ -42,6 +42,9 @@ import javax.servlet.http.Part;
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.SysProperties;
+import org.h2.jdbc.JdbcSQLFeatureNotSupportedException;
+import org.h2.jdbc.JdbcSQLNonTransientException;
+import org.h2.server.web.WebServer;
 import org.h2.server.web.WebServlet;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
@@ -130,19 +133,24 @@ public class TestWeb extends TestDb {
         Server server = Server.createWebServer(
                 "-webPort", "8182", "-properties", "null");
         server.start();
-        assertContains(server.getStatus(), "server running");
-        Server server2 = Server.createWebServer(
-                "-webPort", "8182", "-properties", "null");
-        assertEquals("Not started", server2.getStatus());
         try {
-            server2.start();
-            fail();
-        } catch (Exception e) {
-            assertContains(e.toString(), "port may be in use");
-            assertContains(server2.getStatus(),
-                    "could not be started");
+            assertContains(server.getStatus(), "server running");
+            Server server2 = Server.createWebServer(
+                    "-webPort", "8182", "-properties", "null");
+            assertEquals("Not started", server2.getStatus());
+            try {
+                server2.start();
+                fail();
+            } catch (Exception e) {
+                assertContains(e.toString(), "port may be in use");
+                assertContains(server2.getStatus(),
+                        "could not be started");
+            } finally {
+                server2.stop();
+            }
+        } finally {
+            server.stop();
         }
-        server.stop();
     }
 
     private void testTools() throws Exception {
@@ -154,10 +162,25 @@ public class TestWeb extends TestDb {
         conn.createStatement().execute(
                 "create table test(id int) as select 1");
         conn.close();
+        String hash = WebServer.encodeAdminPassword("1234567890AB");
+        try {
+            Server.main("-web", "-webPort", "8182",
+                    "-properties", "null", "-tcp", "-tcpPort", "9101", "-webAdminPassword", hash);
+            fail("Expected exception");
+        } catch (JdbcSQLFeatureNotSupportedException e) {
+            // Expected
+        }
         Server server = new Server();
         server.setOut(new PrintStream(new ByteArrayOutputStream()));
+        try {
+            server.runTool("-web", "-webPort", "8182",
+                    "-properties", "null", "-tcp", "-tcpPort", "9101", "-webAdminPassword", "123");
+            fail("Expected exception");
+        } catch (JdbcSQLNonTransientException e) {
+            // Expected
+        }
         server.runTool("-web", "-webPort", "8182",
-                "-properties", "null", "-tcp", "-tcpPort", "9101", "-webAdminPassword", "123");
+                "-properties", "null", "-tcp", "-tcpPort", "9101", "-webAdminPassword", hash);
         try {
             String url = "http://localhost:8182";
             WebClient client;
@@ -165,7 +188,7 @@ public class TestWeb extends TestDb {
             client = new WebClient();
             result = client.get(url);
             client.readSessionId(result);
-            result = client.get(url, "adminLogin.do?password=123");
+            result = client.get(url, "adminLogin.do?password=1234567890AB");
             result = client.get(url, "tools.jsp");
             FileUtils.delete(getBaseDir() + "/backup.zip");
             result = client.get(url, "tools.do?tool=Backup&args=-dir," +

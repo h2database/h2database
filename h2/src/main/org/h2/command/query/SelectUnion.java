@@ -66,7 +66,7 @@ public class SelectUnion extends Query {
      */
     final Query right;
 
-    private boolean isForUpdate;
+    private ForUpdate forUpdate;
 
     public SelectUnion(SessionLocal session, UnionType unionType, Query query, Query right) {
         super(session);
@@ -132,7 +132,7 @@ public class SelectUnion extends Query {
         }
         int columnCount = left.getColumnCount();
         if (session.isLazyQueryExecution() && unionType == UnionType.UNION_ALL && !distinct &&
-                sort == null && !randomAccessResult && !isForUpdate &&
+                sort == null && !randomAccessResult && forUpdate == null &&
                 offset == 0 && !fetchPercent && !withTies && isReadOnly()) {
             // limit 0 means no rows
             if (fetch != 0) {
@@ -291,10 +291,15 @@ public class SelectUnion extends Query {
     }
 
     @Override
-    public void setForUpdate(boolean forUpdate) {
+    public ForUpdate getForUpdate() {
+        return forUpdate;
+    }
+
+    @Override
+    public void setForUpdate(ForUpdate forUpdate) {
         left.setForUpdate(forUpdate);
         right.setForUpdate(forUpdate);
-        isForUpdate = forUpdate;
+        this.forUpdate = forUpdate;
     }
 
     @Override
@@ -332,30 +337,29 @@ public class SelectUnion extends Query {
 
     @Override
     public String getPlanSQL(int sqlFlags) {
-        StringBuilder buff = new StringBuilder();
-        buff.append('(').append(left.getPlanSQL(sqlFlags)).append(')');
+        StringBuilder builder = new StringBuilder().append('(').append(left.getPlanSQL(sqlFlags)).append(')');
         switch (unionType) {
         case UNION_ALL:
-            buff.append("\nUNION ALL\n");
+            builder.append("\nUNION ALL\n");
             break;
         case UNION:
-            buff.append("\nUNION\n");
+            builder.append("\nUNION\n");
             break;
         case INTERSECT:
-            buff.append("\nINTERSECT\n");
+            builder.append("\nINTERSECT\n");
             break;
         case EXCEPT:
-            buff.append("\nEXCEPT\n");
+            builder.append("\nEXCEPT\n");
             break;
         default:
             throw DbException.getInternalError("type=" + unionType);
         }
-        buff.append('(').append(right.getPlanSQL(sqlFlags)).append(')');
-        appendEndOfQueryToSQL(buff, sqlFlags, expressions.toArray(new Expression[0]));
-        if (isForUpdate) {
-            buff.append("\nFOR UPDATE");
+        builder.append('(').append(right.getPlanSQL(sqlFlags)).append(')');
+        appendEndOfQueryToSQL(builder, sqlFlags, expressions.toArray(new Expression[0]));
+        if (forUpdate != null) {
+            forUpdate.getSQL(builder, sqlFlags);
         }
-        return buff.toString();
+        return builder.toString();
     }
 
     @Override

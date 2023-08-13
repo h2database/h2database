@@ -11,8 +11,10 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
+import java.util.function.IntPredicate;
 
 import org.h2.api.ErrorCode;
 import org.h2.engine.SysProperties;
@@ -110,7 +112,7 @@ public class StringUtils {
     /**
      * Convert a string to a SQL literal. Null is converted to NULL. The text is
      * enclosed in single quotes. If there are any special characters, the
-     * method STRINGDECODE is used.
+     * Unicode character string literal is used.
      *
      * @param s the text to convert.
      * @return the SQL literal
@@ -857,19 +859,22 @@ public class StringUtils {
         } else if (n == string.length()) {
             return string;
         }
-        char paddingChar;
+        int paddingChar;
         if (padding == null || padding.isEmpty()) {
             paddingChar = ' ';
         } else {
-            paddingChar = padding.charAt(0);
+            paddingChar = padding.codePointAt(0);
         }
         StringBuilder buff = new StringBuilder(n);
         n -= string.length();
+        if (Character.isSupplementaryCodePoint(paddingChar)) {
+            n >>= 1;
+        }
         if (right) {
             buff.append(string);
         }
         for (int i = 0; i < n; i++) {
-            buff.append(paddingChar);
+            buff.appendCodePoint(paddingChar);
         }
         if (!right) {
             buff.append(string);
@@ -901,21 +906,73 @@ public class StringUtils {
      * @param s the string
      * @param leading if leading characters should be removed
      * @param trailing if trailing characters should be removed
-     * @param sp what to remove (only the first character is used)
-     *      or null for a space
+     * @param characters what to remove or {@code null} for a space
      * @return the trimmed string
      */
-    public static String trim(String s, boolean leading, boolean trailing,
-            String sp) {
-        char space = sp == null || sp.isEmpty() ? ' ' : sp.charAt(0);
+    public static String trim(String s, boolean leading, boolean trailing, String characters) {
+        if (characters == null || characters.isEmpty()) {
+            return trim(s, leading, trailing, ' ');
+        }
+        int length = characters.length();
+        if (length == 1) {
+            return trim(s, leading, trailing, characters.charAt(0));
+        }
+        IntPredicate test;
+        int count = characters.codePointCount(0, length);
+        check: if (count <= 2) {
+            int cp = characters.codePointAt(0);
+            if (count > 1) {
+                int cp2 = characters.codePointAt(Character.charCount(cp));
+                if (cp != cp2) {
+                    test = value -> value == cp || value == cp2;
+                    break check;
+                }
+            }
+            test = value -> value == cp;
+        } else {
+            HashSet<Integer> set = new HashSet<>();
+            characters.codePoints().forEach(set::add);
+            test = set::contains;
+        }
+        return trim(s, leading, trailing, test);
+    }
+
+    private static String trim(String s, boolean leading, boolean trailing, IntPredicate test) {
         int begin = 0, end = s.length();
         if (leading) {
-            while (begin < end && s.charAt(begin) == space) {
+            int cp;
+            while (begin < end && test.test(cp = s.codePointAt(begin))) {
+                begin += Character.charCount(cp);
+            }
+        }
+        if (trailing) {
+            int cp;
+            while (end > begin && test.test(cp = s.codePointBefore(end))) {
+                end -= Character.charCount(cp);
+            }
+        }
+        // substring() returns self if start == 0 && end == length()
+        return s.substring(begin, end);
+    }
+
+    /**
+     * Trim a character from a string.
+     *
+     * @param s the string
+     * @param leading if leading characters should be removed
+     * @param trailing if trailing characters should be removed
+     * @param character what to remove
+     * @return the trimmed string
+     */
+    public static String trim(String s, boolean leading, boolean trailing, char character) {
+        int begin = 0, end = s.length();
+        if (leading) {
+            while (begin < end && s.charAt(begin) == character) {
                 begin++;
             }
         }
         if (trailing) {
-            while (end > begin && s.charAt(end - 1) == space) {
+            while (end > begin && s.charAt(end - 1) == character) {
                 end--;
             }
         }
@@ -1282,13 +1339,35 @@ public class StringUtils {
      * @param positiveValue the number to append
      * @return the specified string builder
      */
-    public static StringBuilder appendZeroPadded(StringBuilder builder, int length, long positiveValue) {
-        String s = Long.toString(positiveValue);
+    public static StringBuilder appendZeroPadded(StringBuilder builder, int length, int positiveValue) {
+        String s = Integer.toString(positiveValue);
         length -= s.length();
         for (; length > 0; length--) {
             builder.append('0');
         }
         return builder.append(s);
+    }
+
+    /**
+     * Appends the specified string or its part to the specified builder with
+     * maximum builder length limit.
+     *
+     * @param builder the string builder
+     * @param s the string to append
+     * @param length the length limit
+     * @return the specified string builder
+     */
+    public static StringBuilder appendToLength(StringBuilder builder, String s, int length) {
+        int builderLength = builder.length();
+        if (builderLength < length) {
+            int need = length - builderLength;
+            if (need >= s.length()) {
+                builder.append(s);
+            } else {
+                builder.append(s, 0, need);
+            }
+        }
+        return builder;
     }
 
     /**

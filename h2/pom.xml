@@ -4,7 +4,7 @@
 
   <groupId>com.h2database</groupId>
   <artifactId>h2</artifactId>
-  <version>2.2.219-SNAPSHOT</version>
+  <version>2.2.229-SNAPSHOT</version>
   <packaging>jar</packaging>
   <name>H2 Database Engine</name>
   <url>https://h2database.com</url>
@@ -232,6 +232,10 @@
       <resource>
         <directory>src/java10/precompiled</directory>
         <targetPath>META-INF/versions/10</targetPath>
+      </resource>
+      <resource>
+        <directory>src/java21/precompiled</directory>
+        <targetPath>META-INF/versions/21</targetPath>
       </resource>
     </resources>
     <testResources>

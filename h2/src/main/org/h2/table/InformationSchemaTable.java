@@ -2866,7 +2866,7 @@ public final class InformationSchemaTable extends MetaTable {
                 // SESSION_START
                 s.getSessionStart(),
                 // ISOLATION_LEVEL
-                session.getIsolationLevel().getSQL(),
+                s.getIsolationLevel().getSQL(),
                 // EXECUTING_STATEMENT
                 command == null ? null : command.toString(),
                 // EXECUTING_STATEMENT_START

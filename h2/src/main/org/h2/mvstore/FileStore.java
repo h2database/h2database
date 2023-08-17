@@ -2058,7 +2058,7 @@ public abstract class FileStore<C extends Chunk<C>>
             // legacy chunk without table of content
             return null;
         }
-        long[] toc = chunksToC.get(chunk.id);
+        long[] toc = chunksToC.get(chunk.version);
         if (toc == null) {
             toc = chunk.readToC(this);
             cacheToC(chunk, toc);

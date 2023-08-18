@@ -1761,6 +1761,10 @@ public final class Database implements DataHandler, CastDataProvider {
         return readOnly;
     }
 
+    public int getWriteDelay() {
+        return store.getMvStore().getAutoCommitDelay();
+    }
+
     public void setWriteDelay(int value) {
         store.getMvStore().setAutoCommitDelay(value < 0 ? 0 : value);
     }

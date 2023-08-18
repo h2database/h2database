@@ -1692,11 +1692,11 @@ public abstract class FileStore<C extends Chunk<C>>
     }
 
     void cacheToC(C chunk, long[] toc) {
-        chunksToC.put(chunk.version, toc, toc.length * 8L + Constants.MEMORY_ARRAY);
+        chunksToC.put(chunk.id, toc, toc.length * 8L + Constants.MEMORY_ARRAY);
     }
 
     private long[] cleanToCCache(C chunk) {
-        return chunksToC.remove(chunk.version);
+        return chunksToC.remove(chunk.id);
     }
 
     public void populateInfo(BiConsumer<String, String> consumer) {

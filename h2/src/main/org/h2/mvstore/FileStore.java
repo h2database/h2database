@@ -14,7 +14,6 @@ import org.h2.util.Utils;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
@@ -33,6 +32,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -194,7 +194,7 @@ public abstract class FileStore<C extends Chunk<C>>
      */
     private MVMap<String, String> layout;
 
-    private final Deque<C> deadChunks = new ArrayDeque<>();
+    private final Deque<C> deadChunks = new ConcurrentLinkedDeque<>();
 
     /**
      * Reference to a background thread, which is expected to be running, if any.

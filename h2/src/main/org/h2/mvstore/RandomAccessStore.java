@@ -707,28 +707,29 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
         if (isFragmented() && fillRate < getAutoCompactFillRate()) {
 
             mvStore.tryExecuteUnderStoreLock(() -> {
-                int moveSize = autoCommitMemory;
+                int moveSize = 2 * autoCommitMemory;
                 if (isIdle()) {
                     moveSize *= 4;
                 }
                 compactMoveChunks(101, moveSize, mvStore);
                 return true;
             });
-        } else if (fillRate >= getAutoCompactFillRate() && hasPersistentData()) {
-            int chunksFillRate = getRewritableChunksFillRate();
-            int _chunksFillRate = isIdle() ? 100 - (100 - chunksFillRate) / 2 : chunksFillRate;
-            if (_chunksFillRate < getTargetFillRate()) {
-                mvStore.tryExecuteUnderStoreLock(() -> {
-                    int writeLimit = autoCommitMemory * fillRate / Math.max(_chunksFillRate, 1);
-                    if (!isIdle()) {
-                        writeLimit /= 4;
-                    }
-                    if (rewriteChunks(writeLimit, _chunksFillRate)) {
-                        dropUnusedChunks();
-                    }
-                    return true;
-                });
-            }
+        }
+
+        int chunksFillRate = getRewritableChunksFillRate();
+        int adjustedChunksFillRate = 100 - (100 - chunksFillRate) / 2;
+        int fillRateToCompare = isIdle() ? chunksFillRate : adjustedChunksFillRate;
+        if (fillRateToCompare < getTargetFillRate()) {
+            mvStore.tryExecuteUnderStoreLock(() -> {
+                int writeLimit = autoCommitMemory;
+                if (!isIdle()) {
+                    writeLimit /= 4;
+                }
+                if (rewriteChunks(writeLimit, isIdle() ? adjustedChunksFillRate : chunksFillRate)) {
+                    dropUnusedChunks();
+                }
+                return true;
+            });
         }
     }
 

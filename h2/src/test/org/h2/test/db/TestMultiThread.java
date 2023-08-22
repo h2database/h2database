@@ -451,7 +451,7 @@ public class TestMultiThread extends TestDb implements Runnable {
 
     private void testCheckConstraint() throws Exception {
         deleteDb("checkConstraint");
-        try (Connection c = getConnection("checkConstraint")) {
+        try (Connection c = getConnection("checkConstraint;LOCK_TIMEOUT=10000")) {
             Statement s = c.createStatement();
             s.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, A INT, B INT)");
             PreparedStatement ps = c.prepareStatement("INSERT INTO TEST VALUES (?, ?, ?)");
@@ -470,7 +470,7 @@ public class TestMultiThread extends TestDb implements Runnable {
                 threads[i] = new Thread() {
                     @Override
                     public void run() {
-                        try (Connection c = getConnection("checkConstraint")) {
+                        try (Connection c = getConnection("checkConstraint;LOCK_TIMEOUT=10000")) {
                             PreparedStatement ps = c.prepareStatement("UPDATE TEST SET A = ?, B = ? WHERE ID = ?");
                             Random r = new Random();
                             for (int i = 0; i < 1_000; i++) {

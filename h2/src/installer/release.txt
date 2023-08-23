@@ -40,6 +40,9 @@ Update org.h2.engine.Constants.java:
 Update README.md.
     set version to the new version
 
+Update pom.xml.
+    set version to the new version
+
 Update changelog.html:
     * create a new "Next Version (unreleased)" with an empty list
     * add a new version

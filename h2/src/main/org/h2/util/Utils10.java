@@ -5,10 +5,8 @@
  */
 package org.h2.util;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.Socket;
-import java.nio.charset.Charset;
 
 import jdk.net.ExtendedSocketOptions;
 
@@ -18,20 +16,6 @@ import jdk.net.ExtendedSocketOptions;
  * This class contains implementations for Java 10 and later versions.
  */
 public final class Utils10 {
-
-    /**
-     * Converts the buffer's contents into a string by decoding the bytes using
-     * the specified {@link java.nio.charset.Charset charset}.
-     *
-     * @param baos
-     *            the buffer to decode
-     * @param charset
-     *            the charset to use
-     * @return the decoded string
-     */
-    public static String byteArrayOutputStreamToString(ByteArrayOutputStream baos, Charset charset) {
-        return baos.toString(charset);
-    }
 
     /**
      * Returns the value of TCP_QUICKACK option.

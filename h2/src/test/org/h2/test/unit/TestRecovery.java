@@ -16,7 +16,6 @@ import org.h2.test.TestBase;
 import org.h2.test.TestDb;
 import org.h2.tools.DeleteDbFiles;
 import org.h2.tools.Recover;
-import org.h2.util.Utils10;
 
 /**
  * Tests database recovery.
@@ -147,7 +146,7 @@ public class TestRecovery extends TestDb {
         ByteArrayOutputStream buff = new ByteArrayOutputStream();
         rec.setOut(new PrintStream(buff, false, "UTF-8"));
         rec.runTool("-dir", getBaseDir(), "-db", "recovery", "-trace");
-        String out = Utils10.byteArrayOutputStreamToString(buff, StandardCharsets.UTF_8);
+        String out = buff.toString(StandardCharsets.UTF_8);
         assertContains(out, "Created file");
 
         Connection conn2 = getConnection("recovery2");
@@ -190,7 +189,7 @@ public class TestRecovery extends TestDb {
         final ByteArrayOutputStream buff = new ByteArrayOutputStream(); // capture the console output
         recover.setOut(new PrintStream(buff, false, "UTF-8"));
         recover.runTool("-dir", getBaseDir(), "-db", "recovery", "-trace");
-        String consoleOut = Utils10.byteArrayOutputStreamToString(buff, StandardCharsets.UTF_8);
+        String consoleOut = buff.toString(StandardCharsets.UTF_8);
         assertContains(consoleOut, "Created file");
 
         Connection conn2 = getConnection("recovery2");

@@ -5,13 +5,14 @@
  */
 package org.h2.value;
 
+import static org.h2.util.Bits.LONG_VH_BE;
+
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
 import org.h2.api.ErrorCode;
 import org.h2.engine.CastDataProvider;
 import org.h2.message.DbException;
-import org.h2.util.Bits;
 
 /**
  * Implementation of the BIGINT data type.
@@ -172,7 +173,7 @@ public final class ValueBigint extends Value {
     @Override
     public byte[] getBytes() {
         byte[] b = new byte[8];
-        Bits.writeLong(b, 0, getLong());
+        LONG_VH_BE.set(b, 0, getLong());
         return b;
     }
 

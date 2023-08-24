@@ -5,6 +5,8 @@
  */
 package org.h2.expression.function;
 
+import static org.h2.util.Bits.LONG_VH_BE;
+
 import java.util.Arrays;
 
 import org.h2.engine.SessionLocal;
@@ -14,7 +16,6 @@ import org.h2.expression.aggregate.Aggregate;
 import org.h2.expression.aggregate.AggregateType;
 import org.h2.message.DbException;
 import org.h2.mvstore.db.Store;
-import org.h2.util.Bits;
 import org.h2.value.DataType;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
@@ -187,7 +188,7 @@ public final class BitFunction extends Function1_2 {
             c = 0L;
             int i = 0;
             for (int bound = l & 0xfffffff8; i < bound; i += 8) {
-                c += Long.bitCount(Bits.readLong(bytes, i));
+                c += Long.bitCount((long) LONG_VH_BE.get(bytes, i));
             }
             for (; i < l; i++) {
                 c += Integer.bitCount(bytes[i] & 0xff);

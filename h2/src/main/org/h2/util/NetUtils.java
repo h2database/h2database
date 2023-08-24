@@ -158,12 +158,7 @@ public class NetUtils {
 
     /**
      * Create a server socket. The system property h2.bindAddress is used if
-     * set. If SSL is used and h2.enableAnonymousTLS is true, an attempt is
-     * made to modify the security property jdk.tls.legacyAlgorithms
-     * (in newer JVMs) to allow anonymous TLS.
-     * <p>
-     * This system change is effectively permanent for the lifetime of the JVM.
-     * @see CipherFactory#removeAnonFromLegacyAlgorithms()
+     * set.
      *
      * @param port the port to listen on
      * @param ssl if SSL should be used

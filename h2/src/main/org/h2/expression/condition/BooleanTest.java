@@ -5,7 +5,7 @@
  */
 package org.h2.expression.condition;
 
-import java.util.ArrayList;
+import java.util.List;
 
 import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
@@ -75,10 +75,8 @@ public final class BooleanTest extends SimplePredicate {
             if (c.getType().getValueType() == Value.BOOLEAN && filter == c.getTableFilter()) {
                 if (not) {
                     if (right == null && c.getColumn().isNullable()) {
-                        ArrayList<Expression> list = new ArrayList<>(2);
-                        list.add(ValueExpression.FALSE);
-                        list.add(ValueExpression.TRUE);
-                        filter.addIndexCondition(IndexCondition.getInList(c, list));
+                        filter.addIndexCondition(
+                                IndexCondition.getInList(c, List.of(ValueExpression.FALSE, ValueExpression.TRUE)));
                     }
                 } else {
                     filter.addIndexCondition(IndexCondition.get(Comparison.EQUAL_NULL_SAFE, c,

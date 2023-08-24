@@ -8,20 +8,13 @@ package org.h2.value;
 import java.nio.charset.Charset;
 import java.text.CollationKey;
 import java.text.Collator;
-import java.util.Comparator;
+import java.util.Arrays;
 import java.util.Locale;
-
-import org.h2.util.Bits;
 
 /**
  * The charset collator sorts strings according to the order in the given charset.
  */
 public class CharsetCollator extends Collator {
-
-    /**
-     * The comparator used to compare byte arrays.
-     */
-    static final Comparator<byte[]> COMPARATOR = Bits::compareNotNullSigned;
 
     private final Charset charset;
 
@@ -35,7 +28,7 @@ public class CharsetCollator extends Collator {
 
     @Override
     public int compare(String source, String target) {
-        return COMPARATOR.compare(toBytes(source), toBytes(target));
+        return Arrays.compare(toBytes(source), toBytes(target));
     }
 
     /**
@@ -73,7 +66,7 @@ public class CharsetCollator extends Collator {
 
         @Override
         public int compareTo(CollationKey target) {
-            return COMPARATOR.compare(bytes, target.toByteArray());
+            return Arrays.compare(bytes, target.toByteArray());
         }
 
         @Override
@@ -82,4 +75,5 @@ public class CharsetCollator extends Collator {
         }
 
     }
+
 }

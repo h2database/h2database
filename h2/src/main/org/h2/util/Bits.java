@@ -8,7 +8,6 @@ package org.h2.util;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
 import java.nio.ByteOrder;
-import java.util.Arrays;
 import java.util.UUID;
 
 /**
@@ -57,62 +56,6 @@ public final class Bits {
      */
     private static final VarHandle DOUBLE_VH_LE = MethodHandles.byteArrayViewVarHandle(double[].class,
             ByteOrder.LITTLE_ENDIAN);
-
-    /**
-     * Compare the contents of two char arrays. If the content or length of the
-     * first array is smaller than the second array, -1 is returned. If the content
-     * or length of the second array is smaller than the first array, 1 is returned.
-     * If the contents and lengths are the same, 0 is returned.
-     *
-     * @param data1
-     *            the first char array (must not be null)
-     * @param data2
-     *            the second char array (must not be null)
-     * @return the result of the comparison (-1, 1 or 0)
-     */
-    public static int compareNotNull(char[] data1, char[] data2) {
-        return Integer.signum(Arrays.compare(data1, data2));
-    }
-
-    /**
-     * Compare the contents of two byte arrays. If the content or length of the
-     * first array is smaller than the second array, -1 is returned. If the content
-     * or length of the second array is smaller than the first array, 1 is returned.
-     * If the contents and lengths are the same, 0 is returned.
-     *
-     * <p>
-     * This method interprets bytes as signed.
-     * </p>
-     *
-     * @param data1
-     *            the first byte array (must not be null)
-     * @param data2
-     *            the second byte array (must not be null)
-     * @return the result of the comparison (-1, 1 or 0)
-     */
-    public static int compareNotNullSigned(byte[] data1, byte[] data2) {
-        return Integer.signum(Arrays.compare(data1, data2));
-    }
-
-    /**
-     * Compare the contents of two byte arrays. If the content or length of the
-     * first array is smaller than the second array, -1 is returned. If the content
-     * or length of the second array is smaller than the first array, 1 is returned.
-     * If the contents and lengths are the same, 0 is returned.
-     *
-     * <p>
-     * This method interprets bytes as unsigned.
-     * </p>
-     *
-     * @param data1
-     *            the first byte array (must not be null)
-     * @param data2
-     *            the second byte array (must not be null)
-     * @return the result of the comparison (-1, 1 or 0)
-     */
-    public static int compareNotNullUnsigned(byte[] data1, byte[] data2) {
-        return Integer.signum(Arrays.compareUnsigned(data1, data2));
-    }
 
     /**
      * Reads a int value from the byte array at the given position in big-endian

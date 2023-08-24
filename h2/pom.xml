@@ -37,8 +37,7 @@
   </developers>
 
   <properties>
-    <maven.compiler.source>1.8</maven.compiler.source>
-    <maven.compiler.target>1.8</maven.compiler.target>
+    <maven.compiler.release>11</maven.compiler.release>
     <asm.version>9.4</asm.version>
     <jts.version>1.17.0</jts.version>
     <junit.version>5.6.2</junit.version>
@@ -223,14 +222,6 @@
           <include>org/h2/res/javadoc.properties</include>
           <include>META-INF/**</include>
         </includes>
-      </resource>
-      <resource>
-        <directory>src/java9/precompiled</directory>
-        <targetPath>META-INF/versions/9</targetPath>
-      </resource>
-      <resource>
-        <directory>src/java10/precompiled</directory>
-        <targetPath>META-INF/versions/10</targetPath>
       </resource>
       <resource>
         <directory>src/java21/precompiled</directory>

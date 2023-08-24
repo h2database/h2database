@@ -552,11 +552,9 @@ public class Build extends BuildBase {
     }
 
     /**
-     * Add META-INF/versions for Java 9+.
+     * Add META-INF/versions for newer versions of Java.
      */
     private void addVersions() {
-        copy("temp/META-INF/versions/9", files("src/java9/precompiled"), "src/java9/precompiled");
-        copy("temp/META-INF/versions/10", files("src/java10/precompiled"), "src/java10/precompiled");
         copy("temp/META-INF/versions/21", files("src/java21/precompiled"), "src/java21/precompiled");
     }
 
@@ -1141,7 +1139,7 @@ public class Build extends BuildBase {
         return local;
     }
 
-    private String addNashornJavaScriptEngineIfNecessary(String cp) {
+    private static String addNashornJavaScriptEngineIfNecessary(String cp) {
         if (requiresNashornJavaScriptEngine()) {
             return cp +
                     File.pathSeparator + "ext/nashorn-core-" + NASHORN_VERSION + ".jar" +
@@ -1152,7 +1150,7 @@ public class Build extends BuildBase {
         return cp;
     }
 
-    private boolean requiresNashornJavaScriptEngine() {
+    private static boolean requiresNashornJavaScriptEngine() {
         return getJavaVersion() >= 15; // Nashorn was removed in Java 15
     }
 

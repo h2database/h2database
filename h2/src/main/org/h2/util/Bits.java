@@ -5,20 +5,58 @@
  */
 package org.h2.util;
 
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.VarHandle;
+import java.nio.ByteOrder;
+import java.util.Arrays;
 import java.util.UUID;
 
 /**
- * Manipulations with bytes and arrays. This class can be overridden in
- * multi-release JAR with more efficient implementation for a newer versions of
- * Java.
+ * Manipulations with bytes and arrays. Specialized implementation for Java 9
+ * and later versions.
  */
 public final class Bits {
 
-    /*
-     * Signatures of methods should match with
-     * h2/src/java9/src/org/h2/util/Bits.java and precompiled
-     * h2/src/java9/precompiled/org/h2/util/Bits.class.
+    /**
+     * VarHandle giving access to elements of a byte[] array viewed as if it
+     * were a int[] array on big-endian system.
      */
+    private static final VarHandle INT_VH_BE = MethodHandles.byteArrayViewVarHandle(int[].class, ByteOrder.BIG_ENDIAN);
+
+    /**
+     * VarHandle giving access to elements of a byte[] array viewed as if it
+     * were a int[] array on little-endian system.
+     */
+    private static final VarHandle INT_VH_LE = MethodHandles.byteArrayViewVarHandle(int[].class,
+            ByteOrder.LITTLE_ENDIAN);
+
+    /**
+     * VarHandle giving access to elements of a byte[] array viewed as if it
+     * were a long[] array on big-endian system.
+     */
+    private static final VarHandle LONG_VH_BE = MethodHandles.byteArrayViewVarHandle(long[].class,
+            ByteOrder.BIG_ENDIAN);
+
+    /**
+     * VarHandle giving access to elements of a byte[] array viewed as if it
+     * were a long[] array on little-endian system.
+     */
+    private static final VarHandle LONG_VH_LE = MethodHandles.byteArrayViewVarHandle(long[].class,
+            ByteOrder.LITTLE_ENDIAN);
+
+    /**
+     * VarHandle giving access to elements of a byte[] array viewed as if it
+     * were a double[] array on big-endian system.
+     */
+    private static final VarHandle DOUBLE_VH_BE = MethodHandles.byteArrayViewVarHandle(double[].class,
+            ByteOrder.BIG_ENDIAN);
+
+    /**
+     * VarHandle giving access to elements of a byte[] array viewed as if it
+     * were a double[] array on little-endian system.
+     */
+    private static final VarHandle DOUBLE_VH_LE = MethodHandles.byteArrayViewVarHandle(double[].class,
+            ByteOrder.LITTLE_ENDIAN);
 
     /**
      * Compare the contents of two char arrays. If the content or length of the
@@ -33,18 +71,7 @@ public final class Bits {
      * @return the result of the comparison (-1, 1 or 0)
      */
     public static int compareNotNull(char[] data1, char[] data2) {
-        if (data1 == data2) {
-            return 0;
-        }
-        int len = Math.min(data1.length, data2.length);
-        for (int i = 0; i < len; i++) {
-            char b = data1[i];
-            char b2 = data2[i];
-            if (b != b2) {
-                return b > b2 ? 1 : -1;
-            }
-        }
-        return Integer.signum(data1.length - data2.length);
+        return Integer.signum(Arrays.compare(data1, data2));
     }
 
     /**
@@ -64,18 +91,7 @@ public final class Bits {
      * @return the result of the comparison (-1, 1 or 0)
      */
     public static int compareNotNullSigned(byte[] data1, byte[] data2) {
-        if (data1 == data2) {
-            return 0;
-        }
-        int len = Math.min(data1.length, data2.length);
-        for (int i = 0; i < len; i++) {
-            byte b = data1[i];
-            byte b2 = data2[i];
-            if (b != b2) {
-                return b > b2 ? 1 : -1;
-            }
-        }
-        return Integer.signum(data1.length - data2.length);
+        return Integer.signum(Arrays.compare(data1, data2));
     }
 
     /**
@@ -95,18 +111,7 @@ public final class Bits {
      * @return the result of the comparison (-1, 1 or 0)
      */
     public static int compareNotNullUnsigned(byte[] data1, byte[] data2) {
-        if (data1 == data2) {
-            return 0;
-        }
-        int len = Math.min(data1.length, data2.length);
-        for (int i = 0; i < len; i++) {
-            int b = data1[i] & 0xff;
-            int b2 = data2[i] & 0xff;
-            if (b != b2) {
-                return b > b2 ? 1 : -1;
-            }
-        }
-        return Integer.signum(data1.length - data2.length);
+        return Integer.signum(Arrays.compareUnsigned(data1, data2));
     }
 
     /**
@@ -120,7 +125,7 @@ public final class Bits {
      * @return the value
      */
     public static int readInt(byte[] buff, int pos) {
-        return (buff[pos++] << 24) + ((buff[pos++] & 0xff) << 16) + ((buff[pos++] & 0xff) << 8) + (buff[pos] & 0xff);
+        return (int) INT_VH_BE.get(buff, pos);
     }
 
     /**
@@ -134,7 +139,7 @@ public final class Bits {
      * @return the value
      */
     public static int readIntLE(byte[] buff, int pos) {
-        return (buff[pos++] & 0xff) + ((buff[pos++] & 0xff) << 8) + ((buff[pos++] & 0xff) << 16) + (buff[pos] << 24);
+        return (int) INT_VH_LE.get(buff, pos);
     }
 
     /**
@@ -148,7 +153,7 @@ public final class Bits {
      * @return the value
      */
     public static long readLong(byte[] buff, int pos) {
-        return (((long) readInt(buff, pos)) << 32) + (readInt(buff, pos + 4) & 0xffff_ffffL);
+        return (long) LONG_VH_BE.get(buff, pos);
     }
 
     /**
@@ -162,7 +167,7 @@ public final class Bits {
      * @return the value
      */
     public static long readLongLE(byte[] buff, int pos) {
-        return (readIntLE(buff, pos) & 0xffff_ffffL) + (((long) readIntLE(buff, pos + 4)) << 32);
+        return (long) LONG_VH_LE.get(buff, pos);
     }
 
     /**
@@ -176,7 +181,7 @@ public final class Bits {
      * @return the value
      */
     public static double readDouble(byte[] buff, int pos) {
-        return Double.longBitsToDouble(readLong(buff, pos));
+        return (double) DOUBLE_VH_BE.get(buff, pos);
     }
 
     /**
@@ -190,7 +195,7 @@ public final class Bits {
      * @return the value
      */
     public static double readDoubleLE(byte[] buff, int pos) {
-        return Double.longBitsToDouble(readLongLE(buff, pos));
+        return (double) DOUBLE_VH_LE.get(buff, pos);
     }
 
     /**
@@ -204,10 +209,8 @@ public final class Bits {
      */
     public static byte[] uuidToBytes(long msb, long lsb) {
         byte[] buff = new byte[16];
-        for (int i = 0; i < 8; i++) {
-            buff[i] = (byte) ((msb >> (8 * (7 - i))) & 0xff);
-            buff[8 + i] = (byte) ((lsb >> (8 * (7 - i))) & 0xff);
-        }
+        LONG_VH_BE.set(buff, 0, msb);
+        LONG_VH_BE.set(buff, 8, lsb);
         return buff;
     }
 
@@ -234,10 +237,7 @@ public final class Bits {
      *            the value to write
      */
     public static void writeInt(byte[] buff, int pos, int x) {
-        buff[pos++] = (byte) (x >> 24);
-        buff[pos++] = (byte) (x >> 16);
-        buff[pos++] = (byte) (x >> 8);
-        buff[pos] = (byte) x;
+        INT_VH_BE.set(buff, pos, x);
     }
 
     /**
@@ -252,10 +252,7 @@ public final class Bits {
      *            the value to write
      */
     public static void writeIntLE(byte[] buff, int pos, int x) {
-        buff[pos++] = (byte) x;
-        buff[pos++] = (byte) (x >> 8);
-        buff[pos++] = (byte) (x >> 16);
-        buff[pos] = (byte) (x >> 24);
+        INT_VH_LE.set(buff, pos, x);
     }
 
     /**
@@ -270,8 +267,7 @@ public final class Bits {
      *            the value to write
      */
     public static void writeLong(byte[] buff, int pos, long x) {
-        writeInt(buff, pos, (int) (x >> 32));
-        writeInt(buff, pos + 4, (int) x);
+        LONG_VH_BE.set(buff, pos, x);
     }
 
     /**
@@ -286,8 +282,7 @@ public final class Bits {
      *            the value to write
      */
     public static void writeLongLE(byte[] buff, int pos, long x) {
-        writeIntLE(buff, pos, (int) x);
-        writeIntLE(buff, pos + 4, (int) (x >> 32));
+        LONG_VH_LE.set(buff, pos, x);
     }
 
     /**
@@ -302,7 +297,7 @@ public final class Bits {
      *            the value to write
      */
     public static void writeDouble(byte[] buff, int pos, double x) {
-        writeLong(buff, pos, Double.doubleToRawLongBits(x));
+        DOUBLE_VH_BE.set(buff, pos, x);
     }
 
     /**
@@ -317,7 +312,7 @@ public final class Bits {
      *            the value to write
      */
     public static void writeDoubleLE(byte[] buff, int pos, double x) {
-        writeLongLE(buff, pos, Double.doubleToRawLongBits(x));
+        DOUBLE_VH_LE.set(buff, pos, x);
     }
 
     private Bits() {

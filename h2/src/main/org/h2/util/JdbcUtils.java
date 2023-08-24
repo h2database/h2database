@@ -448,12 +448,7 @@ public class JdbcUtils {
      * @throws DbException if serialization fails
      */
     public static ValueUuid deserializeUuid(byte[] data) {
-        uuid: if (data.length == 80) {
-            for (int i = 0; i < 64; i++) {
-                if (data[i] != UUID_PREFIX[i]) {
-                    break uuid;
-                }
-            }
+        if (data.length == 80 && Arrays.mismatch(data, 0, 64, UUID_PREFIX, 0, 64) < 0) {
             return ValueUuid.get((long) LONG_VH_BE.get(data, 72), (long) LONG_VH_BE.get(data, 64));
         }
         throw DbException.get(ErrorCode.DESERIALIZATION_FAILED_1, "Is not a UUID");

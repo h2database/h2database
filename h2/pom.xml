@@ -38,16 +38,16 @@
 
   <properties>
     <maven.compiler.release>11</maven.compiler.release>
-    <asm.version>9.4</asm.version>
-    <jts.version>1.17.0</jts.version>
-    <junit.version>5.6.2</junit.version>
-    <lucene.version>8.5.2</lucene.version>
+    <asm.version>9.5</asm.version>
+    <jts.version>1.19.0</jts.version>
+    <junit.version>5.10.0</junit.version>
+    <lucene.version>9.7.0</lucene.version>
     <osgi.version>5.0.0</osgi.version>
     <osgi.jdbc.version>1.1.0</osgi.jdbc.version>
-    <pgjdbc.version>42.4.0</pgjdbc.version>
+    <pgjdbc.version>42.5.4</pgjdbc.version>
     <javax.servlet.version>4.0.1</javax.servlet.version>
     <jakarta.servlet.version>5.0.0</jakarta.servlet.version>
-    <slf4j.version>1.7.30</slf4j.version>
+    <slf4j.version>2.0.7</slf4j.version>
     <nashorn.version>15.4</nashorn.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
@@ -84,7 +84,7 @@
     </dependency>
     <dependency>
       <groupId>org.apache.lucene</groupId>
-      <artifactId>lucene-analyzers-common</artifactId>
+      <artifactId>lucene-analysis-common</artifactId>
       <version>${lucene.version}</version>
     </dependency>
     <dependency>

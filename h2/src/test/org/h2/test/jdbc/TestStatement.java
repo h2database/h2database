@@ -16,7 +16,6 @@ import java.util.HashMap;
 
 import org.h2.api.ErrorCode;
 import org.h2.engine.SysProperties;
-import org.h2.jdbc.JdbcStatement;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
@@ -442,7 +441,7 @@ public class TestStatement extends TestDb {
     private void testIdentifiers() throws SQLException {
         Connection conn = getConnection("statement");
 
-        JdbcStatement stat = (JdbcStatement) conn.createStatement();
+        Statement stat = conn.createStatement();
         assertEquals("SOME_ID", stat.enquoteIdentifier("SOME_ID", false));
         assertEquals("\"SOME ID\"", stat.enquoteIdentifier("SOME ID", false));
         assertEquals("\"SOME_ID\"", stat.enquoteIdentifier("SOME_ID", true));
@@ -480,7 +479,7 @@ public class TestStatement extends TestDb {
         deleteDb("statement");
         conn = getConnection("statement;DATABASE_TO_LOWER=TRUE");
 
-        JdbcStatement stat2 = (JdbcStatement) conn.createStatement();
+        Statement stat2 = conn.createStatement();
         assertEquals("some_id", stat2.enquoteIdentifier("some_id", false));
         assertEquals("\"some id\"", stat2.enquoteIdentifier("some id", false));
         assertEquals("\"some_id\"", stat2.enquoteIdentifier("some_id", true));
@@ -500,7 +499,7 @@ public class TestStatement extends TestDb {
         deleteDb("statement");
         conn = getConnection("statement;DATABASE_TO_UPPER=FALSE");
 
-        JdbcStatement stat3 = (JdbcStatement) conn.createStatement();
+        Statement stat3 = conn.createStatement();
         assertEquals("SOME_ID", stat3.enquoteIdentifier("SOME_ID", false));
         assertEquals("some_id", stat3.enquoteIdentifier("some_id", false));
         assertEquals("\"SOME ID\"", stat3.enquoteIdentifier("SOME ID", false));

@@ -453,7 +453,7 @@ public class Build extends BuildBase {
                     "f67f5ffaa5f5130cf6fb9b133da00c7df3b532a5");
             downloadUsingMaven("ext/asm-util-" + ASM_VERSION + ".jar",
                     "org.ow2.asm", "asm-util", ASM_VERSION,
-                    "ab1e0a84b72561dbaf1ee260321e72148ebf4b19");
+                    "64b5a1fc8c1b15ed2efd6a063e976bc8d3dc5ffe");
         }
         downloadUsingMaven("ext/asm-commons-" + ASM_VERSION + ".jar",
                 "org.ow2.asm", "asm-commons", ASM_VERSION,

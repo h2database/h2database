@@ -5,6 +5,8 @@
  */
 package org.h2.security;
 
+import static org.h2.util.Bits.INT_VH_BE;
+
 import java.security.GeneralSecurityException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -12,8 +14,6 @@ import java.util.Arrays;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
-
-import org.h2.util.Bits;
 
 /**
  * This class implements the cryptographic hash function SHA-256.
@@ -115,7 +115,7 @@ public class SHA256 {
             for (int i = 0; i < iterations; i++) {
                 if (i == 0) {
                     System.arraycopy(salt, 0, message, 0, salt.length);
-                    Bits.writeInt(message, salt.length, k);
+                    INT_VH_BE.set(message, salt.length, k);
                     len = salt.length + 4;
                 } else {
                     System.arraycopy(macRes, 0, message, 0, 32);

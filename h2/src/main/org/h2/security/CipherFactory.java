@@ -17,16 +17,11 @@ import java.net.Socket;
 import java.security.KeyFactory;
 import java.security.KeyStore;
 import java.security.PrivateKey;
-import java.security.Security;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Properties;
 
 import javax.net.ServerSocketFactory;
@@ -53,20 +48,6 @@ public class CipherFactory {
      */
     public static final String KEYSTORE_PASSWORD =
             "h2pass";
-
-    /**
-     * The security property which can prevent anonymous TLS connections.
-     * Introduced into Java 6, 7, 8 in updates from July 2015.
-     */
-    public static final String LEGACY_ALGORITHMS_SECURITY_KEY =
-            "jdk.tls.legacyAlgorithms";
-
-    /**
-     * The value of {@value #LEGACY_ALGORITHMS_SECURITY_KEY} security
-     * property at the time of class initialization.
-     * Null if it is not set.
-     */
-    public static final String DEFAULT_LEGACY_ALGORITHMS = getLegacyAlgorithmsSilently();
 
     private static final String KEYSTORE =
             "~/.h2.keystore";
@@ -115,23 +96,12 @@ public class CipherFactory {
                 SysProperties.SOCKET_CONNECT_TIMEOUT);
         secureSocket.setEnabledProtocols(
                 disableSSL(secureSocket.getEnabledProtocols()));
-        if (SysProperties.ENABLE_ANONYMOUS_TLS) {
-            String[] list = enableAnonymous(
-                    secureSocket.getEnabledCipherSuites(),
-                    secureSocket.getSupportedCipherSuites());
-            secureSocket.setEnabledCipherSuites(list);
-        }
         return secureSocket;
     }
 
-/**
+    /**
      * Create a secure server socket. If a bind address is specified, the
      * socket is only bound to this address.
-     * If h2.enableAnonymousTLS is true, an attempt is made to modify
-     * the security property jdk.tls.legacyAlgorithms (in newer JVMs) to allow
-     * anonymous TLS. This system change is effectively permanent for the
-     * lifetime of the JVM.
-     * @see #removeAnonFromLegacyAlgorithms()
      *
      * @param port the port to listen on
      * @param bindAddress the address to bind to, or null to bind to all
@@ -141,9 +111,6 @@ public class CipherFactory {
      */
     public static ServerSocket createServerSocket(int port,
             InetAddress bindAddress) throws IOException {
-        if (SysProperties.ENABLE_ANONYMOUS_TLS) {
-            removeAnonFromLegacyAlgorithms();
-        }
         setKeystore();
         ServerSocketFactory f = SSLServerSocketFactory.getDefault();
         SSLServerSocket secureSocket;
@@ -154,102 +121,7 @@ public class CipherFactory {
         }
         secureSocket.setEnabledProtocols(
                 disableSSL(secureSocket.getEnabledProtocols()));
-        if (SysProperties.ENABLE_ANONYMOUS_TLS) {
-            String[] list = enableAnonymous(
-                    secureSocket.getEnabledCipherSuites(),
-                    secureSocket.getSupportedCipherSuites());
-            secureSocket.setEnabledCipherSuites(list);
-        }
         return secureSocket;
-    }
-
-    /**
-     * Removes DH_anon and ECDH_anon from a comma separated list of ciphers.
-     * Only the first occurrence is removed.
-     * If there is nothing to remove, returns the reference to the argument.
-     * @param list  a list of names separated by commas (and spaces)
-     * @return  a new string without DH_anon and ECDH_anon items,
-     *          or the original if none were found
-     */
-    public static String removeDhAnonFromCommaSeparatedList(String list) {
-        if (list == null) {
-            return list;
-        }
-        List<String> algorithms = new LinkedList<>(Arrays.asList(list.split("\\s*,\\s*")));
-        boolean dhAnonRemoved = algorithms.remove("DH_anon");
-        boolean ecdhAnonRemoved = algorithms.remove("ECDH_anon");
-        if (dhAnonRemoved || ecdhAnonRemoved) {
-            String string = Arrays.toString(algorithms.toArray(new String[algorithms.size()]));
-            return (!algorithms.isEmpty()) ? string.substring(1, string.length() - 1): "";
-        }
-        return list;
-    }
-
-    /**
-     * Attempts to weaken the security properties to allow anonymous TLS.
-     * New JREs would not choose an anonymous cipher suite in a TLS handshake
-     * if server-side security property
-     * {@value #LEGACY_ALGORITHMS_SECURITY_KEY}
-     * were not modified from the default value.
-     * <p>
-     * NOTE: In current (as of 2016) default implementations of JSSE which use
-     * this security property, the value is permanently cached inside the
-     * ServerHandshake class upon its first use.
-     * Therefore the modification accomplished by this method has to be done
-     * before the first use of a server SSL socket.
-     * Later changes to this property will not have any effect on server socket
-     * behavior.
-     */
-    public static synchronized void removeAnonFromLegacyAlgorithms() {
-        String legacyOriginal = getLegacyAlgorithmsSilently();
-        if (legacyOriginal == null) {
-            return;
-        }
-        String legacyNew = removeDhAnonFromCommaSeparatedList(legacyOriginal);
-        if (!legacyOriginal.equals(legacyNew)) {
-            setLegacyAlgorithmsSilently(legacyNew);
-        }
-    }
-
-    /**
-     * Attempts to resets the security property to the default value.
-     * The default value of {@value #LEGACY_ALGORITHMS_SECURITY_KEY} was
-     * obtained at time of class initialization.
-     * <p>
-     * NOTE: Resetting the property might not have any effect on server
-     * socket behavior.
-     * @see #removeAnonFromLegacyAlgorithms()
-     */
-    public static synchronized void resetDefaultLegacyAlgorithms() {
-        setLegacyAlgorithmsSilently(DEFAULT_LEGACY_ALGORITHMS);
-    }
-
-    /**
-     * Returns the security property {@value #LEGACY_ALGORITHMS_SECURITY_KEY}.
-     * Ignores security exceptions.
-     *
-     * @return  the value of the security property, or null if not set
-     *          or not accessible
-     */
-    public static String getLegacyAlgorithmsSilently() {
-        String defaultLegacyAlgorithms = null;
-        try {
-            defaultLegacyAlgorithms = Security.getProperty(LEGACY_ALGORITHMS_SECURITY_KEY);
-        } catch (SecurityException e) {
-            // ignore
-        }
-        return defaultLegacyAlgorithms;
-    }
-
-    private static void setLegacyAlgorithmsSilently(String legacyAlgorithms) {
-        if (legacyAlgorithms == null) {
-            return;
-        }
-        try {
-            Security.setProperty(LEGACY_ALGORITHMS_SECURITY_KEY, legacyAlgorithms);
-        } catch (SecurityException e) {
-            // ignore
-        }
     }
 
     private static byte[] getKeyStoreBytes(KeyStore store, String password)
@@ -383,18 +255,6 @@ public class CipherFactory {
         if (p.getProperty(KEYSTORE_PASSWORD_KEY) == null) {
             System.setProperty(KEYSTORE_PASSWORD_KEY, KEYSTORE_PASSWORD);
         }
-    }
-
-    private static String[] enableAnonymous(String[] enabled, String[] supported) {
-        LinkedHashSet<String> set = new LinkedHashSet<>();
-        for (String x : supported) {
-            if (!x.startsWith("SSL") && x.contains("_anon_") &&
-                    (x.contains("_AES_") || x.contains("_3DES_")) && x.contains("_SHA")) {
-                set.add(x);
-            }
-        }
-        Collections.addAll(set, enabled);
-        return set.toArray(new String[0]);
     }
 
     private static String[] disableSSL(String[] enabled) {

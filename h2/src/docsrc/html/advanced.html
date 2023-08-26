@@ -1512,7 +1512,7 @@ custom certificates are supported as well.
 <h2 id="tls_connections">TLS Connections</h2>
 <p>
 Remote TLS connections are supported using the Java Secure Socket Extension
-(<code>SSLServerSocket, SSLSocket</code>). By default, anonymous TLS is enabled.
+(<code>SSLServerSocket, SSLSocket</code>).
 </p>
 <p>
 To use your own keystore, set the system properties <code>javax.net.ssl.keyStore</code> and
@@ -1520,9 +1520,6 @@ To use your own keystore, set the system properties <code>javax.net.ssl.keyStore
 See also <a href="https://docs.oracle.com/javase/7/docs/technotes/guides/security/jsse/JSSERefGuide.html#CustomizingStores">
 Customizing the Default Key and Trust Stores, Store Types, and Store Passwords</a>
 for more information.
-</p>
-<p>
-To disable anonymous TLS, set the system property <code>h2.enableAnonymousTLS</code> to false.
 </p>
 
 <h2 id="uuid">Universally Unique Identifiers (UUID)</h2>

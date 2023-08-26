@@ -64,7 +64,6 @@ import org.h2.util.SortedProperties;
 import org.h2.util.StringUtils;
 import org.h2.util.Tool;
 import org.h2.util.Utils;
-import org.h2.util.Utils10;
 import org.h2.value.DataType;
 
 /**
@@ -461,7 +460,7 @@ public class WebApp {
             try {
                 tool.runTool(argList);
                 out.flush();
-                String o = Utils10.byteArrayOutputStreamToString(outBuff, StandardCharsets.UTF_8);
+                String o = outBuff.toString(StandardCharsets.UTF_8);
                 String result = PageParser.escapeHtml(o);
                 session.put("toolResult", result);
             } catch (Exception e) {

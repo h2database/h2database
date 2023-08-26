@@ -5,12 +5,13 @@
  */
 package org.h2.value;
 
+import static org.h2.util.Bits.INT_VH_BE;
+
 import java.math.BigDecimal;
 
 import org.h2.api.ErrorCode;
 import org.h2.engine.CastDataProvider;
 import org.h2.message.DbException;
-import org.h2.util.Bits;
 
 /**
  * Implementation of the INTEGER data type.
@@ -144,7 +145,7 @@ public final class ValueInteger extends Value {
     @Override
     public byte[] getBytes() {
         byte[] b = new byte[4];
-        Bits.writeInt(b, 0, getInt());
+        INT_VH_BE.set(b, 0, getInt());
         return b;
     }
 

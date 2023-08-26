@@ -49,29 +49,14 @@ This database is written in Java and therefore works on many platforms.
 
 <h2 id="environment">Environment</h2>
 <p>
-To run this database, a Java Runtime Environment (JRE) version 8 or higher is required.
+To run this database, a Java Runtime Environment (JRE) version 11 or higher is required.
 It it also possible to compile a standalone executable with
 experimental <a href="#native_image">native image</a> build.
 </p>
-<p>
-To create the database executables, the following software stack was used.
-To use this database, it is not required to install this software however.
-</p>
-<ul><li>Mac OS X and Windows
-</li><li><a href="https://www.oracle.com/technetwork/java/javase/downloads/index.html">Oracle JDK Version 8</a>
-</li><li><a href="https://www.eclipse.org">Eclipse</a>
-</li><li>Eclipse Plugins:
-    <a href="https://checkstyle.github.io/eclipse-cs/">Eclipse Checkstyle Plug-in</a>,
-    <a href="https://www.eclemma.org">EclEmma Java Code Coverage</a>
-</li><li><a href="https://www.mozilla.com/firefox">Mozilla Firefox</a>
-</li><li><a href="https://www.openoffice.org">OpenOffice</a>
-</li><li><a href="https://nsis.sourceforge.net">NSIS</a> (Nullsoft Scriptable Install System)
-</li><li><a href="https://maven.apache.org">Maven</a>
-</li></ul>
 
 <h2 id="building">Building the Software</h2>
 <p>
-You need to install a JDK, for example the Oracle JDK version 8.
+You need to install a JDK, for example the Oracle JDK version 11.
 Ensure that Java binary directory is included in the <code>PATH</code> environment variable, and that
 the environment variable <code>JAVA_HOME</code> points to your Java installation.
 On the command line, go to the directory <code>h2</code> and execute the following command:
@@ -97,7 +82,7 @@ To run the build tool in shell mode, use the command line option <code>-</code>:
 
 <h3>Using Apache Lucene</h3>
 <p>
-Apache Lucene 8.5.2 is used for testing.
+Apache Lucene 9.7.0 is used for testing.
 </p>
 
 <h2 id="maven2">Using Maven 2</h2>
@@ -215,7 +200,7 @@ The web site is currently translated using Google.
 <p>
 If you'd like to contribute bug fixes or new features, please consider the following guidelines to simplify merging them:
 </p>
-<ul><li>Only use Java 8 features (do not use Java 9/10/etc) (see <a href="#environment">Environment</a>).
+<ul><li>Only use Java 11 features (do not use Java 17/21/etc) (see <a href="#environment">Environment</a>).
 </li><li>Follow the coding style used in the project, and use Checkstyle (see above) to verify.
     For example, do not use tabs (use spaces instead).
     The checkstyle configuration is in <code>src/installer/checkstyle.xml</code>.

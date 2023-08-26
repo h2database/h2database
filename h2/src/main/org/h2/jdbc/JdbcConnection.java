@@ -69,8 +69,7 @@ import org.h2.value.ValueVarchar;
  * should be used.
  * </p>
  */
-public class JdbcConnection extends TraceObject implements Connection, JdbcConnectionBackwardsCompat,
-        CastDataProvider {
+public class JdbcConnection extends TraceObject implements Connection, CastDataProvider {
 
     private static final String NUM_SERVERS = "numServers";
     private static final String PREFIX_SERVER = "server";

@@ -5,19 +5,19 @@
  */
 package org.h2.value;
 
+import static org.h2.util.Bits.INT_VH_BE;
 import static org.h2.util.geometry.EWKBUtils.EWKB_SRID;
 
 import org.h2.api.ErrorCode;
 import org.h2.message.DbException;
-import org.h2.util.Bits;
 import org.h2.util.MathUtils;
 import org.h2.util.StringUtils;
 import org.h2.util.geometry.EWKBUtils;
 import org.h2.util.geometry.EWKTUtils;
+import org.h2.util.geometry.EWKTUtils.EWKTTarget;
 import org.h2.util.geometry.GeometryUtils;
 import org.h2.util.geometry.GeometryUtils.EnvelopeTarget;
 import org.h2.util.geometry.JTSUtils;
-import org.h2.util.geometry.EWKTUtils.EWKTTarget;
 import org.locationtech.jts.geom.Geometry;
 
 /**
@@ -66,8 +66,8 @@ public final class ValueGeometry extends ValueBytesBase {
         }
         this.value = bytes;
         this.envelope = envelope;
-        int t = Bits.readInt(bytes, 1);
-        srid = (t & EWKB_SRID) != 0 ? Bits.readInt(bytes, 5) : 0;
+        int t = (int) INT_VH_BE.get(bytes, 1);
+        srid = (t & EWKB_SRID) != 0 ? (int) INT_VH_BE.get(bytes, 5) : 0;
         typeAndDimensionSystem = (t & 0xffff) % 1_000 + EWKBUtils.type2dimensionSystem(t) * 1_000;
     }
 

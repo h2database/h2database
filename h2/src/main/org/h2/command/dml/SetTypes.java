@@ -5,7 +5,7 @@
  */
 package org.h2.command.dml;
 
-import java.util.ArrayList;
+import java.util.List;
 
 /**
  * The list of setting for a SET statement.
@@ -244,62 +244,61 @@ public class SetTypes {
 
     private static final int COUNT = TRUNCATE_LARGE_LENGTH + 1;
 
-    private static final ArrayList<String> TYPES;
+    private static final List<String> TYPES;
 
     private SetTypes() {
         // utility class
     }
 
     static {
-        ArrayList<String> list = new ArrayList<>(COUNT);
-        list.add("IGNORECASE");
-        list.add("MAX_LOG_SIZE");
-        list.add("MODE");
-        list.add("READONLY");
-        list.add("LOCK_TIMEOUT");
-        list.add("DEFAULT_LOCK_TIMEOUT");
-        list.add("DEFAULT_TABLE_TYPE");
-        list.add("CACHE_SIZE");
-        list.add("TRACE_LEVEL_SYSTEM_OUT");
-        list.add("TRACE_LEVEL_FILE");
-        list.add("TRACE_MAX_FILE_SIZE");
-        list.add("COLLATION");
-        list.add("CLUSTER");
-        list.add("WRITE_DELAY");
-        list.add("DATABASE_EVENT_LISTENER");
-        list.add("MAX_MEMORY_ROWS");
-        list.add("LOCK_MODE");
-        list.add("DB_CLOSE_DELAY");
-        list.add("THROTTLE");
-        list.add("MAX_MEMORY_UNDO");
-        list.add("MAX_LENGTH_INPLACE_LOB");
-        list.add("ALLOW_LITERALS");
-        list.add("SCHEMA");
-        list.add("OPTIMIZE_REUSE_RESULTS");
-        list.add("SCHEMA_SEARCH_PATH");
-        list.add("REFERENTIAL_INTEGRITY");
-        list.add("MAX_OPERATION_MEMORY");
-        list.add("EXCLUSIVE");
-        list.add("CREATE_BUILD");
-        list.add("@");
-        list.add("QUERY_TIMEOUT");
-        list.add("REDO_LOG_BINARY");
-        list.add("JAVA_OBJECT_SERIALIZER");
-        list.add("RETENTION_TIME");
-        list.add("QUERY_STATISTICS");
-        list.add("QUERY_STATISTICS_MAX_ENTRIES");
-        list.add("LAZY_QUERY_EXECUTION");
-        list.add("BUILTIN_ALIAS_OVERRIDE");
-        list.add("AUTHENTICATOR");
-        list.add("IGNORE_CATALOGS");
-        list.add("CATALOG");
-        list.add("NON_KEYWORDS");
-        list.add("TIME ZONE");
-        list.add("VARIABLE_BINARY");
-        list.add("DEFAULT_NULL_ORDERING");
-        list.add("TRUNCATE_LARGE_LENGTH");
-        TYPES = list;
-        assert(list.size() == COUNT);
+        TYPES = List.of( //
+                "IGNORECASE", //
+                "MAX_LOG_SIZE", //
+                "MODE", //
+                "READONLY", //
+                "LOCK_TIMEOUT", //
+                "DEFAULT_LOCK_TIMEOUT", //
+                "DEFAULT_TABLE_TYPE", //
+                "CACHE_SIZE", //
+                "TRACE_LEVEL_SYSTEM_OUT", //
+                "TRACE_LEVEL_FILE", //
+                "TRACE_MAX_FILE_SIZE", //
+                "COLLATION", //
+                "CLUSTER", //
+                "WRITE_DELAY", //
+                "DATABASE_EVENT_LISTENER", //
+                "MAX_MEMORY_ROWS", //
+                "LOCK_MODE", //
+                "DB_CLOSE_DELAY", //
+                "THROTTLE", //
+                "MAX_MEMORY_UNDO", //
+                "MAX_LENGTH_INPLACE_LOB", //
+                "ALLOW_LITERALS", //
+                "SCHEMA", //
+                "OPTIMIZE_REUSE_RESULTS", //
+                "SCHEMA_SEARCH_PATH", //
+                "REFERENTIAL_INTEGRITY", //
+                "MAX_OPERATION_MEMORY", //
+                "EXCLUSIVE", //
+                "CREATE_BUILD", //
+                "@", //
+                "QUERY_TIMEOUT", //
+                "REDO_LOG_BINARY", //
+                "JAVA_OBJECT_SERIALIZER", //
+                "RETENTION_TIME", //
+                "QUERY_STATISTICS", //
+                "QUERY_STATISTICS_MAX_ENTRIES", //
+                "LAZY_QUERY_EXECUTION", //
+                "BUILTIN_ALIAS_OVERRIDE", //
+                "AUTHENTICATOR", //
+                "IGNORE_CATALOGS", //
+                "CATALOG", //
+                "NON_KEYWORDS", //
+                "TIME ZONE", //
+                "VARIABLE_BINARY", //
+                "DEFAULT_NULL_ORDERING", //
+                "TRUNCATE_LARGE_LENGTH");
+        assert TYPES.size() == COUNT;
     }
 
     /**
@@ -312,7 +311,7 @@ public class SetTypes {
         return TYPES.indexOf(name);
     }
 
-    public static ArrayList<String> getTypes() {
+    public static List<String> getTypes() {
         return TYPES;
     }
 

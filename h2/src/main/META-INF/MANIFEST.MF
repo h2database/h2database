@@ -57,7 +57,6 @@ Import-Package: javax.crypto,
  org.slf4j;version="[1.7.0,1.8.0)";resolution:=optional
 Export-Package: org.h2;version="${version}",
  org.h2.api;version="${version}",
- org.h2.constant;version="${version}",
  org.h2.fulltext;version="${version}",
  org.h2.jdbc;version="${version}",
  org.h2.jdbcx;version="${version}",

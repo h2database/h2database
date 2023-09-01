@@ -131,6 +131,16 @@ public abstract class Session implements CastDataProvider, AutoCloseable {
     }
 
     /**
+     * Returns whether this session is locked by the current thread.
+     *
+     * @return {@code true} if it locked by the current thread, {@code false} if
+     *         it is locked by another thread or is not locked at all
+     */
+    public final boolean isLockedByCurrentThread() {
+        return lock.isHeldByCurrentThread();
+    }
+
+    /**
      * Get the list of the cluster servers for this session.
      *
      * @return A list of "ip:port" strings for the cluster servers in this

@@ -714,8 +714,7 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
         // On rare occasions it can be called concurrently (i.e. from close())
         // without proper locking, but instead of oversynchronizing
         // we just skip this optional operation in such case
-        if (tablesToAnalyze != null &&
-                Thread.holdsLock(this)) {
+        if (tablesToAnalyze != null && isLockedByCurrentThread()) {
             // take a local copy and clear because in rare cases we can call
             // back into markTableForAnalyze while iterating here
             HashSet<Table> tablesToAnalyzeLocal = tablesToAnalyze;
@@ -1503,7 +1502,7 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
             if (exclusive == null || exclusive == this) {
                 break;
             }
-            if (Thread.holdsLock(exclusive)) {
+            if (exclusive.isLockedByCurrentThread()) {
                 // if another connection is used within the connection
                 break;
             }

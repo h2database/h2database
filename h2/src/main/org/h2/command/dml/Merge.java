@@ -29,6 +29,8 @@ import org.h2.table.DataChangeDeltaTable;
 import org.h2.table.DataChangeDeltaTable.ResultOption;
 import org.h2.table.Table;
 import org.h2.util.HasSQL;
+import org.h2.value.DataType;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
 
@@ -170,7 +172,22 @@ public final class Merge extends CommandWithValues {
                 if (v == null) {
                     throw DbException.get(ErrorCode.COLUMN_CONTAINS_NULL_VALUES_1, col.getTraceSQL());
                 }
-                k.get(j++).setValue(v);
+                TypeInfo colType = col.getType();
+                check: {
+                    TypeInfo rightType = v.getType();
+                    if (session.getMode().numericWithBooleanComparison) {
+                        int lValueType = colType.getValueType();
+                        if (lValueType == Value.BOOLEAN) {
+                            if (DataType.isNumericType(rightType.getValueType())) {
+                                break check;
+                            }
+                        } else if (DataType.isNumericType(lValueType) && rightType.getValueType() == Value.BOOLEAN) {
+                            break check;
+                        }
+                    }
+                    TypeInfo.checkComparable(colType, rightType);
+                }
+                k.get(j++).setValue(v.convertForAssignTo(colType, session, col));
             }
             count = update.update(deltaChangeCollector, deltaChangeCollectionMode);
         }

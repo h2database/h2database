@@ -22,7 +22,7 @@ More information: https://h2database.com
 <dependency>
     <groupId>com.h2database</groupId>
     <artifactId>h2</artifactId>
-    <version>2.2.220</version>
+    <version>2.2.222</version>
 </dependency>
 ```
 

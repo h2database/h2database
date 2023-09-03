@@ -45,7 +45,7 @@ import org.h2.util.Utils;
  * }
  * </pre>
  */
-public class JdbcStatement extends TraceObject implements Statement, JdbcStatementBackwardsCompat {
+public class JdbcStatement extends TraceObject implements Statement {
 
     protected JdbcConnection conn;
     protected Session session;

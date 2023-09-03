@@ -5,7 +5,7 @@
  */
 package org.h2.security;
 
-import org.h2.util.Bits;
+import static org.h2.util.Bits.INT_VH_BE;
 
 /**
  * An implementation of the AES block cipher algorithm,
@@ -137,10 +137,10 @@ public class AES implements BlockCipher {
 
     private void encryptBlock(byte[] in, byte[] out, int off) {
         int[] k = encKey;
-        int x0 = Bits.readInt(in, off) ^ k[0];
-        int x1 = Bits.readInt(in, off + 4) ^ k[1];
-        int x2 = Bits.readInt(in, off + 8) ^ k[2];
-        int x3 = Bits.readInt(in, off + 12) ^ k[3];
+        int x0 = (int) INT_VH_BE.get(in, off) ^ k[0];
+        int x1 = (int) INT_VH_BE.get(in, off + 4) ^ k[1];
+        int x2 = (int) INT_VH_BE.get(in, off + 8) ^ k[2];
+        int x3 = (int) INT_VH_BE.get(in, off + 12) ^ k[3];
         int y0 = FT0[(x0 >> 24) & 255] ^ FT1[(x1 >> 16) & 255]
                 ^ FT2[(x2 >> 8) & 255] ^ FT3[x3 & 255] ^ k[4];
         int y1 = FT0[(x1 >> 24) & 255] ^ FT1[(x2 >> 16) & 255]
@@ -221,18 +221,18 @@ public class AES implements BlockCipher {
                 | (FS[(y0 >> 8) & 255] << 8) | FS[y1 & 255]) ^ k[42];
         x3 = ((FS[(y3 >> 24) & 255] << 24) | (FS[(y0 >> 16) & 255] << 16)
                 | (FS[(y1 >> 8) & 255] << 8) | FS[y2 & 255]) ^ k[43];
-        Bits.writeInt(out, off, x0);
-        Bits.writeInt(out, off + 4, x1);
-        Bits.writeInt(out, off + 8, x2);
-        Bits.writeInt(out, off + 12, x3);
+        INT_VH_BE.set(out, off, x0);
+        INT_VH_BE.set(out, off + 4, x1);
+        INT_VH_BE.set(out, off + 8, x2);
+        INT_VH_BE.set(out, off + 12, x3);
     }
 
     private void decryptBlock(byte[] in, byte[] out, int off) {
         int[] k = decKey;
-        int x0 = Bits.readInt(in, off) ^ k[0];
-        int x1 = Bits.readInt(in, off + 4) ^ k[1];
-        int x2 = Bits.readInt(in, off + 8) ^ k[2];
-        int x3 = Bits.readInt(in, off + 12) ^ k[3];
+        int x0 = (int) INT_VH_BE.get(in, off) ^ k[0];
+        int x1 = (int) INT_VH_BE.get(in, off + 4) ^ k[1];
+        int x2 = (int) INT_VH_BE.get(in, off + 8) ^ k[2];
+        int x3 = (int) INT_VH_BE.get(in, off + 12) ^ k[3];
         int y0 = RT0[(x0 >> 24) & 255] ^ RT1[(x3 >> 16) & 255]
                 ^ RT2[(x2 >> 8) & 255] ^ RT3[x1 & 255] ^ k[4];
         int y1 = RT0[(x1 >> 24) & 255] ^ RT1[(x0 >> 16) & 255]
@@ -313,10 +313,10 @@ public class AES implements BlockCipher {
                 | (RS[(y0 >> 8) & 255] << 8) | RS[y3 & 255]) ^ k[42];
         x3 = ((RS[(y3 >> 24) & 255] << 24) | (RS[(y2 >> 16) & 255] << 16)
                 | (RS[(y1 >> 8) & 255] << 8) | RS[y0 & 255]) ^ k[43];
-        Bits.writeInt(out, off, x0);
-        Bits.writeInt(out, off + 4, x1);
-        Bits.writeInt(out, off + 8, x2);
-        Bits.writeInt(out, off + 12, x3);
+        INT_VH_BE.set(out, off, x0);
+        INT_VH_BE.set(out, off + 4, x1);
+        INT_VH_BE.set(out, off + 8, x2);
+        INT_VH_BE.set(out, off + 12, x3);
     }
 
     @Override

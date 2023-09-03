@@ -5,6 +5,8 @@
  */
 package org.h2.util;
 
+import static org.h2.util.Bits.LONG_VH_BE;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -31,6 +33,7 @@ import java.util.Properties;
 
 import javax.naming.Context;
 import javax.sql.DataSource;
+
 import org.h2.api.ErrorCode;
 import org.h2.api.JavaObjectSerializer;
 import org.h2.engine.Constants;
@@ -445,13 +448,8 @@ public class JdbcUtils {
      * @throws DbException if serialization fails
      */
     public static ValueUuid deserializeUuid(byte[] data) {
-        uuid: if (data.length == 80) {
-            for (int i = 0; i < 64; i++) {
-                if (data[i] != UUID_PREFIX[i]) {
-                    break uuid;
-                }
-            }
-            return ValueUuid.get(Bits.readLong(data, 72), Bits.readLong(data, 64));
+        if (data.length == 80 && Arrays.mismatch(data, 0, 64, UUID_PREFIX, 0, 64) < 0) {
+            return ValueUuid.get((long) LONG_VH_BE.get(data, 72), (long) LONG_VH_BE.get(data, 64));
         }
         throw DbException.get(ErrorCode.DESERIALIZATION_FAILED_1, "Is not a UUID");
     }

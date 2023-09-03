@@ -39,7 +39,6 @@ import jakarta.servlet.http.Part;
 import org.h2.server.web.JakartaWebServlet;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
-import org.h2.util.Utils10;
 
 /**
  * Tests the Jakarta Web Servlet for the H2 Console.
@@ -680,7 +679,7 @@ public class TestJakartaWeb extends TestDb {
 
         @Override
         public String toString() {
-            return Utils10.byteArrayOutputStreamToString(buff, StandardCharsets.UTF_8);
+            return buff.toString(StandardCharsets.UTF_8);
         }
 
         @Override

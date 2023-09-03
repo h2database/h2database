@@ -55,15 +55,13 @@ public class CheckJavadoc {
                 }
             }
             if (foundJava && !foundPackageHtml) {
-                System.out.println("No package.html file, but a Java file found at: " + file.toAbsolutePath());
+                System.out.println("No package-info.java file, but a Java file found at: " + file.toAbsolutePath());
                 errorCount++;
             }
         } else {
             if (name.endsWith(".java")) {
                 checkJavadoc(file);
-                return 1;
-            } else if (name.equals("package.html")) {
-                return 2;
+                return name.equals("package-info.java") ? 2 : 1;
             }
         }
         return 0;

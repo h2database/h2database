@@ -207,7 +207,6 @@ import org.h2.test.unit.TestPageStoreCoverage;
 import org.h2.test.unit.TestPattern;
 import org.h2.test.unit.TestPerfectHash;
 import org.h2.test.unit.TestPgServer;
-import org.h2.test.unit.TestReader;
 import org.h2.test.unit.TestRecovery;
 import org.h2.test.unit.TestReopen;
 import org.h2.test.unit.TestSampleApps;
@@ -945,7 +944,6 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestObjectDeserialization());
         addTest(new TestOverflow());
         addTest(new TestPerfectHash());
-        addTest(new TestReader());
         addTest(new TestScriptReader());
         addTest(new TestSecurity());
         addTest(new TestShell());

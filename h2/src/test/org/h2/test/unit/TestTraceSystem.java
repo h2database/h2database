@@ -14,7 +14,6 @@ import org.h2.message.DbException;
 import org.h2.message.TraceSystem;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
-import org.h2.util.Utils10;
 
 /**
  * Tests the trace system
@@ -61,7 +60,7 @@ public class TestTraceSystem extends TestBase {
         ts.setLevelSystemOut(TraceSystem.DEBUG);
         ts.getTrace("test").debug(new Exception("error"), "test");
         ts.close();
-        String outString = Utils10.byteArrayOutputStreamToString(out, StandardCharsets.UTF_8);
+        String outString = out.toString(StandardCharsets.UTF_8);
         assertContains(outString, "error");
         assertContains(outString, "Exception");
         assertContains(outString, "test");

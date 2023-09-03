@@ -1891,7 +1891,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                             // SESSION_START
                             s.getSessionStart(),
                             // ISOLATION_LEVEL
-                            session.getIsolationLevel().getSQL(),
+                            s.getIsolationLevel().getSQL(),
                             // STATEMENT
                             command == null ? null : command.toString(),
                             // STATEMENT_START

@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 
 import org.h2.engine.CastDataProvider;
 import org.h2.engine.Constants;
@@ -19,7 +20,6 @@ import org.h2.store.DataHandler;
 import org.h2.store.FileStore;
 import org.h2.store.FileStoreOutputStream;
 import org.h2.store.LobStorageInterface;
-import org.h2.util.Bits;
 import org.h2.util.IOUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.StringUtils;
@@ -187,8 +187,8 @@ public final class ValueBlob extends ValueLob {
         LobData lobData = this.lobData, lobData2 = v2.lobData;
         if (lobData.getClass() == lobData2.getClass()) {
             if (lobData instanceof LobDataInMemory) {
-                return Bits.compareNotNullUnsigned(((LobDataInMemory) lobData).getSmall(),
-                        ((LobDataInMemory) lobData2).getSmall());
+                return Integer.signum(Arrays.compareUnsigned(((LobDataInMemory) lobData).getSmall(),
+                        ((LobDataInMemory) lobData2).getSmall()));
             } else if (lobData instanceof LobDataDatabase) {
                 if (((LobDataDatabase) lobData).getLobId() == ((LobDataDatabase) lobData2).getLobId()) {
                     return 0;
@@ -221,7 +221,7 @@ public final class ValueBlob extends ValueLob {
                         || IOUtils.readFully(is2, buf2, BLOCK_COMPARISON_SIZE) != BLOCK_COMPARISON_SIZE) {
                     throw DbException.getUnsupportedException("Invalid LOB");
                 }
-                int cmp = Bits.compareNotNullUnsigned(buf1, buf2);
+                int cmp = Integer.signum(Arrays.compareUnsigned(buf1, buf2));
                 if (cmp != 0) {
                     return cmp;
                 }

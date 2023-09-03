@@ -69,8 +69,7 @@ import org.h2.value.ValueVarchar;
  * should be used.
  * </p>
  */
-public class JdbcConnection extends TraceObject implements Connection, JdbcConnectionBackwardsCompat,
-        CastDataProvider {
+public class JdbcConnection extends TraceObject implements Connection, CastDataProvider {
 
     private static final String NUM_SERVERS = "numServers";
     private static final String PREFIX_SERVER = "server";
@@ -87,8 +86,8 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
 
     private Session session;
     private CommandInterface commit, rollback;
-    private CommandInterface getReadOnly, getGeneratedKeys;
-    private CommandInterface setQueryTimeout, getQueryTimeout;
+    private CommandInterface getReadOnly;
+    private CommandInterface getQueryTimeout, setQueryTimeout;
 
     private int savepointId;
     private String catalog;
@@ -150,10 +149,10 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
         this.url = clone.url;
         this.catalog = clone.catalog;
         this.commit = clone.commit;
-        this.getGeneratedKeys = clone.getGeneratedKeys;
-        this.getQueryTimeout = clone.getQueryTimeout;
-        this.getReadOnly = clone.getReadOnly;
         this.rollback = clone.rollback;
+        this.getReadOnly = clone.getReadOnly;
+        this.getQueryTimeout = clone.getQueryTimeout;
+        this.setQueryTimeout = clone.setQueryTimeout;
         this.watcher = null;
         if (clone.clientInfo != null) {
             this.clientInfo = new HashMap<>(clone.clientInfo);
@@ -408,7 +407,6 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
         commit = closeAndSetNull(commit);
         rollback = closeAndSetNull(rollback);
         getReadOnly = closeAndSetNull(getReadOnly);
-        getGeneratedKeys = closeAndSetNull(getGeneratedKeys);
         getQueryTimeout = closeAndSetNull(getQueryTimeout);
         setQueryTimeout = closeAndSetNull(setQueryTimeout);
     }

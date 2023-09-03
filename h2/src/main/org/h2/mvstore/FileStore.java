@@ -14,7 +14,6 @@ import org.h2.util.Utils;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
@@ -33,6 +32,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -194,7 +194,7 @@ public abstract class FileStore<C extends Chunk<C>>
      */
     private MVMap<String, String> layout;
 
-    private final Deque<C> deadChunks = new ArrayDeque<>();
+    private final Deque<C> deadChunks = new ConcurrentLinkedDeque<>();
 
     /**
      * Reference to a background thread, which is expected to be running, if any.
@@ -242,9 +242,9 @@ public abstract class FileStore<C extends Chunk<C>>
         // Make sure pages will fit into cache
         if (cache != null) {
             maxPageSize = 16 * 1024;
-            int maxCachableSize = (int) (cache.getMaxItemSize() >> 4);
-            if (maxPageSize > maxCachableSize) {
-                maxPageSize = maxCachableSize;
+            int maxCacheableSize = (int) (cache.getMaxItemSize() >> 4);
+            if (maxPageSize > maxCacheableSize) {
+                maxPageSize = maxCacheableSize;
             }
         }
         this.maxPageSize = maxPageSize;
@@ -820,7 +820,6 @@ public abstract class FileStore<C extends Chunk<C>>
      *
      * @param chunk to save
      */
-    @SuppressWarnings("ThreadPriorityCheck")
     public void saveChunkMetadataChanges(C chunk) {
         assert serializationLock.isHeldByCurrentThread();
         // chunk's location has to be determined before
@@ -987,7 +986,7 @@ public abstract class FileStore<C extends Chunk<C>>
     protected final boolean findLastChunkWithCompleteValidChunkSet(Comparator<C> chunkComparator,
             Map<Long, C> validChunksByLocation, boolean afterFullScan) {
         // this collection will hold potential candidates for lastChunk to fall back to,
-        // in order from the most to least likely
+        // in order from the most to the least likely
         C[] array = createChunksArray(validChunksByLocation.size());
         C[] lastChunkCandidates = validChunksByLocation.values().toArray(array);
         Arrays.sort(lastChunkCandidates, chunkComparator);
@@ -1491,7 +1490,7 @@ public abstract class FileStore<C extends Chunk<C>>
 
         // last allocated map id should be captured after the meta map was saved, because
         // this will ensure that concurrently created map, which made it into meta before save,
-        // will have it's id reflected in mapid header field of the currently written chunk
+        // will have its id reflected in "map" header field of the currently written chunk
         c.mapId = mvStore.getLastMapId();
 
         c.tocPos = buff.position();
@@ -1692,11 +1691,11 @@ public abstract class FileStore<C extends Chunk<C>>
     }
 
     void cacheToC(C chunk, long[] toc) {
-        chunksToC.put(chunk.version, toc, toc.length * 8L + Constants.MEMORY_ARRAY);
+        chunksToC.put(chunk.id, toc, toc.length * 8L + Constants.MEMORY_ARRAY);
     }
 
     private long[] cleanToCCache(C chunk) {
-        return chunksToC.remove(chunk.version);
+        return chunksToC.remove(chunk.id);
     }
 
     public void populateInfo(BiConsumer<String, String> consumer) {
@@ -1874,7 +1873,7 @@ public abstract class FileStore<C extends Chunk<C>>
         return set;
     }
 
-    public void executeFilestoreOperation(Runnable operation) {
+    public void executeFileStoreOperation(Runnable operation) {
         // because serializationExecutor is a single-threaded one and
         // all task submissions to it are done under storeLock,
         // it is guaranteed, that upon this dummy task completion

@@ -2866,7 +2866,7 @@ public final class InformationSchemaTable extends MetaTable {
                 // SESSION_START
                 s.getSessionStart(),
                 // ISOLATION_LEVEL
-                session.getIsolationLevel().getSQL(),
+                s.getIsolationLevel().getSQL(),
                 // EXECUTING_STATEMENT
                 command == null ? null : command.toString(),
                 // EXECUTING_STATEMENT_START
@@ -2975,6 +2975,7 @@ public final class InformationSchemaTable extends MetaTable {
             add(session, rows, "NON_KEYWORDS", ParserBase.formatNonKeywords(nonKeywords));
         }
         add(session, rows, "RETENTION_TIME", Integer.toString(database.getRetentionTime()));
+        add(session, rows, "WRITE_DELAY", Integer.toString(database.getWriteDelay()));
         // database settings
         for (Map.Entry<String, String> entry : database.getSettings().getSortedSettings()) {
             add(session, rows, entry.getKey(), entry.getValue());

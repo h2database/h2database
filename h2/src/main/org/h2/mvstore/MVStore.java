@@ -795,7 +795,6 @@ public class MVStore implements AutoCloseable {
         assert storeLock.isHeldByCurrentThread();
         if (isOpenOrStopping() && hasUnsavedChanges() && storeOperationInProgress.compareAndSet(false, true)) {
             try {
-                storeOperationInProgress.compareAndSet(false, true);
                 @SuppressWarnings({"NonAtomicVolatileUpdate", "NonAtomicOperationOnVolatileField"})
                 long result = ++currentVersion;
                 if (fileStore == null) {
@@ -920,7 +919,7 @@ public class MVStore implements AutoCloseable {
         storeLock.lock();
         try {
             checkNotClosed();
-            fileStore.executeFilestoreOperation(operation);
+            fileStore.executeFileStoreOperation(operation);
         } catch (MVStoreException e) {
             panic(e);
         } catch (Throwable e) {

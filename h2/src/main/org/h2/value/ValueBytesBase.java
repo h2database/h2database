@@ -10,7 +10,6 @@ import java.util.Arrays;
 import org.h2.engine.CastDataProvider;
 import org.h2.engine.Constants;
 import org.h2.message.DbException;
-import org.h2.util.Bits;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 
@@ -50,7 +49,7 @@ abstract class ValueBytesBase extends Value {
 
     @Override
     public final int compareTypeSafe(Value v, CompareMode mode, CastDataProvider provider) {
-        return Bits.compareNotNullUnsigned(value, ((ValueBytesBase) v).value);
+        return Integer.signum(Arrays.compareUnsigned(value, ((ValueBytesBase) v).value));
     }
 
     @Override

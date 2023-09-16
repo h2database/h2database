@@ -15,13 +15,13 @@ public class Constants {
     /**
      * The build date is updated for each public release.
      */
-    public static final String BUILD_DATE = "2023-08-22";
+    public static final String BUILD_DATE = "2023-09-17";
 
     /**
      * Sequential version number. Even numbers are used for official releases,
      * odd numbers are used for development builds.
      */
-    public static final int BUILD_ID = 222;
+    public static final int BUILD_ID = 224;
 
     /**
      * Whether this is a snapshot version.

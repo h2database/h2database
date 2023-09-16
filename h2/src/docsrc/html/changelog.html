@@ -25,13 +25,19 @@ Change Log
 </li>
 </ul>
 
+<h2>Version 2.2.224 (2023-09-17)</h2>
+<ul>
+<li>Issue #3883 Performance regression in 2.2.222
+</li>
+</ul>
+    
 <h2>Version 2.2.222 (2023-08-22)</h2>
 <ul>
 <li>Fixed race condition in MVStore causing database corruption &quot;File corrupted in chunk ###&quot;
 </li>
 <li>Issue #3868: INFORMATION_SCHEMA.SESSIONS.ISOLATION_LEVEL returns isolation level of the current session in all rows
 </li>
-<li>RP #3865: Add possibility to enable virtual worker threads in TCP, Web, and PG servers on Java 21+
+<li>PR #3865: Add possibility to enable virtual worker threads in TCP, Web, and PG servers on Java 21+
 </li>
 <li>PR #3864: Improve performance of TCP client driver when it is used from virtual threads
 </li>

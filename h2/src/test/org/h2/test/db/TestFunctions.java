@@ -1557,7 +1557,7 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         assertResult("34", stat, "SELECT TO_CHAR(X, 'SS') FROM T");
         assertResult("29554", stat, "SELECT TO_CHAR(X, 'SSSSS') FROM T");
         expected = new SimpleDateFormat("h:mm:ss aa").format(timestamp1979);
-        if (Locale.getDefault().getLanguage().equals(Locale.ENGLISH.getLanguage())) {
+        if (Locale.getDefault().equals(Locale.US)) {
             assertEquals("8:12:34 AM", expected);
         }
         assertResult(expected, stat, "SELECT TO_CHAR(X, 'TS') FROM T");

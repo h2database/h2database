@@ -12,11 +12,13 @@ import org.h2.engine.SessionLocal;
 import org.h2.message.DbException;
 import org.h2.mvstore.db.Store;
 import org.h2.util.ParserUtil;
+import org.h2.util.json.JSONArray;
 import org.h2.util.json.JSONObject;
 import org.h2.util.json.JSONValue;
 import org.h2.value.ExtTypeInfoRow;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
+import org.h2.value.ValueInteger;
 import org.h2.value.ValueJson;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueRow;
@@ -52,6 +54,19 @@ public final class FieldReference extends Operation1 {
                     JSONValue jsonValue = ((JSONObject) value).getFirst(fieldName);
                     if (jsonValue != null) {
                         return ValueJson.fromJson(jsonValue);
+                    }
+                } else if (value instanceof JSONArray) {
+                    JSONArray jsonArray = (JSONArray) value;
+                    try {
+                        int arrayIndex = Integer.parseInt(fieldName);
+                        JSONValue jsonValue = jsonArray.getElement(arrayIndex);
+                        if (jsonValue != null) {
+                            return ValueJson.fromJson(jsonValue);
+                        }
+                    } catch (ArrayIndexOutOfBoundsException | NumberFormatException ignored) {
+                    }
+                    if ("length".equalsIgnoreCase(fieldName)) {
+                        return ValueInteger.get(jsonArray.length());
                     }
                 }
             }

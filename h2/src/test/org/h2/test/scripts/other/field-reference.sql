@@ -41,3 +41,15 @@ SELECT JSON '{"a": 4, "b": 5, "c": 6}'."d";
 
 SELECT JSON '[1]'."d";
 >> null
+
+SELECT JSON '[1, 2, 3]'."1";
+>> 2
+
+SELECT JSON '[1, 2, 3]'."100";
+>> null
+
+SELECT JSON '[1, 2, 3]'."-1";
+>> null
+
+SELECT JSON '[1, 2, 3]'."length";
+>> 3

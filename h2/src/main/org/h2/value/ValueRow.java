@@ -10,6 +10,9 @@ import org.h2.engine.CastDataProvider;
 import org.h2.engine.Constants;
 import org.h2.message.DbException;
 import org.h2.result.SimpleResult;
+import org.h2.table.Column;
+
+import java.util.Arrays;
 
 /**
  * Row value.
@@ -161,6 +164,30 @@ public final class ValueRow extends ValueCollectionBase {
             }
         }
         return true;
+    }
+
+    /**
+     * Converts the values in a ValueRow based on the passed column info.
+     * Creates a new instance if any of the contained item must be converted. Otherwise, returns {@code this}.
+     *
+     * @param provider the cast information provider
+     * @param columns the column info list used for the conversation
+     * @return a ValueRow which contains the converted values
+     *
+     * @see Column#convert(CastDataProvider, Value)
+     */
+    public ValueRow convert(CastDataProvider provider, Column[] columns) {
+        Value[] copy = null;
+        for (int i = values.length; --i >= 0; ) {
+            Value v = values[i];
+            Value nv = columns[i].convert(provider, v);
+            if (v != nv) {
+                if (copy == null)
+                    copy = Arrays.copyOf(values, values.length);
+                copy[i] = nv;
+            }
+        }
+        return copy == null ? this : get(type, copy);
     }
 
 }

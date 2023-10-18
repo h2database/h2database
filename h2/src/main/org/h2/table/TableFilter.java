@@ -232,9 +232,21 @@ public class TableFilter implements ColumnResolver {
                     masks = null;
                     break;
                 }
-                int id = condition.getColumn().getColumnId();
-                if (id >= 0) {
-                    masks[id] |= condition.getMask(indexConditions);
+                if (condition.isCompoundColumns()) {
+                    // Set the op mask in case of compound columns as well.
+                    Column[] columns = condition.getColumns();
+                    for (int i = 0, n = columns.length; i < n; i++) {
+                        int id = columns[i].getColumnId();
+                        if (id >= 0) {
+                            masks[id] |= condition.getMask(indexConditions);
+                        }
+                    }
+                }
+                else {
+                    int id = condition.getColumn().getColumnId();
+                    if (id >= 0) {
+                        masks[id] |= condition.getMask(indexConditions);
+                    }
                 }
             }
         }
@@ -323,11 +335,28 @@ public class TableFilter implements ColumnResolver {
         for (int i = 0; i < indexConditions.size(); i++) {
             IndexCondition condition = indexConditions.get(i);
             if (!condition.isAlwaysFalse()) {
-                Column col = condition.getColumn();
-                if (col.getColumnId() >= 0) {
-                    if (index.getColumnIndex(col) < 0) {
+                if (condition.isCompoundColumns()) {
+                    // Checking if all columns are indexed.
+                    Column[] columns = condition.getColumns();
+                    boolean indexed = true;
+                    for (int j = 0; j < columns.length; j++) {
+                        Column col = columns[j];
+                        indexed = col.getColumnId() >= 0 && index.getColumnIndex(col) >= 0;
+                        if (!indexed)
+                            break;
+                    }
+                    if (!indexed) { // Not all columns are indexed so removing the current condition
                         indexConditions.remove(i);
                         i--;
+                    }
+                }
+                else {
+                    Column col = condition.getColumn();
+                    if (col.getColumnId() >= 0) {
+                        if (index.getColumnIndex(col) < 0) {
+                            indexConditions.remove(i);
+                            i--;
+                        }
                     }
                 }
             }

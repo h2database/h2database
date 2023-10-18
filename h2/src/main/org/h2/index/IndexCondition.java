@@ -14,6 +14,7 @@ import org.h2.command.query.Query;
 import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
+import org.h2.expression.ExpressionList;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.condition.Comparison;
 import org.h2.message.DbException;
@@ -22,6 +23,7 @@ import org.h2.table.Column;
 import org.h2.table.TableType;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
+import org.h2.value.ValueRow;
 
 /**
  * A index condition object is made for each condition that can potentially use
@@ -64,7 +66,12 @@ public class IndexCondition {
      */
     public static final int SPATIAL_INTERSECTS = 16;
 
-    private final Column column;
+    /**
+     * Contains a {@link Column} or {@code Column[]} depending on the condition type.
+     * @see #isCompoundColumns()
+     */
+    private final Object column;
+
     /**
      * see constants in {@link Comparison}
      */
@@ -82,6 +89,24 @@ public class IndexCondition {
             Expression expression) {
         this.compareType = compareType;
         this.column = column == null ? null : column.getColumn();
+        this.expression = expression;
+    }
+
+    /**
+     * @param compareType the comparison type, see constants in {@link Comparison}
+     */
+    private IndexCondition(int compareType, ExpressionList columns, Expression expression) {
+        this.compareType = compareType;
+        if (columns == null)
+            this.column = null;
+        else {
+            int listSize = columns.getSubexpressionCount();
+            Column[] result = new Column[listSize];
+            for (int i = listSize; --i >= 0; ) {
+                result[i] = ((ExpressionColumn) columns.getSubexpression(i)).getColumn();
+            }
+            this.column = result;
+        }
         this.expression = expression;
     }
 
@@ -111,6 +136,19 @@ public class IndexCondition {
             List<Expression> list) {
         IndexCondition cond = new IndexCondition(Comparison.IN_LIST, column,
                 null);
+        cond.expressionList = list;
+        return cond;
+    }
+
+    /**
+     * Create a compound index condition with the compare type IN_LIST and with the given parameters.
+     *
+     * @param columns the columns
+     * @param list the expression list
+     * @return the index condition
+     */
+    public static IndexCondition getCompoundInList(ExpressionList columns, List<Expression> list) {
+        IndexCondition cond = new IndexCondition(Comparison.IN_LIST, columns, null);
         cond.expressionList = list;
         return cond;
     }
@@ -162,10 +200,21 @@ public class IndexCondition {
     public Value[] getCurrentValueList(SessionLocal session) {
         TreeSet<Value> valueSet = new TreeSet<>(session.getDatabase().getCompareMode());
         if (compareType == Comparison.IN_LIST) {
-            for (Expression e : expressionList) {
-                Value v = e.getValue(session);
-                v = column.convert(session, v);
-                valueSet.add(v);
+            if (isCompoundColumns()) {
+                Column[] columns = getColumns();
+                for (Expression e : expressionList) {
+                    Value v = e.getValue(session);
+                    v = ((ValueRow) v).convert(session, columns);
+                    valueSet.add(v);
+                }
+            }
+            else {
+                Column column = getColumn();
+                for (Expression e : expressionList) {
+                    Value v = e.getValue(session);
+                    v = column.convert(session, v);
+                    valueSet.add(v);
+                }
             }
         } else if (compareType == Comparison.IN_ARRAY) {
             Value v = expression.getValue(session);
@@ -203,6 +252,25 @@ public class IndexCondition {
             return "FALSE";
         }
         StringBuilder builder = new StringBuilder();
+        builder = isCompoundColumns() ? buildSql(sqlFlags, builder) : buildSql(sqlFlags, getColumn(), builder);
+        return builder.toString();
+    }
+
+    private StringBuilder buildSql(int sqlFlags, StringBuilder builder) {
+        if (compareType == Comparison.IN_LIST) {
+            builder.append(" IN(");
+            for (int i = 0, s = expressionList.size(); i < s; i++) {
+                if (i > 0)
+                    builder.append(", ");
+                builder.append(expressionList.get(i).getSQL(sqlFlags));
+            }
+            return builder.append(')');
+        }
+        else
+            throw new IllegalStateException("Multiple columns can only be used with compound IN lists.");
+    }
+
+    private StringBuilder buildSql(int sqlFlags, Column column, StringBuilder builder) {
         column.getSQL(builder, sqlFlags);
         switch (compareType) {
         case Comparison.EQUAL:
@@ -230,8 +298,7 @@ public class IndexCondition {
             Expression.writeExpressions(builder.append(" IN("), expressionList, sqlFlags).append(')');
             break;
         case Comparison.IN_ARRAY:
-            return expression.getSQL(builder.append(" = ANY("), sqlFlags, Expression.AUTO_PARENTHESES).append(')')
-                    .toString();
+            return expression.getSQL(builder.append(" = ANY("), sqlFlags, Expression.AUTO_PARENTHESES).append(')');
         case Comparison.IN_QUERY:
             builder.append(" IN(");
             builder.append(expressionQuery.getPlanSQL(sqlFlags));
@@ -246,7 +313,7 @@ public class IndexCondition {
         if (expression != null) {
             expression.getSQL(builder, sqlFlags, Expression.AUTO_PARENTHESES);
         }
-        return builder.toString();
+        return builder;
     }
 
     /**
@@ -266,7 +333,14 @@ public class IndexCondition {
         case Comparison.IN_ARRAY:
         case Comparison.IN_QUERY:
             if (indexConditions.size() > 1) {
-                if (TableType.TABLE != column.getTable().getTableType()) {
+                if (isCompoundColumns()) {
+                    Column[] columns = getColumns();
+                    for (int i = columns.length; --i >= 0; ) {
+                        if (TableType.TABLE != columns[i].getTable().getTableType())
+                            return 0;
+                    }
+                }
+                else if (TableType.TABLE != getColumn().getTable().getTableType()) {
                     // if combined with other conditions,
                     // IN(..) can only be used for regular tables
                     // test case:
@@ -360,9 +434,33 @@ public class IndexCondition {
      * Get the referenced column.
      *
      * @return the column
+     * @throws IllegalStateException if {@link #isCompoundColumns()} is {@code true}
      */
     public Column getColumn() {
-        return column;
+        if (column instanceof Column)
+            return (Column) column;
+        throw new IllegalStateException("The getColumn() method cannot be with multiple columns.");
+    }
+
+    /**
+     * Get the referenced columns.
+     *
+     * @return the column array
+     * @throws IllegalStateException if {@link #isCompoundColumns()} is {@code false}
+     */
+    public Column[] getColumns() {
+        if (column instanceof Column[])
+            return (Column[]) column;
+        throw new IllegalStateException("The getColumns() method cannot be with a single column.");
+    }
+
+    /**
+     * Check if the expression contains multiple columns
+     *
+     * @return true if it contains multiple columns
+     */
+    public boolean isCompoundColumns() {
+        return column instanceof Column[];
     }
 
     /**

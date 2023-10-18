@@ -139,48 +139,19 @@ public final class ConditionInConstantSet extends Condition {
         } else if (left instanceof ExpressionList) {
             ExpressionList list = (ExpressionList) left;
             if (!list.isArray()) {
-                createIndexConditions(filter, list);
+                createIndexConditions(filter);
             }
         }
     }
 
-    private void createIndexConditions(TableFilter filter, ExpressionList list) {
-        int c = list.getSubexpressionCount();
-        for (int i = 0; i < c; i++) {
-            Expression e = list.getSubexpression(i);
-            if (e instanceof ExpressionColumn) {
-                ExpressionColumn l = (ExpressionColumn) e;
-                if (filter == l.getTableFilter()) {
-                    ArrayList<Expression> subList = new ArrayList<>(valueList.size());
-                    for (Expression row : valueList) {
-                        if (row instanceof ExpressionList) {
-                            ExpressionList r = (ExpressionList) row;
-                            if (r.isArray() || r.getSubexpressionCount() != c) {
-                                return;
-                            }
-                            subList.add(r.getSubexpression(i));
-                        } else if (row instanceof ValueExpression) {
-                            Value v = row.getValue(null);
-                            if (v.getValueType() != Value.ROW) {
-                                return;
-                            }
-                            Value[] values = ((ValueRow) v).getList();
-                            if (c != values.length) {
-                                return;
-                            }
-                            subList.add(ValueExpression.get(values[i]));
-                        } else {
-                            return;
-                        }
-                    }
-                    TypeInfo type = l.getType();
-                    for (Expression expression : subList) {
-                        type = TypeInfo.getHigherType(type, expression.getType());
-                    }
-                    createIndexConditions(filter, l, subList, type);
-                }
-            }
+    private void createIndexConditions(TableFilter filter) {
+        // We do not check filter here, because the IN condition can contain columns from multiple tables.
+        ExpressionVisitor visitor = ExpressionVisitor.getNotFromResolverVisitor(filter);
+        for (Expression e : valueList) {
+            if (!e.isEverything(visitor))
+                return;
         }
+        filter.addIndexCondition(IndexCondition.getCompoundInList((ExpressionList) left, valueList));
     }
 
     private static void createIndexConditions(TableFilter filter, ExpressionColumn l, ArrayList<Expression> valueList,

@@ -15,6 +15,9 @@ import java.io.PipedInputStream;
 import java.sql.Blob;
 import java.sql.SQLException;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import org.h2.engine.Constants;
 import org.h2.message.DbException;
 import org.h2.message.TraceObject;
@@ -207,47 +210,50 @@ public final class JdbcBlob extends JdbcLob implements Blob {
         if (isDebugEnabled()) {
             debugCode("position(" + quoteBytes(pattern) + ", " + start + ')');
         }
-        if (Constants.BLOB_SEARCH) {
-            try {
-                checkReadable();
-                if (pattern == null) {
-                    return -1;
-                }
-                if (pattern.length == 0) {
-                    return 1;
-                }
-                // TODO performance: blob pattern search is slow
-                BufferedInputStream in = new BufferedInputStream(value.getInputStream());
-                IOUtils.skipFully(in, start - 1);
-                int pos = 0;
-                int patternPos = 0;
-                while (true) {
-                    int x = in.read();
-                    if (x < 0) {
-                        break;
-                    }
-                    if (x == (pattern[patternPos] & 0xff)) {
-                        if (patternPos == 0) {
-                            in.mark(pattern.length);
-                        }
-                        if (patternPos == pattern.length) {
-                            return pos - patternPos;
-                        }
-                        patternPos++;
-                    } else {
-                        if (patternPos > 0) {
-                            in.reset();
-                            pos -= patternPos;
-                        }
-                    }
-                    pos++;
-                }
-                return -1;
-            } catch (Exception e) {
-                throw logAndConvert(e);
-            }
+        if (!Constants.BLOB_SEARCH) {
+            throw unsupported("LOB search");
         }
-        throw unsupported("LOB search");
+        try {
+            checkReadable();
+            if (pattern == null || start > length()) {
+                return -1;
+            }
+            if (pattern.length == 0) {
+                return 1;
+            }
+            BufferedInputStream in = new BufferedInputStream(value.getInputStream());
+            IOUtils.skipFully(in, start - 1);
+            int[] badCharTable = new int[256];
+            Arrays.fill(badCharTable, -1);
+            for (int i = 0; i < pattern.length; i++) {
+                badCharTable[pattern[i] & 0xFF] = i;
+            }
+            int pos = pattern.length - 1;
+            int patternPos = pattern.length - 1;
+            List<Byte> buffer = new ArrayList<>();
+            for (byte b : in.readNBytes(pattern.length)) {
+                buffer.add(b);
+            }
+            while (pos < length()) {
+                if (buffer.get(pos) == (pattern[patternPos] & 0xFF)) {
+                    if (patternPos == 0) {
+                        return pos;
+                    }
+                    pos--;
+                    patternPos--;
+                } else {
+                    int shift = pattern.length - Math.min(patternPos, 1 + badCharTable[buffer.get(pos) & 0xFF]);
+                    pos += shift;
+                    patternPos = pattern.length - 1;
+                    for (byte b : in.readNBytes(shift)) {
+                        buffer.add(b);
+                    }
+                }
+            }
+            return -1;
+        } catch (Exception e) {
+            throw logAndConvert(e);
+        }
     }
 
     /**

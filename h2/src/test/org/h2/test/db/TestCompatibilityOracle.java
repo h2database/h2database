@@ -179,6 +179,11 @@ public class TestCompatibilityOracle extends TestDb {
         assertResult("0", stat, "SELECT COUNT(*) FROM F WHERE X = ''");
         assertResult(new Object[][]{{1, "a"}, {2, null}}, stat, "SELECT * FROM F");
 
+        PreparedStatement prep1 = conn.prepareStatement("SELECT COUNT(*) FROM DUAL WHERE 'X' = NVL(?, 'X')");
+        prep1.setString(1, "");
+        ResultSet rs = prep1.executeQuery();
+        assertResultSetOrdered(rs, new String[][] { { "1" } });
+
         conn.close();
     }
 

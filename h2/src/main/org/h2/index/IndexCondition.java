@@ -66,11 +66,9 @@ public class IndexCondition {
      */
     public static final int SPATIAL_INTERSECTS = 16;
 
-    /**
-     * Contains a {@link Column} or {@code Column[]} depending on the condition type.
-     * @see #isCompoundColumns()
-     */
-    private final Object column;
+    private final Column column;
+    private final Column[] columns;
+    private final boolean compoundColumns;
 
     /**
      * see constants in {@link Comparison}
@@ -89,6 +87,8 @@ public class IndexCondition {
             Expression expression) {
         this.compareType = compareType;
         this.column = column == null ? null : column.getColumn();
+        this.columns = null;
+        this.compoundColumns = false;
         this.expression = expression;
     }
 
@@ -97,16 +97,18 @@ public class IndexCondition {
      */
     private IndexCondition(int compareType, ExpressionList columns, Expression expression) {
         this.compareType = compareType;
-        if (columns == null)
-            this.column = null;
-        else {
+        this.column = null;
+        if (columns == null) {
+            this.columns = null;
+        } else {
             int listSize = columns.getSubexpressionCount();
             Column[] result = new Column[listSize];
             for (int i = listSize; --i >= 0; ) {
                 result[i] = ((ExpressionColumn) columns.getSubexpression(i)).getColumn();
             }
-            this.column = result;
+            this.columns = result;
         }
+        this.compoundColumns = true;
         this.expression = expression;
     }
 
@@ -203,8 +205,8 @@ public class IndexCondition {
             if (isCompoundColumns()) {
                 Column[] columns = getColumns();
                 for (Expression e : expressionList) {
-                    Value v = e.getValue(session);
-                    v = ((ValueRow) v).convert(session, columns);
+                    ValueRow v = (ValueRow) e.getValue(session);
+                    v = Column.convert(session, columns, v);
                     valueSet.add(v);
                 }
             }
@@ -266,8 +268,9 @@ public class IndexCondition {
             }
             return builder.append(')');
         }
-        else
-            throw new IllegalStateException("Multiple columns can only be used with compound IN lists.");
+        else {
+            throw DbException.getInternalError("Multiple columns can only be used with compound IN lists.");
+        }
     }
 
     private StringBuilder buildSql(int sqlFlags, Column column, StringBuilder builder) {
@@ -434,24 +437,26 @@ public class IndexCondition {
      * Get the referenced column.
      *
      * @return the column
-     * @throws IllegalStateException if {@link #isCompoundColumns()} is {@code true}
+     * @throws DbException if {@link #isCompoundColumns()} is {@code true}
      */
     public Column getColumn() {
-        if (column instanceof Column)
-            return (Column) column;
-        throw new IllegalStateException("The getColumn() method cannot be with multiple columns.");
+        if (!isCompoundColumns()) {
+            return column;
+        }
+        throw DbException.getInternalError("The getColumn() method cannot be with multiple columns.");
     }
 
     /**
      * Get the referenced columns.
      *
      * @return the column array
-     * @throws IllegalStateException if {@link #isCompoundColumns()} is {@code false}
+     * @throws DbException if {@link #isCompoundColumns()} is {@code false}
      */
     public Column[] getColumns() {
-        if (column instanceof Column[])
-            return (Column[]) column;
-        throw new IllegalStateException("The getColumns() method cannot be with a single column.");
+        if (isCompoundColumns()) {
+            return columns;
+        }
+        throw DbException.getInternalError("The getColumns() method cannot be with a single column.");
     }
 
     /**
@@ -460,7 +465,7 @@ public class IndexCondition {
      * @return true if it contains multiple columns
      */
     public boolean isCompoundColumns() {
-        return column instanceof Column[];
+        return compoundColumns;
     }
 
     /**
@@ -514,7 +519,13 @@ public class IndexCondition {
 
     @Override
     public String toString() {
-        StringBuilder builder = new StringBuilder("column=").append(column).append(", compareType=");
+        StringBuilder builder = new StringBuilder();
+        if (!isCompoundColumns()) {
+            builder.append("column=").append(column);
+        } else {
+            builder.append("columns=").append(columns);
+        }
+        builder.append(", compareType=");
         return compareTypeToString(builder, compareType)
             .append(", expression=").append(expression)
             .append(", expressionList=").append(expressionList)

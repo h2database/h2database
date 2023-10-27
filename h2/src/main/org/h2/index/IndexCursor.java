@@ -103,9 +103,9 @@ public class IndexCursor implements Cursor {
                         }
                     }
                     continue;
+                } else {
+                    throw DbException.getInternalError("Multiple columns can only be used with compound IN lists.");
                 }
-                else
-                    throw new IllegalStateException("Multiple columns can only be used with compound IN lists.");
             }
             Column column = condition.getColumn();
             switch (condition.getCompareType()) {
@@ -210,7 +210,7 @@ public class IndexCursor implements Cursor {
     }
 
     private boolean canUseIndexForIn(Column[] columns) {
-        if ( inColumn != null ) {
+        if (inColumn != null) {
             // only one IN(..) condition can be used at the same time
             return false;
         }
@@ -349,10 +349,11 @@ public class IndexCursor implements Cursor {
             while (inResult.next()) {
                 Value v = inResult.currentRow()[0];
                 if (v != ValueNull.INSTANCE) {
-                    if (inColumn instanceof Column[])
-                        v = ((ValueRow) v).convert(session, (Column[]) inColumn);
-                    else
+                    if (inColumn instanceof Column[]) {
+                        v = Column.convert(session, (Column[]) inColumn, (ValueRow) v);
+                    } else {
                         v = ((Column) inColumn).convert(session, v);
+                    }
                     find(v);
                     break;
                 }
@@ -363,12 +364,10 @@ public class IndexCursor implements Cursor {
     private void find(Value v) {
         if (inColumn instanceof Column[]) {
             Column[] columns = (Column[]) inColumn;
-            Value[] values = ((ValueRow) v).getList();
+            ValueRow converted = Column.convert(session, columns, ((ValueRow) v));
+            Value[] values = converted.getList();
             for (int i = columns.length; --i >= 0; ) {
-                Column column = columns[i];
-                Value vv = column.convert(session, values[i]);
-                int id = column.getColumnId();
-                start.setValue(id, vv);
+                start.setValue(columns[i].getColumnId(), values[i]);
             }
         }
         else {

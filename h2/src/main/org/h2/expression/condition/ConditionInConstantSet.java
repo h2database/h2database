@@ -6,6 +6,7 @@
 package org.h2.expression.condition;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.TreeSet;
 
 import org.h2.engine.SessionLocal;
@@ -139,12 +140,22 @@ public final class ConditionInConstantSet extends Condition {
         } else if (left instanceof ExpressionList) {
             ExpressionList list = (ExpressionList) left;
             if (!list.isArray()) {
-                createIndexConditions(filter);
+                // First we create a compound index condition.
+                createCompoundIndexCondition(filter);
+                // If there is no compound index, then the TableFilter#prepare() method will drop this condition.
+                // Then we create a unique index condition for each column.
+                createUniqueIndexConditions(filter, list);
+                // If there are two or more index conditions, IndexCursor will only use the first one.
+                // See: IndexCursor#canUseIndexForIn(Column)
             }
         }
     }
 
-    private void createIndexConditions(TableFilter filter) {
+    /**
+     * Creates a compound index condition containing every item in the expression list.
+     * @see IndexCondition#getCompoundInList(ExpressionList, List)
+     */
+    private void createCompoundIndexCondition(TableFilter filter) {
         // We do not check filter here, because the IN condition can contain columns from multiple tables.
         ExpressionVisitor visitor = ExpressionVisitor.getNotFromResolverVisitor(filter);
         for (Expression e : valueList) {
@@ -152,6 +163,49 @@ public final class ConditionInConstantSet extends Condition {
                 return;
         }
         filter.addIndexCondition(IndexCondition.getCompoundInList((ExpressionList) left, valueList));
+    }
+
+    /**
+     * Creates a unique index condition for every item in the expression list.
+     * @see IndexCondition#getInList(ExpressionColumn, List)
+     */
+    private void createUniqueIndexConditions(TableFilter filter, ExpressionList list) {
+        int c = list.getSubexpressionCount();
+        for (int i = 0; i < c; i++) {
+            Expression e = list.getSubexpression(i);
+            if (e instanceof ExpressionColumn) {
+                ExpressionColumn l = (ExpressionColumn) e;
+                if (filter == l.getTableFilter()) {
+                    ArrayList<Expression> subList = new ArrayList<>(valueList.size());
+                    for (Expression row : valueList) {
+                        if (row instanceof ExpressionList) {
+                            ExpressionList r = (ExpressionList) row;
+                            if (r.isArray() || r.getSubexpressionCount() != c) {
+                                return;
+                            }
+                            subList.add(r.getSubexpression(i));
+                        } else if (row instanceof ValueExpression) {
+                            Value v = row.getValue(null);
+                            if (v.getValueType() != Value.ROW) {
+                                return;
+                            }
+                            Value[] values = ((ValueRow) v).getList();
+                            if (c != values.length) {
+                                return;
+                            }
+                            subList.add(ValueExpression.get(values[i]));
+                        } else {
+                            return;
+                        }
+                    }
+                    TypeInfo type = l.getType();
+                    for (Expression expression : subList) {
+                        type = TypeInfo.getHigherType(type, expression.getType());
+                    }
+                    createIndexConditions(filter, l, subList, type);
+                }
+            }
+        }
     }
 
     private static void createIndexConditions(TableFilter filter, ExpressionColumn l, ArrayList<Expression> valueList,

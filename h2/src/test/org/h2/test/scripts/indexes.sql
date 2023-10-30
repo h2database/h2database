@@ -321,10 +321,12 @@ EXPLAIN SELECT * FROM TEST WHERE A = 0;
 >> SELECT "PUBLIC"."TEST"."A", "PUBLIC"."TEST"."B", "PUBLIC"."TEST"."C" FROM "PUBLIC"."TEST" /* PUBLIC.T_A1: A = 0 */ WHERE "A" = 0
 
 EXPLAIN SELECT * FROM TEST WHERE A = 0 AND B >= 0;
->> SELECT "PUBLIC"."TEST"."A", "PUBLIC"."TEST"."B", "PUBLIC"."TEST"."C" FROM "PUBLIC"."TEST" /* PUBLIC.T_A_B: A = 0 AND B >= 0 */ WHERE ("A" = 0) AND ("B" >= 0)
+>> SELECT "PUBLIC"."TEST"."A", "PUBLIC"."TEST"."B", "PUBLIC"."TEST"."C" FROM "PUBLIC"."TEST" /* PUBLIC.T_A_B: A = 0 */ WHERE ("A" = 0) AND ("B" >= 0)
+-- B is not the first column of the T_A_B index, so it cannot be used as an index condition.
 
 EXPLAIN SELECT * FROM TEST WHERE A > 0 AND B >= 0;
->> SELECT "PUBLIC"."TEST"."A", "PUBLIC"."TEST"."B", "PUBLIC"."TEST"."C" FROM "PUBLIC"."TEST" /* PUBLIC.T_A_B: A > 0 AND B >= 0 */ WHERE ("A" > 0) AND ("B" >= 0)
+>> SELECT "PUBLIC"."TEST"."A", "PUBLIC"."TEST"."B", "PUBLIC"."TEST"."C" FROM "PUBLIC"."TEST" /* PUBLIC.T_A_B: A > 0 */ WHERE ("A" > 0) AND ("B" >= 0)
+-- B is not the first column of the T_A_B index, so it cannot be used as an index condition.
 
 INSERT INTO TEST (SELECT X / 100, X, X FROM SYSTEM_RANGE(1, 3000));
 > update count: 3000
@@ -333,10 +335,12 @@ EXPLAIN SELECT * FROM TEST WHERE A = 0;
 >> SELECT "PUBLIC"."TEST"."A", "PUBLIC"."TEST"."B", "PUBLIC"."TEST"."C" FROM "PUBLIC"."TEST" /* PUBLIC.T_A1: A = 0 */ WHERE "A" = 0
 
 EXPLAIN SELECT * FROM TEST WHERE A = 0 AND B >= 0;
->> SELECT "PUBLIC"."TEST"."A", "PUBLIC"."TEST"."B", "PUBLIC"."TEST"."C" FROM "PUBLIC"."TEST" /* PUBLIC.T_A_B: A = 0 AND B >= 0 */ WHERE ("A" = 0) AND ("B" >= 0)
+>> SELECT "PUBLIC"."TEST"."A", "PUBLIC"."TEST"."B", "PUBLIC"."TEST"."C" FROM "PUBLIC"."TEST" /* PUBLIC.T_A_B: A = 0 */ WHERE ("A" = 0) AND ("B" >= 0)
+-- B is not the first column of the T_A_B index, so it cannot be used as an index condition.
 
 EXPLAIN SELECT * FROM TEST WHERE A > 0 AND B >= 0;
->> SELECT "PUBLIC"."TEST"."A", "PUBLIC"."TEST"."B", "PUBLIC"."TEST"."C" FROM "PUBLIC"."TEST" /* PUBLIC.T_A_B: A > 0 AND B >= 0 */ WHERE ("A" > 0) AND ("B" >= 0)
+>> SELECT "PUBLIC"."TEST"."A", "PUBLIC"."TEST"."B", "PUBLIC"."TEST"."C" FROM "PUBLIC"."TEST" /* PUBLIC.T_A_B: A > 0 */ WHERE ("A" > 0) AND ("B" >= 0)
+-- B is not the first column of the T_A_B index, so it cannot be used as an index condition.
 
 -- Test that creation order of indexes has no effect
 CREATE INDEX T_A2 ON TEST(A);

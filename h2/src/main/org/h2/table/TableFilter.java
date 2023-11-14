@@ -352,9 +352,13 @@ public class TableFilter implements ColumnResolver {
                 } else {
                     Column col = condition.getColumn();
                     if (col.getColumnId() >= 0) {
-                        if (index.getColumnIndex(col) != 0) {
-                            // If this is a simple index, then the column index must be 0 on a match.
-                            // If this is a compound index, we can use it only if the first index column is the searched one.
+                        int columnIndex = index.getColumnIndex(col);
+                        if (columnIndex == 0) // The first column of the index always matches.
+                            continue;
+                        int compareType = condition.getCompareType();
+                        if (columnIndex < 0 || compareType == Comparison.IN_LIST ) {
+                            // The index does not contain the column, or this is an IN() condition which can be used
+                            // only if the first index column is the searched one.
                             // See: IndexCursor#canUseIndexFor(column)
                             indexConditions.remove(i);
                             i--;

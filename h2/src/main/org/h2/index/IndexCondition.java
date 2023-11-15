@@ -26,7 +26,7 @@ import org.h2.value.ValueArray;
 import org.h2.value.ValueRow;
 
 /**
- * A index condition object is made for each condition that can potentially use
+ * An index condition object is made for each condition that can potentially use
  * an index. This class does not extend expression, but in general there is one
  * expression that maps to each index condition.
  *
@@ -76,70 +76,61 @@ public class IndexCondition {
     private final int compareType;
 
     private final Expression expression;
-    private List<Expression> expressionList;
-    private Query expressionQuery;
+    private final List<Expression> expressionList;
+    private final Query expressionQuery;
 
     /**
      * @param compareType the comparison type, see constants in
      *            {@link Comparison}
      */
-    private IndexCondition(int compareType, ExpressionColumn column,
-            Expression expression) {
-        this.compareType = compareType;
-        this.column = column == null ? null : column.getColumn();
-        this.columns = null;
-        this.compoundColumns = false;
-        this.expression = expression;
-    }
+    private IndexCondition(int compareType, ExpressionColumn column, ExpressionList columns, Expression expression,
+                           List<Expression> list, Query query) {
 
-    /**
-     * @param compareType the comparison type, see constants in {@link Comparison}
-     */
-    private IndexCondition(int compareType, ExpressionList columns, Expression expression) {
         this.compareType = compareType;
-        this.column = null;
-        if (columns == null) {
+        if (column != null) {
+            this.column = column.getColumn();
             this.columns = null;
-        } else {
+            this.compoundColumns = false;
+        } else if (columns !=null) {
+            this.column = null;
             int listSize = columns.getSubexpressionCount();
             Column[] result = new Column[listSize];
             for (int i = listSize; --i >= 0; ) {
                 result[i] = ((ExpressionColumn) columns.getSubexpression(i)).getColumn();
             }
             this.columns = result;
+            this.compoundColumns = true;
+        } else {
+            this.column = null;
+            this.columns = null;
+            this.compoundColumns = false;
         }
-        this.compoundColumns = true;
         this.expression = expression;
+        this.expressionList = list;
+        this.expressionQuery = query;
     }
 
     /**
      * Create an index condition with the given parameters.
      *
-     * @param compareType the comparison type, see constants in
-     *            {@link Comparison}
+     * @param compareType the comparison type, see constants in {@link Comparison}
      * @param column the column
      * @param expression the expression
      * @return the index condition
      */
-    public static IndexCondition get(int compareType, ExpressionColumn column,
-            Expression expression) {
-        return new IndexCondition(compareType, column, expression);
+    public static IndexCondition get(int compareType, ExpressionColumn column, Expression expression) {
+        return new IndexCondition(compareType, column, null, expression, null, null);
     }
 
     /**
-     * Create an index condition with the compare type IN_LIST and with the
-     * given parameters.
+     * Create an index condition with the compare type IN_LIST and with the given parameters.
      *
      * @param column the column
      * @param list the expression list
      * @return the index condition
      */
-    public static IndexCondition getInList(ExpressionColumn column,
-            List<Expression> list) {
-        IndexCondition cond = new IndexCondition(Comparison.IN_LIST, column,
-                null);
-        cond.expressionList = list;
-        return cond;
+    public static IndexCondition getInList(ExpressionColumn column, List<Expression> list) {
+        return new IndexCondition(Comparison.IN_LIST, column, null, null, list, null);
     }
 
     /**
@@ -150,26 +141,22 @@ public class IndexCondition {
      * @return the index condition
      */
     public static IndexCondition getCompoundInList(ExpressionList columns, List<Expression> list) {
-        IndexCondition cond = new IndexCondition(Comparison.IN_LIST, columns, null);
-        cond.expressionList = list;
-        return cond;
+        return new IndexCondition(Comparison.IN_LIST, null, columns, null, list, null);
     }
 
     /**
-     * Create an index condition with the compare type IN_ARRAY and with the
-     * given parameters.
+     * Create an index condition with the compare type IN_ARRAY and with the given parameters.
      *
      * @param column the column
      * @param array the array
      * @return the index condition
      */
     public static IndexCondition getInArray(ExpressionColumn column, Expression array) {
-        return new IndexCondition(Comparison.IN_ARRAY, column, array);
+        return new IndexCondition(Comparison.IN_ARRAY, column, null, array, null, null);
     }
 
     /**
-     * Create an index condition with the compare type IN_QUERY and with the
-     * given parameters.
+     * Create an index condition with the compare type IN_QUERY and with the given parameters.
      *
      * @param column the column
      * @param query the select statement
@@ -177,9 +164,7 @@ public class IndexCondition {
      */
     public static IndexCondition getInQuery(ExpressionColumn column, Query query) {
         assert query.isRandomAccessResult();
-        IndexCondition cond = new IndexCondition(Comparison.IN_QUERY, column, null);
-        cond.expressionQuery = query;
-        return cond;
+        return new IndexCondition(Comparison.IN_QUERY, column, null, null, null, query);
     }
 
     /**
@@ -400,7 +385,7 @@ public class IndexCondition {
      * Check if this index condition is of the type column smaller or equal to
      * value.
      *
-     * @return true if this is a end condition
+     * @return true if this is an end condition
      */
     public boolean isEnd() {
         switch (compareType) {

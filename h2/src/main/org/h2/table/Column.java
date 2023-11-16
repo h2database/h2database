@@ -26,6 +26,7 @@ import org.h2.schema.Sequence;
 import org.h2.util.HasSQL;
 import org.h2.util.ParserUtil;
 import org.h2.util.StringUtils;
+import org.h2.value.ExtTypeInfoRow;
 import org.h2.value.TypeInfo;
 import org.h2.value.Typed;
 import org.h2.value.Value;
@@ -213,7 +214,10 @@ public final class Column implements HasSQL, Typed, ColumnTemplate {
                 copy[i] = nv;
             }
         }
-        return copy == null ? valueRow : ValueRow.get(valueRow.getType(), copy);
+        if (copy == null)
+            return valueRow;
+        TypeInfo typeInfo = TypeInfo.getTypeInfo(Value.ROW, 0, 0, new ExtTypeInfoRow(columns));
+        return ValueRow.get(typeInfo, copy);
     }
 
     /**

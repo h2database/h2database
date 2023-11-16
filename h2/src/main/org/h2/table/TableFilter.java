@@ -342,8 +342,9 @@ public class TableFilter implements ColumnResolver {
                     for (int j = 0; j < columns.length; j++) {
                         Column col = columns[j];
                         indexed = col.getColumnId() >= 0 && index.getColumnIndex(col) >= 0;
-                        if (!indexed)
+                        if (!indexed) {
                             break;
+                        }
                     }
                     if (!indexed) { // Not all columns are indexed so removing the current condition
                         indexConditions.remove(i);
@@ -353,10 +354,11 @@ public class TableFilter implements ColumnResolver {
                     Column col = condition.getColumn();
                     if (col.getColumnId() >= 0) {
                         int columnIndex = index.getColumnIndex(col);
-                        if (columnIndex == 0) // The first column of the index always matches.
+                        if (columnIndex == 0) {
+                            // The first column of the index always matches.
                             continue;
-                        int compareType = condition.getCompareType();
-                        if (columnIndex < 0 || compareType == Comparison.IN_LIST ) {
+                        }
+                        if (columnIndex < 0 || condition.getCompareType() == Comparison.IN_LIST ) {
                             // The index does not contain the column, or this is an IN() condition which can be used
                             // only if the first index column is the searched one.
                             // See: IndexCursor#canUseIndexFor(column)

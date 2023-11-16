@@ -25,6 +25,8 @@ import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueRow;
 
+import static org.h2.util.HasSQL.TRACE_SQL_FLAGS;
+
 /**
  * An index condition object is made for each condition that can potentially use
  * an index. This class does not extend expression, but in general there is one
@@ -247,8 +249,9 @@ public class IndexCondition {
         if (compareType == Comparison.IN_LIST) {
             builder.append(" IN(");
             for (int i = 0, s = expressionList.size(); i < s; i++) {
-                if (i > 0)
+                if (i > 0) {
                     builder.append(", ");
+                }
                 builder.append(expressionList.get(i).getSQL(sqlFlags));
             }
             return builder.append(')');
@@ -324,8 +327,9 @@ public class IndexCondition {
                 if (isCompoundColumns()) {
                     Column[] columns = getColumns();
                     for (int i = columns.length; --i >= 0; ) {
-                        if (TableType.TABLE != columns[i].getTable().getTableType())
+                        if (TableType.TABLE != columns[i].getTable().getTableType()) {
                             return 0;
+                        }
                     }
                 }
                 else if (TableType.TABLE != getColumn().getTable().getTableType()) {
@@ -508,7 +512,8 @@ public class IndexCondition {
         if (!isCompoundColumns()) {
             builder.append("column=").append(column);
         } else {
-            builder.append("columns=").append(columns);
+            builder.append("columns=");
+            Column.writeColumns(builder, columns, TRACE_SQL_FLAGS);
         }
         builder.append(", compareType=");
         return compareTypeToString(builder, compareType)

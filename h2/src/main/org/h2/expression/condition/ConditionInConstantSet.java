@@ -159,8 +159,9 @@ public final class ConditionInConstantSet extends Condition {
         // We do not check filter here, because the IN condition can contain columns from multiple tables.
         ExpressionVisitor visitor = ExpressionVisitor.getNotFromResolverVisitor(filter);
         for (Expression e : valueList) {
-            if (!e.isEverything(visitor))
+            if (!e.isEverything(visitor)) {
                 return;
+            }
         }
         filter.addIndexCondition(IndexCondition.getCompoundInList((ExpressionList) left, valueList));
     }

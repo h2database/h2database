@@ -219,12 +219,14 @@ public class IndexCursor implements Cursor {
         // Multiple IN conditions with views are not supported, see
         // IndexCondition.getMask.
         IndexColumn[] cols = index.getIndexColumns();
-        if (cols == null || cols.length != columns.length)
+        if (cols == null || cols.length != columns.length) {
             return true;
+        }
         for (int i = 0; i < cols.length; i++) {
             IndexColumn idxCol = cols[i];
-            if (idxCol != null && idxCol.column != columns[i])
+            if (idxCol != null && idxCol.column != columns[i]) {
                 return false;
+            }
         }
         return true;
     }

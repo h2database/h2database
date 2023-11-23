@@ -226,7 +226,7 @@ public class IndexCursor implements Cursor {
     public static boolean canUseIndexForIn(Index index, Column[] columns) {
         IndexColumn[] cols = index.getIndexColumns();
         if (cols == null || cols.length != columns.length) {
-            return true;
+            return false;
         }
         for (int i = 0; i < cols.length; i++) {
             IndexColumn idxCol = cols[i];

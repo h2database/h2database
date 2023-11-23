@@ -35,8 +35,10 @@ public class TestCompoundIndexSearch extends TestDb {
         simpleInAgainstSimpleIndexCheck(conn);
         simpleInAgainstFirstCompoundIndex(conn);
         simpleInAgainstSecondCompoundIndex(conn);
+        compoundInNoIndexAndNull(conn);
         compoundInAgainstCompoundIndex(conn);
-        compoundInAgainstCompoundIndex2(conn);
+        compoundInAgainstCompoundIndexUnordered(conn);
+        compoundInAgainstSimpleIndex(conn);
         compoundEqAgainstCompoundIndex(conn);
         multipleEqAgainstCompoundIndex(conn);
 
@@ -127,7 +129,7 @@ public class TestCompoundIndexSearch extends TestDb {
      * order than in the index.<br />
      * condition (c, b) vs index (b, c)
      */
-    private void compoundInAgainstCompoundIndex2(Connection conn) throws Exception {
+    private void compoundInAgainstCompoundIndexUnordered(Connection conn) throws Exception {
         Statement stat = conn.createStatement();
         ResultSet rs = stat.executeQuery("EXPLAIN ANALYZE SELECT b, c FROM test WHERE (c, b) IN (('1', 2), ('2', 3))");
         rs.next();
@@ -135,6 +137,39 @@ public class TestCompoundIndexSearch extends TestDb {
                 "SELECT \"B\", \"C\" FROM \"PUBLIC\".\"TEST\" " +
                         "/* PUBLIC.IDX_B_C: IN(ROW (2, '1'), ROW (3, '2')) */ " +
                         "/* scanCount: 4 */ WHERE ROW (\"C\", \"B\") IN(ROW ('1', 2), ROW ('2', 3))");
+        stat.close();
+    }
+
+    /**
+     * Executes a query with a compound IN condition. Creates a table on the fly without any indexes. The table and the
+     * query both contain NULL values.
+     */
+    private void compoundInNoIndexAndNull(Connection conn) throws Exception {
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE TABLE TEST_NULL(A INT, B INT) AS (VALUES (1, 1), (1, 2), (2, 1), (2, NULL));");
+        ResultSet rs = stat.executeQuery("EXPLAIN ANALYZE SELECT * FROM TEST_NULL " +
+                "WHERE (A, B) IN ((1, 1), (2, 1), (2, 2), (2, NULL))");
+        rs.next();
+        assertContains(rs.getString(1).replaceAll("[\\r\\n\\s]+", " "),
+                "SELECT \"PUBLIC\".\"TEST_NULL\".\"A\", \"PUBLIC\".\"TEST_NULL\".\"B\" " +
+                        "FROM \"PUBLIC\".\"TEST_NULL\" /* PUBLIC.TEST_NULL.tableScan */ " +
+                        "/* scanCount: 5 */ WHERE ROW (\"A\", \"B\") " +
+                        "IN(ROW (1, 1), ROW (2, 1), ROW (2, 2), ROW (2, NULL))");
+        stat.execute("DROP TABLE TEST_NULL;");
+        stat.close();
+    }
+
+    /**
+     * Executes a query with a compound IN condition against a simple index.
+     */
+    private void compoundInAgainstSimpleIndex(Connection conn) throws Exception {
+        Statement stat = conn.createStatement();
+        ResultSet rs = stat.executeQuery("EXPLAIN ANALYZE SELECT a, d FROM test WHERE (a, d) IN ((1, 3), (2, 4))");
+        rs.next();
+        assertContains(rs.getString(1).replaceAll("[\\r\\n\\s]+", " "),
+                "SELECT \"A\", \"D\" FROM \"PUBLIC\".\"TEST\" " +
+                        "/* PUBLIC.IDX_A: A IN(1, 2) */ " +
+                        "/* scanCount: 7 */ WHERE ROW (\"A\", \"D\") IN(ROW (1, 3), ROW (2, 4))");
         stat.close();
     }
 

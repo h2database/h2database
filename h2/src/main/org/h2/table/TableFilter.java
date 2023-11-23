@@ -343,6 +343,12 @@ public class TableFilter implements ColumnResolver {
                     indexConditions.remove(i);
                     i--;
                 } else if (condition.isCompoundColumns()) {
+                    if ( index.getIndexType().isScan() ) {
+                        // This is only a pseudo index.
+                        indexConditions.remove(i);
+                        i--;
+                        continue;
+                    }
                     // Checking the columns match with the index.
                     if (IndexCursor.canUseIndexForIn(index, condition.getColumns())) {
                         // The condition uses the exact columns in the right order.

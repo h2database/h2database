@@ -332,24 +332,33 @@ public class TableFilter implements ColumnResolver {
     public void prepare() {
         // forget all unused index conditions
         // the indexConditions list may be modified here
+        boolean compoundIndexConditionFound = false;
         for (int i = 0; i < indexConditions.size(); i++) {
             IndexCondition condition = indexConditions.get(i);
             if (!condition.isAlwaysFalse()) {
-                if (condition.isCompoundColumns()) {
-                    // Checking if all columns are indexed.
-                    Column[] columns = condition.getColumns();
-                    boolean indexed = true;
-                    for (int j = 0; j < columns.length; j++) {
-                        Column col = columns[j];
-                        indexed = col.getColumnId() >= 0 && index.getColumnIndex(col) >= 0;
-                        if (!indexed) {
-                            break;
-                        }
+                if (compoundIndexConditionFound) {
+                    // A compound index condition is already found. We cannot use other indexes with it, so removing
+                    // everything else. The compound condition was added first.
+                    // See: ConditionIn#createIndexConditions(SessionLocal, TableFilter)
+                    indexConditions.remove(i);
+                    i--;
+                } else if (condition.isCompoundColumns()) {
+                    // Checking the columns match with the index.
+                    if (IndexCursor.canUseIndexForIn(index, condition.getColumns())) {
+                        // The condition uses the exact columns in the right order.
+                        compoundIndexConditionFound = true;
+                        continue;
                     }
-                    if (!indexed) { // Not all columns are indexed so removing the current condition
-                        indexConditions.remove(i);
-                        i--;
+                    // Trying to fix the order of the condition columns.
+                    IndexCondition fixedCondition = condition.cloneWithIndexColumns(index);
+                    if (fixedCondition != null) {
+                        indexConditions.set(i, fixedCondition);
+                        compoundIndexConditionFound = true;
+                        continue;
                     }
+                    // Index condition cannot be used.
+                    indexConditions.remove(i);
+                    i--;
                 } else {
                     Column col = condition.getColumn();
                     if (col.getColumnId() >= 0) {

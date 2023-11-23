@@ -16,10 +16,12 @@ import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ExpressionList;
 import org.h2.expression.ExpressionVisitor;
+import org.h2.expression.ValueExpression;
 import org.h2.expression.condition.Comparison;
 import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
 import org.h2.table.Column;
+import org.h2.table.IndexColumn;
 import org.h2.table.TableType;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
@@ -85,7 +87,7 @@ public class IndexCondition {
      * @param compareType the comparison type, see constants in
      *            {@link Comparison}
      */
-    private IndexCondition(int compareType, ExpressionColumn column, ExpressionList columns, Expression expression,
+    private IndexCondition(int compareType, ExpressionColumn column, Column[] columns, Expression expression,
                            List<Expression> list, Query query) {
 
         this.compareType = compareType;
@@ -95,12 +97,7 @@ public class IndexCondition {
             this.compoundColumns = false;
         } else if (columns !=null) {
             this.column = null;
-            int listSize = columns.getSubexpressionCount();
-            Column[] result = new Column[listSize];
-            for (int i = listSize; --i >= 0; ) {
-                result[i] = ((ExpressionColumn) columns.getSubexpression(i)).getColumn();
-            }
-            this.columns = result;
+            this.columns = columns;
             this.compoundColumns = true;
         } else {
             this.column = null;
@@ -143,7 +140,13 @@ public class IndexCondition {
      * @return the index condition
      */
     public static IndexCondition getCompoundInList(ExpressionList columns, List<Expression> list) {
-        return new IndexCondition(Comparison.IN_LIST, null, columns, null, list, null);
+        int listSize = columns.getSubexpressionCount();
+        Column[] cols = new Column[listSize];
+        for (int i = listSize; --i >= 0; ) {
+            cols[i] = ((ExpressionColumn) columns.getSubexpression(i)).getColumn();
+        }
+
+        return new IndexCondition(Comparison.IN_LIST, null, cols, null, list, null);
     }
 
     /**
@@ -504,6 +507,56 @@ public class IndexCondition {
         }
         return expressionQuery
                 .isEverything(ExpressionVisitor.EVALUATABLE_VISITOR);
+    }
+
+    /**
+     * Creates a copy of this index condition but using the {@link Index#getIndexColumns() columns} of the {@code index}.
+     * @param index a non-null Index
+     * @return a new IndexCondition with the specified columns, or {@code null} if the index does not match with this
+     * condition.
+     */
+    public IndexCondition cloneWithIndexColumns(Index index) {
+        if (!isCompoundColumns()) {
+            throw DbException.getInternalError("The cloneWithColumns() method cannot be with a single column.");
+        }
+
+        IndexColumn[] indexColumns = index.getIndexColumns();
+        int length = indexColumns.length;
+        if (length != columns.length) {
+            return null;
+        }
+
+        int[] newOrder = new int[length];
+        int found = 0;
+        for (int i = 0; i < length; i++) {
+            if (indexColumns[i] == null || indexColumns[i].column == null) {
+                return null;
+            }
+            for (int j = 0; j < this.columns.length; j++) {
+                if (columns[j] == indexColumns[i].column) {
+                    newOrder[j] = i;
+                    found++;
+                }
+            }
+        }
+        if (found != length) {
+            return null;
+        }
+
+        Column[] newColumns = new Column[length];
+        for(int i = 0; i < length; i++) {
+            newColumns[i] = columns[newOrder[i]];
+        }
+
+        List<Expression> newList = new ArrayList<>(length);
+        for (Expression expression: expressionList) {
+            ValueExpression valueExpression = (ValueExpression) expression;
+            ValueRow valueRow = (ValueRow) valueExpression.getValue(null);
+            ValueRow newRow = valueRow.cloneWithOrder(newOrder);
+            newList.add(ValueExpression.get(newRow));
+        }
+
+        return new IndexCondition(Comparison.IN_LIST, null, newColumns, null, newList, null);
     }
 
     @Override

@@ -214,10 +214,16 @@ public class IndexCursor implements Cursor {
             // only one IN(..) condition can be used at the same time
             return false;
         }
-        // The first column of the index must match this column,
-        // or it must be a VIEW index (where the column is null).
-        // Multiple IN conditions with views are not supported, see
-        // IndexCondition.getMask.
+        return canUseIndexForIn(index, columns);
+    }
+
+    /**
+     * Return {@code true} if {@link Index#getIndexColumns()} and the {@code columns} parameter contains the same
+     * elements in the same order. All column of the index must match the column in the {@code columns} array, or
+     * it must be a VIEW index (where the column is null).
+     * @see IndexCondition#getMask(ArrayList)
+     */
+    public static boolean canUseIndexForIn(Index index, Column[] columns) {
         IndexColumn[] cols = index.getIndexColumns();
         if (cols == null || cols.length != columns.length) {
             return true;

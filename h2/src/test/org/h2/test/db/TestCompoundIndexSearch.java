@@ -36,6 +36,7 @@ public class TestCompoundIndexSearch extends TestDb {
         simpleInAgainstFirstCompoundIndex(conn);
         simpleInAgainstSecondCompoundIndex(conn);
         compoundInAgainstCompoundIndex(conn);
+        compoundInAgainstCompoundIndex2(conn);
         compoundEqAgainstCompoundIndex(conn);
         multipleEqAgainstCompoundIndex(conn);
 
@@ -47,20 +48,20 @@ public class TestCompoundIndexSearch extends TestDb {
         deleteDb(DB_NAME);
         Connection conn = getConnection(DB_NAME);
         Statement stat = conn.createStatement();
-        stat.execute("CREATE TABLE test (a INT, b INT, c INT, d INT);");
+        stat.execute("CREATE TABLE test (a INT, b INT, c CHAR, d INT);");
         stat.execute("CREATE INDEX idx_a ON test(a);");
         stat.execute("CREATE INDEX idx_b_c ON test(b, c);");
         stat.execute("INSERT INTO test (a, b, c, d) VALUES " +
-                "(1, 1, 1, 1), " +
-                "(1, 1, 2, 2), " +
-                "(1, 3, 3, 3), " +
-                "(2, 2, 1, 4), " +
-                "(2, 3, 2, 1), " +
-                "(2, 3, 3, 2), " +
-                "(3, 2, 1, 3), " +
-                "(3, 2, 2, 4), " +
-                "(3, 3, 3, 1), " +
-                "(4, 1, 1, 2);"
+                "(1, 1, '1', 1), " +
+                "(1, 1, '2', 2), " +
+                "(1, 3, '3', 3), " +
+                "(2, 2, '1', 4), " +
+                "(2, 3, '2', 1), " +
+                "(2, 3, '3', 2), " +
+                "(3, 2, '1', 3), " +
+                "(3, 2, '2', 4), " +
+                "(3, 3, '3', 1), " +
+                "(4, 1, '1', 2);"
         );
         stat.close();
         return conn;
@@ -99,11 +100,11 @@ public class TestCompoundIndexSearch extends TestDb {
      */
     private void simpleInAgainstSecondCompoundIndex(Connection conn) throws Exception {
         Statement stat = conn.createStatement();
-        ResultSet rs = stat.executeQuery("EXPLAIN ANALYZE SELECT b, c FROM test WHERE c IN (1, 2)");
+        ResultSet rs = stat.executeQuery("EXPLAIN ANALYZE SELECT b, c FROM test WHERE c IN ('1', '2')");
         rs.next();
         assertContains(rs.getString(1).replaceAll("[\\r\\n\\s]+", " "),
                 "SELECT \"B\", \"C\" FROM \"PUBLIC\".\"TEST\" /* PUBLIC.IDX_B_C */ " +
-                        "/* scanCount: 11 */ WHERE \"C\" IN(1, 2)");
+                        "/* scanCount: 11 */ WHERE \"C\" IN('1', '2')");
         stat.close();
     }
 
@@ -112,12 +113,28 @@ public class TestCompoundIndexSearch extends TestDb {
      */
     private void compoundInAgainstCompoundIndex(Connection conn) throws Exception {
         Statement stat = conn.createStatement();
-        ResultSet rs = stat.executeQuery("EXPLAIN ANALYZE SELECT b, c FROM test WHERE (b, c) IN ((1, 1), (2, 2))");
+        ResultSet rs = stat.executeQuery("EXPLAIN ANALYZE SELECT b, c FROM test WHERE (b, c) IN ((2, '1'), (3, '2'))");
         rs.next();
         assertContains(rs.getString(1).replaceAll("[\\r\\n\\s]+", " "),
                 "SELECT \"B\", \"C\" FROM \"PUBLIC\".\"TEST\" " +
-                        "/* PUBLIC.IDX_B_C: IN(ROW (1, 1), ROW (2, 2)) AND B IN(1, 2) */ " +
-                        "/* scanCount: 4 */ WHERE ROW (\"B\", \"C\") IN(ROW (1, 1), ROW (2, 2))");
+                        "/* PUBLIC.IDX_B_C: IN(ROW (2, '1'), ROW (3, '2')) */ " +
+                        "/* scanCount: 4 */ WHERE ROW (\"B\", \"C\") IN(ROW (2, '1'), ROW (3, '2'))");
+        stat.close();
+    }
+
+    /**
+     * Executes a query with a compound IN condition against a compound index, but the condition columns are in different
+     * order than in the index.<br />
+     * condition (c, b) vs index (b, c)
+     */
+    private void compoundInAgainstCompoundIndex2(Connection conn) throws Exception {
+        Statement stat = conn.createStatement();
+        ResultSet rs = stat.executeQuery("EXPLAIN ANALYZE SELECT b, c FROM test WHERE (c, b) IN (('1', 2), ('2', 3))");
+        rs.next();
+        assertContains(rs.getString(1).replaceAll("[\\r\\n\\s]+", " "),
+                "SELECT \"B\", \"C\" FROM \"PUBLIC\".\"TEST\" " +
+                        "/* PUBLIC.IDX_B_C: IN(ROW (2, '1'), ROW (3, '2')) */ " +
+                        "/* scanCount: 4 */ WHERE ROW (\"C\", \"B\") IN(ROW ('1', 2), ROW ('2', 3))");
         stat.close();
     }
 
@@ -126,11 +143,11 @@ public class TestCompoundIndexSearch extends TestDb {
      */
     private void compoundEqAgainstCompoundIndex(Connection conn) throws Exception {
         Statement stat = conn.createStatement();
-        ResultSet rs = stat.executeQuery("EXPLAIN ANALYZE SELECT b, c FROM test WHERE (b, c) = (1, 1)");
+        ResultSet rs = stat.executeQuery("EXPLAIN ANALYZE SELECT b, c FROM test WHERE (b, c) = (1, '1')");
         rs.next();
         assertContains(rs.getString(1).replaceAll("[\\r\\n\\s]+", " "),
-                "SELECT \"B\", \"C\" FROM \"PUBLIC\".\"TEST\" /* PUBLIC.IDX_B_C: B = 1 AND C = 1 */ " +
-                        "/* scanCount: 3 */ WHERE ROW (\"B\", \"C\") = ROW (1, 1)");
+                "SELECT \"B\", \"C\" FROM \"PUBLIC\".\"TEST\" /* PUBLIC.IDX_B_C: B = 1 AND C = '1' */ " +
+                        "/* scanCount: 3 */ WHERE ROW (\"B\", \"C\") = ROW (1, '1')");
         stat.close();
     }
 
@@ -139,11 +156,11 @@ public class TestCompoundIndexSearch extends TestDb {
      */
     private void multipleEqAgainstCompoundIndex(Connection conn) throws Exception {
         Statement stat = conn.createStatement();
-        ResultSet rs = stat.executeQuery("EXPLAIN ANALYZE SELECT b, c FROM test WHERE b=1 AND c=1");
+        ResultSet rs = stat.executeQuery("EXPLAIN ANALYZE SELECT b, c FROM test WHERE b=1 AND c='1'");
         rs.next();
         assertContains(rs.getString(1).replaceAll("[\\r\\n\\s]+", " "),
-                "SELECT \"B\", \"C\" FROM \"PUBLIC\".\"TEST\" /* PUBLIC.IDX_B_C: B = 1 AND C = 1 */ " +
-                        "/* scanCount: 3 */ WHERE (\"B\" = 1) AND (\"C\" = 1)");
+                "SELECT \"B\", \"C\" FROM \"PUBLIC\".\"TEST\" /* PUBLIC.IDX_B_C: B = 1 AND C = '1' */ " +
+                        "/* scanCount: 3 */ WHERE (\"B\" = 1) AND (\"C\" = '1')");
         stat.close();
     }
 

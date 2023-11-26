@@ -5,6 +5,7 @@
  */
 package org.h2.test.store;
 
+import java.io.StringWriter;
 import java.util.Map.Entry;
 import java.util.Random;
 
@@ -22,6 +23,10 @@ import org.h2.test.TestBase;
  */
 public class TestMVStoreTool extends TestBase {
 
+    public static final String BIG_STRING_WITH_C = new String(new char[3000]).replace("\0", "c");
+    public static final String BIG_STRING_WITH_H = new String(new char[3000]).replace("\0", "H");
+
+
     /**
      * Run just this test.
      *
@@ -37,6 +42,7 @@ public class TestMVStoreTool extends TestBase {
     @Override
     public void test() throws Exception {
         testCompact();
+        testDump();
     }
 
     private void testCompact() {
@@ -146,6 +152,41 @@ public class TestMVStoreTool extends TestBase {
                 }
             }
         }
+    }
+
+    private void testDump() {
+        String fileName = getBaseDir() + "/testDump.h3";
+        FileUtils.createDirectories(getBaseDir());
+        FileUtils.delete(fileName);
+        // store with a very small page size, to make sure
+        // there are many leaf pages
+        MVStore s = new MVStore.Builder().
+                pageSplitSize(1000).
+                fileName(fileName).autoCommitDisabled().open();
+        s.setRetentionTime(0);
+        MVMap<Integer, String> map = s.openMap("data");
+
+        // Insert some data. Using big strings with "H" and "c" to validate the fix of #3931
+        int nbEntries = 20_000;
+        for (int i = 0; i < nbEntries; i++) {
+            map.put(i, i % 2 == 0 ? BIG_STRING_WITH_C : BIG_STRING_WITH_H);
+        }
+        s.commit();
+        // Let's rewrite the data to trigger some chunk compaction & drop
+        for (int i = 0; i < nbEntries; i++) {
+            map.put(i, i % 2 == 0 ? BIG_STRING_WITH_H : BIG_STRING_WITH_C);
+        }
+        s.commit();
+        s.close();
+        StringWriter dumpWriter = new StringWriter();
+        MVStoreTool.dump(fileName, dumpWriter, true);
+
+        int nbFileHeaders = nbOfOccurrences(dumpWriter.toString(), "fileHeader");
+        assertEquals("Exactly 2 file headers are expected in the dump", 2, nbFileHeaders);
+    }
+
+    private int nbOfOccurrences(String str, String pattern) {
+       return str.split(pattern,-1).length - 1;
     }
 
 }

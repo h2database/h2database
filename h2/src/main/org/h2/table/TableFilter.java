@@ -232,9 +232,21 @@ public class TableFilter implements ColumnResolver {
                     masks = null;
                     break;
                 }
-                int id = condition.getColumn().getColumnId();
-                if (id >= 0) {
-                    masks[id] |= condition.getMask(indexConditions);
+                if (condition.isCompoundColumns()) {
+                    // Set the op mask in case of compound columns as well.
+                    Column[] columns = condition.getColumns();
+                    for (int i = 0, n = columns.length; i < n; i++) {
+                        int id = columns[i].getColumnId();
+                        if (id >= 0) {
+                            masks[id] |= condition.getMask(indexConditions);
+                        }
+                    }
+                }
+                else {
+                    int id = condition.getColumn().getColumnId();
+                    if (id >= 0) {
+                        masks[id] |= condition.getMask(indexConditions);
+                    }
                 }
             }
         }
@@ -320,14 +332,54 @@ public class TableFilter implements ColumnResolver {
     public void prepare() {
         // forget all unused index conditions
         // the indexConditions list may be modified here
+        boolean compoundIndexConditionFound = false;
         for (int i = 0; i < indexConditions.size(); i++) {
             IndexCondition condition = indexConditions.get(i);
             if (!condition.isAlwaysFalse()) {
-                Column col = condition.getColumn();
-                if (col.getColumnId() >= 0) {
-                    if (index.getColumnIndex(col) < 0) {
+                if (compoundIndexConditionFound) {
+                    // A compound index condition is already found. We cannot use other indexes with it, so removing
+                    // everything else. The compound condition was added first.
+                    // See: ConditionIn#createIndexConditions(SessionLocal, TableFilter)
+                    indexConditions.remove(i);
+                    i--;
+                } else if (condition.isCompoundColumns()) {
+                    if ( index.getIndexType().isScan() ) {
+                        // This is only a pseudo index.
                         indexConditions.remove(i);
                         i--;
+                        continue;
+                    }
+                    // Checking the columns match with the index.
+                    if (IndexCursor.canUseIndexForIn(index, condition.getColumns())) {
+                        // The condition uses the exact columns in the right order.
+                        compoundIndexConditionFound = true;
+                        continue;
+                    }
+                    // Trying to fix the order of the condition columns.
+                    IndexCondition fixedCondition = condition.cloneWithIndexColumns(index);
+                    if (fixedCondition != null) {
+                        indexConditions.set(i, fixedCondition);
+                        compoundIndexConditionFound = true;
+                        continue;
+                    }
+                    // Index condition cannot be used.
+                    indexConditions.remove(i);
+                    i--;
+                } else {
+                    Column col = condition.getColumn();
+                    if (col.getColumnId() >= 0) {
+                        int columnIndex = index.getColumnIndex(col);
+                        if (columnIndex == 0) {
+                            // The first column of the index always matches.
+                            continue;
+                        }
+                        if (columnIndex < 0 || condition.getCompareType() == Comparison.IN_LIST ) {
+                            // The index does not contain the column, or this is an IN() condition which can be used
+                            // only if the first index column is the searched one.
+                            // See: IndexCursor#canUseIndexFor(column)
+                            indexConditions.remove(i);
+                            i--;
+                        }
                     }
                 }
             }

@@ -6,6 +6,7 @@
 package org.h2.table;
 
 import java.sql.ResultSetMetaData;
+import java.util.Arrays;
 import java.util.Objects;
 
 import org.h2.api.ErrorCode;
@@ -25,10 +26,12 @@ import org.h2.schema.Sequence;
 import org.h2.util.HasSQL;
 import org.h2.util.ParserUtil;
 import org.h2.util.StringUtils;
+import org.h2.value.ExtTypeInfoRow;
 import org.h2.value.TypeInfo;
 import org.h2.value.Typed;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
+import org.h2.value.ValueRow;
 import org.h2.value.ValueUuid;
 
 /**
@@ -185,6 +188,36 @@ public final class Column implements HasSQL, Typed, ColumnTemplate {
             }
             throw e;
         }
+    }
+
+
+    /**
+     * Converts the values in a ValueRow based on the passed column info.
+     * Creates a new instance if any of the contained item must be converted. Otherwise, returns the same {@code valueRow}.
+     *
+     * @param provider the cast information provider
+     * @param columns the column info list used for the conversation
+     * @param valueRow the holder of the values
+     * @return a ValueRow which contains the converted values
+     *
+     * @see Column#convert(CastDataProvider, Value)
+     */
+    public static ValueRow convert(CastDataProvider provider, Column[] columns, ValueRow valueRow) {
+        Value[] copy = null;
+        Value[] values = valueRow.getList();
+        for (int i = values.length; --i >= 0; ) {
+            Value v = values[i];
+            Value nv = columns[i].convert(provider, v);
+            if (v != nv) {
+                if (copy == null)
+                    copy = Arrays.copyOf(values, values.length);
+                copy[i] = nv;
+            }
+        }
+        if (copy == null)
+            return valueRow;
+        TypeInfo typeInfo = TypeInfo.getTypeInfo(Value.ROW, 0, 0, new ExtTypeInfoRow(columns));
+        return ValueRow.get(typeInfo, copy);
     }
 
     /**

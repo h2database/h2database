@@ -9,15 +9,20 @@ import org.h2.test.TestBase;
 import org.h2.test.TestDb;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
- * Test various queries against compound indexes.
+ * Test various queries with hardcoded, and {@link PreparedStatement#setObject(int, Object) prepared statement} parameters.
+ * The test cases are the same as in {@link TestCompoundIndexSearch} but we are checking whether the hard coded, and
+ * the passed parameters works as the same.
  */
-public class TestCompoundIndexSearch extends TestDb {
+public class TestParamSearch extends TestDb {
 
-    private static final String DB_NAME = "compoundIndexSearch";
+    private static final String DB_NAME = "paramSearch";
 
     /**
      * Run just this test.
@@ -69,6 +74,15 @@ public class TestCompoundIndexSearch extends TestDb {
         return conn;
     }
 
+    private static String findScanCount(String input) {
+        Pattern pattern = Pattern.compile("\\/\\* scanCount: (\\d+) \\*\\/");
+        Matcher matcher = pattern.matcher(input.replaceAll("[\\r\\n\\s]+", " "));
+        if (matcher.find()) {
+            return matcher.group(1);
+        }
+        return "";
+    }
+
     /**
      * Executes a query with a simple IN condition against an indexed column.
      */
@@ -76,9 +90,14 @@ public class TestCompoundIndexSearch extends TestDb {
         Statement stat = conn.createStatement();
         ResultSet rs = stat.executeQuery("EXPLAIN ANALYZE SELECT b, c FROM test WHERE (a) IN (1, 4)");
         rs.next();
-        assertEquals(rs.getString(1).replaceAll("[\\r\\n\\s]+", " "),
-                "SELECT \"B\", \"C\" FROM \"PUBLIC\".\"TEST\" /* PUBLIC.IDX_A: A IN(1, 4) */ " +
-                        "/* scanCount: 5 */ WHERE \"A\" IN(1, 4)");
+        String expected = findScanCount(rs.getString(1));
+
+        PreparedStatement pStat = conn.prepareStatement("EXPLAIN ANALYZE SELECT b, c FROM test WHERE (a) IN (?, ?)");
+        pStat.setInt(1, 1);
+        pStat.setInt(2, 4);
+        rs = pStat.executeQuery();
+        rs.next();
+        assertEquals(findScanCount(rs.getString(1)), expected);
         stat.close();
     }
 
@@ -90,9 +109,14 @@ public class TestCompoundIndexSearch extends TestDb {
         Statement stat = conn.createStatement();
         ResultSet rs = stat.executeQuery("EXPLAIN ANALYZE SELECT b, c FROM test WHERE b IN (1, 2)");
         rs.next();
-        assertEquals(rs.getString(1).replaceAll("[\\r\\n\\s]+", " "),
-                "SELECT \"B\", \"C\" FROM \"PUBLIC\".\"TEST\" /* PUBLIC.IDX_B_C: B IN(1, 2) */ " +
-                        "/* scanCount: 7 */ WHERE \"B\" IN(1, 2)");
+        String expected = findScanCount(rs.getString(1));
+
+        PreparedStatement pStat = conn.prepareStatement("EXPLAIN ANALYZE SELECT b, c FROM test WHERE b IN (?, ?)");
+        pStat.setInt(1, 1);
+        pStat.setInt(2, 2);
+        rs = pStat.executeQuery();
+        rs.next();
+        assertEquals(findScanCount(rs.getString(1)), expected);
         stat.close();
     }
 
@@ -104,9 +128,14 @@ public class TestCompoundIndexSearch extends TestDb {
         Statement stat = conn.createStatement();
         ResultSet rs = stat.executeQuery("EXPLAIN ANALYZE SELECT b, c FROM test WHERE c IN ('1', '2')");
         rs.next();
-        assertEquals(rs.getString(1).replaceAll("[\\r\\n\\s]+", " "),
-                "SELECT \"B\", \"C\" FROM \"PUBLIC\".\"TEST\" /* PUBLIC.IDX_B_C */ " +
-                        "/* scanCount: 11 */ WHERE \"C\" IN('1', '2')");
+        String expected = findScanCount(rs.getString(1));
+
+        PreparedStatement pStat = conn.prepareStatement("EXPLAIN ANALYZE SELECT b, c FROM test WHERE c IN (?, ?)");
+        pStat.setString(1, "1");
+        pStat.setString(2, "2");
+        rs = pStat.executeQuery();
+        rs.next();
+        assertEquals(findScanCount(rs.getString(1)), expected);
         stat.close();
     }
 
@@ -117,10 +146,16 @@ public class TestCompoundIndexSearch extends TestDb {
         Statement stat = conn.createStatement();
         ResultSet rs = stat.executeQuery("EXPLAIN ANALYZE SELECT b, c FROM test WHERE (b, c) IN ((2, '1'), (3, '2'))");
         rs.next();
-        assertEquals(rs.getString(1).replaceAll("[\\r\\n\\s]+", " "),
-                "SELECT \"B\", \"C\" FROM \"PUBLIC\".\"TEST\" " +
-                        "/* PUBLIC.IDX_B_C: IN(ROW (2, '1'), ROW (3, '2')) */ " +
-                        "/* scanCount: 4 */ WHERE ROW (\"B\", \"C\") IN(ROW (2, '1'), ROW (3, '2'))");
+        String expected = findScanCount(rs.getString(1));
+
+        PreparedStatement pStat = conn.prepareStatement("EXPLAIN ANALYZE SELECT b, c FROM test WHERE (b, c) IN ((?, ?), (?, ?))");
+        pStat.setInt(1, 2);
+        pStat.setString(2, "1");
+        pStat.setInt(3, 3);
+        pStat.setString(4, "2");
+        rs = pStat.executeQuery();
+        rs.next();
+        assertEquals(findScanCount(rs.getString(1)), expected);
         stat.close();
     }
 
@@ -133,10 +168,16 @@ public class TestCompoundIndexSearch extends TestDb {
         Statement stat = conn.createStatement();
         ResultSet rs = stat.executeQuery("EXPLAIN ANALYZE SELECT b, c FROM test WHERE (c, b) IN (('1', 2), ('2', 3))");
         rs.next();
-        assertEquals(rs.getString(1).replaceAll("[\\r\\n\\s]+", " "),
-                "SELECT \"B\", \"C\" FROM \"PUBLIC\".\"TEST\" " +
-                        "/* PUBLIC.IDX_B_C: IN(ROW (2, '1'), ROW (3, '2')) */ " +
-                        "/* scanCount: 4 */ WHERE ROW (\"C\", \"B\") IN(ROW ('1', 2), ROW ('2', 3))");
+        String expected = findScanCount(rs.getString(1));
+
+        PreparedStatement pStat = conn.prepareStatement("EXPLAIN ANALYZE SELECT b, c FROM test WHERE (c, b) IN ((?, ?), (?, ?))");
+        pStat.setString(1, "1");
+        pStat.setInt(2, 2);
+        pStat.setString(3, "2");
+        pStat.setInt(4, 3);
+        rs = pStat.executeQuery();
+        rs.next();
+        assertEquals(findScanCount(rs.getString(1)), expected);
         stat.close();
     }
 
@@ -150,12 +191,21 @@ public class TestCompoundIndexSearch extends TestDb {
         ResultSet rs = stat.executeQuery("EXPLAIN ANALYZE SELECT * FROM TEST_NULL " +
                 "WHERE (A, B) IN ((1, 1), (2, 1), (2, 2), (2, NULL))");
         rs.next();
-        assertEquals(rs.getString(1).replaceAll("[\\r\\n\\s]+", " "),
-                "SELECT \"PUBLIC\".\"TEST_NULL\".\"A\", \"PUBLIC\".\"TEST_NULL\".\"B\" " +
-                        "FROM \"PUBLIC\".\"TEST_NULL\" /* PUBLIC.TEST_NULL.tableScan */ " +
-                        "/* scanCount: 5 */ WHERE ROW (\"A\", \"B\") " +
-                        "IN(ROW (1, 1), ROW (2, 1), ROW (2, 2), ROW (2, NULL))");
-        stat.execute("DROP TABLE TEST_NULL;");
+        String expected = findScanCount(rs.getString(1));
+
+        PreparedStatement pStat = conn.prepareStatement("EXPLAIN ANALYZE SELECT * FROM TEST_NULL " +
+                "WHERE (A, B) IN ((?, ?), (?, ?), (?, ?), (?, ?))");
+        pStat.setInt(1, 1);
+        pStat.setInt(2, 1);
+        pStat.setInt(3, 1);
+        pStat.setInt(4, 2);
+        pStat.setInt(5, 2);
+        pStat.setInt(6, 1);
+        pStat.setInt(7, 2);
+        pStat.setObject(8, null);
+        rs = pStat.executeQuery();
+        rs.next();
+        assertEquals(findScanCount(rs.getString(1)), expected);
         stat.close();
     }
 
@@ -166,10 +216,16 @@ public class TestCompoundIndexSearch extends TestDb {
         Statement stat = conn.createStatement();
         ResultSet rs = stat.executeQuery("EXPLAIN ANALYZE SELECT a, d FROM test WHERE (a, d) IN ((1, 3), (2, 4))");
         rs.next();
-        assertEquals(rs.getString(1).replaceAll("[\\r\\n\\s]+", " "),
-                "SELECT \"A\", \"D\" FROM \"PUBLIC\".\"TEST\" " +
-                        "/* PUBLIC.IDX_A: A IN(1, 2) */ " +
-                        "/* scanCount: 7 */ WHERE ROW (\"A\", \"D\") IN(ROW (1, 3), ROW (2, 4))");
+        String expected = findScanCount(rs.getString(1));
+
+        PreparedStatement pStat = conn.prepareStatement("EXPLAIN ANALYZE SELECT a, d FROM test WHERE (a, d) IN ((?, ?), (?, ?))");
+        pStat.setInt(1, 1);
+        pStat.setInt(2, 3);
+        pStat.setInt(3, 2);
+        pStat.setInt(4, 4);
+        rs = pStat.executeQuery();
+        rs.next();
+        assertEquals(findScanCount(rs.getString(1)), expected);
         stat.close();
     }
 
@@ -180,9 +236,14 @@ public class TestCompoundIndexSearch extends TestDb {
         Statement stat = conn.createStatement();
         ResultSet rs = stat.executeQuery("EXPLAIN ANALYZE SELECT b, c FROM test WHERE (b, c) = (1, '1')");
         rs.next();
-        assertEquals(rs.getString(1).replaceAll("[\\r\\n\\s]+", " "),
-                "SELECT \"B\", \"C\" FROM \"PUBLIC\".\"TEST\" /* PUBLIC.IDX_B_C: B = 1 AND C = '1' */ " +
-                        "/* scanCount: 3 */ WHERE ROW (\"B\", \"C\") = ROW (1, '1')");
+        String expected = findScanCount(rs.getString(1));
+
+        PreparedStatement pStat = conn.prepareStatement("EXPLAIN ANALYZE SELECT b, c FROM test WHERE (b, c) = (?, ?)");
+        pStat.setInt(1, 1);
+        pStat.setString(2, "1");
+        rs = pStat.executeQuery();
+        rs.next();
+        assertEquals(findScanCount(rs.getString(1)), expected);
         stat.close();
     }
 
@@ -193,9 +254,14 @@ public class TestCompoundIndexSearch extends TestDb {
         Statement stat = conn.createStatement();
         ResultSet rs = stat.executeQuery("EXPLAIN ANALYZE SELECT b, c FROM test WHERE b=1 AND c='1'");
         rs.next();
-        assertEquals(rs.getString(1).replaceAll("[\\r\\n\\s]+", " "),
-                "SELECT \"B\", \"C\" FROM \"PUBLIC\".\"TEST\" /* PUBLIC.IDX_B_C: B = 1 AND C = '1' */ " +
-                        "/* scanCount: 3 */ WHERE (\"B\" = 1) AND (\"C\" = '1')");
+        String expected = findScanCount(rs.getString(1));
+
+        PreparedStatement pStat = conn.prepareStatement("EXPLAIN ANALYZE SELECT b, c FROM test WHERE b=? AND c=?");
+        pStat.setInt(1, 1);
+        pStat.setString(2, "1");
+        rs = pStat.executeQuery();
+        rs.next();
+        assertEquals(findScanCount(rs.getString(1)), expected);
         stat.close();
     }
 

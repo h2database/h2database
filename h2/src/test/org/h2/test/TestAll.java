@@ -63,6 +63,7 @@ import org.h2.test.db.TestMultiThreadedKernel;
 import org.h2.test.db.TestOpenClose;
 import org.h2.test.db.TestOptimizations;
 import org.h2.test.db.TestOutOfMemory;
+import org.h2.test.db.TestParamSearch;
 import org.h2.test.db.TestPersistentCommonTableExpressions;
 import org.h2.test.db.TestPowerOff;
 import org.h2.test.db.TestQueryCache;
@@ -734,6 +735,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
             addTest(new TestIndex());
             addTest(new TestIndexHints());
             addTest(new TestCompoundIndexSearch());
+            addTest(new TestParamSearch());
             addTest(new TestLargeBlob());
             addTest(new TestLinkedTable());
             addTest(new TestListener());

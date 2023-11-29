@@ -6,6 +6,7 @@
 package org.h2.expression;
 
 import org.h2.engine.SessionLocal;
+import org.h2.message.DbException;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.value.ExtTypeInfoRow;
@@ -135,6 +136,28 @@ public final class ExpressionList extends Expression {
 
     public boolean isArray() {
         return isArray;
+    }
+
+    /**
+     * Creates a copy of this expression list but the new instance will contain the subexpressions according to
+     * {@code newOrder}.<br />
+     * E.g.: ROW (?1, ?2).cloneWithOrder([1, 0]) returns ROW (?2, ?1)
+     * @param newOrder array of indexes to create the new subexpression array
+     */
+    public ExpressionList cloneWithOrder(int[] newOrder) {
+        int length = list.length;
+        if (newOrder.length != list.length) {
+            throw DbException.getInternalError("Length of the new orders is different than list size.");
+        }
+
+        Expression[] newList = new Expression[length];
+        for (int i = 0; i < length; i++) {
+            newList[i] = list[newOrder[i]];
+        }
+
+        ExpressionList clone = new ExpressionList(newList, isArray);
+        clone.initializeType();
+        return clone;
     }
 
 }

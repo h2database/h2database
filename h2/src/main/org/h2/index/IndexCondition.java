@@ -550,10 +550,19 @@ public class IndexCondition {
 
         List<Expression> newList = new ArrayList<>(length);
         for (Expression expression: expressionList) {
-            ValueExpression valueExpression = (ValueExpression) expression;
-            ValueRow valueRow = (ValueRow) valueExpression.getValue(null);
-            ValueRow newRow = valueRow.cloneWithOrder(newOrder);
-            newList.add(ValueExpression.get(newRow));
+            if (expression instanceof ValueExpression) {
+                ValueExpression valueExpression = (ValueExpression) expression;
+                ValueRow currentRow = (ValueRow) valueExpression.getValue(null);
+                ValueRow newRow = currentRow.cloneWithOrder(newOrder);
+                newList.add(ValueExpression.get(newRow));
+            } else if (expression instanceof ExpressionList) {
+                ExpressionList currentRow = (ExpressionList) expression;
+                ExpressionList newRow = currentRow.cloneWithOrder(newOrder);
+                newList.add(newRow);
+            }
+            else {
+                throw DbException.getInternalError("Unexpected expression type: " + expression.getClass());
+            }
         }
 
         return new IndexCondition(Comparison.IN_LIST, null, newColumns, null, newList, null);

@@ -10,10 +10,10 @@ import org.h2.engine.SessionLocal;
 import org.h2.expression.condition.Comparison;
 import org.h2.message.DbException;
 import org.h2.table.Column;
-import org.h2.value.TypeInfo;
-import org.h2.value.Value;
-import org.h2.value.ValueNull;
-import org.h2.value.ValueVarchar;
+import org.h2.value.*;
+
+import static java.util.Arrays.asList;
+import static org.h2.value.Value.*;
 
 /**
  * A parameter of a prepared statement.
@@ -55,6 +55,13 @@ public final class Parameter extends Operation0 implements ParameterInterface {
 
     @Override
     public Value getValue(SessionLocal session) {
+        if (value == null) {
+            // to allow parameters in function tables
+            return ValueNull.INSTANCE;
+        }
+        if(column != null && asList(TIME, TIME_TZ, TIMESTAMP, TIMESTAMP_TZ).contains(value.getValueType())) {
+            return value.convertForAssignTo(column.getType(), session, column);
+        }
         return getParamValue();
     }
 

@@ -473,7 +473,7 @@ public abstract class Query extends Prepared {
         for (int i = 0; i < size; i++) {
             Parameter parameter = list.get(i);
             // Derived tables can have gaps in parameters
-            params[i] = parameter != null ? parameter.getParamValue() : null;
+            params[i] = parameter != null ? parameter.getValue(session) : null;
         }
         return params;
     }

@@ -26,15 +26,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.sql.Types;
-import java.time.Duration;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.OffsetDateTime;
-import java.time.OffsetTime;
-import java.time.Period;
-import java.time.ZonedDateTime;
+import java.time.*;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
@@ -47,6 +39,8 @@ import org.h2.api.IntervalQualifier;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
 import org.h2.util.Task;
+
+import static java.util.TimeZone.getTimeZone;
 
 /**
  * Tests for the PreparedStatement implementation.
@@ -836,6 +830,38 @@ public class TestPreparedStatement extends TestDb {
         testInstant8Impl(prep, Instant.now());
         testInstant8Impl(prep, Instant.parse("2000-01-15T12:13:14.123456789Z"));
         testInstant8Impl(prep, Instant.parse("1500-09-10T23:22:11.123456789Z"));
+        prep.close();
+
+        testInstant8UsesCorrectPrecision(conn);
+    }
+
+    private void testInstant8UsesCorrectPrecision(Connection conn) throws SQLException {
+        Statement stat = conn.createStatement();
+        stat.execute("DROP TABLE TEST_INSTANT IF EXISTS");
+        stat.execute("CREATE TABLE TEST_INSTANT(INSTANT TIMESTAMP NOT NULL)");
+        stat.close();
+
+        Instant instant = Instant.parse("2023-11-30T09:39:52.687483838Z");
+        PreparedStatement insertStatement = conn.prepareStatement("INSERT INTO TEST_INSTANT values (?)");
+        insertStatement.setTimestamp(1, Timestamp.from(instant), Calendar.getInstance(getTimeZone(ZoneOffset.UTC)));
+        insertStatement.execute();
+        insertStatement.close();
+
+        PreparedStatement selectStatement = conn.prepareStatement("SELECT count(*) FROM TEST_INSTANT WHERE INSTANT = ?");
+
+        selectStatement.setTimestamp(1, Timestamp.from(Instant.parse("2023-11-30T09:39:52.687484Z")), Calendar.getInstance(getTimeZone(ZoneOffset.UTC)));
+        ResultSet selectResult1 = selectStatement.executeQuery();
+        selectResult1.next();
+        assertEquals(1, selectResult1.getInt(1));
+
+        selectStatement.setTimestamp(1, Timestamp.from(instant), Calendar.getInstance(getTimeZone(ZoneOffset.UTC)));
+        ResultSet selectResult2 = selectStatement.executeQuery();
+        selectResult2.next();
+        assertEquals(1, selectResult2.getInt(1));
+
+        selectResult1.close();
+        selectResult2.close();
+        selectStatement.close();
     }
 
     private void testInstant8Impl(PreparedStatement prep, Instant instant) throws SQLException {

@@ -20,7 +20,7 @@ import java.util.regex.Pattern;
  * The test cases are the same as in {@link TestCompoundIndexSearch} but we are checking whether the hard coded, and
  * the passed parameters works as the same.
  */
-public class TestParamSearch extends TestDb {
+public class TestCompoundIndexParamSearch extends TestDb {
 
     private static final String DB_NAME = "paramSearch";
 

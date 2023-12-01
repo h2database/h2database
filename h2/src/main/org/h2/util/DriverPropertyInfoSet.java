@@ -57,7 +57,7 @@ public class DriverPropertyInfoSet {
                 newProp("MAX_COMPACT_TIME", 200, "Database setting MAX_COMPACT_TIME (default: 200). \nThe maximum time in milliseconds used to compact a database when closing."),
                 newProp("MAX_QUERY_TIMEOUT", 0, "Database setting MAX_QUERY_TIMEOUT (default: 0). \nThe maximum timeout of a query in milliseconds. \nThe default is 0, meaning no limit. \nPlease note the actual query timeout may be set to a lower value."),
                 newProp("MODE", null, "Compatibility modes for IBM DB2, Apache Derby, HSQLDB, MS SQL Server, MySQL, Oracle, and PostgreSQL.",
-                        "REGULAR", "STRICT", "LEGACY", "DB2", "Derby", "MariaDB", "MSSQLServer", "HSQLDB", "MySQL", "Oracle", "PostgreSQL"),
+                        null, "REGULAR", "STRICT", "LEGACY", "DB2", "Derby", "MariaDB", "MSSQLServer", "HSQLDB", "MySQL", "Oracle", "PostgreSQL"),
                 newProp("MV_STORE", true, "Database setting MV_STORE (default: true). \nUse the MVStore storage engine."),
                 newProp("OPTIMIZE_DISTINCT", true, "Database setting OPTIMIZE_DISTINCT (default: true). \nImprove the performance of simple DISTINCT queries if an index is available for the given column. \nThe optimization is used if: <ul> <li>The select is a single column query without condition </li> <li>The query contains only one table, and no group by </li> <li>There is only one table involved </li> <li>There is an ascending index on the column </li> <li>The selectivity of the column is below 20 </li> </ul>"),
                 newProp("OPTIMIZE_EVALUATABLE_SUBQUERIES", true, "Database setting OPTIMIZE_EVALUATABLE_SUBQUERIES (default: true). \nOptimize subqueries that are not dependent on the outer query."),

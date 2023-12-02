@@ -33,6 +33,8 @@ import org.h2.util.Utils;
  */
 public class MVStoreTool {
 
+    public static final int MAX_NB_FILE_HEADERS_PER_FILE = 2;
+
     /**
      * Runs this tool.
      * Options are case sensitive. Supported options are:
@@ -119,6 +121,7 @@ public class MVStoreTool {
             int len = Long.toHexString(fileSize).length();
             ByteBuffer buffer = ByteBuffer.allocate(4096);
             long pageCount = 0;
+            int readFileHeaderCount = 0;
             for (long pos = 0; pos < fileSize; ) {
                 buffer.rewind();
                 // Bugfix - An MVStoreException that wraps EOFException is
@@ -134,11 +137,12 @@ public class MVStoreTool {
                 }
                 buffer.rewind();
                 int headerType = buffer.get();
-                if (headerType == 'H') {
+                if (headerType == 'H' && readFileHeaderCount < MAX_NB_FILE_HEADERS_PER_FILE) {
                     String header = new String(buffer.array(), StandardCharsets.ISO_8859_1).trim();
                     pw.printf("%0" + len + "x fileHeader %s%n",
                             pos, header);
                     pos += blockSize;
+                    readFileHeaderCount++;
                     continue;
                 }
                 if (headerType != 'c') {
@@ -150,6 +154,9 @@ public class MVStoreTool {
                 try {
                     c = new SFChunk(Chunk.readChunkHeader(buffer));
                 } catch (MVStoreException e) {
+                    // Chunks are not always contiguous (due to chunk compaction/move/drop and space re-use)
+                    // Blocks following a chunk can therefore contain something else than a valid chunk header
+                    // In that case, let's move to the next block
                     pos += blockSize;
                     continue;
                 }

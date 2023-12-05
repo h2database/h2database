@@ -24,6 +24,8 @@ public class TestCompoundIndexParamSearch extends TestDb {
 
     private static final String DB_NAME = "paramSearch";
 
+    private static final Pattern SCAN_COUNT_PATTERN = Pattern.compile("\\/\\* scanCount: (\\d+) \\*\\/");
+
     /**
      * Run just this test.
      *
@@ -75,8 +77,7 @@ public class TestCompoundIndexParamSearch extends TestDb {
     }
 
     private static String findScanCount(String input) {
-        Pattern pattern = Pattern.compile("\\/\\* scanCount: (\\d+) \\*\\/");
-        Matcher matcher = pattern.matcher(input.replaceAll("[\\r\\n\\s]+", " "));
+        Matcher matcher = SCAN_COUNT_PATTERN.matcher(input.replaceAll("[\\r\\n\\s]+", " "));
         if (matcher.find()) {
             return matcher.group(1);
         }
@@ -91,14 +92,22 @@ public class TestCompoundIndexParamSearch extends TestDb {
         ResultSet rs = stat.executeQuery("EXPLAIN ANALYZE SELECT b, c FROM test WHERE (a) IN (1, 4)");
         rs.next();
         String expected = findScanCount(rs.getString(1));
+        stat.close();
 
-        PreparedStatement pStat = conn.prepareStatement("EXPLAIN ANALYZE SELECT b, c FROM test WHERE (a) IN (?, ?)");
+        PreparedStatement pStat = conn.prepareStatement("EXPLAIN ANALYZE SELECT b, c FROM test WHERE (a) IN (1, ?)");
+        pStat.setInt(1, 4);
+        rs = pStat.executeQuery();
+        rs.next();
+        assertEquals(findScanCount(rs.getString(1)), expected);
+        pStat.close();
+
+        pStat = conn.prepareStatement("EXPLAIN ANALYZE SELECT b, c FROM test WHERE (a) IN (?, ?)");
         pStat.setInt(1, 1);
         pStat.setInt(2, 4);
         rs = pStat.executeQuery();
         rs.next();
         assertEquals(findScanCount(rs.getString(1)), expected);
-        stat.close();
+        pStat.close();
     }
 
     /**
@@ -110,14 +119,22 @@ public class TestCompoundIndexParamSearch extends TestDb {
         ResultSet rs = stat.executeQuery("EXPLAIN ANALYZE SELECT b, c FROM test WHERE b IN (1, 2)");
         rs.next();
         String expected = findScanCount(rs.getString(1));
+        stat.close();
 
-        PreparedStatement pStat = conn.prepareStatement("EXPLAIN ANALYZE SELECT b, c FROM test WHERE b IN (?, ?)");
+        PreparedStatement pStat = conn.prepareStatement("EXPLAIN ANALYZE SELECT b, c FROM test WHERE b IN (1, ?)");
+        pStat.setInt(1, 2);
+        rs = pStat.executeQuery();
+        rs.next();
+        assertEquals(findScanCount(rs.getString(1)), expected);
+        pStat.close();
+
+        pStat = conn.prepareStatement("EXPLAIN ANALYZE SELECT b, c FROM test WHERE b IN (?, ?)");
         pStat.setInt(1, 1);
         pStat.setInt(2, 2);
         rs = pStat.executeQuery();
         rs.next();
         assertEquals(findScanCount(rs.getString(1)), expected);
-        stat.close();
+        pStat.close();
     }
 
     /**
@@ -129,14 +146,22 @@ public class TestCompoundIndexParamSearch extends TestDb {
         ResultSet rs = stat.executeQuery("EXPLAIN ANALYZE SELECT b, c FROM test WHERE c IN ('1', '2')");
         rs.next();
         String expected = findScanCount(rs.getString(1));
+        stat.close();
 
-        PreparedStatement pStat = conn.prepareStatement("EXPLAIN ANALYZE SELECT b, c FROM test WHERE c IN (?, ?)");
+        PreparedStatement pStat = conn.prepareStatement("EXPLAIN ANALYZE SELECT b, c FROM test WHERE c IN ('1', ?)");
+        pStat.setString(1, "2");
+        rs = pStat.executeQuery();
+        rs.next();
+        assertEquals(findScanCount(rs.getString(1)), expected);
+        pStat.close();
+
+        pStat = conn.prepareStatement("EXPLAIN ANALYZE SELECT b, c FROM test WHERE c IN (?, ?)");
         pStat.setString(1, "1");
         pStat.setString(2, "2");
         rs = pStat.executeQuery();
         rs.next();
         assertEquals(findScanCount(rs.getString(1)), expected);
-        stat.close();
+        pStat.close();
     }
 
     /**
@@ -147,8 +172,17 @@ public class TestCompoundIndexParamSearch extends TestDb {
         ResultSet rs = stat.executeQuery("EXPLAIN ANALYZE SELECT b, c FROM test WHERE (b, c) IN ((2, '1'), (3, '2'))");
         rs.next();
         String expected = findScanCount(rs.getString(1));
+        stat.close();
 
-        PreparedStatement pStat = conn.prepareStatement("EXPLAIN ANALYZE SELECT b, c FROM test WHERE (b, c) IN ((?, ?), (?, ?))");
+        PreparedStatement pStat = conn.prepareStatement("EXPLAIN ANALYZE SELECT b, c FROM test WHERE (b, c) IN ((2, ?), (3, ?))");
+        pStat.setString(1, "1");
+        pStat.setString(2, "2");
+        rs = pStat.executeQuery();
+        rs.next();
+        assertEquals(findScanCount(rs.getString(1)), expected);
+        pStat.close();
+
+        pStat = conn.prepareStatement("EXPLAIN ANALYZE SELECT b, c FROM test WHERE (b, c) IN ((?, ?), (?, ?))");
         pStat.setInt(1, 2);
         pStat.setString(2, "1");
         pStat.setInt(3, 3);
@@ -156,7 +190,7 @@ public class TestCompoundIndexParamSearch extends TestDb {
         rs = pStat.executeQuery();
         rs.next();
         assertEquals(findScanCount(rs.getString(1)), expected);
-        stat.close();
+        pStat.close();
     }
 
     /**
@@ -169,8 +203,17 @@ public class TestCompoundIndexParamSearch extends TestDb {
         ResultSet rs = stat.executeQuery("EXPLAIN ANALYZE SELECT b, c FROM test WHERE (c, b) IN (('1', 2), ('2', 3))");
         rs.next();
         String expected = findScanCount(rs.getString(1));
+        stat.close();
 
-        PreparedStatement pStat = conn.prepareStatement("EXPLAIN ANALYZE SELECT b, c FROM test WHERE (c, b) IN ((?, ?), (?, ?))");
+        PreparedStatement pStat = conn.prepareStatement("EXPLAIN ANALYZE SELECT b, c FROM test WHERE (c, b) IN (('1', ?), ('2', ?))");
+        pStat.setInt(1, 2);
+        pStat.setInt(2, 3);
+        rs = pStat.executeQuery();
+        rs.next();
+        assertEquals(findScanCount(rs.getString(1)), expected);
+        pStat.close();
+
+        pStat = conn.prepareStatement("EXPLAIN ANALYZE SELECT b, c FROM test WHERE (c, b) IN ((?, ?), (?, ?))");
         pStat.setString(1, "1");
         pStat.setInt(2, 2);
         pStat.setString(3, "2");
@@ -178,7 +221,7 @@ public class TestCompoundIndexParamSearch extends TestDb {
         rs = pStat.executeQuery();
         rs.next();
         assertEquals(findScanCount(rs.getString(1)), expected);
-        stat.close();
+        pStat.close();
     }
 
     /**
@@ -192,8 +235,20 @@ public class TestCompoundIndexParamSearch extends TestDb {
                 "WHERE (A, B) IN ((1, 1), (2, 1), (2, 2), (2, NULL))");
         rs.next();
         String expected = findScanCount(rs.getString(1));
+        stat.close();
 
         PreparedStatement pStat = conn.prepareStatement("EXPLAIN ANALYZE SELECT * FROM TEST_NULL " +
+                "WHERE (A, B) IN ((1, ?), (2, ?), (2, ?), (2, ?))");
+        pStat.setInt(1, 1);
+        pStat.setInt(2, 1);
+        pStat.setInt(3, 2);
+        pStat.setObject(4, null);
+        rs = pStat.executeQuery();
+        rs.next();
+        assertEquals(findScanCount(rs.getString(1)), expected);
+        pStat.close();
+
+        pStat = conn.prepareStatement("EXPLAIN ANALYZE SELECT * FROM TEST_NULL " +
                 "WHERE (A, B) IN ((?, ?), (?, ?), (?, ?), (?, ?))");
         pStat.setInt(1, 1);
         pStat.setInt(2, 1);
@@ -206,7 +261,7 @@ public class TestCompoundIndexParamSearch extends TestDb {
         rs = pStat.executeQuery();
         rs.next();
         assertEquals(findScanCount(rs.getString(1)), expected);
-        stat.close();
+        pStat.close();
     }
 
     /**
@@ -217,8 +272,17 @@ public class TestCompoundIndexParamSearch extends TestDb {
         ResultSet rs = stat.executeQuery("EXPLAIN ANALYZE SELECT a, d FROM test WHERE (a, d) IN ((1, 3), (2, 4))");
         rs.next();
         String expected = findScanCount(rs.getString(1));
+        stat.close();
 
-        PreparedStatement pStat = conn.prepareStatement("EXPLAIN ANALYZE SELECT a, d FROM test WHERE (a, d) IN ((?, ?), (?, ?))");
+        PreparedStatement pStat = conn.prepareStatement("EXPLAIN ANALYZE SELECT a, d FROM test WHERE (a, d) IN ((1, ?), (2, ?))");
+        pStat.setInt(1, 3);
+        pStat.setInt(2, 2);
+        rs = pStat.executeQuery();
+        rs.next();
+        assertEquals(findScanCount(rs.getString(1)), expected);
+        pStat.close();
+
+        pStat = conn.prepareStatement("EXPLAIN ANALYZE SELECT a, d FROM test WHERE (a, d) IN ((?, ?), (?, ?))");
         pStat.setInt(1, 1);
         pStat.setInt(2, 3);
         pStat.setInt(3, 2);
@@ -226,7 +290,7 @@ public class TestCompoundIndexParamSearch extends TestDb {
         rs = pStat.executeQuery();
         rs.next();
         assertEquals(findScanCount(rs.getString(1)), expected);
-        stat.close();
+        pStat.close();
     }
 
     /**
@@ -237,14 +301,22 @@ public class TestCompoundIndexParamSearch extends TestDb {
         ResultSet rs = stat.executeQuery("EXPLAIN ANALYZE SELECT b, c FROM test WHERE (b, c) = (1, '1')");
         rs.next();
         String expected = findScanCount(rs.getString(1));
+        stat.close();
 
-        PreparedStatement pStat = conn.prepareStatement("EXPLAIN ANALYZE SELECT b, c FROM test WHERE (b, c) = (?, ?)");
+        PreparedStatement pStat = conn.prepareStatement("EXPLAIN ANALYZE SELECT b, c FROM test WHERE (b, c) = (1, ?)");
+        pStat.setString(1, "1");
+        rs = pStat.executeQuery();
+        rs.next();
+        assertEquals(findScanCount(rs.getString(1)), expected);
+        pStat.close();
+
+        pStat = conn.prepareStatement("EXPLAIN ANALYZE SELECT b, c FROM test WHERE (b, c) = (?, ?)");
         pStat.setInt(1, 1);
         pStat.setString(2, "1");
         rs = pStat.executeQuery();
         rs.next();
         assertEquals(findScanCount(rs.getString(1)), expected);
-        stat.close();
+        pStat.close();
     }
 
     /**
@@ -255,14 +327,22 @@ public class TestCompoundIndexParamSearch extends TestDb {
         ResultSet rs = stat.executeQuery("EXPLAIN ANALYZE SELECT b, c FROM test WHERE b=1 AND c='1'");
         rs.next();
         String expected = findScanCount(rs.getString(1));
+        stat.close();
 
-        PreparedStatement pStat = conn.prepareStatement("EXPLAIN ANALYZE SELECT b, c FROM test WHERE b=? AND c=?");
+        PreparedStatement pStat = conn.prepareStatement("EXPLAIN ANALYZE SELECT b, c FROM test WHERE b=1 AND c=?");
+        pStat.setString(1, "1");
+        rs = pStat.executeQuery();
+        rs.next();
+        assertEquals(findScanCount(rs.getString(1)), expected);
+        pStat.close();
+
+        pStat = conn.prepareStatement("EXPLAIN ANALYZE SELECT b, c FROM test WHERE b=? AND c=?");
         pStat.setInt(1, 1);
         pStat.setString(2, "1");
         rs = pStat.executeQuery();
         rs.next();
         assertEquals(findScanCount(rs.getString(1)), expected);
-        stat.close();
+        pStat.close();
     }
 
 }

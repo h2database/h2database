@@ -282,16 +282,6 @@ public class MVSpatialIndex extends MVIndex<Spatial, Value> implements SpatialIn
     public double getCost(SessionLocal session, int[] masks, TableFilter[] filters,
             int filter, SortOrder sortOrder,
             AllColumnsForPlan allColumnsSet) {
-        return getCostRangeIndex(masks, columns);
-    }
-
-    /**
-     * Compute spatial index cost
-     * @param masks Search mask
-     * @param columns Table columns
-     * @return Index cost hint
-     */
-    public static long getCostRangeIndex(int[] masks, Column[] columns) {
         // Never use spatial tree index without spatial filter
         if (columns.length == 0) {
             return Long.MAX_VALUE;
@@ -303,7 +293,7 @@ public class MVSpatialIndex extends MVIndex<Spatial, Value> implements SpatialIn
                 return Long.MAX_VALUE;
             }
         }
-        return 2;
+        return 10 * getCostRangeIndex(masks, dataMap.sizeAsLongMax(), filters, filter, sortOrder, true, allColumnsSet);
     }
 
     @Override

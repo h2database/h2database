@@ -596,6 +596,10 @@ public abstract class Index extends SchemaObject {
                     rowsCost = rowsCost / 3;
                     tryAdditional = true;
                     break;
+                } else if ((mask & IndexCondition.SPATIAL_INTERSECTS) == IndexCondition.SPATIAL_INTERSECTS) {
+                    rowsCost = 2 + rowsCost / 4;
+                    tryAdditional = true;
+                    break;
                 } else {
                     if (mask == 0) {
                         // Adjust counter of used columns (i)

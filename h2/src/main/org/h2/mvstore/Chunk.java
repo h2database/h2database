@@ -219,6 +219,7 @@ public abstract class Chunk<C extends Chunk<C>> {
      *
      * @param buff the source buffer
      * @return the chunk
+     * @throws MVStoreException if {@code buff} does not contain a chunk header
      */
     static String readChunkHeader(ByteBuffer buff) {
         int pos = buff.position();
@@ -232,7 +233,7 @@ public abstract class Chunk<C extends Chunk<C>> {
                 return s;
             }
         }
-        return null;
+        throw DataUtils.newMVStoreException(DataUtils.ERROR_FILE_CORRUPT, "Not a valid chunk header");
     }
 
     /**

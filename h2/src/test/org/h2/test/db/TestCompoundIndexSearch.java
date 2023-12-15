@@ -90,7 +90,7 @@ public class TestCompoundIndexSearch extends TestDb {
         Statement stat = conn.createStatement();
         ResultSet rs = stat.executeQuery("EXPLAIN ANALYZE SELECT b, c FROM test WHERE b IN (1, 2)");
         rs.next();
-        assertContains(rs.getString(1).replaceAll("[\\r\\n\\s]+", " "),
+        assertEquals(rs.getString(1).replaceAll("[\\r\\n\\s]+", " "),
                 "SELECT \"B\", \"C\" FROM \"PUBLIC\".\"TEST\" /* PUBLIC.IDX_B_C: B IN(1, 2) */ " +
                         "/* scanCount: 7 */ WHERE \"B\" IN(1, 2)");
         stat.close();
@@ -104,7 +104,7 @@ public class TestCompoundIndexSearch extends TestDb {
         Statement stat = conn.createStatement();
         ResultSet rs = stat.executeQuery("EXPLAIN ANALYZE SELECT b, c FROM test WHERE c IN ('1', '2')");
         rs.next();
-        assertContains(rs.getString(1).replaceAll("[\\r\\n\\s]+", " "),
+        assertEquals(rs.getString(1).replaceAll("[\\r\\n\\s]+", " "),
                 "SELECT \"B\", \"C\" FROM \"PUBLIC\".\"TEST\" /* PUBLIC.IDX_B_C */ " +
                         "/* scanCount: 11 */ WHERE \"C\" IN('1', '2')");
         stat.close();
@@ -117,7 +117,7 @@ public class TestCompoundIndexSearch extends TestDb {
         Statement stat = conn.createStatement();
         ResultSet rs = stat.executeQuery("EXPLAIN ANALYZE SELECT b, c FROM test WHERE (b, c) IN ((2, '1'), (3, '2'))");
         rs.next();
-        assertContains(rs.getString(1).replaceAll("[\\r\\n\\s]+", " "),
+        assertEquals(rs.getString(1).replaceAll("[\\r\\n\\s]+", " "),
                 "SELECT \"B\", \"C\" FROM \"PUBLIC\".\"TEST\" " +
                         "/* PUBLIC.IDX_B_C: IN(ROW (2, '1'), ROW (3, '2')) */ " +
                         "/* scanCount: 4 */ WHERE ROW (\"B\", \"C\") IN(ROW (2, '1'), ROW (3, '2'))");
@@ -133,7 +133,7 @@ public class TestCompoundIndexSearch extends TestDb {
         Statement stat = conn.createStatement();
         ResultSet rs = stat.executeQuery("EXPLAIN ANALYZE SELECT b, c FROM test WHERE (c, b) IN (('1', 2), ('2', 3))");
         rs.next();
-        assertContains(rs.getString(1).replaceAll("[\\r\\n\\s]+", " "),
+        assertEquals(rs.getString(1).replaceAll("[\\r\\n\\s]+", " "),
                 "SELECT \"B\", \"C\" FROM \"PUBLIC\".\"TEST\" " +
                         "/* PUBLIC.IDX_B_C: IN(ROW (2, '1'), ROW (3, '2')) */ " +
                         "/* scanCount: 4 */ WHERE ROW (\"C\", \"B\") IN(ROW ('1', 2), ROW ('2', 3))");
@@ -150,7 +150,7 @@ public class TestCompoundIndexSearch extends TestDb {
         ResultSet rs = stat.executeQuery("EXPLAIN ANALYZE SELECT * FROM TEST_NULL " +
                 "WHERE (A, B) IN ((1, 1), (2, 1), (2, 2), (2, NULL))");
         rs.next();
-        assertContains(rs.getString(1).replaceAll("[\\r\\n\\s]+", " "),
+        assertEquals(rs.getString(1).replaceAll("[\\r\\n\\s]+", " "),
                 "SELECT \"PUBLIC\".\"TEST_NULL\".\"A\", \"PUBLIC\".\"TEST_NULL\".\"B\" " +
                         "FROM \"PUBLIC\".\"TEST_NULL\" /* PUBLIC.TEST_NULL.tableScan */ " +
                         "/* scanCount: 5 */ WHERE ROW (\"A\", \"B\") " +
@@ -166,7 +166,7 @@ public class TestCompoundIndexSearch extends TestDb {
         Statement stat = conn.createStatement();
         ResultSet rs = stat.executeQuery("EXPLAIN ANALYZE SELECT a, d FROM test WHERE (a, d) IN ((1, 3), (2, 4))");
         rs.next();
-        assertContains(rs.getString(1).replaceAll("[\\r\\n\\s]+", " "),
+        assertEquals(rs.getString(1).replaceAll("[\\r\\n\\s]+", " "),
                 "SELECT \"A\", \"D\" FROM \"PUBLIC\".\"TEST\" " +
                         "/* PUBLIC.IDX_A: A IN(1, 2) */ " +
                         "/* scanCount: 7 */ WHERE ROW (\"A\", \"D\") IN(ROW (1, 3), ROW (2, 4))");
@@ -180,7 +180,7 @@ public class TestCompoundIndexSearch extends TestDb {
         Statement stat = conn.createStatement();
         ResultSet rs = stat.executeQuery("EXPLAIN ANALYZE SELECT b, c FROM test WHERE (b, c) = (1, '1')");
         rs.next();
-        assertContains(rs.getString(1).replaceAll("[\\r\\n\\s]+", " "),
+        assertEquals(rs.getString(1).replaceAll("[\\r\\n\\s]+", " "),
                 "SELECT \"B\", \"C\" FROM \"PUBLIC\".\"TEST\" /* PUBLIC.IDX_B_C: B = 1 AND C = '1' */ " +
                         "/* scanCount: 3 */ WHERE ROW (\"B\", \"C\") = ROW (1, '1')");
         stat.close();
@@ -193,7 +193,7 @@ public class TestCompoundIndexSearch extends TestDb {
         Statement stat = conn.createStatement();
         ResultSet rs = stat.executeQuery("EXPLAIN ANALYZE SELECT b, c FROM test WHERE b=1 AND c='1'");
         rs.next();
-        assertContains(rs.getString(1).replaceAll("[\\r\\n\\s]+", " "),
+        assertEquals(rs.getString(1).replaceAll("[\\r\\n\\s]+", " "),
                 "SELECT \"B\", \"C\" FROM \"PUBLIC\".\"TEST\" /* PUBLIC.IDX_B_C: B = 1 AND C = '1' */ " +
                         "/* scanCount: 3 */ WHERE (\"B\" = 1) AND (\"C\" = '1')");
         stat.close();

@@ -35,6 +35,7 @@ import org.h2.test.db.TestCluster;
 import org.h2.test.db.TestCompatibility;
 import org.h2.test.db.TestCompatibilityOracle;
 import org.h2.test.db.TestCompatibilitySQLServer;
+import org.h2.test.db.TestCompoundIndexParamSearch;
 import org.h2.test.db.TestCompoundIndexSearch;
 import org.h2.test.db.TestCsv;
 import org.h2.test.db.TestDateStorage;
@@ -734,6 +735,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
             addTest(new TestIndex());
             addTest(new TestIndexHints());
             addTest(new TestCompoundIndexSearch());
+            addTest(new TestCompoundIndexParamSearch());
             addTest(new TestLargeBlob());
             addTest(new TestLinkedTable());
             addTest(new TestListener());

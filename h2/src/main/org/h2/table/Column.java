@@ -453,10 +453,10 @@ public final class Column implements HasSQL, Typed, ColumnTemplate {
         long current = sequence.getCurrentValue();
         long inc = sequence.getIncrement();
         if (inc > 0) {
-            if (value < current) {
+            if (value <= current) {
                 return;
             }
-        } else if (value > current) {
+        } else if (value >= current) {
             return;
         }
         try {

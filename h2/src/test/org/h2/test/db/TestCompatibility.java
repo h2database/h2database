@@ -15,6 +15,8 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Locale;
+import java.util.concurrent.atomic.AtomicReference;
+
 import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
@@ -49,6 +51,7 @@ public class TestCompatibility extends TestDb {
         testPostgreSQL();
         testHsqlDb();
         testMySQL();
+        testConcurrentAutoIncrement();
         testDB2();
         testDerby();
         testSybaseAndMSSQLServer();
@@ -476,6 +479,49 @@ public class TestCompatibility extends TestDb {
         assertEquals(string, rs.getString(1));
         assertEquals(bytes, rs.getBytes(1));
         assertEquals(bytes, rs.getBytes("C"));
+    }
+
+    private void testConcurrentAutoIncrement() throws SQLException {
+        int nThreads = 50;
+        Thread[] threads = new Thread[nThreads];
+        AtomicReference<SQLException> ref = new AtomicReference<>();
+        Statement stat = conn.createStatement();
+        stat.execute("SET MODE MySQL;");
+        stat.execute("CREATE TABLE TEST(ID INT AUTO_INCREMENT PRIMARY KEY, V INT)");
+        try {
+            for (int i = 0; i < nThreads; i++) {
+                threads[i] = new Thread(() -> {
+                    try (Connection c = getConnection("compatibility;MODE=MYSQL")) {
+                        PreparedStatement ps = c.prepareStatement("INSERT INTO TEST(V) VALUES (?)");
+                        for (int j = 0; j < 1000 && ref.get() == null; j++) {
+                            ps.setInt(1, j);
+                            ps.executeUpdate();
+                        }
+                    } catch (SQLException e) {
+                        ref.compareAndSet(null, e);
+                    }
+                });
+            }
+            for (int i = 0; i < nThreads; i++) {
+                threads[i].start();
+            }
+        } finally {
+            for (int i = 0; i < nThreads; i++) {
+                Thread t = threads[i];
+                if (t != null) {
+                    try {
+                        t.join();
+                    } catch (Exception ignore) {
+                        //
+                    }
+                }
+            }
+            stat.execute("DROP TABLE TEST");
+            SQLException e = ref.get();
+            if (e != null) {
+                throw e;
+            }
+        }
     }
 
     private void testSybaseAndMSSQLServer() throws SQLException {

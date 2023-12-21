@@ -447,25 +447,31 @@ public final class Column implements HasSQL, Typed, ColumnTemplate {
     }
 
     private void updateSequenceIfRequired(SessionLocal session, long value) {
-        if (sequence.getCycle() == Sequence.Cycle.EXHAUSTED) {
-            return;
-        }
-        long current = sequence.getCurrentValue();
-        long inc = sequence.getIncrement();
-        if (inc > 0) {
-            if (value <= current) {
+        /*
+         * Synchronization is necessary due to possible race with concurrent
+         * sessions
+         */
+        synchronized (sequence) {
+            if (sequence.getCycle() == Sequence.Cycle.EXHAUSTED) {
                 return;
             }
-        } else if (value >= current) {
-            return;
-        }
-        try {
-            sequence.modify(value + inc, null, null, null, null, null, null);
-        } catch (DbException ex) {
-            if (ex.getErrorCode() == ErrorCode.SEQUENCE_ATTRIBUTES_INVALID_7) {
+            long current = sequence.getCurrentValue();
+            long inc = sequence.getIncrement();
+            if (inc > 0) {
+                if (value <= current) {
+                    return;
+                }
+            } else if (value >= current) {
                 return;
             }
-            throw ex;
+            try {
+                sequence.modify(value + inc, null, null, null, null, null, null);
+            } catch (DbException ex) {
+                if (ex.getErrorCode() == ErrorCode.SEQUENCE_ATTRIBUTES_INVALID_7) {
+                    return;
+                }
+                throw ex;
+            }
         }
         sequence.flush(session);
     }

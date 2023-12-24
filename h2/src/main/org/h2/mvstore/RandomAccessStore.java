@@ -43,7 +43,7 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
 
     private long reservedLow;
     private long reservedHigh;
-
+    private boolean stopIdleHousekeeping;
 
     public RandomAccessStore(Map<String, Object> config) {
         super(config);
@@ -702,10 +702,13 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
 
     @Override
     protected void doHousekeeping(MVStore mvStore) throws InterruptedException {
+        boolean idle = isIdle();
+        if (idle && stopIdleHousekeeping) {
+            return;
+        }
         int autoCommitMemory = mvStore.getAutoCommitMemory();
         int fillRate = getFillRate();
         if (isFragmented() && fillRate < getAutoCompactFillRate()) {
-
             mvStore.tryExecuteUnderStoreLock(() -> {
                 int moveSize = 2 * autoCommitMemory;
                 if (isIdle()) {
@@ -731,6 +734,7 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
                 return true;
             });
         }
+        stopIdleHousekeeping = idle && getFillRate() <= fillRate && getRewritableChunksFillRate() <= chunksFillRate;
     }
 
     private int getTargetFillRate() {

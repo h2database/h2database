@@ -123,7 +123,7 @@ MVStore:
 /**
  * A persistent storage for maps.
  */
-public class MVStore implements AutoCloseable {
+public final class MVStore implements AutoCloseable {
 
     /**
      * Store is open.
@@ -1265,8 +1265,8 @@ public class MVStore implements AutoCloseable {
                 fileStore.isRegularMap(map)) {
             saveNeeded = false;
             // check again, because it could have been written by now
-            if (autoCommitMemory > 0 && needStore()) {
-                // if unsaved memory creation rate is to high,
+            if (needStore()) {
+                // if unsaved memory creation rate is too high,
                 // some back pressure need to be applied
                 // to slow things down and avoid OOME
                 if (requireStore() && !map.isSingleWriter()) {

@@ -88,7 +88,7 @@ public class IndexCondition {
      *            {@link Comparison}
      */
     private IndexCondition(int compareType, ExpressionColumn column, Column[] columns, Expression expression,
-                           List<Expression> list, Query query) {
+            List<Expression> list, Query query) {
 
         this.compareType = compareType;
         if (column != null) {
@@ -510,10 +510,13 @@ public class IndexCondition {
     }
 
     /**
-     * Creates a copy of this index condition but using the {@link Index#getIndexColumns() columns} of the {@code index}.
-     * @param index a non-null Index
-     * @return a new IndexCondition with the specified columns, or {@code null} if the index does not match with this
-     * condition.
+     * Creates a copy of this index condition but using the
+     * {@link Index#getIndexColumns() columns} of the {@code index}.
+     *
+     * @param index
+     *            a non-null Index
+     * @return a new IndexCondition with the specified columns, or {@code null}
+     *         if the index does not match with this condition.
      */
     public IndexCondition cloneWithIndexColumns(Index index) {
         if (!isCompoundColumns()) {

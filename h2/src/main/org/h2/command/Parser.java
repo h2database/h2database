@@ -4339,11 +4339,13 @@ public final class Parser extends ParserBase {
             return new DataTypeSQLFunction(readExpression(), readNextArgument(), readNextArgument(),
                     readLastArgument());
         case "DB_OBJECT_ID":
-            return new DBObjectFunction(readExpression(), readNextArgument(), readIfArgument(),
-                    DBObjectFunction.DB_OBJECT_ID);
+            return readDbObjectFunction(DBObjectFunction.DB_OBJECT_ID);
         case "DB_OBJECT_SQL":
-            return new DBObjectFunction(readExpression(), readNextArgument(), readIfArgument(),
-                    DBObjectFunction.DB_OBJECT_SQL);
+            return readDbObjectFunction(DBObjectFunction.DB_OBJECT_SQL);
+        case "DB_OBJECT_SIZE":
+            return readDbObjectFunction(DBObjectFunction.DB_OBJECT_SIZE);
+        case "DB_OBJECT_TOTAL_SIZE":
+            return readDbObjectFunction(DBObjectFunction.DB_OBJECT_TOTAL_SIZE);
         case "CSVWRITE":
             return readParameters(new CSVWriteFunction());
         case "SIGNAL":
@@ -4412,6 +4414,11 @@ public final class Parser extends ParserBase {
         }
         read(CLOSE_PAREN);
         return new TrimFunction(from, space, flags);
+    }
+
+    private Expression readDbObjectFunction(int function) {
+        return new DBObjectFunction(readExpression(), readNextArgument(), readIfArgument(),
+                function);
     }
 
     private ArrayTableFunction readUnnestFunction() {

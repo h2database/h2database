@@ -52,7 +52,7 @@ public final class TableInfoFunction extends Function1_2 {
         Table table = new Parser(session).parseTableName(v1.getString());
         l: switch (function) {
         case DISK_SPACE_USED:
-            v1 = ValueBigint.get(table.getDiskSpaceUsed());
+            v1 = ValueBigint.get(table.getDiskSpaceUsed(false));
             break;
         case ESTIMATED_ENVELOPE: {
             Column column = table.getColumn(v2.getString());

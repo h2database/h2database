@@ -346,11 +346,6 @@ public class MVPrimaryIndex extends MVIndex<Long, SearchRow> {
         return getRowCountMax();
     }
 
-    @Override
-    public long getDiskSpaceUsed() {
-        return dataMap.map.getRootPage().getDiskSpaceUsed();
-    }
-
     public String getMapName() {
         return mapName;
     }

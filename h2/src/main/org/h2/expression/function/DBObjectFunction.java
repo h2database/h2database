@@ -10,10 +10,13 @@ import org.h2.engine.DbObject;
 import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
+import org.h2.index.Index;
 import org.h2.message.DbException;
 import org.h2.schema.Schema;
+import org.h2.table.Table;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
+import org.h2.value.ValueBigint;
 import org.h2.value.ValueInteger;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueVarchar;
@@ -33,8 +36,18 @@ public final class DBObjectFunction extends FunctionN {
      */
     public static final int DB_OBJECT_SQL = DB_OBJECT_ID + 1;
 
+    /**
+     * DB_OBJECT_SIZE() (non-standard).
+     */
+    public static final int DB_OBJECT_SIZE = DB_OBJECT_SQL + 1;
+
+    /**
+     * DB_OBJECT_TOTAL_SIZE() (non-standard).
+     */
+    public static final int DB_OBJECT_TOTAL_SIZE = DB_OBJECT_SIZE + 1;
+
     private static final String[] NAMES = { //
-            "DB_OBJECT_ID", "DB_OBJECT_SQL" //
+            "DB_OBJECT_ID", "DB_OBJECT_SQL", "DB_OBJECT_SIZE", "DB_OBJECT_TOTAL_SIZE" //
     };
 
     private final int function;
@@ -112,9 +125,20 @@ public final class DBObjectFunction extends FunctionN {
         switch (function) {
         case DB_OBJECT_ID:
             return ValueInteger.get(object.getId());
-        case DB_OBJECT_SQL:
+        case DB_OBJECT_SQL: {
             String sql = object.getCreateSQLForMeta();
             return sql != null ? ValueVarchar.get(sql, session) : ValueNull.INSTANCE;
+        }
+        case DB_OBJECT_SIZE:
+        case DB_OBJECT_TOTAL_SIZE: {
+            long size = 0L;
+            if (object instanceof Table) {
+                size = ((Table) object).getDiskSpaceUsed(function == DB_OBJECT_TOTAL_SIZE);
+            } else if (object instanceof Index) {
+                size = ((Index) object).getDiskSpaceUsed();
+            }
+            return ValueBigint.get(size);
+        }
         default:
             throw DbException.getInternalError("function=" + function);
         }
@@ -123,7 +147,20 @@ public final class DBObjectFunction extends FunctionN {
     @Override
     public Expression optimize(SessionLocal session) {
         optimizeArguments(session, false);
-        type = function == DB_OBJECT_ID ? TypeInfo.TYPE_INTEGER : TypeInfo.TYPE_VARCHAR;
+        switch (function) {
+        case DB_OBJECT_ID:
+            type = TypeInfo.TYPE_INTEGER;
+            break;
+        case DB_OBJECT_SQL:
+            type = TypeInfo.TYPE_VARCHAR;
+            break;
+        case DB_OBJECT_SIZE:
+        case DB_OBJECT_TOTAL_SIZE:
+            type = TypeInfo.TYPE_BIGINT;
+            break;
+        default:
+            throw DbException.getInternalError("function=" + function);
+        }
         return this;
     }
 

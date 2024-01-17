@@ -70,7 +70,9 @@ public final class FunctionsPostgreSQL extends ModeFunction {
 
     private static final int PG_RELATION_SIZE = PG_POSTMASTER_START_TIME + 1;
 
-    private static final int PG_TABLE_IS_VISIBLE = PG_RELATION_SIZE + 1;
+    private static final int PG_TOTAL_RELATION_SIZE = PG_RELATION_SIZE + 1;
+
+    private static final int PG_TABLE_IS_VISIBLE = PG_TOTAL_RELATION_SIZE + 1;
 
     private static final int SET_CONFIG = PG_TABLE_IS_VISIBLE + 1;
 
@@ -114,6 +116,8 @@ public final class FunctionsPostgreSQL extends ModeFunction {
                         false));
         FUNCTIONS.put("PG_RELATION_SIZE",
                 new FunctionInfo("PG_RELATION_SIZE", PG_RELATION_SIZE, VAR_ARGS, Value.BIGINT, true, false));
+        FUNCTIONS.put("PG_TOTAL_RELATION_SIZE", new FunctionInfo("PG_TOTAL_RELATION_SIZE", PG_TOTAL_RELATION_SIZE,
+                VAR_ARGS, Value.BIGINT, true, false));
         FUNCTIONS.put("PG_TABLE_IS_VISIBLE",
                 new FunctionInfo("PG_TABLE_IS_VISIBLE", PG_TABLE_IS_VISIBLE, 1, Value.BOOLEAN, true, false));
         FUNCTIONS.put("SET_CONFIG", new FunctionInfo("SET_CONFIG", SET_CONFIG, 3, Value.VARCHAR, true, false));
@@ -159,6 +163,7 @@ public final class FunctionsPostgreSQL extends ModeFunction {
             break;
         case OBJ_DESCRIPTION:
         case PG_RELATION_SIZE:
+        case PG_TOTAL_RELATION_SIZE:
             min = 1;
             max = 2;
             break;
@@ -257,7 +262,11 @@ public final class FunctionsPostgreSQL extends ModeFunction {
             break;
         case PG_RELATION_SIZE:
             // Optional second argument is ignored
-            result = relationSize(session, v0);
+            result = relationSize(session, v0, false);
+            break;
+        case PG_TOTAL_RELATION_SIZE:
+            // Optional second argument is ignored
+            result = relationSize(session, v0, true);
             break;
         case SET_CONFIG:
             // Not implemented
@@ -361,15 +370,15 @@ public final class FunctionsPostgreSQL extends ModeFunction {
         return name;
     }
 
-    private static Value relationSize(SessionLocal session, Value tableOidOrName) {
+    private static Value relationSize(SessionLocal session, Value tableOidOrName, boolean total) {
         Table t;
-        if (tableOidOrName.getValueType() == Value.INTEGER) {
+        l: if (tableOidOrName.getValueType() == Value.INTEGER) {
             int tid = tableOidOrName.getInt();
             for (Schema schema : session.getDatabase().getAllSchemasNoMeta()) {
                 for (Table table : schema.getAllTablesAndViews(session)) {
                     if (tid == table.getId()) {
                         t = table;
-                        break;
+                        break l;
                     }
                 }
             }
@@ -377,7 +386,7 @@ public final class FunctionsPostgreSQL extends ModeFunction {
         } else {
             t = new Parser(session).parseTableName(tableOidOrName.getString());
         }
-        return ValueBigint.get(t.getDiskSpaceUsed());
+        return ValueBigint.get(t.getDiskSpaceUsed(total));
     }
 
 }

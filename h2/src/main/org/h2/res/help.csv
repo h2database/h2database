@@ -6495,6 +6495,26 @@ CALL DB_OBJECT_SQL('ROLE', 'MANAGER');
 CALL DB_OBJECT_SQL('TABLE', 'PUBLIC', 'MY_TABLE');
 "
 
+"Functions (System)","DB_OBJECT_SIZE","
+@h2@ DB_OBJECT_SIZE({'INDEX'|'TABLE'}, schemaNameString, objectNameString)
+","
+Returns the approximate amount of space used by the specified table (excluding its indexes) or index.
+Size of large LOBs currently is not included into estimation.
+This function may be expensive since it has to load every page in the table or index.
+","
+CALL DB_OBJECT_SIZE('TABLE', 'PUBLIC', 'MY_TABLE');
+"
+
+"Functions (System)","DB_OBJECT_TOTAL_SIZE","
+@h2@ DB_OBJECT_TOTAL_SIZE('TABLE', schemaNameString, objectNameString)
+","
+Returns the approximate amount of space used by the specified table and all its indexes.
+Size of large LOBs currently is not included into estimation.
+This function may be expensive since it has to load every page in the table and its indexes.
+","
+CALL DB_OBJECT_TOTAL_SIZE('TABLE', 'PUBLIC', 'MY_TABLE');
+"
+
 "Functions (System)","DECODE","
 @c@ DECODE(value, whenValue, thenValue [,...])
 ","
@@ -6507,11 +6527,13 @@ CALL DECODE(RAND()>0.5, 0, 'Red', 1, 'Black');
 "
 
 "Functions (System)","DISK_SPACE_USED","
-@h2@ DISK_SPACE_USED(tableNameString)
+@c@ DISK_SPACE_USED(tableNameString)
 ","
 Returns the approximate amount of space used by the table specified.
 Does not currently take into account indexes or LOB's.
 This function may be expensive since it has to load every page in the table.
+This function is deprecated,
+use [DB_OBJECT_SIZE](https://h2database.com/html/functions.html#db_object_size) instead of it.
 ","
 CALL DISK_SPACE_USED('my_table');
 "

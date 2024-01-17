@@ -118,7 +118,7 @@ public class MetaIndex extends Index {
 
     @Override
     public long getDiskSpaceUsed() {
-        return meta.getDiskSpaceUsed();
+        return meta.getDiskSpaceUsed(false);
     }
 
     @Override

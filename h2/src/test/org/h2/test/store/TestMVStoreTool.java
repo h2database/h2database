@@ -185,8 +185,8 @@ public class TestMVStoreTool extends TestBase {
         assertEquals("Exactly 2 file headers are expected in the dump", 2, nbFileHeaders);
     }
 
-    private int nbOfOccurrences(String str, String pattern) {
-       return str.split(pattern,-1).length - 1;
+    private static int nbOfOccurrences(String str, String pattern) {
+        return str.split(pattern,-1).length - 1;
     }
 
 }

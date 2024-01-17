@@ -405,7 +405,8 @@ public class TestCompatibility extends TestDb {
             stat.execute("CREATE TABLE TEST_5" +
                     "(ID INT AUTO_INCREMENT PRIMARY KEY) ENGINE=InnoDb auto_increment=3 default charset=UTF8");
             stat.execute("CREATE TABLE TEST_6" +
-                    "(ID INT AUTO_INCREMENT PRIMARY KEY) ENGINE=MyISAM default character set UTF8MB4, auto_increment 3");
+                    "(ID INT AUTO_INCREMENT PRIMARY KEY) " +
+                    "ENGINE=MyISAM default character set UTF8MB4, auto_increment 3");
             stat.execute("CREATE TABLE TEST_7" +
                     "(ID INT AUTO_INCREMENT PRIMARY KEY) ENGINE=InnoDb auto_increment=3 charset=UTF8 comment 'text'");
             stat.execute("CREATE TABLE TEST_8" +

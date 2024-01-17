@@ -125,8 +125,8 @@ public class TestCompoundIndexSearch extends TestDb {
     }
 
     /**
-     * Executes a query with a compound IN condition against a compound index, but the condition columns are in different
-     * order than in the index.<br />
+     * Executes a query with a compound IN condition against a compound index,
+     * but the condition columns are in different order than in the index.<br />
      * condition (c, b) vs index (b, c)
      */
     private void compoundInAgainstCompoundIndexUnordered(Connection conn) throws Exception {

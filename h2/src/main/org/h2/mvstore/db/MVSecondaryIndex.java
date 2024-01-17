@@ -362,12 +362,6 @@ public final class MVSecondaryIndex extends MVIndex<SearchRow, Value> {
     }
 
     @Override
-    public long getDiskSpaceUsed() {
-        // TODO estimate disk space usage
-        return 0;
-    }
-
-    @Override
     public boolean canFindNext() {
         return true;
     }

@@ -110,12 +110,21 @@ public abstract class Tool {
                 out.println("Cannot load " + resourceName);
             }
         }
-        String className = getClass().getName();
+        String className = getMainClassName();
         out.println(resources.get(className));
         out.println("Usage: java "+getClass().getName() + " <options>");
         out.println(resources.get(className + ".main"));
         out.println("See also https://h2database.com/javadoc/" +
                 className.replace('.', '/') + ".html");
+    }
+
+    /**
+     * Returns main class name of the tool.
+     *
+     * @return the name of the main class
+     */
+    protected String getMainClassName() {
+        return getClass().getName();
     }
 
     /**

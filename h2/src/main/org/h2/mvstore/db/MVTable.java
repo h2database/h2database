@@ -366,7 +366,7 @@ public class MVTable extends TableBase {
             rebuildIndex(session, index, indexName);
         }
         index.setTemporary(isTemporary());
-        if (index.getCreateSQL() != null) {
+        if (getId() != 0 && index.getCreateSQL() != null) {
             index.setComment(indexComment);
             if (isSessionTemporary) {
                 session.addLocalTempTableIndex(index);

@@ -667,9 +667,6 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
                 continue;
             }
             Table t = (Table) object;
-            if (t.isHidden()) {
-                continue;
-            }
             String tableName = t.getName();
             if (!db.equalsIdentifiers(table, tableName)) {
                 continue;
@@ -710,9 +707,6 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
                 continue;
             }
             Table table = (Table) object;
-            if (table.isHidden()) {
-                continue;
-            }
             String tableName = table.getName();
             if (tableLike != null && !tableLike.test(tableName)) {
                 continue;
@@ -827,7 +821,7 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
         }
         for (Schema s : getSchemas(schema)) {
             Table t = s.findTableOrView(session, table);
-            if (t == null || t.isHidden()) {
+            if (t == null) {
                 continue;
             }
             ArrayList<Constraint> constraints = t.getConstraints();
@@ -893,7 +887,7 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
         Value catalogValue = getString(db.getShortName());
         for (Schema s : getSchemas(schema)) {
             Table t = s.findTableOrView(session, table);
-            if (t == null || t.isHidden()) {
+            if (t == null) {
                 continue;
             }
             ArrayList<Constraint> constraints = t.getConstraints();
@@ -943,7 +937,7 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
         Value catalogValue = getString(db.getShortName());
         for (Schema s : getSchemas(schema)) {
             Table t = s.findTableOrView(session, table);
-            if (t == null || t.isHidden()) {
+            if (t == null) {
                 continue;
             }
             ArrayList<Constraint> constraints = t.getConstraints();
@@ -982,7 +976,7 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
         Value catalogValue = getString(db.getShortName());
         for (Schema s : getSchemas(schema)) {
             Table t = s.findTableOrView(session, table);
-            if (t == null || t.isHidden()) {
+            if (t == null) {
                 continue;
             }
             ArrayList<Constraint> constraints = t.getConstraints();
@@ -1025,7 +1019,7 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
         Value catalogValue = getString(db.getShortName());
         for (Schema s : getSchemas(foreignSchema)) {
             Table t = s.findTableOrView(session, foreignTable);
-            if (t == null || t.isHidden()) {
+            if (t == null) {
                 continue;
             }
             ArrayList<Constraint> constraints = t.getConstraints();
@@ -1242,7 +1236,7 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
         Value catalogValue = getString(db.getShortName());
         for (Schema s : getSchemas(schema)) {
             Table t = s.findTableOrView(session, table);
-            if (t == null || t.isHidden()) {
+            if (t == null) {
                 continue;
             }
             getIndexInfo(catalogValue, getString(s.getName()), t, unique, approximate, result, db);

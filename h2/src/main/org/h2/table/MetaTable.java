@@ -6,7 +6,9 @@
 package org.h2.table;
 
 import java.util.ArrayList;
+import java.util.stream.Stream;
 
+import org.h2.constraint.Constraint;
 import org.h2.engine.SessionLocal;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
@@ -143,15 +145,48 @@ public abstract class MetaTable extends Table {
     }
 
     /**
-     * Check whether to hide the table. Tables are never hidden in the system
+     * Get all tables of this database, including local temporary tables for the
      * session.
      *
-     * @param table the table
-     * @param session the session
-     * @return whether the table is hidden
+     * @param session
+     *            the session
+     * @param indexFrom
+     *            first value or {@code null}
+     * @param indexTo
+     *            last value or {@code null}
+     * @return the stream of tables
      */
-    protected final boolean hideTable(Table table, SessionLocal session) {
-        return table.isHidden();
+    protected final Stream<Table> getAllTables(SessionLocal session, Value indexFrom, Value indexTo) {
+        if (indexFrom != null && indexFrom.equals(indexTo)) {
+            String tableName = indexFrom.getString();
+            if (tableName == null) {
+                return Stream.empty();
+            }
+            return Stream
+                    .concat(database.getAllSchemas().stream()
+                            .map(schema -> schema.getTableOrViewByName(session, tableName)),
+                            Stream.ofNullable(session.findLocalTempTable(tableName)))
+                    .filter(table -> table != null && !table.isHidden());
+        } else {
+            return Stream
+                    .concat(database.getAllSchemas().stream()
+                            .flatMap(schema -> schema.getAllTablesAndViews(session).stream()),
+                            session.getLocalTempTables().stream())
+                    .filter(table -> !table.isHidden() && checkIndex(session, table.getName(), indexFrom, indexTo));
+        }
+    }
+
+    /**
+     * Get all constraints of this database, including constraints of local
+     * temporary tables for the session.
+     *
+     * @param session
+     *            the session
+     * @return the stream of constraints
+     */
+    protected final Stream<Constraint> getAllConstraints(SessionLocal session) {
+        return Stream.concat(database.getAllSchemas().stream().flatMap(schema -> schema.getAllConstraints().stream()),
+                session.getLocalTempTableConstraints().values().stream());
     }
 
     /**

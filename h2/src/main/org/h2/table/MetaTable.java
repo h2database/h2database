@@ -151,7 +151,7 @@ public abstract class MetaTable extends Table {
      * @return whether the table is hidden
      */
     protected final boolean hideTable(Table table, SessionLocal session) {
-        return table.isHidden() && session != database.getSystemSession();
+        return table.isHidden();
     }
 
     /**

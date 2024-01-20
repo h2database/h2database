@@ -137,7 +137,6 @@ public class MVTable extends TableBase {
 
     public MVTable(CreateTableData data, Store store) {
         super(data);
-        this.isHidden = data.isHidden;
         boolean b = false;
         for (Column col : getColumns()) {
             if (DataType.isLargeObject(col.getType().getValueType())) {

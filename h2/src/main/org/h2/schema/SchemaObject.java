@@ -47,14 +47,4 @@ public abstract class SchemaObject extends DbObject {
         return super.getSQL(builder, sqlFlags);
     }
 
-    /**
-     * Check whether this is a hidden object that doesn't appear in the meta
-     * data and in the script, and is not dropped on DROP ALL OBJECTS.
-     *
-     * @return true if it is hidden
-     */
-    public boolean isHidden() {
-        return false;
-    }
-
 }

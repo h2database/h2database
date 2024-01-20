@@ -328,15 +328,13 @@ public final class FunctionsPostgreSQL extends ModeFunction {
         for (Schema schema : session.getDatabase().getAllSchemasNoMeta()) {
             for (Index index : schema.getAllIndexes()) {
                 if (index.getId() == indexId) {
-                    if (!index.getTable().isHidden()) {
-                        int ordinal;
-                        if (ordinalPosition == null || (ordinal = ordinalPosition.getInt()) == 0) {
-                            return ValueVarchar.get(index.getCreateSQL());
-                        }
-                        Column[] columns;
-                        if (ordinal >= 1 && ordinal <= (columns = index.getColumns()).length) {
-                            return ValueVarchar.get(columns[ordinal - 1].getName());
-                        }
+                    int ordinal;
+                    if (ordinalPosition == null || (ordinal = ordinalPosition.getInt()) == 0) {
+                        return ValueVarchar.get(index.getCreateSQL());
+                    }
+                    Column[] columns;
+                    if (ordinal >= 1 && ordinal <= (columns = index.getColumns()).length) {
+                        return ValueVarchar.get(columns[ordinal - 1].getName());
                     }
                     break;
                 }

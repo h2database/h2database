@@ -71,8 +71,4 @@ public class CreateTableData {
      */
     public ArrayList<String> tableEngineParams;
 
-    /**
-     * The table is hidden.
-     */
-    public boolean isHidden;
 }

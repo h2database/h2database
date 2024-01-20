@@ -144,18 +144,10 @@ public abstract class Index extends SchemaObject {
     }
 
     @Override
-    public final boolean isHidden() {
-        return table.isHidden();
-    }
-
-    @Override
     public String getCreateSQLForCopy(Table targetTable, String quotedName) {
         StringBuilder builder = new StringBuilder("CREATE ");
         builder.append(indexType.getSQL(true));
         builder.append(' ');
-        if (table.isHidden()) {
-            builder.append("IF NOT EXISTS ");
-        }
         builder.append(quotedName);
         builder.append(" ON ");
         targetTable.getSQL(builder, DEFAULT_SQL_FLAGS);

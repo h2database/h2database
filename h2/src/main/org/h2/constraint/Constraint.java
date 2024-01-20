@@ -193,11 +193,6 @@ public abstract class Constraint extends SchemaObject implements Comparable<Cons
         return Integer.compare(getConstraintType().ordinal(), other.getConstraintType().ordinal());
     }
 
-    @Override
-    public boolean isHidden() {
-        return table != null && table.isHidden();
-    }
-
     /**
      * Visit all elements in the constraint.
      *

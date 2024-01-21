@@ -49,6 +49,11 @@ public final class TableView extends QueryExpressionTable {
         init(querySQL, params, columnTemplates, session, allowRecursive, literalsChecked, isTableExpression);
     }
 
+    @Override
+    public boolean isHidden() {
+        return isTableExpression;
+    }
+
     /**
      * Try to replace the SQL statement of the view and re-compile this and all
      * dependent views.

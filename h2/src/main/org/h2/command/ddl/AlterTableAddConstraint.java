@@ -387,8 +387,7 @@ public class AlterTableAddConstraint extends AlterTable {
         if (constraints != null) {
             for (Constraint constraint : constraints) {
                 if (constraint.getTable() == t) {
-                    Constraint.Type constraintType = constraint.getConstraintType();
-                    if (constraintType == Constraint.Type.PRIMARY_KEY || constraintType == Constraint.Type.UNIQUE) {
+                    if (constraint.getConstraintType().isUnique()) {
                         if (canUseIndex(constraint.getIndex(), t, cols, NullsDistinct.DISTINCT)) {
                             return (ConstraintUnique) constraint;
                         }

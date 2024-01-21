@@ -78,9 +78,6 @@ public class ConstraintReferential extends Constraint {
             String quotedName, boolean internalIndex) {
         StringBuilder builder = new StringBuilder("ALTER TABLE ");
         forTable.getSQL(builder, DEFAULT_SQL_FLAGS).append(" ADD CONSTRAINT ");
-        if (forTable.isHidden()) {
-            builder.append("IF NOT EXISTS ");
-        }
         builder.append(quotedName);
         if (comment != null) {
             builder.append(" COMMENT ");

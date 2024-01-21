@@ -339,11 +339,7 @@ public class ScriptCommand extends ScriptBase {
                     if (excludeTable(constraint.getTable())) {
                         continue;
                     }
-                    Type constraintType = constraint.getConstraintType();
-                    if (constraintType != Type.DOMAIN && constraint.getTable().isHidden()) {
-                        continue;
-                    }
-                    if (constraintType != Constraint.Type.PRIMARY_KEY) {
+                    if (constraint.getConstraintType() != Constraint.Type.PRIMARY_KEY) {
                         constraints.add(constraint);
                     }
                 }

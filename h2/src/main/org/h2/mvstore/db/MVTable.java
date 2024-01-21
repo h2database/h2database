@@ -137,7 +137,6 @@ public class MVTable extends TableBase {
 
     public MVTable(CreateTableData data, Store store) {
         super(data);
-        this.isHidden = data.isHidden;
         boolean b = false;
         for (Column col : getColumns()) {
             if (DataType.isLargeObject(col.getType().getValueType())) {
@@ -367,7 +366,7 @@ public class MVTable extends TableBase {
             rebuildIndex(session, index, indexName);
         }
         index.setTemporary(isTemporary());
-        if (index.getCreateSQL() != null) {
+        if (getId() != 0 && index.getCreateSQL() != null) {
             index.setComment(indexComment);
             if (isSessionTemporary) {
                 session.addLocalTempTableIndex(index);

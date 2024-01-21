@@ -418,10 +418,6 @@ import org.h2.value.ValueVarchar;
  */
 public final class Parser extends ParserBase {
 
-    private static final String WITH_STATEMENT_SUPPORTS_LIMITED_SUB_STATEMENTS =
-            "WITH statement supports only SELECT, TABLE, VALUES, " +
-            "CREATE TABLE, INSERT, UPDATE, MERGE or DELETE statements";
-
     private CreateView createView;
     private Prepared currentPrepared;
     private Select currentSelect;
@@ -624,11 +620,8 @@ public final class Parser extends ParserBase {
         case SELECT:
         case TABLE:
         case VALUES:
-            c = parseQuery();
-            break;
         case WITH:
-            read();
-            c = parseWithStatementOrQuery(start);
+            c = parseQuery();
             break;
         case SET:
             read();
@@ -2495,36 +2488,18 @@ public final class Parser extends ParserBase {
 
     private Query parseQuery() {
         BitSet outerUsedParameters = openParametersScope();
-        Query command = parseQueryExpression();
+        Query query = parseQueryExpression();
         ArrayList<Parameter> params = closeParametersScope(outerUsedParameters);
-        command.setParameterList(params);
-        command.init();
-        return command;
-    }
-
-    private Prepared parseWithStatementOrQuery(int start) {
-        BitSet outerUsedParameters = openParametersScope();
-        Prepared command = parseWith();
-        ArrayList<Parameter> params = closeParametersScope(outerUsedParameters);
-        command.setParameterList(params);
-        if (command instanceof Query) {
-            Query query = (Query) command;
-            query.init();
-        }
-        setSQL(command, start);
-        return command;
+        query.setParameterList(params);
+        query.init();
+        return query;
     }
 
     private Query parseQueryExpression() {
+        int start = tokenIndex;
         Query query;
         if (readIf(WITH)) {
-            try {
-                query = (Query) parseWith();
-            } catch (ClassCastException e) {
-                throw DbException.get(ErrorCode.SYNTAX_ERROR_1, "WITH statement supports only query in this context");
-            }
-            // recursive can not be lazy
-            query.setNeverLazy(true);
+            query = parseWith(start);
         } else {
             query = parseQueryExpressionBodyAndEndOfQuery();
         }
@@ -6940,77 +6915,43 @@ public final class Parser extends ParserBase {
                 || BuiltinFunctions.isBuiltinFunction(database, name) && !database.isAllowBuiltinAliasOverride();
     }
 
-    private Prepared parseWith() {
+    private Query parseWith(int start) {
         List<TableView> viewsCreated = new ArrayList<>();
         try {
-            return parseWith1(viewsCreated);
+            readIf("RECURSIVE");
+
+            // This WITH statement is not a temporary view - it is part of a persistent view
+            // as in CREATE VIEW abc AS WITH my_cte - this auto detects that condition.
+            final boolean isTemporary = !session.isParsingCreateView();
+
+            do {
+                viewsCreated.add(parseSingleCommonTableExpression(isTemporary));
+            } while (readIf(COMMA));
+
+            // Reverse the order of constructed CTE views - as the destruction order
+            // (since later created view may depend on previously created views -
+            //  we preserve that dependency order in the destruction sequence )
+            // used in setCteCleanups.
+            Collections.reverse(viewsCreated);
+
+            Query query = parseQueryExpressionBodyAndEndOfQuery();
+            query.setPrepareAlways(true);
+            query.setNeverLazy(true);
+
+            // Clean up temporary views starting with last to first (in case of
+            // dependencies) - but only if they are not persistent.
+            if (isTemporary) {
+                if (cteCleanups == null) {
+                    cteCleanups = new ArrayList<>(viewsCreated.size());
+                }
+                cteCleanups.addAll(viewsCreated);
+            }
+            setSQL(query, start);
+            return query;
         } catch (Throwable t) {
             CommandContainer.clearCTE(session, viewsCreated);
             throw t;
         }
-    }
-
-    private Prepared parseWith1(List<TableView> viewsCreated) {
-        readIf("RECURSIVE");
-
-        // This WITH statement is not a temporary view - it is part of a persistent view
-        // as in CREATE VIEW abc AS WITH my_cte - this auto detects that condition.
-        final boolean isTemporary = !session.isParsingCreateView();
-
-        do {
-            viewsCreated.add(parseSingleCommonTableExpression(isTemporary));
-        } while (readIf(COMMA));
-
-        Prepared p;
-        // Reverse the order of constructed CTE views - as the destruction order
-        // (since later created view may depend on previously created views -
-        //  we preserve that dependency order in the destruction sequence )
-        // used in setCteCleanups.
-        Collections.reverse(viewsCreated);
-
-        int start = tokenIndex;
-        if (isQueryQuick()) {
-            p = parseWithQuery();
-        } else if (readIfCompat("INSERT")) {
-            p = parseInsert(start);
-            p.setPrepareAlways(true);
-        } else if (readIfCompat("UPDATE")) {
-            p = parseUpdate(start);
-            p.setPrepareAlways(true);
-        } else if (readIfCompat("MERGE")) {
-            p = parseMerge(start);
-            p.setPrepareAlways(true);
-        } else if (readIfCompat("DELETE")) {
-            p = parseDelete(start);
-            p.setPrepareAlways(true);
-        } else if (readIfCompat("CREATE")) {
-            if (!isToken(TABLE)) {
-                throw DbException.get(ErrorCode.SYNTAX_ERROR_1,
-                        WITH_STATEMENT_SUPPORTS_LIMITED_SUB_STATEMENTS);
-            }
-            p = parseCreate();
-            p.setPrepareAlways(true);
-        } else {
-            throw DbException.get(ErrorCode.SYNTAX_ERROR_1,
-                    WITH_STATEMENT_SUPPORTS_LIMITED_SUB_STATEMENTS);
-        }
-
-        // Clean up temporary views starting with last to first (in case of
-        // dependencies) - but only if they are not persistent.
-        if (isTemporary) {
-            if (cteCleanups == null) {
-                cteCleanups = new ArrayList<>(viewsCreated.size());
-            }
-            cteCleanups.addAll(viewsCreated);
-        }
-        return p;
-    }
-
-    private Prepared parseWithQuery() {
-        Query query = parseQueryExpressionBodyAndEndOfQuery();
-        query.setPrepareAlways(true);
-        query.setNeverLazy(true);
-        return query;
     }
 
     private TableView parseSingleCommonTableExpression(boolean isTemporary) {

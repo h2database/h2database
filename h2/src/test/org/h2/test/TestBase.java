@@ -1201,11 +1201,13 @@ public abstract class TestBase {
     }
 
     private static String formatRow(String[] row) {
-        String sb = "";
+        StringBuilder sb = new StringBuilder();
+        sb.append("{");
         for (String r : row) {
-            sb += "{" + r + "}";
+            sb.append("{").append(r).append("}");
         }
-        return "{" + sb + "}";
+        sb.append("}");
+        return sb.toString();
     }
 
     /**
@@ -1460,14 +1462,12 @@ public abstract class TestBase {
                         " for " + formatMethodCall(m, args));
             }
             if (!expectedExceptionClass.isAssignableFrom(t.getClass())) {
-                AssertionError ae = new AssertionError("Expected an exception of type\n" +
+                throw new AssertionError("Expected an exception of type\n" +
                         expectedExceptionClass.getSimpleName() +
                         " to be thrown, but the method under test threw an exception of type\n" +
                         t.getClass().getSimpleName() +
                         " (see in the 'Caused by' for the exception that was thrown) for " +
-                        formatMethodCall(m, args));
-                ae.initCause(t);
-                throw ae;
+                        formatMethodCall(m, args), t);
             }
             return false;
         }, obj);
@@ -1514,18 +1514,10 @@ public abstract class TestBase {
     protected <T> T assertThrows(final ResultVerifier verifier, final T obj) {
         Class<?> c = obj.getClass();
         InvocationHandler ih = new InvocationHandler() {
-            private Exception called = new Exception("No method called");
-            @Override
-            protected void finalize() {
-                if (called != null) {
-                    called.printStackTrace(System.err);
-                }
-            }
             @Override
             public Object invoke(Object proxy, Method method, Object[] args)
                     throws Exception {
                 try {
-                    called = null;
                     Object ret = method.invoke(obj, args);
                     verifier.verify(ret, null, method, args);
                     return ret;
@@ -1643,11 +1635,9 @@ public abstract class TestBase {
 
     private static void checkException(Class<?> expectedExceptionClass, Throwable t) throws AssertionError {
         if (!expectedExceptionClass.isAssignableFrom(t.getClass())) {
-            AssertionError ae = new AssertionError("Expected an exception of type\n"
+            throw new AssertionError("Expected an exception of type\n"
                     + expectedExceptionClass.getSimpleName() + " to be thrown, but an exception of type\n"
-                    + t.getClass().getSimpleName() + " was thrown");
-            ae.initCause(t);
-            throw ae;
+                    + t.getClass().getSimpleName() + " was thrown", t);
         }
     }
 
@@ -1669,11 +1659,9 @@ public abstract class TestBase {
             errorCode = 0;
         }
         if (errorCode != expectedErrorCode) {
-            AssertionError ae = new AssertionError("Expected an SQLException or DbException with error code "
+            throw new AssertionError("Expected an SQLException or DbException with error code "
                     + expectedErrorCode + ", but got a "
-                    + (t == null ? "null" : t.getClass().getName() + " exception " + " with error code " + errorCode));
-            ae.initCause(t);
-            throw ae;
+                    + (t == null ? "null" : t.getClass().getName() + " exception " + " with error code " + errorCode), t);
         }
     }
 

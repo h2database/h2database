@@ -21,6 +21,9 @@ public class MultiDimension implements Comparator<long[]> {
 
     private static final MultiDimension INSTANCE = new MultiDimension();
 
+    /**
+     * Protected constructor
+     */
     protected MultiDimension() {
         // don't allow construction by normal code
         // but allow tests

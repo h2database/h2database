@@ -164,10 +164,10 @@ public final class ValueRow extends ValueCollectionBase {
         }
 
         ExtTypeInfoRow typeInfoRow = (ExtTypeInfoRow) type.getExtTypeInfo();
-        Object[] fields = typeInfoRow.getFields().toArray();
+        Map.Entry<String, TypeInfo>[] fields = typeInfoRow.getFields().toArray(createEntriesArray(length));
         LinkedHashMap<String, TypeInfo> newFields = new LinkedHashMap<>(length);
         for (int i = 0; i < length; i++) {
-            Map.Entry<String, TypeInfo> field = (Map.Entry<String, TypeInfo>) fields[newOrder[i]];
+            Map.Entry<String, TypeInfo> field = fields[newOrder[i]];
             newFields.put(field.getKey(), field.getValue());
         }
         ExtTypeInfoRow newTypeInfoRow = new ExtTypeInfoRow(newFields);
@@ -175,6 +175,11 @@ public final class ValueRow extends ValueCollectionBase {
                 type.getDeclaredScale(), newTypeInfoRow);
 
         return new ValueRow(newType, newValues);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <K,V> Map.Entry<K,V>[] createEntriesArray(int length) {
+        return (Map.Entry<K,V>[])new Map.Entry[length];
     }
 
     @Override

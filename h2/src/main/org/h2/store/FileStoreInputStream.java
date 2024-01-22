@@ -141,11 +141,6 @@ public class FileStoreInputStream extends InputStream {
     }
 
     @Override
-    protected void finalize() {
-        close();
-    }
-
-    @Override
     public int read() throws IOException {
         fillBuffer();
         if (endOfFile) {

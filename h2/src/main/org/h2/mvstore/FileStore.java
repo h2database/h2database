@@ -1903,28 +1903,31 @@ public abstract class FileStore<C extends Chunk<C>>
         int rewrittenPageCount = 0;
         for (int chunkId : set) {
             C chunk = chunks.get(chunkId);
-            long[] toc = getToC(chunk);
-            if (toc != null) {
-                for (int pageNo = 0; (pageNo = chunk.occupancy.nextClearBit(pageNo)) < chunk.pageCount; ++pageNo) {
-                    long tocElement = toc[pageNo];
-                    int mapId = DataUtils.getPageMapId(tocElement);
-                    MVMap<String, String> metaMap = mvStore.getMetaMap();
-                    MVMap<?, ?> map = mapId == layout.getId() ? layout
-                            : mapId == metaMap.getId() ? metaMap : mvStore.getMap(mapId);
-                    if (map != null && !map.isClosed()) {
-                        assert !map.isSingleWriter();
-                        if (secondPass || DataUtils.isLeafPosition(tocElement)) {
-                            long pagePos = DataUtils.composePagePos(chunkId, tocElement);
-                            serializationLock.unlock();
-                            try {
-                                if (map.rewritePage(pagePos)) {
-                                    ++rewrittenPageCount;
-                                    if (mapId == metaMap.getId()) {
-                                        mvStore.markMetaChanged();
+            // there is a chance for a chunk to be dropped after set of chunks to be rewritten has been determined
+            if (chunk != null) {
+                long[] toc = getToC(chunk);
+                if (toc != null) {
+                    for (int pageNo = 0; (pageNo = chunk.occupancy.nextClearBit(pageNo)) < chunk.pageCount; ++pageNo) {
+                        long tocElement = toc[pageNo];
+                        int mapId = DataUtils.getPageMapId(tocElement);
+                        MVMap<String, String> metaMap = mvStore.getMetaMap();
+                        MVMap<?, ?> map = mapId == layout.getId() ? layout
+                                : mapId == metaMap.getId() ? metaMap : mvStore.getMap(mapId);
+                        if (map != null && !map.isClosed()) {
+                            assert !map.isSingleWriter();
+                            if (secondPass || DataUtils.isLeafPosition(tocElement)) {
+                                long pagePos = DataUtils.composePagePos(chunkId, tocElement);
+                                serializationLock.unlock();
+                                try {
+                                    if (map.rewritePage(pagePos)) {
+                                        ++rewrittenPageCount;
+                                        if (mapId == metaMap.getId()) {
+                                            mvStore.markMetaChanged();
+                                        }
                                     }
+                                } finally {
+                                    serializationLock.lock();
                                 }
-                            } finally {
-                                serializationLock.lock();
                             }
                         }
                     }

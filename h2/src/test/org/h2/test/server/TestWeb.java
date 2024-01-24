@@ -71,14 +71,14 @@ public class TestWeb extends TestDb {
 
     @Override
     public void test() throws Exception {
-//        testServlet();
-//        testWrongParameters();
-//        testTools();
-//        testAlreadyRunning();
-//        testStartWebServerWithConnection();
-//        testServer();
-//        testWebApp();
-//        testIfExists();
+        testServlet();
+        testWrongParameters();
+        testTools();
+        testAlreadyRunning();
+        testStartWebServerWithConnection();
+        testServer();
+        testWebApp();
+        testIfExists();
 
         testSpecialAutoComplete();
     }

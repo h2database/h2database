@@ -584,8 +584,10 @@ public class TestWeb extends TestDb {
 
             result = client.get(url, "query.do?sql=" +
                                      "create schema test_schema;" +
+                                     "create schema \"quoted schema\";" +
                                      "create table test_schema.test_table(id int primary key, name varchar);" +
-                                     "insert into test_schema.test_table values(1, 'Hello')");
+                                     "insert into test_schema.test_table values(1, 'Hello');" +
+                                     "create table \"quoted schema\".\"quoted tablename\"(id int primary key, name varchar);");
             result = client.get(url, "query.do?sql=create sequence test_schema.test_sequence");
             result = client.get(url, "query.do?sql=" +
                                      "create view test_schema.test_view as select * from test");
@@ -628,6 +630,26 @@ public class TestWeb extends TestDb {
             // this shall not return anything, because there is no TEST_TABLE1
             result = client.get(url, "autoCompleteList.do?query=select * from \"TEST_SCHEMA\".\"test_table1");
             assertEmpty(StringUtils.urlDecode(result));
+
+            // explicitly quoted schemas
+            result = client.get(url, "autoCompleteList.do?query=select * from \"quoted");
+            assertContains(StringUtils.urlDecode(result),"quoted schema");
+
+            // explicitly quoted schemas, very lax
+            result = client.get(url, "autoCompleteList.do?query=select * from quoted");
+            assertContains(StringUtils.urlDecode(result),"quoted schema");
+
+            // explicitly quoted tablenames
+            result = client.get(url, "autoCompleteList.do?query=select * from \"quoted schema\".\"quoted");
+            assertContains(StringUtils.urlDecode(result),"quoted tablename");
+
+            // explicitly quoted tablename, but lax
+            result = client.get(url, "autoCompleteList.do?query=select * from \"quoted schema\".QUOTED");
+            assertContains(StringUtils.urlDecode(result),"quoted tablename");
+
+            // this one must fail
+            result = client.get(url, "autoCompleteList.do?query=select * from \"quoted schema\".QUOTED1");
+            assertNotContaining(StringUtils.urlDecode(result),"quoted tablename");
 
             result = client.get(url, "logout.do");
 

@@ -58,6 +58,11 @@ public class GUIConsole extends Console implements ActionListener, MouseListener
     private Object trayIcon;
 
     @Override
+    protected String getMainClassName() {
+        return Console.class.getName();
+    }
+
+    @Override
     void show() {
         if (!GraphicsEnvironment.isHeadless()) {
             loadFont();

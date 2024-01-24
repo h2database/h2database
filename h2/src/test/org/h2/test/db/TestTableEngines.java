@@ -545,7 +545,7 @@ public class TestTableEngines extends TestDb {
 
                 @Override
                 public long getDiskSpaceUsed() {
-                    return table.getDiskSpaceUsed();
+                    return table.getDiskSpaceUsed(false);
                 }
 
                 @Override

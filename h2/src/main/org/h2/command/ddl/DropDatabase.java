@@ -73,15 +73,13 @@ public class DropDatabase extends DefineCommand {
             }
             for (Table t : tables) {
                 if (t.getName() != null &&
-                        TableType.TABLE == t.getTableType() &&
-                        !t.isHidden()) {
+                        TableType.TABLE == t.getTableType()) {
                     toRemove.add(t);
                 }
             }
             for (Table t : tables) {
                 if (t.getName() != null &&
-                        TableType.EXTERNAL_TABLE_ENGINE == t.getTableType() &&
-                        !t.isHidden()) {
+                        TableType.EXTERNAL_TABLE_ENGINE == t.getTableType()) {
                     toRemove.add(t);
                 }
             }
@@ -124,7 +122,7 @@ public class DropDatabase extends DefineCommand {
         addAll(schemas, DbObject.FUNCTION_ALIAS, list);
         addAll(schemas, DbObject.DOMAIN, list);
         for (SchemaObject obj : list) {
-            if (!obj.getSchema().isValid() || obj.isHidden()) {
+            if (!obj.getSchema().isValid()) {
                 continue;
             }
             db.removeSchemaObject(session, obj);

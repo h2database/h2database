@@ -4339,11 +4339,13 @@ public final class Parser extends ParserBase {
             return new DataTypeSQLFunction(readExpression(), readNextArgument(), readNextArgument(),
                     readLastArgument());
         case "DB_OBJECT_ID":
-            return new DBObjectFunction(readExpression(), readNextArgument(), readIfArgument(),
-                    DBObjectFunction.DB_OBJECT_ID);
+            return readDbObjectFunction(DBObjectFunction.DB_OBJECT_ID);
         case "DB_OBJECT_SQL":
-            return new DBObjectFunction(readExpression(), readNextArgument(), readIfArgument(),
-                    DBObjectFunction.DB_OBJECT_SQL);
+            return readDbObjectFunction(DBObjectFunction.DB_OBJECT_SQL);
+        case "DB_OBJECT_SIZE":
+            return readDbObjectFunction(DBObjectFunction.DB_OBJECT_SIZE);
+        case "DB_OBJECT_TOTAL_SIZE":
+            return readDbObjectFunction(DBObjectFunction.DB_OBJECT_TOTAL_SIZE);
         case "CSVWRITE":
             return readParameters(new CSVWriteFunction());
         case "SIGNAL":
@@ -4412,6 +4414,11 @@ public final class Parser extends ParserBase {
         }
         read(CLOSE_PAREN);
         return new TrimFunction(from, space, flags);
+    }
+
+    private Expression readDbObjectFunction(int function) {
+        return new DBObjectFunction(readExpression(), readNextArgument(), readIfArgument(),
+                function);
     }
 
     private ArrayTableFunction readUnnestFunction() {
@@ -7116,7 +7123,6 @@ public final class Parser extends ParserBase {
         }
         view.setTableExpression(true);
         view.setTemporary(isTemporary);
-        view.setHidden(true);
         view.setOnCommitDrop(false);
         if (!isTemporary) {
             database.addSchemaObject(session, view);
@@ -8457,7 +8463,6 @@ public final class Parser extends ParserBase {
             command.setTableName(tableName);
             command.setNewTableName(newName);
             command.setIfTableExists(ifTableExists);
-            command.setHidden(readIf("HIDDEN"));
             return command;
         }
     }
@@ -8969,9 +8974,6 @@ public final class Parser extends ParserBase {
             }
         } else if (!persistIndexes && readIf(NOT, "PERSISTENT")) {
             command.setPersistData(false);
-        }
-        if (readIf("HIDDEN")) {
-            command.setHidden(true);
         }
         if (readIf(AS)) {
             readIf("SORTED");

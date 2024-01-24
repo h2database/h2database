@@ -110,9 +110,6 @@ public abstract class TableBase extends Table {
             buff.append("MEMORY ");
         }
         buff.append("TABLE ");
-        if (isHidden) {
-            buff.append("IF NOT EXISTS ");
-        }
         getSQL(buff, DEFAULT_SQL_FLAGS);
         if (comment != null) {
             buff.append(" COMMENT ");
@@ -144,9 +141,6 @@ public abstract class TableBase extends Table {
         }
         if (!isPersistIndexes() && !isPersistData()) {
             buff.append("\nNOT PERSISTENT");
-        }
-        if (isHidden) {
-            buff.append("\nHIDDEN");
         }
         return buff.toString();
     }

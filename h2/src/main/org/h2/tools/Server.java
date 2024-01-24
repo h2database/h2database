@@ -32,6 +32,9 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
     private boolean fromCommandLine;
     private boolean started;
 
+    /**
+     *  Generic constructor
+     */
     public Server() {
         // nothing to do
         this.service = null;

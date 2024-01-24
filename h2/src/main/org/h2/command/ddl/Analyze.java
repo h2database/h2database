@@ -171,7 +171,6 @@ public class Analyze extends DefineCommand {
     public static void analyzeTable(SessionLocal session, Table table, int sample, boolean manual) {
         if (!table.isValid()
                 || table.getTableType() != TableType.TABLE //
-                || table.isHidden() //
                 || session == null //
                 || !manual && (session.getDatabase().isSysTableLocked() || table.hasSelectTrigger()) //
                 || table.isTemporary() && !table.isGlobalTemporary() //

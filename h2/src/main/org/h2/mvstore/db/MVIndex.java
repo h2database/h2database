@@ -44,4 +44,9 @@ public abstract class MVIndex<K,V> extends Index {
 
     public abstract MVMap<K,VersionedValue<V>> getMVMap();
 
+    @Override
+    public long getDiskSpaceUsed() {
+        return getMVMap().getRootPage().getDiskSpaceUsed();
+    }
+
 }

@@ -266,10 +266,6 @@ public class CreateTable extends CommandWithColumns {
         data.tableEngineParams = tableEngineParams;
     }
 
-    public void setHidden(boolean isHidden) {
-        data.isHidden = isHidden;
-    }
-
     @Override
     public int getType() {
         return CommandInterface.CREATE_TABLE;

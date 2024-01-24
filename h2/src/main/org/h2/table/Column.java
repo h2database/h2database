@@ -193,11 +193,15 @@ public final class Column implements HasSQL, Typed, ColumnTemplate {
 
     /**
      * Converts the values in a ValueRow based on the passed column info.
-     * Creates a new instance if any of the contained item must be converted. Otherwise, returns the same {@code valueRow}.
+     * Creates a new instance if any of the contained item must be converted.
+     * Otherwise, returns the same {@code valueRow}.
      *
-     * @param provider the cast information provider
-     * @param columns the column info list used for the conversation
-     * @param valueRow the holder of the values
+     * @param provider
+     *            the cast information provider
+     * @param columns
+     *            the column info list used for the conversation
+     * @param valueRow
+     *            the holder of the values
      * @return a ValueRow which contains the converted values
      *
      * @see Column#convert(CastDataProvider, Value)

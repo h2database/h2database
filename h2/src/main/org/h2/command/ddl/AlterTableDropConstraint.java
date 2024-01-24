@@ -55,7 +55,7 @@ public class AlterTableDropConstraint extends AlterTable {
             if (refTable != table) {
                 session.getUser().checkTableRight(refTable, Right.SCHEMA_OWNER);
             }
-            if (constraintType == Type.PRIMARY_KEY || constraintType == Type.UNIQUE) {
+            if (constraintType.isUnique()) {
                 for (Constraint c : constraint.getTable().getConstraints()) {
                     if (c.getReferencedConstraint() == constraint) {
                         if (dropAction == ConstraintActionType.RESTRICT) {

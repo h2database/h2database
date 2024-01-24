@@ -335,12 +335,6 @@ public class MVSpatialIndex extends MVIndex<Spatial, Value> implements SpatialIn
         }
     }
 
-    @Override
-    public long getDiskSpaceUsed() {
-        // TODO estimate disk space usage
-        return 0;
-    }
-
     /**
      * Get the map to store the data.
      *
@@ -359,7 +353,6 @@ public class MVSpatialIndex extends MVIndex<Spatial, Value> implements SpatialIn
     public MVMap<Spatial, VersionedValue<Value>> getMVMap() {
         return dataMap.map;
     }
-
 
     /**
      * A cursor.

@@ -84,12 +84,6 @@ public abstract class Table extends SchemaObject {
      */
     protected CompareMode compareMode;
 
-    /**
-     * Protected tables are not listed in the meta data and are excluded when
-     * using the SCRIPT command.
-     */
-    protected boolean isHidden;
-
     private final HashMap<String, Column> columnMap;
     private final boolean persistIndexes;
     private final boolean persistData;
@@ -395,7 +389,7 @@ public abstract class Table extends SchemaObject {
      */
     public abstract long getRowCountApproximation(SessionLocal session);
 
-    public long getDiskSpaceUsed() {
+    public long getDiskSpaceUsed(boolean total) {
         return 0L;
     }
 
@@ -1418,13 +1412,14 @@ public abstract class Table extends SchemaObject {
         database.checkWritingAllowed();
     }
 
-    @Override
+    /**
+     * Check whether this is a hidden object that doesn't appear in the meta
+     * data and in the script.
+     *
+     * @return true if it is hidden
+     */
     public boolean isHidden() {
-        return isHidden;
-    }
-
-    public void setHidden(boolean hidden) {
-        this.isHidden = hidden;
+        return false;
     }
 
     /**

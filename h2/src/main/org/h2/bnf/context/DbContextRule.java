@@ -78,7 +78,7 @@ public class DbContextRule implements Rule {
             DbSchema bestSchema = null;
             for (DbSchema schema: schemas) {
                 String name = StringUtils.toUpperEnglish(schema.name);
-                String quotedName = "\"" + schema.quotedName + "\"";
+                String quotedName = StringUtils.quoteIdentifier(schema.name);
                 if (up.startsWith(name)) {
                     if (best == null || name.length() > best.length()) {
                         best = name;
@@ -113,20 +113,15 @@ public class DbContextRule implements Rule {
             String best = null;
             DbTableOrView bestTable = null;
             for (DbTableOrView table : tables) {
-                String compare = up;
                 String name = StringUtils.toUpperEnglish(table.getName());
-                String quotedName = "\"" + StringUtils.toUpperEnglish(table.getName()) + "\"";
+                String quotedName = StringUtils.quoteIdentifier(StringUtils.toUpperEnglish(table.getName()));
 
-                if (table.getQuotedName().length() > name.length()) {
-                    name = table.getQuotedName();
-                    compare = query;
-                }
-                if (compare.startsWith(name)) {
+                if (up.startsWith(name) || ("\"" + up).startsWith(quotedName)) {
                     if (best == null || name.length() > best.length()) {
                         best = name;
                         bestTable = table;
                     }
-                } else if (s.isEmpty() || name.startsWith(compare) || quotedName.startsWith(up)) {
+                } else if (s.isEmpty() || name.startsWith(up) || quotedName.startsWith(up)) {
                     if (s.length() < name.length()) {
                         sentence.add(table.getQuotedName(),
                                 table.getQuotedName().substring(s.length()),

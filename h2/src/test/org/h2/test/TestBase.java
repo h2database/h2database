@@ -749,8 +749,21 @@ public abstract class TestBase {
      * @throws AssertionError if the term was not found
      */
     protected void assertContains(String result, String contains) {
-        if (result.indexOf(contains) < 0) {
+        if (!result.contains(contains)) {
             fail(result + " does not contain: " + contains);
+        }
+    }
+
+    /**
+     * Check that a result does not contain the given substring.
+     *
+     * @param result the result value
+     * @param contains the term that should appear in the result
+     * @throws AssertionError if the term has been found
+     */
+    protected void assertNotContaining(String result, String contains) {
+        if (result.contains(contains)) {
+            fail(result + " contains: " + contains);
         }
     }
 
@@ -849,6 +862,18 @@ public abstract class TestBase {
     public void assertNull(Object obj) {
         if (obj != null) {
             fail("Expected: null got: " + obj);
+        }
+    }
+
+    /**
+     * Check that the passed String is empty.
+     *
+     * @param s the object
+     * @throws AssertionError if the String is not empty
+     */
+    public void assertEmpty(String s) {
+        if (s != null && !s.isEmpty()) {
+            fail("Expected: empty String but got: " + s);
         }
     }
 

@@ -78,12 +78,18 @@ public class DbContextRule implements Rule {
             DbSchema bestSchema = null;
             for (DbSchema schema: schemas) {
                 String name = StringUtils.toUpperEnglish(schema.name);
+                String quotedName = "\"" + schema.quotedName + "\"";
                 if (up.startsWith(name)) {
                     if (best == null || name.length() > best.length()) {
                         best = name;
                         bestSchema = schema;
                     }
-                } else if (s.length() == 0 || name.startsWith(up)) {
+                } else if (query.startsWith(quotedName)) {
+                    if (best == null || name.length() > best.length()) {
+                        best = quotedName;
+                        bestSchema = schema;
+                    }
+                } else if (s.isEmpty() || name.startsWith(up) || quotedName.startsWith(query) ) {
                     if (s.length() < name.length()) {
                         sentence.add(name, name.substring(s.length()), type);
                         sentence.add(schema.quotedName + ".",
@@ -109,6 +115,8 @@ public class DbContextRule implements Rule {
             for (DbTableOrView table : tables) {
                 String compare = up;
                 String name = StringUtils.toUpperEnglish(table.getName());
+                String quotedName = "\"" + StringUtils.toUpperEnglish(table.getName()) + "\"";
+
                 if (table.getQuotedName().length() > name.length()) {
                     name = table.getQuotedName();
                     compare = query;
@@ -118,7 +126,7 @@ public class DbContextRule implements Rule {
                         best = name;
                         bestTable = table;
                     }
-                } else if (s.length() == 0 || name.startsWith(compare)) {
+                } else if (s.isEmpty() || name.startsWith(compare) || quotedName.startsWith(up)) {
                     if (s.length() < name.length()) {
                         sentence.add(table.getQuotedName(),
                                 table.getQuotedName().substring(s.length()),

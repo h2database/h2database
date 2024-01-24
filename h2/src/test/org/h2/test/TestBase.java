@@ -758,12 +758,12 @@ public abstract class TestBase {
      * Check that a result does not contain the given substring.
      *
      * @param result the result value
-     * @param contains the term that should appear in the result
+     * @param shallNotContain the term that must not appear in the result
      * @throws AssertionError if the term has been found
      */
-    protected void assertNotContaining(String result, String contains) {
-        if (result.contains(contains)) {
-            fail(result + " contains: " + contains);
+    protected void assertNotContaining(String result, String shallNotContain) {
+        if (result.contains(shallNotContain)) {
+            fail(result + " still contains: " + shallNotContain);
         }
     }
 

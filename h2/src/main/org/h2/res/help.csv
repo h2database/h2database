@@ -4845,8 +4845,10 @@ ABS(CAST(I AS BIGINT))
 ACOS(numeric)
 ","
 Calculate the arc cosine.
-See also Java ""Math.acos"".
-This method returns a double.
+
+Argument must be between -1 and 1 inclusive.
+
+This function returns a double precision value.
 ","
 ACOS(D)
 "
@@ -4855,8 +4857,10 @@ ACOS(D)
 ASIN(numeric)
 ","
 Calculate the arc sine.
-See also Java ""Math.asin"".
-This method returns a double.
+
+Argument must be between -1 and 1 inclusive.
+
+This function returns a double precision value.
 ","
 ASIN(D)
 "
@@ -4865,8 +4869,8 @@ ASIN(D)
 ATAN(numeric)
 ","
 Calculate the arc tangent.
-See also Java ""Math.atan"".
-This method returns a double.
+
+This function returns a double precision value.
 ","
 ATAN(D)
 "
@@ -4875,8 +4879,8 @@ ATAN(D)
 COS(numeric)
 ","
 Calculate the trigonometric cosine.
-See also Java ""Math.cos"".
-This method returns a double.
+
+This function returns a double precision value.
 ","
 COS(ANGLE)
 "
@@ -4885,8 +4889,8 @@ COS(ANGLE)
 COSH(numeric)
 ","
 Calculate the hyperbolic cosine.
-See also Java ""Math.cosh"".
-This method returns a double.
+
+This function returns a double precision value.
 ","
 COSH(X)
 "
@@ -4895,8 +4899,8 @@ COSH(X)
 @h2@ COT(numeric)
 ","
 Calculate the trigonometric cotangent (""1/TAN(ANGLE)"").
-See also Java ""Math.*"" functions.
-This method returns a double.
+
+This function returns a double precision value.
 ","
 COT(ANGLE)
 "
@@ -4905,8 +4909,8 @@ COT(ANGLE)
 SIN(numeric)
 ","
 Calculate the trigonometric sine.
-See also Java ""Math.sin"".
-This method returns a double.
+
+This function returns a double precision value.
 ","
 SIN(ANGLE)
 "
@@ -4915,8 +4919,8 @@ SIN(ANGLE)
 SINH(numeric)
 ","
 Calculate the hyperbolic sine.
-See also Java ""Math.sinh"".
-This method returns a double.
+
+This function returns a double precision value.
 ","
 SINH(ANGLE)
 "
@@ -4925,8 +4929,8 @@ SINH(ANGLE)
 TAN(numeric)
 ","
 Calculate the trigonometric tangent.
-See also Java ""Math.tan"".
-This method returns a double.
+
+This function returns a double precision value.
 ","
 TAN(ANGLE)
 "
@@ -4935,8 +4939,8 @@ TAN(ANGLE)
 TANH(numeric)
 ","
 Calculate the hyperbolic tangent.
-See also Java ""Math.tanh"".
-This method returns a double.
+
+This function returns a double precision value.
 ","
 TANH(X)
 "
@@ -4945,8 +4949,8 @@ TANH(X)
 @h2@ ATAN2(numeric, numeric)
 ","
 Calculate the angle when converting the rectangular coordinates to polar coordinates.
-See also Java ""Math.atan2"".
-This method returns a double.
+
+This function returns a double precision value.
 ","
 ATAN2(X, Y)
 "

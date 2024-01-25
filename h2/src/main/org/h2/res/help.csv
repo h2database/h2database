@@ -110,6 +110,8 @@ INSERT INTO [schemaName.]tableName [ ( columnName [,...] ) ]
 ","
 Inserts a new row / new rows into a table.
 
+If column names aren't specified a list of all visible columns in the table is assumed.
+
 When using DIRECT, then the results from the query are directly applied in the target table without any intermediate step.
 ","
 INSERT INTO TEST VALUES(1, 'Hello')
@@ -3550,6 +3552,8 @@ WHEN MATCHED [ AND expression ] THEN
 UPDATE SET setClauseList | DELETE
 ","
 WHEN MATCHED clause for MERGE USING command.
+
+Updates or deletes rows in a target table.
 ","
 WHEN MATCHED THEN UPDATE SET NAME = S.NAME
 WHEN MATCHED THEN DELETE
@@ -3562,6 +3566,10 @@ WHEN NOT MATCHED [ AND expression ] THEN INSERT
 VALUES ({DEFAULT|expression} [,...])
 ","
 WHEN NOT MATCHED clause for MERGE USING command.
+
+Inserts rows into a target table.
+
+If column names aren't specified a list of all visible columns in the target table is assumed.
 ","
 WHEN NOT MATCHED THEN INSERT (ID, NAME) VALUES (S.ID, S.NAME)
 "

@@ -522,7 +522,7 @@ public final class MergeUsing extends DataChangeStatement {
             TableFilter targetTableFilter = MergeUsing.this.targetTableFilter,
                     sourceTableFilter = MergeUsing.this.sourceTableFilter;
             if (columns == null) {
-                columns = targetTableFilter.getTable().getColumns();
+                columns = targetTableFilter.getTable().getVisibleColumns();
             }
             if (values.length != columns.length) {
                 throw DbException.get(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);

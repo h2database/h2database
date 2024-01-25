@@ -286,7 +286,7 @@ public final class Insert extends CommandWithValues implements ResultTarget {
                 // special case where table is used as a sequence
                 columns = new Column[0];
             } else {
-                columns = table.getColumns();
+                columns = table.getVisibleColumns();
             }
         }
         if (!valuesExpressionList.isEmpty()) {

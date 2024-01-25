@@ -5,6 +5,7 @@
  */
 package org.h2.mvstore.db;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicLong;
@@ -29,8 +30,8 @@ import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.TableFilter;
 import org.h2.value.Value;
+import org.h2.value.ValueDecfloat;
 import org.h2.value.ValueLob;
-import org.h2.value.ValueNull;
 import org.h2.value.VersionedValue;
 
 /**
@@ -245,10 +246,37 @@ public class MVPrimaryIndex extends MVIndex<Long, SearchRow> {
             Value v = row.getValue(mainIndexColumn);
             if (v == null) {
                 result = row.getKey();
-            } else if (v == ValueNull.INSTANCE) {
-                result = 0L;
             } else {
-                result = v.getLong();
+                switch (v.getValueType()) {
+                case Value.NULL:
+                    result = 0L;
+                    break;
+                case Value.REAL:
+                case Value.DOUBLE: {
+                    double d = v.getDouble();
+                    result = Double.isNaN(d) ? Long.MAX_VALUE : (long) d;
+                    break;
+                }
+                case Value.DECFLOAT:
+                    if (!((ValueDecfloat) v).isFinite()) {
+                        result = v == ValueDecfloat.NEGATIVE_INFINITY ? Long.MIN_VALUE : Long.MAX_VALUE;
+                        break;
+                    }
+                    //$FALL-THROUGH$
+                case Value.NUMERIC: {
+                    BigDecimal bd = v.getBigDecimal();
+                    if (bd.compareTo(Value.MAX_LONG_DECIMAL) >= 0) {
+                        result = Long.MAX_VALUE;
+                    } else if (bd.compareTo(Value.MIN_LONG_DECIMAL) <= 0) {
+                        result = Long.MIN_VALUE;
+                    } else {
+                        result = bd.longValue();
+                    }
+                    break;
+                }
+                default:
+                    result = v.getLong();
+                }
             }
         }
         return result;

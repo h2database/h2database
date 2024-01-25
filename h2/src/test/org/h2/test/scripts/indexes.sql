@@ -435,3 +435,455 @@ EXPLAIN SELECT P.ID, G, MAX(CASE WHEN K = 'A' THEN V END) AS A, MAX(CASE WHEN K 
 
 DROP TABLE P, T;
 > ok
+
+CREATE TABLE TEST(A BIGINT PRIMARY KEY, B BIGINT UNIQUE);
+> ok
+
+INSERT INTO TEST VALUES (-9223372036854775808, -9223372036854775808), (0, 0),
+    (9223372036854775807, 9223372036854775807);
+> update count: 3
+
+SELECT * FROM TEST WHERE A > 'NaN'::REAL;
+> A B
+> - -
+> rows: 0
+
+SELECT * FROM TEST WHERE B > 'NaN'::REAL;
+> A B
+> - -
+> rows: 0
+
+SELECT * FROM TEST WHERE A < 'NaN'::REAL;
+> A                    B
+> -------------------- --------------------
+> -9223372036854775808 -9223372036854775808
+> 0                    0
+> 9223372036854775807  9223372036854775807
+> rows: 3
+
+SELECT * FROM TEST WHERE B < 'NaN'::REAL;
+> A                    B
+> -------------------- --------------------
+> -9223372036854775808 -9223372036854775808
+> 0                    0
+> 9223372036854775807  9223372036854775807
+> rows: 3
+
+SELECT * FROM TEST WHERE A > 'Infinity'::REAL;
+> A B
+> - -
+> rows: 0
+
+SELECT * FROM TEST WHERE B > 'Infinity'::REAL;
+> A B
+> - -
+> rows: 0
+
+SELECT * FROM TEST WHERE A < 'Infinity'::REAL;
+> A                    B
+> -------------------- --------------------
+> -9223372036854775808 -9223372036854775808
+> 0                    0
+> 9223372036854775807  9223372036854775807
+> rows: 3
+
+SELECT * FROM TEST WHERE B < 'Infinity'::REAL;
+> A                    B
+> -------------------- --------------------
+> -9223372036854775808 -9223372036854775808
+> 0                    0
+> 9223372036854775807  9223372036854775807
+> rows: 3
+
+SELECT * FROM TEST WHERE A > 1E19::REAL;
+> A B
+> - -
+> rows: 0
+
+SELECT * FROM TEST WHERE B > 1E19::REAL;
+> A B
+> - -
+> rows: 0
+
+SELECT * FROM TEST WHERE A < 1E19::REAL;
+> A                    B
+> -------------------- --------------------
+> -9223372036854775808 -9223372036854775808
+> 0                    0
+> 9223372036854775807  9223372036854775807
+> rows: 3
+
+SELECT * FROM TEST WHERE B < 1E19::REAL;
+> A                    B
+> -------------------- --------------------
+> -9223372036854775808 -9223372036854775808
+> 0                    0
+> 9223372036854775807  9223372036854775807
+> rows: 3
+
+SELECT * FROM TEST WHERE A > '-Infinity'::REAL;
+> A                    B
+> -------------------- --------------------
+> -9223372036854775808 -9223372036854775808
+> 0                    0
+> 9223372036854775807  9223372036854775807
+> rows: 3
+
+SELECT * FROM TEST WHERE B > '-Infinity'::REAL;
+> A                    B
+> -------------------- --------------------
+> -9223372036854775808 -9223372036854775808
+> 0                    0
+> 9223372036854775807  9223372036854775807
+> rows: 3
+
+SELECT * FROM TEST WHERE A < '-Infinity'::REAL;
+> A B
+> - -
+> rows: 0
+
+SELECT * FROM TEST WHERE B < '-Infinity'::REAL;
+> A B
+> - -
+> rows: 0
+
+SELECT * FROM TEST WHERE A > -1E19::REAL;
+> A                    B
+> -------------------- --------------------
+> -9223372036854775808 -9223372036854775808
+> 0                    0
+> 9223372036854775807  9223372036854775807
+> rows: 3
+
+SELECT * FROM TEST WHERE B > -1E19::REAL;
+> A                    B
+> -------------------- --------------------
+> -9223372036854775808 -9223372036854775808
+> 0                    0
+> 9223372036854775807  9223372036854775807
+> rows: 3
+
+SELECT * FROM TEST WHERE A < -1E19::REAL;
+> A B
+> - -
+> rows: 0
+
+SELECT * FROM TEST WHERE B < -1E19::REAL;
+> A B
+> - -
+> rows: 0
+
+SELECT * FROM TEST WHERE A > 'NaN'::DOUBLE PRECISION;
+> A B
+> - -
+> rows: 0
+
+SELECT * FROM TEST WHERE B > 'NaN'::DOUBLE PRECISION;
+> A B
+> - -
+> rows: 0
+
+SELECT * FROM TEST WHERE A < 'NaN'::DOUBLE PRECISION;
+> A                    B
+> -------------------- --------------------
+> -9223372036854775808 -9223372036854775808
+> 0                    0
+> 9223372036854775807  9223372036854775807
+> rows: 3
+
+SELECT * FROM TEST WHERE B < 'NaN'::DOUBLE PRECISION;
+> A                    B
+> -------------------- --------------------
+> -9223372036854775808 -9223372036854775808
+> 0                    0
+> 9223372036854775807  9223372036854775807
+> rows: 3
+
+SELECT * FROM TEST WHERE A > 'Infinity'::DOUBLE PRECISION;
+> A B
+> - -
+> rows: 0
+
+SELECT * FROM TEST WHERE B > 'Infinity'::DOUBLE PRECISION;
+> A B
+> - -
+> rows: 0
+
+SELECT * FROM TEST WHERE A < 'Infinity'::DOUBLE PRECISION;
+> A                    B
+> -------------------- --------------------
+> -9223372036854775808 -9223372036854775808
+> 0                    0
+> 9223372036854775807  9223372036854775807
+> rows: 3
+
+SELECT * FROM TEST WHERE B < 'Infinity'::DOUBLE PRECISION;
+> A                    B
+> -------------------- --------------------
+> -9223372036854775808 -9223372036854775808
+> 0                    0
+> 9223372036854775807  9223372036854775807
+> rows: 3
+
+SELECT * FROM TEST WHERE A > 1E19::DOUBLE PRECISION;
+> A B
+> - -
+> rows: 0
+
+SELECT * FROM TEST WHERE B > 1E19::DOUBLE PRECISION;
+> A B
+> - -
+> rows: 0
+
+SELECT * FROM TEST WHERE A < 1E19::DOUBLE PRECISION;
+> A                    B
+> -------------------- --------------------
+> -9223372036854775808 -9223372036854775808
+> 0                    0
+> 9223372036854775807  9223372036854775807
+> rows: 3
+
+SELECT * FROM TEST WHERE B < 1E19::DOUBLE PRECISION;
+> A                    B
+> -------------------- --------------------
+> -9223372036854775808 -9223372036854775808
+> 0                    0
+> 9223372036854775807  9223372036854775807
+> rows: 3
+
+SELECT * FROM TEST WHERE A > '-Infinity'::DOUBLE PRECISION;
+> A                    B
+> -------------------- --------------------
+> -9223372036854775808 -9223372036854775808
+> 0                    0
+> 9223372036854775807  9223372036854775807
+> rows: 3
+
+SELECT * FROM TEST WHERE B > '-Infinity'::DOUBLE PRECISION;
+> A                    B
+> -------------------- --------------------
+> -9223372036854775808 -9223372036854775808
+> 0                    0
+> 9223372036854775807  9223372036854775807
+> rows: 3
+
+SELECT * FROM TEST WHERE A < '-Infinity'::DOUBLE PRECISION;
+> A B
+> - -
+> rows: 0
+
+SELECT * FROM TEST WHERE B < '-Infinity'::DOUBLE PRECISION;
+> A B
+> - -
+> rows: 0
+
+SELECT * FROM TEST WHERE A > -1E19::DOUBLE PRECISION;
+> A                    B
+> -------------------- --------------------
+> -9223372036854775808 -9223372036854775808
+> 0                    0
+> 9223372036854775807  9223372036854775807
+> rows: 3
+
+SELECT * FROM TEST WHERE B > -1E19::DOUBLE PRECISION;
+> A                    B
+> -------------------- --------------------
+> -9223372036854775808 -9223372036854775808
+> 0                    0
+> 9223372036854775807  9223372036854775807
+> rows: 3
+
+SELECT * FROM TEST WHERE A < -1E19::DOUBLE PRECISION;
+> A B
+> - -
+> rows: 0
+
+SELECT * FROM TEST WHERE B < -1E19::DOUBLE PRECISION;
+> A B
+> - -
+> rows: 0
+
+SELECT * FROM TEST WHERE A > 9223372036854775808::NUMERIC;
+> A B
+> - -
+> rows: 0
+
+SELECT * FROM TEST WHERE B > 9223372036854775808::NUMERIC;
+> A B
+> - -
+> rows: 0
+
+SELECT * FROM TEST WHERE A < 9223372036854775808::NUMERIC;
+> A                    B
+> -------------------- --------------------
+> -9223372036854775808 -9223372036854775808
+> 0                    0
+> 9223372036854775807  9223372036854775807
+> rows: 3
+
+SELECT * FROM TEST WHERE B < 9223372036854775808::NUMERIC;
+> A                    B
+> -------------------- --------------------
+> -9223372036854775808 -9223372036854775808
+> 0                    0
+> 9223372036854775807  9223372036854775807
+> rows: 3
+
+SELECT * FROM TEST WHERE A > -9223372036854775809::NUMERIC;
+> A                    B
+> -------------------- --------------------
+> -9223372036854775808 -9223372036854775808
+> 0                    0
+> 9223372036854775807  9223372036854775807
+> rows: 3
+
+SELECT * FROM TEST WHERE B > -9223372036854775809::NUMERIC;
+> A                    B
+> -------------------- --------------------
+> -9223372036854775808 -9223372036854775808
+> 0                    0
+> 9223372036854775807  9223372036854775807
+> rows: 3
+
+SELECT * FROM TEST WHERE A < -9223372036854775809::NUMERIC;
+> A B
+> - -
+> rows: 0
+
+SELECT * FROM TEST WHERE B < -9223372036854775809::NUMERIC;
+> A B
+> - -
+> rows: 0
+
+SELECT * FROM TEST WHERE A > 'NaN'::DECFLOAT;
+> A B
+> - -
+> rows: 0
+
+SELECT * FROM TEST WHERE B > 'NaN'::DECFLOAT;
+> A B
+> - -
+> rows: 0
+
+SELECT * FROM TEST WHERE A < 'NaN'::DECFLOAT;
+> A                    B
+> -------------------- --------------------
+> -9223372036854775808 -9223372036854775808
+> 0                    0
+> 9223372036854775807  9223372036854775807
+> rows: 3
+
+SELECT * FROM TEST WHERE B < 'NaN'::DECFLOAT;
+> A                    B
+> -------------------- --------------------
+> -9223372036854775808 -9223372036854775808
+> 0                    0
+> 9223372036854775807  9223372036854775807
+> rows: 3
+
+SELECT * FROM TEST WHERE A > 'Infinity'::DECFLOAT;
+> A B
+> - -
+> rows: 0
+
+SELECT * FROM TEST WHERE B > 'Infinity'::DECFLOAT;
+> A B
+> - -
+> rows: 0
+
+SELECT * FROM TEST WHERE A < 'Infinity'::DECFLOAT;
+> A                    B
+> -------------------- --------------------
+> -9223372036854775808 -9223372036854775808
+> 0                    0
+> 9223372036854775807  9223372036854775807
+> rows: 3
+
+SELECT * FROM TEST WHERE B < 'Infinity'::DECFLOAT;
+> A                    B
+> -------------------- --------------------
+> -9223372036854775808 -9223372036854775808
+> 0                    0
+> 9223372036854775807  9223372036854775807
+> rows: 3
+
+SELECT * FROM TEST WHERE A > 9223372036854775808::DECFLOAT;
+> A B
+> - -
+> rows: 0
+
+SELECT * FROM TEST WHERE B > 9223372036854775808::DECFLOAT;
+> A B
+> - -
+> rows: 0
+
+SELECT * FROM TEST WHERE A < 9223372036854775808::DECFLOAT;
+> A                    B
+> -------------------- --------------------
+> -9223372036854775808 -9223372036854775808
+> 0                    0
+> 9223372036854775807  9223372036854775807
+> rows: 3
+
+SELECT * FROM TEST WHERE B < 9223372036854775808::DECFLOAT;
+> A                    B
+> -------------------- --------------------
+> -9223372036854775808 -9223372036854775808
+> 0                    0
+> 9223372036854775807  9223372036854775807
+> rows: 3
+
+SELECT * FROM TEST WHERE A > '-Infinity'::DECFLOAT;
+> A                    B
+> -------------------- --------------------
+> -9223372036854775808 -9223372036854775808
+> 0                    0
+> 9223372036854775807  9223372036854775807
+> rows: 3
+
+SELECT * FROM TEST WHERE B > '-Infinity'::DECFLOAT;
+> A                    B
+> -------------------- --------------------
+> -9223372036854775808 -9223372036854775808
+> 0                    0
+> 9223372036854775807  9223372036854775807
+> rows: 3
+
+SELECT * FROM TEST WHERE A < '-Infinity'::DECFLOAT;
+> A B
+> - -
+> rows: 0
+
+SELECT * FROM TEST WHERE B < '-Infinity'::DECFLOAT;
+> A B
+> - -
+> rows: 0
+
+SELECT * FROM TEST WHERE A > -9223372036854775809::DECFLOAT;
+> A                    B
+> -------------------- --------------------
+> -9223372036854775808 -9223372036854775808
+> 0                    0
+> 9223372036854775807  9223372036854775807
+> rows: 3
+
+SELECT * FROM TEST WHERE B > -9223372036854775809::DECFLOAT;
+> A                    B
+> -------------------- --------------------
+> -9223372036854775808 -9223372036854775808
+> 0                    0
+> 9223372036854775807  9223372036854775807
+> rows: 3
+
+SELECT * FROM TEST WHERE A < -9223372036854775809::DECFLOAT;
+> A B
+> - -
+> rows: 0
+
+SELECT * FROM TEST WHERE B < -9223372036854775809::DECFLOAT;
+> A B
+> - -
+> rows: 0
+
+DROP TABLE TEST;
+> ok

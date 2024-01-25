@@ -3387,22 +3387,6 @@ SELECT group_concat(name) FROM TEST group by id;
 drop table test;
 > ok
 
-create table test(a int primary key, b int invisible, c int);
-> ok
-
-select * from test;
-> A C
-> - -
-> rows: 0
-
-select a, b, c from test;
-> A B C
-> - - -
-> rows: 0
-
-drop table test;
-> ok
-
 --- script drop ---------------------------------------------------------------------------------------------
 create memory table test (id int primary key, im_ie varchar(10));
 > ok
@@ -4262,49 +4246,6 @@ SELECT * FROM TEST;
 > rows: 2
 
 DROP TABLE TEST;
-> ok
-
-create table test(id int, name varchar invisible);
-> ok
-
-select * from test;
-> ID
-> --
-> rows: 0
-
-alter table test alter column name set visible;
-> ok
-
-select * from test;
-> ID NAME
-> -- ----
-> rows: 0
-
-alter table test add modify_date timestamp invisible before name;
-> ok
-
-select * from test;
-> ID NAME
-> -- ----
-> rows: 0
-
-alter table test alter column modify_date timestamp visible;
-> ok
-
-select * from test;
-> ID MODIFY_DATE NAME
-> -- ----------- ----
-> rows: 0
-
-alter table test alter column modify_date set invisible;
-> ok
-
-select * from test;
-> ID NAME
-> -- ----
-> rows: 0
-
-drop table test;
 > ok
 
 CREATE MEMORY TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR);

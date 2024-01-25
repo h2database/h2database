@@ -721,7 +721,41 @@ public abstract class Table extends SchemaObject {
         return row;
     }
 
-    public Column[] getColumns() {
+    public final Column[] getColumns() {
+        return columns;
+    }
+
+    public final Column[] getVisibleColumns() {
+        Column[] columns = this.columns;
+        for (int i = 0, count = columns.length; i < count; i++) {
+            Column column = columns[i];
+            if (!column.getVisible()) {
+                return excludeInvisible(columns, count, i);
+            }
+        }
+        return columns;
+    }
+
+    private static Column[] excludeInvisible(Column[] allColumns, int count, int i) {
+        int invisileCount = 1;
+        for (int j = i + 1; j < count; j++) {
+            Column column = allColumns[j];
+            if (!column.getVisible()) {
+                invisileCount++;
+            }
+        }
+        Column[] columns = new Column[count - invisileCount];
+        System.arraycopy(allColumns, 0, columns, 0, i);
+        if (invisileCount == 1) {
+            System.arraycopy(allColumns, i + 1, columns, i, count - i - 1);
+        } else {
+            for (int j = i + 1; j < count; j++) {
+                Column column = allColumns[j];
+                if (column.getVisible()) {
+                    columns[i++] = column;
+                }
+            }
+        }
         return columns;
     }
 

@@ -231,57 +231,100 @@ public class MVPrimaryIndex extends MVIndex<Long, SearchRow> {
 
     @Override
     public Cursor find(SessionLocal session, SearchRow first, SearchRow last) {
-        long min = extractPKFromRow(first, Long.MIN_VALUE);
-        long max = extractPKFromRow(last, Long.MAX_VALUE);
-        return find(session, min, max);
-    }
-
-    private long extractPKFromRow(SearchRow row, long defaultValue) {
-        long result;
-        if (row == null) {
-            result = defaultValue;
-        } else if (mainIndexColumn == SearchRow.ROWID_INDEX) {
-            result = row.getKey();
+        Long min, max;
+        Value v;
+        if (first == null) {
+            min = null;
+        } else if (mainIndexColumn == SearchRow.ROWID_INDEX || (v = first.getValue(mainIndexColumn)) == null) {
+            min = first.getKey();
         } else {
-            Value v = row.getValue(mainIndexColumn);
-            if (v == null) {
-                result = row.getKey();
-            } else {
-                switch (v.getValueType()) {
-                case Value.NULL:
-                    result = 0L;
-                    break;
-                case Value.REAL:
-                case Value.DOUBLE: {
-                    double d = v.getDouble();
-                    result = Double.isNaN(d) ? Long.MAX_VALUE : (long) d;
-                    break;
+            switch (v.getValueType()) {
+            case Value.NULL:
+                return SingleRowCursor.EMPTY;
+            case Value.REAL:
+            case Value.DOUBLE: {
+                double d = v.getDouble();
+                if (Double.isNaN(d)) {
+                    return SingleRowCursor.EMPTY;
+                } else {
+                    min = (long) d;
                 }
-                case Value.DECFLOAT:
-                    if (!((ValueDecfloat) v).isFinite()) {
-                        result = v == ValueDecfloat.NEGATIVE_INFINITY ? Long.MIN_VALUE : Long.MAX_VALUE;
-                        break;
-                    }
-                    //$FALL-THROUGH$
-                case Value.NUMERIC: {
-                    BigDecimal bd = v.getBigDecimal();
-                    if (bd.compareTo(Value.MAX_LONG_DECIMAL) >= 0) {
-                        result = Long.MAX_VALUE;
-                    } else if (bd.compareTo(Value.MIN_LONG_DECIMAL) <= 0) {
-                        result = Long.MIN_VALUE;
+                break;
+            }
+            case Value.DECFLOAT:
+                if (!((ValueDecfloat) v).isFinite()) {
+                    if (v == ValueDecfloat.NEGATIVE_INFINITY) {
+                        min = null;
                     } else {
-                        result = bd.longValue();
+                        return SingleRowCursor.EMPTY;
                     }
                     break;
                 }
-                default:
-                    result = v.getLong();
+                //$FALL-THROUGH$
+            case Value.NUMERIC: {
+                BigDecimal bd = v.getBigDecimal();
+                if (bd.compareTo(Value.MAX_LONG_DECIMAL) > 0) {
+                    return SingleRowCursor.EMPTY;
+                } else if (bd.compareTo(Value.MIN_LONG_DECIMAL) < 0) {
+                    min = null;
+                } else {
+                    min = bd.longValue();
                 }
+                break;
+            }
+            default:
+                min = v.getLong();
             }
         }
-        return result;
+        if (last == null) {
+            max = null;
+        } else if (mainIndexColumn == SearchRow.ROWID_INDEX || (v = last.getValue(mainIndexColumn)) == null) {
+            max = last.getKey();
+        } else {
+            switch (v.getValueType()) {
+            case Value.NULL:
+                return SingleRowCursor.EMPTY;
+            case Value.REAL:
+            case Value.DOUBLE: {
+                double d = v.getDouble();
+                if (Double.isNaN(d)) {
+                    max = null;
+                } else {
+                    max = (long) d;
+                }
+                break;
+            }
+            case Value.DECFLOAT:
+                if (!((ValueDecfloat) v).isFinite()) {
+                    if (v == ValueDecfloat.NEGATIVE_INFINITY) {
+                        return SingleRowCursor.EMPTY;
+                    } else {
+                        max = null;
+                    }
+                    break;
+                }
+                //$FALL-THROUGH$
+            case Value.NUMERIC: {
+                BigDecimal bd = v.getBigDecimal();
+                if (bd.compareTo(Value.MAX_LONG_DECIMAL) > 0) {
+                    max = null;
+                } else if (bd.compareTo(Value.MIN_LONG_DECIMAL) < 0) {
+                    return SingleRowCursor.EMPTY;
+                } else {
+                    max = bd.longValue();
+                }
+                break;
+            }
+            default:
+                max = v.getLong();
+            }
+        }
+        TransactionMap<Long,SearchRow> map = getMap(session);
+        if (min != null && max != null && min.longValue() == max.longValue()) {
+            return new SingleRowCursor(setRowKey((Row) map.getFromSnapshot(min), min));
+        }
+        return new MVStoreCursor(map.entryIterator(min, max));
     }
-
 
     @Override
     public MVTable getTable() {
@@ -347,7 +390,8 @@ public class MVPrimaryIndex extends MVIndex<Long, SearchRow> {
     public Cursor findFirstOrLast(SessionLocal session, boolean first) {
         TransactionMap<Long, SearchRow> map = getMap(session);
         Entry<Long, SearchRow> entry = first ? map.firstEntry() : map.lastEntry();
-        return new SingleRowCursor(entry != null ? setRowKey((Row) entry.getValue(), entry.getKey()) : null);
+        return entry != null ? new SingleRowCursor(setRowKey((Row) entry.getValue(), entry.getKey()))
+                : SingleRowCursor.EMPTY;
     }
 
     @Override
@@ -386,14 +430,6 @@ public class MVPrimaryIndex extends MVIndex<Long, SearchRow> {
     @Override
     public void addBufferedRows(List<String> bufferNames) {
         throw new UnsupportedOperationException();
-    }
-
-    private Cursor find(SessionLocal session, Long first, Long last) {
-        TransactionMap<Long,SearchRow> map = getMap(session);
-        if (first != null && last != null && first.longValue() == last.longValue()) {
-            return new SingleRowCursor(setRowKey((Row) map.getFromSnapshot(first), first));
-        }
-        return new MVStoreCursor(map.entryIterator(first, last));
     }
 
     @Override

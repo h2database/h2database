@@ -13,6 +13,12 @@ import org.h2.result.SearchRow;
  * A cursor with at most one row.
  */
 public class SingleRowCursor implements Cursor {
+
+    /**
+     * An empty cursor.
+     */
+    public static final SingleRowCursor EMPTY = new SingleRowCursor(null);
+
     private Row row;
     private boolean end;
 

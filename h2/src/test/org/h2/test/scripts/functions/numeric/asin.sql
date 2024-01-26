@@ -8,3 +8,12 @@ select asin(null) vn, asin(-1) r1;
 > ---- -------------------
 > null -1.5707963267948966
 > rows: 1
+
+SELECT ASIN(-1.1);
+> exception INVALID_VALUE_2
+
+SELECT ASIN(1.1);
+> exception INVALID_VALUE_2
+
+SELECT ASIN(CAST('Infinity' AS DOUBLE PRECISION));
+> exception INVALID_VALUE_2

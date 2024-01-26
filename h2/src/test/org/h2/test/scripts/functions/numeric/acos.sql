@@ -8,3 +8,12 @@ select acos(null) vn, acos(-1) r1;
 > ---- -----------------
 > null 3.141592653589793
 > rows: 1
+
+SELECT ACOS(-1.1);
+> exception INVALID_VALUE_2
+
+SELECT ACOS(1.1);
+> exception INVALID_VALUE_2
+
+SELECT ACOS(CAST('Infinity' AS DOUBLE PRECISION));
+> exception INVALID_VALUE_2

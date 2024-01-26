@@ -156,9 +156,15 @@ public final class MathFunction1 extends Function1 {
             d = Math.tanh(d);
             break;
         case ASIN:
+            if (d < -1d || d > 1d) {
+                throw DbException.getInvalidValueException("ASIN() argument", d);
+            }
             d = Math.asin(d);
             break;
         case ACOS:
+            if (d < -1d || d > 1d) {
+                throw DbException.getInvalidValueException("ACOS() argument", d);
+            }
             d = Math.acos(d);
             break;
         case ATAN:

@@ -1007,8 +1007,8 @@ public class TestTableEngines extends TestDb {
 
         @Override
         public Cursor findFirstOrLast(SessionLocal session, boolean first) {
-            return new SingleRowCursor((Row)
-                    (set.isEmpty() ? null : first ? set.first() : set.last()));
+            return set.isEmpty() ? SingleRowCursor.EMPTY
+                    : new SingleRowCursor((Row) (first ? set.first() : set.last()));
         }
 
         @Override

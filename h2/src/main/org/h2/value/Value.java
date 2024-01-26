@@ -378,10 +378,13 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
 
     private static SoftReference<Value[]> softCache;
 
-    static final BigDecimal MAX_LONG_DECIMAL = BigDecimal.valueOf(Long.MAX_VALUE);
+    /**
+     * The largest BIGINT value, as a BigDecimal.
+     */
+    public static final BigDecimal MAX_LONG_DECIMAL = BigDecimal.valueOf(Long.MAX_VALUE);
 
     /**
-     * The smallest Long value, as a BigDecimal.
+     * The smallest BIGINT value, as a BigDecimal.
      */
     public static final BigDecimal MIN_LONG_DECIMAL = BigDecimal.valueOf(Long.MIN_VALUE);
 

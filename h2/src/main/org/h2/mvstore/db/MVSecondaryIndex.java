@@ -334,7 +334,7 @@ public final class MVSecondaryIndex extends MVIndex<SearchRow, Value> {
                 return new SingleRowCursor(mvTable.getRow(session, key.getKey()));
             }
         }
-        return new SingleRowCursor(null);
+        return SingleRowCursor.EMPTY;
     }
 
     @Override

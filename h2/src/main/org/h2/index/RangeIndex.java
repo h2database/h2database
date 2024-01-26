@@ -95,8 +95,9 @@ public class RangeIndex extends VirtualTableIndex {
         if (step == 0L) {
             throw DbException.get(ErrorCode.STEP_SIZE_MUST_NOT_BE_ZERO);
         }
-        return new SingleRowCursor((step > 0 ? min <= max : min >= max)
-                ? Row.get(new Value[]{ ValueBigint.get(first ^ min >= max ? min : max) }, 1) : null);
+        return (step > 0 ? min <= max : min >= max)
+                ? new SingleRowCursor(Row.get(new Value[] { ValueBigint.get(first ^ min >= max ? min : max) }, 1))
+                : SingleRowCursor.EMPTY;
     }
 
     @Override

@@ -737,16 +737,16 @@ public abstract class Table extends SchemaObject {
     }
 
     private static Column[] excludeInvisible(Column[] allColumns, int count, int i) {
-        int invisileCount = 1;
+        int invisibleCount = 1;
         for (int j = i + 1; j < count; j++) {
             Column column = allColumns[j];
             if (!column.getVisible()) {
-                invisileCount++;
+                invisibleCount++;
             }
         }
-        Column[] columns = new Column[count - invisileCount];
+        Column[] columns = new Column[count - invisibleCount];
         System.arraycopy(allColumns, 0, columns, 0, i);
-        if (invisileCount == 1) {
+        if (invisibleCount == 1) {
             System.arraycopy(allColumns, i + 1, columns, i, count - i - 1);
         } else {
             for (int j = i + 1; j < count; j++) {

@@ -351,6 +351,34 @@ The column list of the resulting table is C1, C2, and so on.
 VALUES (1, 'Hello'), (2, 'World');
 "
 
+"Commands (DML)","WITH","
+WITH [ RECURSIVE ] { name [( columnName [,...] )] AS ( query ) [,...] }
+{ query | @h2@ { insert | update | delete | mergeInto | mergeUsing | createTable } }
+","
+Can be used to create a recursive or non-recursive query (common table expression).
+For recursive queries the first select has to be a UNION.
+One or more common table entries can be referred to by name.
+Column name declarations are now optional - the column names will be inferred from the named select queries.
+The final action in a WITH statement can be a select, insert, update, merge, delete or create table.
+","
+WITH RECURSIVE cte(n) AS (
+        SELECT 1
+    UNION ALL
+        SELECT n + 1
+        FROM cte
+        WHERE n < 100
+)
+SELECT sum(n) FROM cte;
+
+Example 2:
+WITH cte1 AS (
+        SELECT 1 AS FIRST_COLUMN
+), cte2 AS (
+        SELECT FIRST_COLUMN+1 AS FIRST_COLUMN FROM cte1
+)
+SELECT sum(FIRST_COLUMN) FROM cte2;
+"
+
 "Commands (DDL)","ALTER DOMAIN","
 ALTER DOMAIN @h2@ [ IF EXISTS ] [schemaName.]domainName
 { SET DEFAULT expression }
@@ -3597,32 +3625,13 @@ OVERRIDING USER VALUE
 "
 
 "Other Grammar","Query","
-withClause
 select | explicitTable | tableValue
 ","
 A query, such as SELECT, explicit table, or table value.
 ","
 SELECT ID FROM TEST;
-
 TABLE TEST;
-
 VALUES (1, 2), (3, 4);
-
-WITH RECURSIVE cte(n) AS (
-        SELECT 1
-    UNION ALL
-        SELECT n + 1
-        FROM cte
-        WHERE n < 100
-)
-SELECT sum(n) FROM cte;
-
-WITH cte1 AS (
-        SELECT 1 AS FIRST_COLUMN
-), cte2 AS (
-        SELECT FIRST_COLUMN + 1 AS FIRST_COLUMN FROM cte1
-)
-SELECT sum(FIRST_COLUMN) FROM cte2;
 "
 
 "Other Grammar","Quoted Name","
@@ -3898,20 +3907,6 @@ Too short arrays are expanded, missing elements are set to NULL.
 A
 B[1]
 C[2][3]
-"
-
-"Other Grammar","With clause","
-WITH [ RECURSIVE ] { name [( columnName [,...] )] AS ( query ) [,...] }
-","
-Can be used to create a recursive or non-recursive query (common table expression).
-For recursive queries the first select has to be a UNION.
-One or more common table entries can be referred to by name.
-","
-WITH cte1 AS (
-        SELECT 1 AS FIRST_COLUMN
-), cte2 AS (
-        SELECT FIRST_COLUMN + 1 AS FIRST_COLUMN FROM cte1
-)
 "
 
 "Other Grammar","Within group specification","

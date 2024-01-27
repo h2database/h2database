@@ -7,8 +7,8 @@ package org.h2.command;
 
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
+
 import org.h2.api.DatabaseEventListener;
 import org.h2.api.ErrorCode;
 import org.h2.command.dml.DataChangeStatement;
@@ -29,7 +29,6 @@ import org.h2.result.ResultWithGeneratedKeys;
 import org.h2.table.Column;
 import org.h2.table.DataChangeDeltaTable.ResultOption;
 import org.h2.table.Table;
-import org.h2.table.TableView;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 import org.h2.value.Value;
@@ -79,35 +78,6 @@ public class CommandContainer extends Command {
     private Prepared prepared;
     private boolean readOnlyKnown;
     private boolean readOnly;
-
-    /**
-     * Clears CTE views for a specified statement.
-     *
-     * @param session the session
-     * @param prepared prepared statement
-     */
-    static void clearCTE(SessionLocal session, Prepared prepared) {
-        List<TableView> cteCleanups = prepared.getCteCleanups();
-        if (cteCleanups != null) {
-            clearCTE(session, cteCleanups);
-        }
-    }
-
-    /**
-     * Clears CTE views.
-     *
-     * @param session the session
-     * @param views list of view
-     */
-    static void clearCTE(SessionLocal session, List<TableView> views) {
-        for (TableView view : views) {
-            // check if view was previously deleted as their name is set to
-            // null
-            if (view.getName() != null) {
-                session.removeLocalTempTable(view);
-            }
-        }
-    }
 
     public CommandContainer(SessionLocal session, String sql, Prepared prepared) {
         super(session, sql);
@@ -256,19 +226,6 @@ public class CommandContainer extends Command {
     }
 
     @Override
-    public void stop() {
-        super.stop();
-        // Clean up after the command was run in the session.
-        // Must restart query (and dependency construction) to reuse.
-        clearCTE(session, prepared);
-    }
-
-    @Override
-    public boolean canReuse() {
-        return super.canReuse() && prepared.getCteCleanups() == null;
-    }
-
-    @Override
     public boolean isReadOnly() {
         if (!readOnlyKnown) {
             readOnly = prepared.isReadOnly();
@@ -290,13 +247,6 @@ public class CommandContainer extends Command {
     @Override
     public int getCommandType() {
         return prepared.getType();
-    }
-
-    /**
-     * Clean up any associated CTE.
-     */
-    void clearCTE() {
-        clearCTE(session, prepared);
     }
 
     @Override

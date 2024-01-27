@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map.Entry;
+
 import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
 import org.h2.engine.Constants;
@@ -53,8 +54,6 @@ import org.h2.table.IndexColumn;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.table.TableType;
-import org.h2.table.TableView;
-import org.h2.util.ParserUtil;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 import org.h2.value.DataType;
@@ -136,7 +135,7 @@ public class Select extends Query {
 
     /**
      * Whether this SELECT is an explicit table (TABLE tableName). It is used in
-     * {@link #getPlanSQL(int)} to generate SQL similar to original query.
+     * {@link #getPlanSQL(StringBuilder, int)} to generate SQL similar to original query.
      */
     private boolean isExplicitTable;
 
@@ -1371,31 +1370,12 @@ public class Select extends Query {
     }
 
     @Override
-    public String getPlanSQL(int sqlFlags) {
+    public StringBuilder getPlanSQL(StringBuilder builder, int sqlFlags) {
+        writeWithList(builder, sqlFlags);
         // can not use the field sqlStatement because the parameter
         // indexes may be incorrect: ? may be in fact ?2 for a subquery
         // but indexes may be set manually as well
         Expression[] exprList = expressions.toArray(new Expression[0]);
-        StringBuilder builder = new StringBuilder();
-        for (TableFilter f : topFilters) {
-            Table t = f.getTable();
-            TableView tableView = t instanceof TableView ? (TableView) t : null;
-            if (tableView != null && tableView.isRecursive() && tableView.isTableExpression()) {
-
-                if (!tableView.isTemporary()) {
-                    // skip the generation of plan SQL for this already recursive persistent CTEs,
-                    // since using a with statement will re-create the common table expression
-                    // views.
-                } else {
-                    builder.append("WITH RECURSIVE ");
-                    t.getSchema().getSQL(builder, sqlFlags).append('.');
-                    ParserUtil.quoteIdentifier(builder, t.getName(), sqlFlags).append('(');
-                    Column.writeColumns(builder, t.getColumns(), sqlFlags);
-                    builder.append(") AS ");
-                    t.getSQL(builder, sqlFlags).append('\n');
-                }
-            }
-        }
         if (isExplicitTable) {
             builder.append("TABLE ");
             filters.get(0).getPlanSQL(builder, false, sqlFlags);
@@ -1478,7 +1458,7 @@ public class Select extends Query {
             }
             // builder.append("\n/* cost: " + cost + " */");
         }
-        return builder.toString();
+        return builder;
     }
 
     private static boolean getPlanFromFilter(StringBuilder builder, int sqlFlags, TableFilter f, boolean isJoin) {

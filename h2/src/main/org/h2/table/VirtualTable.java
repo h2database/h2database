@@ -13,6 +13,7 @@ import org.h2.index.IndexType;
 import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.schema.Schema;
+import org.h2.util.ParserUtil;
 
 /**
  * A base class for virtual tables.
@@ -21,6 +22,11 @@ public abstract class VirtualTable extends Table {
 
     protected VirtualTable(Schema schema, int id, String name) {
         super(schema, id, name, false, true);
+    }
+
+    @Override
+    public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
+        return ParserUtil.quoteIdentifier(builder, getName(), sqlFlags);
     }
 
     @Override

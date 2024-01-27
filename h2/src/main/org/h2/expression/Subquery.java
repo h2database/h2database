@@ -139,7 +139,7 @@ public final class Subquery extends Expression {
 
     @Override
     public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
-        return builder.append('(').append(query.getPlanSQL(sqlFlags)).append(')');
+        return query.getPlanSQL(builder.append('('), sqlFlags).append(')');
     }
 
     @Override

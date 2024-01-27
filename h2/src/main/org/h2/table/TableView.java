@@ -11,7 +11,7 @@ import java.util.List;
 
 import org.h2.api.ErrorCode;
 import org.h2.command.Prepared;
-import org.h2.command.ddl.CreateTableData;
+import org.h2.command.QueryScope;
 import org.h2.command.query.AllColumnsForPlan;
 import org.h2.command.query.Query;
 import org.h2.engine.Database;
@@ -40,18 +40,16 @@ public final class TableView extends QueryExpressionTable {
     private ResultInterface recursiveResult;
     private boolean isRecursiveQueryDetected;
     private boolean isTableExpression;
+    private QueryScope queryScope;
 
     public TableView(Schema schema, int id, String name, String querySQL,
             ArrayList<Parameter> params, Column[] columnTemplates, SessionLocal session,
-            boolean allowRecursive, boolean literalsChecked, boolean isTableExpression, boolean isTemporary) {
+            boolean allowRecursive, boolean literalsChecked, boolean isTableExpression, boolean isTemporary,
+            QueryScope queryScope) {
         super(schema, id, name);
+        this.queryScope = queryScope;
         setTemporary(isTemporary);
         init(querySQL, params, columnTemplates, session, allowRecursive, literalsChecked, isTableExpression);
-    }
-
-    @Override
-    public boolean isHidden() {
-        return isTableExpression;
     }
 
     /**
@@ -96,7 +94,7 @@ public final class TableView extends QueryExpressionTable {
         Prepared p;
         session.setParsingCreateView(true);
         try {
-            p = session.prepare(sql, false, literalsChecked);
+            p = session.prepare(sql, false, literalsChecked, queryScope);
         } finally {
             session.setParsingCreateView(false);
         }
@@ -300,6 +298,11 @@ public final class TableView extends QueryExpressionTable {
     }
 
     @Override
+    public QueryScope getQueryScope() {
+        return queryScope;
+    }
+
+    @Override
     public Index getScanIndex(SessionLocal session, int[] masks,
             TableFilter[] filters, int filter, SortOrder sortOrder,
             AllColumnsForPlan allColumnsSet) {
@@ -418,7 +421,7 @@ public final class TableView extends QueryExpressionTable {
         }
 
         try {
-            Prepared withQuery = session.prepare(querySQL, false, false);
+            Prepared withQuery = session.prepare(querySQL, false, false, null);
             if (!isTemporary) {
                 withQuery.setSession(session);
             }
@@ -432,7 +435,7 @@ public final class TableView extends QueryExpressionTable {
         // build with recursion turned on
         TableView view = new TableView(schema, id, name, querySQL,
                 parameters, columnTemplateList.toArray(columnTemplates), session,
-                true/* try recursive */, literalsChecked, isTableExpression, isTemporary);
+                true/* try recursive */, literalsChecked, isTableExpression, isTemporary, null);
 
         // is recursion really detected ? if not - recreate it without recursion flag
         // and no recursive index
@@ -451,7 +454,7 @@ public final class TableView extends QueryExpressionTable {
             }
             view = new TableView(schema, id, name, querySQL, parameters,
                     columnTemplates, session,
-                    false/* detected not recursive */, literalsChecked, isTableExpression, isTemporary);
+                    false/* detected not recursive */, literalsChecked, isTableExpression, isTemporary, null);
         }
 
         return view;
@@ -470,30 +473,7 @@ public final class TableView extends QueryExpressionTable {
      */
     public static Table createShadowTableForRecursiveTableExpression(boolean isTemporary, SessionLocal targetSession,
             String cteViewName, Schema schema, List<Column> columns, Database db) {
-
-        // create table data object
-        CreateTableData recursiveTableData = new CreateTableData();
-        recursiveTableData.id = db.allocateObjectId();
-        recursiveTableData.columns = new ArrayList<>(columns);
-        recursiveTableData.tableName = cteViewName;
-        recursiveTableData.temporary = isTemporary;
-        recursiveTableData.persistData = true;
-        recursiveTableData.persistIndexes = !isTemporary;
-        recursiveTableData.session = targetSession;
-
-        // this gets a meta table lock that is not released
-        Table recursiveTable = schema.createTable(recursiveTableData);
-
-        if (!isTemporary) {
-            // this unlock is to prevent lock leak from schema.createTable()
-            db.unlockMeta(targetSession);
-            synchronized (targetSession) {
-                db.addSchemaObject(targetSession, recursiveTable);
-            }
-        } else {
-            targetSession.addLocalTempTable(recursiveTable);
-        }
-        return recursiveTable;
+        return new ShadowTable(schema, cteViewName, columns.toArray(new Column[0]));
     }
 
     /**

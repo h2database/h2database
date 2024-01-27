@@ -1447,16 +1447,6 @@ public abstract class Table extends SchemaObject {
     }
 
     /**
-     * Check whether this is a hidden object that doesn't appear in the meta
-     * data and in the script.
-     *
-     * @return true if it is hidden
-     */
-    public boolean isHidden() {
-        return false;
-    }
-
-    /**
      * Views, function tables, links, etc. do not support locks
      * @return true if table supports row-level locks
      */

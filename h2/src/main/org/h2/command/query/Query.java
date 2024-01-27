@@ -11,6 +11,7 @@ import static org.h2.util.HasSQL.DEFAULT_SQL_FLAGS;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
@@ -34,6 +35,9 @@ import org.h2.table.ColumnResolver;
 import org.h2.table.DerivedTable;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
+import org.h2.table.TableView;
+import org.h2.util.ParserUtil;
+import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 import org.h2.value.ExtTypeInfoRow;
 import org.h2.value.TypeInfo;
@@ -150,6 +154,8 @@ public abstract class Query extends Prepared {
     boolean checkInit;
 
     boolean isPrepared;
+
+    private LinkedHashMap<String, Table> withClause;
 
     Query(SessionLocal session) {
         super(session);
@@ -855,6 +861,54 @@ public abstract class Query extends Prepared {
         ExpressionVisitor visitor = ExpressionVisitor.getMaxModificationIdVisitor();
         isEverything(visitor);
         return Math.max(visitor.getMaxDataModificationId(), session.getSnapshotDataModificationId());
+    }
+
+    /**
+     * Sets the WITH clause of this query.
+     *
+     * @param withClause the WITH clause of this query
+     */
+    public void setWithClause(LinkedHashMap<String, Table> withClause) {
+        this.withClause = withClause;
+    }
+
+    protected void writeWithList(StringBuilder builder, int sqlFlags) {
+        if (withClause != null) {
+            boolean recursive = false;
+            for (Table t : withClause.values()) {
+                if (t instanceof TableView && ((TableView) t).isRecursive()) {
+                    recursive = true;
+                    break;
+                }
+            }
+            builder.append("WITH ");
+            if (recursive) {
+                builder.append(" RECURSIVE ");
+            }
+            boolean f = false;
+            for (Table table : withClause.values()) {
+                if (!f) {
+                    f = true;
+                } else {
+                    builder.append(",\n");
+                }
+                writeWithListElement(builder, sqlFlags, table);
+            }
+            builder.append('\n');
+        }
+    }
+
+    protected static void writeWithListElement(StringBuilder builder, int sqlFlags, Table table) {
+        ParserUtil.quoteIdentifier(builder, table.getName(), sqlFlags).append('(');
+        Column.writeColumns(builder, table.getColumns(), sqlFlags).append(") AS ");
+        if (table instanceof TableView) {
+            String querySQL = ((TableView) table).getQuerySQL();
+            if (querySQL != null) {
+                StringUtils.indent(builder.append("(\n"), querySQL, 4, true).append(')');
+                return;
+            }
+        }
+        table.getSQL(builder, sqlFlags);
     }
 
     /**

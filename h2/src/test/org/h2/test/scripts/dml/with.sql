@@ -36,13 +36,13 @@ explain with recursive r(n) as (
     (select 1) union all (select n+1 from r where n < 3)
 )
 select n from r;
->> WITH RECURSIVE "PUBLIC"."R"("N") AS ( (SELECT 1) UNION ALL (SELECT "N" + 1 FROM "PUBLIC"."R" /* PUBLIC.R.tableScan */ WHERE "N" < 3) ) SELECT "N" FROM "PUBLIC"."R" "R" /* null */
+>> WITH RECURSIVE "R"("N") AS ( (SELECT 1) UNION ALL (SELECT "N" + 1 FROM "R" /* table scan */ WHERE "N" < 3) ) SELECT "N" FROM "R" "R" /* null */
 
 explain with recursive "r"(n) as (
     (select 1) union all (select n+1 from "r" where n < 3)
 )
 select n from "r";
->> WITH RECURSIVE "PUBLIC"."r"("N") AS ( (SELECT 1) UNION ALL (SELECT "N" + 1 FROM "PUBLIC"."r" /* PUBLIC.r.tableScan */ WHERE "N" < 3) ) SELECT "N" FROM "PUBLIC"."r" "r" /* null */
+>> WITH RECURSIVE "r"("N") AS ( (SELECT 1) UNION ALL (SELECT "N" + 1 FROM "r" /* table scan */ WHERE "N" < 3) ) SELECT "N" FROM "r" "r" /* null */
 
 select sum(n) from (
     with recursive r(n) as (
@@ -93,16 +93,12 @@ with
 CREATE SCHEMA SCH;
 > ok
 
-CREATE FORCE VIEW TABLE_EXPRESSION SCH.R1(N) AS
-(SELECT 1)
-UNION ALL
-(SELECT (N + 1) FROM SCH.R1 WHERE N < 3);
-> ok
-
 CREATE VIEW SCH.R2(N) AS
+WITH R1(N) AS (
 (SELECT 1)
 UNION ALL
-(SELECT (N + 1) FROM SCH.R1 WHERE N < 3);
+(SELECT (N + 1) FROM R1 WHERE N < 3))
+TABLE R1;
 > ok
 
 SELECT * FROM SCH.R2;
@@ -185,7 +181,7 @@ EXPLAIN WITH RECURSIVE V(V1, V2) AS (
 SELECT V1, V2, COUNT(*) FROM V
 LEFT JOIN (SELECT T1 / T2 R FROM (VALUES (10, 0)) T(T1, T2) WHERE T2*T2*T2*T2*T2*T2 <> 0) X ON X.R > V.V1 AND X.R < V.V2
 GROUP BY V1, V2;
->> WITH RECURSIVE "PUBLIC"."V"("V1", "V2") AS ( (SELECT 0 AS "V1", 1 AS "V2") UNION ALL (SELECT "V1" + 1, "V2" + 1 FROM "PUBLIC"."V" /* PUBLIC.V.tableScan */ WHERE "V2" < 10) ) SELECT "V1", "V2", COUNT(*) FROM "PUBLIC"."V" "V" /* null */ LEFT OUTER JOIN ( SELECT "T1" / "T2" AS "R" FROM (VALUES (10, 0)) "T"("T1", "T2") WHERE ((((("T2" * "T2") * "T2") * "T2") * "T2") * "T2") <> 0 ) "X" /* SELECT T1 / T2 AS R FROM (VALUES (10, 0)) T(T1, T2) /* table scan */ WHERE ((((((T2 * T2) * T2) * T2) * T2) * T2) <> 0) _LOCAL_AND_GLOBAL_ (((T1 / T2) >= ?1) AND ((T1 / T2) <= ?2)): R > V.V1 AND R < V.V2 */ ON ("X"."R" > "V"."V1") AND ("X"."R" < "V"."V2") GROUP BY "V1", "V2"
+>> WITH RECURSIVE "V"("V1", "V2") AS ( (SELECT 0 AS "V1", 1 AS "V2") UNION ALL (SELECT "V1" + 1, "V2" + 1 FROM "V" /* table scan */ WHERE "V2" < 10) ) SELECT "V1", "V2", COUNT(*) FROM "V" "V" /* null */ LEFT OUTER JOIN ( SELECT "T1" / "T2" AS "R" FROM (VALUES (10, 0)) "T"("T1", "T2") WHERE ((((("T2" * "T2") * "T2") * "T2") * "T2") * "T2") <> 0 ) "X" /* SELECT T1 / T2 AS R FROM (VALUES (10, 0)) T(T1, T2) /* table scan */ WHERE ((((((T2 * T2) * T2) * T2) * T2) * T2) <> 0) _LOCAL_AND_GLOBAL_ (((T1 / T2) >= ?1) AND ((T1 / T2) <= ?2)): R > V.V1 AND R < V.V2 */ ON ("X"."R" > "V"."V1") AND ("X"."R" < "V"."V2") GROUP BY "V1", "V2"
 
 -- Data change delta tables in WITH
 CREATE TABLE TEST("VALUE" INT NOT NULL PRIMARY KEY);

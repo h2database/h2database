@@ -78,7 +78,7 @@ abstract class FilteredDataChangeStatement extends DataChangeStatement {
         return false;
     }
 
-    final void appendFilterCondition(StringBuilder builder, int sqlFlags) {
+    final StringBuilder appendFilterCondition(StringBuilder builder, int sqlFlags) {
         if (condition != null) {
             builder.append("\nWHERE ");
             condition.getUnenclosedSQL(builder, sqlFlags);
@@ -92,6 +92,7 @@ abstract class FilteredDataChangeStatement extends DataChangeStatement {
                 builder.append(count).append(" ROWS ONLY");
             }
         }
+        return builder;
     }
 
 }

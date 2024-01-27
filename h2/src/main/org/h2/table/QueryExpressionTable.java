@@ -11,6 +11,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
+import org.h2.command.QueryScope;
 import org.h2.command.query.AllColumnsForPlan;
 import org.h2.command.query.Query;
 import org.h2.engine.DbObject;
@@ -314,6 +315,15 @@ public abstract class QueryExpressionTable extends Table {
                 }
             }
         }
+    }
+
+    /**
+     * Returns the scope of this table
+     *
+     * @return the scope of this table
+     */
+    public QueryScope getQueryScope() {
+        return null;
     }
 
 }

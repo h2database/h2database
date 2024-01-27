@@ -23,10 +23,10 @@ import java.util.Comparator;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.constraint.Constraint;
-import org.h2.constraint.Constraint.Type;
 import org.h2.engine.Comment;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
@@ -244,9 +244,6 @@ public class ScriptCommand extends ScriptBase {
                 if (excludeTable(table)) {
                     continue;
                 }
-                if (table.isHidden()) {
-                    continue;
-                }
                 table.lock(session, Table.READ_LOCK);
                 String sql = table.getCreateSQL();
                 if (sql == null) {
@@ -285,9 +282,6 @@ public class ScriptCommand extends ScriptBase {
                     continue;
                 }
                 if (excludeTable(table)) {
-                    continue;
-                }
-                if (table.isHidden()) {
                     continue;
                 }
                 table.lock(session, Table.READ_LOCK);

@@ -176,15 +176,14 @@ public final class MergeUsing extends DataChangeStatement {
     }
 
     @Override
-    public String getPlanSQL(int sqlFlags) {
-        StringBuilder builder = new StringBuilder("MERGE INTO ");
-        targetTableFilter.getPlanSQL(builder, false, sqlFlags);
+    public StringBuilder getPlanSQL(StringBuilder builder, int sqlFlags) {
+        targetTableFilter.getPlanSQL(builder.append("MERGE INTO "), false, sqlFlags);
         sourceTableFilter.getPlanSQL(builder.append('\n').append("USING "), false, sqlFlags);
         onCondition.getSQL(builder.append('\n').append("ON "), sqlFlags);
         for (When w : when) {
             w.getSQL(builder.append('\n'), sqlFlags);
         }
-        return builder.toString();
+        return builder;
     }
 
     @Override

@@ -768,7 +768,7 @@ public class TableFilter implements ColumnResolver {
             }
             return builder;
         }
-        if (table instanceof TableView && ((TableView) table).isRecursive()) {
+        if (table instanceof TableView && ((TableView) table).isTableExpression()) {
             ParserUtil.quoteIdentifier(builder, table.getName(), sqlFlags);
         } else {
             table.getSQL(builder, sqlFlags);

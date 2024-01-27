@@ -36,7 +36,6 @@ public class CreateView extends SchemaOwnerCommand {
     private String comment;
     private boolean orReplace;
     private boolean force;
-    private boolean isTableExpression;
 
     public CreateView(SessionLocal session, Schema schema) {
         super(session, schema);
@@ -112,16 +111,9 @@ public class CreateView extends SchemaOwnerCommand {
             }
         }
         if (view == null) {
-            if (isTableExpression) {
-                view = TableView.createTableViewMaybeRecursive(schema, id, viewName, querySQL, null,
-                        columnTemplatesAsStrings, session, false /* literalsChecked */, isTableExpression,
-                        false/*isTemporary*/, db);
-            } else {
-                view = new TableView(schema, id, viewName, querySQL, null, columnTemplatesAsUnknowns, session,
-                        false, false, isTableExpression, false, null);
-            }
+            view = new TableView(schema, id, viewName, querySQL, null, columnTemplatesAsUnknowns, session,
+                    false, false, false, false, null);
         } else {
-            // TODO support isTableExpression in replace function...
             view.replace(querySQL, columnTemplatesAsUnknowns, session, false, force, false);
             view.setModified();
         }

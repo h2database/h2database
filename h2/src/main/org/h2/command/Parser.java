@@ -372,6 +372,7 @@ import org.h2.table.IndexHints;
 import org.h2.table.MaterializedView;
 import org.h2.table.QueryExpressionTable;
 import org.h2.table.RangeTable;
+import org.h2.table.ShadowTable;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.table.TableView;
@@ -6945,8 +6946,7 @@ public final class Parser extends ParserBase {
          * work (its removed after creation in this method). Only create table
          * data and table if we don't have a working CTE already.
          */
-        Table recursiveTable = TableView.createShadowTableForRecursiveTableExpression(
-                isTemporary, session, cteViewName, schema, columns, database);
+        Table recursiveTable = new ShadowTable(schema, cteViewName, columns.toArray(new Column[0]));
         List<Column> columnTemplateList;
         String[] querySQLOutput = new String[1];
         BitSet outerUsedParameters = openParametersScope();

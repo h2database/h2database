@@ -23,11 +23,11 @@ import org.h2.result.ResultInterface;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
+import org.h2.table.CTE;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.QueryExpressionTable;
 import org.h2.table.TableFilter;
-import org.h2.table.TableView;
 import org.h2.util.IntArray;
 import org.h2.value.Value;
 
@@ -42,7 +42,7 @@ public class QueryExpressionIndex extends Index implements SpatialIndex {
     private final QueryExpressionTable table;
     private final String querySQL;
     private final ArrayList<Parameter> originalParameters;
-    private boolean recursive;
+    private final boolean recursive;
     private final int[] indexMasks;
     private Query query;
     private final SessionLocal createSession;
@@ -53,7 +53,7 @@ public class QueryExpressionIndex extends Index implements SpatialIndex {
     private final long evaluatedAt;
 
     /**
-     * Constructor for the original index in {@link TableView}.
+     * Constructor for the original index in {@link QueryExpressionTable}.
      *
      * @param table the query expression table
      * @param querySQL the query SQL
@@ -158,8 +158,8 @@ public class QueryExpressionIndex extends Index implements SpatialIndex {
     }
 
     private Cursor findRecursive(SearchRow first, SearchRow last) {
-        TableView view = (TableView) table;
-        ResultInterface recursiveResult = view.getRecursiveResult();
+        CTE cte = (CTE) table;
+        ResultInterface recursiveResult = cte.getRecursiveResult();
         if (recursiveResult != null) {
             recursiveResult.reset();
             return new QueryExpressionCursor(this, recursiveResult, first, last);
@@ -193,7 +193,7 @@ public class QueryExpressionIndex extends Index implements SpatialIndex {
         Query right = union.getRight();
         right.setNeverLazy(true);
         resultInterface.reset();
-        view.setRecursiveResult(resultInterface);
+        cte.setRecursiveResult(resultInterface);
         // to ensure the last result is not closed
         right.disableCache();
         while (true) {
@@ -206,9 +206,9 @@ public class QueryExpressionIndex extends Index implements SpatialIndex {
                 localResult.addRow(cr);
             }
             resultInterface.reset();
-            view.setRecursiveResult(resultInterface);
+            cte.setRecursiveResult(resultInterface);
         }
-        view.setRecursiveResult(null);
+        cte.setRecursiveResult(null);
         localResult.done();
         return new QueryExpressionCursor(this, localResult, first, last);
     }
@@ -393,10 +393,6 @@ public class QueryExpressionIndex extends Index implements SpatialIndex {
     @Override
     public boolean needRebuild() {
         return false;
-    }
-
-    public void setRecursive(boolean value) {
-        this.recursive = value;
     }
 
     @Override

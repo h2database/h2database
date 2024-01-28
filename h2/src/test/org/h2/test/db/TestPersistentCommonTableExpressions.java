@@ -103,7 +103,7 @@ public class TestPersistentCommonTableExpressions extends AbstractBaseForCommonT
                 +"      FROM my_tree mt                                                                        \n"
                 +"INNER JOIN tree_cte mtc ON mtc.child_fk = mt.parent_fk                                       \n"
                 +"),                                                                                           \n"
-                +"unused_cte AS ( SELECT 1 AS unUsedColumn )                                                   \n"
+                +"unused_cte(unUsedColumn) AS ( SELECT 1 AS unUsedColumn )                                                   \n"
                 +"SELECT sub_tree_root_id, tree_level, parent_fk, child_fk FROM tree_cte;                      \n";
 
         String withQuery = "SELECT * FROM v_my_tree";
@@ -227,7 +227,7 @@ public class TestPersistentCommonTableExpressions extends AbstractBaseForCommonT
                 +"      FROM my_tree mt                                                                        \n"
                 +"INNER JOIN tree_cte mtc ON mtc.child_fk = mt.parent_fk                                       \n"
                 +"),                                                                                           \n"
-                +"unused_cte AS ( SELECT 1 AS unUsedColumn )                                                   \n"
+                +"unused_cte(unUsedColumn) AS ( SELECT 1 AS unUsedColumn )                                                   \n"
                 +"SELECT sub_tree_root_id, tree_level, parent_fk, child_fk FROM tree_cte;                      \n";
 
         String withQuery = "SELECT * FROM v_my_tree";

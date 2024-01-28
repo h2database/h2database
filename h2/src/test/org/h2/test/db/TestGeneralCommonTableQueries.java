@@ -508,7 +508,7 @@ public class TestGeneralCommonTableQueries extends AbstractBaseForCommonTableExp
         String[] expectedColumnNames = new String[]{"K", "N", "N2"};
 
         String setupSQL = "-- do nothing";
-        String withQuery = "with \n"+
+        String withQuery = "with recursive\n"+
                 "r1(n,k) as ((select 1, 0) union all (select n+1,k+1 from r1 where n <= 3)),"+
                 "r2(n,k) as ((select 10,0) union all (select n+1,k+1 from r2 where n <= 13))"+
                 "select r1.k, r1.n, r2.n AS n2 from r1 inner join r2 ON r1.k= r2.k          ";

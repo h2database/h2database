@@ -31,13 +31,12 @@ import org.h2.result.LocalResult;
 import org.h2.result.ResultInterface;
 import org.h2.result.ResultTarget;
 import org.h2.result.SortOrder;
+import org.h2.table.CTE;
 import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
 import org.h2.table.DerivedTable;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
-import org.h2.table.TableView;
-import org.h2.util.ParserUtil;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 import org.h2.value.ExtTypeInfoRow;
@@ -905,7 +904,7 @@ public abstract class Query extends Prepared {
         if (withClause != null) {
             boolean recursive = false;
             for (Table t : withClause.values()) {
-                if (t instanceof TableView && ((TableView) t).isRecursive()) {
+                if (((CTE) t).isRecursive()) {
                     recursive = true;
                     break;
                 }
@@ -921,23 +920,12 @@ public abstract class Query extends Prepared {
                 } else {
                     builder.append(",\n");
                 }
-                writeWithListElement(builder, sqlFlags, table);
+                table.getSQL(builder, sqlFlags).append('(');
+                Column.writeColumns(builder, table.getColumns(), sqlFlags).append(") AS (\n");
+                StringUtils.indent(builder, ((CTE) table).getQuerySQL(), 4, true).append(')');
             }
             builder.append('\n');
         }
-    }
-
-    protected static void writeWithListElement(StringBuilder builder, int sqlFlags, Table table) {
-        ParserUtil.quoteIdentifier(builder, table.getName(), sqlFlags).append('(');
-        Column.writeColumns(builder, table.getColumns(), sqlFlags).append(") AS ");
-        if (table instanceof TableView) {
-            String querySQL = ((TableView) table).getQuerySQL();
-            if (querySQL != null) {
-                StringUtils.indent(builder.append("(\n"), querySQL, 4, true).append(')');
-                return;
-            }
-        }
-        table.getSQL(builder, sqlFlags);
     }
 
     /**

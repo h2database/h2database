@@ -768,11 +768,7 @@ public class TableFilter implements ColumnResolver {
             }
             return builder;
         }
-        if (table instanceof TableView && ((TableView) table).isTableExpression()) {
-            ParserUtil.quoteIdentifier(builder, table.getName(), sqlFlags);
-        } else {
-            table.getSQL(builder, sqlFlags);
-        }
+        table.getSQL(builder, sqlFlags);
         if (table instanceof TableView && ((TableView) table).isInvalid()) {
             throw DbException.get(ErrorCode.VIEW_IS_INVALID_2, table.getName(), "not compiled");
         }

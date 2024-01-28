@@ -246,3 +246,16 @@ SELECT A1.F1, A1.F2 FROM (SELECT * FROM T1) A1;
 > -- --
 > 1  2
 > rows: 1
+
+CREATE VIEW V AS
+WITH A AS (SELECT) TABLE A;
+> ok
+
+TABLE V;
+>
+>
+>
+> rows: 1
+
+DROP VIEW V;
+> ok

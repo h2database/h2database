@@ -52,3 +52,15 @@ SELECT * FROM TEST_VIEW;
 
 DROP TABLE TEST CASCADE;
 > ok
+
+CREATE VIEW V() AS SELECT;
+> ok
+
+TABLE V;
+>
+>
+>
+> rows: 1
+
+DROP VIEW V;
+> ok

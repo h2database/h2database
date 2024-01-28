@@ -1135,9 +1135,11 @@ public final class Parser extends ParserBase {
 
     private String[] parseColumnList() {
         ArrayList<String> columns = Utils.newSmallArrayList();
-        do {
-            columns.add(readIdentifier());
-        } while (readIfMore());
+        if (!readIf(CLOSE_PAREN)) {
+            do {
+                columns.add(readIdentifier());
+            } while (readIfMore());
+        }
         return columns.toArray(new String[0]);
     }
 

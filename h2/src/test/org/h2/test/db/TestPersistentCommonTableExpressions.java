@@ -37,7 +37,7 @@ public class TestPersistentCommonTableExpressions extends AbstractBaseForCommonT
         String[] expectedColumnNames = new String[]{"VAL",
                 "SUM((SELECT\n" +
                 "    X\n" +
-                "FROM PUBLIC.\"\" BB\n" +
+                "FROM BB BB\n" +
                 "WHERE BB.A IS NOT DISTINCT FROM A.VAL))"};
 
         String setupSQL =

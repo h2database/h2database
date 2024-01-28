@@ -353,13 +353,12 @@ VALUES (1, 'Hello'), (2, 'World');
 
 "Commands (DML)","WITH","
 WITH [ RECURSIVE ] { name [( columnName [,...] )] AS ( query ) [,...] }
-{ query | @h2@ { insert | update | delete | mergeInto | mergeUsing | createTable } }
+query
 ","
 Can be used to create a recursive or non-recursive query (common table expression).
 For recursive queries the first select has to be a UNION.
 One or more common table entries can be referred to by name.
-Column name declarations are now optional - the column names will be inferred from the named select queries.
-The final action in a WITH statement can be a select, insert, update, merge, delete or create table.
+Column name declarations are optional - the column names will be inferred from the named select queries.
 ","
 WITH RECURSIVE cte(n) AS (
         SELECT 1

@@ -112,12 +112,10 @@ public final class Update extends FilteredDataChangeStatement {
     }
 
     @Override
-    public String getPlanSQL(int sqlFlags) {
-        StringBuilder builder = new StringBuilder("UPDATE ");
-        targetTableFilter.getPlanSQL(builder, false, sqlFlags);
+    public StringBuilder getPlanSQL(StringBuilder builder, int sqlFlags) {
+        targetTableFilter.getPlanSQL(builder.append("UPDATE "), false, sqlFlags);
         setClauseList.getSQL(builder, sqlFlags);
-        appendFilterCondition(builder, sqlFlags);
-        return builder.toString();
+        return appendFilterCondition(builder, sqlFlags);
     }
 
     @Override

@@ -6,12 +6,11 @@
 package org.h2.table;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.h2.api.ErrorCode;
 import org.h2.command.Prepared;
-import org.h2.command.ddl.CreateTableData;
+import org.h2.command.QueryScope;
 import org.h2.command.query.AllColumnsForPlan;
 import org.h2.command.query.Query;
 import org.h2.engine.Database;
@@ -40,18 +39,16 @@ public final class TableView extends QueryExpressionTable {
     private ResultInterface recursiveResult;
     private boolean isRecursiveQueryDetected;
     private boolean isTableExpression;
+    private QueryScope queryScope;
 
     public TableView(Schema schema, int id, String name, String querySQL,
             ArrayList<Parameter> params, Column[] columnTemplates, SessionLocal session,
-            boolean allowRecursive, boolean literalsChecked, boolean isTableExpression, boolean isTemporary) {
+            boolean allowRecursive, boolean literalsChecked, boolean isTableExpression, boolean isTemporary,
+            QueryScope queryScope) {
         super(schema, id, name);
+        this.queryScope = queryScope;
         setTemporary(isTemporary);
         init(querySQL, params, columnTemplates, session, allowRecursive, literalsChecked, isTableExpression);
-    }
-
-    @Override
-    public boolean isHidden() {
-        return isTableExpression;
     }
 
     /**
@@ -96,7 +93,7 @@ public final class TableView extends QueryExpressionTable {
         Prepared p;
         session.setParsingCreateView(true);
         try {
-            p = session.prepare(sql, false, literalsChecked);
+            p = session.prepare(sql, false, literalsChecked, queryScope);
         } finally {
             session.setParsingCreateView(false);
         }
@@ -300,6 +297,11 @@ public final class TableView extends QueryExpressionTable {
     }
 
     @Override
+    public QueryScope getQueryScope() {
+        return queryScope;
+    }
+
+    @Override
     public Index getScanIndex(SessionLocal session, int[] masks,
             TableFilter[] filters, int filter, SortOrder sortOrder,
             AllColumnsForPlan allColumnsSet) {
@@ -386,136 +388,4 @@ public final class TableView extends QueryExpressionTable {
         return tables;
     }
 
-    /**
-     * Create a view.
-     *
-     * @param schema the schema
-     * @param id the view id
-     * @param name the view name
-     * @param querySQL the query
-     * @param parameters the parameters
-     * @param columnTemplates the columns
-     * @param session the session
-     * @param literalsChecked whether literals in the query are checked
-     * @param isTableExpression if this is a table expression
-     * @param isTemporary whether the view is persisted
-     * @param db the database
-     * @return the view
-     */
-    public static TableView createTableViewMaybeRecursive(Schema schema, int id, String name, String querySQL,
-            ArrayList<Parameter> parameters, Column[] columnTemplates, SessionLocal session,
-            boolean literalsChecked, boolean isTableExpression, boolean isTemporary, Database db) {
-
-
-        Table recursiveTable = createShadowTableForRecursiveTableExpression(isTemporary, session, name,
-                schema, Arrays.asList(columnTemplates), db);
-
-        List<Column> columnTemplateList;
-        String[] querySQLOutput = new String[1];
-        ArrayList<String> columnNames = new ArrayList<>();
-        for (Column columnTemplate: columnTemplates) {
-            columnNames.add(columnTemplate.getName());
-        }
-
-        try {
-            Prepared withQuery = session.prepare(querySQL, false, false);
-            if (!isTemporary) {
-                withQuery.setSession(session);
-            }
-            columnTemplateList = createQueryColumnTemplateList(columnNames.toArray(new String[1]),
-                    (Query) withQuery, querySQLOutput);
-
-        } finally {
-            destroyShadowTableForRecursiveExpression(isTemporary, session, recursiveTable);
-        }
-
-        // build with recursion turned on
-        TableView view = new TableView(schema, id, name, querySQL,
-                parameters, columnTemplateList.toArray(columnTemplates), session,
-                true/* try recursive */, literalsChecked, isTableExpression, isTemporary);
-
-        // is recursion really detected ? if not - recreate it without recursion flag
-        // and no recursive index
-        if (!view.isRecursiveQueryDetected()) {
-            if (!isTemporary) {
-                db.addSchemaObject(session, view);
-                view.lock(session, Table.EXCLUSIVE_LOCK);
-                session.getDatabase().removeSchemaObject(session, view);
-
-                // during database startup - this method does not normally get called - and it
-                // needs to be to correctly un-register the table which the table expression
-                // uses...
-                view.removeChildrenAndResources(session);
-            } else {
-                session.removeLocalTempTable(view);
-            }
-            view = new TableView(schema, id, name, querySQL, parameters,
-                    columnTemplates, session,
-                    false/* detected not recursive */, literalsChecked, isTableExpression, isTemporary);
-        }
-
-        return view;
-    }
-
-    /**
-     * Create a table for a recursive query.
-     *
-     * @param isTemporary whether the table is persisted
-     * @param targetSession the session
-     * @param cteViewName the name
-     * @param schema the schema
-     * @param columns the columns
-     * @param db the database
-     * @return the table
-     */
-    public static Table createShadowTableForRecursiveTableExpression(boolean isTemporary, SessionLocal targetSession,
-            String cteViewName, Schema schema, List<Column> columns, Database db) {
-
-        // create table data object
-        CreateTableData recursiveTableData = new CreateTableData();
-        recursiveTableData.id = db.allocateObjectId();
-        recursiveTableData.columns = new ArrayList<>(columns);
-        recursiveTableData.tableName = cteViewName;
-        recursiveTableData.temporary = isTemporary;
-        recursiveTableData.persistData = true;
-        recursiveTableData.persistIndexes = !isTemporary;
-        recursiveTableData.session = targetSession;
-
-        // this gets a meta table lock that is not released
-        Table recursiveTable = schema.createTable(recursiveTableData);
-
-        if (!isTemporary) {
-            // this unlock is to prevent lock leak from schema.createTable()
-            db.unlockMeta(targetSession);
-            synchronized (targetSession) {
-                db.addSchemaObject(targetSession, recursiveTable);
-            }
-        } else {
-            targetSession.addLocalTempTable(recursiveTable);
-        }
-        return recursiveTable;
-    }
-
-    /**
-     * Remove a table for a recursive query.
-     *
-     * @param isTemporary whether the table is persisted
-     * @param targetSession the session
-     * @param recursiveTable the table
-     */
-    public static void destroyShadowTableForRecursiveExpression(boolean isTemporary, SessionLocal targetSession,
-            Table recursiveTable) {
-        if (recursiveTable != null) {
-            if (!isTemporary) {
-                recursiveTable.lock(targetSession, Table.EXCLUSIVE_LOCK);
-                targetSession.getDatabase().removeSchemaObject(targetSession, recursiveTable);
-
-            } else {
-                targetSession.removeLocalTempTable(recursiveTable);
-            }
-
-            // both removeSchemaObject and removeLocalTempTable hold meta locks - release them here
-            targetSession.getDatabase().unlockMeta(targetSession);
-        }
-    }
 }

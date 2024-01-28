@@ -318,11 +318,11 @@ public class TableValueConstructor extends Query {
     }
 
     @Override
-    public String getPlanSQL(int sqlFlags) {
-        StringBuilder builder = new StringBuilder();
+    public StringBuilder getPlanSQL(StringBuilder builder, int sqlFlags) {
+        writeWithList(builder, sqlFlags);
         getValuesSQL(builder, sqlFlags, rows);
         appendEndOfQueryToSQL(builder, sqlFlags, expressionArray);
-        return builder.toString();
+        return builder;
     }
 
     @Override

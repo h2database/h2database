@@ -447,10 +447,7 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
             for (SchemaObject object : getTablesForPattern(schema, tableNamePattern)) {
                 Value tableName = getString(object.getName());
                 if (object instanceof Table) {
-                    Table t = (Table) object;
-                    if (!t.isHidden()) {
-                        getTablesAdd(result, catalogValue, schemaValue, tableName, t, false, typesSet);
-                    }
+                    getTablesAdd(result, catalogValue, schemaValue, tableName, (Table) object, false, typesSet);
                 } else {
                     getTablesAdd(result, catalogValue, schemaValue, tableName, ((TableSynonym) object).getSynonymFor(),
                             true, typesSet);
@@ -557,10 +554,7 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
             for (SchemaObject object : getTablesForPattern(schema, tableNamePattern)) {
                 Value tableName = getString(object.getName());
                 if (object instanceof Table) {
-                    Table t = (Table) object;
-                    if (!t.isHidden()) {
-                        getColumnsAdd(result, catalogValue, schemaValue, tableName, t, columnLike);
-                    }
+                    getColumnsAdd(result, catalogValue, schemaValue, tableName, (Table) object, columnLike);
                 } else {
                     TableSynonym s = (TableSynonym) object;
                     Table t = s.getSynonymFor();
@@ -1346,10 +1340,7 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
             for (SchemaObject object : getTablesForPattern(schema, tableNamePattern)) {
                 Value tableName = getString(object.getName());
                 if (object instanceof Table) {
-                    Table t = (Table) object;
-                    if (!t.isHidden()) {
-                        getPseudoColumnsAdd(result, catalogValue, schemaValue, tableName, t, columnLike);
-                    }
+                    getPseudoColumnsAdd(result, catalogValue, schemaValue, tableName, (Table) object, columnLike);
                 } else {
                     TableSynonym s = (TableSynonym) object;
                     Table t = s.getSynonymFor();

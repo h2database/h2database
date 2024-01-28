@@ -168,6 +168,7 @@ public class QueryExpressionIndex extends Index implements SpatialIndex {
             Parser parser = new Parser(createSession);
             parser.setRightsChecked(true);
             parser.setSuppliedParameters(originalParameters);
+            parser.setQueryScope(table.getQueryScope());
             query = (Query) parser.prepare(querySQL);
             query.setNeverLazy(true);
         }
@@ -286,7 +287,7 @@ public class QueryExpressionIndex extends Index implements SpatialIndex {
     }
 
     private Query getQuery(SessionLocal session, int[] masks) {
-        Query q = session.prepareQueryExpression(querySQL);
+        Query q = session.prepareQueryExpression(querySQL, table.getQueryScope());
         if (masks == null || !q.allowGlobalConditions()) {
             q.preparePlan();
             return q;
@@ -368,7 +369,7 @@ public class QueryExpressionIndex extends Index implements SpatialIndex {
         }
         String sql = q.getPlanSQL(DEFAULT_SQL_FLAGS);
         if (!sql.equals(querySQL)) {
-            q = session.prepareQueryExpression(sql);
+            q = session.prepareQueryExpression(sql, table.getQueryScope());
         }
         q.preparePlan();
         return q;

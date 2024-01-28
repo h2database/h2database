@@ -2226,7 +2226,7 @@ public final class Database implements DataHandler, CastDataProvider {
     public Table getFirstUserTable() {
         for (Schema schema : schemas.values()) {
             for (Table table : schema.getAllTablesAndViews(null)) {
-                if (table.getCreateSQL() == null || table.isHidden()) {
+                if (table.getCreateSQL() == null) {
                     continue;
                 }
                 // exclude the LOB_MAP that the Recover tool creates

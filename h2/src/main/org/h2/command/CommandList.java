@@ -77,9 +77,6 @@ class CommandList extends Command {
     @Override
     public void stop() {
         command.stop();
-        for (Prepared prepared : commands) {
-            CommandContainer.clearCTE(session, prepared);
-        }
         if (remainingCommand != null) {
             remainingCommand.stop();
         }

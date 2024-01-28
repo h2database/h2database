@@ -253,9 +253,8 @@ public final class Insert extends CommandWithValues implements ResultTarget {
     }
 
     @Override
-    public String getPlanSQL(int sqlFlags) {
-        StringBuilder builder = new StringBuilder("INSERT INTO ");
-        table.getSQL(builder, sqlFlags).append('(');
+    public StringBuilder getPlanSQL(StringBuilder builder, int sqlFlags) {
+        table.getSQL(builder.append("INSERT INTO "), sqlFlags).append('(');
         Column.writeColumns(builder, columns, sqlFlags);
         builder.append(")\n");
         if (insertFromSelect) {
@@ -274,9 +273,9 @@ public final class Insert extends CommandWithValues implements ResultTarget {
                 Expression.writeExpressions(builder.append('('), expr, sqlFlags).append(')');
             }
         } else {
-            builder.append(query.getPlanSQL(sqlFlags));
+            query.getPlanSQL(builder, sqlFlags);
         }
-        return builder.toString();
+        return builder;
     }
 
     @Override

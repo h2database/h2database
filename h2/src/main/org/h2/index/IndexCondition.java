@@ -295,7 +295,7 @@ public class IndexCondition {
             return expression.getSQL(builder.append(" = ANY("), sqlFlags, Expression.AUTO_PARENTHESES).append(')');
         case Comparison.IN_QUERY:
             builder.append(" IN(");
-            builder.append(expressionQuery.getPlanSQL(sqlFlags));
+            expressionQuery.getPlanSQL(builder, sqlFlags);
             builder.append(')');
             break;
         case Comparison.SPATIAL_INTERSECTS:

@@ -44,7 +44,7 @@ public final class Regclass extends Operation1 {
         String name = value.getString();
         for (Schema schema : session.getDatabase().getAllSchemas()) {
             Table table = schema.findTableOrView(session, name);
-            if (table != null && !table.isHidden()) {
+            if (table != null) {
                 return ValueInteger.get(table.getId());
             }
             Index index = schema.findIndex(session, name);

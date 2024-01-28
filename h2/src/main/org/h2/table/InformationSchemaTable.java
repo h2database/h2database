@@ -1474,9 +1474,6 @@ public final class InformationSchemaTable extends MetaTable {
 
     private void elementTypesFieldsForTable(SessionLocal session, ArrayList<Row> rows, String catalog, int type,
             String mainSchemaName, String collation, String schemaName, Table table) {
-        if (table.isHidden()) {
-            return;
-        }
         String tableName = table.getName();
         Column[] cols = table.getColumns();
         for (int i = 0; i < cols.length; i++) {

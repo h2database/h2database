@@ -8,6 +8,7 @@ package org.h2.table;
 import java.util.ArrayList;
 
 import org.h2.api.ErrorCode;
+import org.h2.command.QueryScope;
 import org.h2.command.query.Query;
 import org.h2.engine.SessionLocal;
 import org.h2.expression.ExpressionVisitor;
@@ -89,6 +90,11 @@ public final class DerivedTable extends QueryExpressionTable {
     @Override
     public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
         return StringUtils.indent(builder.append("(\n"), querySQL, 4, true).append(')');
+    }
+
+    @Override
+    public QueryScope getQueryScope() {
+        return viewQuery.getOuterQueryScope();
     }
 
 }

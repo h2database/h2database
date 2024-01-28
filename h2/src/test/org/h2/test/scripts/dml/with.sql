@@ -239,3 +239,10 @@ WITH T(X) AS (SELECT 1)
 > 2
 > 3
 > rows: 3
+
+WITH T1(F1, F2) AS (SELECT 1, 2)
+SELECT A1.F1, A1.F2 FROM (SELECT * FROM T1) A1;
+> F1 F2
+> -- --
+> 1  2
+> rows: 1

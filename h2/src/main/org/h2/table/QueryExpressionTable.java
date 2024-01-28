@@ -322,8 +322,6 @@ public abstract class QueryExpressionTable extends Table {
      *
      * @return the scope of this table
      */
-    public QueryScope getQueryScope() {
-        return null;
-    }
+    public abstract QueryScope getQueryScope();
 
 }

@@ -16,6 +16,7 @@ import java.util.LinkedHashMap;
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.command.Prepared;
+import org.h2.command.QueryScope;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
 import org.h2.engine.SessionLocal;
@@ -155,6 +156,14 @@ public abstract class Query extends Prepared {
 
     boolean isPrepared;
 
+    /**
+     * The outer scope of this query.
+     */
+    private QueryScope outerQueryScope;
+
+    /**
+     * The WITH clause of this query.
+     */
     private LinkedHashMap<String, Table> withClause;
 
     Query(SessionLocal session) {
@@ -864,9 +873,29 @@ public abstract class Query extends Prepared {
     }
 
     /**
+     * Returns the scope of the outer query.
+     *
+     * @return the scope of the outer query
+     */
+    public QueryScope getOuterQueryScope() {
+        return outerQueryScope;
+    }
+
+    /**
+     * Sets the scope of the outer query.
+     *
+     * @param outerQueryScope
+     *            the scope of the outer query
+     */
+    public void setOuterQueryScope(QueryScope outerQueryScope) {
+        this.outerQueryScope = outerQueryScope;
+    }
+
+    /**
      * Sets the WITH clause of this query.
      *
-     * @param withClause the WITH clause of this query
+     * @param withClause
+     *            the WITH clause of this query
      */
     public void setWithClause(LinkedHashMap<String, Table> withClause) {
         this.withClause = withClause;

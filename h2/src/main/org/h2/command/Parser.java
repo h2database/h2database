@@ -2478,27 +2478,37 @@ public final class Parser extends ParserBase {
 
     private Query parseQueryExpression() {
         int start = tokenIndex;
+        QueryScope outerQueryScope = queryScope;
         Query query;
         if (readIf(WITH)) {
-            queryScope = new QueryScope(queryScope);
+            queryScope = new QueryScope(outerQueryScope);
             try {
-                query = parseWith(start);
+                readIf("RECURSIVE");
+                // This WITH statement is not a temporary view - it is part of a persistent view
+                // as in CREATE VIEW abc AS WITH my_cte - this auto detects that condition.
+                boolean isTemporary = !session.isParsingCreateView();
+                do {
+                    parseSingleCommonTableExpression(isTemporary);
+                } while (readIf(COMMA));
+                query = parseQueryExpressionBodyAndEndOfQuery(start);
+                query.setPrepareAlways(true);
+                query.setNeverLazy(true);
                 query.setWithClause(queryScope.tableSubqeries);
             } finally {
-                queryScope = queryScope.parent;
+                queryScope = outerQueryScope;
             }
         } else {
-            query = parseQueryExpressionBodyAndEndOfQuery();
+            query = parseQueryExpressionBodyAndEndOfQuery(start);
         }
+        query.setOuterQueryScope(outerQueryScope);
         return query;
     }
 
-    private Query parseQueryExpressionBodyAndEndOfQuery() {
-        int start = tokenIndex;
-        Query command = parseQueryExpressionBody();
-        parseEndOfQuery(command);
-        setSQL(command, start);
-        return command;
+    private Query parseQueryExpressionBodyAndEndOfQuery(int start) {
+        Query query = parseQueryExpressionBody();
+        parseEndOfQuery(query);
+        setSQL(query, start);
+        return query;
     }
 
     private Query parseQueryExpressionBody() {
@@ -2661,9 +2671,10 @@ public final class Parser extends ParserBase {
 
     private Query parseQueryPrimary() {
         if (readIf(OPEN_PAREN)) {
-            Query command = parseQueryExpressionBodyAndEndOfQuery();
+            Query query = parseQueryExpressionBodyAndEndOfQuery(tokenIndex);
+            query.setOuterQueryScope(queryScope);
             read(CLOSE_PAREN);
-            return command;
+            return query;
         }
         int start = tokenIndex;
         if (readIf(SELECT)) {
@@ -6900,24 +6911,6 @@ public final class Parser extends ParserBase {
         }
         return Aggregate.getAggregateType(name) != null
                 || BuiltinFunctions.isBuiltinFunction(database, name) && !database.isAllowBuiltinAliasOverride();
-    }
-
-    private Query parseWith(int start) {
-        readIf("RECURSIVE");
-
-        // This WITH statement is not a temporary view - it is part of a persistent view
-        // as in CREATE VIEW abc AS WITH my_cte - this auto detects that condition.
-        final boolean isTemporary = !session.isParsingCreateView();
-
-        do {
-            parseSingleCommonTableExpression(isTemporary);
-        } while (readIf(COMMA));
-
-        Query query = parseQueryExpressionBodyAndEndOfQuery();
-        query.setPrepareAlways(true);
-        query.setNeverLazy(true);
-        setSQL(query, start);
-        return query;
     }
 
     private void parseSingleCommonTableExpression(boolean isTemporary) {

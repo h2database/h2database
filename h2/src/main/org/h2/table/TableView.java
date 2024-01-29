@@ -17,6 +17,7 @@ import org.h2.engine.Database;
 import org.h2.engine.SessionLocal;
 import org.h2.index.Index;
 import org.h2.index.QueryExpressionIndex;
+import org.h2.index.RegularQueryExpressionIndex;
 import org.h2.message.DbException;
 import org.h2.result.SortOrder;
 import org.h2.schema.Schema;
@@ -38,6 +39,11 @@ public final class TableView extends QueryExpressionTable {
             SessionLocal session) {
         super(schema, id, name);
         init(querySQL, columnTemplates, session);
+    }
+
+    @Override
+    protected QueryExpressionIndex createIndex(SessionLocal session, int[] masks) {
+        return new RegularQueryExpressionIndex(this, querySQL, null, session, masks);
     }
 
     /**
@@ -64,7 +70,6 @@ public final class TableView extends QueryExpressionTable {
     private synchronized void init(String querySQL, Column[] columnTemplates, SessionLocal session) {
         this.querySQL = querySQL;
         this.columnTemplates = columnTemplates;
-        index = new QueryExpressionIndex(this, querySQL, null, false);
         initColumnsAndTables(session);
     }
 
@@ -223,7 +228,6 @@ public final class TableView extends QueryExpressionTable {
         removeCurrentViewFromOtherTables();
         super.removeChildrenAndResources(session);
         querySQL = null;
-        index = null;
         clearIndexCaches(database);
         invalidate();
     }

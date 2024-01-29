@@ -12,6 +12,8 @@ import org.h2.command.query.Query;
 import org.h2.engine.SessionLocal;
 import org.h2.expression.Parameter;
 import org.h2.index.QueryExpressionIndex;
+import org.h2.index.RecursiveIndex;
+import org.h2.index.RegularQueryExpressionIndex;
 import org.h2.result.ResultInterface;
 import org.h2.util.ParserUtil;
 
@@ -23,6 +25,8 @@ public final class CTE extends QueryExpressionTable {
     private final String querySQL;
     private final boolean recursive;
     private final QueryScope queryScope;
+    private final ArrayList<Parameter> originalParameters;
+
     private ResultInterface recursiveResult;
 
     public CTE(String name, Query query, String querySQL, ArrayList<Parameter> params, Column[] columnTemplates,
@@ -32,10 +36,16 @@ public final class CTE extends QueryExpressionTable {
         this.queryScope = queryScope;
         this.querySQL = querySQL;
         this.recursive = recursive;
-        index = new QueryExpressionIndex(this, querySQL, params, recursive);
+        this.originalParameters = params;
         tables = new ArrayList<>(query.getTables());
         setColumns(initColumns(session, columnTemplates, query, false));
         viewQuery = query;
+    }
+
+    @Override
+    protected QueryExpressionIndex createIndex(SessionLocal session, int[] masks) {
+        return recursive ? new RecursiveIndex(this, querySQL, originalParameters, session)
+                : new RegularQueryExpressionIndex(this, querySQL, originalParameters, session, masks);
     }
 
     @Override

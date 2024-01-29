@@ -47,7 +47,7 @@ public class QueryExpressionCursor implements Cursor {
         while (true) {
             boolean res = result.next();
             if (!res) {
-                if (index.isRecursive()) {
+                if (index.getClass() == RecursiveIndex.class) {
                     result.reset();
                 } else {
                     result.close();

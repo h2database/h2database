@@ -117,8 +117,6 @@ public abstract class QueryExpressionTable extends Table {
 
     Query viewQuery;
 
-    QueryExpressionIndex index;
-
     ArrayList<Table> tables;
 
     private long lastModificationCheck;
@@ -181,7 +179,7 @@ public abstract class QueryExpressionTable extends Table {
         Map<Object, QueryExpressionIndex> indexCache = session.getViewIndexCache(getTableType() == null);
         QueryExpressionIndex i = indexCache.get(cacheKey);
         if (i == null || i.isExpired()) {
-            i = new QueryExpressionIndex(this, index, session, masks, filters, filter, sortOrder);
+            i = createIndex(session, masks);
             indexCache.put(cacheKey, i);
         }
         PlanItem item = new PlanItem();
@@ -189,6 +187,8 @@ public abstract class QueryExpressionTable extends Table {
         item.setIndex(i);
         return item;
     }
+
+    abstract QueryExpressionIndex createIndex(SessionLocal session, int[] masks);
 
     @Override
     public boolean isQueryComparable() {
@@ -232,7 +232,6 @@ public abstract class QueryExpressionTable extends Table {
 
     @Override
     public final boolean canGetRowCount(SessionLocal session) {
-        // TODO could get the row count, but not that easy
         return false;
     }
 

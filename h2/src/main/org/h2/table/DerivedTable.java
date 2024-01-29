@@ -14,6 +14,7 @@ import org.h2.engine.SessionLocal;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.Parameter;
 import org.h2.index.QueryExpressionIndex;
+import org.h2.index.RegularQueryExpressionIndex;
 import org.h2.message.DbException;
 import org.h2.util.StringUtils;
 
@@ -22,9 +23,11 @@ import org.h2.util.StringUtils;
  */
 public final class DerivedTable extends QueryExpressionTable {
 
-    private String querySQL;
+    private final String querySQL;
 
-    private Query topQuery;
+    private final Query topQuery;
+
+    private final ArrayList<Parameter> originalParameters;
 
     /**
      * Create a derived table out of the given query.
@@ -42,8 +45,7 @@ public final class DerivedTable extends QueryExpressionTable {
         query.prepareExpressions();
         try {
             this.querySQL = query.getPlanSQL(DEFAULT_SQL_FLAGS);
-            ArrayList<Parameter> params = query.getParameters();
-            index = new QueryExpressionIndex(this, querySQL, params, false);
+            originalParameters = query.getParameters();
             tables = new ArrayList<>(query.getTables());
             setColumns(initColumns(session, columnTemplates, query, true));
             viewQuery = query;
@@ -54,6 +56,11 @@ public final class DerivedTable extends QueryExpressionTable {
             e.addSQL(getCreateSQL());
             throw e;
         }
+    }
+
+    @Override
+    protected QueryExpressionIndex createIndex(SessionLocal session, int[] masks) {
+        return new RegularQueryExpressionIndex(this, querySQL, originalParameters, session, masks);
     }
 
     @Override

@@ -217,7 +217,19 @@ public class ParserBase {
     }
 
     public final void setSuppliedParameters(ArrayList<Parameter> suppliedParameters) {
-        this.parameters = suppliedParameters;
+        int max = Parameter.getMaxIndex(suppliedParameters);
+        if (max > suppliedParameters.size()) {
+            ArrayList<Parameter> parameters = new ArrayList<>(max);
+            for (int i = 0; i < max; i++) {
+                parameters.add(null);
+            }
+            for (Parameter p : suppliedParameters) {
+                parameters.set(p.getIndex(), p);
+            }
+            this.parameters = parameters;
+        } else {
+            this.parameters = suppliedParameters;
+        }
     }
 
     /**

@@ -105,16 +105,6 @@ public abstract class QueryExpressionTable extends Table {
         return columnTemplateList;
     }
 
-    static int getMaxParameterIndex(ArrayList<Parameter> parameters) {
-        int result = -1;
-        for (Parameter p : parameters) {
-            if (p != null) {
-                result = Math.max(result, p.getIndex());
-            }
-        }
-        return result;
-    }
-
     Query viewQuery;
 
     ArrayList<Table> tables;
@@ -249,11 +239,11 @@ public abstract class QueryExpressionTable extends Table {
      */
     public final int getParameterOffset(ArrayList<Parameter> additionalParameters) {
         Query topQuery = getTopQuery();
-        int result = topQuery == null ? -1 : getMaxParameterIndex(topQuery.getParameters());
+        int result = topQuery == null ? 0 : Parameter.getMaxIndex(topQuery.getParameters());
         if (additionalParameters != null) {
-            result = Math.max(result, getMaxParameterIndex(additionalParameters));
+            result = Math.max(result, Parameter.getMaxIndex(additionalParameters));
         }
-        return result + 1;
+        return result;
     }
 
     @Override

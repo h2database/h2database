@@ -5,6 +5,8 @@
  */
 package org.h2.expression;
 
+import java.util.ArrayList;
+
 import org.h2.api.ErrorCode;
 import org.h2.engine.SessionLocal;
 import org.h2.expression.condition.Comparison;
@@ -19,6 +21,26 @@ import org.h2.value.ValueVarchar;
  * A parameter of a prepared statement.
  */
 public final class Parameter extends Operation0 implements ParameterInterface {
+
+    /**
+     * Returns the maximum 1-based index.
+     *
+     * @param parameters
+     *            parameters
+     * @return the maximum 1-based index, or {@code -1}
+     */
+    public static int getMaxIndex(ArrayList<Parameter> parameters) {
+        int result = 0;
+        for (Parameter p : parameters) {
+            if (p != null) {
+                int index = p.getIndex() + 1;
+                if (index > result) {
+                    result = index;
+                }
+            }
+        }
+        return result;
+    }
 
     private Value value;
     private Column column;

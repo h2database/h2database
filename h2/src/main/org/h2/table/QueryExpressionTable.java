@@ -26,7 +26,6 @@ import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.result.SortOrder;
 import org.h2.schema.Schema;
-import org.h2.util.StringUtils;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 
@@ -88,19 +87,11 @@ public abstract class QueryExpressionTable extends Table {
      *            clause overriding usual select names)
      * @param theQuery
      *            - the query object we want the column list for
-     * @param querySQLOutput
-     *            - array of length 1 to receive extra 'output' field in
-     *            addition to return value - containing the SQL query of the
-     *            Query object
      * @return a list of column object returned by withQuery
      */
-    public static List<Column> createQueryColumnTemplateList(String[] cols, Query theQuery, String[] querySQLOutput) {
+    public static List<Column> createQueryColumnTemplateList(String[] cols, Query theQuery) {
         ArrayList<Column> columnTemplateList = new ArrayList<>();
         theQuery.prepare();
-        // String array of length 1 is to receive extra 'output' field in
-        // addition to
-        // return value
-        querySQLOutput[0] = StringUtils.cache(theQuery.getPlanSQL(ADD_PLAN_INFORMATION));
         SessionLocal session = theQuery.getSession();
         ArrayList<Expression> withExpressions = theQuery.getExpressions();
         for (int i = 0; i < withExpressions.size(); ++i) {
@@ -125,8 +116,6 @@ public abstract class QueryExpressionTable extends Table {
     }
 
     Query viewQuery;
-
-    QueryExpressionIndex index;
 
     ArrayList<Table> tables;
 
@@ -190,7 +179,7 @@ public abstract class QueryExpressionTable extends Table {
         Map<Object, QueryExpressionIndex> indexCache = session.getViewIndexCache(getTableType() == null);
         QueryExpressionIndex i = indexCache.get(cacheKey);
         if (i == null || i.isExpired()) {
-            i = new QueryExpressionIndex(this, index, session, masks, filters, filter, sortOrder);
+            i = createIndex(session, masks);
             indexCache.put(cacheKey, i);
         }
         PlanItem item = new PlanItem();
@@ -198,6 +187,8 @@ public abstract class QueryExpressionTable extends Table {
         item.setIndex(i);
         return item;
     }
+
+    abstract QueryExpressionIndex createIndex(SessionLocal session, int[] masks);
 
     @Override
     public boolean isQueryComparable() {
@@ -241,7 +232,6 @@ public abstract class QueryExpressionTable extends Table {
 
     @Override
     public final boolean canGetRowCount(SessionLocal session) {
-        // TODO could get the row count, but not that easy
         return false;
     }
 

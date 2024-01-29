@@ -104,7 +104,6 @@ public abstract class Table extends SchemaObject {
     private boolean onCommitDrop, onCommitTruncate;
     private volatile Row nullRow;
     private RowFactory rowFactory = RowFactory.getRowFactory();
-    private boolean tableExpression;
 
     protected Table(Schema schema, int id, String name, boolean persistIndexes, boolean persistData) {
         super(schema, id, name, Trace.TABLE);
@@ -1452,14 +1451,6 @@ public abstract class Table extends SchemaObject {
      */
     public boolean isRowLockable() {
         return false;
-    }
-
-    public void setTableExpression(boolean tableExpression) {
-        this.tableExpression = tableExpression;
-    }
-
-    public boolean isTableExpression() {
-        return tableExpression;
     }
 
     /**

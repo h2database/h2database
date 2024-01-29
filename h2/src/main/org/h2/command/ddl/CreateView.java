@@ -111,10 +111,9 @@ public class CreateView extends SchemaOwnerCommand {
             }
         }
         if (view == null) {
-            view = new TableView(schema, id, viewName, querySQL, null, columnTemplatesAsUnknowns, session,
-                    false, false, false, false, null);
+            view = new TableView(schema, id, viewName, querySQL, columnTemplatesAsUnknowns, session);
         } else {
-            view.replace(querySQL, columnTemplatesAsUnknowns, session, false, force, false);
+            view.replace(querySQL, columnTemplatesAsUnknowns, session, force);
             view.setModified();
         }
         if (comment != null) {

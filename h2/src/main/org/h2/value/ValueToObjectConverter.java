@@ -89,14 +89,13 @@ public final class ValueToObjectConverter extends TraceObject {
             return ValueJavaObject.getNoCopy(JdbcUtils.serialize(x, session.getJavaObjectSerializer()));
         }
         Value v;
+        Class<?> clazz;
         if (x instanceof Value) {
             v = (Value) x;
             if (v instanceof ValueLob) {
                 session.addTemporaryLob((ValueLob) v);
             }
-        }
-        Class<?> clazz = x.getClass();
-        if (clazz == String.class) {
+        } else if ((clazz = x.getClass()) == String.class) {
             v = ValueVarchar.get((String) x, session);
         } else if (clazz == Long.class) {
             v = ValueBigint.get((Long) x);

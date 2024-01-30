@@ -2503,7 +2503,7 @@ public final class Parser extends ParserBase {
                 }
                 query = parseQueryExpressionBodyAndEndOfQuery(start);
                 query.setNeverLazy(true);
-                query.setWithClause(queryScope.tableSubqeries);
+                query.setWithClause(queryScope.tableSubqueries);
             } finally {
                 queryScope = outerQueryScope;
             }
@@ -6961,12 +6961,12 @@ public final class Parser extends ParserBase {
              */
             Table recursiveTable = new ShadowTable(database.getMainSchema(), cteName, columns.toArray(new Column[0]));
             BitSet outerUsedParameters = openParametersScope();
-            queryScope.tableSubqeries.put(cteName, recursiveTable);
+            queryScope.tableSubqueries.put(cteName, recursiveTable);
             try {
                 withQuery = parseQuery();
             } finally {
                 queryParameters = closeParametersScope(outerUsedParameters);
-                queryScope.tableSubqeries.remove(cteName);
+                queryScope.tableSubqueries.remove(cteName);
             }
             columnTemplateList = QueryExpressionTable.createQueryColumnTemplateList(cols, withQuery);
             sql = withQuery.getPlanSQL(DEFAULT_SQL_FLAGS);
@@ -6989,7 +6989,7 @@ public final class Parser extends ParserBase {
             sql = withQuery.getPlanSQL(DEFAULT_SQL_FLAGS);
         }
         read(CLOSE_PAREN);
-        queryScope.tableSubqeries.put(cteName, new CTE(cteName, withQuery, StringUtils.cache(sql),
+        queryScope.tableSubqueries.put(cteName, new CTE(cteName, withQuery, StringUtils.cache(sql),
                 queryParameters, columnTemplateList.toArray(new Column[0]), session, isPotentiallyRecursive,
                 queryScope));
     }
@@ -7894,7 +7894,7 @@ public final class Parser extends ParserBase {
 
     private Table getWithSubquery(String name) {
         for (QueryScope queryScope = this.queryScope; queryScope != null; queryScope = queryScope.parent) {
-            Table tableSubquery = queryScope.tableSubqeries.get(name);
+            Table tableSubquery = queryScope.tableSubqueries.get(name);
             if (tableSubquery != null) {
                 return tableSubquery;
             }

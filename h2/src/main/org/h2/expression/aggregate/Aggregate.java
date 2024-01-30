@@ -693,7 +693,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
                     throw DbException.getInvalidValueException("JSON_OBJECTAGG key", "NULL");
                 }
                 Value value = row[1];
-                if (value == ValueNull.INSTANCE) {
+                if (value == ValueNull.INSTANCE || value == ValueJson.NULL) {
                     if ((flags & JsonConstructorUtils.JSON_ABSENT_ON_NULL) != 0) {
                         continue;
                     }

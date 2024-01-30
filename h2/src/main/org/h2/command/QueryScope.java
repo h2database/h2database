@@ -9,15 +9,30 @@ import java.util.LinkedHashMap;
 
 import org.h2.table.Table;
 
+/**
+ * The scope of identifiers for a query with the WITH clause.
+ */
 public final class QueryScope {
 
+    /**
+     * The scope of a parent query with the WITH clause.
+     */
     public final QueryScope parent;
 
-    public final LinkedHashMap<String, Table> tableSubqeries;
+    /**
+     * The elements of the WITH list.
+     */
+    public final LinkedHashMap<String, Table> tableSubqueries;
 
+    /**
+     * Creates new instance of a query scope.
+     *
+     * @param parent
+     *            parent scope, or {@code null}
+     */
     public QueryScope(QueryScope parent) {
         this.parent = parent;
-        tableSubqeries = new LinkedHashMap<>();
+        tableSubqueries = new LinkedHashMap<>();
     }
 
 }

@@ -917,11 +917,25 @@ public class TestPreparedStatement extends TestDb {
         prep.setInt(1, 2);
         prep.setString(2, "[1]");
         prep.executeUpdate();
+        prep.setInt(1, 3);
+        prep.setString(2, null);
+        prep.executeUpdate();
+        prep = conn.prepareStatement("INSERT INTO TEST VALUES (?, ?)");
+        prep.setInt(1, 4);
+        prep.setObject(2, "[1]", H2Type.JSON);
+        prep.executeUpdate();
+        prep.setInt(1, 5);
+        prep.setObject(2, null, H2Type.JSON);
+        prep.executeUpdate();
         try (ResultSet rs = stat.executeQuery("SELECT J FROM TEST ORDER BY ID")) {
             assertTrue(rs.next());
             assertEquals("\"[1]\"", rs.getString(1));
-            assertTrue(rs.next());
-            assertEquals("[1]", rs.getString(1));
+            for (int i = 0; i < 2; i++) {
+                assertTrue(rs.next());
+                assertEquals("[1]", rs.getString(1));
+                assertTrue(rs.next());
+                assertEquals(null, rs.getString(1));
+            }
             assertFalse(rs.next());
         }
         stat.execute("DROP TABLE TEST");

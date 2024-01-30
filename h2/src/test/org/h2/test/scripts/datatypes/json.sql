@@ -228,9 +228,9 @@ DROP TABLE TEST;
 > ok
 
 SELECT NULL FORMAT JSON, (NULL FORMAT JSON) IS NULL;
-> JSON 'null' FALSE
-> ----------- -----
-> null        FALSE
+> NULL TRUE
+> ---- ----
+> null TRUE
 > rows: 1
 
 CREATE MEMORY TABLE TEST(J JSON) AS VALUES ('["\u00A7''",{}]' FORMAT JSON);

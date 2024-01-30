@@ -9,7 +9,13 @@ SELECT JSON_OBJECT('key1' : 10, 'key2' VALUE TRUE, KEY 'key3' VALUE 'str', 'key4
 SELECT JSON_OBJECT('key1' : NULL ABSENT ON NULL);
 >> {}
 
+SELECT JSON_OBJECT('key1' : JSON 'null' ABSENT ON NULL);
+>> {}
+
 SELECT JSON_OBJECT('key1' : NULL NULL ON NULL);
+>> {"key1":null}
+
+SELECT JSON_OBJECT('key1' : JSON 'null' NULL ON NULL);
 >> {"key1":null}
 
 SELECT JSON_OBJECT();

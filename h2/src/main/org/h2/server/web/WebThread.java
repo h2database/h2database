@@ -250,7 +250,17 @@ class WebThread extends WebApp implements Runnable {
             writeSimple("HTTP/1.1 400 Bad Request", "Bad request");
             return false;
         }
-        int index = host.indexOf(':');
+        int index ;
+
+        if(host.contains("["))
+        {
+            index = host.indexOf(']') +1;
+        }
+        else
+        {
+            index = host.indexOf(':');
+        }
+
         if (index >= 0) {
             host = host.substring(0, index);
         }

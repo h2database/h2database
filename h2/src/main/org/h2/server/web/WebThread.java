@@ -250,16 +250,7 @@ class WebThread extends WebApp implements Runnable {
             writeSimple("HTTP/1.1 400 Bad Request", "Bad request");
             return false;
         }
-        int index ;
-
-        if(host.contains("["))
-        {
-            index = host.indexOf(']') +1;
-        }
-        else
-        {
-            index = host.indexOf(':');
-        }
+        int index = host.lastIndexOf(':');
 
         if (index >= 0) {
             host = host.substring(0, index);
@@ -268,7 +259,10 @@ class WebThread extends WebApp implements Runnable {
             return false;
         }
         host = StringUtils.toLowerEnglish(host);
-        if (host.equals(server.getHost()) || host.equals("localhost") || host.equals("127.0.0.1")) {
+        if (host.equals(server.getHost()) ||
+                host.equals("localhost") ||
+                host.equals("127.0.0.1") ||
+                host.equals("[::1]")) {
             return true;
         }
         String externalNames = server.getExternalNames();

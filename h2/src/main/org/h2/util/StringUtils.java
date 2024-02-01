@@ -9,12 +9,15 @@ import java.io.ByteArrayOutputStream;
 import java.lang.ref.SoftReference;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 import java.util.function.IntPredicate;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.h2.api.ErrorCode;
 import org.h2.engine.SysProperties;
@@ -1381,6 +1384,40 @@ public class StringUtils {
             return pattern;
         }
         return replaceAll(pattern, "\\", "\\\\");
+    }
+
+    /**
+     * Case-sensitive check if a {@param text} starts with a {@param prefix}.
+     * It only calls {@code String.startsWith()} and is only here for API consistency
+     *
+     * @param text the full text starting with a prefix
+     * @param prefix the full text starting with a prefix
+     * @return TRUE only if text starts with the prefix
+     */
+    public static boolean startsWith(String text, String prefix) {
+        return text.startsWith(prefix);
+    }
+
+    /**
+     * Case-Insensitive check if a {@param text} starts with a {@param prefix}.
+     * It is used
+     *
+     * @param text the full text starting with a prefix
+     * @param prefix the full text starting with a prefix
+     * @return TRUE only if text starts with the prefix
+     */
+    public static boolean startsWithIgnoringCase(String text, String prefix) {
+        String normalizedText = Normalizer.normalize(text, Normalizer.Form.NFD)
+                                          .replaceAll("\\p{M}", "");
+        String normalizedPrefix = Normalizer.normalize(prefix, Normalizer.Form.NFD)
+                                            .replaceAll("\\p{M}", "");
+
+        final Pattern pattern = Pattern.compile(
+                "^" + normalizedPrefix
+                , Pattern.MULTILINE | Pattern.CASE_INSENSITIVE | Pattern.COMMENTS | Pattern.UNICODE_CASE);
+
+        final Matcher matcher = pattern.matcher(normalizedText);
+        return matcher.find();
     }
 
 }

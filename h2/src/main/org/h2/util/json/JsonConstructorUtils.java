@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2023 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -46,7 +46,7 @@ public final class JsonConstructorUtils {
             baos.write(',');
         }
         JSONByteArrayTarget.encodeString(baos, key).write(':');
-        byte[] b = value.convertTo(TypeInfo.TYPE_JSON).getBytesNoCopy();
+        byte[] b = value.convertToJson(TypeInfo.TYPE_JSON, Value.CONVERT_TO, null).getBytesNoCopy();
         baos.write(b, 0, b.length);
     }
 
@@ -89,7 +89,7 @@ public final class JsonConstructorUtils {
      *            the flags ({@link #JSON_ABSENT_ON_NULL})
      */
     public static void jsonArrayAppend(ByteArrayOutputStream baos, Value value, int flags) {
-        if (value == ValueNull.INSTANCE) {
+        if (value == ValueNull.INSTANCE || value == ValueJson.NULL) {
             if ((flags & JSON_ABSENT_ON_NULL) != 0) {
                 return;
             }

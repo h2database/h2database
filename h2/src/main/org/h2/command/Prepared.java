@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2023 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -7,7 +7,7 @@ package org.h2.command;
 
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
+
 import org.h2.api.DatabaseEventListener;
 import org.h2.api.ErrorCode;
 import org.h2.engine.Database;
@@ -18,7 +18,6 @@ import org.h2.expression.Parameter;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.result.ResultInterface;
-import org.h2.table.TableView;
 import org.h2.util.HasSQL;
 
 /**
@@ -70,11 +69,6 @@ public abstract class Prepared {
     private int persistedObjectId;
     private long currentRowNumber;
     private int rowScanCount;
-    /**
-     * Common table expressions (CTE) in queries require us to create temporary views,
-     * which need to be cleaned up once a command is done executing.
-     */
-    private List<TableView> cteCleanups;
 
     /**
      * Create a new object.
@@ -321,8 +315,19 @@ public abstract class Prepared {
      * @param sqlFlags formatting flags
      * @return the execution plan
      */
-    public String getPlanSQL(int sqlFlags) {
-        return null;
+    public final String getPlanSQL(int sqlFlags) {
+        return getPlanSQL(new StringBuilder(), sqlFlags).toString();
+    }
+
+    /**
+     * Appends the SQL statement with the execution plan.
+     *
+     * @param builder string builder
+     * @param sqlFlags formatting flags
+     * @return the execution plan
+     */
+    public StringBuilder getPlanSQL(StringBuilder builder, int sqlFlags) {
+        return builder;
     }
 
     /**
@@ -463,22 +468,6 @@ public abstract class Prepared {
 
     public boolean isCacheable() {
         return false;
-    }
-
-    /**
-     * @return the temporary views created for CTE's.
-     */
-    public List<TableView> getCteCleanups() {
-        return cteCleanups;
-    }
-
-    /**
-     * Set the temporary views created for CTE's.
-     *
-     * @param cteCleanups the temporary views
-     */
-    public void setCteCleanups(List<TableView> cteCleanups) {
-        this.cteCleanups = cteCleanups;
     }
 
     public final SessionLocal getSession() {

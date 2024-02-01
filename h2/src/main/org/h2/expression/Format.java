@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2023 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -9,6 +9,7 @@ import org.h2.engine.SessionLocal;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueJson;
+import org.h2.value.ValueNull;
 
 /**
  * A format clause such as FORMAT JSON.
@@ -45,16 +46,27 @@ public final class Format extends Operation1 {
      * @return the value with applied format
      */
     public Value getValue(Value value) {
+        return applyJSON(value);
+    }
+
+    /**
+     * Applies the JSON format to the specified value.
+     *
+     * @param value
+     *            the value
+     * @return the value with applied format
+     */
+    public static Value applyJSON(Value value) {
         switch (value.getValueType()) {
         case Value.NULL:
-            return ValueJson.NULL;
+            return ValueNull.INSTANCE;
         case Value.VARCHAR:
         case Value.VARCHAR_IGNORECASE:
         case Value.CHAR:
         case Value.CLOB:
             return ValueJson.fromJson(value.getString());
         default:
-            return value.convertTo(TypeInfo.TYPE_JSON);
+            return value.convertToJson(TypeInfo.TYPE_JSON, Value.CONVERT_TO, null);
         }
     }
 

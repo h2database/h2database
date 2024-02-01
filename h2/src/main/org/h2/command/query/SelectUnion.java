@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2023 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -336,8 +336,9 @@ public class SelectUnion extends Query {
     }
 
     @Override
-    public String getPlanSQL(int sqlFlags) {
-        StringBuilder builder = new StringBuilder().append('(').append(left.getPlanSQL(sqlFlags)).append(')');
+    public StringBuilder getPlanSQL(StringBuilder builder, int sqlFlags) {
+        writeWithList(builder, sqlFlags);
+        left.getPlanSQL(builder.append('('), sqlFlags).append(')');
         switch (unionType) {
         case UNION_ALL:
             builder.append("\nUNION ALL\n");
@@ -354,12 +355,12 @@ public class SelectUnion extends Query {
         default:
             throw DbException.getInternalError("type=" + unionType);
         }
-        builder.append('(').append(right.getPlanSQL(sqlFlags)).append(')');
+        right.getPlanSQL(builder.append('('), sqlFlags).append(')');
         appendEndOfQueryToSQL(builder, sqlFlags, expressions.toArray(new Expression[0]));
         if (forUpdate != null) {
             forUpdate.getSQL(builder, sqlFlags);
         }
-        return builder.toString();
+        return builder;
     }
 
     @Override

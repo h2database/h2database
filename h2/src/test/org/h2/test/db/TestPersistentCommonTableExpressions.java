@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2023 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -37,7 +37,7 @@ public class TestPersistentCommonTableExpressions extends AbstractBaseForCommonT
         String[] expectedColumnNames = new String[]{"VAL",
                 "SUM((SELECT\n" +
                 "    X\n" +
-                "FROM PUBLIC.\"\" BB\n" +
+                "FROM BB BB\n" +
                 "WHERE BB.A IS NOT DISTINCT FROM A.VAL))"};
 
         String setupSQL =
@@ -103,7 +103,7 @@ public class TestPersistentCommonTableExpressions extends AbstractBaseForCommonT
                 +"      FROM my_tree mt                                                                        \n"
                 +"INNER JOIN tree_cte mtc ON mtc.child_fk = mt.parent_fk                                       \n"
                 +"),                                                                                           \n"
-                +"unused_cte AS ( SELECT 1 AS unUsedColumn )                                                   \n"
+                +"unused_cte(unUsedColumn) AS ( SELECT 1 AS unUsedColumn )                                     \n"
                 +"SELECT sub_tree_root_id, tree_level, parent_fk, child_fk FROM tree_cte;                      \n";
 
         String withQuery = "SELECT * FROM v_my_tree";
@@ -227,7 +227,7 @@ public class TestPersistentCommonTableExpressions extends AbstractBaseForCommonT
                 +"      FROM my_tree mt                                                                        \n"
                 +"INNER JOIN tree_cte mtc ON mtc.child_fk = mt.parent_fk                                       \n"
                 +"),                                                                                           \n"
-                +"unused_cte AS ( SELECT 1 AS unUsedColumn )                                                   \n"
+                +"unused_cte(unUsedColumn) AS ( SELECT 1 AS unUsedColumn )                                     \n"
                 +"SELECT sub_tree_root_id, tree_level, parent_fk, child_fk FROM tree_cte;                      \n";
 
         String withQuery = "SELECT * FROM v_my_tree";

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2023 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -222,7 +222,7 @@ public class TestScript extends TestDb {
             testScript("functions/window/" + s + ".sql");
         }
         for (String s : new String[] { "at-time-zone", "boolean-test", "case", "concatenation", "conditions",
-                "data-change-delta-table", "field-reference", "help", "sequence", "set" }) {
+                "data-change-delta-table", "field-reference", "help", "invisible", "sequence", "set" }) {
             testScript("other/" + s + ".sql");
         }
         for (String s : new String[] { "comments", "identifiers" }) {

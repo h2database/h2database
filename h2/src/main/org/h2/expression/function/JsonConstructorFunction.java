@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2023 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -66,7 +66,7 @@ public final class JsonConstructorFunction extends OperationN implements Express
                 throw DbException.getInvalidValueException("JSON_OBJECT key", "NULL");
             }
             Value value = args[i++].getValue(session);
-            if (value == ValueNull.INSTANCE) {
+            if (value == ValueNull.INSTANCE || value == ValueJson.NULL) {
                 if ((flags & JsonConstructorUtils.JSON_ABSENT_ON_NULL) != 0) {
                     continue;
                 } else {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2023 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -217,7 +217,19 @@ public class ParserBase {
     }
 
     public final void setSuppliedParameters(ArrayList<Parameter> suppliedParameters) {
-        this.parameters = suppliedParameters;
+        int max = Parameter.getMaxIndex(suppliedParameters);
+        if (max > suppliedParameters.size()) {
+            ArrayList<Parameter> parameters = new ArrayList<>(max);
+            for (int i = 0; i < max; i++) {
+                parameters.add(null);
+            }
+            for (Parameter p : suppliedParameters) {
+                parameters.set(p.getIndex(), p);
+            }
+            this.parameters = parameters;
+        } else {
+            this.parameters = suppliedParameters;
+        }
     }
 
     /**

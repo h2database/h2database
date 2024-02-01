@@ -1,9 +1,11 @@
 /*
- * Copyright 2004-2023 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.expression;
+
+import java.util.ArrayList;
 
 import org.h2.api.ErrorCode;
 import org.h2.engine.SessionLocal;
@@ -19,6 +21,26 @@ import org.h2.value.ValueVarchar;
  * A parameter of a prepared statement.
  */
 public final class Parameter extends Operation0 implements ParameterInterface {
+
+    /**
+     * Returns the maximum 1-based index.
+     *
+     * @param parameters
+     *            parameters
+     * @return the maximum 1-based index, or {@code -1}
+     */
+    public static int getMaxIndex(ArrayList<Parameter> parameters) {
+        int result = 0;
+        for (Parameter p : parameters) {
+            if (p != null) {
+                int index = p.getIndex() + 1;
+                if (index > result) {
+                    result = index;
+                }
+            }
+        }
+        return result;
+    }
 
     private Value value;
     private Column column;

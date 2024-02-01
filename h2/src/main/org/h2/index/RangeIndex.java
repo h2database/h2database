@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2023 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -95,8 +95,9 @@ public class RangeIndex extends VirtualTableIndex {
         if (step == 0L) {
             throw DbException.get(ErrorCode.STEP_SIZE_MUST_NOT_BE_ZERO);
         }
-        return new SingleRowCursor((step > 0 ? min <= max : min >= max)
-                ? Row.get(new Value[]{ ValueBigint.get(first ^ min >= max ? min : max) }, 1) : null);
+        return (step > 0 ? min <= max : min >= max)
+                ? new SingleRowCursor(Row.get(new Value[] { ValueBigint.get(first ^ min >= max ? min : max) }, 1))
+                : SingleRowCursor.EMPTY;
     }
 
     @Override

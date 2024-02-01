@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2023 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -104,7 +104,6 @@ public abstract class Table extends SchemaObject {
     private boolean onCommitDrop, onCommitTruncate;
     private volatile Row nullRow;
     private RowFactory rowFactory = RowFactory.getRowFactory();
-    private boolean tableExpression;
 
     protected Table(Schema schema, int id, String name, boolean persistIndexes, boolean persistData) {
         super(schema, id, name, Trace.TABLE);
@@ -721,7 +720,41 @@ public abstract class Table extends SchemaObject {
         return row;
     }
 
-    public Column[] getColumns() {
+    public final Column[] getColumns() {
+        return columns;
+    }
+
+    public final Column[] getVisibleColumns() {
+        Column[] columns = this.columns;
+        for (int i = 0, count = columns.length; i < count; i++) {
+            Column column = columns[i];
+            if (!column.getVisible()) {
+                return excludeInvisible(columns, count, i);
+            }
+        }
+        return columns;
+    }
+
+    private static Column[] excludeInvisible(Column[] allColumns, int count, int i) {
+        int invisibleCount = 1;
+        for (int j = i + 1; j < count; j++) {
+            Column column = allColumns[j];
+            if (!column.getVisible()) {
+                invisibleCount++;
+            }
+        }
+        Column[] columns = new Column[count - invisibleCount];
+        System.arraycopy(allColumns, 0, columns, 0, i);
+        if (invisibleCount == 1) {
+            System.arraycopy(allColumns, i + 1, columns, i, count - i - 1);
+        } else {
+            for (int j = i + 1; j < count; j++) {
+                Column column = allColumns[j];
+                if (column.getVisible()) {
+                    columns[i++] = column;
+                }
+            }
+        }
         return columns;
     }
 
@@ -1413,29 +1446,11 @@ public abstract class Table extends SchemaObject {
     }
 
     /**
-     * Check whether this is a hidden object that doesn't appear in the meta
-     * data and in the script.
-     *
-     * @return true if it is hidden
-     */
-    public boolean isHidden() {
-        return false;
-    }
-
-    /**
      * Views, function tables, links, etc. do not support locks
      * @return true if table supports row-level locks
      */
     public boolean isRowLockable() {
         return false;
-    }
-
-    public void setTableExpression(boolean tableExpression) {
-        this.tableExpression = tableExpression;
-    }
-
-    public boolean isTableExpression() {
-        return tableExpression;
     }
 
     /**

@@ -1,11 +1,12 @@
 /*
- * Copyright 2004-2023 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.table;
 
 import java.util.ArrayList;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 import org.h2.constraint.Constraint;
@@ -166,13 +167,13 @@ public abstract class MetaTable extends Table {
                     .concat(database.getAllSchemas().stream()
                             .map(schema -> schema.getTableOrViewByName(session, tableName)),
                             Stream.ofNullable(session.findLocalTempTable(tableName)))
-                    .filter(table -> table != null && !table.isHidden());
+                    .filter(Objects::nonNull);
         } else {
             return Stream
                     .concat(database.getAllSchemas().stream()
                             .flatMap(schema -> schema.getAllTablesAndViews(session).stream()),
                             session.getLocalTempTables().stream())
-                    .filter(table -> !table.isHidden() && checkIndex(session, table.getName(), indexFrom, indexTo));
+                    .filter(table -> checkIndex(session, table.getName(), indexFrom, indexTo));
         }
     }
 

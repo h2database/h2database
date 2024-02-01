@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2023 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -8,11 +8,13 @@ package org.h2.table;
 import java.util.ArrayList;
 
 import org.h2.api.ErrorCode;
+import org.h2.command.QueryScope;
 import org.h2.command.query.Query;
 import org.h2.engine.SessionLocal;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.Parameter;
 import org.h2.index.QueryExpressionIndex;
+import org.h2.index.RegularQueryExpressionIndex;
 import org.h2.message.DbException;
 import org.h2.util.StringUtils;
 
@@ -21,9 +23,11 @@ import org.h2.util.StringUtils;
  */
 public final class DerivedTable extends QueryExpressionTable {
 
-    private String querySQL;
+    private final String querySQL;
 
-    private Query topQuery;
+    private final Query topQuery;
+
+    private final ArrayList<Parameter> originalParameters;
 
     /**
      * Create a derived table out of the given query.
@@ -41,8 +45,7 @@ public final class DerivedTable extends QueryExpressionTable {
         query.prepareExpressions();
         try {
             this.querySQL = query.getPlanSQL(DEFAULT_SQL_FLAGS);
-            ArrayList<Parameter> params = query.getParameters();
-            index = new QueryExpressionIndex(this, querySQL, params, false);
+            originalParameters = query.getParameters();
             tables = new ArrayList<>(query.getTables());
             setColumns(initColumns(session, columnTemplates, query, true));
             viewQuery = query;
@@ -53,6 +56,11 @@ public final class DerivedTable extends QueryExpressionTable {
             e.addSQL(getCreateSQL());
             throw e;
         }
+    }
+
+    @Override
+    protected QueryExpressionIndex createIndex(SessionLocal session, int[] masks) {
+        return new RegularQueryExpressionIndex(this, querySQL, originalParameters, session, masks);
     }
 
     @Override
@@ -89,6 +97,11 @@ public final class DerivedTable extends QueryExpressionTable {
     @Override
     public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
         return StringUtils.indent(builder.append("(\n"), querySQL, 4, true).append(')');
+    }
+
+    @Override
+    public QueryScope getQueryScope() {
+        return viewQuery.getOuterQueryScope();
     }
 
 }

@@ -1,4 +1,4 @@
--- Copyright 2004-2023 H2 Group. Multiple-Licensed under the MPL 2.0,
+-- Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
 -- and the EPL 1.0 (https://h2database.com/html/license.html).
 -- Initial Developer: H2 Group
 --
@@ -71,29 +71,6 @@ DROP TABLE T2;
 > ok
 
 DROP TABLE T1;
-> ok
-
-CREATE TABLE TEST(A INT, B INT INVISIBLE);
-> ok
-
-SELECT * FROM TEST;
-> A
-> -
-> rows: 0
-
-SELECT A, B FROM TEST;
-> A B
-> - -
-> rows: 0
-
-SELECT COLUMN_NAME, IS_VISIBLE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'TEST' ORDER BY ORDINAL_POSITION;
-> COLUMN_NAME IS_VISIBLE
-> ----------- ----------
-> A           TRUE
-> B           FALSE
-> rows (ordered): 2
-
-DROP TABLE TEST;
 > ok
 
 CREATE TABLE TEST1(ID IDENTITY);

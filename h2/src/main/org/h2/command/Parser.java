@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2023 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  *
@@ -39,6 +39,9 @@ import static org.h2.command.Token.SMALLER;
 import static org.h2.command.Token.SMALLER_EQUAL;
 import static org.h2.command.Token.SPATIAL_INTERSECTS;
 import static org.h2.command.Token.TILDE;
+import static org.h2.util.HasSQL.DEFAULT_SQL_FLAGS;
+import static org.h2.util.HasSQL.QUOTE_ONLY_WHEN_REQUIRED;
+import static org.h2.util.HasSQL.TRACE_SQL_FLAGS;
 import static org.h2.util.ParserUtil.ALL;
 import static org.h2.util.ParserUtil.AND;
 import static org.h2.util.ParserUtil.ANY;
@@ -362,6 +365,7 @@ import org.h2.schema.Schema;
 import org.h2.schema.Sequence;
 import org.h2.schema.UserAggregate;
 import org.h2.schema.UserDefinedFunction;
+import org.h2.table.CTE;
 import org.h2.table.Column;
 import org.h2.table.DataChangeDeltaTable;
 import org.h2.table.DataChangeDeltaTable.ResultOption;
@@ -372,10 +376,10 @@ import org.h2.table.IndexHints;
 import org.h2.table.MaterializedView;
 import org.h2.table.QueryExpressionTable;
 import org.h2.table.RangeTable;
+import org.h2.table.ShadowTable;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.table.TableView;
-import org.h2.util.HasSQL;
 import org.h2.util.IntervalUtils;
 import org.h2.util.ParserUtil;
 import org.h2.util.StringUtils;
@@ -418,19 +422,16 @@ import org.h2.value.ValueVarchar;
  */
 public final class Parser extends ParserBase {
 
-    private static final String WITH_STATEMENT_SUPPORTS_LIMITED_SUB_STATEMENTS =
-            "WITH statement supports only SELECT, TABLE, VALUES, " +
-            "CREATE TABLE, INSERT, UPDATE, MERGE or DELETE statements";
-
     private CreateView createView;
     private Prepared currentPrepared;
     private Select currentSelect;
-    private List<TableView> cteCleanups;
     private String schemaName;
     private boolean rightsChecked;
     private boolean recompileAlways;
     private int orderInFrom;
     private boolean parseDomainConstraint;
+    private QueryScope queryScope;
+    private boolean parsingRecursiveWithList;
 
     /**
      * Creates a new instance of parser.
@@ -485,12 +486,7 @@ public final class Parser extends ParserBase {
                 addExpected(SEMICOLON);
                 throw getSyntaxError();
             }
-            try {
-                p.prepare();
-            } catch (Throwable t) {
-                CommandContainer.clearCTE(session, p);
-                throw t;
-            }
+            p.prepare();
             int sqlIndex = token.start();
             if (sqlIndex < sql.length()) {
                 sql = sql.substring(0, sqlIndex);
@@ -511,42 +507,37 @@ public final class Parser extends ParserBase {
 
     private CommandList prepareCommandList(CommandContainer command, Prepared p, String sql, String remainingSql,
             ArrayList<Token> remainingTokens) {
-        try {
-            ArrayList<Prepared> list = Utils.newSmallArrayList();
-            for (;;) {
-                if (p instanceof DefineCommand) {
-                    // Next commands may depend on results of this command.
-                    return new CommandList(session, sql, command, list, parameters, remainingSql);
-                }
-                try {
-                    p = parse(remainingSql, remainingTokens);
-                } catch (DbException ex) {
-                    // This command may depend on results of previous commands.
-                    if (ex.getErrorCode() == ErrorCode.CANNOT_MIX_INDEXED_AND_UNINDEXED_PARAMS) {
-                        throw ex;
-                    }
-                    return new CommandList(session, sql, command, list, parameters, remainingSql);
-                }
-                list.add(p);
-                if (currentTokenType != SEMICOLON && currentTokenType != END_OF_INPUT) {
-                    addExpected(SEMICOLON);
-                    throw getSyntaxError();
-                }
-                while (currentTokenType == SEMICOLON) {
-                    read();
-                }
-                if (currentTokenType == END_OF_INPUT) {
-                    break;
-                }
-                int offset = token.start();
-                remainingSql = sqlCommand.substring(offset);
-                remainingTokens = getRemainingTokens(offset);
+        ArrayList<Prepared> list = Utils.newSmallArrayList();
+        for (;;) {
+            if (p instanceof DefineCommand) {
+                // Next commands may depend on results of this command.
+                return new CommandList(session, sql, command, list, parameters, remainingSql);
             }
-            return new CommandList(session, sql, command, list, parameters, null);
-        } catch (Throwable t) {
-            command.clearCTE();
-            throw t;
+            try {
+                p = parse(remainingSql, remainingTokens);
+            } catch (DbException ex) {
+                // This command may depend on results of previous commands.
+                if (ex.getErrorCode() == ErrorCode.CANNOT_MIX_INDEXED_AND_UNINDEXED_PARAMS) {
+                    throw ex;
+                }
+                return new CommandList(session, sql, command, list, parameters, remainingSql);
+            }
+            list.add(p);
+            if (currentTokenType != SEMICOLON && currentTokenType != END_OF_INPUT) {
+                addExpected(SEMICOLON);
+                throw getSyntaxError();
+            }
+            while (currentTokenType == SEMICOLON) {
+                read();
+            }
+            if (currentTokenType == END_OF_INPUT) {
+                break;
+            }
+            int offset = token.start();
+            remainingSql = sqlCommand.substring(offset);
+            remainingTokens = getRemainingTokens(offset);
         }
+        return new CommandList(session, sql, command, list, parameters, null);
     }
 
     /**
@@ -583,20 +574,10 @@ public final class Parser extends ParserBase {
         currentSelect = null;
         currentPrepared = null;
         createView = null;
-        cteCleanups = null;
         recompileAlways = false;
         usedParameters.clear();
         read();
-        Prepared p;
-        try {
-            p = parsePrepared();
-            p.setCteCleanups(cteCleanups);
-        } catch (Throwable t) {
-            if (cteCleanups != null) {
-                CommandContainer.clearCTE(session, cteCleanups);
-            }
-            throw t;
-        }
+        Prepared p = parsePrepared();
         p.setPrepareAlways(recompileAlways);
         p.setParameterList(parameters);
         return p;
@@ -624,11 +605,8 @@ public final class Parser extends ParserBase {
         case SELECT:
         case TABLE:
         case VALUES:
-            c = parseQuery();
-            break;
         case WITH:
-            read();
-            c = parseWithStatementOrQuery(start);
+            c = parseQuery();
             break;
         case SET:
             read();
@@ -1161,9 +1139,11 @@ public final class Parser extends ParserBase {
 
     private String[] parseColumnList() {
         ArrayList<String> columns = Utils.newSmallArrayList();
-        do {
-            columns.add(readIdentifier());
-        } while (readIfMore());
+        if (!readIf(CLOSE_PAREN)) {
+            do {
+                columns.add(readIdentifier());
+            } while (readIfMore());
+        }
         return columns.toArray(new String[0]);
     }
 
@@ -1224,7 +1204,7 @@ public final class Parser extends ParserBase {
                     if (i > 0) {
                         searchPathBuff.append(", ");
                     }
-                    ParserUtil.quoteIdentifier(searchPathBuff, searchPath[i], HasSQL.QUOTE_ONLY_WHEN_REQUIRED);
+                    ParserUtil.quoteIdentifier(searchPathBuff, searchPath[i], QUOTE_ONLY_WHEN_REQUIRED);
                 }
             }
             StringUtils.quoteStringSQL(buff, searchPathBuff.toString());
@@ -1837,7 +1817,7 @@ public final class Parser extends ParserBase {
                 if (derivedColumnNames != null) {
                     query.init();
                     columnTemplates = QueryExpressionTable.createQueryColumnTemplateList(
-                            derivedColumnNames.toArray(new String[0]), query, new String[1])
+                            derivedColumnNames.toArray(new String[0]), query)
                             .toArray(new Column[0]);
                 }
                 table = query.toTable(alias, columnTemplates, queryParameters, createView != null, currentSelect);
@@ -1858,7 +1838,7 @@ public final class Parser extends ParserBase {
             discardWithTableHints();
         }
         // inherit alias for CTE as views from table name
-        if (alias == null && table.isView() && table.isTableExpression()) {
+        if (alias == null && table instanceof CTE) {
             alias = table.getName();
         }
         TableFilter filter = new TableFilter(session, table, alias, rightsChecked,
@@ -2495,48 +2475,50 @@ public final class Parser extends ParserBase {
 
     private Query parseQuery() {
         BitSet outerUsedParameters = openParametersScope();
-        Query command = parseQueryExpression();
+        Query query = parseQueryExpression();
         ArrayList<Parameter> params = closeParametersScope(outerUsedParameters);
-        command.setParameterList(params);
-        command.init();
-        return command;
-    }
-
-    private Prepared parseWithStatementOrQuery(int start) {
-        BitSet outerUsedParameters = openParametersScope();
-        Prepared command = parseWith();
-        ArrayList<Parameter> params = closeParametersScope(outerUsedParameters);
-        command.setParameterList(params);
-        if (command instanceof Query) {
-            Query query = (Query) command;
-            query.init();
-        }
-        setSQL(command, start);
-        return command;
-    }
-
-    private Query parseQueryExpression() {
-        Query query;
-        if (readIf(WITH)) {
-            try {
-                query = (Query) parseWith();
-            } catch (ClassCastException e) {
-                throw DbException.get(ErrorCode.SYNTAX_ERROR_1, "WITH statement supports only query in this context");
-            }
-            // recursive can not be lazy
-            query.setNeverLazy(true);
-        } else {
-            query = parseQueryExpressionBodyAndEndOfQuery();
-        }
+        query.setParameterList(params);
+        query.init();
         return query;
     }
 
-    private Query parseQueryExpressionBodyAndEndOfQuery() {
+    private Query parseQueryExpression() {
         int start = tokenIndex;
-        Query command = parseQueryExpressionBody();
-        parseEndOfQuery(command);
-        setSQL(command, start);
-        return command;
+        QueryScope outerQueryScope = queryScope;
+        Query query;
+        if (readIf(WITH)) {
+            boolean oldRecursive = parsingRecursiveWithList;
+            boolean isPotentiallyRecursive = !oldRecursive && readIf("RECURSIVE");
+            queryScope = new QueryScope(outerQueryScope);
+            try {
+                if (isPotentiallyRecursive) {
+                    parsingRecursiveWithList = true;
+                }
+                try {
+                    do {
+                        parseSingleCommonTableExpression(isPotentiallyRecursive);
+                    } while (readIf(COMMA));
+                } finally {
+                    parsingRecursiveWithList = oldRecursive;
+                }
+                query = parseQueryExpressionBodyAndEndOfQuery(start);
+                query.setNeverLazy(true);
+                query.setWithClause(queryScope.tableSubqueries);
+            } finally {
+                queryScope = outerQueryScope;
+            }
+        } else {
+            query = parseQueryExpressionBodyAndEndOfQuery(start);
+        }
+        query.setOuterQueryScope(outerQueryScope);
+        return query;
+    }
+
+    private Query parseQueryExpressionBodyAndEndOfQuery(int start) {
+        Query query = parseQueryExpressionBody();
+        parseEndOfQuery(query);
+        setSQL(query, start);
+        return query;
     }
 
     private Query parseQueryExpressionBody() {
@@ -2699,9 +2681,10 @@ public final class Parser extends ParserBase {
 
     private Query parseQueryPrimary() {
         if (readIf(OPEN_PAREN)) {
-            Query command = parseQueryExpressionBodyAndEndOfQuery();
+            Query query = parseQueryExpressionBodyAndEndOfQuery(tokenIndex);
+            query.setOuterQueryScope(queryScope);
             read(CLOSE_PAREN);
-            return command;
+            return query;
         }
         int start = tokenIndex;
         if (readIf(SELECT)) {
@@ -3483,7 +3466,7 @@ public final class Parser extends ParserBase {
                 if (readIf(ORDER)) {
                     read("BY");
                     Expression expr2 = readExpression();
-                    String sql = expr.getSQL(HasSQL.DEFAULT_SQL_FLAGS), sql2 = expr2.getSQL(HasSQL.DEFAULT_SQL_FLAGS);
+                    String sql = expr.getSQL(DEFAULT_SQL_FLAGS), sql2 = expr2.getSQL(DEFAULT_SQL_FLAGS);
                     if (!sql.equals(sql2)) {
                         throw DbException.getSyntaxError(ErrorCode.IDENTICAL_EXPRESSIONS_SHOULD_BE_USED, sqlCommand,
                                 token.start(), sql, sql2);
@@ -6940,88 +6923,16 @@ public final class Parser extends ParserBase {
                 || BuiltinFunctions.isBuiltinFunction(database, name) && !database.isAllowBuiltinAliasOverride();
     }
 
-    private Prepared parseWith() {
-        List<TableView> viewsCreated = new ArrayList<>();
-        try {
-            return parseWith1(viewsCreated);
-        } catch (Throwable t) {
-            CommandContainer.clearCTE(session, viewsCreated);
-            throw t;
-        }
-    }
-
-    private Prepared parseWith1(List<TableView> viewsCreated) {
-        readIf("RECURSIVE");
-
-        // This WITH statement is not a temporary view - it is part of a persistent view
-        // as in CREATE VIEW abc AS WITH my_cte - this auto detects that condition.
-        final boolean isTemporary = !session.isParsingCreateView();
-
-        do {
-            viewsCreated.add(parseSingleCommonTableExpression(isTemporary));
-        } while (readIf(COMMA));
-
-        Prepared p;
-        // Reverse the order of constructed CTE views - as the destruction order
-        // (since later created view may depend on previously created views -
-        //  we preserve that dependency order in the destruction sequence )
-        // used in setCteCleanups.
-        Collections.reverse(viewsCreated);
-
-        int start = tokenIndex;
-        if (isQueryQuick()) {
-            p = parseWithQuery();
-        } else if (readIfCompat("INSERT")) {
-            p = parseInsert(start);
-            p.setPrepareAlways(true);
-        } else if (readIfCompat("UPDATE")) {
-            p = parseUpdate(start);
-            p.setPrepareAlways(true);
-        } else if (readIfCompat("MERGE")) {
-            p = parseMerge(start);
-            p.setPrepareAlways(true);
-        } else if (readIfCompat("DELETE")) {
-            p = parseDelete(start);
-            p.setPrepareAlways(true);
-        } else if (readIfCompat("CREATE")) {
-            if (!isToken(TABLE)) {
-                throw DbException.get(ErrorCode.SYNTAX_ERROR_1,
-                        WITH_STATEMENT_SUPPORTS_LIMITED_SUB_STATEMENTS);
-            }
-            p = parseCreate();
-            p.setPrepareAlways(true);
-        } else {
-            throw DbException.get(ErrorCode.SYNTAX_ERROR_1,
-                    WITH_STATEMENT_SUPPORTS_LIMITED_SUB_STATEMENTS);
-        }
-
-        // Clean up temporary views starting with last to first (in case of
-        // dependencies) - but only if they are not persistent.
-        if (isTemporary) {
-            if (cteCleanups == null) {
-                cteCleanups = new ArrayList<>(viewsCreated.size());
-            }
-            cteCleanups.addAll(viewsCreated);
-        }
-        return p;
-    }
-
-    private Prepared parseWithQuery() {
-        Query query = parseQueryExpressionBodyAndEndOfQuery();
-        query.setPrepareAlways(true);
-        query.setNeverLazy(true);
-        return query;
-    }
-
-    private TableView parseSingleCommonTableExpression(boolean isTemporary) {
-        String cteViewName = readIdentifierWithSchema();
-        Schema schema = getSchema();
+    private void parseSingleCommonTableExpression(boolean isPotentiallyRecursive) {
+        String cteName = readIdentifier();
         ArrayList<Column> columns = Utils.newSmallArrayList();
         String[] cols = null;
-
-        // column names are now optional - they can be inferred from the named
-        // query, if not supplied by user
-        if (readIf(OPEN_PAREN)) {
+        readColumns: {
+            if (isPotentiallyRecursive) {
+                read(OPEN_PAREN);
+            } else if (!readIf(OPEN_PAREN)) {
+                break readColumns;
+            }
             cols = parseColumnList();
             for (String c : cols) {
                 // we don't really know the type of the column, so STRING will
@@ -7029,114 +6940,62 @@ public final class Parser extends ParserBase {
                 columns.add(new Column(c, TypeInfo.TYPE_VARCHAR));
             }
         }
-
-        Table oldViewFound;
-        if (!isTemporary) {
-            oldViewFound = getSchema().findTableOrView(session, cteViewName);
-        } else {
-            oldViewFound = session.findLocalTempTable(cteViewName);
-        }
-        // this persistent check conflicts with check 10 lines down
+        Table oldViewFound = getWithSubquery(cteName);
         if (oldViewFound != null) {
-            if (!(oldViewFound instanceof TableView)) {
-                throw DbException.get(ErrorCode.TABLE_OR_VIEW_ALREADY_EXISTS_1,
-                        cteViewName);
-            }
-            TableView tv = (TableView) oldViewFound;
-            if (!tv.isTableExpression()) {
-                throw DbException.get(ErrorCode.TABLE_OR_VIEW_ALREADY_EXISTS_1,
-                        cteViewName);
-            }
-            if (!isTemporary) {
-                oldViewFound.lock(session, Table.EXCLUSIVE_LOCK);
-                database.removeSchemaObject(session, oldViewFound);
-
-            } else {
-                session.removeLocalTempTable(oldViewFound);
-            }
+            throw DbException.get(ErrorCode.TABLE_OR_VIEW_ALREADY_EXISTS_1, cteName);
         }
-        /*
-         * This table is created as a workaround because recursive table
-         * expressions need to reference something that look like themselves to
-         * work (its removed after creation in this method). Only create table
-         * data and table if we don't have a working CTE already.
-         */
-        Table recursiveTable = TableView.createShadowTableForRecursiveTableExpression(
-                isTemporary, session, cteViewName, schema, columns, database);
-        List<Column> columnTemplateList;
-        String[] querySQLOutput = new String[1];
-        BitSet outerUsedParameters = openParametersScope();
+        read(AS);
+        read(OPEN_PAREN);
+        int index = tokenIndex;
+        setTokenIndex(index);
+        Query withQuery;
+        String sql;
         ArrayList<Parameter> queryParameters;
-        try {
-            read(AS);
-            read(OPEN_PAREN);
-            Query withQuery = parseQuery();
-            if (!isTemporary) {
-                withQuery.session = session;
+        List<Column> columnTemplateList;
+        if (isPotentiallyRecursive) {
+            /*
+             * This table is created as a workaround because recursive table
+             * expressions need to reference something that look like themselves to
+             * work (its removed after creation in this method). Only create table
+             * data and table if we don't have a working CTE already.
+             */
+            Table recursiveTable = new ShadowTable(database.getMainSchema(), cteName, columns.toArray(new Column[0]));
+            BitSet outerUsedParameters = openParametersScope();
+            queryScope.tableSubqueries.put(cteName, recursiveTable);
+            try {
+                withQuery = parseQuery();
+            } finally {
+                queryParameters = closeParametersScope(outerUsedParameters);
+                queryScope.tableSubqueries.remove(cteName);
             }
-            read(CLOSE_PAREN);
-            columnTemplateList = QueryExpressionTable.createQueryColumnTemplateList(cols, withQuery, querySQLOutput);
-
-        } finally {
-            queryParameters = closeParametersScope(outerUsedParameters);
-            TableView.destroyShadowTableForRecursiveExpression(isTemporary, session, recursiveTable);
-        }
-
-        return createCTEView(cteViewName, querySQLOutput[0], queryParameters, columnTemplateList, isTemporary);
-    }
-
-    private TableView createCTEView(String cteViewName, String querySQL, ArrayList<Parameter> queryParameters,
-                                    List<Column> columnTemplateList, boolean isTemporary) {
-        Schema schema = getSchemaWithDefault();
-        int id = database.allocateObjectId();
-        Column[] columnTemplateArray = columnTemplateList.toArray(new Column[0]);
-
-        // No easy way to determine if this is a recursive query up front, so we just compile
-        // it twice - once without the flag set, and if we didn't see a recursive term,
-        // then we just compile it again.
-        TableView view;
-        session.lock();
-        try {
-            view = new TableView(schema, id, cteViewName, querySQL,
-                    queryParameters, columnTemplateArray, session,
-                    true, false, true,
-                    isTemporary);
-            if (!view.isRecursiveQueryDetected()) {
-                if (!isTemporary) {
-                    database.addSchemaObject(session, view);
-                    view.lock(session, Table.EXCLUSIVE_LOCK);
-                    database.removeSchemaObject(session, view);
-                } else {
-                    session.addLocalTempTable(view);
-                    session.removeLocalTempTable(view);
-                }
-                id = database.allocateObjectId();
-                view = new TableView(schema, id, cteViewName, querySQL, queryParameters,
-                        columnTemplateArray, session,
-                        false/* assume recursive */, false, true,
-                        isTemporary);
+            columnTemplateList = QueryExpressionTable.createQueryColumnTemplateList(cols, withQuery);
+            sql = withQuery.getPlanSQL(DEFAULT_SQL_FLAGS);
+            try {
+                withQuery = (Query) session.prepare(sql, false, true, queryScope);
+                columnTemplateList = QueryExpressionTable.createQueryColumnTemplateList(cols, withQuery);
+                sql = withQuery.getPlanSQL(DEFAULT_SQL_FLAGS);
+                isPotentiallyRecursive = false;
+            } catch (DbException e) {
+                // Assume a recursive query
             }
-            // both removeSchemaObject and removeLocalTempTable hold meta locks
-            database.unlockMeta(session);
-        } finally {
-            session.unlock();
-        }
-        view.setTableExpression(true);
-        view.setTemporary(isTemporary);
-        view.setOnCommitDrop(false);
-        if (!isTemporary) {
-            database.addSchemaObject(session, view);
-            view.unlock(session);
-            database.unlockMeta(session);
         } else {
-            session.addLocalTempTable(view);
+            BitSet outerUsedParameters = openParametersScope();
+            try {
+                withQuery = parseQuery();
+            } finally {
+                queryParameters = closeParametersScope(outerUsedParameters);
+            }
+            columnTemplateList = QueryExpressionTable.createQueryColumnTemplateList(cols, withQuery);
+            sql = withQuery.getPlanSQL(DEFAULT_SQL_FLAGS);
         }
-        return view;
+        read(CLOSE_PAREN);
+        queryScope.tableSubqueries.put(cteName, new CTE(cteName, withQuery, StringUtils.cache(sql),
+                queryParameters, columnTemplateList.toArray(new Column[0]), session, isPotentiallyRecursive,
+                queryScope));
     }
 
     private CreateView parseCreateView(boolean force, boolean orReplace) {
         boolean ifNotExists = readIfNotExists();
-        boolean isTableExpression = readIf("TABLE_EXPRESSION");
         String viewName = readIdentifierWithSchema();
         CreateView command = new CreateView(session, getSchema());
         this.createView = command;
@@ -7145,7 +7004,6 @@ public final class Parser extends ParserBase {
         command.setComment(readCommentIf());
         command.setOrReplace(orReplace);
         command.setForce(force);
-        command.setTableExpression(isTableExpression);
         if (readIf(OPEN_PAREN)) {
             String[] cols = parseColumnList();
             command.setColumnNames(cols);
@@ -7161,7 +7019,7 @@ public final class Parser extends ParserBase {
             } finally {
                 session.setParsingCreateView(false);
             }
-            command.setSelect(query);
+            command.setQuery(query);
         } catch (DbException e) {
             if (force) {
                 command.setSelectSQL(select);
@@ -7420,7 +7278,7 @@ public final class Parser extends ParserBase {
                 TypeInfo dataType = parseDataType();
                 if (!DataType.isNumericType(dataType.getValueType())) {
                     throw DbException.getUnsupportedException(dataType
-                            .getSQL(new StringBuilder("CREATE SEQUENCE AS "), HasSQL.TRACE_SQL_FLAGS).toString());
+                            .getSQL(new StringBuilder("CREATE SEQUENCE AS "), TRACE_SQL_FLAGS).toString());
                 }
                 options.setDataType(dataType);
             } else if (readIf("START", WITH)
@@ -8012,6 +7870,10 @@ public final class Parser extends ParserBase {
             if (table != null) {
                 return table;
             }
+            table = getWithSubquery(tableName);
+            if (table != null) {
+                return table;
+            }
             String[] schemaNames = session.getSchemaSearchPath();
             if (schemaNames != null) {
                 for (String name : schemaNames) {
@@ -8028,6 +7890,16 @@ public final class Parser extends ParserBase {
         }
 
         throw getTableOrViewNotFoundDbException(tableName);
+    }
+
+    private Table getWithSubquery(String name) {
+        for (QueryScope queryScope = this.queryScope; queryScope != null; queryScope = queryScope.parent) {
+            Table tableSubquery = queryScope.tableSubqueries.get(name);
+            if (tableSubquery != null) {
+                return tableSubquery;
+            }
+        }
+        return null;
     }
 
     private DbException getTableOrViewNotFoundDbException(String tableName) {
@@ -9254,6 +9126,15 @@ public final class Parser extends ParserBase {
 
     public void setRightsChecked(boolean rightsChecked) {
         this.rightsChecked = rightsChecked;
+    }
+
+    /**
+     * Sets the query scope.
+     *
+     * @param queryScope the query scope
+     */
+    public void setQueryScope(QueryScope queryScope) {
+        this.queryScope = queryScope;
     }
 
     /**

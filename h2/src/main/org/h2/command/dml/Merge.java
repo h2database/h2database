@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2023 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -249,8 +249,8 @@ public final class Merge extends CommandWithValues {
     }
 
     @Override
-    public String getPlanSQL(int sqlFlags) {
-        StringBuilder builder = new StringBuilder(isReplace ? "REPLACE INTO " : "MERGE INTO ");
+    public StringBuilder getPlanSQL(StringBuilder builder, int sqlFlags) {
+        builder.append(isReplace ? "REPLACE INTO " : "MERGE INTO ");
         table.getSQL(builder, sqlFlags).append('(');
         Column.writeColumns(builder, columns, sqlFlags);
         builder.append(')');
@@ -270,9 +270,9 @@ public final class Merge extends CommandWithValues {
                 Expression.writeExpressions(builder.append('('), expr, sqlFlags).append(')');
             }
         } else {
-            builder.append(query.getPlanSQL(sqlFlags));
+            query.getPlanSQL(builder, sqlFlags);
         }
-        return builder.toString();
+        return builder;
     }
 
     @Override

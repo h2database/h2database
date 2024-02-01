@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2023 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -26,6 +26,7 @@ import org.h2.command.CommandInterface;
 import org.h2.command.Parser;
 import org.h2.command.ParserBase;
 import org.h2.command.Prepared;
+import org.h2.command.QueryScope;
 import org.h2.command.ddl.Analyze;
 import org.h2.command.query.Query;
 import org.h2.constraint.Constraint;
@@ -570,7 +571,7 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
      * @return the prepared statement
      */
     public Prepared prepare(String sql) {
-        return prepare(sql, false, false);
+        return prepare(sql, false, false, null);
     }
 
     /**
@@ -580,12 +581,14 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
      * @param rightsChecked true if the rights have already been checked
      * @param literalsChecked true if the sql string has already been checked
      *            for literals (only used if ALLOW_LITERALS NONE is set).
+     * @param queryScope the scope of this query, or {@code null}
      * @return the prepared statement
      */
-    public Prepared prepare(String sql, boolean rightsChecked, boolean literalsChecked) {
+    public Prepared prepare(String sql, boolean rightsChecked, boolean literalsChecked, QueryScope queryScope) {
         Parser parser = new Parser(this);
         parser.setRightsChecked(rightsChecked);
         parser.setLiteralsChecked(literalsChecked);
+        parser.setQueryScope(queryScope);
         return parser.prepare(sql);
     }
 
@@ -594,12 +597,14 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
      * already checked.
      *
      * @param sql the SQL statement
+     * @param queryScope the scope of this query, or {@code null}
      * @return the prepared statement
      */
-    public Query prepareQueryExpression(String sql) {
+    public Query prepareQueryExpression(String sql, QueryScope queryScope) {
         Parser parser = new Parser(this);
         parser.setRightsChecked(true);
         parser.setLiteralsChecked(true);
+        parser.setQueryScope(queryScope);
         return parser.prepareQueryExpression(sql);
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2023 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -32,6 +32,7 @@ public class TestRecursiveQueries extends TestDb {
         testWrongLinkLargeResult();
         testSimpleUnionAll();
         testSimpleUnion();
+        testParameters();
     }
 
     private void testWrongLinkLargeResult() throws Exception {
@@ -150,7 +151,7 @@ public class TestRecursiveQueries extends TestDb {
                 null, null);
 
         rs = stat.executeQuery("select x from system_range(1,5) "
-                + "where x not in (with w(x) as (select 1 union all select x+1 from w where x<3) "
+                + "where x not in (with recursive w(x) as (select 1 union all select x+1 from w where x<3) "
                 + "select x from w)");
         assertResultSetOrdered(rs, new String[][]{{"4"}, {"5"}});
 
@@ -176,6 +177,44 @@ public class TestRecursiveQueries extends TestDb {
         assertEquals(3, rs.getInt(1));
         assertFalse(rs.next());
 
+        conn.close();
+        deleteDb("recursiveQueries");
+    }
+
+    private void testParameters() throws Exception {
+        deleteDb("recursiveQueries");
+        Connection conn = getConnection("recursiveQueries");
+        PreparedStatement prep = conn.prepareStatement("WITH RECURSIVE T1(F1, F2) AS (\n" //
+                + "    SELECT CAST(? AS INT), CAST(? AS VARCHAR(15))\n" //
+                + "    UNION ALL\n" //
+                + "    SELECT (T1.F1 + CAST(? AS INT)), CAST((CAST(? AS VARCHAR) || T1.F2) AS VARCHAR(15))\n" //
+                + "    FROM T1 WHERE T1.F1 < 10\n" //
+                + "  ),\n" //
+                + "T2(G1, G2) AS (\n" //
+                + "    SELECT CAST(? AS INT), CAST(? AS VARCHAR(15))\n" //
+                + "    UNION ALL\n" //
+                + "    SELECT (T2.G1 + 1), CAST(('b' || T2.G2) AS VARCHAR(15))\n" //
+                + "    FROM T2 WHERE T2.G1 < 10\n" //
+                + "  )\n" //
+                + "SELECT T1.F1, T1.F2, T2.G1, T2.G2 FROM T1 JOIN T2 ON T1.F1 = T2.G1");
+        prep.setInt(1, 1);
+        prep.setString(2, "a");
+        prep.setInt(3, 1);
+        prep.setString(4, "a");
+        prep.setInt(5, 1);
+        prep.setString(6, "b");
+        ResultSet rs = prep.executeQuery();
+        StringBuilder a = new StringBuilder(10), b = new StringBuilder(10);
+        for (int i = 1; i <= 10; i++) {
+            a.append('a');
+            b.append('b');
+            assertTrue(rs.next());
+            assertEquals(i, rs.getInt(1));
+            assertEquals(a.toString(), rs.getString(2));
+            assertEquals(i, rs.getInt(3));
+            assertEquals(b.toString(), rs.getString(4));
+        }
+        assertFalse(rs.next());
         conn.close();
         deleteDb("recursiveQueries");
     }

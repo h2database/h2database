@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2023 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -378,10 +378,13 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
 
     private static SoftReference<Value[]> softCache;
 
-    static final BigDecimal MAX_LONG_DECIMAL = BigDecimal.valueOf(Long.MAX_VALUE);
+    /**
+     * The largest BIGINT value, as a BigDecimal.
+     */
+    public static final BigDecimal MAX_LONG_DECIMAL = BigDecimal.valueOf(Long.MAX_VALUE);
 
     /**
-     * The smallest Long value, as a BigDecimal.
+     * The smallest BIGINT value, as a BigDecimal.
      */
     public static final BigDecimal MIN_LONG_DECIMAL = BigDecimal.valueOf(Long.MIN_VALUE);
 
@@ -389,19 +392,19 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
      * Convert a value to the specified type without taking scale and precision
      * into account.
      */
-    static final int CONVERT_TO = 0;
+    public static final int CONVERT_TO = 0;
 
     /**
      * Cast a value to the specified type. The scale is set if applicable. The
      * value is truncated to a required precision.
      */
-    static final int CAST_TO = 1;
+    public static final int CAST_TO = 1;
 
     /**
      * Cast a value to the specified type for assignment. The scale is set if
      * applicable. If precision is too large an exception is thrown.
      */
-    static final int ASSIGN_TO = 2;
+    public static final int ASSIGN_TO = 2;
 
     /**
      * Returns name of the specified data type.
@@ -2381,7 +2384,20 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         return result;
     }
 
-    private ValueJson convertToJson(TypeInfo targetType, int conversionMode, Object column) {
+    /**
+     * Converts this value to a JSON value. May not be called on a NULL
+     * value.
+     *
+     * @param targetType
+     *            the type of the returned value
+     * @param conversionMode
+     *            conversion mode
+     * @param column
+     *            the column (if any), used to improve the error message if
+     *            conversion fails
+     * @return the JSON value
+     */
+    public ValueJson convertToJson(TypeInfo targetType, int conversionMode, Object column) {
         ValueJson v;
         switch (getValueType()) {
         case JSON:

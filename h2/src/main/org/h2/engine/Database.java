@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2023 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -2226,7 +2226,7 @@ public final class Database implements DataHandler, CastDataProvider {
     public Table getFirstUserTable() {
         for (Schema schema : schemas.values()) {
             for (Table table : schema.getAllTablesAndViews(null)) {
-                if (table.getCreateSQL() == null || table.isHidden()) {
+                if (table.getCreateSQL() == null) {
                     continue;
                 }
                 // exclude the LOB_MAP that the Recover tool creates

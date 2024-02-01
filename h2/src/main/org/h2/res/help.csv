@@ -1,4 +1,4 @@
-# Copyright 2004-2023 H2 Group. Multiple-Licensed under the MPL 2.0,
+# Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
 # and the EPL 1.0 (https://h2database.com/html/license.html).
 # Initial Developer: H2 Group
 
@@ -109,6 +109,8 @@ INSERT INTO [schemaName.]tableName [ ( columnName [,...] ) ]
     | DEFAULT VALUES
 ","
 Inserts a new row / new rows into a table.
+
+If column names aren't specified a list of all visible columns in the table is assumed.
 
 When using DIRECT, then the results from the query are directly applied in the target table without any intermediate step.
 ","
@@ -351,13 +353,12 @@ VALUES (1, 'Hello'), (2, 'World');
 
 "Commands (DML)","WITH","
 WITH [ RECURSIVE ] { name [( columnName [,...] )] AS ( query ) [,...] }
-{ query | @h2@ { insert | update | delete | mergeInto | mergeUsing | createTable } }
+query
 ","
 Can be used to create a recursive or non-recursive query (common table expression).
 For recursive queries the first select has to be a UNION.
 One or more common table entries can be referred to by name.
-Column name declarations are now optional - the column names will be inferred from the named select queries.
-The final action in a WITH statement can be a select, insert, update, merge, delete or create table.
+Column name declarations are optional - the column names will be inferred from the named select queries.
 ","
 WITH RECURSIVE cte(n) AS (
         SELECT 1
@@ -3550,6 +3551,8 @@ WHEN MATCHED [ AND expression ] THEN
 UPDATE SET setClauseList | DELETE
 ","
 WHEN MATCHED clause for MERGE USING command.
+
+Updates or deletes rows in a target table.
 ","
 WHEN MATCHED THEN UPDATE SET NAME = S.NAME
 WHEN MATCHED THEN DELETE
@@ -3562,6 +3565,10 @@ WHEN NOT MATCHED [ AND expression ] THEN INSERT
 VALUES ({DEFAULT|expression} [,...])
 ","
 WHEN NOT MATCHED clause for MERGE USING command.
+
+Inserts rows into a target table.
+
+If column names aren't specified a list of all visible columns in the target table is assumed.
 ","
 WHEN NOT MATCHED THEN INSERT (ID, NAME) VALUES (S.ID, S.NAME)
 "
@@ -4585,8 +4592,12 @@ The allowed length is from 1 to 1,000,000,000 bytes.
 The length is a size constraint; only the actual data is persisted.
 
 To set a JSON value with ""java.lang.String"" in a PreparedStatement use a ""FORMAT JSON"" data format
-(""INSERT INTO TEST(ID, DATA) VALUES (?, ? FORMAT JSON)"").
-Without the data format VARCHAR values are converted to a JSON string values.
+(""INSERT INTO TEST(ID, DATA) VALUES (?, ? FORMAT JSON)"") or use
+""setObject(parameter, jsonText, H2Type.JSON)"" instead of ""setString()"".
+
+Without the data format VARCHAR values are converted to JSON string values.
+
+SQL/JSON null value ""JSON 'null'"" is distinct from the SQL null value ""NULL"".
 
 Order of object members is preserved as is.
 Duplicate object member names are allowed.
@@ -4837,8 +4848,10 @@ ABS(CAST(I AS BIGINT))
 ACOS(numeric)
 ","
 Calculate the arc cosine.
-See also Java ""Math.acos"".
-This method returns a double.
+
+Argument must be between -1 and 1 inclusive.
+
+This function returns a double precision value.
 ","
 ACOS(D)
 "
@@ -4847,8 +4860,10 @@ ACOS(D)
 ASIN(numeric)
 ","
 Calculate the arc sine.
-See also Java ""Math.asin"".
-This method returns a double.
+
+Argument must be between -1 and 1 inclusive.
+
+This function returns a double precision value.
 ","
 ASIN(D)
 "
@@ -4857,8 +4872,8 @@ ASIN(D)
 ATAN(numeric)
 ","
 Calculate the arc tangent.
-See also Java ""Math.atan"".
-This method returns a double.
+
+This function returns a double precision value.
 ","
 ATAN(D)
 "
@@ -4867,8 +4882,8 @@ ATAN(D)
 COS(numeric)
 ","
 Calculate the trigonometric cosine.
-See also Java ""Math.cos"".
-This method returns a double.
+
+This function returns a double precision value.
 ","
 COS(ANGLE)
 "
@@ -4877,8 +4892,8 @@ COS(ANGLE)
 COSH(numeric)
 ","
 Calculate the hyperbolic cosine.
-See also Java ""Math.cosh"".
-This method returns a double.
+
+This function returns a double precision value.
 ","
 COSH(X)
 "
@@ -4887,8 +4902,8 @@ COSH(X)
 @h2@ COT(numeric)
 ","
 Calculate the trigonometric cotangent (""1/TAN(ANGLE)"").
-See also Java ""Math.*"" functions.
-This method returns a double.
+
+This function returns a double precision value.
 ","
 COT(ANGLE)
 "
@@ -4897,8 +4912,8 @@ COT(ANGLE)
 SIN(numeric)
 ","
 Calculate the trigonometric sine.
-See also Java ""Math.sin"".
-This method returns a double.
+
+This function returns a double precision value.
 ","
 SIN(ANGLE)
 "
@@ -4907,8 +4922,8 @@ SIN(ANGLE)
 SINH(numeric)
 ","
 Calculate the hyperbolic sine.
-See also Java ""Math.sinh"".
-This method returns a double.
+
+This function returns a double precision value.
 ","
 SINH(ANGLE)
 "
@@ -4917,8 +4932,8 @@ SINH(ANGLE)
 TAN(numeric)
 ","
 Calculate the trigonometric tangent.
-See also Java ""Math.tan"".
-This method returns a double.
+
+This function returns a double precision value.
 ","
 TAN(ANGLE)
 "
@@ -4927,8 +4942,8 @@ TAN(ANGLE)
 TANH(numeric)
 ","
 Calculate the hyperbolic tangent.
-See also Java ""Math.tanh"".
-This method returns a double.
+
+This function returns a double precision value.
 ","
 TANH(X)
 "
@@ -4937,8 +4952,8 @@ TANH(X)
 @h2@ ATAN2(numeric, numeric)
 ","
 Calculate the angle when converting the rectangular coordinates to polar coordinates.
-See also Java ""Math.atan2"".
-This method returns a double.
+
+This function returns a double precision value.
 ","
 ATAN2(X, Y)
 "

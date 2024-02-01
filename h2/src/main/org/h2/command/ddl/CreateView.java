@@ -1,11 +1,12 @@
 /*
- * Copyright 2004-2023 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.command.ddl;
 
 import java.util.ArrayList;
+
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.command.query.Query;
@@ -27,7 +28,7 @@ import org.h2.value.TypeInfo;
  */
 public class CreateView extends SchemaOwnerCommand {
 
-    private Query select;
+    private Query query;
     private String viewName;
     private boolean ifNotExists;
     private String selectSQL;
@@ -35,7 +36,6 @@ public class CreateView extends SchemaOwnerCommand {
     private String comment;
     private boolean orReplace;
     private boolean force;
-    private boolean isTableExpression;
 
     public CreateView(SessionLocal session, Schema schema) {
         super(session, schema);
@@ -45,8 +45,8 @@ public class CreateView extends SchemaOwnerCommand {
         viewName = name;
     }
 
-    public void setSelect(Query select) {
-        this.select = select;
+    public void setQuery(Query select) {
+        this.query = select;
     }
 
     public void setIfNotExists(boolean ifNotExists) {
@@ -73,10 +73,6 @@ public class CreateView extends SchemaOwnerCommand {
         this.force = force;
     }
 
-    public void setTableExpression(boolean isTableExpression) {
-        this.isTableExpression = isTableExpression;
-    }
-
     @Override
     long update(Schema schema) {
         Database db = getDatabase();
@@ -93,14 +89,14 @@ public class CreateView extends SchemaOwnerCommand {
         }
         int id = getObjectId();
         String querySQL;
-        if (select == null) {
+        if (query == null) {
             querySQL = selectSQL;
         } else {
-            ArrayList<Parameter> params = select.getParameters();
+            ArrayList<Parameter> params = query.getParameters();
             if (params != null && !params.isEmpty()) {
                 throw DbException.getUnsupportedException("parameters in views");
             }
-            querySQL = select.getPlanSQL(HasSQL.DEFAULT_SQL_FLAGS);
+            querySQL = query.getPlanSQL(HasSQL.DEFAULT_SQL_FLAGS);
         }
         Column[] columnTemplatesAsUnknowns = null;
         Column[] columnTemplatesAsStrings = null;
@@ -115,17 +111,9 @@ public class CreateView extends SchemaOwnerCommand {
             }
         }
         if (view == null) {
-            if (isTableExpression) {
-                view = TableView.createTableViewMaybeRecursive(schema, id, viewName, querySQL, null,
-                        columnTemplatesAsStrings, session, false /* literalsChecked */, isTableExpression,
-                        false/*isTemporary*/, db);
-            } else {
-                view = new TableView(schema, id, viewName, querySQL, null, columnTemplatesAsUnknowns, session,
-                        false, false, isTableExpression, false);
-            }
+            view = new TableView(schema, id, viewName, querySQL, columnTemplatesAsUnknowns, session);
         } else {
-            // TODO support isTableExpression in replace function...
-            view.replace(querySQL, columnTemplatesAsUnknowns, session, false, force, false);
+            view.replace(querySQL, columnTemplatesAsUnknowns, session, force);
             view.setModified();
         }
         if (comment != null) {

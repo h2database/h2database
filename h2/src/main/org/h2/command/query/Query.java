@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2023 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -11,10 +11,12 @@ import static org.h2.util.HasSQL.DEFAULT_SQL_FLAGS;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.command.Prepared;
+import org.h2.command.QueryScope;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
 import org.h2.engine.SessionLocal;
@@ -29,11 +31,13 @@ import org.h2.result.LocalResult;
 import org.h2.result.ResultInterface;
 import org.h2.result.ResultTarget;
 import org.h2.result.SortOrder;
+import org.h2.table.CTE;
 import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
 import org.h2.table.DerivedTable;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
+import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 import org.h2.value.ExtTypeInfoRow;
 import org.h2.value.TypeInfo;
@@ -150,6 +154,16 @@ public abstract class Query extends Prepared {
     boolean checkInit;
 
     boolean isPrepared;
+
+    /**
+     * The outer scope of this query.
+     */
+    private QueryScope outerQueryScope;
+
+    /**
+     * The WITH clause of this query.
+     */
+    private LinkedHashMap<String, Table> withClause;
 
     Query(SessionLocal session) {
         super(session);
@@ -855,6 +869,63 @@ public abstract class Query extends Prepared {
         ExpressionVisitor visitor = ExpressionVisitor.getMaxModificationIdVisitor();
         isEverything(visitor);
         return Math.max(visitor.getMaxDataModificationId(), session.getSnapshotDataModificationId());
+    }
+
+    /**
+     * Returns the scope of the outer query.
+     *
+     * @return the scope of the outer query
+     */
+    public QueryScope getOuterQueryScope() {
+        return outerQueryScope;
+    }
+
+    /**
+     * Sets the scope of the outer query.
+     *
+     * @param outerQueryScope
+     *            the scope of the outer query
+     */
+    public void setOuterQueryScope(QueryScope outerQueryScope) {
+        this.outerQueryScope = outerQueryScope;
+    }
+
+    /**
+     * Sets the WITH clause of this query.
+     *
+     * @param withClause
+     *            the WITH clause of this query
+     */
+    public void setWithClause(LinkedHashMap<String, Table> withClause) {
+        this.withClause = withClause;
+    }
+
+    protected void writeWithList(StringBuilder builder, int sqlFlags) {
+        if (withClause != null) {
+            boolean recursive = false;
+            for (Table t : withClause.values()) {
+                if (((CTE) t).isRecursive()) {
+                    recursive = true;
+                    break;
+                }
+            }
+            builder.append("WITH ");
+            if (recursive) {
+                builder.append(" RECURSIVE ");
+            }
+            boolean f = false;
+            for (Table table : withClause.values()) {
+                if (!f) {
+                    f = true;
+                } else {
+                    builder.append(",\n");
+                }
+                table.getSQL(builder, sqlFlags).append('(');
+                Column.writeColumns(builder, table.getColumns(), sqlFlags).append(") AS (\n");
+                StringUtils.indent(builder, ((CTE) table).getQuerySQL(), 4, true).append(')');
+            }
+            builder.append('\n');
+        }
     }
 
     /**

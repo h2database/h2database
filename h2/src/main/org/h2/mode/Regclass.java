@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2023 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -44,7 +44,7 @@ public final class Regclass extends Operation1 {
         String name = value.getString();
         for (Schema schema : session.getDatabase().getAllSchemas()) {
             Table table = schema.findTableOrView(session, name);
-            if (table != null && !table.isHidden()) {
+            if (table != null) {
                 return ValueInteger.get(table.getId());
             }
             Index index = schema.findIndex(session, name);

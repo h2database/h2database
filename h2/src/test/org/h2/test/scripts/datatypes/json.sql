@@ -1,4 +1,4 @@
--- Copyright 2004-2023 H2 Group. Multiple-Licensed under the MPL 2.0,
+-- Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
 -- and the EPL 1.0 (https://h2database.com/html/license.html).
 -- Initial Developer: H2 Group
 --
@@ -228,9 +228,9 @@ DROP TABLE TEST;
 > ok
 
 SELECT NULL FORMAT JSON, (NULL FORMAT JSON) IS NULL;
-> JSON 'null' FALSE
-> ----------- -----
-> null        FALSE
+> NULL TRUE
+> ---- ----
+> null TRUE
 > rows: 1
 
 CREATE MEMORY TABLE TEST(J JSON) AS VALUES ('["\u00A7''",{}]' FORMAT JSON);

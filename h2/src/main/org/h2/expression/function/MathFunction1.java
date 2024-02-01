@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2023 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -156,9 +156,15 @@ public final class MathFunction1 extends Function1 {
             d = Math.tanh(d);
             break;
         case ASIN:
+            if (d < -1d || d > 1d) {
+                throw DbException.getInvalidValueException("ASIN() argument", d);
+            }
             d = Math.asin(d);
             break;
         case ACOS:
+            if (d < -1d || d > 1d) {
+                throw DbException.getInvalidValueException("ACOS() argument", d);
+            }
             d = Math.acos(d);
             break;
         case ATAN:

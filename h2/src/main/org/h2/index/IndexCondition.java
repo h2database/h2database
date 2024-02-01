@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2023 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -295,7 +295,7 @@ public class IndexCondition {
             return expression.getSQL(builder.append(" = ANY("), sqlFlags, Expression.AUTO_PARENTHESES).append(')');
         case Comparison.IN_QUERY:
             builder.append(" IN(");
-            builder.append(expressionQuery.getPlanSQL(sqlFlags));
+            expressionQuery.getPlanSQL(builder, sqlFlags);
             builder.append(')');
             break;
         case Comparison.SPATIAL_INTERSECTS:

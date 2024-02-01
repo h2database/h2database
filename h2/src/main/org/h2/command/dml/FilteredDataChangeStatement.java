@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2023 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -78,7 +78,7 @@ abstract class FilteredDataChangeStatement extends DataChangeStatement {
         return false;
     }
 
-    final void appendFilterCondition(StringBuilder builder, int sqlFlags) {
+    final StringBuilder appendFilterCondition(StringBuilder builder, int sqlFlags) {
         if (condition != null) {
             builder.append("\nWHERE ");
             condition.getUnenclosedSQL(builder, sqlFlags);
@@ -92,6 +92,7 @@ abstract class FilteredDataChangeStatement extends DataChangeStatement {
                 builder.append(count).append(" ROWS ONLY");
             }
         }
+        return builder;
     }
 
 }

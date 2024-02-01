@@ -1413,7 +1413,7 @@ public class StringUtils {
                                             .replaceAll("\\p{M}", "");
 
         final Pattern pattern = Pattern.compile(
-                "^" + normalizedPrefix
+                "^" + Pattern.quote(normalizedPrefix)
                 , Pattern.MULTILINE | Pattern.CASE_INSENSITIVE | Pattern.COMMENTS | Pattern.UNICODE_CASE);
 
         final Matcher matcher = pattern.matcher(normalizedText);

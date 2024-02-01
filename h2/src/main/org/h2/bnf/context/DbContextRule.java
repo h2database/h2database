@@ -147,14 +147,12 @@ public class DbContextRule implements Rule {
             if (query.indexOf(' ') < 0) {
                 break;
             }
-            for (; i < query.length(); i++) {
-                char ch = query.charAt(i);
-                if (ch != '_' && !Character.isLetterOrDigit(ch)) {
-                    break;
-                }
-            }
-            if (i == 0) {
+            int l = query.length(), cp;
+            if (!Character.isJavaIdentifierStart(cp = query.codePointAt(i)) || cp == '$') {
                 break;
+            }
+            while ((i += Character.charCount(cp)) < l && Character.isJavaIdentifierPart(cp = query.codePointAt(i))) {
+                //
             }
             String alias = query.substring(0, i);
             if (ParserUtil.isKeyword(alias, false)) {

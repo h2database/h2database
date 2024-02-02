@@ -805,20 +805,26 @@ public class JdbcStatement extends TraceObject implements Statement {
             }
             int size = batchCommands.size();
             int[] result = new int[size];
-            SQLException exception = new SQLException();
+            ArrayList<SQLException> exceptions = new ArrayList<>();
             for (int i = 0; i < size; i++) {
-                long updateCount = executeBatchElement(batchCommands.get(i), exception);
+                long updateCount = executeBatchElement(batchCommands.get(i), exceptions);
                 result[i] = updateCount <= Integer.MAX_VALUE ? (int) updateCount : SUCCESS_NO_INFO;
             }
             batchCommands = null;
-            exception = exception.getNextException();
-            if (exception != null) {
-                throw new JdbcBatchUpdateException(exception, result);
+            if (!exceptions.isEmpty()) {
+                throw new JdbcBatchUpdateException(makeChain(exceptions), result);
             }
             return result;
         } catch (Exception e) {
             throw logAndConvert(e);
         }
+    }
+
+    protected static SQLException makeChain(ArrayList<SQLException> exceptions) {
+        for (int i = 1; i < exceptions.size(); i++) {
+            exceptions.get(i - 1).setNextException(exceptions.get(i));
+        }
+        return exceptions.get(0);
     }
 
     /**
@@ -837,14 +843,13 @@ public class JdbcStatement extends TraceObject implements Statement {
             }
             int size = batchCommands.size();
             long[] result = new long[size];
-            SQLException exception = new SQLException();
+            ArrayList<SQLException> exceptions = new ArrayList<>();
             for (int i = 0; i < size; i++) {
-                result[i] = executeBatchElement(batchCommands.get(i), exception);
+                result[i] = executeBatchElement(batchCommands.get(i), exceptions);
             }
             batchCommands = null;
-            exception = exception.getNextException();
-            if (exception != null) {
-                throw new JdbcBatchUpdateException(exception, result);
+            if (!exceptions.isEmpty()) {
+                throw new JdbcBatchUpdateException(makeChain(exceptions), result);
             }
             return result;
         } catch (Exception e) {
@@ -852,12 +857,12 @@ public class JdbcStatement extends TraceObject implements Statement {
         }
     }
 
-    private long executeBatchElement(String sql, SQLException exception) {
+    private long executeBatchElement(String sql, ArrayList<SQLException> exceptions) {
         long updateCount;
         try {
             updateCount = executeUpdateInternal(sql, null);
         } catch (Exception e) {
-            exception.setNextException(logAndConvert(e));
+            exceptions.add(logAndConvert(e));
             updateCount = Statement.EXECUTE_FAILED;
         }
         return updateCount;

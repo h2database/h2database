@@ -43,7 +43,10 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
 
     private long reservedLow;
     private long reservedHigh;
-    private boolean stopIdleHousekeeping;
+
+    /** Used to determine when to stop chunk rewriting housekeeping */
+    private boolean lastHousekeepingHasRewrittenChunks;
+    private int previousChunksFillRate = -1;
 
     public RandomAccessStore(Map<String, Object> config) {
         super(config);
@@ -702,10 +705,6 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
 
     @Override
     protected void doHousekeeping(MVStore mvStore) throws InterruptedException {
-        boolean idle = isIdle();
-        if (idle && stopIdleHousekeeping) {
-            return;
-        }
         int autoCommitMemory = mvStore.getAutoCommitMemory();
         int fillRate = getFillRate();
         if (isFragmented() && fillRate < getAutoCompactFillRate()) {
@@ -719,9 +718,18 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
             });
         }
 
-        int chunksFillRate = getRewritableChunksFillRate();
-        int adjustedChunksFillRate = 100 - (100 - chunksFillRate) / 2;
-        int fillRateToCompare = isIdle() ? chunksFillRate : adjustedChunksFillRate;
+        int chunksFillRate = getChunksFillRate();
+        if (lastHousekeepingHasRewrittenChunks && chunksFillRate == previousChunksFillRate) {
+            // Do not perform chunks rewriting if there is no progress or change since last chunk rewrite
+            // This is to avoid endless chunks rewriting in certain cases (cf. issue #3909)
+            return;
+        }
+        previousChunksFillRate = chunksFillRate;
+        lastHousekeepingHasRewrittenChunks = false;
+
+        int rewritableChunksFillRate = getRewritableChunksFillRate();
+        int adjustedChunksFillRate = 100 - (100 - rewritableChunksFillRate) / 2;
+        int fillRateToCompare = isIdle() ? rewritableChunksFillRate : adjustedChunksFillRate;
         if (fillRateToCompare < getTargetFillRate()) {
             mvStore.tryExecuteUnderStoreLock(() -> {
                 int writeLimit = autoCommitMemory;
@@ -729,12 +737,12 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
                     writeLimit /= 4;
                 }
                 if (rewriteChunks(writeLimit, isIdle() ? adjustedChunksFillRate : chunksFillRate)) {
+                    lastHousekeepingHasRewrittenChunks = true;
                     dropUnusedChunks();
                 }
                 return true;
             });
         }
-        stopIdleHousekeeping = idle && getFillRate() <= fillRate && getRewritableChunksFillRate() <= chunksFillRate;
     }
 
     private int getTargetFillRate() {

@@ -342,7 +342,7 @@ public abstract class Command implements CommandInterface {
             try {
                 session.endStatement();
                 if (callStop) {
-                    stop(true);
+                    stop(commitIfAutoCommit);
                 }
             } catch (Throwable nested) {
                 if (ex == null) {

@@ -3,7 +3,7 @@
 -- Initial Developer: H2 Group
 --
 
-SELECT HISTOGRAM(X), FROM VALUES (1), (2), (3), (1), (2), (NULL), (5) T(X);
+SELECT HISTOGRAM(X) FROM VALUES (1), (2), (3), (1), (2), (NULL), (5) T(X);
 >> [ROW (null, 1), ROW (1, 2), ROW (2, 2), ROW (3, 1), ROW (5, 1)]
 
 SELECT HISTOGRAM(X) FILTER (WHERE X > 1) FROM VALUES (1), (2), (3), (1), (2), (NULL), (5) T(X);

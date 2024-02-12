@@ -1211,3 +1211,6 @@ where -1 is distinct from -1 or 2 is distinct from x0;
 
 drop table test;
 > ok
+
+SELECT X, FROM (VALUES 1) T(X);
+> exception SYNTAX_ERROR_2

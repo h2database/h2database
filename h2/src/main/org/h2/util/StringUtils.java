@@ -9,6 +9,7 @@ import java.io.ByteArrayOutputStream;
 import java.lang.ref.SoftReference;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.text.Collator;
 import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -1400,24 +1401,18 @@ public class StringUtils {
 
     /**
      * Case-Insensitive check if a {@param text} starts with a {@param prefix}.
-     * It is used
      *
      * @param text the full text starting with a prefix
      * @param prefix the full text starting with a prefix
      * @return TRUE only if text starts with the prefix
      */
     public static boolean startsWithIgnoringCase(String text, String prefix) {
-        String normalizedText = Normalizer.normalize(text, Normalizer.Form.NFD)
-                                          .replaceAll("\\p{M}", "");
-        String normalizedPrefix = Normalizer.normalize(prefix, Normalizer.Form.NFD)
-                                            .replaceAll("\\p{M}", "");
-
-        final Pattern pattern = Pattern.compile(
-                "^" + Pattern.quote(normalizedPrefix)
-                , Pattern.MULTILINE | Pattern.CASE_INSENSITIVE | Pattern.COMMENTS | Pattern.UNICODE_CASE);
-
-        final Matcher matcher = pattern.matcher(normalizedText);
-        return matcher.find();
+        if (text.length() < prefix.length()) {
+            return false;
+        } else {
+            Collator collator = Collator.getInstance();
+            collator.setStrength(Collator.PRIMARY);
+            return collator.equals(text.substring(0, prefix.length()), prefix);
+        }
     }
-
 }

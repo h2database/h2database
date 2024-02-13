@@ -73,6 +73,7 @@ public final class SessionRemote extends Session implements DataHandler {
     public static final int LOB_READ = 17;
     public static final int SESSION_PREPARE_READ_PARAMS2 = 18;
     public static final int GET_JDBC_META = 19;
+    public static final int COMMAND_EXECUTE_BATCH_UPDATE = 20;
 
     public static final int STATUS_ERROR = 0;
     public static final int STATUS_OK = 1;
@@ -642,6 +643,18 @@ public final class SessionRemote extends Session implements DataHandler {
      *             on I/O exception
      */
     public static DbException readException(Transfer transfer) throws IOException {
+        return DbException.convert(readSQLException(transfer));
+    }
+
+    /**
+     * Reads an exception as SQL exception.
+     * @param transfer
+     *            the transfer object
+     * @return the exception
+     * @throws IOException
+     *             on I/O exception
+     */
+    public static SQLException readSQLException(Transfer transfer) throws IOException {
         String sqlstate = transfer.readString();
         String message = transfer.readString();
         String sql = transfer.readString();
@@ -652,7 +665,7 @@ public final class SessionRemote extends Session implements DataHandler {
             // allow re-connect
             throw new IOException(s.toString(), s);
         }
-        return DbException.convert(s);
+        return s;
     }
 
     /**

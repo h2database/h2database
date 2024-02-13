@@ -14,6 +14,7 @@ import java.io.StringWriter;
 import java.net.Socket;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 import org.h2.api.ErrorCode;
@@ -32,6 +33,7 @@ import org.h2.expression.ParameterRemote;
 import org.h2.jdbc.JdbcException;
 import org.h2.jdbc.meta.DatabaseMetaServer;
 import org.h2.message.DbException;
+import org.h2.result.BatchResult;
 import org.h2.result.ResultColumn;
 import org.h2.result.ResultInterface;
 import org.h2.result.ResultWithGeneratedKeys;
@@ -239,33 +241,36 @@ public class TcpServerThread implements Runnable {
 
     private void sendError(Throwable t, boolean withStatus) {
         try {
-            SQLException e = DbException.convert(t).getSQLException();
-            StringWriter writer = new StringWriter();
-            e.printStackTrace(new PrintWriter(writer));
-            String trace = writer.toString();
-            String message;
-            String sql;
-            if (e instanceof JdbcException) {
-                JdbcException j = (JdbcException) e;
-                message = j.getOriginalMessage();
-                sql = j.getSQL();
-            } else {
-                message = e.getMessage();
-                sql = null;
-            }
             if (withStatus) {
                 transfer.writeInt(SessionRemote.STATUS_ERROR);
             }
-            transfer.
-                    writeString(e.getSQLState()).writeString(message).
-                    writeString(sql).writeInt(e.getErrorCode()).writeString(trace).flush();
-        } catch (Exception e2) {
+            sendSQLException(DbException.convert(t).getSQLException());
+            transfer.flush();
+        } catch (Exception e) {
             if (!transfer.isClosed()) {
-                server.traceError(e2);
+                server.traceError(e);
             }
             // if writing the error does not work, close the connection
             stop = true;
         }
+    }
+
+    private void sendSQLException(SQLException e) throws IOException {
+        StringWriter writer = new StringWriter();
+        e.printStackTrace(new PrintWriter(writer));
+        String trace = writer.toString();
+        String message;
+        String sql;
+        if (e instanceof JdbcException) {
+            JdbcException j = (JdbcException) e;
+            message = j.getOriginalMessage();
+            sql = j.getSQL();
+        } else {
+            message = e.getMessage();
+            sql = null;
+        }
+        transfer.writeString(e.getSQLState()).writeString(message).writeString(sql).writeInt(e.getErrorCode())
+                .writeString(trace);
     }
 
     private void setParameters(Command command) throws IOException {
@@ -373,39 +378,7 @@ public class TcpServerThread implements Runnable {
             int id = transfer.readInt();
             Command command = (Command) cache.getObject(id, false);
             setParameters(command);
-            boolean writeGeneratedKeys = true;
-            Object generatedKeysRequest;
-            int mode = transfer.readInt();
-            switch (mode) {
-            case GeneratedKeysMode.NONE:
-                generatedKeysRequest = false;
-                writeGeneratedKeys = false;
-                break;
-            case GeneratedKeysMode.AUTO:
-                generatedKeysRequest = true;
-                break;
-            case GeneratedKeysMode.COLUMN_NUMBERS: {
-                int len = transfer.readInt();
-                int[] keys = new int[len];
-                for (int i = 0; i < len; i++) {
-                    keys[i] = transfer.readInt();
-                }
-                generatedKeysRequest = keys;
-                break;
-            }
-            case GeneratedKeysMode.COLUMN_NAMES: {
-                int len = transfer.readInt();
-                String[] keys = new String[len];
-                for (int i = 0; i < len; i++) {
-                    keys[i] = transfer.readString();
-                }
-                generatedKeysRequest = keys;
-                break;
-            }
-            default:
-                throw DbException.get(ErrorCode.CONNECTION_BROKEN_1,
-                        "Unsupported generated keys' mode " + mode);
-            }
+            Object generatedKeysRequest = readGeneratedKeysRequest();
             int old = session.getModificationId();
             ResultWithGeneratedKeys result;
             session.lock();
@@ -424,17 +397,8 @@ public class TcpServerThread implements Runnable {
             transfer.writeInt(status);
             transfer.writeRowCount(result.getUpdateCount());
             transfer.writeBoolean(session.getAutoCommit());
-            if (writeGeneratedKeys) {
-                ResultInterface generatedKeys = result.getGeneratedKeys();
-                int columnCount = generatedKeys.getVisibleColumnCount();
-                transfer.writeInt(columnCount);
-                long rowCount = generatedKeys.getRowCount();
-                transfer.writeRowCount(rowCount);
-                for (int i = 0; i < columnCount; i++) {
-                    ResultColumn.writeColumn(transfer, generatedKeys, i);
-                }
-                sendRows(generatedKeys, rowCount);
-                generatedKeys.close();
+            if (generatedKeysRequest != Boolean.FALSE) {
+                sendGeneratedKeys(result.getGeneratedKeys());
             }
             transfer.flush();
             break;
@@ -553,10 +517,96 @@ public class TcpServerThread implements Runnable {
             transfer.flush();
             break;
         }
+        case SessionRemote.COMMAND_EXECUTE_BATCH_UPDATE: {
+            int id = transfer.readInt();
+            Command command = (Command) cache.getObject(id, false);
+            int size = transfer.readInt();
+            ArrayList<Value[]> batchParameters = new ArrayList<>(size);
+            for (int i = 0; i < size; i++) {
+                int len = transfer.readInt();
+                Value[] parameters = new Value[len];
+                for (int j = 0; j < len; j++) {
+                    parameters[j] = transfer.readValue(null);
+                }
+                batchParameters.add(parameters);
+            }
+            Object generatedKeysRequest = readGeneratedKeysRequest();
+            int old = session.getModificationId();
+            BatchResult result;
+            session.lock();
+            try {
+                result = command.executeBatchUpdate(batchParameters, generatedKeysRequest);
+            } finally {
+                session.unlock();
+            }
+            int status;
+            if (session.isClosed()) {
+                status = SessionRemote.STATUS_CLOSED;
+                stop = true;
+            } else {
+                status = getState(old);
+            }
+            transfer.writeInt(status);
+            for (long updateCount : result.getUpdateCounts()) {
+                transfer.writeLong(updateCount);
+            }
+            if (generatedKeysRequest != Boolean.FALSE) {
+                sendGeneratedKeys(result.getGeneratedKeys());
+            }
+            List<SQLException> exceptions = result.getExceptions();
+            transfer.writeInt(exceptions.size());
+            for (SQLException exception : exceptions) {
+                sendSQLException(exception);
+            }
+            transfer.writeBoolean(session.getAutoCommit());
+            transfer.flush();
+            break;
+        }
         default:
             trace("Unknown operation: " + operation);
             close();
         }
+    }
+
+    private Object readGeneratedKeysRequest() throws IOException {
+        int mode = transfer.readInt();
+        switch (mode) {
+        case GeneratedKeysMode.NONE:
+            return Boolean.FALSE;
+        case GeneratedKeysMode.AUTO:
+            return Boolean.TRUE;
+        case GeneratedKeysMode.COLUMN_NUMBERS: {
+            int len = transfer.readInt();
+            int[] keys = new int[len];
+            for (int i = 0; i < len; i++) {
+                keys[i] = transfer.readInt();
+            }
+            return keys;
+        }
+        case GeneratedKeysMode.COLUMN_NAMES: {
+            int len = transfer.readInt();
+            String[] keys = new String[len];
+            for (int i = 0; i < len; i++) {
+                keys[i] = transfer.readString();
+            }
+            return keys;
+        }
+        default:
+            throw DbException.get(ErrorCode.CONNECTION_BROKEN_1,
+                    "Unsupported generated keys' mode " + mode);
+        }
+    }
+
+    private void sendGeneratedKeys(ResultInterface generatedKeys) throws IOException {
+        int columnCount = generatedKeys.getVisibleColumnCount();
+        transfer.writeInt(columnCount);
+        long rowCount = generatedKeys.getRowCount();
+        transfer.writeRowCount(rowCount);
+        for (int i = 0; i < columnCount; i++) {
+            ResultColumn.writeColumn(transfer, generatedKeys, i);
+        }
+        sendRows(generatedKeys, rowCount);
+        generatedKeys.close();
     }
 
     private int getState(int oldModificationId) {

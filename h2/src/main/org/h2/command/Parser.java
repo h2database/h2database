@@ -2759,34 +2759,36 @@ public final class Parser extends ParserBase {
         } else {
             readIf(ALL);
         }
-        ArrayList<Expression> expressions = Utils.newSmallArrayList();
-        do {
-            if (readIf(ASTERISK)) {
-                expressions.add(parseWildcard(null, null));
-            } else {
-                switch (currentTokenType) {
-                case FROM:
-                case WHERE:
-                case GROUP:
-                case HAVING:
-                case WINDOW:
-                case QUALIFY:
-                case ORDER:
-                case OFFSET:
-                case FETCH:
-                case CLOSE_PAREN:
-                case SEMICOLON:
-                case END_OF_INPUT:
-                    break;
-                default:
+        ArrayList<Expression> expressions;
+        switch (currentTokenType) {
+        case FROM:
+        case WHERE:
+        case GROUP:
+        case HAVING:
+        case WINDOW:
+        case QUALIFY:
+        case ORDER:
+        case OFFSET:
+        case FETCH:
+        case CLOSE_PAREN:
+        case SEMICOLON:
+        case END_OF_INPUT:
+            expressions = new ArrayList<>();
+            break;
+        default:
+            expressions = Utils.newSmallArrayList();
+            do {
+                if (readIf(ASTERISK)) {
+                    expressions.add(parseWildcard(null, null));
+                } else {
                     Expression expr = readExpression();
                     if (readIf(AS) || isIdentifier()) {
                         expr = new Alias(expr, readIdentifier(), database.getMode().aliasColumnName);
                     }
                     expressions.add(expr);
                 }
-            }
-        } while (readIf(COMMA));
+            } while (readIf(COMMA));
+        }
         command.setExpressions(expressions);
     }
 

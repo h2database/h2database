@@ -89,13 +89,18 @@ public final class StringFunction1 extends Function1 {
     public static final int SPACE = RAWTOHEX + 1;
 
     /**
+     * HEX() (non-standard).
+     */
+    public static final int HEX = SPACE + 1;
+
+    /**
      * QUOTE_IDENT() (non-standard).
      */
-    public static final int QUOTE_IDENT = SPACE + 1;
+    public static final int QUOTE_IDENT = HEX + 1;
 
     private static final String[] NAMES = { //
             "UPPER", "LOWER", "ASCII", "CHAR", "STRINGENCODE", "STRINGDECODE", "STRINGTOUTF8", "UTF8TOSTRING",
-            "HEXTORAW", "RAWTOHEX", "SPACE", "QUOTE_IDENT" //
+            "HEXTORAW", "RAWTOHEX", "HEX", "SPACE", "QUOTE_IDENT" //
     };
 
     private final int function;
@@ -147,6 +152,9 @@ public final class StringFunction1 extends Function1 {
             break;
         case RAWTOHEX:
             v = ValueVarchar.get(rawToHex(v, session.getMode()), session);
+            break;
+        case HEX:
+            v = ValueVarchar.get(hex(v, session.getMode()), session);
             break;
         case SPACE: {
             byte[] chars = new byte[Math.max(0, v.getInt())];
@@ -200,6 +208,11 @@ public final class StringFunction1 extends Function1 {
             buff.append(hex);
         }
         return buff.toString();
+    }
+
+    private static String hex(Value v, Mode mode) {
+        long l=v.getLong();
+        return Long.toHexString(l);
     }
 
     @Override
@@ -258,6 +271,15 @@ public final class StringFunction1 extends Function1 {
             break;
         }
         case RAWTOHEX: {
+            TypeInfo t = arg.getType();
+            long precision = t.getPrecision();
+            int mul = DataType.isBinaryStringOrSpecialBinaryType(t.getValueType()) ? 2
+                    : session.getMode().getEnum() == ModeEnum.Oracle ? 6 : 4;
+            type = TypeInfo.getTypeInfo(Value.VARCHAR,
+                    precision <= Long.MAX_VALUE / mul ? precision * mul : Long.MAX_VALUE, 0, null);
+            break;
+        }
+        case HEX: {
             TypeInfo t = arg.getType();
             long precision = t.getPrecision();
             int mul = DataType.isBinaryStringOrSpecialBinaryType(t.getValueType()) ? 2

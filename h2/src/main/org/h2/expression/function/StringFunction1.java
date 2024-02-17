@@ -84,19 +84,19 @@ public final class StringFunction1 extends Function1 {
     public static final int RAWTOHEX = HEXTORAW + 1;
 
     /**
-     * SPACE() (non-standard).
-     */
-    public static final int SPACE = RAWTOHEX + 1;
-
-    /**
      * HEX() (non-standard).
      */
-    public static final int HEX = SPACE + 1;
+    public static final int HEX = RAWTOHEX + 1;
+
+    /**
+     * SPACE() (non-standard).
+     */
+    public static final int SPACE = HEX + 1;
 
     /**
      * QUOTE_IDENT() (non-standard).
      */
-    public static final int QUOTE_IDENT = HEX + 1;
+    public static final int QUOTE_IDENT = SPACE + 1;
 
     private static final String[] NAMES = { //
             "UPPER", "LOWER", "ASCII", "CHAR", "STRINGENCODE", "STRINGDECODE", "STRINGTOUTF8", "UTF8TOSTRING",
@@ -211,8 +211,8 @@ public final class StringFunction1 extends Function1 {
     }
 
     private static String hex(Value v, Mode mode) {
-        long l=v.getLong();
-        return Long.toHexString(l);
+		long l=v.getLong();
+		return Long.toHexString(l);
     }
 
     @Override

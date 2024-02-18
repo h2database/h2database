@@ -43,6 +43,7 @@ public class TestMVStoreTool extends TestBase {
     public void test() throws Exception {
         testCompact();
         testDump();
+        testRollback();
     }
 
     private void testCompact() {
@@ -183,6 +184,38 @@ public class TestMVStoreTool extends TestBase {
 
         int nbFileHeaders = nbOfOccurrences(dumpWriter.toString(), "fileHeader");
         assertEquals("Exactly 2 file headers are expected in the dump", 2, nbFileHeaders);
+    }
+
+    private void testRollback() {
+        String fileName = getBaseDir() + "/testDump.h4";
+        FileUtils.createDirectories(getBaseDir());
+        FileUtils.delete(fileName);
+        // store with a very small page size, to make sure
+        // there are many leaf pages
+        MVStore s = new MVStore.Builder().
+                pageSplitSize(1000).
+                fileName(fileName).autoCommitDisabled().open();
+        s.setRetentionTime(0);
+        MVMap<Integer, String> map = s.openMap("data");
+
+        // Insert some data. Using big strings with "H" and "c" to validate the fix of #3931
+        int nbEntries = 20_000;
+        for (int i = 0; i < nbEntries; i++) {
+            map.put(i, i % 2 == 0 ? BIG_STRING_WITH_C : BIG_STRING_WITH_H);
+        }
+        s.commit();
+        // Let's rewrite the data to trigger some chunk compaction & drop
+        for (int i = 0; i < nbEntries; i++) {
+            map.put(i, i % 2 == 0 ? BIG_STRING_WITH_H : BIG_STRING_WITH_C);
+        }
+        s.commit();
+        s.close();
+        StringWriter dumpWriter = new StringWriter();
+        try {
+            MVStoreTool.rollback(fileName, Long.MAX_VALUE, dumpWriter);
+        } catch (NullPointerException ex ) {
+            fail("No NullPointerException expected");
+        }
     }
 
     private static int nbOfOccurrences(String str, String pattern) {

@@ -642,8 +642,8 @@ public class MVStoreTool {
                 DataUtils.readFully(file, pos, buffer);
                 buffer.rewind();
                 int headerType = buffer.get();
+                buffer.rewind();
                 if (headerType == 'H') {
-                    buffer.rewind();
                     target.write(buffer, pos);
                     pos += blockSize;
                     continue;

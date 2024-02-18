@@ -9,12 +9,16 @@ import java.io.ByteArrayOutputStream;
 import java.lang.ref.SoftReference;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.text.Collator;
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 import java.util.function.IntPredicate;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.h2.api.ErrorCode;
 import org.h2.engine.SysProperties;
@@ -1383,4 +1387,32 @@ public class StringUtils {
         return replaceAll(pattern, "\\", "\\\\");
     }
 
+    /**
+     * Case-sensitive check if a {@param text} starts with a {@param prefix}.
+     * It only calls {@code String.startsWith()} and is only here for API consistency
+     *
+     * @param text the full text starting with a prefix
+     * @param prefix the full text starting with a prefix
+     * @return TRUE only if text starts with the prefix
+     */
+    public static boolean startsWith(String text, String prefix) {
+        return text.startsWith(prefix);
+    }
+
+    /**
+     * Case-Insensitive check if a {@param text} starts with a {@param prefix}.
+     *
+     * @param text the full text starting with a prefix
+     * @param prefix the full text starting with a prefix
+     * @return TRUE only if text starts with the prefix
+     */
+    public static boolean startsWithIgnoringCase(String text, String prefix) {
+        if (text.length() < prefix.length()) {
+            return false;
+        } else {
+            Collator collator = Collator.getInstance();
+            collator.setStrength(Collator.PRIMARY);
+            return collator.equals(text.substring(0, prefix.length()), prefix);
+        }
+    }
 }

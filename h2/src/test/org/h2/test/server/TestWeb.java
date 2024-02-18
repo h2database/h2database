@@ -79,6 +79,8 @@ public class TestWeb extends TestDb {
         testServer();
         testWebApp();
         testIfExists();
+
+        testSpecialAutoComplete();
     }
 
     private void testServlet() throws Exception {
@@ -556,6 +558,101 @@ public class TestWeb extends TestDb {
             result = client.get(url, "settingRemove.do?name=_test_");
 
             client.get(url, "admin.do");
+        } finally {
+            server.shutdown();
+        }
+    }
+
+    private void testSpecialAutoComplete() throws Exception {
+        Server server = new Server();
+        server.setOut(new PrintStream(new ByteArrayOutputStream()));
+        server.runTool("-ifNotExists", "-web", "-webPort", "8182",
+                       "-properties", "null", "-tcp", "-tcpPort", "9101");
+        try {
+            String url = "http://localhost:8182";
+            WebClient client;
+            String result;
+            client = new WebClient();
+            result = client.get(url);
+            client.readSessionId(result);
+            client.get(url, "login.jsp");
+
+            result = client.get(url, "login.do?driver=org.h2.Driver" +
+                                     "&url=jdbc:h2:mem:" + getTestName() +
+                                     "&user=sa&password=sa&name=_test_");
+            result = client.get(url, "header.jsp");
+
+            result = client.get(url, "query.do?sql=" +
+                                     "create schema test_schema;" +
+                                     "create schema \"quoted schema\";" +
+                                     "create table test_schema.test_table(id int primary key, name varchar);" +
+                                     "insert into test_schema.test_table values(1, 'Hello');" +
+                                     "create table \"quoted schema\".\"quoted tablename\"(id int primary key, name varchar);");
+            result = client.get(url, "query.do?sql=create sequence test_schema.test_sequence");
+            result = client.get(url, "query.do?sql=" +
+                                     "create view test_schema.test_view as select * from test");
+            result = client.get(url, "tables.do");
+
+            result = client.get(url, "query.jsp");
+
+            // unquoted autoComplete
+            result = client.get(url, "autoCompleteList.do?query=select * from test_schema.test");
+            assertContains(StringUtils.urlDecode(result), "test_table");
+
+            // this shall succeed, because "TEST_SCHEMA" exists
+            result = client.get(url, "autoCompleteList.do?query=select * from TEST");
+            assertContains(StringUtils.urlDecode(result), "test_schema");
+
+            // this shall also succeed, because "TEST_SCHEMA" is similar
+            result = client.get(url, "autoCompleteList.do?query=select * from \"TEST");
+            assertContains(StringUtils.urlDecode(result), "test_schema");
+
+            // this shall succeed, because "TEST_SCHEMA" exists
+            result = client.get(url, "autoCompleteList.do?query=select * from \"TEST_SCHEMA\".test");
+            assertContains(StringUtils.urlDecode(result), "test_table");
+
+            // this shall succeed, because "TEST_SCHEMA" and "TEST_TABLE exist
+            result = client.get(url, "autoCompleteList.do?query=select * from \"TEST_SCHEMA\".\"TEST");
+            assertContains(StringUtils.urlDecode(result), "test_table");
+
+            // this shall also succeed, because we want to be lenient on table names
+            result = client.get(url, "autoCompleteList.do?query=select * from \"TEST_SCHEMA\".\"test");
+            assertContains(StringUtils.urlDecode(result), "test_table");
+
+            // this shall fail, because there is no "test_schema"
+            result = client.get(url, "autoCompleteList.do?query=select * from \"test_schema\".test");
+            assertNotContaining(StringUtils.urlDecode(result),"test_table");
+
+            // this shall not return any suggestion since there is no "test_schema"
+            result = client.get(url, "autoCompleteList.do?query=select * from \"test_schema\".");
+            assertEmpty(StringUtils.urlDecode(result));
+
+            // this shall not return anything, because there is no TEST_TABLE1
+            result = client.get(url, "autoCompleteList.do?query=select * from \"TEST_SCHEMA\".\"test_table1");
+            assertEmpty(StringUtils.urlDecode(result));
+
+            // explicitly quoted schemas
+            result = client.get(url, "autoCompleteList.do?query=select * from \"quoted");
+            assertContains(StringUtils.urlDecode(result),"quoted schema");
+
+            // explicitly quoted schemas, very lax
+            result = client.get(url, "autoCompleteList.do?query=select * from quoted");
+            assertContains(StringUtils.urlDecode(result),"quoted schema");
+
+            // explicitly quoted tablenames
+            result = client.get(url, "autoCompleteList.do?query=select * from \"quoted schema\".\"quoted");
+            assertContains(StringUtils.urlDecode(result),"quoted tablename");
+
+            // explicitly quoted tablename, but lax
+            result = client.get(url, "autoCompleteList.do?query=select * from \"quoted schema\".QUOTED");
+            assertContains(StringUtils.urlDecode(result),"quoted tablename");
+
+            // this one must fail
+            result = client.get(url, "autoCompleteList.do?query=select * from \"quoted schema\".QUOTED1");
+            assertNotContaining(StringUtils.urlDecode(result),"quoted tablename");
+
+            result = client.get(url, "logout.do");
+
         } finally {
             server.shutdown();
         }

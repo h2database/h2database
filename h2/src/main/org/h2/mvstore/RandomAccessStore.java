@@ -44,6 +44,7 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
     private long reservedLow;
     private long reservedHigh;
     private boolean stopIdleHousekeeping;
+    private int restoreHousekeepingAtRate;
 
     public RandomAccessStore(Map<String, Object> config) {
         super(config);
@@ -703,15 +704,15 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
     @Override
     protected void doHousekeeping(MVStore mvStore) throws InterruptedException {
         boolean idle = isIdle();
-        if (idle && stopIdleHousekeeping) {
+        int rewritableChunksFillRate = getRewritableChunksFillRate();
+        if (idle && stopIdleHousekeeping && rewritableChunksFillRate > restoreHousekeepingAtRate) {
             return;
         }
         int autoCommitMemory = mvStore.getAutoCommitMemory();
-        int fillRate = getFillRate();
-        if (isFragmented() && fillRate < getAutoCompactFillRate()) {
+        if (isFragmented() && getFillRate() < getAutoCompactFillRate()) {
             mvStore.tryExecuteUnderStoreLock(() -> {
                 int moveSize = 2 * autoCommitMemory;
-                if (isIdle()) {
+                if (idle) {
                     moveSize *= 4;
                 }
                 compactMoveChunks(101, moveSize, mvStore);
@@ -719,29 +720,34 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
             });
         }
 
-        int chunksFillRate = getRewritableChunksFillRate();
-        int adjustedChunksFillRate = 100 - (100 - chunksFillRate) / 2;
-        int fillRateToCompare = isIdle() ? chunksFillRate : adjustedChunksFillRate;
-        if (fillRateToCompare < getTargetFillRate()) {
+        int chunksFillRate = getChunksFillRate();
+        int adjustedChunksFillRate = 50 + rewritableChunksFillRate / 2;
+        int fillRateToCompare = idle ? rewritableChunksFillRate : adjustedChunksFillRate;
+        if (fillRateToCompare < getTargetFillRate(idle)) {
             mvStore.tryExecuteUnderStoreLock(() -> {
                 int writeLimit = autoCommitMemory;
-                if (!isIdle()) {
+                if (!idle) {
                     writeLimit /= 4;
                 }
-                if (rewriteChunks(writeLimit, isIdle() ? adjustedChunksFillRate : chunksFillRate)) {
+                if (rewriteChunks(writeLimit, idle ? adjustedChunksFillRate : rewritableChunksFillRate)) {
                     dropUnusedChunks();
                 }
                 return true;
             });
         }
-        stopIdleHousekeeping = idle && getFillRate() <= fillRate && getRewritableChunksFillRate() <= chunksFillRate;
+        stopIdleHousekeeping = idle && getChunksFillRate() < chunksFillRate;
+        if (stopIdleHousekeeping) {
+            // this rate can change with the time, even when database is idle,
+            // since chunks become older and may become eligible for re-writing
+            restoreHousekeepingAtRate = getRewritableChunksFillRate() - 2;
+        }
     }
 
-    private int getTargetFillRate() {
+    private int getTargetFillRate(boolean idle) {
         int targetRate = getAutoCompactFillRate();
         // use a lower fill rate if there were any file operations since the last time
-        if (!isIdle()) {
-            targetRate /= 2;
+        if (!idle) {
+            targetRate = targetRate * targetRate / 100;
         }
         return targetRate;
     }

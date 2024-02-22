@@ -44,9 +44,8 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
     private long reservedLow;
     private long reservedHigh;
 
-    /** Used to determine when to stop chunk rewriting housekeeping */
-    private boolean lastHousekeepingHasRewrittenChunks;
-    private int previousChunksFillRate = -1;
+    private boolean chunksRewritingIsPaused;
+    private int chunksFillRateAfterLastRewriting;
 
     public RandomAccessStore(Map<String, Object> config) {
         super(config);
@@ -719,13 +718,11 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
         }
 
         int chunksFillRate = getChunksFillRate();
-        if (lastHousekeepingHasRewrittenChunks && chunksFillRate == previousChunksFillRate) {
-            // Do not perform chunks rewriting if there is no progress or change since last chunk rewrite
-            // This is to avoid endless chunks rewriting in certain cases (cf. issue #3909)
+        if (chunksRewritingIsPaused && !chunksRewritingMustBeResumed(chunksFillRate, chunksFillRateAfterLastRewriting)) {
+            // chunks rewriting remains paused
             return;
         }
-        previousChunksFillRate = chunksFillRate;
-        lastHousekeepingHasRewrittenChunks = false;
+        chunksRewritingIsPaused = false;
 
         int rewritableChunksFillRate = getRewritableChunksFillRate();
         int adjustedChunksFillRate = 100 - (100 - rewritableChunksFillRate) / 2;
@@ -736,13 +733,27 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
                 if (!isIdle()) {
                     writeLimit /= 4;
                 }
-                if (rewriteChunks(writeLimit, isIdle() ? adjustedChunksFillRate : chunksFillRate)) {
-                    lastHousekeepingHasRewrittenChunks = true;
+                boolean hasRewrittenChunks = rewriteChunks(writeLimit, isIdle() ? adjustedChunksFillRate : chunksFillRate);
+                if (hasRewrittenChunks) {
                     dropUnusedChunks();
                 }
+                chunksFillRateAfterLastRewriting = getChunksFillRate();
+                chunksRewritingIsPaused = chunksRewritingMustBePaused(hasRewrittenChunks, chunksFillRate, chunksFillRateAfterLastRewriting);
                 return true;
             });
         }
+    }
+
+    private boolean chunksRewritingMustBePaused(boolean hasRewrittenChunks, int chunksFillRateBeforeRewriting, int chunksFillRateAfterRewriting) {
+        // Pause chunks rewriting if there was no progress made by the last chunks rewrite
+        // This is to avoid endless chunks rewriting in certain cases (cf. issue #3909)
+        return hasRewrittenChunks && chunksFillRateAfterRewriting <= chunksFillRateBeforeRewriting;
+    }
+
+    private boolean chunksRewritingMustBeResumed(int currentChunksFillRate, int chunksFillRateAfterLastRewriting) {
+        // Since last chunks rewrite (and rewriting being in pause since then), if chunksFillRate has changed that probably
+        // means some user write operations were performed and chunks rewriting should be resumed/retried
+        return currentChunksFillRate != chunksFillRateAfterLastRewriting;
     }
 
     private int getTargetFillRate() {

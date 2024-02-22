@@ -801,17 +801,29 @@ public class JdbcStatement extends TraceObject implements Statement {
             debugCodeCall("executeBatch");
             checkClosed();
             if (batchCommands == null) {
-                batchCommands = new ArrayList<>();
+                closeOldResultSet();
+                return new int[0];
             }
             int size = batchCommands.size();
             int[] result = new int[size];
-            SQLException exception = new SQLException();
+            SQLException exception = null, last = null;
             for (int i = 0; i < size; i++) {
-                long updateCount = executeBatchElement(batchCommands.get(i), exception);
-                result[i] = updateCount <= Integer.MAX_VALUE ? (int) updateCount : SUCCESS_NO_INFO;
+                int updateCount;
+                try {
+                    long longUpdateCount = executeUpdateInternal(batchCommands.get(i), null);
+                    updateCount = longUpdateCount <= Integer.MAX_VALUE ? (int) longUpdateCount : SUCCESS_NO_INFO;
+                } catch (Exception e) {
+                    SQLException s = DbException.toSQLException(e);
+                    if (last == null) {
+                        last = exception = s;
+                    } else {
+                        last.setNextException(s);
+                    }
+                    updateCount = Statement.EXECUTE_FAILED;
+                }
+                result[i] = updateCount;
             }
             batchCommands = null;
-            exception = exception.getNextException();
             if (exception != null) {
                 throw new JdbcBatchUpdateException(exception, result);
             }
@@ -833,16 +845,28 @@ public class JdbcStatement extends TraceObject implements Statement {
             debugCodeCall("executeLargeBatch");
             checkClosed();
             if (batchCommands == null) {
-                batchCommands = new ArrayList<>();
+                closeOldResultSet();
+                return new long[0];
             }
             int size = batchCommands.size();
             long[] result = new long[size];
-            SQLException exception = new SQLException();
+            SQLException exception = null, last = null;
             for (int i = 0; i < size; i++) {
-                result[i] = executeBatchElement(batchCommands.get(i), exception);
+                long updateCount;
+                try {
+                    updateCount = executeUpdateInternal(batchCommands.get(i), null);
+                } catch (Exception e) {
+                    SQLException s = DbException.toSQLException(e);
+                    if (last == null) {
+                        last = exception = s;
+                    } else {
+                        last.setNextException(s);
+                    }
+                    updateCount = Statement.EXECUTE_FAILED;
+                }
+                result[i] = updateCount;
             }
             batchCommands = null;
-            exception = exception.getNextException();
             if (exception != null) {
                 throw new JdbcBatchUpdateException(exception, result);
             }
@@ -850,17 +874,6 @@ public class JdbcStatement extends TraceObject implements Statement {
         } catch (Exception e) {
             throw logAndConvert(e);
         }
-    }
-
-    private long executeBatchElement(String sql, SQLException exception) {
-        long updateCount;
-        try {
-            updateCount = executeUpdateInternal(sql, null);
-        } catch (Exception e) {
-            exception.setNextException(logAndConvert(e));
-            updateCount = Statement.EXECUTE_FAILED;
-        }
-        return updateCount;
     }
 
     /**
@@ -898,7 +911,7 @@ public class JdbcStatement extends TraceObject implements Statement {
      * @throws SQLException if this object is closed
      */
     @Override
-    public ResultSet getGeneratedKeys() throws SQLException {
+    public final ResultSet getGeneratedKeys() throws SQLException {
         try {
             int id = generatedKeys != null ? generatedKeys.getTraceId() : getNextId(TraceObject.RESULT_SET);
             if (isDebugEnabled()) {
@@ -1332,7 +1345,7 @@ public class JdbcStatement extends TraceObject implements Statement {
      */
     void onLazyResultSetClose(CommandInterface command, boolean closeCommand) {
         setExecutingStatement(null);
-        command.stop();
+        command.stop(true);
         if (closeCommand) {
             command.close();
         }

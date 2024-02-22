@@ -75,10 +75,10 @@ class CommandList extends Command {
     }
 
     @Override
-    public void stop() {
-        command.stop();
+    public void stop(boolean commitIfAutoCommit) {
+        command.stop(commitIfAutoCommit);
         if (remainingCommand != null) {
-            remainingCommand.stop();
+            remainingCommand.stop(commitIfAutoCommit);
         }
     }
 

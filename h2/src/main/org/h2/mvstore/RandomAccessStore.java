@@ -721,26 +721,34 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
         }
 
         int chunksFillRate = getChunksFillRate();
-        int adjustedChunksFillRate = 50 + rewritableChunksFillRate / 2;
-        int fillRateToCompare = idle ? rewritableChunksFillRate : adjustedChunksFillRate;
+        int adjustedUpFillRate = 50 + rewritableChunksFillRate / 2;
+        int fillRateToCompare = idle ? rewritableChunksFillRate : adjustedUpFillRate;
         if (fillRateToCompare < getTargetFillRate(idle)) {
+            int targetFillRate = idle ? adjustedUpFillRate : rewritableChunksFillRate;
             mvStore.tryExecuteUnderStoreLock(() -> {
                 int writeLimit = autoCommitMemory;
                 if (!idle) {
                     writeLimit /= 4;
                 }
-                if (rewriteChunks(writeLimit, idle ? adjustedChunksFillRate : rewritableChunksFillRate)) {
+                if (rewriteChunks(writeLimit, targetFillRate)) {
                     dropUnusedChunks();
                 }
                 return true;
             });
         }
-        stopIdleHousekeeping = idle && getChunksFillRate() < chunksFillRate;
-        if (stopIdleHousekeeping) {
-            // this rate can change with the time, even when database is idle,
-            // since chunks become older and may become eligible for re-writing
-            restoreHousekeepingAtRate = getRewritableChunksFillRate() - 2;
-        }
+        stopIdleHousekeeping = false;
+        if (idle) {
+            int currentChunksFillRate = getChunksFillRate();
+            stopIdleHousekeeping = currentChunksFillRate <= chunksFillRate;
+            if (stopIdleHousekeeping) {
+                // this rate can change with the time, even when database is idle,
+                // since chunks become older and may become eligible for re-writing
+                rewritableChunksFillRate = getRewritableChunksFillRate();
+                restoreHousekeepingAtRate = rewritableChunksFillRate > currentChunksFillRate ?
+                                                (currentChunksFillRate + rewritableChunksFillRate) / 2 :
+                                                rewritableChunksFillRate - 2;
+            }
+      }
     }
 
     private int getTargetFillRate(boolean idle) {

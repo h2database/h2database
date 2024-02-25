@@ -55,9 +55,9 @@ public class Build extends BuildBase {
 
     private static final String OSGI_JDBC_VERSION = "1.1.0";
 
-    private static final String PGJDBC_VERSION = "42.5.4";
+    private static final String PGJDBC_VERSION = "42.7.2";
 
-    private static final String PGJDBC_HASH = "015015a54f15e340a9a8a6a2c5457429cb1176b8";
+    private static final String PGJDBC_HASH = "86ed42574cd68662b05d3b00432a34e9a34cb12c";
 
     private static final String JAVAX_SERVLET_VERSION = "4.0.1";
 

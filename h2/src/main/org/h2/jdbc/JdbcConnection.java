@@ -830,7 +830,7 @@ public class JdbcConnection extends TraceObject implements Connection, CastDataP
         try {
             debugCodeCall("getTypeMap");
             checkClosed();
-            return null;
+            return Map.of();
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -1861,7 +1861,7 @@ public class JdbcConnection extends TraceObject implements Connection, CastDataP
      * @throws DbException if the map is not empty
      */
     static void checkMap(Map<String, Class<?>> map) {
-        if (map != null && map.size() > 0) {
+        if (map != null && !map.isEmpty()) {
             throw DbException.getUnsupportedException("map.size > 0");
         }
     }

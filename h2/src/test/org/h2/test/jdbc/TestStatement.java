@@ -69,6 +69,7 @@ public class TestStatement extends TestDb {
     }
 
     private void testUnsupportedOperations() throws Exception {
+        assertTrue(conn.getTypeMap().isEmpty());
         conn.setTypeMap(null);
         HashMap<String, Class<?>> map = new HashMap<>();
         conn.setTypeMap(map);

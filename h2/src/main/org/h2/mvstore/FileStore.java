@@ -423,7 +423,7 @@ public abstract class FileStore<C extends Chunk<C>>
                 stopBackgroundThread(millis >= 0);
                 // start the background thread if needed
                 if (millis > 0 && mvStore.isOpen()) {
-                    int sleep = Math.max(1, millis / 5);
+                    int sleep = Math.max(10, millis / 3);
                     BackgroundWriterThread t = new BackgroundWriterThread(this, sleep, toString());
                     if (backgroundWriterThread.compareAndSet(null, t)) {
                         t.start();

@@ -44,7 +44,6 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
     private long reservedLow;
     private long reservedHigh;
     private boolean stopIdleHousekeeping;
-    private int restoreHousekeepingAtRate;
 
     public RandomAccessStore(Map<String, Object> config) {
         super(config);
@@ -705,11 +704,13 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
     protected void doHousekeeping(MVStore mvStore) throws InterruptedException {
         boolean idle = isIdle();
         int rewritableChunksFillRate = getRewritableChunksFillRate();
-        if (idle && stopIdleHousekeeping && rewritableChunksFillRate > restoreHousekeepingAtRate) {
+        if (idle && stopIdleHousekeeping) {
             return;
         }
         int autoCommitMemory = mvStore.getAutoCommitMemory();
-        if (isFragmented() && getFillRate() < getAutoCompactFillRate()) {
+        int fileFillRate = getFillRate();
+        long chunksTotalSize = size() * fileFillRate / 100;
+        if (isFragmented() && fileFillRate < getAutoCompactFillRate()) {
             mvStore.tryExecuteUnderStoreLock(() -> {
                 int moveSize = 2 * autoCommitMemory;
                 if (idle) {
@@ -739,15 +740,8 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
         stopIdleHousekeeping = false;
         if (idle) {
             int currentChunksFillRate = getChunksFillRate();
-            stopIdleHousekeeping = currentChunksFillRate <= chunksFillRate;
-            if (stopIdleHousekeeping) {
-                // this rate can change with the time, even when database is idle,
-                // since chunks become older and may become eligible for re-writing
-                rewritableChunksFillRate = getRewritableChunksFillRate();
-                restoreHousekeepingAtRate = rewritableChunksFillRate > currentChunksFillRate ?
-                                                (currentChunksFillRate + rewritableChunksFillRate) / 2 :
-                                                rewritableChunksFillRate - 2;
-            }
+            long currentTotalChunksSize = size() * getFillRate() / 100;
+            stopIdleHousekeeping = currentTotalChunksSize > chunksTotalSize || currentTotalChunksSize == chunksTotalSize && currentChunksFillRate <= chunksFillRate;
       }
     }
 

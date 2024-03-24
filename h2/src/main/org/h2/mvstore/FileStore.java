@@ -423,7 +423,7 @@ public abstract class FileStore<C extends Chunk<C>>
                 stopBackgroundThread(millis >= 0);
                 // start the background thread if needed
                 if (millis > 0 && mvStore.isOpen()) {
-                    int sleep = Math.max(1, millis / 10);
+                    int sleep = Math.max(10, millis / 3);
                     BackgroundWriterThread t = new BackgroundWriterThread(this, sleep, toString());
                     if (backgroundWriterThread.compareAndSet(null, t)) {
                         t.start();
@@ -622,7 +622,7 @@ public abstract class FileStore<C extends Chunk<C>>
     }
 
     protected final boolean isIdle() {
-        return autoCompactLastFileOpCount == getWriteCount() + getReadCount();
+        return autoCompactLastFileOpCount >= getWriteCount() + getReadCount();
     }
 
     protected final void setLastChunk(C last) {
@@ -1835,7 +1835,8 @@ public abstract class FileStore<C extends Chunk<C>>
                     mvStore.tryCommit();
                 }
                 doHousekeeping(mvStore);
-                autoCompactLastFileOpCount = getWriteCount() + getReadCount();
+                // less than 10 I/O operations will still count as "idle"
+                autoCompactLastFileOpCount = getWriteCount() + getReadCount() + 10;
             }
         } catch (InterruptedException ignore) {
         } catch (Throwable e) {

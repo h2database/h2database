@@ -145,10 +145,8 @@ public class FreeSpaceBitSet {
             int freeBlocks = end - start;
             if (end < 0 || freeBlocks >= blocks) {
                 if ((reservedHigh < 0 || start < reservedHigh) && start + blocks > reservedLow) { // overlap detected
-                    if (reservedHigh < 0) {
-                        start = getAfterLastBlock();
-                        end = -1;
-                    } else {
+                    if (reservedHigh >= 0) {
+                        freeBlocksTotal += freeBlocks;
                         i = reservedHigh;
                         continue;
                     }

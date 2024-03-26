@@ -115,6 +115,21 @@ public final class ExpressionList extends Expression {
     }
 
     @Override
+    public TypeInfo getTypeIfStaticallyKnown(SessionLocal session) {
+        int count = list.length;
+        TypeInfo[] types = new TypeInfo[count];
+        for (int i = 0; i < count; i++) {
+            TypeInfo t = list[i].getTypeIfStaticallyKnown(session);
+            if (t == null) {
+                return null;
+            }
+            types[i] = t;
+        }
+        return isArray ? TypeInfo.getTypeInfo(Value.ARRAY, list.length, 0, TypeInfo.getHigherType(types))
+                : TypeInfo.getTypeInfo(Value.ROW, 0, 0, new ExtTypeInfoRow(types));
+    }
+
+    @Override
     public boolean isConstant() {
         for (Expression e : list) {
             if (!e.isConstant()) {

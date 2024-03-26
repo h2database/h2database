@@ -91,6 +91,11 @@ public final class CastSpecification extends Function1_2 {
     }
 
     @Override
+    public TypeInfo getTypeIfStaticallyKnown(SessionLocal session) {
+        return type;
+    }
+
+    @Override
     public boolean isConstant() {
         return left instanceof ValueExpression && (right == null || right.isConstant())
                 && canOptimizeCast(left.getType().getValueType(), type.getValueType());

@@ -234,7 +234,7 @@ SELECT T, ID_A <> ID_B, SQL_A, SQL_B FROM (VALUES
 )) T(T, ID_A, ID_B, SQL_A, SQL_B);
 > T          ID_A <> ID_B SQL_A                                                                                                                           SQL_B
 > ---------- ------------ ------------------------------------------------------------------------------------------------------------------------------- -------------------------------------------------------------------------------------------------------------------------------
-> CONSTRAINT TRUE         ALTER TABLE "PUBLIC"."T_A" ADD CONSTRAINT "PUBLIC"."C_A" UNIQUE("ID")                                                           ALTER TABLE "PUBLIC"."T_B" ADD CONSTRAINT "PUBLIC"."C_B" UNIQUE("ID")
+> CONSTRAINT TRUE         ALTER TABLE "PUBLIC"."T_A" ADD CONSTRAINT "PUBLIC"."C_A" UNIQUE NULLS DISTINCT ("ID")                                           ALTER TABLE "PUBLIC"."T_B" ADD CONSTRAINT "PUBLIC"."C_B" UNIQUE NULLS DISTINCT ("ID")
 > INDEX      TRUE         CREATE UNIQUE NULLS DISTINCT INDEX "PUBLIC"."I_A" ON "PUBLIC"."T_A"("ID" NULLS FIRST)                                           CREATE UNIQUE NULLS DISTINCT INDEX "PUBLIC"."I_B" ON "PUBLIC"."T_B"("ID" NULLS FIRST)
 > SYNONYM    TRUE         CREATE SYNONYM "PUBLIC"."S_A" FOR "PUBLIC"."T_A"                                                                                CREATE SYNONYM "PUBLIC"."S_B" FOR "PUBLIC"."T_B"
 > TABLE      TRUE         CREATE MEMORY TABLE "PUBLIC"."T_A"( "ID" INTEGER )                                                                              CREATE MEMORY TABLE "PUBLIC"."T_B"( "ID" INTEGER )

@@ -143,7 +143,23 @@ public final class SortOrder implements Comparator<Value[]> {
      */
     @Override
     public int compare(Value[] a, Value[] b) {
-        for (int i = 0, len = queryColumnIndexes.length; i < len; i++) {
+        return compareImpl(a, b, queryColumnIndexes.length);
+    }
+
+    /**
+     * Compare two expression lists.
+     *
+     * @param a the first expression list
+     * @param b the second expression list
+     * @param count number of columns to compare
+     * @return the result of the comparison
+     */
+    public int compare(Value[] a, Value[] b, int count) {
+        return compareImpl(a, b, count);
+    }
+
+    private int compareImpl(Value[] a, Value[] b, int count) {
+        for (int i = 0; i < count; i++) {
             int idx = queryColumnIndexes[i];
             int type = sortTypes[i];
             Value ao = a[idx];
@@ -282,6 +298,10 @@ public final class SortOrder implements Comparator<Value[]> {
             sortTypes[i] = defaultNullOrdering.addExplicitNullOrdering(sortTypes[i]);
         }
         return sortTypes;
+    }
+
+    public static int inverse(int sortTypeWithNull) {
+        return sortTypeWithNull ^ (DESCENDING | NULLS_FIRST | NULLS_LAST);
     }
 
     /**

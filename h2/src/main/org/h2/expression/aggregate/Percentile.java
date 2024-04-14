@@ -157,7 +157,7 @@ final class Percentile {
         if (count == 0) {
             return ValueNull.INSTANCE;
         }
-        Cursor cursor = index.find(session, null, null);
+        Cursor cursor = index.find(session, null, null, false);
         cursor.next();
         int columnId = index.getColumns()[0].getColumnId();
         ExpressionColumn expr = (ExpressionColumn) expression;
@@ -188,7 +188,7 @@ final class Percentile {
                 TableFilter tableFilter = expr.getTableFilter();
                 SearchRow check = tableFilter.getTable().getTemplateSimpleRow(true);
                 check.setValue(columnId, ValueNull.INSTANCE);
-                Cursor nullsCursor = index.find(session, check, check);
+                Cursor nullsCursor = index.find(session, check, check, false);
                 while (nullsCursor.next()) {
                     count--;
                 }

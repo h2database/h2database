@@ -292,7 +292,7 @@ public class TableFilter implements ColumnResolver {
             // this will result in an exception later on
             return;
         }
-        setIndex(item.getIndex());
+        setIndex(item.getIndex(), false);
         masks = item.getMasks();
         if (nestedJoin != null) {
             if (item.getNestedJoinPlan() != null) {
@@ -315,7 +315,7 @@ public class TableFilter implements ColumnResolver {
      */
     private void setScanIndexes() {
         if (index == null) {
-            setIndex(table.getScanIndex(session));
+            setIndex(table.getScanIndex(session), false);
         }
         if (join != null) {
             join.setScanIndexes();
@@ -869,9 +869,9 @@ public class TableFilter implements ColumnResolver {
         return index;
     }
 
-    public void setIndex(Index index) {
+    public void setIndex(Index index, boolean reverse) {
         this.index = index;
-        cursor.setIndex(index);
+        cursor.setIndex(index, reverse);
     }
 
     public void setUsed(boolean used) {

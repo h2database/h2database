@@ -16,7 +16,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
+import java.util.NavigableSet;
 import java.util.TreeSet;
 
 import org.h2.api.ErrorCode;
@@ -238,7 +238,7 @@ public class TestTableEngines extends TestDb {
         checkPlan(stat, "select * from t order by c, b", "IDX_C_B_A");
         checkPlan(stat, "select * from t order by b", "IDX_B_A");
         checkPlan(stat, "select * from t order by b, a", "IDX_B_A");
-        checkPlan(stat, "select * from t order by b, c", "scan");
+        checkPlan(stat, "select * from t order by b, c", "IDX_B_A");
         checkPlan(stat, "select * from t order by a, b", "scan");
         checkPlan(stat, "select * from t order by a, c, b", "scan");
 
@@ -586,7 +586,7 @@ public class TestTableEngines extends TestDb {
                 }
 
                 @Override
-                public Cursor find(SessionLocal session, SearchRow first, SearchRow last) {
+                public Cursor find(SessionLocal session, SearchRow first, SearchRow last, boolean reverse) {
                     return new SingleRowCursor(row);
                 }
 
@@ -736,7 +736,7 @@ public class TestTableEngines extends TestDb {
                 }
 
                 @Override
-                public Cursor find(SessionLocal session, SearchRow first, SearchRow last) {
+                public Cursor find(SessionLocal session, SearchRow first, SearchRow last, boolean reverse) {
                     return new SingleRowCursor(row);
                 }
 
@@ -954,10 +954,15 @@ public class TestTableEngines extends TestDb {
         }
 
         @Override
-        public Cursor find(SessionLocal session, SearchRow first, SearchRow last) {
-            Set<SearchRow> subSet;
+        public Cursor find(SessionLocal session, SearchRow first, SearchRow last, boolean reverse) {
+            if (reverse) {
+                SearchRow temp = first;
+                first = last;
+                last = temp;
+            }
+            NavigableSet<SearchRow> subSet;
             if (first != null && last != null && compareRows(last, first) < 0) {
-                subSet = Collections.emptySet();
+                subSet = Collections.emptyNavigableSet();
             } else {
                 if (first != null) {
                     first = set.floor(mark(first, true));
@@ -977,6 +982,9 @@ public class TestTableEngines extends TestDb {
                     subSet = set.headSet(last, true);
                 } else {
                     throw new IllegalStateException();
+                }
+                if (reverse) {
+                    subSet = subSet.descendingSet();
                 }
             }
             return new IteratorCursor(subSet.iterator());

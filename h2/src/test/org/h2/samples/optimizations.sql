@@ -196,9 +196,6 @@ EXPLAIN SELECT "VALUE" FROM TEST ORDER BY "VALUE" LIMIT 10;
 -->    /* index sorted */
 ;
 
--- To optimize getting the largest values, a new descending index is required
-CREATE INDEX IDX_TEST_VALUE_D ON TEST("VALUE" DESC);
-
 -- Query the largest 10 values
 SELECT "VALUE" FROM TEST ORDER BY "VALUE" DESC LIMIT 3;
 --> 99.89
@@ -211,7 +208,7 @@ EXPLAIN SELECT "VALUE" FROM TEST ORDER BY "VALUE" DESC LIMIT 10;
 --> SELECT
 -->        "VALUE"
 -->    FROM "PUBLIC"."TEST"
--->        /* PUBLIC.IDX_TEST_VALUE_D */
+-->        /* PUBLIC.IDX_TEST_VALUE */
 -->    ORDER BY 1 DESC
 -->    FETCH FIRST 10 ROWS ONLY
 -->    /* index sorted */

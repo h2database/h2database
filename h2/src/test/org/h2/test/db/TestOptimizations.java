@@ -339,7 +339,6 @@ public class TestOptimizations extends TestDb {
         Statement stat = conn.createStatement();
         stat.execute("drop table test if exists");
         stat.execute("create table test(id int)");
-        stat.execute("create index idx_id_desc on test(id desc)");
         stat.execute("create index idx_id_asc on test(id)");
         ResultSet rs;
 
@@ -351,7 +350,7 @@ public class TestOptimizations extends TestDb {
         rs = stat.executeQuery("explain select * from test " +
                 "where id < 10 order by id desc");
         rs.next();
-        assertContains(rs.getString(1), "IDX_ID_DESC");
+        assertContains(rs.getString(1), "IDX_ID_ASC");
 
         rs.next();
         stat.execute("drop table test");

@@ -48,7 +48,8 @@ public class MetaIndex extends Index {
     }
 
     @Override
-    public Cursor find(SessionLocal session, SearchRow first, SearchRow last) {
+    public Cursor find(SessionLocal session, SearchRow first, SearchRow last, boolean reverse) {
+        assert !reverse;
         ArrayList<Row> rows = meta.generateRows(session, first, last);
         return new MetaCursor(rows);
     }

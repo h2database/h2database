@@ -286,7 +286,8 @@ public class CommandRemote implements CommandInterface {
                         }
                         if (readGeneratedKeys) {
                             int columnCount = transfer.readInt();
-                            ResultRemote remoteGeneratedKeys = new ResultRemote(session, transfer, objectId, columnCount, Integer.MAX_VALUE);
+                            ResultRemote remoteGeneratedKeys = new ResultRemote(session, transfer, objectId,
+                                    columnCount, Integer.MAX_VALUE);
                             generatedKeys.add(remoteGeneratedKeys);
                             remoteGeneratedKeys.close();
                         }
@@ -310,7 +311,8 @@ public class CommandRemote implements CommandInterface {
                                 autoCommit = transfer.readBoolean();
                                 if (readGeneratedKeys) {
                                     int columnCount = transfer.readInt();
-                                    ResultRemote remoteGeneratedKeys = new ResultRemote(session, transfer, objectId, columnCount, Integer.MAX_VALUE);
+                                    ResultRemote remoteGeneratedKeys = new ResultRemote(session, transfer, objectId,
+                                            columnCount, Integer.MAX_VALUE);
                                     generatedKeys.add(remoteGeneratedKeys);
                                     remoteGeneratedKeys.close();
                                 }

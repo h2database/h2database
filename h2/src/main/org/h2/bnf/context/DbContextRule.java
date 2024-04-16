@@ -89,7 +89,8 @@ public class DbContextRule implements Rule {
                         best = quotedName;
                         bestSchema = schema;
                     }
-                } else if (s.isEmpty() || StringUtils.startsWithIgnoringCase(name, query) ||  StringUtils.startsWithIgnoringCase(quotedName, query)) {
+                } else if (s.isEmpty() || StringUtils.startsWithIgnoringCase(name, query)
+                        || StringUtils.startsWithIgnoringCase(quotedName, query)) {
                     if (s.length() < name.length()) {
                         sentence.add(name, name.substring(s.length()), type);
                         sentence.add(schema.quotedName + ".",
@@ -116,12 +117,14 @@ public class DbContextRule implements Rule {
                 String name = table.getName();
                 String quotedName = StringUtils.quoteIdentifier(name);
 
-                if (StringUtils.startsWithIgnoringCase(query, name) || StringUtils.startsWithIgnoringCase("\"" + query, quotedName)) {
+                if (StringUtils.startsWithIgnoringCase(query, name)
+                        || StringUtils.startsWithIgnoringCase("\"" + query, quotedName)) {
                     if (best == null || name.length() > best.length()) {
                         best = name;
                         bestTable = table;
                     }
-                } else if (s.isEmpty() || StringUtils.startsWithIgnoringCase(name, query) ||  StringUtils.startsWithIgnoringCase(quotedName, query)) {
+                } else if (s.isEmpty() || StringUtils.startsWithIgnoringCase(name, query)
+                        || StringUtils.startsWithIgnoringCase(quotedName, query)) {
                     if (s.length() < name.length()) {
                         sentence.add(table.getQuotedName(),
                                 table.getQuotedName().substring(s.length()),

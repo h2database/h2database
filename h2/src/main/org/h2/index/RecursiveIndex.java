@@ -61,7 +61,8 @@ public final class RecursiveIndex extends QueryExpressionIndex {
     }
 
     @Override
-    public Cursor find(SessionLocal session, SearchRow first, SearchRow last) {
+    public Cursor find(SessionLocal session, SearchRow first, SearchRow last, boolean reverse) {
+        assert !reverse;
         CTE cte = (CTE) table;
         ResultInterface recursiveResult = cte.getRecursiveResult();
         if (recursiveResult != null) {

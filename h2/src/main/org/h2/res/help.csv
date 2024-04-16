@@ -1666,8 +1666,11 @@ With HIGH default ordering NULL values are considered as larger than other value
 With FIRST default ordering NULL values are sorted before other values,
 no matter if ascending or descending order is used.
 
-WITH LAST default ordering NULL values are sorted after other values,
+With LAST default ordering NULL values are sorted after other values,
 no matter if ascending or descending order is used.
+
+Please note that FIRST and LAST make impossible to use an index on ""(A ASC)"" for ""ORDER BY A DESC""
+if column is nullable.
 
 This setting is not persistent, but indexes are persisted with explicit NULLS FIRST or NULLS LAST ordering
 and aren't affected by changes in this setting.

@@ -741,8 +741,9 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
         if (idle) {
             int currentChunksFillRate = getChunksFillRate();
             long currentTotalChunksSize = size() * getFillRate() / 100;
-            stopIdleHousekeeping = currentTotalChunksSize > chunksTotalSize || currentTotalChunksSize == chunksTotalSize && currentChunksFillRate <= chunksFillRate;
-      }
+            stopIdleHousekeeping = currentTotalChunksSize > chunksTotalSize
+                    || currentTotalChunksSize == chunksTotalSize && currentChunksFillRate <= chunksFillRate;
+        }
     }
 
     private int getTargetFillRate(boolean idle) {

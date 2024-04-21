@@ -20,7 +20,7 @@ import org.h2.result.ResultWithGeneratedKeys;
  */
 class CommandList extends Command {
 
-    private CommandContainer command;
+    private final CommandContainer command;
     private final ArrayList<Prepared> commands;
     private final ArrayList<Parameter> parameters;
     private String remaining;
@@ -42,20 +42,21 @@ class CommandList extends Command {
 
     private void executeRemaining() {
         for (Prepared prepared : commands) {
+            CommandContainer commandContainer = new CommandContainer(session, prepared.getSQL(), prepared);
             prepared.prepare();
             if (prepared.isQuery()) {
-                prepared.query(0);
+                executeQuery(0, false);
             } else {
-                prepared.update();
+                commandContainer.executeUpdate(null);
             }
         }
         if (remaining != null) {
             remainingCommand = session.prepareLocal(remaining);
             remaining = null;
             if (remainingCommand.isQuery()) {
-                remainingCommand.query(0);
+                remainingCommand.executeQuery(0, false);
             } else {
-                remainingCommand.update(null);
+                remainingCommand.executeUpdate(null);
             }
         }
     }

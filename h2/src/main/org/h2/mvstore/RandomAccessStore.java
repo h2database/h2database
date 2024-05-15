@@ -290,7 +290,7 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
                         // no (valid) next
                         break;
                     }
-                    SFChunk test = readChunkHeaderAndFooter(newest.next, newest.id + 1);
+                    SFChunk test = readChunkHeaderAndFooter(newest.next, (newest.id + 1) & Chunk.MAX_ID);
                     if (test == null || test.version <= newest.version) {
                         break;
                     }
@@ -386,7 +386,7 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
             if (chunk == null) {
                 writeStoreHeader = true;
             } else if (chunk.next != c.block) {
-                // the last prediction did not matched
+                // the last prediction did not match
                 writeStoreHeader = true;
             } else {
                 long headerVersion = DataUtils.readHexLong(storeHeader, HDR_VERSION, 0);

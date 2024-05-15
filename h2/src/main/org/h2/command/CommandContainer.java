@@ -88,7 +88,7 @@ public class CommandContainer extends Command {
     @Override
     public ArrayList<? extends ParameterInterface> getParameters() {
         ArrayList<Parameter> parameters = prepared.getParameters();
-        if (parameters.size() > 0 && prepared.isWithParamValues()) {
+        if (!parameters.isEmpty() && prepared.isWithParamValues()) {
             parameters = new ArrayList<>();
         }
         return parameters;

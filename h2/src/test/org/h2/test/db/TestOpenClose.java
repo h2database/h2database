@@ -50,6 +50,7 @@ public class TestOpenClose extends TestDb {
         testErrorMessageWrongSplit();
         testCloseDelay();
         testBackup();
+        testBackupWithYoungDeadChunks();
         testCase();
         testReconnectFast();
         test1_1();
@@ -128,6 +129,52 @@ public class TestOpenClose extends TestDb {
         assertFalse(rs.next());
         conn.close();
         FileUtils.delete(getBaseDir() + "/test.zip");
+    }
+
+    private void testBackupWithYoungDeadChunks() throws SQLException {
+        if (config.memory) {
+            return;
+        }
+        deleteDb("openClose");
+        String url = getURL("openClose", true);
+        org.h2.Driver.load();
+        Connection conn = DriverManager.getConnection(url, "sa", "abc def");
+        Statement stat = conn.createStatement();
+
+        // Create a table, inserting a lot of data to end up with young (current time - creation time < retention time)
+        // dead chunks in the database file
+        stat.execute("CREATE TABLE BIG_TABLE(ID BIGINT NOT NULL, GROUP_ID BIGINT, CREATION_DATE TIMESTAMP, " +
+                "HASH_DATA CHARACTER VARYING, VERSION BIGINT NOT NULL)");
+        stat.execute("ALTER TABLE BIG_TABLE ADD CONSTRAINT CONSTRAINT_PK PRIMARY KEY(ID)");
+        for (int i = 0; i < 1_000_000;) {
+            stat.execute(String.format("INSERT INTO BIG_TABLE VALUES (%s, %s, TIMESTAMP '2024-06-14 10:00:00.000'," +
+                    "'y4TMhpkNcw566aUxHtQGL8Hj6rEK8NNyDxZ2hV6HjNbJEHXKwszmyVVi4VI=', 1)", i++, i % 10));
+        }
+        stat.execute("CREATE INDEX IDX_BIG_TABLE_HASH_GROUP ON BIG_TABLE(HASH_DATA NULLS FIRST, GROUP_ID NULLS FIRST)");
+        stat.execute("CREATE INDEX IDX_BIG_TABLE_CREATION_DATA ON BIG_TABLE(CREATION_DATE NULLS FIRST)");
+
+        try {
+            stat.execute("BACKUP TO '" + getBaseDir() + "/test.zip'");
+            conn.close();
+            deleteDb("openClose");
+
+            Restore.execute(getBaseDir() + "/test.zip", getBaseDir(), null);
+
+            // Open and close the database twice. Important to do it twice as the two openings will be slightly
+            // different: the first opening will assume the database is not "clean" (as it is an online backup) but
+            // then the closing will mark the DB as "clean" for the second opening
+            for (int i = 0; i < 2; i++) {
+                conn = DriverManager.getConnection(url, "sa", "abc def");
+                stat = conn.createStatement();
+                ResultSet rs = stat.executeQuery("SELECT * FROM BIG_TABLE WHERE ID = 42");
+                rs.next();
+                assertEquals(42, rs.getInt("ID"));
+                assertFalse(rs.next());
+                conn.close();
+            }
+        } finally {
+            FileUtils.delete(getBaseDir() + "/test.zip");
+        }
     }
 
     private void testReconnectFast() throws SQLException {

@@ -4414,12 +4414,8 @@ public final class Parser extends ParserBase {
             do {
                 Expression expr = readExpression();
                 TypeInfo columnType = TypeInfo.TYPE_NULL;
-                boolean constant = expr.isConstant();
-                if (constant || expr instanceof CastSpecification) {
-                    if (constant) {
-                        expr = expr.optimize(session);
-                    }
-                    TypeInfo exprType = expr.getType();
+                TypeInfo exprType = expr.getTypeIfStaticallyKnown(session);
+                if (exprType != null) {
                     switch (exprType.getValueType()) {
                     case Value.JSON:
                         columnType = TypeInfo.TYPE_JSON;

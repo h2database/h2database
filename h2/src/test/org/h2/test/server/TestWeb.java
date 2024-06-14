@@ -566,8 +566,7 @@ public class TestWeb extends TestDb {
     private void testSpecialAutoComplete() throws Exception {
         Server server = new Server();
         server.setOut(new PrintStream(new ByteArrayOutputStream()));
-        server.runTool("-ifNotExists", "-web", "-webPort", "8182",
-                       "-properties", "null", "-tcp", "-tcpPort", "9101");
+        server.runTool("-ifNotExists", "-web", "-webPort", "8182", "-properties", "null", "-tcp", "-tcpPort", "9101");
         try {
             String url = "http://localhost:8182";
             WebClient client;
@@ -578,19 +577,19 @@ public class TestWeb extends TestDb {
             client.get(url, "login.jsp");
 
             result = client.get(url, "login.do?driver=org.h2.Driver" +
-                                     "&url=jdbc:h2:mem:" + getTestName() +
-                                     "&user=sa&password=sa&name=_test_");
+                    "&url=jdbc:h2:mem:" + getTestName() +
+                    "&user=sa&password=sa&name=_test_");
             result = client.get(url, "header.jsp");
 
             result = client.get(url, "query.do?sql=" +
-                                     "create schema test_schema;" +
-                                     "create schema \"quoted schema\";" +
-                                     "create table test_schema.test_table(id int primary key, name varchar);" +
-                                     "insert into test_schema.test_table values(1, 'Hello');" +
-                                     "create table \"quoted schema\".\"quoted tablename\"(id int primary key, name varchar);");
+                    "create schema test_schema;" +
+                    "create schema \"quoted schema\";" +
+                    "create table test_schema.test_table(id int primary key, name varchar);" +
+                    "insert into test_schema.test_table values(1, 'Hello');" +
+                    "create table \"quoted schema\".\"quoted tablename\"(id int primary key, name varchar);");
             result = client.get(url, "query.do?sql=create sequence test_schema.test_sequence");
             result = client.get(url, "query.do?sql=" +
-                                     "create view test_schema.test_view as select * from test");
+                    "create view test_schema.test_view as select * from test");
             result = client.get(url, "tables.do");
 
             result = client.get(url, "query.jsp");

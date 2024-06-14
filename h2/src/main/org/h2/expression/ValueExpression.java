@@ -115,6 +115,11 @@ public class ValueExpression extends Operation0 {
     }
 
     @Override
+    public TypeInfo getTypeIfStaticallyKnown(SessionLocal session) {
+        return value.getType();
+    }
+
+    @Override
     public boolean isConstant() {
         return true;
     }

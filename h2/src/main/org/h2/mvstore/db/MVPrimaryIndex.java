@@ -230,7 +230,7 @@ public class MVPrimaryIndex extends MVIndex<Long, SearchRow> {
     }
 
     @Override
-    public Cursor find(SessionLocal session, SearchRow first, SearchRow last) {
+    public Cursor find(SessionLocal session, SearchRow first, SearchRow last, boolean reverse) {
         Long min, max;
         Value v;
         if (first == null) {
@@ -323,7 +323,7 @@ public class MVPrimaryIndex extends MVIndex<Long, SearchRow> {
         if (min != null && max != null && min.longValue() == max.longValue()) {
             return new SingleRowCursor(setRowKey((Row) map.getFromSnapshot(min), min));
         }
-        return new MVStoreCursor(map.entryIterator(min, max));
+        return new MVStoreCursor(map.entryIterator(min, max, reverse));
     }
 
     @Override

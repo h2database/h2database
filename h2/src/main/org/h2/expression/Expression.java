@@ -285,6 +285,17 @@ public abstract class Expression implements HasSQL, Typed {
     }
 
     /**
+     * Returns data type of this expression if it is statically known.
+     *
+     * @param session
+     *            the session
+     * @return data type or {@code null}
+     */
+    public TypeInfo getTypeIfStaticallyKnown(SessionLocal session) {
+        return null;
+    }
+
+    /**
      * Check if this expression will always return the same value.
      *
      * @return if the expression is constant

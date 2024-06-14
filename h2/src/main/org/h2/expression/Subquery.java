@@ -162,6 +162,16 @@ public final class Subquery extends Expression {
     }
 
     @Override
+    public TypeInfo getTypeIfStaticallyKnown(SessionLocal session) {
+        if (query.isConstantQuery()) {
+            query.prepare();
+            setType();
+            return expression.getType();
+        }
+        return null;
+    }
+
+    @Override
     public boolean isConstant() {
         return query.isConstantQuery();
     }

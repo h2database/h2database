@@ -87,7 +87,8 @@ public class LinkedIndex extends Index {
     }
 
     @Override
-    public Cursor find(SessionLocal session, SearchRow first, SearchRow last) {
+    public Cursor find(SessionLocal session, SearchRow first, SearchRow last, boolean reverse) {
+        assert !reverse;
         ArrayList<Value> params = Utils.newSmallArrayList();
         StringBuilder builder = new StringBuilder("SELECT * FROM ").append(targetTableName).append(" T");
         boolean f = false;

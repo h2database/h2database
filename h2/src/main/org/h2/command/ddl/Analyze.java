@@ -187,7 +187,7 @@ public class Analyze extends DefineCommand {
         if (columnCount == 0) {
             return;
         }
-        Cursor cursor = table.getScanIndex(session).find(session, null, null);
+        Cursor cursor = table.getScanIndex(session).find(session, null, null, false);
         if (cursor.next()) {
             SelectivityData[] array = new SelectivityData[columnCount];
             for (int i = 0; i < columnCount; i++) {

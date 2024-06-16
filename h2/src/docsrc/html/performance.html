@@ -732,6 +732,17 @@ For queries of the form <code>SELECT DISTINCT CUSTOMER_ID FROM INVOICE</code>, t
 </p><p>
 For queries of the form <code>SELECT * FROM TEST ORDER BY ID</code>, the query plan includes the line
 <code>/* index sorted */</code> to indicate there is no separate sorting required.
+<code>/* index sorted: 2 of 3 columns */</code> indicates that only some columns are sorted with an index.
+An additional sorting is still required, but queries with the FETCH (TOP, LIMIT) clause
+may still stop their execution earlier.
+An index on <code>(A ASC, B ASC)</code> columns can be used for <code>ORDER BY A</code>, <code>ORDER BY A DESC</code>,
+<code>ORDER BY A, B</code> or <code>ORDER BY A DESC, B DESC</code>.
+With <code>ORDER BY A, B DESC</code> this index can only be used for ordering on the column <code>A</code>.
+If columns are nullable, order of nulls is also important. Index on <code>(A ASC NULLS FIRST)</code> cannot be used for
+<code>ORDER BY A ASC NULLS LAST</code>, but can be used for <code>ORDER BY A ASC NULLS FIRST</code> or
+<code>ORDER BY A DESC NULLS LAST</code>.
+When neither <code>NULLS FIRST</code> nor <code>NULLS LAST</code> is specified, a default is used, this default
+is controlled by <a href="commands.html#set_default_null_ordering"><code>DEFAULT_NULL_ORDERING</code></a> setting.
 </p><p>
 For queries of the form <code>SELECT * FROM TEST GROUP BY ID ORDER BY ID</code>, the query plan includes the line
 <code>/* group sorted */</code> to indicate there is no separate sorting required.

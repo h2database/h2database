@@ -576,7 +576,7 @@ public final class Database implements DataHandler, CastDataProvider {
     }
 
     private void executeMeta() {
-        Cursor cursor = metaIdIndex.find(systemSession, null, null);
+        Cursor cursor = metaIdIndex.find(systemSession, null, null, false);
         ArrayList<MetaRecord> firstRecords = new ArrayList<>(), domainRecords = new ArrayList<>(),
                 middleRecords = new ArrayList<>(), constraintRecords = new ArrayList<>(),
                 lastRecords = new ArrayList<>();
@@ -729,7 +729,7 @@ public final class Database implements DataHandler, CastDataProvider {
                 if (SysProperties.CHECK) {
                     verifyMetaLocked(session);
                 }
-                Cursor cursor = metaIdIndex.find(session, r, r);
+                Cursor cursor = metaIdIndex.find(session, r, r, false);
                 if (!cursor.next()) {
                     meta.addRow(session, r);
                 } else {
@@ -838,7 +838,7 @@ public final class Database implements DataHandler, CastDataProvider {
             r.setValue(0, ValueInteger.get(id));
             boolean wasLocked = lockMeta(session);
             try {
-                Cursor cursor = metaIdIndex.find(session, r, r);
+                Cursor cursor = metaIdIndex.find(session, r, r, false);
                 if (cursor.next()) {
                     Row found = cursor.get();
                     meta.removeRow(session, found);
@@ -1319,7 +1319,7 @@ public final class Database implements DataHandler, CastDataProvider {
     private void checkMetaFree(SessionLocal session, int id) {
         SearchRow r = meta.getRowFactory().createRow();
         r.setValue(0, ValueInteger.get(id));
-        Cursor cursor = metaIdIndex.find(session, r, r);
+        Cursor cursor = metaIdIndex.find(session, r, r, false);
         if (cursor.next()) {
             throw DbException.getInternalError();
         }

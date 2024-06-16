@@ -1810,6 +1810,13 @@ public class TestPreparedStatement extends TestDb {
             }
             assertFalse(rs.next());
         }
+        prep = conn.prepareStatement(
+                "SELECT ARRAY_AGG(V) FROM UNNEST(ARRAY[CAST(? AS INTEGER), CAST(? AS INTEGER)]) T(V)");
+        prep.setInt(1, 1);
+        prep.setInt(2, 2);
+        ResultSet rs = prep.executeQuery();
+        assertTrue(rs.next());
+        assertEquals(new Integer[] { 1, 2 }, rs.getObject(1, Integer[].class));
     }
 
 }

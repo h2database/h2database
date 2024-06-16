@@ -266,14 +266,14 @@ public final class MVSecondaryIndex extends MVIndex<SearchRow, Value> {
     }
 
     @Override
-    public Cursor find(SessionLocal session, SearchRow first, SearchRow last) {
-        return find(session, first, false, last);
+    public Cursor find(SessionLocal session, SearchRow first, SearchRow last, boolean reverse) {
+        return find(session, first, false, last, reverse);
     }
 
-    private Cursor find(SessionLocal session, SearchRow first, boolean bigger, SearchRow last) {
+    private Cursor find(SessionLocal session, SearchRow first, boolean bigger, SearchRow last, boolean reverse) {
         SearchRow min = convertToKey(first, bigger);
         SearchRow max = convertToKey(last, Boolean.TRUE);
-        return new MVStoreCursor(session, getMap(session).keyIterator(min, max), mvTable);
+        return new MVStoreCursor(session, getMap(session).keyIterator(min, max, reverse), mvTable);
     }
 
     private SearchRow convertToKey(SearchRow r, Boolean minMax) {
@@ -368,7 +368,7 @@ public final class MVSecondaryIndex extends MVIndex<SearchRow, Value> {
 
     @Override
     public Cursor findNext(SessionLocal session, SearchRow higherThan, SearchRow last) {
-        return find(session, higherThan, true, last);
+        return find(session, higherThan, true, last, false);
     }
 
     /**

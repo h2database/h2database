@@ -172,7 +172,7 @@ public abstract class Chunk<C extends Chunk<C>> {
     }
 
     Chunk(Map<String, String> map, boolean full) {
-        this(DataUtils.readHexInt(map, ATTR_CHUNK, 0));
+        this(DataUtils.readHexInt(map, ATTR_CHUNK, -1));
         block = DataUtils.readHexLong(map, ATTR_BLOCK, 0);
         len = DataUtils.readHexInt(map, ATTR_LEN, 0);
         version = DataUtils.readHexLong(map, ATTR_VERSION, id);
@@ -206,7 +206,7 @@ public abstract class Chunk<C extends Chunk<C>> {
 
     Chunk(int id) {
         this.id = id;
-        if (id <= 0) {
+        if (id < 0 || id > MAX_ID) {
             throw DataUtils.newMVStoreException(
                     DataUtils.ERROR_FILE_CORRUPT, "Invalid chunk id {0}", id);
         }

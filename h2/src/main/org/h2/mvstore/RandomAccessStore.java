@@ -290,7 +290,7 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
                         // no (valid) next
                         break;
                     }
-                    SFChunk test = readChunkHeaderAndFooter(newest.next, newest.id + 1);
+                    SFChunk test = readChunkHeaderAndFooter(newest.next, (newest.id + 1) & Chunk.MAX_ID);
                     if (test == null || test.version <= newest.version) {
                         break;
                     }
@@ -386,7 +386,7 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
             if (chunk == null) {
                 writeStoreHeader = true;
             } else if (chunk.next != c.block) {
-                // the last prediction did not matched
+                // the last prediction did not match
                 writeStoreHeader = true;
             } else {
                 long headerVersion = DataUtils.readHexLong(storeHeader, HDR_VERSION, 0);
@@ -703,15 +703,17 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
     @Override
     protected void doHousekeeping(MVStore mvStore) throws InterruptedException {
         boolean idle = isIdle();
+        int rewritableChunksFillRate = getRewritableChunksFillRate();
         if (idle && stopIdleHousekeeping) {
             return;
         }
         int autoCommitMemory = mvStore.getAutoCommitMemory();
-        int fillRate = getFillRate();
-        if (isFragmented() && fillRate < getAutoCompactFillRate()) {
+        int fileFillRate = getFillRate();
+        long chunksTotalSize = size() * fileFillRate / 100;
+        if (isFragmented() && fileFillRate < getAutoCompactFillRate()) {
             mvStore.tryExecuteUnderStoreLock(() -> {
                 int moveSize = 2 * autoCommitMemory;
-                if (isIdle()) {
+                if (idle) {
                     moveSize *= 4;
                 }
                 compactMoveChunks(101, moveSize, mvStore);
@@ -719,29 +721,36 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
             });
         }
 
-        int chunksFillRate = getRewritableChunksFillRate();
-        int adjustedChunksFillRate = 100 - (100 - chunksFillRate) / 2;
-        int fillRateToCompare = isIdle() ? chunksFillRate : adjustedChunksFillRate;
-        if (fillRateToCompare < getTargetFillRate()) {
+        int chunksFillRate = getChunksFillRate();
+        int adjustedUpFillRate = 50 + rewritableChunksFillRate / 2;
+        int fillRateToCompare = idle ? rewritableChunksFillRate : adjustedUpFillRate;
+        if (fillRateToCompare < getTargetFillRate(idle)) {
+            int targetFillRate = idle ? adjustedUpFillRate : rewritableChunksFillRate;
             mvStore.tryExecuteUnderStoreLock(() -> {
                 int writeLimit = autoCommitMemory;
-                if (!isIdle()) {
+                if (!idle) {
                     writeLimit /= 4;
                 }
-                if (rewriteChunks(writeLimit, isIdle() ? adjustedChunksFillRate : chunksFillRate)) {
+                if (rewriteChunks(writeLimit, targetFillRate)) {
                     dropUnusedChunks();
                 }
                 return true;
             });
         }
-        stopIdleHousekeeping = idle && getFillRate() <= fillRate && getRewritableChunksFillRate() <= chunksFillRate;
+        stopIdleHousekeeping = false;
+        if (idle) {
+            int currentChunksFillRate = getChunksFillRate();
+            long currentTotalChunksSize = size() * getFillRate() / 100;
+            stopIdleHousekeeping = currentTotalChunksSize > chunksTotalSize
+                    || currentTotalChunksSize == chunksTotalSize && currentChunksFillRate <= chunksFillRate;
+        }
     }
 
-    private int getTargetFillRate() {
+    private int getTargetFillRate(boolean idle) {
         int targetRate = getAutoCompactFillRate();
         // use a lower fill rate if there were any file operations since the last time
-        if (!isIdle()) {
-            targetRate /= 2;
+        if (!idle) {
+            targetRate = targetRate * targetRate / 100;
         }
         return targetRate;
     }

@@ -41,7 +41,9 @@ public class TestOpenClose extends TestDb {
      * @param a ignored
      */
     public static void main(String... a) throws Exception {
-        TestBase.createCaller().init().testFromMain();
+        TestBase test = TestBase.createCaller().init();
+        test.config.big = true;
+        test.testFromMain();
     }
 
     @Override
@@ -132,7 +134,7 @@ public class TestOpenClose extends TestDb {
     }
 
     private void testBackupWithYoungDeadChunks() throws SQLException {
-        if (config.memory) {
+        if (config.memory || !config.big) {
             return;
         }
         deleteDb("openClose");

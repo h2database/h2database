@@ -1022,7 +1022,9 @@ public abstract class FileStore<C extends Chunk<C>>
                             break;
                         }
                     }
-                    if (!c.isLive()) {
+                    if (!c.isLive() && validChunksById.get(c.id) == null &&
+                            (afterFullScan || readChunkHeaderAndFooter(c.block, c.id) == null)) {
+                        // chunk reference is invalid but chunk is not live anymore:
                         // we can just remove entry from meta, referencing to this chunk,
                         // but store maybe R/O, and it's not properly started yet,
                         // so lets make this chunk "dead" and taking no space,

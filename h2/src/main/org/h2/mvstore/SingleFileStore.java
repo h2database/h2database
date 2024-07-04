@@ -231,20 +231,26 @@ public class SingleFileStore extends RandomAccessStore {
 
     @Override
     public void backup(ZipOutputStream out) throws IOException {
-        boolean before = isSpaceReused();
-        setReuseSpace(false);
-        try {
-            backupFile(out, getFileName(), originalFileChannel != null ? originalFileChannel : fileChannel);
-        } finally {
-            setReuseSpace(before);
-        }
-    }
-
-    private static void backupFile(ZipOutputStream out, String fileName, FileChannel in) throws IOException {
-        String f = FilePath.get(fileName).toRealPath().getName();
-        f = correctFileName(f);
+        String f = correctFileName(FilePath.get(getFileName()).toRealPath().getName());
         out.putNextEntry(new ZipEntry(f));
-        IOUtils.copy(in, out);
+        FileChannel in = originalFileChannel != null ? originalFileChannel : fileChannel;
+        MVStore mvStore = getMvStore();
+        boolean before = mvStore.setReuseSpace(false);
+        try {
+
+            IOUtils.copy(in, out);
+
+            mvStore.executeFilestoreOperation(() -> {
+                try {
+                    IOUtils.copy(in, out);
+                } catch (IOException ex) {
+                    throw new RuntimeException(ex);
+                }
+                return null;
+            });
+        } finally {
+            mvStore.setReuseSpace(before);
+        }
         out.closeEntry();
     }
 

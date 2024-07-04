@@ -34,6 +34,7 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ConcurrentMap;
@@ -89,7 +90,7 @@ public abstract class FileStore<C extends Chunk<C>>
     private static final int FORMAT_READ_MIN = 3;
     private static final int FORMAT_READ_MAX = 3;
 
-    MVStore mvStore;
+    private MVStore mvStore;
     private boolean closed;
 
     /**
@@ -1417,7 +1418,8 @@ public abstract class FileStore<C extends Chunk<C>>
         return true;
     }
 
-    public void setReuseSpace(boolean reuseSpace) {
+    public boolean setReuseSpace(boolean reuseSpace) {
+        return isSpaceReused();
     }
 
     protected final void store() {
@@ -1943,7 +1945,7 @@ public abstract class FileStore<C extends Chunk<C>>
         return set;
     }
 
-    public void executeFileStoreOperation(Runnable operation) {
+    public <T> T executeFileStoreOperation(Callable<T> operation) {
         // because serializationExecutor is a single-threaded one and
         // all task submissions to it are done under storeLock,
         // it is guaranteed, that upon this dummy task completion
@@ -1955,7 +1957,9 @@ public abstract class FileStore<C extends Chunk<C>>
             // are done under serializationLock, and upon this dummy task completion
             // it will be no pending / in-progress task here
             Utils.flushExecutor(bufferSaveExecutor);
-            operation.run();
+            return operation.call();
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
         } finally {
             serializationLock.unlock();
         }

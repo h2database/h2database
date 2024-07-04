@@ -128,8 +128,10 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
     }
 
     @Override
-    public void setReuseSpace(boolean reuseSpace) {
+    public boolean setReuseSpace(boolean reuseSpace) {
+        boolean current = this.reuseSpace;
         this.reuseSpace = reuseSpace;
+        return current;
     }
 
     @Override
@@ -501,15 +503,18 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
                 } finally {
                     saveChunkLock.unlock();
                 }
+                return null;
             });
         }
     }
 
     private void compactMoveChunks(long moveSize) {
-        long start = getFirstFree() / FileStore.BLOCK_SIZE;
-        Iterable<SFChunk> chunksToMove = findChunksToMove(start, moveSize);
-        if (chunksToMove != null) {
-            compactMoveChunks(chunksToMove);
+        if (isSpaceReused()) {
+            long start = getFirstFree() / FileStore.BLOCK_SIZE;
+            Iterable<SFChunk> chunksToMove = findChunksToMove(start, moveSize);
+            if (chunksToMove != null) {
+                compactMoveChunks(chunksToMove);
+            }
         }
     }
 

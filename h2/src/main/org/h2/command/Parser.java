@@ -4331,6 +4331,10 @@ public final class Parser extends ParserBase {
             return readDbObjectFunction(DBObjectFunction.DB_OBJECT_SIZE);
         case "DB_OBJECT_TOTAL_SIZE":
             return readDbObjectFunction(DBObjectFunction.DB_OBJECT_TOTAL_SIZE);
+        case "DB_OBJECT_APPROXIMATE_SIZE":
+            return readDbObjectFunction(DBObjectFunction.DB_OBJECT_APPROXIMATE_SIZE);
+        case "DB_OBJECT_APPROXIMATE_TOTAL_SIZE":
+            return readDbObjectFunction(DBObjectFunction.DB_OBJECT_APPROXIMATE_TOTAL_SIZE);
         case "CSVWRITE":
             return readParameters(new CSVWriteFunction());
         case "SIGNAL":

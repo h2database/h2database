@@ -246,7 +246,7 @@ public final class JdbcDatabaseMetaData extends TraceObject implements DatabaseM
      *            (uppercase for unquoted names)
      * @param table table name (must be specified)
      * @param unique only unique indexes
-     * @param approximate if true, return fast, but approximate CARDINALITY
+     * @param approximate if true, return fast, but approximate CARDINALITY and PAGES
      * @return the list of indexes and columns
      * @throws SQLException if the connection is closed
      */

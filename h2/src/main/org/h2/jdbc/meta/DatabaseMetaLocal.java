@@ -1288,7 +1288,7 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
                                     ? index.getRowCountApproximation(session)
                                     : index.getRowCount(session)),
                             // PAGES
-                            ValueBigint.get(index.getDiskSpaceUsed() / db.getPageSize()),
+                            ValueBigint.get(index.getDiskSpaceUsed(approximate) / db.getPageSize()),
                             // FILTER_CONDITION
                             ValueNull.INSTANCE);
                 }

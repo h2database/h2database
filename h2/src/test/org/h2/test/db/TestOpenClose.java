@@ -152,7 +152,8 @@ public class TestOpenClose extends TestDb {
             stat.execute(String.format("INSERT INTO BIG_TABLE VALUES (%s, %s, TIMESTAMP '2024-06-14 10:00:00.000'," +
                     "'y4TMhpkNcw566aUxHtQGL8Hj6rEK8NNyDxZ2hV6HjNbJEHXKwszmyVVi4VI=', 1)", i++, i % 10));
         }
-        stat.execute("CREATE INDEX IDX_BIG_TABLE_HASH_GROUP ON BIG_TABLE(HASH_DATA NULLS FIRST, GROUP_ID NULLS FIRST)");
+        stat.execute("CREATE INDEX IDX_BIG_TABLE_HASH_GROUP ON BIG_TABLE("
+                + "HASH_DATA NULLS FIRST, GROUP_ID NULLS FIRST)");
         stat.execute("CREATE INDEX IDX_BIG_TABLE_CREATION_DATA ON BIG_TABLE(CREATION_DATE NULLS FIRST)");
 
         try {

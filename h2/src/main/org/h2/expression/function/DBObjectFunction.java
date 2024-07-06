@@ -46,8 +46,19 @@ public final class DBObjectFunction extends FunctionN {
      */
     public static final int DB_OBJECT_TOTAL_SIZE = DB_OBJECT_SIZE + 1;
 
+    /**
+     * DB_OBJECT_APPROXIMATE_SIZE() (non-standard).
+     */
+    public static final int DB_OBJECT_APPROXIMATE_SIZE = DB_OBJECT_TOTAL_SIZE + 1;
+
+    /**
+     * DB_OBJECT_APPROXIMATE_TOTAL_SIZE() (non-standard).
+     */
+    public static final int DB_OBJECT_APPROXIMATE_TOTAL_SIZE = DB_OBJECT_APPROXIMATE_SIZE + 1;
+
     private static final String[] NAMES = { //
-            "DB_OBJECT_ID", "DB_OBJECT_SQL", "DB_OBJECT_SIZE", "DB_OBJECT_TOTAL_SIZE" //
+            "DB_OBJECT_ID", "DB_OBJECT_SQL", "DB_OBJECT_SIZE", "DB_OBJECT_TOTAL_SIZE", //
+            "DB_OBJECT_APPROXIMATE_SIZE", "DB_OBJECT_APPROXIMATE_TOTAL_SIZE" //
     };
 
     private final int function;
@@ -130,18 +141,26 @@ public final class DBObjectFunction extends FunctionN {
             return sql != null ? ValueVarchar.get(sql, session) : ValueNull.INSTANCE;
         }
         case DB_OBJECT_SIZE:
-        case DB_OBJECT_TOTAL_SIZE: {
-            long size = 0L;
-            if (object instanceof Table) {
-                size = ((Table) object).getDiskSpaceUsed(function == DB_OBJECT_TOTAL_SIZE);
-            } else if (object instanceof Index) {
-                size = ((Index) object).getDiskSpaceUsed();
-            }
-            return ValueBigint.get(size);
-        }
+            return getDbObjectSize(object, false, false);
+        case DB_OBJECT_TOTAL_SIZE:
+            return getDbObjectSize(object, true, false);
+        case DB_OBJECT_APPROXIMATE_SIZE:
+            return getDbObjectSize(object, false, true);
+        case DB_OBJECT_APPROXIMATE_TOTAL_SIZE:
+            return getDbObjectSize(object, true, true);
         default:
             throw DbException.getInternalError("function=" + function);
         }
+    }
+
+    private static Value getDbObjectSize(DbObject object, boolean total, boolean appproximate) {
+        long size = 0L;
+        if (object instanceof Table) {
+            size = ((Table) object).getDiskSpaceUsed(total, appproximate);
+        } else if (object instanceof Index) {
+            size = ((Index) object).getDiskSpaceUsed(appproximate);
+        }
+        return ValueBigint.get(size);
     }
 
     @Override
@@ -156,6 +175,8 @@ public final class DBObjectFunction extends FunctionN {
             break;
         case DB_OBJECT_SIZE:
         case DB_OBJECT_TOTAL_SIZE:
+        case DB_OBJECT_APPROXIMATE_SIZE:
+        case DB_OBJECT_APPROXIMATE_TOTAL_SIZE:
             type = TypeInfo.TYPE_BIGINT;
             break;
         default:

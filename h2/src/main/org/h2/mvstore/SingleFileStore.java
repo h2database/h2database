@@ -238,11 +238,11 @@ public class SingleFileStore extends RandomAccessStore {
         boolean before = mvStore.setReuseSpace(false);
         try {
 
-            IOUtils.copy(in, out);
+            long copied = IOUtils.copy(in, 0, out);
 
             mvStore.executeFilestoreOperation(() -> {
                 try {
-                    IOUtils.copy(in, out);
+                    IOUtils.copy(in, copied, out);
                 } catch (IOException ex) {
                     throw new RuntimeException(ex);
                 }

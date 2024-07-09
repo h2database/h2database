@@ -846,6 +846,7 @@ public abstract class FileStore<C extends Chunk<C>>
         if (!isReadOnly()) {
             saveChunkLock.lock();
             try {
+                shrinkStoreIfPossible(0);
                 writeCleanShutdownMark();
                 sync();
                 assert validateFileLength("on close");

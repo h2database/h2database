@@ -243,6 +243,9 @@ public class SingleFileStore extends RandomAccessStore {
             mvStore.executeFilestoreOperation(() -> {
                 try {
                     IOUtils.copy(in, copied, out);
+                    writeCleanShutdownMark();
+                    IOUtils.copy(in, out, 0, 2 * BLOCK_SIZE);
+                    removeCleanShutdownMark();
                 } catch (IOException ex) {
                     throw new RuntimeException(ex);
                 }

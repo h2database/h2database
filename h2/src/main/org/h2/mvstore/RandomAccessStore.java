@@ -406,23 +406,31 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
             }
         }
 
-        if (storeHeader.remove(HDR_CLEAN) != null) {
+        if (clearCleanShutdownMark()) {
             writeStoreHeader = true;
         }
         return writeStoreHeader;
     }
 
+    private boolean clearCleanShutdownMark() {
+        return storeHeader.remove(HDR_CLEAN) != null;
+    }
+
+    protected final void removeCleanShutdownMark() {
+        if (clearCleanShutdownMark()) {
+            writeStoreHeader();
+        }
+    }
+
     @Override
     protected final void writeCleanShutdownMark() {
-        shrinkStoreIfPossible(0);
         storeHeader.put(HDR_CLEAN, 1);
         writeStoreHeader();
     }
 
     @Override
     protected final void adjustStoreToLastChunk() {
-        storeHeader.put(HDR_CLEAN, 1);
-        writeStoreHeader();
+        writeCleanShutdownMark();
         readStoreHeader(false);
     }
 
@@ -594,7 +602,7 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
         }
     }
 
-    private void writeStoreHeader() {
+    protected final void writeStoreHeader() {
         StringBuilder buff = new StringBuilder(112);
         if (hasPersistentData()) {
             storeHeader.put(HDR_BLOCK, lastChunk.block);

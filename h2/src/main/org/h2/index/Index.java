@@ -352,9 +352,12 @@ public abstract class Index extends SchemaObject {
     /**
      * Get the used disk space for this index.
      *
+     * @param approximate
+     *            {@code true} to return quick approximation
+     *
      * @return the estimated number of bytes
      */
-    public long getDiskSpaceUsed() {
+    public long getDiskSpaceUsed(boolean approximate) {
         return 0L;
     }
 

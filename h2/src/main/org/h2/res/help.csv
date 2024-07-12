@@ -6517,8 +6517,11 @@ CALL DB_OBJECT_SQL('TABLE', 'PUBLIC', 'MY_TABLE');
 @h2@ DB_OBJECT_SIZE({'INDEX'|'TABLE'}, schemaNameString, objectNameString)
 ","
 Returns the approximate amount of space used by the specified table (excluding its indexes) or index.
+Only size of version used by the current transaction is estimated.
 Size of large LOBs currently is not included into estimation.
 This function may be expensive since it has to load every page in the table or index.
+Use [DB_OBJECT_APPROXIMATE_SIZE](https://h2database.com/html/functions.html#db_object_approximate_size)
+for a faster coarse approximation.
 ","
 CALL DB_OBJECT_SIZE('TABLE', 'PUBLIC', 'MY_TABLE');
 "
@@ -6527,10 +6530,33 @@ CALL DB_OBJECT_SIZE('TABLE', 'PUBLIC', 'MY_TABLE');
 @h2@ DB_OBJECT_TOTAL_SIZE('TABLE', schemaNameString, objectNameString)
 ","
 Returns the approximate amount of space used by the specified table and all its indexes.
+Only size of version used by the current transaction is estimated.
 Size of large LOBs currently is not included into estimation.
 This function may be expensive since it has to load every page in the table and its indexes.
+Use [DB_OBJECT_APPROXIMATE_TOTAL_SIZE](https://h2database.com/html/functions.html#db_object_approximate_total_size)
+for a faster coarse approximation.
 ","
 CALL DB_OBJECT_TOTAL_SIZE('TABLE', 'PUBLIC', 'MY_TABLE');
+"
+
+"Functions (System)","DB_OBJECT_APPROXIMATE_SIZE","
+@h2@ DB_OBJECT_APPROXIMATE_SIZE({'INDEX'|'TABLE'}, schemaNameString, objectNameString)
+","
+Returns the coarse approximate amount of space used by the specified table (excluding its indexes) or index.
+Only size of version used by the current transaction is estimated.
+Size of large LOBs currently is not included into estimation.
+","
+CALL DB_OBJECT_APPROXIMATE_SIZE('TABLE', 'PUBLIC', 'MY_TABLE');
+"
+
+"Functions (System)","DB_OBJECT_APPROXIMATE_TOTAL_SIZE","
+@h2@ DB_OBJECT_APPROXIMATE_TOTAL_SIZE('TABLE', schemaNameString, objectNameString)
+","
+Returns the coarse approximate amount of space used by the specified table and all its indexes.
+Only size of version used by the current transaction is estimated.
+Size of large LOBs currently is not included into estimation.
+","
+CALL DB_OBJECT_APPROXIMATE_TOTAL_SIZE('TABLE', 'PUBLIC', 'MY_TABLE');
 "
 
 "Functions (System)","DECODE","
@@ -6548,6 +6574,7 @@ CALL DECODE(RAND()>0.5, 0, 'Red', 1, 'Black');
 @c@ DISK_SPACE_USED(tableNameString)
 ","
 Returns the approximate amount of space used by the table specified.
+Only size of version used by the current transaction is estimated.
 Does not currently take into account indexes or LOB's.
 This function may be expensive since it has to load every page in the table.
 This function is deprecated,

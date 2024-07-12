@@ -388,7 +388,7 @@ public abstract class Table extends SchemaObject {
      */
     public abstract long getRowCountApproximation(SessionLocal session);
 
-    public long getDiskSpaceUsed(boolean total) {
+    public long getDiskSpaceUsed(boolean total, boolean approximate) {
         return 0L;
     }
 

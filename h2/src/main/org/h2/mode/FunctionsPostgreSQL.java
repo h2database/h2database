@@ -384,7 +384,7 @@ public final class FunctionsPostgreSQL extends ModeFunction {
         } else {
             t = new Parser(session).parseTableName(tableOidOrName.getString());
         }
-        return ValueBigint.get(t.getDiskSpaceUsed(total));
+        return ValueBigint.get(t.getDiskSpaceUsed(total, false));
     }
 
 }

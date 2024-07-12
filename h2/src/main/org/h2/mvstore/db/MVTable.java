@@ -622,17 +622,17 @@ public class MVTable extends TableBase {
     }
 
     @Override
-    public long getDiskSpaceUsed(boolean total) {
+    public long getDiskSpaceUsed(boolean total, boolean approximate) {
         if (total) {
             long size = 0L;
             for (Index index : getIndexes()) {
                 if (!(index instanceof MVDelegateIndex)) {
-                    size += index.getDiskSpaceUsed();
+                    size += index.getDiskSpaceUsed(approximate);
                 }
             }
             return size;
         } else {
-            return primaryIndex.getDiskSpaceUsed();
+            return primaryIndex.getDiskSpaceUsed(approximate);
         }
     }
 

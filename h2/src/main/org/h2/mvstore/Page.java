@@ -828,17 +828,58 @@ public abstract class Page<K,V> implements Cloneable {
     /**
      * Amount of used disk space in persistent case including child pages.
      *
+     * @param approximate
+     *            {@code true} to return quick approximation
+     *
      * @return amount of used disk space in persistent case
      */
-    public long getDiskSpaceUsed() {
-        long r = 0;
-        if (isPersistent()) {
-            r += diskSpaceUsed;
-            if (!isLeaf()) {
-                for (int i = 0; i < getRawChildPageCount(); i++) {
+    public final long getDiskSpaceUsed(boolean approximate) {
+        return isPersistent() //
+                ? approximate ? getDiskSpaceUsedApproximation(3, false) : getDiskSpaceUsedAccurate()
+                : 0L;
+    }
+
+    private long getDiskSpaceUsedAccurate() {
+        long r = diskSpaceUsed;
+        if (!isLeaf()) {
+            for (int i = 0, l = getRawChildPageCount(); i < l; i++) {
+                long pos = getChildPagePos(i);
+                if (pos != 0) {
+                    r += getChildPage(i).getDiskSpaceUsedAccurate();
+                }
+            }
+        }
+        return r;
+    }
+
+    private long getDiskSpaceUsedApproximation(int maxLevel, boolean f) {
+        long r = diskSpaceUsed;
+        if (!isLeaf()) {
+            int l = getRawChildPageCount();
+            if (--maxLevel == 0 && l > 4) {
+                if (f) {
+                    for (int i = 0; i < l; i++) {
+                        long pos = getChildPagePos(i);
+                        if (pos != 0) {
+                            r += getChildPage(i).getDiskSpaceUsedApproximation(maxLevel, f) * l;
+                            break;
+                        }
+                    }
+                } else {
+                    for (int i = l; --i >= 0;) {
+                        long pos = getChildPagePos(i);
+                        if (pos != 0) {
+                            r += getChildPage(i).getDiskSpaceUsedApproximation(maxLevel, f) * l;
+                            break;
+                        }
+                    }
+                }
+            } else {
+                for (int i = 0; i < l; i++) {
                     long pos = getChildPagePos(i);
                     if (pos != 0) {
-                        r += getChildPage(i).getDiskSpaceUsed();
+                        r += getChildPage(i).getDiskSpaceUsedApproximation(maxLevel, f);
+                        f = !f;
                     }
                 }
             }

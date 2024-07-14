@@ -153,12 +153,12 @@ public final class DBObjectFunction extends FunctionN {
         }
     }
 
-    private static Value getDbObjectSize(DbObject object, boolean total, boolean appproximate) {
+    private static Value getDbObjectSize(DbObject object, boolean total, boolean approximate) {
         long size = 0L;
         if (object instanceof Table) {
-            size = ((Table) object).getDiskSpaceUsed(total, appproximate);
+            size = ((Table) object).getDiskSpaceUsed(total, approximate);
         } else if (object instanceof Index) {
-            size = ((Index) object).getDiskSpaceUsed(appproximate);
+            size = ((Index) object).getDiskSpaceUsed(approximate);
         }
         return ValueBigint.get(size);
     }

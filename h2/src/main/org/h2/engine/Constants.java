@@ -15,18 +15,18 @@ public class Constants {
     /**
      * The build date is updated for each public release.
      */
-    public static final String BUILD_DATE = "2023-08-22";
+    public static final String BUILD_DATE = "2024-07-15";
 
     /**
      * Sequential version number. Even numbers are used for official releases,
      * odd numbers are used for development builds.
      */
-    public static final int BUILD_ID = 229;
+    public static final int BUILD_ID = 230;
 
     /**
      * Whether this is a snapshot version.
      */
-    public static final boolean BUILD_SNAPSHOT = true;
+    public static final boolean BUILD_SNAPSHOT = false;
 
     /**
      * If H2 is compiled to be included in a product, this should be set to
@@ -84,7 +84,7 @@ public class Constants {
     /**
      * The minor version of this database.
      */
-    public static final int VERSION_MINOR = 2;
+    public static final int VERSION_MINOR = 3;
 
     /**
      * The lock mode that means no locking is used at all.

@@ -163,7 +163,7 @@ public class TestOpenClose extends TestDb {
 
             Restore.execute(getBaseDir() + "/test.zip", getBaseDir(), null);
 
-            // Open and close the database twice. Important to do it twice as the two openings will be slightly
+            // Open and close the database twice. Important to do it twice as oach opening will be slightly
             // different: the first opening will assume the database is not "clean" (as it is an online backup) but
             // then the closing will mark the DB as "clean" for the second opening
             for (int i = 0; i < 2; i++) {

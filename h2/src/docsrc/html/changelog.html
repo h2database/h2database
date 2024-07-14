@@ -21,6 +21,22 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul>
+<li>Nothing yet
+</li>
+</ul>
+
+<h2>Version 2.3.230 (2024-07-15)</h2>
+<ul>
+<li>Issue #2752: Fix for "double mark" error at database backup opening
+</li>
+<li>Issue #4052: Allow 0 as a valid chunk id
+</li>
+<li>Issue #4012: Fix "Chunk not found" database corruption by ensure proper prologue/epilogue for every SQL statement in JDBC ";" - separated list
+</li>
+<li>Issue #3960: Fix NPE in page rewrite
+</li>
+<li>Issue #3909: Reduce resource consumption of too aggressive disk space housekeeping
+</li>
 <li>Issue #701: An available index is never used for ordering, when the requested order is DESC
 </li>
 <li>Issue #4036: NULLS NOT DISTINCT constraint changed after column dropped
@@ -91,6 +107,12 @@ table
 </li>
 </ul>
 
+<h2>Version 2.2.224 (2023-09-17)</h2>
+<ul>
+<li>Issue #3883 Performance regression in 2.2.222
+</li>
+</ul>
+
 <h2>Version 2.2.222 (2023-08-22)</h2>
 <ul>
 <li>Fixed race condition in MVStore causing database corruption &quot;File corrupted in chunk ###&quot;
@@ -99,7 +121,7 @@ table
 </li>
 <li>Issue #3868: INFORMATION_SCHEMA.SESSIONS.ISOLATION_LEVEL returns isolation level of the current session in all rows
 </li>
-<li>RP #3865: Add possibility to enable virtual worker threads in TCP, Web, and PG servers on Java 21+
+<li>PR #3865: Add possibility to enable virtual worker threads in TCP, Web, and PG servers on Java 21+
 </li>
 <li>PR #3864: Improve performance of TCP client driver when it is used from virtual threads
 </li>

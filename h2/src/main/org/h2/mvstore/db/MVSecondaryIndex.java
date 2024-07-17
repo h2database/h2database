@@ -271,8 +271,8 @@ public final class MVSecondaryIndex extends MVIndex<SearchRow, Value> {
     }
 
     private Cursor find(SessionLocal session, SearchRow first, boolean bigger, SearchRow last, boolean reverse) {
-        SearchRow min = convertToKey(first, bigger);
-        SearchRow max = convertToKey(last, Boolean.TRUE);
+        SearchRow min = convertToKey(first, bigger ^ reverse);
+        SearchRow max = convertToKey(last, !reverse);
         return new MVStoreCursor(session, getMap(session).keyIterator(min, max, reverse), mvTable);
     }
 

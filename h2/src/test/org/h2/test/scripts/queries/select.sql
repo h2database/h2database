@@ -1260,3 +1260,32 @@ SELECT * FROM TEST ORDER BY A, B OFFSET 2 ROWS FETCH NEXT 1 ROW WITH TIES;
 
 DROP TABLE TEST;
 > ok
+
+CREATE TABLE TEST(A INT);
+> ok
+
+CREATE INDEX TEST_A_IDX ON TEST(A);
+> ok
+
+INSERT INTO TEST VALUES 1, 2, 1, 2, 5;
+> update count: 5
+
+SELECT * FROM TEST WHERE A <= 2 ORDER BY A;
+> A
+> -
+> 1
+> 1
+> 2
+> 2
+> rows (ordered): 4
+
+SELECT * FROM TEST WHERE A >= 2 ORDER BY A DESC;
+> A
+> -
+> 5
+> 2
+> 2
+> rows (ordered): 3
+
+DROP TABLE TEST;
+> ok

@@ -6942,8 +6942,7 @@ public final class Parser extends ParserBase {
                 columns.add(new Column(c, TypeInfo.TYPE_VARCHAR));
             }
         }
-        Table oldViewFound = getWithSubquery(cteName);
-        if (oldViewFound != null) {
+        if (queryScope.tableSubqueries.containsKey(cteName)) {
             throw DbException.get(ErrorCode.TABLE_OR_VIEW_ALREADY_EXISTS_1, cteName);
         }
         read(AS);

@@ -281,3 +281,30 @@ TABLE V;
 
 DROP VIEW V;
 > ok
+
+WITH
+    Q1(X) AS (VALUES 1),
+    Q2 AS (
+        WITH
+            Q1(Y) AS (VALUES 2)
+        TABLE Q1
+    )
+SELECT Q1.X, Q2.Y FROM Q1, Q2;
+> X Y
+> - -
+> 1 2
+> rows: 1
+
+WITH
+    Q1(X) AS (
+        WITH Q1(Y) AS (VALUES 1)
+        SELECT Q1.Y FROM Q1
+    )
+SELECT Q1.X FROM Q1;
+>> 1
+
+WITH
+    Q1(X) AS (VALUES 1),
+    Q1(X) AS (VALUES 2)
+TABLE Q1;
+> exception TABLE_OR_VIEW_ALREADY_EXISTS_1

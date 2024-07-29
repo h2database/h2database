@@ -59,14 +59,9 @@ public class TableLink extends Table {
     private final boolean emitUpdates;
     private LinkedIndex linkedIndex;
     private DbException connectException;
-    private boolean storesLowerCase;
-    private boolean storesMixedCase;
-    private boolean storesMixedCaseQuoted;
-    private boolean supportsMixedCaseIdentifiers;
     private String identifierQuoteString;
     private boolean globalTemporary;
     private boolean readOnly;
-    private final boolean targetsMySql;
     private int fetchSize = 0;
     private boolean autocommit =true;
 
@@ -81,7 +76,6 @@ public class TableLink extends Table {
         this.originalSchema = originalSchema;
         this.originalTable = originalTable;
         this.emitUpdates = emitUpdates;
-        this.targetsMySql = isMySqlUrl(this.url);
         try {
             connect();
         } catch (DbException e) {
@@ -123,10 +117,6 @@ public class TableLink extends Table {
 
     private void readMetaData() throws SQLException {
         DatabaseMetaData meta = conn.getConnection().getMetaData();
-        storesLowerCase = meta.storesLowerCaseIdentifiers();
-        storesMixedCase = meta.storesMixedCaseIdentifiers();
-        storesMixedCaseQuoted = meta.storesMixedCaseQuotedIdentifiers();
-        supportsMixedCaseIdentifiers = meta.supportsMixedCaseIdentifiers();
         identifierQuoteString = meta.getIdentifierQuoteString();
         ArrayList<Column> columnList = Utils.newSmallArrayList();
         HashMap<String, Column> columnMap = new HashMap<>();
@@ -159,7 +149,6 @@ public class TableLink extends Table {
                         break;
                     }
                     String n = rs.getString("COLUMN_NAME");
-                    n = convertColumnName(n);
                     int sqlType = rs.getInt("DATA_TYPE");
                     String sqlTypeName = rs.getString("TYPE_NAME");
                     long precision = rs.getInt("COLUMN_SIZE");
@@ -197,7 +186,6 @@ public class TableLink extends Table {
                 ResultSetMetaData rsMeta = rs.getMetaData();
                 for (int i = 0, l = rsMeta.getColumnCount(); i < l;) {
                     String n = rsMeta.getColumnName(i + 1);
-                    n = convertColumnName(n);
                     int sqlType = rsMeta.getColumnType(i + 1);
                     long precision = rsMeta.getPrecision(i + 1);
                     precision = convertPrecision(sqlType, precision);
@@ -255,7 +243,6 @@ public class TableLink extends Table {
                 list.add(null);
             }
             String col = rs.getString("COLUMN_NAME");
-            col = convertColumnName(col);
             Column column = columnMap.get(col);
             if (idx == 0) {
                 // workaround for a bug in the SQLite JDBC driver
@@ -298,7 +285,6 @@ public class TableLink extends Table {
                     ? IndexType.createUnique(false, false, uniqueColumnCount, /* TODO */ NullsDistinct.NOT_DISTINCT)
                     : IndexType.createNonUnique(false);
             String col = rs.getString("COLUMN_NAME");
-            col = convertColumnName(col);
             Column column = columnMap.get(col);
             list.add(column);
         }
@@ -343,23 +329,6 @@ public class TableLink extends Table {
             break;
         }
         return scale;
-    }
-
-    private String convertColumnName(String columnName) {
-        if(targetsMySql) {
-            // MySQL column names are not case-sensitive on any platform
-            columnName = StringUtils.toUpperEnglish(columnName);
-        } else if ((storesMixedCase || storesLowerCase) &&
-                columnName.equals(StringUtils.toLowerEnglish(columnName))) {
-            columnName = StringUtils.toUpperEnglish(columnName);
-        } else if (storesMixedCase && !supportsMixedCaseIdentifiers) {
-            // TeraData
-            columnName = StringUtils.toUpperEnglish(columnName);
-        } else if (storesMixedCase && storesMixedCaseQuoted) {
-            // MS SQL Server (identifiers are case insensitive even if quoted)
-            columnName = StringUtils.toUpperEnglish(columnName);
-        }
-        return columnName;
     }
 
     private void addIndex(List<Column> list, int uniqueColumnCount, IndexType indexType) {
@@ -608,11 +577,6 @@ public class TableLink extends Table {
 
     public boolean isOracle() {
         return url.startsWith("jdbc:oracle:");
-    }
-
-    private static boolean isMySqlUrl(String url) {
-        return url.startsWith("jdbc:mysql:")
-                || url.startsWith("jdbc:mariadb:");
     }
 
     @Override

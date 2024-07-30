@@ -153,6 +153,7 @@ public class MVStoreTool {
                 Chunk c;
                 try {
                     c = new SFChunk(Chunk.readChunkHeader(buffer));
+                    c.block = pos / blockSize;
                 } catch (MVStoreException e) {
                     // Chunks are not always contiguous (due to chunk compaction/move/drop and space re-use)
                     // Blocks following a chunk can therefore contain something else than a valid chunk header

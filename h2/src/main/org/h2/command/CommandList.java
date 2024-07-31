@@ -43,9 +43,8 @@ class CommandList extends Command {
     private void executeRemaining() {
         for (Prepared prepared : commands) {
             CommandContainer commandContainer = new CommandContainer(session, prepared.getSQL(), prepared);
-            prepared.prepare();
             if (prepared.isQuery()) {
-                executeQuery(0, false);
+                commandContainer.executeQuery(0, false);
             } else {
                 commandContainer.executeUpdate(null);
             }

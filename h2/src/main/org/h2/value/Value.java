@@ -2746,16 +2746,14 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
 
     private static byte convertToByte(long x, Object column) {
         if (x > Byte.MAX_VALUE || x < Byte.MIN_VALUE) {
-            throw DbException.get(
-                    ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_2, Long.toString(x), getColumnName(column));
+            throw getOutOfRangeException(Long.toString(x), column);
         }
         return (byte) x;
     }
 
     private static short convertToShort(long x, Object column) {
         if (x > Short.MAX_VALUE || x < Short.MIN_VALUE) {
-            throw DbException.get(
-                    ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_2, Long.toString(x), getColumnName(column));
+            throw getOutOfRangeException(Long.toString(x), column);
         }
         return (short) x;
     }
@@ -2769,8 +2767,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
      */
     public static int convertToInt(long x, Object column) {
         if (x > Integer.MAX_VALUE || x < Integer.MIN_VALUE) {
-            throw DbException.get(
-                    ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_2, Long.toString(x), getColumnName(column));
+            throw getOutOfRangeException(Long.toString(x), column);
         }
         return (int) x;
     }
@@ -2779,23 +2776,29 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         if (x > Long.MAX_VALUE || x < Long.MIN_VALUE) {
             // TODO document that +Infinity, -Infinity throw an exception and
             // NaN returns 0
-            throw DbException.get(
-                    ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_2, Double.toString(x), getColumnName(column));
+            throw getOutOfRangeException(Double.toString(x), column);
         }
         return Math.round(x);
     }
 
-    private static long convertToLong(BigDecimal x, Object column) {
-        if (x.compareTo(MAX_LONG_DECIMAL) > 0 ||
-                x.compareTo(MIN_LONG_DECIMAL) < 0) {
-            throw DbException.get(
-                    ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_2, x.toString(), getColumnName(column));
+    /**
+     * Convert to long, throwing exception if out of range.
+     *
+     * @param x long value.
+     * @param column Column info.
+     * @return x
+     */
+    public static long convertToLong(BigDecimal x, Object column) {
+        if (x.compareTo(MAX_LONG_DECIMAL) > 0 || x.compareTo(MIN_LONG_DECIMAL) < 0) {
+            throw getOutOfRangeException(x.toString(), column);
         }
         return x.setScale(0, RoundingMode.HALF_UP).longValue();
     }
 
-    private static String getColumnName(Object column) {
-        return column == null ? "" : column.toString();
+    private static DbException getOutOfRangeException(String string, Object column) {
+        return column != null
+                ? DbException.get(ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_2, string, column.toString())
+                : DbException.get(ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_1, string);
     }
 
     @Override

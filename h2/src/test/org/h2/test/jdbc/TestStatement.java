@@ -49,6 +49,7 @@ public class TestStatement extends TestDb {
         testPreparedStatement();
         testCloseOnCompletion();
         testIdentityMerge();
+        testMultipleCommands();
         conn.close();
         deleteDb("statement");
         testIdentifiers();
@@ -437,6 +438,12 @@ public class TestStatement extends TestDb {
         assertEquals(1, ps.executeLargeUpdate());
         assertEquals(1, ps.getLargeUpdateCount());
         stat.execute("drop table test");
+    }
+
+    private void testMultipleCommands() throws SQLException{
+        Statement stat = conn.createStatement();
+        stat.executeQuery("VALUES 1; VALUES 2");
+        stat.close();
     }
 
     private void testIdentifiers() throws SQLException {

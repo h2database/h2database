@@ -515,6 +515,7 @@ public final class Parser extends ParserBase {
             }
             try {
                 p = parse(remainingSql, remainingTokens);
+                p.prepare();
             } catch (DbException ex) {
                 // This command may depend on results of previous commands.
                 if (ex.getErrorCode() == ErrorCode.CANNOT_MIX_INDEXED_AND_UNINDEXED_PARAMS) {

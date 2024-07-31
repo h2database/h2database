@@ -657,11 +657,11 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
         assert reservedAreaHigh > 0 || block <= chunk.block : block + " " + chunk;
         ByteBuffer readBuff = readFully(chunk, start, length);
         writeFully(null, pos, readBuff);
-        free(start, length);
-        // can not set chunk's new block/len until it's fully written at new location,
+        // can not set chunk's new block until it's fully written at new location,
         // because concurrent reader can pick it up prematurely,
         chunk.block = block;
         chunk.next = 0;
+        free(start, length);
         saveChunkMetadataChanges(chunk);
         return true;
     }

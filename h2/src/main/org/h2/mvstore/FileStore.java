@@ -693,7 +693,9 @@ public abstract class FileStore<C extends Chunk<C>>
     }
 
     private boolean isRewritable(C chunk, long time) {
-        return chunk.isRewritable() && isSeasonedChunk(chunk, time);
+        return chunk.isRewritable() && isSeasonedChunk(chunk, time)
+                // to prevent last saved chunk from being re-written as it may cause "endless" re-write loop
+                && chunk.version < getMvStore().getCurrentVersion() - 1;
     }
 
     /**

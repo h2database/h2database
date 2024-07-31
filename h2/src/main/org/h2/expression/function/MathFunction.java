@@ -120,7 +120,7 @@ public final class MathFunction extends Function1_2 {
 
     @SuppressWarnings("incomplete-switch")
     private Value round(Value v1, Value v2, RoundingMode roundingMode) {
-        int scale = v2 != null ? v2.getInt() : 0;
+        int scale = v2 != null ? checkScale(v2) : 0;
         int t = type.getValueType();
         c: switch (t) {
         case Value.TINYINT:
@@ -129,7 +129,8 @@ public final class MathFunction extends Function1_2 {
         case Value.BIGINT: {
             if (scale < 0) {
                 long original = v1.getLong();
-                long scaled = BigDecimal.valueOf(original).setScale(scale, roundingMode).longValue();
+                long scaled = scale < -18 ? 0L
+                        : Value.convertToLong(BigDecimal.valueOf(original).setScale(scale, roundingMode), null);
                 if (original != scaled) {
                     v1 = ValueBigint.get(scaled).convertTo(type);
                 }
@@ -301,7 +302,7 @@ public final class MathFunction extends Function1_2 {
                 Value scaleValue = right.getValue(session);
                 scaleIsKnown = true;
                 if (scaleValue != ValueNull.INSTANCE) {
-                    scale = scaleValue.getInt();
+                    scale = checkScale(scaleValue);
                 } else {
                     scale = -1;
                     scaleIsNull = true;
@@ -314,6 +315,14 @@ public final class MathFunction extends Function1_2 {
             scaleIsKnown = true;
         }
         return optimizeRound(scale, scaleIsKnown, scaleIsNull, possibleRoundUp);
+    }
+
+    private static int checkScale(Value v) {
+        int scale = v.getInt();
+        if (scale < -ValueNumeric.MAXIMUM_SCALE || scale > ValueNumeric.MAXIMUM_SCALE) {
+            throw DbException.getInvalidValueException("scale", scale);
+        }
+        return scale;
     }
 
     /**

@@ -475,7 +475,6 @@ public class MVTable extends TableBase {
 
     @Override
     public void removeRow(SessionLocal session, Row row) {
-        syncLastModificationIdWithDatabase();
         Transaction t = session.getTransaction();
         long savepoint = t.setSavepoint();
         try {
@@ -491,17 +490,18 @@ public class MVTable extends TableBase {
             }
             throw DbException.convert(e);
         }
+        syncLastModificationIdWithDatabase();
         analyzeIfRequired(session);
     }
 
     @Override
     public long truncate(SessionLocal session) {
-        syncLastModificationIdWithDatabase();
         long result = getRowCountApproximation(session);
         for (int i = indexes.size() - 1; i >= 0; i--) {
             Index index = indexes.get(i);
             index.truncate(session);
         }
+        syncLastModificationIdWithDatabase();
         if (changesUntilAnalyze != null) {
             changesUntilAnalyze.set(nextAnalyze);
         }
@@ -510,7 +510,6 @@ public class MVTable extends TableBase {
 
     @Override
     public void addRow(SessionLocal session, Row row) {
-        syncLastModificationIdWithDatabase();
         Transaction t = session.getTransaction();
         long savepoint = t.setSavepoint();
         try {
@@ -525,13 +524,13 @@ public class MVTable extends TableBase {
             }
             throw DbException.convert(e);
         }
+        syncLastModificationIdWithDatabase();
         analyzeIfRequired(session);
     }
 
     @Override
     public void updateRow(SessionLocal session, Row oldRow, Row newRow) {
         newRow.setKey(oldRow.getKey());
-        syncLastModificationIdWithDatabase();
         Transaction t = session.getTransaction();
         long savepoint = t.setSavepoint();
         try {
@@ -546,6 +545,7 @@ public class MVTable extends TableBase {
             }
             throw DbException.convert(e);
         }
+        syncLastModificationIdWithDatabase();
         analyzeIfRequired(session);
     }
 
@@ -652,10 +652,10 @@ public class MVTable extends TableBase {
     }
 
     /**
-     * Mark the transaction as committed, so that the modification counter of
-     * the database is incremented.
+     * Called after commit to increment database data modification counter for
+     * this table.
      */
-    public void commit() {
+    public void afterCommit() {
         if (database != null) {
             syncLastModificationIdWithDatabase();
         }

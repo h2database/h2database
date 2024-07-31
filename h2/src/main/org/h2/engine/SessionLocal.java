@@ -175,6 +175,7 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
     private volatile long cancelAtNs;
     private final ValueTimestampTimeZone sessionStart;
     private Instant commandStartOrEnd;
+    private long statementModificationDataId;
     private ValueTimestampTimeZone currentTimestamp;
     private HashMap<String, Value> variables;
     private int queryTimeout;
@@ -684,8 +685,8 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
         beforeCommitOrRollback();
         if (hasTransaction()) {
             try {
-                markUsedTablesAsUpdated();
                 transaction.commit();
+                markUsedTablesAsUpdated();
                 removeTemporaryLobs(true);
                 endTransaction();
             } finally {
@@ -709,7 +710,7 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
         if (!locks.isEmpty()) {
             for (Table t : locks) {
                 if (t instanceof MVTable) {
-                    ((MVTable) t).commit();
+                    ((MVTable) t).afterCommit();
                 }
             }
         }
@@ -821,13 +822,13 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
     public void rollbackTo(Savepoint savepoint) {
         int index = savepoint == null ? 0 : savepoint.logIndex;
         if (hasTransaction()) {
-            markUsedTablesAsUpdated();
             if (savepoint == null) {
                 transaction.rollback();
                 transaction = null;
             } else {
                 transaction.rollbackToSavepoint(savepoint.transactionSavepoint);
             }
+            markUsedTablesAsUpdated();
         }
         if (savepoints != null) {
             String[] names = savepoints.keySet().toArray(new String[0]);
@@ -1670,6 +1671,7 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
                     break;
                 }
             }
+            statementModificationDataId = database.getModificationDataId();
             transaction.markStatementStart(maps);
         }
         startStatement = -1;
@@ -1714,6 +1716,17 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
             transaction.markStatementEnd();
         }
         startStatement = -1;
+        statementModificationDataId = 0L;
+    }
+
+    /**
+     * Returns database data modification id on start of the current command.
+     *
+     * @return database data modification id on start of the current command
+     */
+    public long getStatementModificationDataId() {
+        long id = statementModificationDataId;
+        return id != 0L ? id : database.getModificationDataId();
     }
 
     /**

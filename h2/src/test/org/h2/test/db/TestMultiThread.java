@@ -67,6 +67,7 @@ public class TestMultiThread extends TestDb implements Runnable {
         testConcurrentUpdate();
         testConcurrentUpdate2();
         testCheckConstraint();
+        testOptimizeReuseResults();
     }
 
     private void testConcurrentSchemaChange() throws Exception {
@@ -498,6 +499,48 @@ public class TestMultiThread extends TestDb implements Runnable {
             assertFalse(error.get());
         } finally {
             deleteDb("checkConstraint");
+        }
+    }
+
+    private void testOptimizeReuseResults() throws Exception {
+        deleteDb("testOptimizeReuseResults");
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        try (Connection c1 = getConnection("testOptimizeReuseResults");
+                Connection c2 = getConnection("testOptimizeReuseResults")) {
+            try (Statement stat = c1.createStatement()) {
+                stat.execute("CREATE TABLE TEST(ID BIGINT PRIMARY KEY, DATA INT)");
+                stat.execute("INSERT INTO TEST VALUES (1, 0)");
+            }
+            PreparedStatement prepUpdate = c1.prepareStatement("UPDATE TEST SET DATA = ? WHERE ID = 1");
+            PreparedStatement prepSelect = c2.prepareStatement("SELECT DATA FROM TEST WHERE ID = 1");
+            loop: for (int i = 1; i <= 1_000; i++) {
+                int v = i;
+                executor.execute(() -> testOptimizeReuseResultsSet(c1, prepUpdate, v));
+                long n = System.nanoTime();
+                int count = 0;
+                while ((System.nanoTime() - n) < 2_000_000_000L) {
+                    try (ResultSet rs = prepSelect.executeQuery()) {
+                        assertTrue(rs.next());
+                        if (rs.getInt(1) == v) {
+                            continue loop;
+                        }
+                        count++;
+                    }
+                }
+                fail("Error on iteration " + v + " after " + count + " attempts");
+            }
+        } finally {
+            executor.shutdownNow();
+        }
+        deleteDb("testOptimizeReuseResults");
+    }
+
+    private void testOptimizeReuseResultsSet(Connection c, PreparedStatement prepUpdate, int value) {
+        try {
+            prepUpdate.setInt(1, value);
+            assertEquals(1, prepUpdate.executeUpdate());
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
     }
 

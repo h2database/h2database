@@ -454,19 +454,18 @@ public abstract class Query extends Prepared {
         this.noCache = true;
     }
 
-    private boolean sameResultAsLast(Value[] params, Value[] lastParams, long lastEval) {
+    private boolean getNoCache() {
         if (!cacheableChecked) {
-            long max = getMaxDataModificationId();
-            noCache = max == Long.MAX_VALUE;
-            if (!isEverything(ExpressionVisitor.DETERMINISTIC_VISITOR) ||
-                    !isEverything(ExpressionVisitor.INDEPENDENT_VISITOR)) {
+            if (getMaxDataModificationId() == Long.MAX_VALUE || !isEverything(ExpressionVisitor.DETERMINISTIC_VISITOR)
+                    || !isEverything(ExpressionVisitor.INDEPENDENT_VISITOR)) {
                 noCache = true;
             }
             cacheableChecked = true;
         }
-        if (noCache) {
-            return false;
-        }
+        return noCache;
+    }
+
+    private static boolean sameParameters(Value[] params, Value[] lastParams) {
         for (int i = 0; i < params.length; i++) {
             Value a = lastParams[i], b = params[i];
             // Derived tables can have gaps in parameters
@@ -474,7 +473,7 @@ public abstract class Query extends Prepared {
                 return false;
             }
         }
-        return getMaxDataModificationId() <= lastEval;
+        return true;
     }
 
     private  Value[] getParameterValues() {
@@ -511,31 +510,33 @@ public abstract class Query extends Prepared {
             return queryWithoutCacheLazyCheck(limit, target);
         }
         fireBeforeSelectTriggers();
-        if (noCache || !getDatabase().getOptimizeReuseResults() ||
+        if (getNoCache() || !getDatabase().getOptimizeReuseResults() ||
                 (session.isLazyQueryExecution() && !neverLazy)) {
             return queryWithoutCacheLazyCheck(limit, target);
         }
         Value[] params = getParameterValues();
-        long now = getDatabase().getModificationDataId();
-        if (isEverything(ExpressionVisitor.DETERMINISTIC_VISITOR)) {
-            if (lastResult != null && !lastResult.isClosed() &&
-                    limit == lastLimit) {
-                if (sameResultAsLast(params, lastParameters, lastEvaluated)) {
-                    lastResult = lastResult.createShallowCopy(session);
-                    if (lastResult != null) {
-                        lastResult.reset();
-                        return lastResult;
-                    }
-                }
+        long now = session.getStatementModificationDataId(), maxDataModificationId = getMaxDataModificationId();
+        if (lastResult != null && !lastResult.isClosed() && limit == lastLimit //
+                && maxDataModificationId <= lastEvaluated && sameParameters(params, lastParameters)) {
+            lastResult = lastResult.createShallowCopy(session);
+            if (lastResult != null) {
+                lastResult.reset();
+                return lastResult;
             }
         }
-        lastParameters = params;
         closeLastResult();
         ResultInterface r = queryWithoutCacheLazyCheck(limit, target);
-        lastResult = r;
+        if (maxDataModificationId <= now) {
+            lastParameters = params;
+            lastResult = r;
+            lastEvaluated = now;
+            lastLimit = limit;
+        } else {
+            lastParameters = null;
+            lastResult = null;
+            lastLimit = lastEvaluated = 0L;
+        }
         lastExists = null;
-        lastEvaluated = now;
-        lastLimit = limit;
         return r;
     }
 
@@ -557,23 +558,25 @@ public abstract class Query extends Prepared {
             return executeExists();
         }
         fireBeforeSelectTriggers();
-        if (noCache || !getDatabase().getOptimizeReuseResults()) {
+        if (getNoCache() || !getDatabase().getOptimizeReuseResults()) {
             return executeExists();
         }
         Value[] params = getParameterValues();
-        long now = getDatabase().getModificationDataId();
-        if (isEverything(ExpressionVisitor.DETERMINISTIC_VISITOR)) {
-            if (lastExists != null) {
-                if (sameResultAsLast(params, lastParameters, lastEvaluated)) {
-                    return lastExists;
-                }
-            }
+        long now = session.getStatementModificationDataId(), maxDataModificationId = getMaxDataModificationId();
+        if (lastExists != null && maxDataModificationId <= lastEvaluated && sameParameters(params, lastParameters)) {
+            return lastExists;
         }
-        lastParameters = params;
         boolean exists = executeExists();
-        lastExists = exists;
+        if (maxDataModificationId <= now) {
+            lastParameters = params;
+            lastExists = exists;
+            lastEvaluated = now;
+        } else {
+            lastParameters = null;
+            lastExists = null;
+            lastEvaluated = 0L;
+        }
         lastResult = null;
-        lastEvaluated = now;
         return exists;
     }
 

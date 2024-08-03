@@ -262,7 +262,7 @@ public class TableValueConstructor extends Query {
     }
 
     @Override
-    public void mapColumns(ColumnResolver resolver, int level) {
+    public void mapColumns(ColumnResolver resolver, int level, boolean outer) {
         int columnCount = visibleColumnCount;
         for (ArrayList<Expression> row : rows) {
             for (int i = 0; i < columnCount; i++) {

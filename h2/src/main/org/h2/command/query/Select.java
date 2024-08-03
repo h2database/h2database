@@ -1155,7 +1155,7 @@ public class Select extends Query {
         }
         // map columns in select list and condition
         for (TableFilter f : filters) {
-            mapColumns(f, 0);
+            mapColumns(f, 0, false);
         }
         mapCondition(havingIndex);
         mapCondition(qualifyIndex);
@@ -1596,12 +1596,15 @@ public class Select extends Query {
     }
 
     @Override
-    public void mapColumns(ColumnResolver resolver, int level) {
+    public void mapColumns(ColumnResolver resolver, int level, boolean outer) {
         for (Expression e : expressions) {
             e.mapColumns(resolver, level, Expression.MAP_INITIAL);
         }
         if (condition != null) {
             condition.mapColumns(resolver, level, Expression.MAP_INITIAL);
+        }
+        for (TableFilter tableFilter : topFilters) {
+            tableFilter.mapColumns(resolver, level, outer);
         }
     }
 

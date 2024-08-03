@@ -65,7 +65,7 @@ public final class ArrayConstructorByQuery extends Expression {
 
     @Override
     public void mapColumns(ColumnResolver resolver, int level, int state) {
-        query.mapColumns(resolver, level + 1);
+        query.mapColumns(resolver, level + 1, true);
     }
 
     @Override

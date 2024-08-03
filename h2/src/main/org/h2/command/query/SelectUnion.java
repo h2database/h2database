@@ -303,9 +303,9 @@ public class SelectUnion extends Query {
     }
 
     @Override
-    public void mapColumns(ColumnResolver resolver, int level) {
-        left.mapColumns(resolver, level);
-        right.mapColumns(resolver, level);
+    public void mapColumns(ColumnResolver resolver, int level, boolean outer) {
+        left.mapColumns(resolver, level, outer);
+        right.mapColumns(resolver, level, outer);
     }
 
     @Override

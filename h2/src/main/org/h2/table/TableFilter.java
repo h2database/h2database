@@ -635,7 +635,6 @@ public class TableFilter implements ColumnResolver {
      */
     public void addJoin(TableFilter filter, boolean outer, Expression on) {
         if (on != null) {
-            on.mapColumns(this, 0, Expression.MAP_INITIAL);
             TableFilterVisitor visitor = new MapColumnsVisitor(on);
             visit(visitor);
             filter.visit(visitor);
@@ -647,7 +646,7 @@ public class TableFilter implements ColumnResolver {
                 filter.visit(JOI_VISITOR);
             }
             if (on != null) {
-                filter.mapAndAddFilter(on);
+                filter.addFilter(on);
             }
         } else {
             join.addJoin(filter, outer, on);
@@ -664,18 +663,40 @@ public class TableFilter implements ColumnResolver {
     }
 
     /**
-     * Map the columns and add the join condition.
+     * Add the join condition.
      *
      * @param on the condition
      */
-    public void mapAndAddFilter(Expression on) {
-        on.mapColumns(this, 0, Expression.MAP_INITIAL);
+    public void addFilter(Expression on) {
         addFilterCondition(on, true);
+        if (join != null) {
+            join.addFilter(on);
+        }
+    }
+
+    /**
+     * Map the columns to the given column resolver.
+     *
+     * @param resolver
+     *            the resolver
+     * @param level
+     *            the subquery level (0 is the top level query, 1 is the first
+     *            subquery level)
+     * @param outer
+     *            whether this method was called from the outer query
+     */
+    public void mapColumns(ColumnResolver resolver, int level, boolean outer) {
+        if (!outer && joinOuter) {
+            return;
+        }
+        if (joinCondition != null) {
+            joinCondition.mapColumns(resolver, level, Expression.MAP_INITIAL);
+        }
         if (nestedJoin != null) {
-            on.mapColumns(nestedJoin, 0, Expression.MAP_INITIAL);
+            nestedJoin.mapColumns(resolver, level, outer);
         }
         if (join != null) {
-            join.mapAndAddFilter(on);
+            join.mapColumns(resolver, level, outer);
         }
     }
 

@@ -336,8 +336,10 @@ public abstract class Query extends Prepared {
      * @param level
      *            the subquery level (0 is the top level query, 1 is the first
      *            subquery level)
+     * @param outer
+     *            whether this method was called from the outer query
      */
-    public abstract void mapColumns(ColumnResolver resolver, int level);
+    public abstract void mapColumns(ColumnResolver resolver, int level, boolean outer);
 
     /**
      * Change the evaluatable flag. This is used when building the execution

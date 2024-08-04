@@ -1044,3 +1044,55 @@ FROM (SELECT 1 A) X JOIN (
 > - - -
 > 1 1 1
 > rows: 1
+
+EXPLAIN
+WITH TEST(ID) AS (VALUES 1)
+SELECT * FROM TEST A INNER JOIN TEST B ON TRUE LEFT OUTER JOIN TEST C ON C.ID = A.ID;
+> PLAN
+> -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> WITH "TEST"("ID") AS ( VALUES (1) ) SELECT "A"."ID", "B"."ID", "C"."ID" FROM "TEST" "A" /* VALUES (1) */ INNER JOIN "TEST" "B" /* VALUES (1) */ ON 1=1 LEFT OUTER JOIN "TEST" "C" /* VALUES (1) */ ON "C"."ID" = "A"."ID"
+> rows: 1
+
+-- Column A.ID cannot be referenced from this part of the query
+EXPLAIN
+WITH TEST(ID) AS (VALUES 1)
+SELECT * FROM TEST A INNER JOIN TEST B LEFT OUTER JOIN TEST C ON C.ID = A.ID ON TRUE;
+> exception COLUMN_NOT_FOUND_1
+
+WITH
+  A(A) AS (VALUES (1)),
+  B(B) AS (VALUES (1)),
+  C(C) AS (VALUES (1))
+SELECT
+  A.A,
+  (
+    SELECT B.B
+    FROM B
+    JOIN C
+    ON B.B = A.A
+    AND C.C = B.B
+  )
+FROM A;
+> A (SELECT B.B FROM B B INNER JOIN C C ON 1=1 WHERE (B.B = A.A) AND (C.C = B.B))
+> - -----------------------------------------------------------------------------
+> 1 1
+> rows: 1
+
+WITH
+  A(A) AS (VALUES (1)),
+  B(B) AS (VALUES (1)),
+  C(C) AS (VALUES (1))
+SELECT
+  A.A,
+  (
+    SELECT B.B
+    FROM B
+    LEFT JOIN C
+    ON B.B = A.A
+    AND C.C = B.B
+  )
+FROM A;
+> A (SELECT B.B FROM B B LEFT OUTER JOIN C C ON (B.B = A.A) AND (C.C = B.B))
+> - ------------------------------------------------------------------------
+> 1 1
+> rows: 1

@@ -29,7 +29,7 @@ abstract class PredicateWithSubquery extends Condition {
 
     @Override
     public void mapColumns(ColumnResolver resolver, int level, int state) {
-        query.mapColumns(resolver, level + 1);
+        query.mapColumns(resolver, level + 1, true);
     }
 
     @Override

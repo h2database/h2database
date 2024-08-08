@@ -30,6 +30,7 @@
 42001=Syntax Fehler in SQL Befehl {0}; erwartet {1}
 42602=Ungültiger Name {0}
 42622=Der Name mit {0} beginnt ist zu lang. Die maximale Länge beträgt {1}
+42809=#{0} is not an enum
 42S01=Tabelle {0} besteht bereits
 42S02=Tabelle {0} nicht gefunden
 42S03=Tabelle {0} nicht gefunden (mögliche Kandidaten: {1})

@@ -30,6 +30,7 @@
 42001=Error de Sintaxis en sentencia SQL {0}; se esperaba {1}
 42602=#Invalid name {0}
 42622=#The name that starts with {0} is too long. The maximum length is {1}
+42809=#{0} is not an enum
 42S01=Tabla {0} ya existe
 42S02=Tabla {0} no encontrada
 42S03=#Table {0} not found (candidates are: {1})

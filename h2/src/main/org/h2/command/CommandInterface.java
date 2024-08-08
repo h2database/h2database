@@ -559,6 +559,11 @@ public interface CommandInterface extends AutoCloseable {
     int DROP_MATERIALIZED_VIEW = 104;
 
     /**
+     * The type of a ALTER TYPE statement.
+     */
+    int ALTER_TYPE = 105;
+
+    /**
      * Get command type.
      *
      * @return one of the constants above

@@ -107,22 +107,36 @@ alter table card alter column suit enum('hearts', 'clubs', 'spades', 'diamonds',
 drop table card;
 > ok
 
+CREATE TYPE my_number AS NUMBER;
+> ok
+
+alter type my_number ADD VALUE 'diamonds';
+> exception WRONG_OBJECT_TYPE
+
+drop type my_number;
+> ok
+
 --- ENUM as custom user data type
 
-create type CARD_SUIT as enum('hearts', 'clubs', 'spades', 'diamonds');
+create type CARD_SUIT as enum('hearts', 'clubs', 'spades');
 > ok
 
 create table card (rank int, suit CARD_SUIT);
 > ok
 
-insert into card (rank, suit) values (0, 'clubs'), (3, 'hearts');
+alter type CARD_SUIT ADD VALUE 'diamonds';
+> ok
+
+@reconnect
+
+insert into card (rank, suit) values (0, 'clubs'), (3, 'diamonds');
 > update count: 2
 
 select * from card;
 > RANK SUIT
-> ---- ------
+> ---- --------
 > 0    clubs
-> 3    hearts
+> 3    diamonds
 > rows: 2
 
 drop table card;

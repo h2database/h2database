@@ -30,6 +30,7 @@
 42001=Chyba syntaxe v SQL příkazu {0}; očekáváno {1}
 42602=#Invalid name {0}
 42622=#The name that starts with {0} is too long. The maximum length is {1}
+42809=#{0} is not an enum
 42S01=Tabulka {0} již existuje
 42S02=Tabulka {0} nenalezena
 42S03=#Table {0} not found (candidates are: {1})

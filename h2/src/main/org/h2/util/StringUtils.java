@@ -10,15 +10,12 @@ import java.lang.ref.SoftReference;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.text.Collator;
-import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 import java.util.function.IntPredicate;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.h2.api.ErrorCode;
 import org.h2.engine.SysProperties;

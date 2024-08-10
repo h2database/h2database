@@ -4276,6 +4276,7 @@ public final class Parser extends ParserBase {
         case "SECURE_RAND":
             return new RandFunction(readSingleArgument(), RandFunction.SECURE_RAND);
         case "RANDOM_UUID":
+            return new RandFunction(readIfSingleArgument(), RandFunction.RANDOM_UUID);
         case "UUID":
             read(CLOSE_PAREN);
             return new RandFunction(null, RandFunction.RANDOM_UUID);

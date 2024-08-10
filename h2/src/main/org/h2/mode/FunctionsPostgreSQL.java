@@ -192,7 +192,11 @@ public final class FunctionsPostgreSQL extends ModeFunction {
             return new CurrentGeneralValueSpecification(CurrentGeneralValueSpecification.CURRENT_CATALOG)
                     .optimize(session);
         case GEN_RANDOM_UUID:
-            return new RandFunction(null, RandFunction.RANDOM_UUID).optimize(session);
+            /*
+             * PostgresSQL uses version 4.
+             */
+            return new RandFunction(ValueExpression.get(ValueInteger.get(4)), RandFunction.RANDOM_UUID)
+                    .optimize(session);
         default:
             boolean allConst = optimizeArguments(session);
             type = TypeInfo.getTypeInfo(info.returnDataType);

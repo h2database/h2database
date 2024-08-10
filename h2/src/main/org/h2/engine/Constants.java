@@ -21,12 +21,12 @@ public class Constants {
      * Sequential version number. Even numbers are used for official releases,
      * odd numbers are used for development builds.
      */
-    public static final int BUILD_ID = 232;
+    public static final int BUILD_ID = 239;
 
     /**
      * Whether this is a snapshot version.
      */
-    public static final boolean BUILD_SNAPSHOT = false;
+    public static final boolean BUILD_SNAPSHOT = true;
 
     /**
      * If H2 is compiled to be included in a product, this should be set to

@@ -74,7 +74,7 @@ public final class RandFunction extends Function0_1 {
             v = ValueVarbinary.getNoCopy(MathUtils.secureRandomBytes(v.getInt()));
             break;
         case RANDOM_UUID:
-            v = ValueUuid.getNewRandom();
+            v = ValueUuid.getNewRandom(v != null ? v.getInt() : 4);
             break;
         default:
             throw DbException.getInternalError("function=" + function);

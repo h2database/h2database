@@ -496,7 +496,7 @@ public final class Column implements HasSQL, Typed, ColumnTemplate {
         String sequenceName;
         do {
             sequenceName = "SYSTEM_SEQUENCE_"
-                    + StringUtils.toUpperEnglish(ValueUuid.getNewRandom().getString().replace('-', '_'));
+                    + StringUtils.toUpperEnglish(ValueUuid.getNewRandom(4).getString().replace('-', '_'));
         } while (schema.findSequence(sequenceName) != null);
         identityOptions.setDataType(type);
         Sequence seq = new Sequence(session, schema, id, sequenceName, identityOptions, true);

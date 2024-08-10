@@ -272,7 +272,7 @@ public class TestValue extends TestDb {
     private void testUUID() {
         long maxHigh = 0, maxLow = 0, minHigh = -1L, minLow = -1L;
         for (int i = 0; i < 100; i++) {
-            ValueUuid uuid = ValueUuid.getNewRandom();
+            ValueUuid uuid = ValueUuid.getNewRandom(4);
             maxHigh |= uuid.getHigh();
             maxLow |= uuid.getLow();
             minHigh &= uuid.getHigh();

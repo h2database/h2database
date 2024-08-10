@@ -4611,7 +4611,7 @@ JSON
 "Data Types","UUID Type","
 @h2@ UUID
 ","
-Universally unique identifier. This is a 128 bit value.
+RFC 9562-compliant universally unique identifier. This is a 128 bit value.
 To store values, use ""PreparedStatement.setBytes"",
 ""setString"", or ""setObject(uuid)"" (where ""uuid"" is a ""java.util.UUID"").
 ""ResultSet.getObject"" will return a ""java.util.UUID"".
@@ -4620,6 +4620,7 @@ Please note that using an index on randomly generated data will
 result on poor performance once there are millions of rows in a table.
 The reason is that the cache behavior is very bad with randomly distributed data.
 This is a problem for any database system.
+To avoid this problem use UUID version 7 values.
 
 For details, see the documentation of ""java.util.UUID"".
 ","
@@ -5295,15 +5296,23 @@ RAND()
 "
 
 "Functions (Numeric)","RANDOM_UUID","
-@h2@ { RANDOM_UUID | UUID } ()
+@h2@ RANDOM_UUID([versionInt]) | UUID()
 ","
-Returns a new UUID with 122 pseudo random bits.
+Returns a new RFC 9562-compliant UUID with the specified version.
+If version is not specified, a default version will be used.
+Current default is 4, but it may be changed in future versions of H2.
 
+Version 4 is a UUID with 122 pseudo random bits.
 Please note that using an index on randomly generated data will
 result on poor performance once there are millions of rows in a table.
 The reason is that the cache behavior is very bad with randomly distributed data.
 This is a problem for any database system.
+
+Version 7 is a time-ordered UUID value with layout optimized for database systems.
+It contains 48-bit number of milliseconds seconds since midnight 1 Jan 1970 UTC with leap seconds excluded,
+additional 12-bit sub-millisecond timestamp fraction if available, and 62 pseudo random bits.
 ","
+RANDOM_UUID(7)
 RANDOM_UUID()
 "
 

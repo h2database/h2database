@@ -1526,12 +1526,16 @@ for more information.
 <p>
 This database supports UUIDs. Also supported is a function to create new UUIDs using
 a cryptographically strong pseudo random number generator.
+</p>
+<p>
 With random UUIDs, the chance of two having the same value can be calculated
 using the probability theory. See also 'Birthday Paradox'.
-Standardized randomly generated UUIDs have 122 random bits.
+</p>
+<p>
+RFC 9562-compliant randomly generated UUIDs with version 4 have 122 random bits.
 4 bits are used for the version (Randomly generated UUID), and 2 bits for the variant (Leach-Salz).
-This database supports generating such UUIDs using the built-in function
-<code>RANDOM_UUID()</code> or <code>UUID()</code>.
+This database supports generating such UUIDs using the built-in function <code>RANDOM_UUID(4)</code>.
+Please note that indexes on UUIDs with this version may have a poor performance.
 Here is a small program to estimate the probability of having two identical UUIDs
 after generating a number of values:
 </p>
@@ -1562,6 +1566,18 @@ Some values are:
 To help non-mathematicians understand what those numbers mean, here a comparison:
 one's annual risk of being hit by a meteorite is estimated to be one chance in 17 billion,
 that means the probability is about 0.000'000'000'06.
+</p>
+
+<p>
+RFC 9562-compliant time-ordered UUIDs with version 7 have layout optimized for database systems.
+They contain 48-bit number of milliseconds seconds since midnight 1 Jan 1970 UTC with leap seconds excluded
+and additional 12-bit sub-millisecond timestamp fraction plus 62 random bits or 74 random bits without this fraction
+depending on implementation.
+</p>
+<p>
+This database supports generating such UUIDs using the built-in function <code>RANDOM_UUID(7)</code>.
+This function produces 12-bit sub-millisecond timestamp fraction if high resolution timestamps are available in JVM
+and 62 pseudo random bits.
 </p>
 
 <h2 id="spatial_features">Spatial Features</h2>

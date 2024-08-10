@@ -7,6 +7,7 @@ package org.h2.value;
 
 import static org.h2.util.Bits.LONG_VH_BE;
 
+import java.time.Instant;
 import java.util.UUID;
 
 import org.h2.api.ErrorCode;
@@ -47,16 +48,30 @@ public final class ValueUuid extends Value {
     /**
      * Create a new UUID using the pseudo random number generator.
      *
+     * @param version
+     *            a version to use
      * @return the new UUID
      */
-    public static ValueUuid getNewRandom() {
-        long high = MathUtils.secureRandomLong();
-        long low = MathUtils.secureRandomLong();
-        // version 4 (random)
-        high = (high & ~0xf000L) | 0x4000L;
-        // variant (Leach-Salz)
-        low = (low & 0x3fff_ffff_ffff_ffffL) | 0x8000_0000_0000_0000L;
-        return new ValueUuid(high, low);
+    public static ValueUuid getNewRandom(int version) {
+        long high, low;
+        switch (version) {
+        case 4:
+            high = MathUtils.secureRandomLong();
+            low = MathUtils.secureRandomLong();
+            break;
+        case 7: {
+            Instant now = Instant.now();
+            int nanos = now.getNano();
+            int sub = ((int) (nanos % 1_000_000L)) * 2_000 / 488_281;
+            high = now.getEpochSecond() * 1_000L + nanos / 1_000_000L << 16 | sub;
+            low = MathUtils.secureRandomLong();
+            break;
+        }
+        default:
+            throw DbException.getInvalidValueException("RANDOM_UUID version", version);
+        }
+        return new ValueUuid((high & ~0xf000L) | version << 12,
+                /* variant 0b10 */ low & 0x3fff_ffff_ffff_ffffL | 0x8000_0000_0000_0000L);
     }
 
     /**

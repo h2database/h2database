@@ -605,7 +605,7 @@ spell spellcheck spellchecker spelled spelling spends spent sphere spi spiced
 spin spliced split splits splitting sponsored spot spots spr spread spring
 springframework springfuse sql sqlexpress sqli sqlite sqlj sqlnulls sqlserver
 sqlstate sqlxml sqrt square squill squirrel src srcs srid ssd ssl stability
-stabilize stable stack stackable stacked stage stages stamp standalone standard
+stabilize stable stack stackable stacked stage stages stale stamp standalone standard
 standardized standards standby standing stands star staring start started starter
 starting starts startup starvation starves stat state stated statement statements
 states static stating station statistic statistical statisticlog statistics stats

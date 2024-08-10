@@ -21,6 +21,12 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul>
+<li>Nothing yet
+</li>
+</ul>
+
+<h2>Version 2.3.232 (2024-08-11)</h2>
+<ul>
 <li>Issue #3945: Column not found in correlated subquery, when referencing outer column from LEFT JOIN .. ON clause
 </li>
 <li>Issue #4097: StackOverflowException when using multiple SELECT statements in one query (2.3.230)
@@ -454,63 +460,6 @@ Then error occurred.
 </li>
 </ul>
 
-<h2>Version 2.0.204 (2021-12-21)</h2>
-<ul>
-<li>Issue #3291: Add Legacy and Strict modes
-</li>
-<li>Issue #3287: SELECT statement works on 1.4.200 but fails on 2.0.202 with "Column XYZ must be in the GROUP BY list"
-</li>
-<li>PR #3284: Remove unused UNDO_LOG setting
-</li>
-<li>Issue #3251: Table with GEOMETRY column can't have a TriggerAdapter-based trigger any more
-</li>
-<li>PR #3281: DateTimeFormatter-based FORMATDATETIME and PARSEDATETIME and other changes
-</li>
-<li>Issue #3246: Spatial predicates with comparison are broken in MySQL compatibility mode
-</li>
-<li>Issue #3270: org.h2.jdbc.JdbcSQLFeatureNotSupportedException: Feature not supported: "Unsafe comparison or cast"
-</li>
-<li>Issue #3268 / PR #3275: Add TO_DATE and TO_TIMESTAMP to PostgreSQL compatibility mode
-</li>
-<li>PR #3274: Remove some dead code and unused params
-</li>
-<li>Issue #3266: Oracle compatibility NUMBER without precision and scale should have variable scale
-</li>
-<li>Issue #3263: Unable to store BigDecimal with negative scale in NUMERIC(19,6) column
-</li>
-<li>PR #3261: Small optimization for MIN and MAX
-</li>
-<li>Issue #3258 / PR #3259: Prevent incorrect optimization of COUNT(*) and other changes
-</li>
-<li>PR #3255: Throw proper exception when type of argument isn't known
-</li>
-<li>Issue #3249: Multi-column assignment with subquery throws exception when subquery doesn't return any rows
-</li>
-<li>PR #3248: Remove redundant uniqueness check, correct version in pom
-</li>
-<li>PR #3247: Avoid AIOBE exception in TestCrashAPI and in Transaction
-</li>
-<li>Issue #3241: ResultSetMetaData::getColumnTypeName should produce the correct ARRAY type
-</li>
-<li>Issue #3204: H2 Tools Web Console: Unicode 32
-</li>
-<li>Issue #3227: Regression when referencing outer joined column from correlated subquery
-</li>
-<li>Issue #3237: Can no longer cast CHAR(n) to BOOLEAN with n > 1
-</li>
-<li>Issue #3235: Regression in IN predicate with empty in list
-</li>
-<li>Issue #3236: NullPointerException in DatabaseMetaData::getIndexInfo when querying the info for views
-</li>
-<li>Issue #3233: General error when using NULL predicate on _ROWID_ column
-</li>
-<li>Issue #3223: TRUNC(v, p) with negative precisions no longer works
-</li>
-<li>Issue #3221: NullPointerException when creating domain
-</li>
-<li>Issue #3186: ResultSetMetaData.getSchemaName() returns empty string for aliased columns
-</li>
-</ul>
 
 
 <!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>

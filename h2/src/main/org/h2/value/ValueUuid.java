@@ -62,8 +62,8 @@ public final class ValueUuid extends Value {
         case 7: {
             Instant now = Instant.now();
             int nanos = now.getNano();
-            int sub = ((int) (nanos % 1_000_000L)) * 2_000 / 488_281;
-            high = now.getEpochSecond() * 1_000L + nanos / 1_000_000L << 16 | sub;
+            int sub = nanos % 1_000_000 * 2_000 / 488_281;
+            high = now.getEpochSecond() * 1_000L + nanos / 1_000_000 << 16 | sub;
             low = MathUtils.secureRandomLong();
             break;
         }

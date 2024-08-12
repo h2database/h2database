@@ -164,6 +164,7 @@ import org.h2.command.ddl.AlterTableDropConstraint;
 import org.h2.command.ddl.AlterTableRename;
 import org.h2.command.ddl.AlterTableRenameColumn;
 import org.h2.command.ddl.AlterTableRenameConstraint;
+import org.h2.command.ddl.AlterType;
 import org.h2.command.ddl.AlterUser;
 import org.h2.command.ddl.AlterView;
 import org.h2.command.ddl.Analyze;
@@ -7088,6 +7089,8 @@ public final class Parser extends ParserBase {
             return parseAlterView();
         } else if (readIf("DOMAIN")) {
             return parseAlterDomain();
+        } else if (readIf("TYPE")) {
+            return parseAlterType();
         }
         throw getSyntaxError();
     }
@@ -7396,6 +7399,20 @@ public final class Parser extends ParserBase {
             } else {
                 throw getSyntaxError();
             }
+            return command;
+        }
+        throw getSyntaxError();
+    }
+
+    private AlterType parseAlterType() {
+        String typeName = readIdentifierWithSchema();
+        if (readIf("ADD")) {
+            Schema schema = getSchema();
+            AlterType command = new AlterType(session, schema);
+            command.setDomainName(typeName);
+            read(VALUE);
+            String value = readString();
+            command.setValue(value);
             return command;
         }
         throw getSyntaxError();

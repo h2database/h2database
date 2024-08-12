@@ -490,6 +490,16 @@ public class ErrorCode {
      * </pre>
      */
     public static final int NAME_TOO_LONG_2 = 42622;
+    /**
+     * The error with code <code>42809</code> is thrown on attempt
+     * to add value to any type other than enum
+     * Example:
+     * <pre>
+     * statement.executeQuery("CREATE TYPE my_number AS NUMBER");
+     * statement.executeQuery("ALTER TYPE my_number ADD VALUE 'value'");
+     * </pre>
+     */
+    public static final int WRONG_OBJECT_TYPE = 42809;
 
     // 54: program limit exceeded
 

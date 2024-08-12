@@ -339,6 +339,10 @@ public final class Column implements HasSQL, Typed, ColumnTemplate {
         return type;
     }
 
+    public void setType(TypeInfo type) {
+        this.type = type;
+    }
+
     public void setNullable(boolean b) {
         nullable = b;
     }

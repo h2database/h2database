@@ -4544,6 +4544,18 @@ The maximum allowed length of complete data type definition with all values is 1
 ENUM('clubs', 'diamonds', 'hearts', 'spades')
 "
 
+"Commands (DDL)","ALTER TYPE","
+ALTER TYPE @h2@ [schemaName.]enumName ADD VALUE string
+","
+Adds new value to enum.
+
+Duplicate and empty values are not permitted.
+The maximum number of values is 65536.
+The maximum allowed length of complete data type definition with all values is 1,000,000,000 characters.
+","
+ALTER TYPE card_suit ADD VALUE 'clubs'
+"
+
 "Data Types","GEOMETRY Type","
 @h2@ GEOMETRY
     [({ GEOMETRY |

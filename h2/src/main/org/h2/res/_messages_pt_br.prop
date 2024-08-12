@@ -30,6 +30,7 @@
 42001=Erro de sintax na declaração SQL {0}; esperado {1}
 42602=#Invalid name {0}
 42622=#The name that starts with {0} is too long. The maximum length is {1}
+42809=#{0} is not an enum
 42S01=Tabela {0} já existe
 42S02=Tabela {0} não foi encontrada
 42S03=#Table {0} not found (candidates are: {1})

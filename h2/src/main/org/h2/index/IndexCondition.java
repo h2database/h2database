@@ -5,6 +5,8 @@
  */
 package org.h2.index;
 
+import static org.h2.util.HasSQL.TRACE_SQL_FLAGS;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -26,8 +28,6 @@ import org.h2.table.TableType;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueRow;
-
-import static org.h2.util.HasSQL.TRACE_SQL_FLAGS;
 
 /**
  * An index condition object is made for each condition that can potentially use
@@ -139,14 +139,8 @@ public class IndexCondition {
      * @param list the expression list
      * @return the index condition
      */
-    public static IndexCondition getCompoundInList(ExpressionList columns, List<Expression> list) {
-        int listSize = columns.getSubexpressionCount();
-        Column[] cols = new Column[listSize];
-        for (int i = listSize; --i >= 0; ) {
-            cols[i] = ((ExpressionColumn) columns.getSubexpression(i)).getColumn();
-        }
-
-        return new IndexCondition(Comparison.IN_LIST, null, cols, null, list, null);
+    public static IndexCondition getCompoundInList(Column[] columns, List<Expression> list) {
+        return new IndexCondition(Comparison.IN_LIST, null, columns, null, list, null);
     }
 
     /**

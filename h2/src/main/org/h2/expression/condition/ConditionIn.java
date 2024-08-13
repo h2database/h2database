@@ -14,7 +14,9 @@ import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ExpressionList;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.index.IndexCondition;
+import org.h2.table.Column;
 import org.h2.table.TableFilter;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 
 /**
@@ -80,7 +82,7 @@ abstract class ConditionIn extends Condition {
             ExpressionList list = (ExpressionList) left;
             if (!list.isArray()) {
                 // First we create a compound index condition.
-                createCompoundIndexCondition(filter);
+                createCompoundIndexCondition(filter, list);
                 // If there is no compound index, then the TableFilter#prepare()
                 // method will drop this condition.
                 // Then we create a unique index condition for each column.
@@ -96,18 +98,34 @@ abstract class ConditionIn extends Condition {
      * Creates a compound index condition containing every item in the
      * expression list.
      *
-     * @see IndexCondition#getCompoundInList(ExpressionList, List)
+     * @param filter
+     *            the table filter
+     * @param list
+     *            list of expressions
+     *
+     * @see IndexCondition#getCompoundInList(Column[], List)
      */
-    private void createCompoundIndexCondition(TableFilter filter) {
+    private void createCompoundIndexCondition(TableFilter filter, ExpressionList list) {
         // We do not check filter here, because the IN condition can contain
         // columns from multiple tables.
+        TypeInfo colType = left.getType();
         ExpressionVisitor visitor = ExpressionVisitor.getNotFromResolverVisitor(filter);
         for (Expression e : valueList) {
-            if (!e.isEverything(visitor)) {
+            if (!e.isEverything(visitor)
+                    || !TypeInfo.haveSameOrdering(colType, TypeInfo.getHigherType(colType, e.getType()))) {
                 return;
             }
         }
-        filter.addIndexCondition(IndexCondition.getCompoundInList((ExpressionList) left, valueList));
+        int l = list.getSubexpressionCount();
+        Column[] columns = new Column[l];
+        for (int i = 0; i < l; i++) {
+            Expression e = list.getSubexpression(i);
+            if (!(e instanceof ExpressionColumn)) {
+                return;
+            }
+            columns[i] = ((ExpressionColumn) e).getColumn();
+        }
+        filter.addIndexCondition(IndexCondition.getCompoundInList(columns, valueList));
     }
 
     abstract void createUniqueIndexConditions(TableFilter filter, ExpressionList list);

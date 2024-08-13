@@ -6,6 +6,7 @@
 package org.h2.expression.condition;
 
 import java.util.ArrayList;
+
 import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
@@ -643,12 +644,12 @@ public final class Comparison extends Condition {
         return null;
     }
 
-    private static ConditionIn getConditionIn(Expression left, Expression value1,
+    private static ConditionInList getConditionIn(Expression left, Expression value1,
             Expression value2) {
         ArrayList<Expression> right = new ArrayList<>(2);
         right.add(value1);
         right.add(value2);
-        return new ConditionIn(left, false, false, right);
+        return new ConditionInList(left, false, false, right);
     }
 
     @Override

@@ -168,10 +168,10 @@ public class ConditionAndOr extends Condition {
             Expression reduced;
             if (left instanceof Comparison && right instanceof Comparison) {
                 reduced = ((Comparison) left).optimizeOr(session, (Comparison) right);
-            } else if (left instanceof ConditionIn && right instanceof Comparison) {
-                reduced = ((ConditionIn) left).getAdditional((Comparison) right);
-            } else if (right instanceof ConditionIn && left instanceof Comparison) {
-                reduced = ((ConditionIn) right).getAdditional((Comparison) left);
+            } else if (left instanceof ConditionInList && right instanceof Comparison) {
+                reduced = ((ConditionInList) left).getAdditional((Comparison) right);
+            } else if (right instanceof ConditionInList && left instanceof Comparison) {
+                reduced = ((ConditionInList) right).getAdditional((Comparison) left);
             } else if (left instanceof ConditionInConstantSet && right instanceof Comparison) {
                 reduced = ((ConditionInConstantSet) left).getAdditional(session, (Comparison) right);
             } else if (right instanceof ConditionInConstantSet && left instanceof Comparison) {

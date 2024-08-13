@@ -7574,6 +7574,9 @@ public final class Parser extends ParserBase {
         } else if (readIfCompat("LOG")) {
             throw DbException.getUnsupportedException("LOG");
         } else {
+            if (currentToken == null) {
+                throw getSyntaxError();
+            }
             String upperName = upperName(currentToken);
             if (ConnectionInfo.isIgnoredByParser(upperName)) {
                 read();

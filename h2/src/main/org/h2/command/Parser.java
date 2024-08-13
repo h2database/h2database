@@ -295,8 +295,8 @@ import org.h2.expression.condition.CompareLike.LikeType;
 import org.h2.expression.condition.Comparison;
 import org.h2.expression.condition.ConditionAndOr;
 import org.h2.expression.condition.ConditionAndOrN;
-import org.h2.expression.condition.ConditionIn;
 import org.h2.expression.condition.ConditionInArray;
+import org.h2.expression.condition.ConditionInList;
 import org.h2.expression.condition.ConditionInQuery;
 import org.h2.expression.condition.ConditionLocalAndGlobal;
 import org.h2.expression.condition.ConditionNot;
@@ -3210,7 +3210,7 @@ public final class Parser extends ParserBase {
         do {
             v.add(readExpression());
         } while (readIfMore());
-        return new ConditionIn(left, not, whenOperand, v);
+        return new ConditionInList(left, not, whenOperand, v);
     }
 
     private IsJsonPredicate readJsonPredicate(Expression left, boolean not, boolean whenOperand) {
@@ -7574,6 +7574,9 @@ public final class Parser extends ParserBase {
         } else if (readIfCompat("LOG")) {
             throw DbException.getUnsupportedException("LOG");
         } else {
+            if (currentToken == null) {
+                throw getSyntaxError();
+            }
             String upperName = upperName(currentToken);
             if (ConnectionInfo.isIgnoredByParser(upperName)) {
                 read();

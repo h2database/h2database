@@ -11,6 +11,7 @@ import org.h2.test.TestDb;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -51,6 +52,7 @@ public class TestCompoundIndexParamSearch extends TestDb {
         compoundInAgainstSimpleIndex(conn);
         compoundEqAgainstCompoundIndex(conn);
         multipleEqAgainstCompoundIndex(conn);
+        testInListWithParameters(conn);
 
         conn.close();
         deleteDb(DB_NAME);
@@ -342,6 +344,25 @@ public class TestCompoundIndexParamSearch extends TestDb {
         rs.next();
         assertEquals(findScanCount(rs.getString(1)), expected);
         pStat.close();
+    }
+
+    private void testInListWithParameters(Connection conn) throws SQLException {
+        PreparedStatement prep = conn.prepareStatement("SELECT TRUE WHERE (CAST(? AS INT), CAST(? AS INT)) "
+                + "IN((CAST(? AS INT), CAST(? AS INT)), (CAST(? AS INT), CAST(? AS INT)))");
+        prep.setInt(1, 1);
+        prep.setInt(2, 2);
+        prep.setInt(3, 1);
+        prep.setInt(4, 2);
+        prep.setInt(5, 3);
+        prep.setInt(6, 4);
+        ResultSet rs = prep.executeQuery();
+        assertTrue(rs.next());
+        assertTrue(rs.getBoolean(1));
+        assertFalse(rs.next());
+        prep.setInt(3, 5);
+        rs = prep.executeQuery();
+        assertFalse(rs.next());
+        prep.close();
     }
 
 }

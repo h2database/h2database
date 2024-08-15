@@ -16,6 +16,7 @@ import org.h2.engine.NullsDistinct;
 import org.h2.engine.SessionLocal;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
+import org.h2.mode.DefaultNullOrdering;
 import org.h2.result.Row;
 import org.h2.result.RowFactory;
 import org.h2.result.SearchRow;
@@ -621,12 +622,14 @@ public abstract class Index extends SchemaObject {
         if (sortOrder != null) {
             sortingCost = 100 + rowCount / 10;
         }
-        if (sortOrder != null && !isScanIndex) {
-            boolean sortOrderMatches = true;
+        if (sortOrder != null && !isScanIndex && filters != null && filter == 0) {
             int coveringCount = 0;
             int[] sortTypes = sortOrder.getSortTypesWithNullOrdering();
-            TableFilter tableFilter = filters == null ? null : filters[filter];
-            for (int i = 0, len = sortTypes.length; i < len; i++) {
+            int sortOrderLength = sortTypes.length;
+            TableFilter tableFilter = filters[0];
+            DefaultNullOrdering defaultNullOrdering = getDatabase().getDefaultNullOrdering();
+            boolean reverse = false;
+            for (int i = 0; i < sortOrderLength; i++) {
                 if (i >= indexColumns.length) {
                     // We can still use this index if we are sorting by more
                     // than it's columns, it's just that the coveringCount
@@ -636,22 +639,44 @@ public abstract class Index extends SchemaObject {
                 }
                 Column col = sortOrder.getColumn(i, tableFilter);
                 if (col == null) {
-                    sortOrderMatches = false;
                     break;
                 }
-                IndexColumn indexCol = indexColumns[i];
-                if (!col.equals(indexCol.column)) {
-                    sortOrderMatches = false;
+                IndexColumn idxCol = indexColumns[i];
+                if (!col.equals(idxCol.column)) {
                     break;
                 }
-                int sortType = sortTypes[i];
-                if (sortType != indexCol.sortType) {
-                    sortOrderMatches = false;
+                boolean mismatch = false;
+                if (col.isNullable()) {
+                    int o1 = defaultNullOrdering.addExplicitNullOrdering(idxCol.sortType);
+                    int o2 = sortTypes[i];
+                    if (i == 0) {
+                        if (o1 != o2) {
+                            if (o1 == SortOrder.inverse(o2)) {
+                                reverse = true;
+                            } else {
+                                mismatch = true;
+                            }
+                        }
+                    } else {
+                        if (o1 != (reverse ? SortOrder.inverse(o2) : o2)) {
+                            mismatch = true;
+                        }
+                    }
+                } else {
+                    boolean different = (idxCol.sortType & SortOrder.DESCENDING) //
+                            != (sortTypes[i] & SortOrder.DESCENDING);
+                    if (i == 0) {
+                        reverse = different;
+                    } else {
+                        mismatch = different != reverse;
+                    }
+                }
+                if (mismatch) {
                     break;
                 }
                 coveringCount++;
             }
-            if (sortOrderMatches) {
+            if (coveringCount > 0) {
                 // "coveringCount" makes sure that when we have two
                 // or more covering indexes, we choose the one
                 // that covers more.

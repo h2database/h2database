@@ -15,6 +15,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReferenceArray;
 import java.util.function.IntPredicate;
 
 import org.h2.api.ErrorCode;
@@ -36,12 +37,10 @@ public class StringUtils {
     // 4 * 1024 * 2 (strings per pair) * 64 * 2 (bytes per char) = 0.5 MB
     private static final int TO_UPPER_CACHE_LENGTH = 2 * 1024;
     private static final int TO_UPPER_CACHE_MAX_ENTRY_LENGTH = 64;
-    private static final String[][] TO_UPPER_CACHE = new String[TO_UPPER_CACHE_LENGTH][];
+    private static final AtomicReferenceArray<String[]> TO_UPPER_CACHE = new AtomicReferenceArray<>(TO_UPPER_CACHE_LENGTH);
 
     static {
-        for (int i = 0; i < HEX_DECODE.length; i++) {
-            HEX_DECODE[i] = -1;
-        }
+        Arrays.fill(HEX_DECODE, -1);
         for (int i = 0; i <= 9; i++) {
             HEX_DECODE[i + '0'] = i;
         }
@@ -88,15 +87,14 @@ public class StringUtils {
             return s.toUpperCase(Locale.ENGLISH);
         }
         int index = s.hashCode() & (TO_UPPER_CACHE_LENGTH - 1);
-        String[] e = TO_UPPER_CACHE[index];
+        String[] e = TO_UPPER_CACHE.get(index);
         if (e != null) {
             if (e[0].equals(s)) {
                 return e[1];
             }
         }
         String s2 = s.toUpperCase(Locale.ENGLISH);
-        e = new String[] { s, s2 };
-        TO_UPPER_CACHE[index] = e;
+        TO_UPPER_CACHE.compareAndSet(index, e, new String[] { s, s2 });
         return s2;
     }
 
@@ -444,7 +442,7 @@ public class StringUtils {
      */
     public static String urlEncode(String s) {
         try {
-            return URLEncoder.encode(s, "UTF-8");
+            return URLEncoder.encode(s, StandardCharsets.UTF_8);
         } catch (Exception e) {
             // UnsupportedEncodingException
             throw DbException.convert(e);

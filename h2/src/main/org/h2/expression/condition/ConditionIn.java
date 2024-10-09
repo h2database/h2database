@@ -106,8 +106,19 @@ abstract class ConditionIn extends Condition {
      * @see IndexCondition#getCompoundInList(Column[], List)
      */
     private void createCompoundIndexCondition(TableFilter filter, ExpressionList list) {
-        // We do not check filter here, because the IN condition can contain
-        // columns from multiple tables.
+        int c = list.getSubexpressionCount();
+        Column[] columns = new Column[c];
+        for (int i = 0; i < c; i++) {
+            Expression e = list.getSubexpression(i);
+            if (!(e instanceof ExpressionColumn)) {
+                return;
+            }
+            ExpressionColumn l = (ExpressionColumn) e;
+            if (filter != l.getTableFilter()) {
+                return;
+            }
+            columns[i] = l.getColumn();
+        }
         TypeInfo colType = left.getType();
         ExpressionVisitor visitor = ExpressionVisitor.getNotFromResolverVisitor(filter);
         for (Expression e : valueList) {
@@ -115,15 +126,6 @@ abstract class ConditionIn extends Condition {
                     || !TypeInfo.haveSameOrdering(colType, TypeInfo.getHigherType(colType, e.getType()))) {
                 return;
             }
-        }
-        int l = list.getSubexpressionCount();
-        Column[] columns = new Column[l];
-        for (int i = 0; i < l; i++) {
-            Expression e = list.getSubexpression(i);
-            if (!(e instanceof ExpressionColumn)) {
-                return;
-            }
-            columns[i] = ((ExpressionColumn) e).getColumn();
         }
         filter.addIndexCondition(IndexCondition.getCompoundInList(columns, valueList));
     }

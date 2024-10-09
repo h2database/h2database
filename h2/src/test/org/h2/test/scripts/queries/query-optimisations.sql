@@ -300,3 +300,37 @@ EXPLAIN SELECT * FROM T1 WHERE (A, B) > (1, 2);
 
 DROP TABLE T1;
 > ok
+
+CREATE TABLE T1(ID BIGINT);
+> ok
+
+INSERT INTO T1 VALUES 1;
+> update count: 1
+
+CREATE TABLE T2(ID BIGINT, C1 BIGINT, C2 BIGINT);
+> ok
+
+INSERT INTO T2 VALUES (1, 1, 1);
+> update count: 1
+
+SELECT * FROM T1 JOIN T2 USING(ID) WHERE (C1, C2) IN ((1, 1), (1, 2));
+> ID C1 C2
+> -- -- --
+> 1  1  1
+> rows: 1
+
+CREATE INDEX T2_C1_C2_IDX ON T2(C1, C2);
+> ok
+
+SELECT * FROM T1 JOIN T2 USING(ID) WHERE (C1, C2) IN ((1, 1), (1, 3));
+> ID C1 C2
+> -- -- --
+> 1  1  1
+> rows: 1
+
+EXPLAIN SELECT * FROM T1 JOIN T2 USING(ID) WHERE (C1, C2) IN ((1, 1), (1, 3));
+>> SELECT "PUBLIC"."T1"."ID", "PUBLIC"."T2"."C1", "PUBLIC"."T2"."C2" FROM "PUBLIC"."T2" /* PUBLIC.T2_C1_C2_IDX: IN(ROW (1, 1), ROW (1, 3)) */ /* WHERE ROW (C1, C2) IN(ROW (1, 1), ROW (1, 3)) */ INNER JOIN "PUBLIC"."T1" /* PUBLIC.T1.tableScan */ ON 1=1 WHERE (ROW ("C1", "C2") IN(ROW (1, 1), ROW (1, 3))) AND ("PUBLIC"."T1"."ID" = "PUBLIC"."T2"."ID")
+
+DROP TABLE T1, T2;
+> ok
+

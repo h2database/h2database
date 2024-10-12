@@ -9,6 +9,7 @@ import java.util.List;
 
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
+import org.h2.engine.Mode;
 import org.h2.engine.SessionLocal;
 import org.h2.expression.function.NamedExpression;
 import org.h2.message.DbException;
@@ -438,10 +439,12 @@ public abstract class Expression implements HasSQL, Typed {
      *
      * @param session the session
      * @param columnIndex 0-based column index
+     * @param cte {@code true} for CTE, {@code false} for tables and views
      * @return the column name for a view
      */
-    public String getColumnNameForView(SessionLocal session, int columnIndex) {
-        switch (session.getMode().viewExpressionNames) {
+    public String getColumnNameForView(SessionLocal session, int columnIndex, boolean cte) {
+        Mode mode = session.getMode();
+        switch (cte ? mode.cteExpressionNames : mode.viewExpressionNames) {
         case AS_IS:
         default:
             return getAlias(session, columnIndex);

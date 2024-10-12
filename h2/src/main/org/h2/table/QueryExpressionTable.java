@@ -87,9 +87,11 @@ public abstract class QueryExpressionTable extends Table {
      *            clause overriding usual select names)
      * @param theQuery
      *            - the query object we want the column list for
+     * @param cte
+     *            {@code true} for CTE
      * @return a list of column object returned by withQuery
      */
-    public static List<Column> createQueryColumnTemplateList(String[] cols, Query theQuery) {
+    public static List<Column> createQueryColumnTemplateList(String[] cols, Query theQuery, boolean cte) {
         ArrayList<Column> columnTemplateList = new ArrayList<>();
         theQuery.prepare();
         SessionLocal session = theQuery.getSession();
@@ -99,7 +101,8 @@ public abstract class QueryExpressionTable extends Table {
             // use the passed in column name if supplied, otherwise use alias
             // (if found) otherwise use column name derived from column
             // expression
-            String columnName = cols != null && cols.length > i ? cols[i] : columnExp.getColumnNameForView(session, i);
+            String columnName = cols != null && cols.length > i ? cols[i]
+                    : columnExp.getColumnNameForView(session, i, cte);
             columnTemplateList.add(new Column(columnName, columnExp.getType()));
         }
         return columnTemplateList;
@@ -117,7 +120,8 @@ public abstract class QueryExpressionTable extends Table {
         super(schema, id, name, false, true);
     }
 
-    Column[] initColumns(SessionLocal session, Column[] columnTemplates, Query query, boolean isDerivedTable) {
+    Column[] initColumns(SessionLocal session, Column[] columnTemplates, Query query, boolean isDerivedTable,
+            boolean cte) {
         ArrayList<Expression> expressions = query.getExpressions();
         final int count = query.getColumnCount();
         ArrayList<Column> list = new ArrayList<>(count);
@@ -130,7 +134,7 @@ public abstract class QueryExpressionTable extends Table {
                 type = columnTemplates[i].getType();
             }
             if (name == null) {
-                name = isDerivedTable ? expr.getAlias(session, i) : expr.getColumnNameForView(session, i);
+                name = isDerivedTable ? expr.getAlias(session, i) : expr.getColumnNameForView(session, i, cte);
             }
             if (type.getValueType() == Value.UNKNOWN) {
                 type = expr.getType();

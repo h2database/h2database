@@ -125,7 +125,7 @@ public final class TableView extends QueryExpressionTable {
             Query compiledQuery = compileViewQuery(session, querySQL);
             this.querySQL = compiledQuery.getPlanSQL(DEFAULT_SQL_FLAGS);
             tables = new ArrayList<>(compiledQuery.getTables());
-            cols = initColumns(session, columnTemplates, compiledQuery, false);
+            cols = initColumns(session, columnTemplates, compiledQuery, false, false);
             createException = null;
             viewQuery = compiledQuery;
         } catch (DbException e) {

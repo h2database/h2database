@@ -38,7 +38,7 @@ public final class CTE extends QueryExpressionTable {
         this.recursive = recursive;
         this.originalParameters = params;
         tables = new ArrayList<>(query.getTables());
-        setColumns(initColumns(session, columnTemplates, query, false));
+        setColumns(initColumns(session, columnTemplates, query, false, true));
         viewQuery = query;
     }
 

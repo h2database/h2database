@@ -353,7 +353,7 @@ public final class ExpressionColumn extends Expression {
     }
 
     @Override
-    public String getColumnNameForView(SessionLocal session, int columnIndex) {
+    public String getColumnNameForView(SessionLocal session, int columnIndex, boolean cte) {
         return getAlias(session, columnIndex);
     }
 

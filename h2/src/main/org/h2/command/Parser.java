@@ -1819,7 +1819,7 @@ public final class Parser extends ParserBase {
                 if (derivedColumnNames != null) {
                     query.init();
                     columnTemplates = QueryExpressionTable.createQueryColumnTemplateList(
-                            derivedColumnNames.toArray(new String[0]), query)
+                            derivedColumnNames.toArray(new String[0]), query, false)
                             .toArray(new Column[0]);
                 }
                 table = query.toTable(alias, columnTemplates, queryParameters, createView != null, currentSelect);
@@ -6972,11 +6972,11 @@ public final class Parser extends ParserBase {
                 queryParameters = closeParametersScope(outerUsedParameters);
                 queryScope.tableSubqueries.remove(cteName);
             }
-            columnTemplateList = QueryExpressionTable.createQueryColumnTemplateList(cols, withQuery);
+            columnTemplateList = QueryExpressionTable.createQueryColumnTemplateList(cols, withQuery, true);
             sql = withQuery.getPlanSQL(DEFAULT_SQL_FLAGS);
             try {
                 withQuery = (Query) session.prepare(sql, false, true, queryScope);
-                columnTemplateList = QueryExpressionTable.createQueryColumnTemplateList(cols, withQuery);
+                columnTemplateList = QueryExpressionTable.createQueryColumnTemplateList(cols, withQuery, true);
                 sql = withQuery.getPlanSQL(DEFAULT_SQL_FLAGS);
                 isPotentiallyRecursive = false;
             } catch (DbException e) {
@@ -6989,7 +6989,7 @@ public final class Parser extends ParserBase {
             } finally {
                 queryParameters = closeParametersScope(outerUsedParameters);
             }
-            columnTemplateList = QueryExpressionTable.createQueryColumnTemplateList(cols, withQuery);
+            columnTemplateList = QueryExpressionTable.createQueryColumnTemplateList(cols, withQuery, true);
             sql = withQuery.getPlanSQL(DEFAULT_SQL_FLAGS);
         }
         read(CLOSE_PAREN);

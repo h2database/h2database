@@ -47,7 +47,7 @@ public final class DerivedTable extends QueryExpressionTable {
             this.querySQL = query.getPlanSQL(DEFAULT_SQL_FLAGS);
             originalParameters = query.getParameters();
             tables = new ArrayList<>(query.getTables());
-            setColumns(initColumns(session, columnTemplates, query, true));
+            setColumns(initColumns(session, columnTemplates, query, true, false));
             viewQuery = query;
         } catch (DbException e) {
             if (e.getErrorCode() == ErrorCode.COLUMN_ALIAS_IS_NOT_SPECIFIED_1) {

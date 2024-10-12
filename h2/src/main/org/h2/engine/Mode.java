@@ -380,6 +380,11 @@ public class Mode {
     public ViewExpressionNames viewExpressionNames = ViewExpressionNames.AS_IS;
 
     /**
+     * How column names are generated for CTEs.
+     */
+    public ViewExpressionNames cteExpressionNames = ViewExpressionNames.AS_IS;
+
+    /**
      * Whether TOP clause in SELECT queries is supported.
      */
     public boolean topInSelect;
@@ -519,6 +524,7 @@ public class Mode {
         mode.nextvalAndCurrvalPseudoColumns = true;
         mode.expressionNames = ExpressionNames.NUMBER;
         mode.viewExpressionNames = ViewExpressionNames.EXCEPTION;
+        mode.cteExpressionNames = ViewExpressionNames.EXCEPTION;
         mode.limit = true;
         mode.minusIsExcept = true;
         mode.numericWithBooleanComparison = true;
@@ -535,6 +541,7 @@ public class Mode {
         mode.takeInsertedIdentity = true;
         mode.expressionNames = ExpressionNames.NUMBER;
         mode.viewExpressionNames = ViewExpressionNames.EXCEPTION;
+        mode.cteExpressionNames = ViewExpressionNames.EXCEPTION;
         add(mode);
 
         mode = new Mode(ModeEnum.HSQLDB);
@@ -544,6 +551,7 @@ public class Mode {
         // http://hsqldb.org/doc/apidocs/org/hsqldb/jdbc/JDBCConnection.html#setClientInfo-java.lang.String-java.lang.String-
         mode.supportedClientInfoPropertiesRegEx = null;
         mode.expressionNames = ExpressionNames.C_NUMBER;
+        mode.cteExpressionNames = ViewExpressionNames.EXCEPTION;
         mode.topInSelect = true;
         mode.limit = true;
         mode.minusIsExcept = true;
@@ -580,6 +588,7 @@ public class Mode {
         mode.allowEmptySchemaValuesAsDefaultSchema = true;
         mode.expressionNames = ExpressionNames.EMPTY;
         mode.viewExpressionNames = ViewExpressionNames.EXCEPTION;
+        mode.cteExpressionNames = ViewExpressionNames.EXCEPTION;
         mode.topInSelect = true;
         mode.topInDML = true;
         mode.identityClause = true;
@@ -607,6 +616,7 @@ public class Mode {
         mode.identityColumnsHaveDefaultOnNull = true;
         mode.expressionNames = ExpressionNames.ORIGINAL_SQL;
         mode.viewExpressionNames = ViewExpressionNames.MYSQL_STYLE;
+        mode.cteExpressionNames = ViewExpressionNames.MYSQL_STYLE;
         mode.limit = true;
         mode.autoIncrementClause = true;
         mode.typeByNameMap.put("YEAR", DataType.getDataType(Value.SMALLINT));
@@ -639,6 +649,7 @@ public class Mode {
         mode.createUniqueConstraintForReferencedColumns = true;
         mode.expressionNames = ExpressionNames.ORIGINAL_SQL;
         mode.viewExpressionNames = ViewExpressionNames.MYSQL_STYLE;
+        mode.cteExpressionNames = ViewExpressionNames.MYSQL_STYLE;
         mode.limit = true;
         mode.autoIncrementClause = true;
         mode.typeByNameMap.put("YEAR", DataType.getDataType(Value.SMALLINT));

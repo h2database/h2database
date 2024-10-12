@@ -80,7 +80,7 @@ public final class Alias extends Expression {
     }
 
     @Override
-    public String getColumnNameForView(SessionLocal session, int columnIndex) {
+    public String getColumnNameForView(SessionLocal session, int columnIndex, boolean cte) {
         return alias;
     }
 

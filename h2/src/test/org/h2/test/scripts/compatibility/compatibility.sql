@@ -466,6 +466,16 @@ SELECT SIN(A), A+1, A FROM TEST;
 > 0.0    1     0
 > rows: 1
 
+CREATE VIEW V AS SELECT SIN(A), A+1, A FROM TEST;
+> exception COLUMN_ALIAS_IS_NOT_SPECIFIED_1
+
+WITH CTE AS (SELECT SIN(A), A+1, A FROM TEST)
+SELECT * FROM CTE;
+> SIN(A) A + 1 A
+> ------ ----- -
+> 0.0    1     0
+> rows: 1
+
 SET MODE PostgreSQL;
 > ok
 
@@ -477,6 +487,13 @@ SELECT SIN(A), A+1, A FROM TEST;
 
 CREATE VIEW V AS SELECT SIN(A), A+1, (((((A + 1) * A + 1) * A + 1) * A + 1) * A + 1) * A + 1 FROM TEST;
 > exception DUPLICATE_COLUMN_NAME_1
+
+WITH CTE AS (SELECT SIN(A), A+1, A FROM TEST)
+SELECT * FROM CTE;
+> sin ?column? A
+> --- -------- -
+> 0.0 1        0
+> rows: 1
 
 CREATE VIEW V AS SELECT SIN(0), COS(0);
 > ok

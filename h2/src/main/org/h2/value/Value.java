@@ -1151,7 +1151,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         case VARCHAR_IGNORECASE:
             return convertToVarcharIgnoreCase(targetType, conversionMode, column);
         case EMAIL:
-            return convertToEmail(targetType, conversionMode, column);
+            return convertToEmail(targetType, conversionMode, provider, column);
         case BINARY:
             return convertToBinary(targetType, conversionMode, column);
         case VARBINARY:
@@ -1355,6 +1355,20 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
             }
         }
         return valueType == Value.VARCHAR_IGNORECASE ? this : ValueVarcharIgnoreCase.get(getString());
+    }
+
+    private Value convertToEmail(TypeInfo targetType, int conversionMode, CastDataProvider provider, Object column) {
+        int valueType = getValueType();
+        switch (valueType) {
+            case EMAIL:
+                return this; 
+            case VARCHAR:
+            case VARCHAR_IGNORECASE:
+            case CHAR:
+                return ValueEmail.get(getString(), provider); 
+            default:
+                throw getDataConversionError(targetType.getValueType());
+        }
     }
 
     private ValueBinary convertToBinary(TypeInfo targetType, int conversionMode, Object column) {

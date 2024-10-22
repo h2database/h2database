@@ -129,6 +129,7 @@ public class DataType {
                 "CHARACTER LARGE OBJECT", "CLOB", "CHAR LARGE OBJECT",
                 "NCLOB", "NCHAR LARGE OBJECT", "NATIONAL CHARACTER LARGE OBJECT");
         add(Value.VARCHAR_IGNORECASE, Types.VARCHAR, createString(false, false), "VARCHAR_IGNORECASE");
+        add(Value.EMAIL, Types.OTHER, createString(false, false), "EMAIL");
         add(Value.BINARY, Types.BINARY, createBinary(true), "BINARY");
         add(Value.VARBINARY, Types.VARBINARY, createBinary(false),
                 "BINARY VARYING", "VARBINARY", "RAW", "BYTEA", "LONG RAW", "LONGVARBINARY");

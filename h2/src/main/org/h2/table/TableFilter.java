@@ -1227,24 +1227,6 @@ public class TableFilter implements ColumnResolver {
         return hashCode;
     }
 
-    /**
-     * Are there any index conditions that involve IN(...).
-     *
-     * @return whether there are IN(...) comparisons
-     */
-    public boolean hasInComparisons() {
-        for (IndexCondition cond : indexConditions) {
-            int compareType = cond.getCompareType();
-            switch (compareType) {
-            case Comparison.IN_LIST:
-            case Comparison.IN_ARRAY:
-            case Comparison.IN_QUERY:
-                return true;
-            }
-        }
-        return false;
-    }
-
     public TableFilter getNestedJoin() {
         return nestedJoin;
     }

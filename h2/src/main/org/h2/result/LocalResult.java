@@ -221,6 +221,19 @@ public class LocalResult implements ResultInterface, ResultTarget {
     }
 
     /**
+     * Configures result to hold value list of the IN predicate.
+     *
+     * @param inPredicateSortTypes sort order bit masks or an empty array
+     */
+    public void setInPredicateValueListResult(int[] inPredicateSortTypes) {
+        distinct = true;
+        distinctRows = new TreeMap<>(session.getDatabase().getCompareMode());
+        if (inPredicateSortTypes.length != 0) {
+            sort = SortOrder.ofSortTypes(session, inPredicateSortTypes);
+        }
+    }
+
+    /**
      * @return whether this result is a distinct result
      */
     private boolean isAnyDistinct() {

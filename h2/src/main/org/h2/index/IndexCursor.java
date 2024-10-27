@@ -100,7 +100,7 @@ public class IndexCursor implements Cursor {
                     if (start == null && end == null) {
                         if (canUseIndexForIn(columns)) {
                             this.inColumn = columns;
-                            inList = condition.getCurrentValueList(s);
+                            inList = condition.getCurrentValueList(s, buildSortTypes(columns));
                             inListIndex = 0;
                         }
                     }
@@ -116,7 +116,7 @@ public class IndexCursor implements Cursor {
                 if (start == null && end == null) {
                     if (canUseIndexForIn(column)) {
                         this.inColumn = column;
-                        inList = condition.getCurrentValueList(s);
+                        inList = condition.getCurrentValueList(s, buildSortTypes(new Column[] { column }));
                         inListIndex = 0;
                     }
                 }
@@ -125,7 +125,7 @@ public class IndexCursor implements Cursor {
                 if (start == null && end == null) {
                     if (canUseIndexForIn(column)) {
                         this.inColumn = column;
-                        inResult = condition.getCurrentResult();
+                        inResult = condition.getCurrentResult(session, buildSortTypes(new Column[] { column }));
                     }
                 }
                 break;
@@ -168,6 +168,17 @@ public class IndexCursor implements Cursor {
         if (inColumn != null) {
             start = table.getTemplateRow();
         }
+    }
+
+    private int[] buildSortTypes(Column[] columns) {
+        IndexColumn[] idxColumns = index.getIndexColumns();
+        int l = Math.max(idxColumns.length, columns.length);
+        int[] sortTypes = new int[l];
+        for (int i = 0; i < l; i++) {
+            sortTypes[i] = ((idxColumns[i].sortType & SortOrder.DESCENDING) != 0) ^ reverse ? SortOrder.DESCENDING
+                    : SortOrder.ASCENDING;
+        }
+        return sortTypes;
     }
 
     /**
@@ -394,7 +405,7 @@ public class IndexCursor implements Cursor {
             int id = column.getColumnId();
             start.setValue(id, v);
         }
-        cursor = index.find(session, start, start, false);
+        cursor = index.find(session, start, start, reverse);
     }
 
     @Override

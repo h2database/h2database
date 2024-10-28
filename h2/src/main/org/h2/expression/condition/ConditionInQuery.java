@@ -43,7 +43,7 @@ public final class ConditionInQuery extends PredicateWithSubquery {
          * Need to do it now because other methods may be invoked in different
          * order.
          */
-        query.setRandomAccessResult(true);
+        query.setInPredicateResult();
         query.setNeverLazy(true);
         query.setDistinctIfPossible();
         this.all = all;

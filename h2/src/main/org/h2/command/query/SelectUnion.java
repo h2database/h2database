@@ -132,7 +132,7 @@ public class SelectUnion extends Query {
         }
         int columnCount = left.getColumnCount();
         if (session.isLazyQueryExecution() && unionType == UnionType.UNION_ALL && !distinct &&
-                sort == null && !randomAccessResult && forUpdate == null &&
+                sort == null && inPredicateSortTypes == null && forUpdate == null &&
                 offset == 0 && !fetchPercent && !withTies && isReadOnly()) {
             // limit 0 means no rows
             if (fetch != 0) {

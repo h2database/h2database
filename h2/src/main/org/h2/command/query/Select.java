@@ -899,8 +899,8 @@ public class Select extends Query {
             if (fetch > 0) {
                 lazyResult.setLimit(fetch);
             }
-            if (randomAccessResult) {
-                return convertToDistinct(lazyResult);
+            if (inPredicateSortTypes != null) {
+                return convertToInPredicateValueList(lazyResult);
             } else {
                 return lazyResult;
             }
@@ -1285,12 +1285,8 @@ public class Select extends Query {
                     boolean reverse = sortIndex.isReverse();
                     if (current.getIndexType().isScan() || current == index) {
                         topTableFilter.setIndex(index, reverse);
-                        if (!topTableFilter.hasInComparisons()) {
-                            // in(select ...) and in(1,2,3) may return the key in
-                            // another order
-                            indexSortedColumns = sortIndex.getSortedColumns();
-                            break;
-                        }
+                        indexSortedColumns = sortIndex.getSortedColumns();
+                        break;
                     } else if (index.getIndexColumns() != null
                             && index.getIndexColumns().length >= current
                                     .getIndexColumns().length) {

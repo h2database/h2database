@@ -13,6 +13,7 @@ import java.sql.Statement;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Random;
 import java.util.TreeSet;
 import java.util.concurrent.TimeUnit;
@@ -64,6 +65,7 @@ public class TestOptimizations extends TestDb {
         testInSelectJoin();
         testMinMaxNullOptimization();
         testUseCoveringIndex();
+        testInPredicate();
         // testUseIndexWhenAllColumnsNotInOrderBy();
         if (config.networked) {
             return;
@@ -1164,6 +1166,138 @@ public class TestOptimizations extends TestDb {
         rs.next();
         assertContains(rs.getString(1), "/* PUBLIC.TABLE_B_IDX");
         conn.close();
+    }
+
+    private void testInPredicate() throws SQLException {
+        deleteDb("optimizations");
+        Connection conn = getConnection("optimizations");
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE TABLE Q_T(A INT) AS VALUES 1, 3, 4, 2");
+        stat.execute("CREATE TABLE Q_T_A(A INT, PRIMARY KEY(A ASC)) AS VALUES 1, 3, 4, 2");
+        stat.execute("CREATE TABLE Q_T_D(A INT, PRIMARY KEY(A DESC)) AS VALUES 1, 3, 4, 2");
+        stat.execute("CREATE TABLE V_T(V INT) AS VALUES 2, 1, 5, 4");
+        stat.execute("CREATE TABLE V_T_A(V INT, PRIMARY KEY(V ASC)) AS VALUES 2, 1, 5, 4");
+        stat.execute("CREATE TABLE V_T_D(V INT, PRIMARY KEY(V DESC)) AS VALUES 2, 1, 5, 4");
+        for (int q = 1; q <= 3; q++) {
+            for (int qOrder = 1; qOrder <= 3; qOrder++) {
+                testInPredicate(conn, stat, q, qOrder, 0, 1);
+                for (int v = 1; v <= 3; v++) {
+                    for (int vOrder = 1; vOrder <= 3; vOrder++) {
+                        testInPredicate(conn, stat, q, qOrder, v, vOrder);
+                    }
+                }
+            }
+        }
+        conn.close();
+    }
+
+    private void testInPredicate(Connection conn, Statement stat, int q, int qOrder, int v, int vOrder)
+            throws SQLException {
+        StringBuilder builder = new StringBuilder();
+        builder.append("SELECT * FROM ");
+        switch (q) {
+        case 1:
+            builder.append("Q_T");
+            break;
+        case 2:
+            builder.append("Q_T_A");
+            break;
+        case 3:
+            builder.append("Q_T_D");
+            break;
+        default:
+            fail();
+        }
+        builder.append(" WHERE A IN (");
+        switch (v) {
+        case 0:
+            builder.append("2, 1, 5, 4");
+            break;
+        case 1:
+            builder.append("SELECT * FROM V_T");
+            break;
+        case 2:
+            builder.append("SELECT * FROM V_T");
+            break;
+        case 3:
+            builder.append("SELECT * FROM V_T");
+            break;
+        default:
+            fail();
+        }
+        switch (vOrder) {
+        case 1:
+            break;
+        case 2:
+            if (v == 0) {
+                fail();
+            }
+            builder.append(" ORDER BY V ASC");
+            break;
+        case 3:
+            if (v == 0) {
+                fail();
+            }
+            builder.append(" ORDER BY V DESC");
+            break;
+        default:
+            fail();
+        }
+        builder.append(')');
+        switch (qOrder) {
+        case 1:
+            break;
+        case 2:
+            builder.append(" ORDER BY A ASC");
+            break;
+        case 3:
+            builder.append(" ORDER BY A DESC");
+            break;
+        default:
+            fail();
+        }
+        PreparedStatement prep = conn.prepareStatement(builder.toString());
+        ResultSet rs = prep.executeQuery();
+        switch (qOrder) {
+        case 1: {
+            HashSet<Integer> set = new HashSet<>();
+            for (int i = 0; i < 3; i++) {
+                assertTrue(rs.next());
+                set.add(rs.getInt(1));
+            }
+            assertFalse(rs.next());
+            assertTrue(set.contains(1));
+            assertTrue(set.contains(2));
+            assertTrue(set.contains(4));
+            break;
+        }
+        case 2:
+            assertTrue(rs.next());
+            assertEquals(1, rs.getInt(1));
+            assertTrue(rs.next());
+            assertEquals(2, rs.getInt(1));
+            assertTrue(rs.next());
+            assertEquals(4, rs.getInt(1));
+            assertFalse(rs.next());
+            break;
+        case 3:
+            assertTrue(rs.next());
+            assertEquals(4, rs.getInt(1));
+            assertTrue(rs.next());
+            assertEquals(2, rs.getInt(1));
+            assertTrue(rs.next());
+            assertEquals(1, rs.getInt(1));
+            assertFalse(rs.next());
+            break;
+        }
+        prep.close();
+        builder.insert(0, "EXPLAIN ");
+        rs = stat.executeQuery(builder.toString());
+        rs.next();
+        String plan = rs.getString(1);
+        boolean expectedQuerySorted = q > 1 && qOrder > 1;
+        boolean querySorted = plan.endsWith("/* index sorted */");
+        assertEquals(expectedQuerySorted, querySorted);
     }
 
     private void testConditionAndOrDistributiveLaw() throws SQLException {

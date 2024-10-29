@@ -396,7 +396,7 @@ public class CacheLongKeyLIRS<V> {
      * @return the cache misses
      */
     public long getMisses() {
-        int x = 0;
+        long x = 0;
         for (Segment<V> s : segments) {
             x += s.misses;
         }

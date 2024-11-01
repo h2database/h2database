@@ -380,7 +380,7 @@ public final class Interval {
      * @param minutes
      *            minutes, |minutes|&lt;60
      * @param nanos
-     *            nanoseconds, |seconds|&lt;60,000,000,000
+     *            nanoseconds, |nanos|&lt;60,000,000,000
      * @return INTERVAL HOUR TO SECOND
      */
     public static Interval ofHoursMinutesNanos(long hours, int minutes, long nanos) {

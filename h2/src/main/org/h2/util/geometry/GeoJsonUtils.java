@@ -230,13 +230,13 @@ public final class GeoJsonUtils {
     }
 
     /**
-     * Converts EWKB with known dimension system to GeoJson.
+     * Converts GeoJson with known dimension system to EWKB.
      *
      * @param json
      *            geometry object in GeoJson format
      * @param srid
      *            the SRID of geometry
-     * @return GeoJson representation of the specified geometry
+     * @return EWKB representation of the specified geometry
      * @throws DbException
      *             on unsupported dimension system
      */

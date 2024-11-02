@@ -13,6 +13,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
@@ -507,8 +508,9 @@ public class MVStoreTool {
             //when client connects to this server and reopens this store database in this process.
             // @since 2018-09-13 little-pan
             FileUtils.delete(targetFileName);
-            MVStore.Builder b = new MVStore.Builder().
-                fileName(targetFileName);
+            MVStore.Builder b = new MVStore.Builder()
+                    .fileName(targetFileName)
+                    .autoCommitDisabled();
             if (compress) {
                 b.compress();
             }
@@ -525,50 +527,66 @@ public class MVStoreTool {
      * @param target the target store
      */
     public static void compact(MVStore source, MVStore target) {
-        target.setCurrentVersion(source.getCurrentVersion());
         target.adjustLastMapId(source.getLastMapId());
         int autoCommitDelay = target.getAutoCommitDelay();
         boolean reuseSpace = target.isSpaceReused();
         try {
             target.setReuseSpace(false);  // disable unused chunks collection
             target.setAutoCommitDelay(0); // disable autocommit
-            MVMap<String, String> sourceMeta = source.getMetaMap();
-            MVMap<String, String> targetMeta = target.getMetaMap();
-            for (Entry<String, String> m : sourceMeta.entrySet()) {
-                String key = m.getKey();
-                if (key.startsWith(DataUtils.META_MAP)) {
-                    // ignore
-                } else if (key.startsWith(DataUtils.META_NAME)) {
-                    // ignore
-                } else {
-                    targetMeta.put(key, m.getValue());
-                }
+            long[] versions = source.getRestorePointVersions();
+            long currentVersion = source.getCurrentVersion();
+            if (versions.length == 0 || versions[versions.length - 1] < currentVersion) {
+                // The last restore point version (if any) is not the current version.
+                versions = Arrays.copyOf(versions, versions.length + 1);
+                versions[versions.length - 1] = currentVersion;
             }
-            // We are going to cheat a little bit in the copyFrom() by employing "incomplete" pages,
-            // which would be spared of saving, but save completed pages underneath,
-            // and those may appear as dead (non-reachable).
-            // That's why it is important to preserve all chunks
-            // created in the process, especially if retention time
-            // is set to a lower value, or even 0.
-            for (String mapName : source.getMapNames()) {
-                MVMap.Builder<Object, Object> mp = getGenericMapBuilder();
-                // This is a hack to preserve chunks occupancy rate accounting.
-                // It exposes design deficiency flaw in MVStore related to lack of
-                // map's type metadata.
-                // TODO: Introduce type metadata which will allow to open any store
-                // TODO: without prior knowledge of keys / values types and map implementation
-                // TODO: (MVMap vs MVRTreeMap, regular vs. singleWriter etc.)
-                if (mapName.startsWith(TransactionStore.UNDO_LOG_NAME_PREFIX)) {
-                    mp.singleWriter();
+            for (long version : versions) {
+                target.setCurrentVersion(version - 1); // -1 to sync the target version with the source version.
+                MVStore.MVStoreView sourceView = source.atVersion(version);
+                MVMap<String, String> sourceMeta = sourceView.getMetaMap();
+                MVMap<String, String> targetMeta = target.getMetaMap();
+                for (Entry<String, String> m : sourceMeta.entrySet()) {
+                    String key = m.getKey();
+                    if (key.startsWith(DataUtils.META_MAP)) {
+                        // ignore
+                    } else if (key.startsWith(DataUtils.META_NAME)) {
+                        // ignore
+                    } else {
+                        targetMeta.put(key, m.getValue());
+                    }
                 }
-                MVMap<Object, Object> sourceMap = source.openMap(mapName, mp);
-                MVMap<Object, Object> targetMap = target.openMap(mapName, mp);
-                targetMap.copyFrom(sourceMap);
-                targetMeta.put(MVMap.getMapKey(targetMap.getId()), sourceMeta.get(MVMap.getMapKey(sourceMap.getId())));
+                // We are going to cheat a little bit in the copyFrom() by employing "incomplete" pages,
+                // which would be spared of saving, but save completed pages underneath,
+                // and those may appear as dead (non-reachable).
+                // That's why it is important to preserve all chunks
+                // created in the process, especially if retention time
+                // is set to a lower value, or even 0.
+                for (String mapName : sourceView.getMapNames()) {
+                    MVMap.Builder<Object, Object> mp;
+                    if (mapName.equals(MVStore.RESTORE_POINTS)) {
+                        // This is opened elsewhere with this builder and thus needs to be opened here with the same builder.
+                        mp = (MVMap.Builder<Object, Object>) (MVMap.Builder) MVStore.LONG_RESTORE_POINT_BUILDER;
+                    } else {
+                        mp = getGenericMapBuilder();
+                    }
+                    // This is a hack to preserve chunks occupancy rate accounting.
+                    // It exposes design deficiency flaw in MVStore related to lack of
+                    // map's type metadata.
+                    // TODO: Introduce type metadata which will allow to open any store
+                    // TODO: without prior knowledge of keys / values types and map implementation
+                    // TODO: (MVMap vs MVRTreeMap, regular vs. singleWriter etc.)
+                    if (mapName.startsWith(TransactionStore.UNDO_LOG_NAME_PREFIX)) {
+                        mp.singleWriter();
+                    }
+                    MVMap<Object, Object> sourceMap = sourceView.openMap(mapName, mp);
+                    MVMap<Object, Object> targetMap = target.openMap(mapName, mp);
+                    targetMap.copyFrom(sourceMap);
+                    targetMeta.put(MVMap.getMapKey(targetMap.getId()), sourceMeta.get(MVMap.getMapKey(sourceMap.getId())));
+                }
+                // this will end hacky mode of operation with incomplete pages
+                // end ensure that all pages are saved
+                target.commit();
             }
-            // this will end hacky mode of operation with incomplete pages
-            // end ensure that all pages are saved
-            target.commit();
         } finally {
             target.setAutoCommitDelay(autoCommitDelay);
             target.setReuseSpace(reuseSpace);

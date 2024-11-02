@@ -459,7 +459,7 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
      * @param mvStore owner of this store
      */
     public void compactMoveChunks(int targetFillRate, long moveSize, MVStore mvStore) {
-        if (isSpaceReused()) {
+        if (isSpaceReused() && !mvStore.isEffectivelyAppendOnly()) {
             mvStore.executeFilestoreOperation(() -> {
                 dropUnusedChunks();
                 saveChunkLock.lock();
@@ -681,6 +681,9 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
     }
 
     private void shrinkIfPossible(int minPercent) {
+        if (mvStore.isEffectivelyAppendOnly()) {
+            return;
+        }
         if (isReadOnly()) {
             return;
         }
@@ -702,6 +705,9 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
 
     @Override
     protected void doHousekeeping(MVStore mvStore) throws InterruptedException {
+        if (mvStore.isEffectivelyAppendOnly()) {
+            return;
+        }
         boolean idle = isIdle();
         int rewritableChunksFillRate = getRewritableChunksFillRate();
         if (idle && stopIdleHousekeeping) {

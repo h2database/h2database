@@ -1199,7 +1199,7 @@ public class TestMetaData extends TestDb {
                 "USERS", "CHECK_CONSTRAINTS", "COLLATIONS", "COLUMNS", "COLUMN_PRIVILEGES",
                 "CONSTRAINT_COLUMN_USAGE", "DOMAINS", "DOMAIN_CONSTRAINTS", "ELEMENT_TYPES", "FIELDS",
                 "KEY_COLUMN_USAGE", "PARAMETERS",
-                "REFERENTIAL_CONSTRAINTS", "ROUTINES", "SCHEMATA", "SEQUENCES", "TABLES", "TABLE_CONSTRAINTS",
+                "REFERENTIAL_CONSTRAINTS", "RESTORE_POINTS", "ROUTINES", "SCHEMATA", "SEQUENCES", "TABLES", "TABLE_CONSTRAINTS",
                 "TABLE_PRIVILEGES", "TRIGGERS", "VIEWS" }) {
             rs.next();
             assertEquals(name, rs.getString("TABLE_NAME"));

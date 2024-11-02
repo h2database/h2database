@@ -1355,6 +1355,32 @@ This command is part of the 2-phase-commit protocol.
 COMMIT TRANSACTION XID_TEST
 "
 
+"Commands (Other)","CREATE RESTORE POINT","
+@h2@ CREATE RESTORE POINT restorePointName
+","
+Creates a database restore point.
+
+Admin rights are required to execute this command.
+This command can be executed while the database is in use.
+Everything that is committed at the instant of creation will be part of the restore point.
+There is no limit as to how many restore points there can be.
+
+This is an experimental feature and should not be used in production environments.
+","
+CREATE RESTORE POINT RP1
+"
+
+"Commands (Other)","DROP RESTORE POINT","
+@h2@ DROP RESTORE POINT restorePointName
+","
+Drops a database restore point.
+
+Admin rights are required to execute this command.
+This command can be executed while the database is in use.
+","
+DROP RESTORE POINT RP1
+"
+
 "Commands (Other)","GRANT RIGHT","
 GRANT { { SELECT | INSERT | UPDATE | DELETE } [,..] | ALL [ PRIVILEGES ] } ON
 { @h2@ { SCHEMA schemaName } | { [ TABLE ] [schemaName.]tableName @h2@ [,...] } }
@@ -1407,6 +1433,18 @@ Prepares committing a transaction.
 This command is part of the 2-phase-commit protocol.
 ","
 PREPARE COMMIT XID_TEST
+"
+
+"Commands (Other)","RESTORE TO POINT","
+@h2@ RESTORE TO POINT restorePointName
+","
+Restores a database to the point in time at which the used restore point has been created.
+
+Admin rights are required to execute this command.
+This command requires an exclusive session and will disconnect other sessions.
+If there were any ongoing transactions (local and/or distributed) at the time of creation of the restore point, they are being discarded.
+","
+RESTORE TO POINT RP1
 "
 
 "Commands (Other)","REVOKE RIGHT","

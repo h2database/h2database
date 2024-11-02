@@ -564,6 +564,21 @@ public interface CommandInterface extends AutoCloseable {
     int ALTER_TYPE = 105;
 
     /**
+     * The type of a CREATE RESTORE POINT statement.
+     */
+    int CREATE_RESTORE_POINT = 106;
+
+    /**
+     * The type of a RESTORE TO POINT statement.
+     */
+    int RESTORE_TO_POINT = 107;
+
+    /**
+     * The type of a DROP RESTORE POINT statement.
+     */
+    int DROP_RESTORE_POINT = 108;
+
+    /**
      * Get command type.
      *
      * @return one of the constants above

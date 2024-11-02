@@ -174,7 +174,7 @@
 90132=Aggregat-Funktion {0} nicht gefunden
 90133=Kann das Setting {0} nicht ändern wenn die Datenbank bereits geöffnet ist
 90134=Der Zugriff auf die Klasse {0} ist nicht erlaubt
-90135=Die Datenbank befindet sich im Exclusiv Modus; es können keine zusätzlichen Verbindungen geöffnet werden
+90135=Die Datenbank befindet sich im Exklusiv-Modus; es können keine zusätzlichen Verbindungen geöffnet werden
 90136=Bereich (Window) nicht gefunden: {0}
 90137=Werte können nur einer Variablen zugewiesen werden, nicht an: {0}
 90138=Ungültiger Datenbankname: {0}
@@ -197,6 +197,9 @@
 90155=Erzeugte Spalte {0} kann nicht durch eine referentielle Integrität mit dem Ausdruck {1} veränderbar sein
 90156=Spalten-Alias ist nicht für den Audruck {0} angegeben
 90157=#Column index {0} in GROUP BY clause is outside valid range 1 - {1}
+90158=Wiederherstellungspunkt {0} besteht bereits
+90159=Wiederherstellungspunkt {0} nicht gefunden
+90160=Konnte Datenbank nicht in Exklusiv-Modus versetzen
 HY000=Allgemeiner Fehler: {0}
 HY004=Unbekannter Datentyp: {0}
 HYC00=Dieses Feature wird nicht unterstützt: {0}

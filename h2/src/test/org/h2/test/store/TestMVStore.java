@@ -1394,7 +1394,7 @@ public class TestMVStore extends TestBase {
             }
             assertEquals(1000, m.size());
             // memory calculations were adjusted, so as this out-of-the-thin-air number
-            assertEquals(93832, s.getUnsavedMemory());
+            assertEquals(94064, s.getUnsavedMemory());
             s.commit();
             assertEquals(2, s.getFileStore().getWriteCount());
         }
@@ -1567,14 +1567,14 @@ public class TestMVStore extends TestBase {
         try (MVStore s = openStore(fileName)) {
             s.setRetentionTime(Integer.MAX_VALUE);
             Map<String, String> m = s.getMetaMap();
-            assertEquals("[]", s.getMapNames().toString());
+            assertEquals("[restorePoints]", s.getMapNames().toString());
             MVMap<String, String> data = s.openMap("data");
             data.put("1", "Hello");
             data.put("2", "World");
             s.commit();
             assertEquals(1, s.getCurrentVersion());
 
-            assertEquals("[data]", s.getMapNames().toString());
+            assertEquals("[data, restorePoints]", s.getMapNames().toString());
             assertEquals("data", s.getMapName(data.getId()));
             assertNull(s.getMapName(s.getMetaMap().getId()));
             assertNull(s.getMapName(data.getId() + 1));

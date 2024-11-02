@@ -8,6 +8,7 @@ package org.h2.mvstore;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -27,9 +28,13 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.BiConsumer;
 import java.util.function.LongConsumer;
 import java.util.function.Predicate;
+
 import org.h2.compress.CompressDeflate;
 import org.h2.compress.CompressLZF;
 import org.h2.compress.Compressor;
+import org.h2.mvstore.type.LongDataType;
+import org.h2.mvstore.type.RestorePoint;
+import org.h2.mvstore.type.RestorePointDataType;
 import org.h2.mvstore.type.StringDataType;
 import org.h2.store.fs.FileUtils;
 import org.h2.util.Utils;
@@ -148,6 +153,14 @@ public final class MVStore implements AutoCloseable {
      */
     static final long INITIAL_VERSION = -1;
 
+    /**
+     * The name of the restore points map which is also inventoried by meta.
+     */
+    static final String RESTORE_POINTS = "restorePoints";
+
+    static final MVMap.Builder<Long, RestorePoint> LONG_RESTORE_POINT_BUILDER = new MVMap.Builder<Long, RestorePoint>()
+            .keyType(LongDataType.INSTANCE)
+            .valueType(RestorePointDataType.INSTANCE);
 
     /**
      * Lock which governs access to major store operations: store(), close(), ...
@@ -178,6 +191,12 @@ public final class MVStore implements AutoCloseable {
      * mapping for all maps. This is relatively slow changing part of metadata
      */
     private final MVMap<String, String> meta;
+
+    /**
+     * The restore points map. Holds all restore points that currently exist.
+     * Having restore points makes the store effectively append only.
+     */
+    private final MVMap<Long, RestorePoint> restorePoints;
 
     private final ConcurrentHashMap<Integer, MVMap<?, ?>> maps = new ConcurrentHashMap<>();
 
@@ -307,7 +326,15 @@ public final class MVStore implements AutoCloseable {
             autoCommitMemory = 0;
             meta = openMetaMap();
         }
+        restorePoints = openMap(RESTORE_POINTS, LONG_RESTORE_POINT_BUILDER);
         onVersionChange(currentVersion);
+    }
+
+    public MVStoreView atVersion(long version) {
+        if (fileStore == null) {
+            return null;
+        }
+        return new MVStoreView(fileStore.atVersion(version));
     }
 
     public MVMap<String,String> openMetaMap() {
@@ -355,6 +382,55 @@ public final class MVStore implements AutoCloseable {
                 markMetaChanged();
             }
         }
+    }
+
+    public void addRestorePoint(long databaseVersion, RestorePoint rp) {
+        checkNotClosed();
+        restorePoints.setWriteVersion(currentVersion);
+        restorePoints.put(databaseVersion, rp);
+    }
+
+    public void removeRestorePoint(long databaseVersion) {
+        checkNotClosed();
+        restorePoints.setWriteVersion(currentVersion);
+        restorePoints.remove(databaseVersion);
+    }
+
+    long[] getRestorePointVersions() {
+        return restorePoints
+                .keySet()
+                .stream()
+                .mapToLong(Long::longValue)
+                .sorted()
+                .toArray();
+    }
+
+    public long getOldestRestorePointVersion() {
+        return restorePoints
+                .values()
+                .stream()
+                .mapToLong(it -> it.getOldestDatabaseVersionToKeep().getLong())
+                .findFirst()
+                .orElse(Long.MAX_VALUE);
+    }
+
+    public RestorePoint findRestorePoint(String name) {
+        return restorePoints
+                .values()
+                .stream()
+                .filter(it -> it.getName().equals(name))
+                .findFirst()
+                .orElse(null);
+    }
+
+    public Collection<RestorePoint> getRestorePoints() {
+        return restorePoints.values();
+    }
+
+    public boolean isEffectivelyAppendOnly() {
+        // Because it is possible to go back to a previous version at any time we mustn't drop or rearrange any data.
+        // Once the last restore point is removed, it is perfectly safe to do house-keeping.
+        return !restorePoints.isEmpty();
     }
 
     private void unlockAndCheckPanicCondition() {
@@ -506,8 +582,12 @@ public final class MVStore implements AutoCloseable {
      * @return the set of names
      */
     public Set<String> getMapNames() {
-        HashSet<String> set = new HashSet<>();
         checkNotClosed();
+        return getMapNames(meta);
+    }
+
+    private static Set<String> getMapNames(MVMap<String, String> meta) {
+        HashSet<String> set = new HashSet<>();
         for (Iterator<String> it = meta.keyIterator(DataUtils.META_NAME); it.hasNext();) {
             String x = it.next();
             if (!x.startsWith(DataUtils.META_NAME)) {
@@ -579,7 +659,16 @@ public final class MVStore implements AutoCloseable {
      * @return true if it exists and has data.
      */
     public boolean hasData(String name) {
-        return hasMap(name) && getRootPos(getMapId(name)) != 0;
+        if (hasMap(name)) {
+            int mapId = getMapId(name);
+            if (getRootPos(mapId) != 0) {
+                return true;
+            }
+            // In case we don't have a file store.
+            MVMap<?,?> map = getMap(mapId);
+            return map != null && !map.isEmpty();
+        }
+        return false;
     }
 
     void markMetaChanged() {
@@ -688,8 +777,9 @@ public final class MVStore implements AutoCloseable {
                                 }
                                 setRetentionTime(0);
                                 commit();
-                                assert oldestVersionToKeep.get() == currentVersion : oldestVersionToKeep.get() + " != "
-                                        + currentVersion;
+                                assert getOldestRestorePointVersion() == Long.MAX_VALUE
+                                        && oldestVersionToKeep.get() == currentVersion
+                                        || oldestVersionToKeep.get() <= currentVersion;
                                 fileStore.stop(allowedCompactionTime);
                             }
 
@@ -913,6 +1003,14 @@ public final class MVStore implements AutoCloseable {
             }
         }
         return fileStore != null && fileStore.hasChangesSince(lastStoredVersion);
+    }
+
+    public void lock() {
+        storeLock.lock();
+    }
+
+    public void unlock() {
+        storeLock.unlock();
     }
 
     public void executeFilestoreOperation(Runnable operation) {
@@ -1148,7 +1246,7 @@ public final class MVStore implements AutoCloseable {
      * @return true if versions are rolling, false otherwise
      */
     public boolean isVersioningRequired() {
-        return fileStore != null && !fileStore.isReadOnly() || versionsToKeep > 0;
+        return fileStore != null && !fileStore.isReadOnly() || versionsToKeep > 0 || getOldestRestorePointVersion() < Long.MAX_VALUE;
     }
 
     /**
@@ -1187,6 +1285,10 @@ public final class MVStore implements AutoCloseable {
     }
 
     private void setOldestVersionToKeep(long version) {
+        long oldestRestorePointVersion = getOldestRestorePointVersion();
+        if (oldestRestorePointVersion < version) {
+            return;
+        }
         boolean success;
         do {
             long current = oldestVersionToKeep.get();
@@ -1526,6 +1628,10 @@ public final class MVStore implements AutoCloseable {
     }
 
     private int getMapId(String name) {
+        return getMapId(meta, name);
+    }
+
+    private static int getMapId(MVMap<String, String> meta, String name) {
         String m = meta.get(DataUtils.META_NAME + name);
         return m == null ? -1 : DataUtils.parseHexInt(m);
     }
@@ -2050,6 +2156,41 @@ public final class MVStore implements AutoCloseable {
         public static Builder fromString(String s) {
             // Cast from HashMap<String, String> to HashMap<String, Object> is safe
             return new Builder((HashMap) DataUtils.parseMap(s));
+        }
+    }
+
+    public final class MVStoreView {
+
+        private final FileStore<?>.FileStoreView fileStoreView;
+        private final MVMap<String, String> meta;
+        private final ConcurrentHashMap<Integer, MVMap<?, ?>> maps = new ConcurrentHashMap<>();
+
+        private MVStoreView(FileStore<?>.FileStoreView fileStoreView) {
+            this.fileStoreView = fileStoreView;
+            MVMap<String, String> meta = MVStore.this.meta;
+            this.meta = meta.openReadOnly(fileStoreView.getRootPos(meta.getId()), fileStoreView.getVersion());
+        }
+
+        public MVMap<String, String> getMetaMap() {
+            return meta;
+        }
+
+        public Set<String> getMapNames() {
+            return MVStore.getMapNames(meta);
+        }
+
+        @SuppressWarnings("unchecked")
+        public <M extends MVMap<K, V>, K, V> M openMap(String name, MVMap.MapBuilder<M, K, V> builder) {
+            return (M) maps.computeIfAbsent(MVStore.getMapId(meta, name), id -> {
+                String configAsString = meta.get(MVMap.getMapKey(id));
+                DataUtils.checkArgument(configAsString != null, "Missing map with id {0}", id);
+                HashMap<String, Object> config = new HashMap<>(DataUtils.parseMap(configAsString));
+                config.put("id", id);
+                M map = builder.create(MVStore.this, config);
+                long root = fileStoreView.getRootPos(id);
+                map.setRootPos(root, fileStoreView.getVersion());
+                return map.openReadOnly(root, fileStoreView.getVersion());
+            });
         }
     }
 }

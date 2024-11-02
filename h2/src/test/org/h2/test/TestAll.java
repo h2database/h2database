@@ -69,6 +69,7 @@ import org.h2.test.db.TestPowerOff;
 import org.h2.test.db.TestQueryCache;
 import org.h2.test.db.TestReadOnly;
 import org.h2.test.db.TestRecursiveQueries;
+import org.h2.test.db.TestRestorePoint;
 import org.h2.test.db.TestRights;
 import org.h2.test.db.TestRunscript;
 import org.h2.test.db.TestSQLInjection;
@@ -772,6 +773,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
             addTest(new TestViewAlterTable());
             addTest(new TestViewDropView());
             addTest(new TestSynonymForTable());
+            addTest(new TestRestorePoint());
 
             // jdbc
             addTest(new TestBatchUpdates());

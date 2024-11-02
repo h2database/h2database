@@ -5,12 +5,8 @@
  */
 package org.h2.mvstore;
 
-import org.h2.engine.Constants;
 import static org.h2.mvstore.MVStore.INITIAL_VERSION;
-import org.h2.mvstore.cache.CacheLongKeyLIRS;
-import org.h2.mvstore.type.StringDataType;
-import org.h2.util.MathUtils;
-import org.h2.util.Utils;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
@@ -45,6 +41,12 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.BiConsumer;
 import java.util.function.IntSupplier;
 import java.util.zip.ZipOutputStream;
+
+import org.h2.engine.Constants;
+import org.h2.mvstore.cache.CacheLongKeyLIRS;
+import org.h2.mvstore.type.StringDataType;
+import org.h2.util.MathUtils;
+import org.h2.util.Utils;
 
 /**
  * Class FileStore is a base class to allow for different store implementations.
@@ -270,8 +272,18 @@ public abstract class FileStore<C extends Chunk<C>>
         }
     }
 
+    public FileStoreView atVersion(long version) {
+        if (!isReadOnly()) {
+            return null;
+        }
+        if (!isKnownVersion(version)) {
+            return null;
+        }
+        return new FileStoreView(getChunkForVersion(version));
+    }
+
     public final void stop(long allowedCompactionTime) {
-        if (allowedCompactionTime > 0) {
+        if (allowedCompactionTime > 0 && !mvStore.isEffectivelyAppendOnly()) {
             compactStore(allowedCompactionTime);
         }
         writeCleanShutdown();
@@ -325,6 +337,10 @@ public abstract class FileStore<C extends Chunk<C>>
      * @return opaque "position" value, that should be used to read the page
      */
     public final long getRootPos(int mapId) {
+        return getRootPos(layout, mapId);
+    }
+
+    private static long getRootPos(MVMap<String, String> layout, int mapId) {
         String root = layout.get(MVMap.getMapRootKey(mapId));
         return root == null ? 0 : DataUtils.parseHexLong(root);
     }
@@ -869,6 +885,9 @@ public abstract class FileStore<C extends Chunk<C>>
      * @return if any chunk was re-written
      */
     public boolean compact(int targetFillRate, int write) {
+        if (mvStore.isEffectivelyAppendOnly()) {
+            return false;
+        }
         if (hasPersistentData()) {
             if (targetFillRate > 0 && getChunksFillRate() < targetFillRate) {
                 // We can't wait forever for the lock here,
@@ -887,6 +906,9 @@ public abstract class FileStore<C extends Chunk<C>>
     }
 
     public void compactStore(long maxCompactTime) {
+        if (mvStore.isEffectivelyAppendOnly()) {
+            return;
+        }
         compactStore(autoCompactFillRate, maxCompactTime, 16 * 1024 * 1024, mvStore);
     }
 
@@ -1851,6 +1873,9 @@ public abstract class FileStore<C extends Chunk<C>>
     }
 
     protected boolean rewriteChunks(int writeLimit, int targetFillRate) {
+        if (mvStore.isEffectivelyAppendOnly()) {
+            return false;
+        }
         serializationLock.lock();
         try {
             MVStore.TxCounter txCounter = mvStore.registerVersionUsage();
@@ -2255,6 +2280,25 @@ public abstract class FileStore<C extends Chunk<C>>
                 }
                 store.writeInBackground();
             }
+        }
+    }
+
+    public final class FileStoreView {
+
+        private final C chunk;
+        private final MVMap<String, String> layout;
+
+        private FileStoreView(C chunk) {
+            this.chunk = chunk;
+            layout = FileStore.this.layout.openReadOnly(chunk.layoutRootPos, chunk.version);
+        }
+
+        public long getVersion() {
+            return chunk.version;
+        }
+
+        public long getRootPos(int mapId) {
+            return FileStore.getRootPos(layout, mapId);
         }
     }
 }

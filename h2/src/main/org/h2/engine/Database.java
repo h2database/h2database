@@ -19,6 +19,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
+
 import org.h2.api.DatabaseEventListener;
 import org.h2.api.ErrorCode;
 import org.h2.api.JavaObjectSerializer;
@@ -153,8 +154,8 @@ public final class Database implements DataHandler, CastDataProvider {
     private final User systemUser;
     private SessionLocal systemSession;
     private SessionLocal lobSession;
-    private final Table meta;
-    private final Index metaIdIndex;
+    private Table meta;
+    private Index metaIdIndex;
     private FileLock lock;
     private volatile boolean starting;
     private final TraceSystem traceSystem;
@@ -333,34 +334,19 @@ public final class Database implements DataHandler, CastDataProvider {
             mainSchema = new Schema(this, Constants.MAIN_SCHEMA_ID, sysIdentifier(Constants.SCHEMA_MAIN), systemUser,
                     true);
             infoSchema = new InformationSchema(this, systemUser);
-            schemas.put(mainSchema.getName(), mainSchema);
-            schemas.put(infoSchema.getName(), infoSchema);
             if (mode.getEnum() == ModeEnum.PostgreSQL) {
                 pgCatalogSchema = new PgCatalogSchema(this, systemUser);
-                schemas.put(pgCatalogSchema.getName(), pgCatalogSchema);
             } else {
                 pgCatalogSchema = null;
             }
             publicRole = new Role(this, 0, sysIdentifier(Constants.PUBLIC_ROLE_NAME), true);
-            usersAndRoles.put(publicRole.getName(), publicRole);
             systemSession = createSession(systemUser);
             lobSession = createSession(systemUser);
             Set<String> settingKeys = dbSettings.getSettings().keySet();
             store.getTransactionStore().init(lobSession);
             settingKeys.removeIf(name -> name.startsWith("PAGE_STORE_"));
-            CreateTableData data = createSysTableData();
             starting = true;
-            meta = mainSchema.createTable(data);
-            IndexColumn[] pkCols = IndexColumn.wrap(new Column[] { data.columns.get(0) });
-            metaIdIndex = meta.addIndex(systemSession, "SYS_ID", 0, pkCols, 1,
-                    IndexType.createPrimaryKey(false, false), true, null);
-            systemSession.commit(true);
-            objectIds.set(0);
-            executeMeta();
-            systemSession.commit(true);
-            store.getTransactionStore().endLeftoverTransactions();
-            store.removeTemporaryMaps(objectIds);
-            recompileInvalidViews();
+            executeMeta(systemSession);
             starting = false;
             if (!readOnly) {
                 // set CREATE_BUILD in a new database
@@ -557,7 +543,7 @@ public final class Database implements DataHandler, CastDataProvider {
                 Constants.MAX_IDENTIFIER_LENGTH);
     }
 
-    private CreateTableData createSysTableData() {
+    private CreateTableData createSysTableData(SessionLocal session) {
         CreateTableData data = new CreateTableData();
         ArrayList<Column> cols = data.columns;
         Column columnId = new Column("ID", TypeInfo.TYPE_INTEGER);
@@ -571,12 +557,54 @@ public final class Database implements DataHandler, CastDataProvider {
         data.temporary = false;
         data.persistData = persistent;
         data.persistIndexes = persistent;
-        data.session = systemSession;
+        data.session = session;
         return data;
     }
 
-    private void executeMeta() {
-        Cursor cursor = metaIdIndex.find(systemSession, null, null, false);
+    private void createMetaTable(SessionLocal session) {
+        CreateTableData data = createSysTableData(session);
+        meta = mainSchema.createTable(data);
+        IndexColumn[] pkCols = IndexColumn.wrap(new Column[] { data.columns.get(0) });
+        metaIdIndex = meta.addIndex(session, "SYS_ID", 0, pkCols, 1,
+                IndexType.createPrimaryKey(false, false), true, null);
+    }
+
+    public void executeMeta(SessionLocal session) {
+        boolean starting = this.starting;
+        try {
+            this.starting = true;
+
+            usersAndRoles.clear();
+            settings.clear();
+            schemas.clear();
+            rights.clear();
+            comments.clear();
+
+            mainSchema.clear();
+            schemas.put(mainSchema.getName(), mainSchema);
+            infoSchema.clear();
+            schemas.put(infoSchema.getName(), infoSchema);
+            if (mode.getEnum() == ModeEnum.PostgreSQL) {
+                pgCatalogSchema.clear();
+                schemas.put(pgCatalogSchema.getName(), pgCatalogSchema);
+            }
+            usersAndRoles.put(publicRole.getName(), publicRole);
+
+            createMetaTable(session);
+
+            objectIds.set(0);
+            executeMeta0(session);
+            session.commit(true);
+            store.getTransactionStore().endLeftoverTransactions();
+            store.removeTemporaryMaps(objectIds);
+            recompileInvalidViews();
+        } finally {
+            this.starting = starting;
+        }
+    }
+
+    private void executeMeta0(SessionLocal session) {
+        Cursor cursor = metaIdIndex.find(session, null, null, false);
         ArrayList<MetaRecord> firstRecords = new ArrayList<>(), domainRecords = new ArrayList<>(),
                 middleRecords = new ArrayList<>(), constraintRecords = new ArrayList<>(),
                 lastRecords = new ArrayList<>();
@@ -606,10 +634,9 @@ public final class Database implements DataHandler, CastDataProvider {
                 lastRecords.add(rec);
             }
         }
-        final SessionLocal systemSession = this.systemSession;
-        systemSession.lock();
+        session.lock();
         try {
-            executeMeta(firstRecords);
+            executeMeta(session, firstRecords);
             // Domains may depend on other domains
             int count = domainRecords.size();
             if (count > 0) {
@@ -618,7 +645,7 @@ public final class Database implements DataHandler, CastDataProvider {
                     for (int i = 0; i < count; i++) {
                         MetaRecord rec = domainRecords.get(i);
                         try {
-                            rec.prepareAndExecute(this, systemSession, eventListener);
+                            rec.prepareAndExecute(this, session, eventListener);
                         } catch (DbException ex) {
                             if (exception == null) {
                                 exception = ex;
@@ -634,13 +661,13 @@ public final class Database implements DataHandler, CastDataProvider {
                     }
                 }
             }
-            executeMeta(middleRecords);
+            executeMeta(session, middleRecords);
             // Prepare, but don't create all constraints and sort them
             count = constraintRecords.size();
             if (count > 0) {
                 ArrayList<Prepared> constraints = new ArrayList<>(count);
                 for (int i = 0; i < count; i++) {
-                    Prepared prepared = constraintRecords.get(i).prepare(this, systemSession, eventListener);
+                    Prepared prepared = constraintRecords.get(i).prepare(this, session, eventListener);
                     if (prepared != null) {
                         constraints.add(prepared);
                     }
@@ -652,17 +679,17 @@ public final class Database implements DataHandler, CastDataProvider {
                     MetaRecord.execute(this, constraint, eventListener, constraint.getSQL());
                 }
             }
-            executeMeta(lastRecords);
+            executeMeta(session, lastRecords);
         } finally {
-            systemSession.unlock();
+            session.unlock();
         }
     }
 
-    private void executeMeta(ArrayList<MetaRecord> records) {
+    private void executeMeta(SessionLocal session, ArrayList<MetaRecord> records) {
         if (!records.isEmpty()) {
             records.sort(null);
             for (MetaRecord rec : records) {
-                rec.prepareAndExecute(this, systemSession, eventListener);
+                rec.prepareAndExecute(this, session, eventListener);
             }
         }
     }

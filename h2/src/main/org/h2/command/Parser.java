@@ -221,6 +221,7 @@ import org.h2.command.dml.Insert;
 import org.h2.command.dml.Merge;
 import org.h2.command.dml.MergeUsing;
 import org.h2.command.dml.NoOperation;
+import org.h2.command.dml.RestorePointCommand;
 import org.h2.command.dml.RunScriptCommand;
 import org.h2.command.dml.ScriptCommand;
 import org.h2.command.dml.Set;
@@ -722,6 +723,8 @@ public final class Parser extends ParserBase {
                     c = parseReplace(start);
                 } else if (readIf("REFRESH")) {
                     c = parseRefresh(start);
+                } else if (readIf("RESTORE")) {
+                    c = parseRestoreTo();
                 }
                 break;
             case 'S':
@@ -1653,6 +1656,12 @@ public final class Parser extends ParserBase {
         return command;
     }
 
+    private RestorePointCommand parseRestoreTo() {
+        read("TO");
+        read("POINT");
+        return new RestorePointCommand(session, CommandInterface.RESTORE_TO_POINT, readIdentifier());
+    }
+
     /**
      * REFRESH MATERIALIZED VIEW
      */
@@ -2218,6 +2227,8 @@ public final class Parser extends ParserBase {
             ifExists = readIfExists(ifExists);
             command.setIfExists(ifExists);
             return command;
+        } else if (readIf("RESTORE")) {
+            return parseDropRestorePoint();
         }
         throw getSyntaxError();
     }
@@ -2244,6 +2255,11 @@ public final class Parser extends ParserBase {
         ifExists = readIfExists(ifExists);
         command.setIfExists(ifExists);
         return command;
+    }
+
+    private RestorePointCommand parseDropRestorePoint() {
+        read("POINT");
+        return new RestorePointCommand(session, CommandInterface.DROP_RESTORE_POINT, readIdentifier());
     }
 
     private TableFilter readTableReference() {
@@ -6340,6 +6356,9 @@ public final class Parser extends ParserBase {
         if (readIf(OR, "REPLACE")) {
             orReplace = true;
         }
+        if (readIf("RESTORE")) {
+            return parseCreateRestorePoint();
+        }
         boolean force = readIf("FORCE");
         if (readIf("VIEW")) {
             return parseCreateView(force, orReplace);
@@ -6631,6 +6650,11 @@ public final class Parser extends ParserBase {
             throw e;
         }
         return command;
+    }
+
+    private RestorePointCommand parseCreateRestorePoint() {
+        read("POINT");
+        return new RestorePointCommand(session, CommandInterface.CREATE_RESTORE_POINT, readIdentifier());
     }
 
     private CreateRole parseCreateRole() {

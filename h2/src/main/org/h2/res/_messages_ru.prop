@@ -197,6 +197,9 @@
 90155=Генерируемый столбец {0} не может обновляться ссылочным ограничением с пунктом {1}
 90156=Имя столбца не указано для выражения {0}
 90157=#Column index {0} in GROUP BY clause is outside valid range 1 - {1}
+90158=#Restore point {0} already exists
+90159=#Restore point {0} not found
+90160=#Could not switch database to exclusive mode
 HY000=Внутренняя ошибка: {0}
 HY004=Неизвестный тип данных: {0}
 HYC00=Данная функция не поддерживается: {0}

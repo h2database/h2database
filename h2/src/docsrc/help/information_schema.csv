@@ -88,6 +88,10 @@ Contains statistics of queries when query statistics gathering is enabled.
 Contains additional information about referential constraints.
 "
 
+"RESTORE_POINTS",,"
+Contains information about restore points.
+"
+
 "RIGHTS",,"
 Contains information about granted rights and roles.
 "
@@ -660,6 +664,18 @@ The rule for UPDATE in referenced table ('RESTRICT', 'CASCADE', 'SET DEFAULT', o
 
 "REFERENTIAL_CONSTRAINTS","DELETE_RULE","
 The rule for DELETE in referenced table ('RESTRICT', 'CASCADE', 'SET DEFAULT', or 'SET NULL').
+"
+
+"RESTORE_POINTS",RESTORE_POINT_NAME,"
+The name of a restore point.
+"
+
+"RESTORE_POINTS",CREATED_AT,"
+The timestamp at which a restore point has been created.
+"
+
+"RESTORE_POINTS",DATABASE_VERSION,"
+The database version a particular restore point references.
 "
 
 "RIGHTS","GRANTEETYPE","

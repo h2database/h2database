@@ -109,7 +109,9 @@ public final class InformationSchemaTable extends MetaTable {
 
     private static final int REFERENTIAL_CONSTRAINTS = PARAMETERS + 1;
 
-    private static final int ROUTINES = REFERENTIAL_CONSTRAINTS + 1;
+    private static final int RESTORE_POINTS = REFERENTIAL_CONSTRAINTS + 1;
+
+    private static final int ROUTINES = RESTORE_POINTS + 1;
 
     private static final int SCHEMATA = ROUTINES + 1;
 
@@ -476,6 +478,15 @@ public final class InformationSchemaTable extends MetaTable {
                     column("DELETE_RULE"), //
             };
             indexColumnName = "CONSTRAINT_NAME";
+            break;
+        case RESTORE_POINTS:
+            setMetaTableName("RESTORE_POINTS");
+            cols = new Column[] {
+                    column("RESTORE_POINT_NAME"), //
+                    column("CREATED_AT", TypeInfo.TYPE_TIMESTAMP_TZ), //
+                    column("DATABASE_VERSION", TypeInfo.TYPE_BIGINT), //
+            };
+            indexColumnName = "RESTORE_POINT_NAME";
             break;
         case ROUTINES:
             setMetaTableName("ROUTINES");
@@ -923,6 +934,9 @@ public final class InformationSchemaTable extends MetaTable {
             break;
         case REFERENTIAL_CONSTRAINTS:
             referentialConstraints(session, indexFrom, indexTo, rows, catalog);
+            break;
+        case RESTORE_POINTS:
+            restorePoints(session, indexFrom, indexTo, rows);
             break;
         case ROUTINES:
             routines(session, rows, catalog);
@@ -1847,6 +1861,23 @@ public final class InformationSchemaTable extends MetaTable {
                         && checkIndex(session, constraint.getName(), indexFrom, indexTo))
                 .forEach(constraint -> referentialConstraints(session, rows, catalog,
                         (ConstraintReferential) constraint));
+    }
+
+    private void restorePoints(SessionLocal session, Value indexFrom, Value indexTo, ArrayList<Row> rows) {
+        session.getDatabase()
+                .getStore()
+                .getMvStore()
+                .getRestorePoints()
+                .stream()
+                .filter(it -> checkIndex(session, it.getName(), indexFrom, indexTo))
+                .forEach(it -> add(session, rows,
+                        // RESTORE_POINT_NAME
+                        it.getName(),
+                        // CREATED_AT
+                        it.getCreatedAt(),
+                        // DATABASE_VERSION
+                        it.getDatabaseVersion()
+                ));
     }
 
     private void referentialConstraints(SessionLocal session, ArrayList<Row> rows, String catalog,

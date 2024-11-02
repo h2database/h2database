@@ -2261,7 +2261,25 @@ public class ErrorCode {
      */
     public static final int GROUP_BY_NOT_IN_THE_RESULT = 90157;
 
-    // next is 90158
+    /**
+     * The error with code <code>90158</code> is thrown when a restore point is
+     * being created, but a restore point with the given name already exists.
+     */
+    public static final int RESTORE_POINT_ALREADY_EXISTS = 90158;
+
+    /**
+     * The error with code <code>90159</code> is thrown when a restore point
+     * is being referenced that does not exist.
+     */
+    public static final int RESTORE_POINT_NOT_FOUND = 90159;
+
+    /**
+     * The error with code <code>90160</code> is thrown when a restore point is being
+     * returned to via RESTORE TO POINT, but switching the database to exclusive mode failed.
+     */
+    public static final int COULD_NOT_SWITCH_DATABASE_TO_EXCLUSIVE_MODE = 90160;
+
+    // next is 90161
 
     private ErrorCode() {
         // utility class

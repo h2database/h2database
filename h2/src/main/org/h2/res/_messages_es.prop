@@ -197,6 +197,9 @@
 90155=#Generated column {0} cannot be updatable by a referential constraint with {1} clause
 90156=#Column alias is not specified for expression {0}
 90157=#Column index {0} in GROUP BY clause is outside valid range 1 - {1}
+90158=#Restore point {0} already exists
+90159=#Restore point {0} not found
+90160=#Could not switch database to exclusive mode
 HY000=Error General : {0}
 HY004=Tipo de dato desconocido : {0}
 HYC00=Caracteristica no soportada: {0}

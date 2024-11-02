@@ -844,4 +844,19 @@ public class Schema extends DbObject {
         }
     }
 
+    /**
+     * Simply removes references to all database objects (without removing them from META).
+     * This is useful when going back to a restore point.
+     */
+    public void clear() {
+        tablesAndViews.clear();
+        domains.clear();
+        synonyms.clear();
+        indexes.clear();
+        sequences.clear();
+        triggers.clear();
+        constraints.clear();
+        constants.clear();
+        functionsAndAggregates.clear();
+    }
 }

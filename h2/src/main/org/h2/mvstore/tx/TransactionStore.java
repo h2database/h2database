@@ -6,6 +6,7 @@
 package org.h2.mvstore.tx;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Iterator;
 import java.util.List;
@@ -173,6 +174,12 @@ public class TransactionStore {
                                                 .keyType(StringDataType.INSTANCE)
                                                 .valueType(metaDataType);
         return store.openMap(TYPE_REGISTRY_NAME, typeRegistryBuilder);
+    }
+
+    public void reinit() {
+        init = false;
+        Arrays.fill(undoLogs, null);
+        init();
     }
 
     /**

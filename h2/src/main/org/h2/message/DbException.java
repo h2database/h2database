@@ -641,6 +641,8 @@ public class DbException extends RuntimeException {
         case GENERATED_COLUMN_CANNOT_BE_UPDATABLE_BY_CONSTRAINT_2:
         case COLUMN_ALIAS_IS_NOT_SPECIFIED_1:
         case GROUP_BY_NOT_IN_THE_RESULT:
+        case RESTORE_POINT_ALREADY_EXISTS:
+        case RESTORE_POINT_NOT_FOUND:
             return new JdbcSQLSyntaxErrorException(message, sql, state, errorCode, cause, stackTrace);
         case HEX_STRING_ODD_1:
         case HEX_STRING_WRONG_1:
@@ -687,6 +689,7 @@ public class DbException extends RuntimeException {
         case INVALID_DATABASE_NAME_1:
         case AUTHENTICATOR_NOT_AVAILABLE:
         case METHOD_DISABLED_ON_AUTOCOMMIT_TRUE:
+        case COULD_NOT_SWITCH_DATABASE_TO_EXCLUSIVE_MODE:
             return new JdbcSQLNonTransientConnectionException(message, sql, state, errorCode, cause, stackTrace);
         case ROW_NOT_FOUND_WHEN_DELETING_1:
         case CONCURRENT_UPDATE_1:

@@ -107,7 +107,7 @@ final class Percentile {
     static Value getValue(SessionLocal session, Value[] array, int dataType, ArrayList<QueryOrderBy> orderByList,
             BigDecimal percentile, boolean interpolate) {
         final CompareMode compareMode = session.getDatabase().getCompareMode();
-        Arrays.sort(array, compareMode);
+        Arrays.sort(array, session);
         int count = array.length;
         boolean reverseIndex = orderByList != null && (orderByList.get(0).sortType & SortOrder.DESCENDING) != 0;
         BigDecimal fpRow = BigDecimal.valueOf(count - 1).multiply(percentile);

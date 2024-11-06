@@ -90,7 +90,7 @@ final class AggregateDataCollecting extends AggregateData implements Iterable<Va
         Collection<Value> c = values;
         if (c == null) {
             if (distinct) {
-                Comparator<Value> comparator = session.getDatabase().getCompareMode();
+                Comparator<Value> comparator = session;
                 if (orderedWithOrder) {
                     comparator = Comparator.comparing(t -> ((ValueRow) t).getList()[0], comparator);
                 }

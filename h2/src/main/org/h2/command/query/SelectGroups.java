@@ -72,7 +72,7 @@ public abstract class SelectGroups {
         @Override
         public void reset() {
             super.reset();
-            groupByData = new TreeMap<>(session.getDatabase().getCompareMode());
+            groupByData = new TreeMap<>(session);
             currentGroupsKey = null;
             cursor = null;
         }
@@ -346,7 +346,7 @@ public abstract class SelectGroups {
         } else {
             TreeMap<Value, PartitionData> map = windowPartitionData.get(expr);
             if (map == null) {
-                map = new TreeMap<>(session.getDatabase().getCompareMode());
+                map = new TreeMap<>(session);
                 windowPartitionData.put(expr, map);
             }
             map.put(partitionKey, obj);

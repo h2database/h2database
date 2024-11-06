@@ -206,7 +206,7 @@ public class LocalResult implements ResultInterface, ResultTarget {
     public void setDistinct() {
         assert distinctIndexes == null;
         distinct = true;
-        distinctRows = new TreeMap<>(session.getDatabase().getCompareMode());
+        distinctRows = new TreeMap<>(session);
     }
 
     /**
@@ -217,7 +217,7 @@ public class LocalResult implements ResultInterface, ResultTarget {
     public void setDistinct(int[] distinctIndexes) {
         assert !distinct;
         this.distinctIndexes = distinctIndexes;
-        distinctRows = new TreeMap<>(session.getDatabase().getCompareMode());
+        distinctRows = new TreeMap<>(session);
     }
 
     /**
@@ -227,7 +227,7 @@ public class LocalResult implements ResultInterface, ResultTarget {
      */
     public void setInPredicateValueListResult(int[] inPredicateSortTypes) {
         distinct = true;
-        distinctRows = new TreeMap<>(session.getDatabase().getCompareMode());
+        distinctRows = new TreeMap<>(session);
         if (inPredicateSortTypes.length != 0) {
             sort = SortOrder.ofSortTypes(session, inPredicateSortTypes);
         }
@@ -252,7 +252,7 @@ public class LocalResult implements ResultInterface, ResultTarget {
             return external.contains(values);
         }
         if (distinctRows == null) {
-            distinctRows = new TreeMap<>(session.getDatabase().getCompareMode());
+            distinctRows = new TreeMap<>(session);
             for (Value[] row : rows) {
                 ValueRow array = getDistinctRow(row);
                 distinctRows.put(array, array.getList());

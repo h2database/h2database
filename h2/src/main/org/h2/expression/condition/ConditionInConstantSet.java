@@ -53,7 +53,7 @@ public final class ConditionInConstantSet extends ConditionIn {
     ConditionInConstantSet(SessionLocal session, Expression left, boolean not, boolean whenOperand,
             ArrayList<Expression> valueList) {
         super(left, not, whenOperand, valueList);
-        this.valueSet = new TreeSet<>(session.getDatabase().getCompareMode());
+        this.valueSet = new TreeSet<>(session);
         TypeInfo type = left.getType();
         for (Expression expression : valueList) {
             type = TypeInfo.getHigherType(type, expression.getType());

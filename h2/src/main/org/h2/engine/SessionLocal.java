@@ -9,6 +9,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -73,7 +74,7 @@ import org.h2.value.lob.LobDataInMemory;
  * mode, this object resides on the server side and communicates with a
  * SessionRemote object on the client side.
  */
-public final class SessionLocal extends Session implements TransactionStore.RollbackListener {
+public final class SessionLocal extends Session implements TransactionStore.RollbackListener, Comparator<Value> {
 
     public enum State { INIT, RUNNING, BLOCKED, SLEEP, THROTTLED, SUSPENDED, CLOSED }
 
@@ -1979,6 +1980,7 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
      * @return 0 if both values are equal, -1 if the first value is smaller, and
      *         1 otherwise
      */
+    @Override
     public int compare(Value a, Value b) {
         return a.compareTo(b, this, getCompareMode());
     }

@@ -120,6 +120,7 @@ public class TestPreparedStatement extends TestDb {
         testParameterInSubquery(conn);
         testAfterRollback(conn);
         testUnnestWithArrayParameter(conn);
+        testDateTimeWithParameter(conn);
         conn.close();
         testPreparedStatementWithLiteralsNone();
         testPreparedStatementWithIndexedParameterAndLiteralsNone();
@@ -1817,6 +1818,18 @@ public class TestPreparedStatement extends TestDb {
         ResultSet rs = prep.executeQuery();
         assertTrue(rs.next());
         assertEquals(new Integer[] { 1, 2 }, rs.getObject(1, Integer[].class));
+    }
+
+    private void testDateTimeWithParameter(Connection conn) throws SQLException {
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE TABLE TEST(ID BIGINT PRIMARY KEY, T TIMESTAMP WITH TIME ZONE) "
+                + "AS VALUES (1, CURRENT_TIMESTAMP)");
+        PreparedStatement prep = conn.prepareStatement("SELECT T = ANY(SELECT CAST(? AS TIMESTAMP)) FROM TEST");
+        prep.setObject(1, LocalDateTime.now());
+        ResultSet rs = prep.executeQuery();
+        assertTrue(rs.next());
+        assertFalse(rs.getBoolean(1));
+        stat.execute("DROP TABLE TEST");
     }
 
 }

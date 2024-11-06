@@ -42,7 +42,7 @@ final class AggregateDataDistinctWithCounts extends AggregateData {
             return;
         }
         if (values == null) {
-            values = new TreeMap<>(session.getDatabase().getCompareMode());
+            values = new TreeMap<>(session);
         }
         LongDataCounter a = values.get(v);
         if (a == null) {

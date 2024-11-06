@@ -248,7 +248,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
         Arrays.sort(array,
                 sortOrder != null
                         ? (v1, v2) -> sortOrder.compare(((ValueRow) v1).getList(), ((ValueRow) v2).getList())
-                        : select.getSession().getDatabase().getCompareMode());
+                        : select.getSession());
     }
 
     @Override

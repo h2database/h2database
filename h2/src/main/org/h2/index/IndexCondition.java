@@ -191,7 +191,7 @@ public class IndexCondition {
             SortOrder sortOrder = SortOrder.ofSortTypes(session, sortTypes);
             comparator = (o1, o2) -> sortOrder.compare(((ValueRow) o1).getList(), ((ValueRow) o2).getList());
         } else {
-            comparator = session.getDatabase().getCompareMode();
+            comparator = session;
             if ((sortTypes[0] & SortOrder.DESCENDING) != 0) {
                 comparator = comparator.reversed();
             }

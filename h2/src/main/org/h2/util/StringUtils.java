@@ -37,7 +37,8 @@ public class StringUtils {
     // 4 * 1024 * 2 (strings per pair) * 64 * 2 (bytes per char) = 0.5 MB
     private static final int TO_UPPER_CACHE_LENGTH = 2 * 1024;
     private static final int TO_UPPER_CACHE_MAX_ENTRY_LENGTH = 64;
-    private static final AtomicReferenceArray<String[]> TO_UPPER_CACHE = new AtomicReferenceArray<>(TO_UPPER_CACHE_LENGTH);
+    private static final AtomicReferenceArray<String[]> TO_UPPER_CACHE = new AtomicReferenceArray<>(
+            TO_UPPER_CACHE_LENGTH);
 
     static {
         Arrays.fill(HEX_DECODE, -1);

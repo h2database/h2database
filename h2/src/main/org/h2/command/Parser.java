@@ -8591,7 +8591,7 @@ public final class Parser extends ParserBase {
             return result;
         }
         if (readIf("NO", "ACTION")) {
-            return ConstraintActionType.RESTRICT;
+            return ConstraintActionType.NO_ACTION;
         }
         read(SET);
         if (readIf(NULL)) {
@@ -8756,11 +8756,14 @@ public final class Parser extends ParserBase {
             String indexName = readIdentifierWithSchema();
             command.setRefIndex(getSchema().findIndex(session, indexName));
         }
-        while (readIf(ON)) {
-            if (readIf("DELETE")) {
+        if (readIf(ON, "UPDATE")) {
+            command.setUpdateAction(parseAction());
+            if (readIf(ON, "DELETE")) {
                 command.setDeleteAction(parseAction());
-            } else {
-                read("UPDATE");
+            }
+        } else if (readIf(ON, "DELETE")) {
+            command.setDeleteAction(parseAction());
+            if (readIf(ON, "UPDATE")) {
                 command.setUpdateAction(parseAction());
             }
         }

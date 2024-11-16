@@ -41,8 +41,8 @@ public class AlterTableAddConstraint extends AlterTable {
     private String constraintName;
     private NullsDistinct nullsDistinct;
     private IndexColumn[] indexColumns;
-    private ConstraintActionType deleteAction = ConstraintActionType.RESTRICT;
-    private ConstraintActionType updateAction = ConstraintActionType.RESTRICT;
+    private ConstraintActionType deleteAction = ConstraintActionType.NO_ACTION;
+    private ConstraintActionType updateAction = ConstraintActionType.NO_ACTION;
     private Schema refSchema;
     private String refTableName;
     private IndexColumn[] refIndexColumns;

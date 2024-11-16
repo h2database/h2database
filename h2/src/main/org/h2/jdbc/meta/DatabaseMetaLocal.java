@@ -79,6 +79,9 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
     private static final ValueSmallint COLUMN_NULLABLE_UNKNOWN_SMALL = ValueSmallint
             .get((short) DatabaseMetaData.columnNullableUnknown);
 
+    private static final ValueSmallint IMPORTED_KEY_NO_ACTION = ValueSmallint
+            .get((short) DatabaseMetaData.importedKeyNoAction);
+
     private static final ValueSmallint IMPORTED_KEY_CASCADE = ValueSmallint
             .get((short) DatabaseMetaData.importedKeyCascade);
 
@@ -1113,6 +1116,8 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
 
     private static ValueSmallint getRefAction(ConstraintActionType action) {
         switch (action) {
+        case NO_ACTION:
+            return IMPORTED_KEY_NO_ACTION;
         case CASCADE:
             return IMPORTED_KEY_CASCADE;
         case RESTRICT:

@@ -3670,11 +3670,11 @@ FOREIGN KEY(ID) REFERENCES TEST(ID)
 
 "Other Grammar","References Specification","
 REFERENCES [ refTableName ] [ ( refColumnName [,...] ) ]
-[ ON DELETE referentialAction ] [ ON UPDATE referentialAction ]
+[ referentialTriggeredAction ]
 ","
 Defines a referential specification of a referential constraint.
 If the table name is not specified, then the same table is referenced.
-RESTRICT is the default action.
+NO ACTION is the default action, but currently it works like stricter RESTRICT.
 If the referenced columns are not specified, then the primary key columns are used.
 Referential constraint requires an existing unique or primary key constraint on referenced columns,
 this constraint must include all referenced columns in any order and must not include any other columns.
@@ -3683,12 +3683,21 @@ Some tables may not be referenced, such as metadata tables.
 REFERENCES TEST(ID)
 "
 
+"Other Grammar","Referential Triggered Action","
+ON UPDATE referentialAction [ ON DELETE referentialAction ]
+    | ON DELETE referentialAction [ ON UPDATE referentialAction ]
+","
+Referential actions triggered during unique key updates and row deletions in the referenced table.
+","
+ON UPDATE CASCADE ON DELETE CASCADE
+"
+
 "Other Grammar","Referential Action","
 CASCADE | RESTRICT | NO ACTION | SET { DEFAULT | NULL }
 ","
 The action CASCADE will cause conflicting rows in the referencing (child) table to be deleted or updated.
-RESTRICT is the default action.
-As this database does not support deferred checking, RESTRICT and NO ACTION will both throw an exception if the constraint is violated.
+NO ACTION is the default action, but because this database does not support deferred checking,
+RESTRICT and NO ACTION will both throw an exception immediately if the constraint is violated.
 The action SET DEFAULT will set the column in the referencing (child) table to the default value, while SET NULL will set it to NULL.
 ","
 CASCADE

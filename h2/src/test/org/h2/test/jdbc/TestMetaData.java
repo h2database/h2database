@@ -455,14 +455,14 @@ public class TestMetaData extends TestDb {
         assertResultSetOrdered(rs, new String[][] {
                 { CATALOG, Constants.SCHEMA_MAIN, "PARENT", "A", CATALOG,
                         Constants.SCHEMA_MAIN, "CHILD", "PA", "1",
-                        "" + DatabaseMetaData.importedKeyRestrict,
-                        "" + DatabaseMetaData.importedKeyRestrict, "AB",
+                        "" + DatabaseMetaData.importedKeyNoAction,
+                        "" + DatabaseMetaData.importedKeyNoAction, "AB",
                         "CONSTRAINT_8",
                         "" + DatabaseMetaData.importedKeyNotDeferrable },
                 { CATALOG, Constants.SCHEMA_MAIN, "PARENT", "B", CATALOG,
                         Constants.SCHEMA_MAIN, "CHILD", "PB", "2",
-                        "" + DatabaseMetaData.importedKeyRestrict,
-                        "" + DatabaseMetaData.importedKeyRestrict, "AB",
+                        "" + DatabaseMetaData.importedKeyNoAction,
+                        "" + DatabaseMetaData.importedKeyNoAction, "AB",
                         "CONSTRAINT_8",
                         "" + DatabaseMetaData.importedKeyNotDeferrable } });
     }

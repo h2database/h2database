@@ -89,7 +89,7 @@ SELECT CONSTRAINT_NAME, UNIQUE_CONSTRAINT_NAME, MATCH_OPTION, UPDATE_RULE, DELET
     ORDER BY CONSTRAINT_NAME, UNIQUE_CONSTRAINT_NAME;
 > CONSTRAINT_NAME UNIQUE_CONSTRAINT_NAME MATCH_OPTION UPDATE_RULE DELETE_RULE
 > --------------- ---------------------- ------------ ----------- -----------
-> FK_1            CONSTRAINT_A           NONE         RESTRICT    SET NULL
+> FK_1            CONSTRAINT_A           NONE         NO ACTION   SET NULL
 > FK_2            U_1                    NONE         CASCADE     SET DEFAULT
 > rows (ordered): 2
 

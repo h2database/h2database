@@ -2194,6 +2194,8 @@ public final class InformationSchemaTableLegacy extends MetaTable {
 
     private static short getRefAction(ConstraintActionType action) {
         switch (action) {
+        case NO_ACTION:
+            return DatabaseMetaData.importedKeyNoAction;
         case CASCADE:
             return DatabaseMetaData.importedKeyCascade;
         case RESTRICT:

@@ -472,7 +472,7 @@ public class ScriptCommand extends ScriptBase {
     }
 
     private int generateInsertValues(int count, Table table) throws IOException {
-        PlanItem plan = table.getBestPlanItem(session, null, null, -1, null, null);
+        PlanItem plan = table.getBestPlanItem(session, null, null, -1, null, null, /*isSelectCommand*/true);
         Index index = plan.getIndex();
         Cursor cursor = index.find(session, null, null, false);
         Column[] columns = table.getColumns();

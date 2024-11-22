@@ -214,7 +214,7 @@ public class ConstraintDomain extends Constraint {
             Table table = targetColumn.getTable();
             TableFilter filter = new TableFilter(session, table, null, true, null, 0, null);
             TableFilter[] filters = { filter };
-            PlanItem item = filter.getBestPlanItem(session, filters, 0, new AllColumnsForPlan(filters));
+            PlanItem item = filter.getBestPlanItem(session, filters, 0, new AllColumnsForPlan(filters), /*isSelectCommand*/true);
             filter.setPlanItem(item);
             filter.prepare();
             filter.startQuery(session);

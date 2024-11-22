@@ -344,10 +344,10 @@ public class MVPrimaryIndex extends MVIndex<Long, SearchRow> {
     @Override
     public double getCost(SessionLocal session, int[] masks,
             TableFilter[] filters, int filter, SortOrder sortOrder,
-            AllColumnsForPlan allColumnsSet) {
+            AllColumnsForPlan allColumnsSet, boolean isSelectCommand) {
         try {
             return 10 * getCostRangeIndex(masks, dataMap.sizeAsLongMax(),
-                    filters, filter, sortOrder, true, allColumnsSet);
+                    filters, filter, sortOrder, true, allColumnsSet, isSelectCommand);
         } catch (MVStoreException e) {
             throw DbException.get(ErrorCode.OBJECT_CLOSED, e);
         }

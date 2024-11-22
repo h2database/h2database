@@ -576,7 +576,7 @@ public class TestTableEngines extends TestDb {
                 @Override
                 public double getCost(SessionLocal session, int[] masks,
                         TableFilter[] filters, int filter, SortOrder sortOrder,
-                        AllColumnsForPlan allColumnsSet) {
+                        AllColumnsForPlan allColumnsSet, boolean isSelectCommand) {
                     return 0;
                 }
 
@@ -784,9 +784,9 @@ public class TestTableEngines extends TestDb {
             @Override
             public double getCost(SessionLocal session, int[] masks,
                     TableFilter[] filters, int filter, SortOrder sortOrder,
-                    AllColumnsForPlan allColumnsSet) {
+                    AllColumnsForPlan allColumnsSet, boolean isSelectCommand) {
                 return getCostRangeIndex(masks, getRowCount(session), filters,
-                        filter, sortOrder, true, allColumnsSet);
+                        filter, sortOrder, true, allColumnsSet, isSelectCommand);
             }
         };
 
@@ -993,9 +993,9 @@ public class TestTableEngines extends TestDb {
         @Override
         public double getCost(SessionLocal session, int[] masks,
                 TableFilter[] filters, int filter, SortOrder sortOrder,
-                AllColumnsForPlan allColumnsSet) {
+                AllColumnsForPlan allColumnsSet, boolean isSelectCommand) {
             return getCostRangeIndex(masks, set.size(), filters, filter,
-                    sortOrder, false, allColumnsSet);
+                    sortOrder, false, allColumnsSet, isSelectCommand);
         }
 
         @Override

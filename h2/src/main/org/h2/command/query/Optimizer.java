@@ -75,18 +75,18 @@ class Optimizer {
         return i;
     }
 
-    private void calculateBestPlan() {
+    private void calculateBestPlan(boolean isSelectCommand) {
         cost = -1;
         if (filters.length == 1) {
-            testPlan(filters);
+            testPlan(filters, isSelectCommand);
         } else {
             startNs = System.nanoTime();
             if (filters.length <= MAX_BRUTE_FORCE_FILTERS) {
-                calculateBruteForceAll();
+                calculateBruteForceAll(isSelectCommand);
             } else {
-                calculateBruteForceSome();
+                calculateBruteForceSome(isSelectCommand);
                 random = new Random(0);
-                calculateGenetic();
+                calculateGenetic(isSelectCommand);
             }
         }
     }
@@ -104,15 +104,15 @@ class Optimizer {
                 && System.nanoTime() - startNs > cost * 100_000L;
     }
 
-    private void calculateBruteForceAll() {
+    private void calculateBruteForceAll(boolean isSelectCommand) {
         TableFilter[] list = new TableFilter[filters.length];
         Permutations<TableFilter> p = Permutations.create(filters, list);
         for (int x = 0; !canStop(x) && p.next(); x++) {
-            testPlan(list);
+            testPlan(list, isSelectCommand);
         }
     }
 
-    private void calculateBruteForceSome() {
+    private void calculateBruteForceSome(boolean isSelectCommand) {
         int bruteForce = getMaxBruteForceFilters(filters.length);
         TableFilter[] list = new TableFilter[filters.length];
         Permutations<TableFilter> p = Permutations.create(filters, list, bruteForce);
@@ -136,7 +136,7 @@ class Optimizer {
                         }
                         list[i] = filters[j];
                         Plan part = new Plan(list, i+1, condition);
-                        double costNow = part.calculateCost(session, allColumnsSet);
+                        double costNow = part.calculateCost(session, allColumnsSet, isSelectCommand);
                         if (costPart < 0 || costNow < costPart) {
                             costPart = costNow;
                             bestPart = j;
@@ -146,11 +146,11 @@ class Optimizer {
                 filters[bestPart].setUsed(true);
                 list[i] = filters[bestPart];
             }
-            testPlan(list);
+            testPlan(list, isSelectCommand);
         }
     }
 
-    private void calculateGenetic() {
+    private void calculateGenetic(boolean isSelectCommand) {
         TableFilter[] best = new TableFilter[filters.length];
         TableFilter[] list = new TableFilter[filters.length];
         for (int x = 0; x < MAX_GENETIC; x++) {
@@ -170,16 +170,16 @@ class Optimizer {
                 shuffleAll(best);
                 System.arraycopy(best, 0, list, 0, filters.length);
             }
-            if (testPlan(list)) {
+            if (testPlan(list, isSelectCommand)) {
                 switched = new BitSet();
                 System.arraycopy(list, 0, best, 0, filters.length);
             }
         }
     }
 
-    private boolean testPlan(TableFilter[] list) {
+    private boolean testPlan(TableFilter[] list, boolean isSelectCommand) {
         Plan p = new Plan(list, list.length, condition);
-        double costNow = p.calculateCost(session, allColumnsSet);
+        double costNow = p.calculateCost(session, allColumnsSet, isSelectCommand);
         if (cost < 0 || costNow < cost) {
             cost = costNow;
             bestPlan = p;
@@ -234,11 +234,11 @@ class Optimizer {
      * @param parse If we do not need to really get the best plan because it is
      *            a view parsing stage.
      */
-    void optimize(boolean parse) {
+    void optimize(boolean parse, boolean isSelectCommand) {
         if (parse) {
             calculateFakePlan();
         } else {
-            calculateBestPlan();
+            calculateBestPlan(isSelectCommand);
             bestPlan.removeUnusableIndexConditions();
         }
         TableFilter[] f2 = bestPlan.getFilters();

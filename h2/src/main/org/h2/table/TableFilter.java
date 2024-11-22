@@ -211,7 +211,7 @@ public class TableFilter implements ColumnResolver {
      * @return the best plan item
      */
     public PlanItem getBestPlanItem(SessionLocal s, TableFilter[] filters, int filter,
-            AllColumnsForPlan allColumnsSet) {
+            AllColumnsForPlan allColumnsSet, boolean isSelectCommand) {
         PlanItem item1 = null;
         SortOrder sortOrder = null;
         if (select != null) {
@@ -222,7 +222,7 @@ public class TableFilter implements ColumnResolver {
             item1.setIndex(table.getScanIndex(s, null, filters, filter,
                     sortOrder, allColumnsSet));
             item1.cost = item1.getIndex().getCost(s, null, filters, filter,
-                    sortOrder, allColumnsSet);
+                    sortOrder, allColumnsSet, isSelectCommand);
         }
         int len = table.getColumns().length;
         int[] masks = new int[len];
@@ -250,7 +250,7 @@ public class TableFilter implements ColumnResolver {
                 }
             }
         }
-        PlanItem item = table.getBestPlanItem(s, masks, filters, filter, sortOrder, allColumnsSet);
+        PlanItem item = table.getBestPlanItem(s, masks, filters, filter, sortOrder, allColumnsSet, isSelectCommand);
         item.setMasks(masks);
         // The more index conditions, the earlier the table.
         // This is to ensure joins without indexes run quickly:
@@ -263,7 +263,7 @@ public class TableFilter implements ColumnResolver {
 
         if (nestedJoin != null) {
             setEvaluatable(true);
-            item.setNestedJoinPlan(nestedJoin.getBestPlanItem(s, filters, filter, allColumnsSet));
+            item.setNestedJoinPlan(nestedJoin.getBestPlanItem(s, filters, filter, allColumnsSet, isSelectCommand));
             // TODO optimizer: calculate cost of a join: should use separate
             // expected row number and lookup cost
             item.cost += item.cost * item.getNestedJoinPlan().cost;
@@ -273,7 +273,7 @@ public class TableFilter implements ColumnResolver {
             do {
                 filter++;
             } while (filters[filter] != join);
-            item.setJoinPlan(join.getBestPlanItem(s, filters, filter, allColumnsSet));
+            item.setJoinPlan(join.getBestPlanItem(s, filters, filter, allColumnsSet, isSelectCommand));
             // TODO optimizer: calculate cost of a join: should use separate
             // expected row number and lookup cost
             item.cost += item.cost * item.getJoinPlan().cost;

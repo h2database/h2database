@@ -113,7 +113,7 @@ public final class Delete extends FilteredDataChangeStatement {
             }
         }
         TableFilter[] filters = new TableFilter[] { targetTableFilter };
-        PlanItem item = targetTableFilter.getBestPlanItem(session, filters, 0, new AllColumnsForPlan(filters));
+        PlanItem item = targetTableFilter.getBestPlanItem(session, filters, 0, new AllColumnsForPlan(filters), /*isSelectCommand*/false);
         targetTableFilter.setPlanItem(item);
         targetTableFilter.prepare();
     }

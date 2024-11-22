@@ -262,10 +262,11 @@ public abstract class Index extends SchemaObject {
      * @param filter the current table filter index
      * @param sortOrder the sort order
      * @param allColumnsSet the set of all columns
+     * @param isSelectCommand is this for an SELECT command
      * @return the estimated cost
      */
     public abstract double getCost(SessionLocal session, int[] masks, TableFilter[] filters, int filter,
-            SortOrder sortOrder, AllColumnsForPlan allColumnsSet);
+            SortOrder sortOrder, AllColumnsForPlan allColumnsSet, boolean isSelectCommand);
 
     /**
      * Remove the index.
@@ -555,10 +556,11 @@ public abstract class Index extends SchemaObject {
      * @param sortOrder the sort order
      * @param isScanIndex whether this is a "table scan" index
      * @param allColumnsSet the set of all columns
+     * @param isSelectCommand is this a SELECT command (as opposed to INSERT, DELETE, UPDATE)
      * @return the estimated cost
      */
     protected final long getCostRangeIndex(int[] masks, long rowCount, TableFilter[] filters, int filter,
-            SortOrder sortOrder, boolean isScanIndex, AllColumnsForPlan allColumnsSet) {
+            SortOrder sortOrder, boolean isScanIndex, AllColumnsForPlan allColumnsSet, boolean isSelectCommand) {
         rowCount += Constants.COST_ROW_OFFSET;
         int totalSelectivity = 0;
         long rowsCost = rowCount;
@@ -686,8 +688,10 @@ public abstract class Index extends SchemaObject {
         // If we have two indexes with the same cost, and one of the indexes can
         // satisfy the query without needing to read from the primary table
         // (scan index), make that one slightly lower cost.
+        // For INSERT or UPDATE commands, we have to touch the primary table anyway
+        // so this makes no difference.
         boolean needsToReadFromScanIndex;
-        if (!isScanIndex && allColumnsSet != null) {
+        if (isSelectCommand && !isScanIndex && allColumnsSet != null) {
             needsToReadFromScanIndex = false;
             ArrayList<Column> foundCols = allColumnsSet.get(getTable());
             if (foundCols != null) {
@@ -710,13 +714,19 @@ public abstract class Index extends SchemaObject {
             needsToReadFromScanIndex = true;
         }
         long rc;
-        if (isScanIndex) {
+        if (!isSelectCommand) {
+            // For UPDATE or INSERT, we have to touch the primary table
+            // so the covering index calculations below are irrelevant.
+            rc = rowsCost + sortingCost;
+        }
+        else if (isScanIndex) {
             rc = rowsCost + sortingCost + 20;
         } else if (needsToReadFromScanIndex) {
             rc = rowsCost + rowsCost + sortingCost + 20;
-        } else {
-            // The (20-x) calculation makes sure that when we pick a covering
-            // index, we pick the covering index that has the smallest number of
+        } else { // covering index
+            // The "+ 20" terms above, and the "+ columns.length" term here, 
+            // makes sure that when we pick a covering index, 
+            // we pick the covering index that has the smallest number of
             // columns (the more columns we have in index - the higher cost).
             // This is faster because a smaller index will fit into fewer data
             // blocks.

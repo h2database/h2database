@@ -718,8 +718,7 @@ public abstract class Index extends SchemaObject {
             // For UPDATE or INSERT, we have to touch the primary table
             // so the covering index calculations below are irrelevant.
             rc = rowsCost + sortingCost;
-        }
-        else if (isScanIndex) {
+        } else if (isScanIndex) {
             rc = rowsCost + sortingCost + 20;
         } else if (needsToReadFromScanIndex) {
             rc = rowsCost + rowsCost + sortingCost + 20;

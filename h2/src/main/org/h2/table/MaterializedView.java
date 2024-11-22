@@ -68,8 +68,8 @@ public class MaterializedView extends Table {
 
     @Override
     public final PlanItem getBestPlanItem(SessionLocal session, int[] masks, TableFilter[] filters, int filter,
-            SortOrder sortOrder, AllColumnsForPlan allColumnsSet) {
-        return table.getBestPlanItem(session, masks, filters, filter, sortOrder, allColumnsSet);
+            SortOrder sortOrder, AllColumnsForPlan allColumnsSet, boolean isSelectCommand) {
+        return table.getBestPlanItem(session, masks, filters, filter, sortOrder, allColumnsSet, isSelectCommand);
     }
 
     @Override
@@ -129,13 +129,13 @@ public class MaterializedView extends Table {
 
     @Override
     public final Index getScanIndex(SessionLocal session) {
-        return getBestPlanItem(session, null, null, -1, null, null).getIndex();
+        return getBestPlanItem(session, null, null, -1, null, null, /*isSelectCommand*/true).getIndex();
     }
 
     @Override
     public Index getScanIndex(SessionLocal session, int[] masks, TableFilter[] filters, int filter, //
             SortOrder sortOrder, AllColumnsForPlan allColumnsSet) {
-        return getBestPlanItem(session, masks, filters, filter, sortOrder, allColumnsSet).getIndex();
+        return getBestPlanItem(session, masks, filters, filter, sortOrder, allColumnsSet, /*isSelectCommand*/true).getIndex();
     }
 
     @Override

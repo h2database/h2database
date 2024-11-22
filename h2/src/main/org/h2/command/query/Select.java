@@ -1377,7 +1377,7 @@ public class Select extends Query {
         }
 
         Optimizer optimizer = new Optimizer(topArray, condition, session);
-        optimizer.optimize(parse);
+        optimizer.optimize(parse, /*isSelectCommand*/true);
         topTableFilter = optimizer.getTopFilter();
         double planCost = optimizer.getCost();
 

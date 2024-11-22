@@ -31,7 +31,7 @@ public class DualIndex extends VirtualTableIndex {
 
     @Override
     public double getCost(SessionLocal session, int[] masks, TableFilter[] filters, int filter, SortOrder sortOrder,
-            AllColumnsForPlan allColumnsSet) {
+            AllColumnsForPlan allColumnsSet, boolean isSelectCommand) {
         return 1d;
     }
 

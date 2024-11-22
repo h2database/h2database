@@ -852,10 +852,10 @@ public abstract class Table extends SchemaObject {
      */
     public PlanItem getBestPlanItem(SessionLocal session, int[] masks,
             TableFilter[] filters, int filter, SortOrder sortOrder,
-            AllColumnsForPlan allColumnsSet) {
+            AllColumnsForPlan allColumnsSet, boolean isSelectCommand) {
         PlanItem item = new PlanItem();
         item.setIndex(getScanIndex(session));
-        item.cost = item.getIndex().getCost(session, null, filters, filter, null, allColumnsSet);
+        item.cost = item.getIndex().getCost(session, null, filters, filter, null, allColumnsSet, isSelectCommand);
         Trace t = session.getTrace();
         if (t.isDebugEnabled()) {
             t.debug("Table      :     potential plan item cost {0} index {1}",
@@ -873,7 +873,7 @@ public abstract class Table extends SchemaObject {
                 }
 
                 double cost = index.getCost(session, masks, filters, filter,
-                        sortOrder, allColumnsSet);
+                        sortOrder, allColumnsSet, isSelectCommand);
                 if (t.isDebugEnabled()) {
                     t.debug("Table      :     potential plan item cost {0} index {1}",
                             cost, index.getPlanSQL());

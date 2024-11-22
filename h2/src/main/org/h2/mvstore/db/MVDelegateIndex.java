@@ -109,9 +109,9 @@ public class MVDelegateIndex extends MVIndex<Long, SearchRow> {
     @Override
     public double getCost(SessionLocal session, int[] masks,
             TableFilter[] filters, int filter, SortOrder sortOrder,
-            AllColumnsForPlan allColumnsSet) {
+            AllColumnsForPlan allColumnsSet, boolean isSelectCommand) {
         return 10 * getCostRangeIndex(masks, mainIndex.getRowCountApproximation(session),
-                filters, filter, sortOrder, true, allColumnsSet);
+                filters, filter, sortOrder, true, allColumnsSet, isSelectCommand);
     }
 
     @Override

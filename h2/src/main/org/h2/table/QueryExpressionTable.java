@@ -168,7 +168,7 @@ public abstract class QueryExpressionTable extends Table {
 
     @Override
     public final PlanItem getBestPlanItem(SessionLocal session, int[] masks, TableFilter[] filters, int filter,
-            SortOrder sortOrder, AllColumnsForPlan allColumnsSet) {
+            SortOrder sortOrder, AllColumnsForPlan allColumnsSet, boolean isSelectCommand) {
         final CacheKey cacheKey = new CacheKey(masks, this);
         Map<Object, QueryExpressionIndex> indexCache = session.getViewIndexCache(getTableType() == null);
         QueryExpressionIndex i = indexCache.get(cacheKey);
@@ -177,7 +177,7 @@ public abstract class QueryExpressionTable extends Table {
             indexCache.put(cacheKey, i);
         }
         PlanItem item = new PlanItem();
-        item.cost = i.getCost(session, masks, filters, filter, sortOrder, allColumnsSet);
+        item.cost = i.getCost(session, masks, filters, filter, sortOrder, allColumnsSet, isSelectCommand);
         item.setIndex(i);
         return item;
     }
@@ -275,13 +275,13 @@ public abstract class QueryExpressionTable extends Table {
 
     @Override
     public final Index getScanIndex(SessionLocal session) {
-        return getBestPlanItem(session, null, null, -1, null, null).getIndex();
+        return getBestPlanItem(session, null, null, -1, null, null, /*isSelectCommand*/true).getIndex();
     }
 
     @Override
     public Index getScanIndex(SessionLocal session, int[] masks, TableFilter[] filters, int filter, //
             SortOrder sortOrder, AllColumnsForPlan allColumnsSet) {
-        return getBestPlanItem(session, masks, filters, filter, sortOrder, allColumnsSet).getIndex();
+        return getBestPlanItem(session, masks, filters, filter, sortOrder, allColumnsSet, /*isSelectCommand*/true).getIndex();
     }
 
     @Override

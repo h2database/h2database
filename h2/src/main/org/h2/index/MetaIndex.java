@@ -57,12 +57,12 @@ public class MetaIndex extends Index {
     @Override
     public double getCost(SessionLocal session, int[] masks,
             TableFilter[] filters, int filter, SortOrder sortOrder,
-            AllColumnsForPlan allColumnsSet) {
+            AllColumnsForPlan allColumnsSet, boolean isSelectCommand) {
         if (scan) {
             return 10 * MetaTable.ROW_COUNT_APPROXIMATION;
         }
         return getCostRangeIndex(masks, MetaTable.ROW_COUNT_APPROXIMATION,
-                filters, filter, sortOrder, false, allColumnsSet);
+                filters, filter, sortOrder, false, allColumnsSet, isSelectCommand);
     }
 
     @Override

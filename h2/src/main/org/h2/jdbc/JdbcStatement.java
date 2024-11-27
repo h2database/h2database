@@ -807,10 +807,12 @@ public class JdbcStatement extends TraceObject implements Statement {
             int size = batchCommands.size();
             int[] result = new int[size];
             SQLException exception = null, last = null;
+            long totalUpdateCount = 0L;
             for (int i = 0; i < size; i++) {
                 int updateCount;
                 try {
                     long longUpdateCount = executeUpdateInternal(batchCommands.get(i), null);
+                    totalUpdateCount += longUpdateCount;
                     updateCount = longUpdateCount <= Integer.MAX_VALUE ? (int) longUpdateCount : SUCCESS_NO_INFO;
                 } catch (Exception e) {
                     SQLException s = DbException.toSQLException(e);
@@ -823,6 +825,7 @@ public class JdbcStatement extends TraceObject implements Statement {
                 }
                 result[i] = updateCount;
             }
+            updateCount = totalUpdateCount;
             batchCommands = null;
             if (exception != null) {
                 throw new JdbcBatchUpdateException(exception, result);

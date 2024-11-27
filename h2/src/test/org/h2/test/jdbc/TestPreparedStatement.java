@@ -277,7 +277,9 @@ public class TestPreparedStatement extends TestDb {
             prep.setCharacterStream(2, new StringReader(getString(i)), -1);
             prep.addBatch();
         }
-        prep.executeBatch();
+        var updateCount = prep.executeBatch();
+        assertEquals(new int[]{1, 1, 1}, updateCount);
+        assertEquals(3, prep.getUpdateCount());
         rs = stat.executeQuery("SELECT * FROM TEST ORDER BY ID");
         for (int i = 0; i < 3; i++) {
             assertTrue(rs.next());

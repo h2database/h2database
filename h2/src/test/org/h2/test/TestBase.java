@@ -506,6 +506,24 @@ public abstract class TestBase {
     }
 
     /**
+     * Check if two integer arrays are equal, and if not throw an exception.
+     *
+     * @param expected the expected array
+     * @param actual the actual array
+     * @throws AssertionError if the arrays are not equal
+     */
+    public void assertEquals(int[] expected, int[] actual) {
+        if (expected.length != actual.length) {
+            fail("Expected length: " + expected.length + " actual length: " + actual.length);
+        }
+        for (int i = 0; i < expected.length; i++) {
+            if (expected[i] != actual[i]) {
+                fail("Difference at index [" + i + "]: expected: " + expected[i] + " actual: " + actual[i]);
+            }
+        }
+    }
+
+    /**
      * Check if two values are equal, and if not throw an exception.
      *
      * @param expected the expected value

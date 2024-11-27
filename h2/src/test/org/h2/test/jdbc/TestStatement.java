@@ -422,6 +422,7 @@ public class TestStatement extends TestDb {
         ps.setString(2, "v4");
         ps.addBatch();
         assertTrue(Arrays.equals(new int[] {1, 1}, ps.executeBatch()));
+        assertEquals(2, ps.getUpdateCount());
         ps.setInt(1, 5);
         ps.setString(2, "v5");
         ps.addBatch();
@@ -429,6 +430,7 @@ public class TestStatement extends TestDb {
         ps.setString(2, "v6");
         ps.addBatch();
         assertTrue(Arrays.equals(new long[] {1, 1}, ps.executeLargeBatch()));
+        assertEquals(2, ps.getLargeUpdateCount());
         ps.setInt(1, 7);
         ps.setString(2, "v7");
         assertEquals(1, ps.executeUpdate());

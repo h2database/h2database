@@ -129,6 +129,7 @@ public class TestBatchUpdates extends TestDb {
             total += t;
         }
         assertEquals(4, total);
+        assertEquals(4, call.getUpdateCount());
         conn.close();
     }
 
@@ -215,7 +216,6 @@ public class TestBatchUpdates extends TestDb {
         prep.setInt(1, 4);
         prep.addBatch();
         int[] updateCount = prep.executeBatch();
-        int updateCountLen = updateCount.length;
 
         // PreparedStatement p;
         // p = conn.prepareStatement(COFFEE_UPDATE);
@@ -226,8 +226,8 @@ public class TestBatchUpdates extends TestDb {
         // p.setInt(1,4);
         // System.out.println("upc="+p.executeUpdate());
 
-        trace("updateCount length:" + updateCountLen);
-        assertEquals(3, updateCountLen);
+        assertEquals(new int[]{2, 3, 4}, updateCount);
+        assertEquals(9, prep.getUpdateCount());
         String query1 = "SELECT COUNT(*) FROM TEST WHERE TYPE_ID=2";
         String query2 = "SELECT COUNT(*) FROM TEST WHERE TYPE_ID=3";
         String query3 = "SELECT COUNT(*) FROM TEST WHERE TYPE_ID=4";
@@ -250,7 +250,6 @@ public class TestBatchUpdates extends TestDb {
         trace("testAddBatch02");
         int i = 0;
         int[] retValue = { 0, 0, 0 };
-        int updCountLength = 0;
         String sUpdCoffee = COFFEE_UPDATE1;
         String sDelCoffee = COFFEE_DELETE1;
         String sInsCoffee = COFFEE_INSERT1;
@@ -258,9 +257,8 @@ public class TestBatchUpdates extends TestDb {
         stat.addBatch(sDelCoffee);
         stat.addBatch(sInsCoffee);
         int[] updateCount = stat.executeBatch();
-        updCountLength = updateCount.length;
-        trace("updateCount Length:" + updCountLength);
-        assertEquals(3, updCountLength);
+        assertEquals(new int[]{1, 1, 1}, updateCount);
+        assertEquals(3, stat.getUpdateCount());
         String query1 = "SELECT COUNT(*) FROM TEST WHERE TYPE_ID=1";
         ResultSet rs = stat.executeQuery(query1);
         rs.next();
@@ -308,7 +306,6 @@ public class TestBatchUpdates extends TestDb {
         trace("testExecuteBatch01");
         int i = 0;
         int[] retValue = { 0, 0, 0 };
-        int updCountLength = 0;
         String sPrepStmt = COFFEE_UPDATE;
         trace("Prepared Statement String:" + sPrepStmt);
         // get the PreparedStatement object
@@ -320,14 +317,10 @@ public class TestBatchUpdates extends TestDb {
         prep.setInt(1, 3);
         prep.addBatch();
         int[] updateCount = prep.executeBatch();
-        updCountLength = updateCount.length;
         trace("Successfully Updated");
-        trace("updateCount Length:" + updCountLength);
-        if (updCountLength != 3) {
-            fail("executeBatch");
-        } else {
-            trace("executeBatch executes the Batch of SQL statements");
-        }
+        assertEquals(new int[]{1, 2, 3}, updateCount);
+        assertEquals(6, prep.getUpdateCount());
+        trace("executeBatch executes the Batch of SQL statements");
         // 1 is the number that is set First for Type Id in Prepared Statement
         String query1 = "SELECT COUNT(*) FROM TEST WHERE TYPE_ID=1";
         // 2 is the number that is set second for Type id in Prepared Statement
@@ -362,13 +355,9 @@ public class TestBatchUpdates extends TestDb {
         prep.setInt(1, 2);
         prep.setInt(1, 3);
         int[] updateCount = prep.executeBatch();
-        int updCountLength = updateCount.length;
-        trace("UpdateCount Length : " + updCountLength);
-        if (updCountLength == 0) {
-            trace("executeBatch does not execute Empty Batch");
-        } else {
-            fail("executeBatch");
-        }
+        assertEquals(new int[]{}, updateCount);
+        assertEquals(-1, prep.getUpdateCount());
+        trace("executeBatch does not execute Empty Batch");
     }
 
     private void testExecuteBatch03() throws SQLException {
@@ -396,7 +385,6 @@ public class TestBatchUpdates extends TestDb {
         trace("testExecuteBatch04");
         int i = 0;
         int[] retValue = { 0, 0, 0 };
-        int updCountLength = 0;
         String sUpdCoffee = COFFEE_UPDATE1;
         String sInsCoffee = COFFEE_INSERT1;
         String sDelCoffee = COFFEE_DELETE1;
@@ -404,14 +392,10 @@ public class TestBatchUpdates extends TestDb {
         stat.addBatch(sDelCoffee);
         stat.addBatch(sInsCoffee);
         int[] updateCount = stat.executeBatch();
-        updCountLength = updateCount.length;
+        assertEquals(new int[]{1, 1, 1}, updateCount);
+        assertEquals(3, stat.getUpdateCount());
         trace("Successfully Updated");
-        trace("updateCount Length:" + updCountLength);
-        if (updCountLength != 3) {
-            fail("executeBatch");
-        } else {
-            trace("executeBatch executes the Batch of SQL statements");
-        }
+        trace("executeBatch executes the Batch of SQL statements");
         String query1 = "SELECT COUNT(*) FROM TEST WHERE TYPE_ID=1";
         ResultSet rs = stat.executeQuery(query1);
         rs.next();
@@ -430,15 +414,10 @@ public class TestBatchUpdates extends TestDb {
 
     private void testExecuteBatch05() throws SQLException {
         trace("testExecuteBatch05");
-        int updCountLength = 0;
         int[] updateCount = stat.executeBatch();
-        updCountLength = updateCount.length;
-        trace("updateCount Length:" + updCountLength);
-        if (updCountLength == 0) {
-            trace("executeBatch Method does not execute the Empty Batch ");
-        } else {
-            fail("executeBatch 0!=" + updCountLength);
-        }
+        assertEquals(new int[]{}, updateCount);
+        assertEquals(-1, stat.getUpdateCount());
+        trace("executeBatch Method does not execute the Empty Batch ");
     }
 
     private void testExecuteBatch06() throws SQLException {

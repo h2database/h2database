@@ -1267,11 +1267,14 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
             BatchResult batchResult = executeBatchInternal();
             long[] longResult = batchResult.getUpdateCounts();
             int size = longResult.length;
+            long totalUpdateCount = 0;
             int[] intResult = new int[size];
             for (int i = 0; i < size; i++) {
                 long updateCount = longResult[i];
+                totalUpdateCount += updateCount;
                 intResult[i] = updateCount <= Integer.MAX_VALUE ? (int) updateCount : SUCCESS_NO_INFO;
             }
+            updateCount = totalUpdateCount;
             List<SQLException> exceptions = batchResult.getExceptions();
             if (!exceptions.isEmpty()) {
                 throw new JdbcBatchUpdateException(createBatchException(exceptions), intResult);
@@ -1299,6 +1302,13 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
             }
             BatchResult batchResult = executeBatchInternal();
             long[] result = batchResult.getUpdateCounts();
+            long totalUpdateCount = 0L;
+            for (long updateCountItem : result) {
+                if (updateCountItem > 0L) {
+                    totalUpdateCount += updateCountItem;
+                }
+            }
+            updateCount = totalUpdateCount;
             List<SQLException> exceptions = batchResult.getExceptions();
             if (!exceptions.isEmpty()) {
                 throw new JdbcBatchUpdateException(createBatchException(exceptions), result);

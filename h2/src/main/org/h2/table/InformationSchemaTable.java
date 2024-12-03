@@ -1865,6 +1865,9 @@ public final class InformationSchemaTable extends MetaTable {
     }
 
     private void restorePoints(SessionLocal session, Value indexFrom, Value indexTo, ArrayList<Row> rows) {
+        if (!session.getUser().isAdmin()) {
+            return;
+        }
         session.getDatabase()
                 .getStore()
                 .getMvStore()

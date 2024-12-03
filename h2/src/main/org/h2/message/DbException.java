@@ -689,7 +689,6 @@ public class DbException extends RuntimeException {
         case INVALID_DATABASE_NAME_1:
         case AUTHENTICATOR_NOT_AVAILABLE:
         case METHOD_DISABLED_ON_AUTOCOMMIT_TRUE:
-        case COULD_NOT_SWITCH_DATABASE_TO_EXCLUSIVE_MODE:
             return new JdbcSQLNonTransientConnectionException(message, sql, state, errorCode, cause, stackTrace);
         case ROW_NOT_FOUND_WHEN_DELETING_1:
         case CONCURRENT_UPDATE_1:

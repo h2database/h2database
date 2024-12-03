@@ -6,7 +6,6 @@
 package org.h2.test.db;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -67,21 +66,22 @@ public class TestRestorePoint extends TestDb {
         deleteDb(getTestName());
     }
 
-    private void connect() throws Exception {
-        connect(true);
+    private void connect(String... parameters) throws Exception {
+        connect(true, parameters);
     }
 
-    private void connect(boolean deleteDb) throws Exception {
+    private void connect(boolean deleteDb, String... parameters) throws Exception {
         if (deleteDb) {
             deleteDb(getTestName());
         }
-        conn = getConnection(getTestName());
+        String p;
+        if (parameters.length == 0) {
+            p = ";MAX_COMPACT_TIME=30000";
+        } else {
+            p = ";" + String.join(";", parameters);
+        }
+        conn = getConnection(getTestName() + p);
         conn.setAutoCommit(autoCommit);
-        stat = conn.createStatement();
-    }
-
-    private void connect(String url) throws Exception {
-        conn = DriverManager.getConnection(url, getUser(), getPassword());
         stat = conn.createStatement();
     }
 
@@ -89,19 +89,14 @@ public class TestRestorePoint extends TestDb {
         conn.close();
     }
 
-    private void reconnect() throws Exception {
+    private void reconnect(String... parameters) throws Exception {
         if (!autoCommit) {
             conn.commit();
         }
         if (!pseudoReconnect) {
             disconnect();
-            connect(false);
+            connect(false, parameters);
         }
-    }
-
-    private void reconnect(String url) throws Exception {
-        disconnect();
-        connect(url);
     }
 
     private void testCreateRestorePoint() throws Exception {
@@ -286,13 +281,11 @@ public class TestRestorePoint extends TestDb {
         if (config.memory || !autoCommit || pseudoReconnect) {
             return;
         }
-        deleteDb(getTestName());
 
-        String url = "jdbc:h2:" + getBaseDir() + "/" + getTestName() + ";DEFRAG_ALWAYS=true";
-//        String url = "jdbc:h2:" + getBaseDir() + "/" + getTestName() + ";MAX_COMPACT_TIME=5000";
-        connect(url);
+        String defragAlways = "DEFRAG_ALWAYS=true";
+
+        connect(defragAlways);
         stat.execute("create table test(id bigint generated always as identity primary key, v int)");
-
         PreparedStatement prepInsert = conn.prepareStatement("insert into test(v) values ?");
         for (int i = 1; i <= 10; i++) {
             prepInsert.setInt(1, i);
@@ -300,7 +293,7 @@ public class TestRestorePoint extends TestDb {
         }
         stat.execute("create restore point p1");
 
-        reconnect(url);
+        reconnect(defragAlways);
         prepInsert = conn.prepareStatement("insert into test(v) values ?");
         for (int i = 11; i <= 20; i++) {
             prepInsert.setInt(1, i);
@@ -308,14 +301,14 @@ public class TestRestorePoint extends TestDb {
         }
         stat.execute("create restore point p2");
 
-        reconnect(url);
+        reconnect(defragAlways);
         prepInsert = conn.prepareStatement("insert into test(v) values ?");
         for (int i = 21; i <= 30; i++) {
             prepInsert.setInt(1, i);
             prepInsert.executeUpdate();
         }
 
-        reconnect(url);
+        reconnect(defragAlways);
         assertSingleValue(stat, "select count(*) from test", 30);
         stat.execute("restore to point p2");
         assertSingleValue(stat, "select count(*) from test", 20);

@@ -2273,13 +2273,7 @@ public class ErrorCode {
      */
     public static final int RESTORE_POINT_NOT_FOUND = 90159;
 
-    /**
-     * The error with code <code>90160</code> is thrown when a restore point is being
-     * returned to via RESTORE TO POINT, but switching the database to exclusive mode failed.
-     */
-    public static final int COULD_NOT_SWITCH_DATABASE_TO_EXCLUSIVE_MODE = 90160;
-
-    // next is 90161
+    // next is 90160
 
     private ErrorCode() {
         // utility class

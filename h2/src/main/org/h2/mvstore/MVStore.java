@@ -1005,10 +1005,16 @@ public final class MVStore implements AutoCloseable {
         return fileStore != null && fileStore.hasChangesSince(lastStoredVersion);
     }
 
+    /**
+     * For internal use only.
+     */
     public void lock() {
         storeLock.lock();
     }
 
+    /**
+     * For internal use only.
+     */
     public void unlock() {
         storeLock.unlock();
     }

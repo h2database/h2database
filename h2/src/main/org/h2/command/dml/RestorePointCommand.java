@@ -46,7 +46,8 @@ public class RestorePointCommand extends Prepared {
         case CommandInterface.DROP_RESTORE_POINT:
             dropRestorePoint();
             break;
-        default: throw DbException.getInternalError("type=" + type);
+        default:
+            throw DbException.getInternalError("type=" + type);
         }
         return 0;
     }
@@ -87,7 +88,7 @@ public class RestorePointCommand extends Prepared {
         Database db = getDatabase();
         try {
             if (!db.setExclusiveSession(session, true)) {
-                throw DbException.get(ErrorCode.COULD_NOT_SWITCH_DATABASE_TO_EXCLUSIVE_MODE);
+                throw DbException.get(ErrorCode.DATABASE_IS_IN_EXCLUSIVE_MODE);
             }
             RestorePoint rp = db.getStore().getMvStore().findRestorePoint(name);
             if (rp == null) {

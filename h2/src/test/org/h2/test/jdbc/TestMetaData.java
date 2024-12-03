@@ -1195,11 +1195,11 @@ public class TestMetaData extends TestDb {
         rs = meta.getTables(null, "INFORMATION_SCHEMA", null, new String[] { "BASE TABLE", "VIEW" });
         for (String name : new String[] { "CONSTANTS", "ENUM_VALUES",
                 "INDEXES", "INDEX_COLUMNS", "INFORMATION_SCHEMA_CATALOG_NAME", "IN_DOUBT", "LOCKS",
-                "QUERY_STATISTICS", "RIGHTS", "ROLES", "SESSIONS", "SESSION_STATE", "SETTINGS", "SYNONYMS",
+                "QUERY_STATISTICS", "RESTORE_POINTS", "RIGHTS", "ROLES", "SESSIONS", "SESSION_STATE", "SETTINGS", "SYNONYMS",
                 "USERS", "CHECK_CONSTRAINTS", "COLLATIONS", "COLUMNS", "COLUMN_PRIVILEGES",
                 "CONSTRAINT_COLUMN_USAGE", "DOMAINS", "DOMAIN_CONSTRAINTS", "ELEMENT_TYPES", "FIELDS",
                 "KEY_COLUMN_USAGE", "PARAMETERS",
-                "REFERENTIAL_CONSTRAINTS", "RESTORE_POINTS", "ROUTINES", "SCHEMATA", "SEQUENCES", "TABLES", "TABLE_CONSTRAINTS",
+                "REFERENTIAL_CONSTRAINTS", "ROUTINES", "SCHEMATA", "SEQUENCES", "TABLES", "TABLE_CONSTRAINTS",
                 "TABLE_PRIVILEGES", "TRIGGERS", "VIEWS" }) {
             rs.next();
             assertEquals(name, rs.getString("TABLE_NAME"));

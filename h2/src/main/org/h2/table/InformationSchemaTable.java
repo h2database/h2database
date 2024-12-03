@@ -109,9 +109,7 @@ public final class InformationSchemaTable extends MetaTable {
 
     private static final int REFERENTIAL_CONSTRAINTS = PARAMETERS + 1;
 
-    private static final int RESTORE_POINTS = REFERENTIAL_CONSTRAINTS + 1;
-
-    private static final int ROUTINES = RESTORE_POINTS + 1;
+    private static final int ROUTINES = REFERENTIAL_CONSTRAINTS + 1;
 
     private static final int SCHEMATA = ROUTINES + 1;
 
@@ -157,11 +155,13 @@ public final class InformationSchemaTable extends MetaTable {
 
     private static final int USERS = SYNONYMS + 1;
 
+    private static final int RESTORE_POINTS = USERS + 1;
+
     /**
      * The number of meta table types. Supported meta table types are
      * {@code 0..META_TABLE_TYPE_COUNT - 1}.
      */
-    public static final int META_TABLE_TYPE_COUNT = USERS + 1;
+    public static final int META_TABLE_TYPE_COUNT = RESTORE_POINTS + 1;
 
     private final boolean isView;
 
@@ -478,15 +478,6 @@ public final class InformationSchemaTable extends MetaTable {
                     column("DELETE_RULE"), //
             };
             indexColumnName = "CONSTRAINT_NAME";
-            break;
-        case RESTORE_POINTS:
-            setMetaTableName("RESTORE_POINTS");
-            cols = new Column[] {
-                    column("RESTORE_POINT_NAME"), //
-                    column("CREATED_AT", TypeInfo.TYPE_TIMESTAMP_TZ), //
-                    column("DATABASE_VERSION", TypeInfo.TYPE_BIGINT), //
-            };
-            indexColumnName = "RESTORE_POINT_NAME";
             break;
         case ROUTINES:
             setMetaTableName("ROUTINES");
@@ -864,6 +855,16 @@ public final class InformationSchemaTable extends MetaTable {
                     column("REMARKS"), //
             };
             break;
+        case RESTORE_POINTS:
+            setMetaTableName("RESTORE_POINTS");
+            isView = false;
+            cols = new Column[] {
+                    column("RESTORE_POINT_NAME"), //
+                    column("CREATED_AT", TypeInfo.TYPE_TIMESTAMP_TZ), //
+                    column("DATABASE_VERSION", TypeInfo.TYPE_BIGINT), //
+            };
+            indexColumnName = "RESTORE_POINT_NAME";
+            break;
         default:
             throw DbException.getInternalError("type=" + type);
         }
@@ -935,9 +936,6 @@ public final class InformationSchemaTable extends MetaTable {
         case REFERENTIAL_CONSTRAINTS:
             referentialConstraints(session, indexFrom, indexTo, rows, catalog);
             break;
-        case RESTORE_POINTS:
-            restorePoints(session, indexFrom, indexTo, rows);
-            break;
         case ROUTINES:
             routines(session, rows, catalog);
             break;
@@ -1004,6 +1002,9 @@ public final class InformationSchemaTable extends MetaTable {
             break;
         case USERS:
             users(session, rows);
+            break;
+        case RESTORE_POINTS:
+            restorePoints(session, indexFrom, indexTo, rows);
             break;
         default:
             throw DbException.getInternalError("type=" + type);

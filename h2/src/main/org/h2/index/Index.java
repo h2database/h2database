@@ -10,6 +10,7 @@ import java.util.Arrays;
 
 import org.h2.api.ErrorCode;
 import org.h2.command.query.AllColumnsForPlan;
+import org.h2.constraint.Constraint;
 import org.h2.engine.Constants;
 import org.h2.engine.DbObject;
 import org.h2.engine.NullsDistinct;
@@ -516,7 +517,7 @@ public abstract class Index extends SchemaObject {
      */
     public DbException getDuplicateKeyException(String key) {
         StringBuilder builder = new StringBuilder();
-        getSQL(builder, TRACE_SQL_FLAGS).append(" ON ");
+        getIndexOrConstraintSQL(builder).append(" ON ");
         table.getSQL(builder, TRACE_SQL_FLAGS);
         getColumnListSQL(builder, TRACE_SQL_FLAGS);
         if (key != null) {
@@ -525,6 +526,19 @@ public abstract class Index extends SchemaObject {
         DbException e = DbException.get(ErrorCode.DUPLICATE_KEY_1, builder.toString());
         e.setSource(this);
         return e;
+    }
+
+    private StringBuilder getIndexOrConstraintSQL(StringBuilder builder) {
+        ArrayList<Constraint> constraints = table.getConstraints();
+        if (constraints != null) {
+            for (Constraint constraint : table.getConstraints()) {
+                if (constraint.usesIndex(this) && constraint.getConstraintType() == Constraint.Type.UNIQUE) {
+                    constraint.getSQL(builder, TRACE_SQL_FLAGS);
+                    return builder;
+                }
+            }
+        }
+        return getSQL(builder, TRACE_SQL_FLAGS);
     }
 
     /**

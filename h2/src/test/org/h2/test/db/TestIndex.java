@@ -165,10 +165,10 @@ public class TestIndex extends TestDb {
         stat.execute("create table test(id int, name int primary key)");
         testErrorMessage("PRIMARY", "KEY", " ON PUBLIC.TEST(NAME)");
         stat.execute("create table test(id int, name int, unique(name))");
-        testErrorMessage("CONSTRAINT_2 ON PUBLIC.TEST(NAME NULLS FIRST)");
+        testErrorMessage("CONSTRAINT_2 INDEX PUBLIC.CONSTRAINT_INDEX_2 ON PUBLIC.TEST(NAME NULLS FIRST)");
         stat.execute("create table test(id int, name int, " +
                 "constraint abc unique(name, id))");
-        testErrorMessage("ABC ON PUBLIC.TEST(NAME NULLS FIRST, ID NULLS FIRST)");
+        testErrorMessage("ABC INDEX PUBLIC.ABC_INDEX_2 ON PUBLIC.TEST(NAME NULLS FIRST, ID NULLS FIRST)");
     }
 
     private void testErrorMessage(String... expected) throws SQLException {

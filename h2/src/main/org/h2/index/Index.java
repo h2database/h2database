@@ -520,7 +520,7 @@ public abstract class Index extends SchemaObject {
         Iterable<Constraint> constraints = table.getConstraints();
         if (constraints != null) {
             for (Constraint constraint : constraints) {
-                if (constraint.usesIndex(this) && constraint.getConstraintType() == Constraint.Type.UNIQUE) {
+                if (constraint.usesIndex(this) && constraint.getConstraintType().isUnique()) {
                     constraint.getSQL(builder, TRACE_SQL_FLAGS).append(" INDEX ");
                     break;
                 }

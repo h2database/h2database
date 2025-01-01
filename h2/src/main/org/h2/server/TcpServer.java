@@ -435,6 +435,19 @@ public class TcpServer implements Service {
         return ifExists;
     }
 
+    public static Set<Integer> listPorts() {
+        Set<Integer> ports = new HashSet<>();
+
+        if(SERVERS.isEmpty()) {
+            return ports;
+        }
+ 
+        for(Integer port : SERVERS.keySet()) {
+        	ports.add(port);
+        }
+        return ports;
+    }
+
     /**
      * Stop the TCP server with the given URL.
      *

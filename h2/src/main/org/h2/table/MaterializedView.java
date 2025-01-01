@@ -5,8 +5,8 @@
  */
 package org.h2.table;
 
-import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 
 import org.h2.command.query.AllColumnsForPlan;
 import org.h2.command.query.Query;
@@ -123,7 +123,7 @@ public class MaterializedView extends Table {
     }
 
     @Override
-    public final ArrayList<Index> getIndexes() {
+    public final List<Index> getIndexes() {
         return table.getIndexes();
     }
 

@@ -33,7 +33,7 @@ public abstract class TableBase extends Table {
     private final boolean globalTemporary;
 
     /**
-     * Returns main index column if index is an primary key index and has only
+     * Returns main index column if index is a primary key index and has only
      * one column with _ROWID_ compatible data type.
      *
      * @param indexType type of an index

@@ -1692,8 +1692,14 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
 
     private static void addTableToDependencies(MVTable table, HashSet<MVMap<Object,VersionedValue<Object>>> maps,
             HashSet<MVTable> processed) {
-        if (!processed.add(table)) {
-            return;
+        if (processed.add(table)) {
+            addTableToDependencies(table, maps);
+            for (Constraint constraint : table.getConstraints()) {
+                Table ref = constraint.getTable();
+                if (ref != table && ref instanceof MVTable) {
+                    addTableToDependencies((MVTable) ref, maps, processed);
+                }
+            }
         }
     }
 

@@ -388,14 +388,11 @@ public class AlterTableAddConstraint extends AlterTable {
     }
 
     private static Index getIndex(Table t, IndexColumn[] cols, NullsDistinct nullsDistinct) {
-        ArrayList<Index> indexes = t.getIndexes();
         Index index = null;
-        if (indexes != null) {
-            for (Index idx : indexes) {
-                if (canUseIndex(idx, t, cols, nullsDistinct)) {
-                    if (index == null || idx.getIndexColumns().length < index.getIndexColumns().length) {
-                        index = idx;
-                    }
+        for (Index idx : t.getIndexes()) {
+            if (canUseIndex(idx, t, cols, nullsDistinct)) {
+                if (index == null || idx.getIndexColumns().length < index.getIndexColumns().length) {
+                    index = idx;
                 }
             }
         }

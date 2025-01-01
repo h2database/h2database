@@ -5,7 +5,7 @@
  */
 package org.h2.table;
 
-import java.util.ArrayList;
+import java.util.List;
 
 import org.h2.engine.SessionLocal;
 import org.h2.index.Index;
@@ -72,8 +72,8 @@ public abstract class VirtualTable extends Table {
     }
 
     @Override
-    public ArrayList<Index> getIndexes() {
-        return null;
+    public List<Index> getIndexes() {
+        return List.of();
     }
 
     @Override

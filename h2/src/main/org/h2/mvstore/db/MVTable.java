@@ -8,6 +8,7 @@ package org.h2.mvstore.db;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -342,7 +343,7 @@ public class MVTable extends TableBase {
         int mainIndexColumn = primaryIndex.getMainIndexColumn() != SearchRow.ROWID_INDEX
                 ? SearchRow.ROWID_INDEX : getMainIndexColumn(indexType, cols);
         if (database.isStarting()) {
-            // if index does exists as a separate map it can't be a delegate
+            // if index does exist as a separate map it can't be a delegate
             if (transactionStore.hasMap("index." + indexId)) {
                 // we can not reuse primary index
                 mainIndexColumn = SearchRow.ROWID_INDEX;
@@ -576,7 +577,7 @@ public class MVTable extends TableBase {
     }
 
     @Override
-    public ArrayList<Index> getIndexes() {
+    public List<Index> getIndexes() {
         return indexes;
     }
 

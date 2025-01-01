@@ -6,6 +6,7 @@
 package org.h2.table;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
 
@@ -19,6 +20,7 @@ import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.schema.Schema;
 import org.h2.util.StringUtils;
+import org.h2.util.Utils;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
@@ -50,6 +52,9 @@ public abstract class MetaTable extends Table {
      */
     protected MetaIndex metaIndex;
 
+    private MetaIndex scanIndex;
+    private final ArrayList<Index> indexes = new ArrayList<>(2);
+
     /**
      * Create a new metadata table.
      *
@@ -61,6 +66,16 @@ public abstract class MetaTable extends Table {
         // tableName will be set later
         super(schema, id, null, true, true);
         this.type = type;
+    }
+
+    protected void setColumns(Column[] columns) {
+        super.setColumns(columns);
+        scanIndex = new MetaIndex(this, IndexColumn.wrap(columns), true);
+        indexes.clear();
+        indexes.add(scanIndex);
+        if (metaIndex != null) {
+            indexes.add(metaIndex);
+        }
     }
 
     protected final void setMetaTableName(String upperName) {
@@ -280,19 +295,12 @@ public abstract class MetaTable extends Table {
 
     @Override
     public final Index getScanIndex(SessionLocal session) {
-        return new MetaIndex(this, IndexColumn.wrap(columns), true);
+        return scanIndex;
     }
 
     @Override
-    public final ArrayList<Index> getIndexes() {
-        ArrayList<Index> list = new ArrayList<>(2);
-        if (metaIndex == null) {
-            return list;
-        }
-        list.add(new MetaIndex(this, IndexColumn.wrap(columns), true));
-        // TODO re-use the index
-        list.add(metaIndex);
-        return list;
+    public final List<Index> getIndexes() {
+        return indexes;
     }
 
     @Override

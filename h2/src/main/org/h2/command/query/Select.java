@@ -40,6 +40,7 @@ import org.h2.expression.function.CoalesceFunction;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
 import org.h2.index.IndexSort;
+import org.h2.index.IndexType;
 import org.h2.index.QueryExpressionIndex;
 import org.h2.message.DbException;
 import org.h2.mode.DefaultNullOrdering;
@@ -365,19 +366,10 @@ public class Select extends Query {
         if (groupIndex == null || groupByExpression == null) {
             return null;
         }
-        ArrayList<Index> indexes = topTableFilter.getTable().getIndexes();
-        if (indexes != null) {
-            for (Index index : indexes) {
-                if (index.getIndexType().isScan()) {
-                    continue;
-                }
-                if (index.getIndexType().isHash()) {
-                    // does not allow scanning entries
-                    continue;
-                }
-                if (isGroupSortedIndex(topTableFilter, index)) {
-                    return index;
-                }
+        for (Index index : topTableFilter.getTable().getIndexes()) {
+            IndexType indexType = index.getIndexType();
+            if (!indexType.isScan() && !indexType.isHash() && isGroupSortedIndex(topTableFilter, index)) {
+                return index;
             }
         }
         return null;
@@ -646,13 +638,9 @@ public class Select extends Query {
         } else {
             sortCols = sortColumns.toArray(new Column[0]);
         }
-        ArrayList<Index> list = topTableFilter.getTable().getIndexes();
-        if (list == null) {
-            return null;
-        }
         DefaultNullOrdering defaultNullOrdering = getDatabase().getDefaultNullOrdering();
         ArrayList<IndexSort> indexSorts = Utils.newSmallArrayList();
-        loop: for (Index index : list) {
+        loop: for (Index index : topTableFilter.getTable().getIndexes()) {
             if (index.getCreateSQL() == null || index.getIndexType().isHash()) {
                 // can't use scan or hash indexes
                 continue;

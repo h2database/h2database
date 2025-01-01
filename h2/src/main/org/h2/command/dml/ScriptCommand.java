@@ -309,9 +309,7 @@ public class ScriptCommand extends ScriptBase {
                         count = generateInsertValues(count, table);
                     }
                 }
-                final ArrayList<Index> indexes = table.getIndexes();
-                for (int j = 0; indexes != null && j < indexes.size(); j++) {
-                    Index index = indexes.get(j);
+                for (Index index : table.getIndexes()) {
                     if (!index.getIndexType().getBelongsToConstraint()) {
                         add(index.getCreateSQL(), false);
                     }

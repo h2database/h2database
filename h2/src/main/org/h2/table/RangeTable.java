@@ -5,7 +5,8 @@
  */
 package org.h2.table;
 
-import java.util.ArrayList;
+import java.util.List;
+
 import org.h2.api.ErrorCode;
 import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
@@ -101,13 +102,12 @@ public class RangeTable extends VirtualTable {
     }
 
     @Override
-    public ArrayList<Index> getIndexes() {
-        ArrayList<Index> list = new ArrayList<>(2);
-        // Scan index (ignored by MIN/MAX optimization)
-        list.add(index);
-        // Normal index
-        list.add(index);
-        return list;
+    public List<Index> getIndexes() {
+        return List.of(
+            // Scan index (ignored by MIN/MAX optimization)
+            index,
+            // Normal index
+            index);
     }
 
     /**

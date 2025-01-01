@@ -2447,11 +2447,7 @@ public final class InformationSchemaTable extends MetaTable {
     }
 
     private void indexes(SessionLocal session, ArrayList<Row> rows, String catalog, boolean columns, Table table) {
-        ArrayList<Index> indexes = table.getIndexes();
-        if (indexes == null) {
-            return;
-        }
-        for (Index index : indexes) {
+        for (Index index : table.getIndexes()) {
             if (index.getCreateSQL() == null) {
                 continue;
             }

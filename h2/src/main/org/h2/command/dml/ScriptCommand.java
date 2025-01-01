@@ -292,12 +292,9 @@ public class ScriptCommand extends ScriptBase {
                 }
                 final TableType tableType = table.getTableType();
                 add(createTableSql, false);
-                final ArrayList<Constraint> constraints = table.getConstraints();
-                if (constraints != null) {
-                    for (Constraint constraint : constraints) {
-                        if (Constraint.Type.PRIMARY_KEY == constraint.getConstraintType()) {
-                            add(constraint.getCreateSQLWithoutIndexes(), false);
-                        }
+                for (Constraint constraint : table.getConstraints()) {
+                    if (Constraint.Type.PRIMARY_KEY == constraint.getConstraintType()) {
+                        add(constraint.getCreateSQLWithoutIndexes(), false);
                     }
                 }
                 if (TableType.TABLE == tableType) {

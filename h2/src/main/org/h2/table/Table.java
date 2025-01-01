@@ -7,6 +7,8 @@ package org.h2.table;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
@@ -116,10 +118,8 @@ public abstract class Table extends SchemaObject {
     @Override
     public void rename(String newName) {
         super.rename(newName);
-        if (constraints != null) {
-            for (Constraint constraint : constraints) {
-                constraint.rebuild();
-            }
+        for (Constraint constraint : getConstraints()) {
+            constraint.rebuild();
         }
     }
 
@@ -430,10 +430,8 @@ public abstract class Table extends SchemaObject {
         for (Column col : columns) {
             col.isEverything(visitor);
         }
-        if (constraints != null) {
-            for (Constraint c : constraints) {
-                c.isEverything(visitor);
-            }
+        for (Constraint c : getConstraints()) {
+            c.isEverything(visitor);
         }
         dependencies.add(this);
     }
@@ -441,10 +439,7 @@ public abstract class Table extends SchemaObject {
     @Override
     public ArrayList<DbObject> getChildren() {
         ArrayList<DbObject> children = Utils.newSmallArrayList();
-        ArrayList<Index> indexes = getIndexes();
-        if (indexes != null) {
-            children.addAll(indexes);
-        }
+        children.addAll(getIndexes());
         if (constraints != null) {
             children.addAll(constraints);
         }
@@ -472,7 +467,7 @@ public abstract class Table extends SchemaObject {
             throw DbException.get(ErrorCode.TOO_MANY_COLUMNS_1, "" + Constants.MAX_COLUMNS);
         }
         this.columns = columns;
-        if (columnMap.size() > 0) {
+        if (!columnMap.isEmpty()) {
             columnMap.clear();
         }
         for (int i = 0; i < columns.length; i++) {
@@ -625,8 +620,8 @@ public abstract class Table extends SchemaObject {
      * @throws DbException if the column is referenced by multi-column
      *             constraints or indexes
      */
-    public void dropMultipleColumnsConstraintsAndIndexes(SessionLocal session,
-            ArrayList<Column> columnsToDrop) {
+    public void dropMultipleColumnsConstraintsAndIndexes(SessionLocal session, ArrayList<Column> columnsToDrop) {
+        HashSet<Column> columnSetToDrop = new HashSet<>(columnsToDrop);
         HashSet<Constraint> constraintsToDrop = new HashSet<>();
         if (constraints != null) {
             for (Column col : columnsToDrop) {
@@ -923,7 +918,6 @@ public abstract class Table extends SchemaObject {
 
     /**
      * Prepares the specified row for INSERT operation.
-     *
      * Identity, default, and generated values are evaluated, all values are
      * converted to target data types and validated. Base value of identity
      * column is updated when required by compatibility mode.
@@ -977,7 +971,6 @@ public abstract class Table extends SchemaObject {
 
     /**
      * Prepares the specified row for UPDATE operation.
-     *
      * Default and generated values are evaluated, all values are converted to
      * target data types and validated. Base value of identity column is updated
      * when required by compatibility mode.
@@ -1132,8 +1125,8 @@ public abstract class Table extends SchemaObject {
         }
     }
 
-    public ArrayList<Constraint> getConstraints() {
-        return constraints;
+    public final Iterable<Constraint> getConstraints() {
+        return constraints == null ? Collections.emptyList() : constraints;
     }
 
     /**
@@ -1282,11 +1275,9 @@ public abstract class Table extends SchemaObject {
      */
     public void setCheckForeignKeyConstraints(SessionLocal session, boolean enabled, boolean checkExisting) {
         if (enabled && checkExisting) {
-            if (constraints != null) {
-                for (Constraint c : constraints) {
-                    if (c.getConstraintType() == Type.REFERENTIAL) {
-                        c.checkExistingData(session);
-                    }
+            for (Constraint c : getConstraints()) {
+                if (c.getConstraintType() == Type.REFERENTIAL) {
+                    c.checkExistingData(session);
                 }
             }
         }
@@ -1361,13 +1352,11 @@ public abstract class Table extends SchemaObject {
      */
     public void removeIndexOrTransferOwnership(SessionLocal session, Index index) {
         boolean stillNeeded = false;
-        if (constraints != null) {
-            for (Constraint cons : constraints) {
-                if (cons.usesIndex(index)) {
-                    cons.setIndexOwner(index);
-                    database.updateMeta(session, cons);
-                    stillNeeded = true;
-                }
+        for (Constraint cons : getConstraints()) {
+            if (cons.usesIndex(index)) {
+                cons.setIndexOwner(index);
+                database.updateMeta(session, cons);
+                stillNeeded = true;
             }
         }
         if (!stillNeeded) {

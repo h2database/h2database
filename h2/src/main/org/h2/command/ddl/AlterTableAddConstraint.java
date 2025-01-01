@@ -120,9 +120,7 @@ public class AlterTableAddConstraint extends AlterTable {
         case CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_PRIMARY_KEY: {
             IndexColumn.mapColumns(indexColumns, table);
             index = table.findPrimaryKey();
-            ArrayList<Constraint> constraints = table.getConstraints();
-            for (int i = 0; constraints != null && i < constraints.size(); i++) {
-                Constraint c = constraints.get(i);
+            for (Constraint c : table.getConstraints()) {
                 if (Constraint.Type.PRIMARY_KEY == c.getConstraintType()) {
                     throw DbException.get(ErrorCode.SECOND_PRIMARY_KEY);
                 }
@@ -155,10 +153,7 @@ public class AlterTableAddConstraint extends AlterTable {
             index.getIndexType().setBelongsToConstraint(true);
             int id = getObjectId();
             String name = generateConstraintName(table);
-            ConstraintUnique pk = new ConstraintUnique(getSchema(), id, name, table, true, null);
-            pk.setColumns(indexColumns);
-            pk.setIndex(index, true);
-            constraint = pk;
+            constraint = new ConstraintUnique(getSchema(), id, name, table, true, indexColumns, index, true, null);
             break;
         }
         case CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_UNIQUE:
@@ -166,8 +161,7 @@ public class AlterTableAddConstraint extends AlterTable {
                 Column[] columns = table.getColumns();
                 int columnCount = columns.length;
                 ArrayList<IndexColumn> list = new ArrayList<>(columnCount);
-                for (int i = 0; i < columnCount; i++) {
-                    Column c = columns[i];
+                for (Column c : columns) {
                     if (c.getVisible()) {
                         IndexColumn indexColumn = new IndexColumn(c.getName());
                         indexColumn.column = c;
@@ -335,10 +329,8 @@ public class AlterTableAddConstraint extends AlterTable {
         if (indexColumns.length == 1 && needNullsDistinct == NullsDistinct.ALL_DISTINCT) {
             needNullsDistinct = NullsDistinct.DISTINCT;
         }
-        ConstraintUnique unique = new ConstraintUnique(tableSchema, id, name, table, false, needNullsDistinct);
-        unique.setColumns(indexColumns);
-        unique.setIndex(index, isOwner);
-        return unique;
+        return new ConstraintUnique(tableSchema, id, name, table, false, indexColumns, index, isOwner, needNullsDistinct
+        );
     }
 
     private void addConstraintToTable(Database db, Table table, Constraint constraint) {
@@ -383,14 +375,11 @@ public class AlterTableAddConstraint extends AlterTable {
     }
 
     private static ConstraintUnique getUniqueConstraint(Table t, IndexColumn[] cols) {
-        ArrayList<Constraint> constraints = t.getConstraints();
-        if (constraints != null) {
-            for (Constraint constraint : constraints) {
-                if (constraint.getTable() == t) {
-                    if (constraint.getConstraintType().isUnique()) {
-                        if (canUseIndex(constraint.getIndex(), t, cols, NullsDistinct.DISTINCT)) {
-                            return (ConstraintUnique) constraint;
-                        }
+        for (Constraint constraint : t.getConstraints()) {
+            if (constraint.getTable() == t) {
+                if (constraint.getConstraintType().isUnique()) {
+                    if (canUseIndex(constraint.getIndex(), t, cols, NullsDistinct.DISTINCT)) {
+                        return (ConstraintUnique) constraint;
                     }
                 }
             }

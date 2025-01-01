@@ -1695,16 +1695,6 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
         if (!processed.add(table)) {
             return;
         }
-        addTableToDependencies(table, maps);
-        ArrayList<Constraint> constraints = table.getConstraints();
-        if (constraints != null) {
-            for (Constraint constraint : constraints) {
-                Table ref = constraint.getTable();
-                if (ref != table && ref instanceof MVTable) {
-                    addTableToDependencies((MVTable) ref, maps, processed);
-                }
-            }
-        }
     }
 
     /**

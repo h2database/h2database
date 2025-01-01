@@ -803,12 +803,8 @@ public class MVTable extends TableBase {
     @Override
     public boolean canTruncate() {
         if (getCheckForeignKeyConstraints() && database.getReferentialIntegrity()) {
-            ArrayList<Constraint> constraints = getConstraints();
-            if (constraints != null) {
-                for (Constraint c : constraints) {
-                    if (c.getConstraintType() != Constraint.Type.REFERENTIAL) {
-                        continue;
-                    }
+            for (Constraint c : getConstraints()) {
+                if (c.getConstraintType() == Constraint.Type.REFERENTIAL) {
                     ConstraintReferential ref = (ConstraintReferential) c;
                     if (ref.getRefTable() == this) {
                         return false;

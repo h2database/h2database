@@ -821,17 +821,12 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
             if (t == null) {
                 continue;
             }
-            ArrayList<Constraint> constraints = t.getConstraints();
-            if (constraints == null) {
-                continue;
-            }
-            for (Constraint constraint : constraints) {
+            for (Constraint constraint : t.getConstraints()) {
                 if (constraint.getConstraintType() != Constraint.Type.PRIMARY_KEY) {
                     continue;
                 }
                 IndexColumn[] columns = ((ConstraintUnique) constraint).getColumns();
-                for (int i = 0, l = columns.length; i < l; i++) {
-                    IndexColumn ic = columns[i];
+                for (IndexColumn ic : columns) {
                     Column c = ic.column;
                     TypeInfo type = c.getType();
                     DataType dt = DataType.getDataType(type.getValueType());
@@ -887,11 +882,7 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
             if (t == null) {
                 continue;
             }
-            ArrayList<Constraint> constraints = t.getConstraints();
-            if (constraints == null) {
-                continue;
-            }
-            for (Constraint constraint : constraints) {
+            for (Constraint constraint : t.getConstraints()) {
                 if (constraint.getConstraintType() != Constraint.Type.PRIMARY_KEY) {
                     continue;
                 }
@@ -937,11 +928,7 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
             if (t == null) {
                 continue;
             }
-            ArrayList<Constraint> constraints = t.getConstraints();
-            if (constraints == null) {
-                continue;
-            }
-            for (Constraint constraint : constraints) {
+            for (Constraint constraint : t.getConstraints()) {
                 if (constraint.getConstraintType() != Constraint.Type.REFERENTIAL) {
                     continue;
                 }
@@ -976,11 +963,7 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
             if (t == null) {
                 continue;
             }
-            ArrayList<Constraint> constraints = t.getConstraints();
-            if (constraints == null) {
-                continue;
-            }
-            for (Constraint constraint : constraints) {
+            for (Constraint constraint : t.getConstraints()) {
                 if (constraint.getConstraintType() != Constraint.Type.REFERENTIAL) {
                     continue;
                 }
@@ -1019,11 +1002,7 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
             if (t == null) {
                 continue;
             }
-            ArrayList<Constraint> constraints = t.getConstraints();
-            if (constraints == null) {
-                continue;
-            }
-            for (Constraint constraint : constraints) {
+            for (Constraint constraint : t.getConstraints()) {
                 if (constraint.getConstraintType() != Constraint.Type.REFERENTIAL) {
                     continue;
                 }

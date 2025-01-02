@@ -55,7 +55,7 @@ public class BenchA implements Bench {
                 "CREATE TABLE ACCOUNTS(AID INT NOT NULL PRIMARY KEY, " +
                 "BID INT, ABALANCE DECIMAL(15,2), FILLER VARCHAR(84))",
                 "CREATE TABLE HISTORY(TID INT, " +
-                "BID INT, AID INT, DELTA DECIMAL(15,2), HTIME DATETIME, " +
+                "BID INT, AID INT, DELTA DECIMAL(15,2), HTIME TIMESTAMP, " +
                 "FILLER VARCHAR(40))" };
 
         for (String sql : create) {

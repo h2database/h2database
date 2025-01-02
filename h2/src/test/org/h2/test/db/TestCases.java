@@ -1211,7 +1211,7 @@ public class TestCases extends TestDb {
         Connection conn = getConnection("cases");
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE TEST(ORDER_ID INT PRIMARY KEY, " +
-                "ORDER_DATE DATETIME, " +
+                "ORDER_DATE TIMESTAMP, " +
                 "USER_ID INT, DESCRIPTION VARCHAR, STATE VARCHAR, " +
                 "TRACKING_ID VARCHAR)");
         Timestamp orderDate = Timestamp.valueOf("2005-05-21 17:46:00");

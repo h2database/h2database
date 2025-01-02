@@ -821,7 +821,7 @@ public class TestMetaData extends TestDb {
         }
         stat.executeUpdate("CREATE TABLE TEST(" + "ID INT PRIMARY KEY,"
                 + "TEXT_V VARCHAR(120)," + "DEC_V DECIMAL(12,3)," + "NUM_V NUMERIC(12,3),"
-                + "DATE_V DATETIME," + "BLOB_V BLOB," + "CLOB_V CLOB" + ")");
+                + "DATE_V TIMESTAMP," + "BLOB_V BLOB," + "CLOB_V CLOB" + ")");
         rs = meta.getTables(null, Constants.SCHEMA_MAIN, null,
                 new String[] { "TABLE" });
         assertResultSetOrdered(rs, new String[][] { { CATALOG,

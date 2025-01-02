@@ -430,6 +430,11 @@ public class Mode {
     public boolean dateIsTimestamp0;
 
     /**
+     * Whether DATETIME, SMALLDATETIME, DATETIME2, and DATETIMEOFFSET data types are parsed.
+     */
+    public boolean datetimeTypes;
+
+    /**
      * Whether NUMERIC and DECIMAL/DEC without parameters are parsed as DECFLOAT.
      */
     public boolean numericIsDecfloat;
@@ -506,6 +511,8 @@ public class Mode {
         mode.numericWithBooleanComparison = true;
         // Legacy GREATEST and LEAST null treatment
         mode.greatestLeastIgnoreNulls = true;
+        // Legacy data types
+        mode.datetimeTypes = true;
         add(mode);
 
         mode = new Mode(ModeEnum.DB2);
@@ -574,6 +581,7 @@ public class Mode {
         mode.zeroExLiteralsAreBinaryStrings = true;
         mode.truncateTableRestartIdentity = true;
         mode.takeInsertedIdentity = true;
+        mode.datetimeTypes = true;
         DataType dt = DataType.createNumeric(19, 4);
         dt.type = Value.NUMERIC;
         dt.sqlType = Types.NUMERIC;

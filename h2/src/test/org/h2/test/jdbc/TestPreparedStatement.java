@@ -1164,7 +1164,7 @@ public class TestPreparedStatement extends TestDb {
         stat.execute("CREATE TABLE T_DECIMAL_10" +
                 "(ID INT PRIMARY KEY,V DECIMAL(20,10))");
         stat.execute("CREATE TABLE T_DATETIME" +
-                "(ID INT PRIMARY KEY,V DATETIME)");
+                "(ID INT PRIMARY KEY,V TIMESTAMP)");
         stat.execute("CREATE TABLE T_BIGINT" +
                 "(ID INT PRIMARY KEY,V DECIMAL(30,0))");
         prep = conn.prepareStatement("INSERT INTO T_INT VALUES(?,?)",

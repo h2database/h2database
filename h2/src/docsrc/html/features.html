@@ -875,6 +875,7 @@ This mode doesn't provide full compatibility with H2 1.X.
 </li><li>IDENTITY can be used as a data type.
 </li><li>MS SQL Server-style IDENTITY clause is supported.
 </li><li>Legacy SERIAL and BIGSERIAL data types are supported.
+</li><li>SMALLDATETIME, DATETIME, and DATETIME2 data types are treated like TIMESTAMP data type.
 </li><li>AUTO_INCREMENT clause can be used instead of GENERATED { ALWAYS | BY DEFAULT } AS IDENTITY.
 </li><li>If a value for identity column was specified in an INSERT command
 the base value of sequence generator of this column is updated if current value of generator was smaller
@@ -954,6 +955,8 @@ Do not change value of DATABASE_TO_LOWER and CASE_INSENSITIVE_IDENTIFIERS after 
 </li><li>GREATEST and LEAST ignore NULL values by default.
 </li><li>Text can be concatenated using '+'.
 </li><li>Arguments of LOG() function are swapped.
+</li><li>SMALLDATETIME, DATETIME, and DATETIME2 data types are treated like TIMESTAMP data type.
+    DATETIMEOFFSET data type is treated like TIMESTAMP WITH TIME ZONE data type.
 </li><li>MONEY data type is treated like NUMERIC(19, 4) data type. SMALLMONEY data type is treated like NUMERIC(10, 4)
     data type.
 </li><li><code>IDENTITY</code> can be used for automatic id generation on column level.

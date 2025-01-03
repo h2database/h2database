@@ -518,8 +518,8 @@ public abstract class Index extends SchemaObject {
      * @param key the key values
      * @return the exception
      */
-    public DbException getDuplicateKeyException(String key) {
-        StringBuilder builder = new StringBuilder();
+    protected DbException getDuplicateKeyException(String key) {
+        StringBuilder builder = new StringBuilder(128);
         for (Constraint constraint : table.getConstraints()) {
             if (constraint.usesIndex(this) && constraint.getConstraintType().isUnique()) {
                 constraint.getSQL(builder, TRACE_SQL_FLAGS).append(" INDEX ");

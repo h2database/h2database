@@ -1425,9 +1425,9 @@ public abstract class FileStore<C extends Chunk<C>>
             WriteBuffer buff;
             try {
                 c = createChunk(time, version);
+                chunks.put(c.id, c);
                 buff = getWriteBuffer();
                 serializeToBuffer(buff, changed, c, lastChunk);
-                chunks.put(c.id, c);
             } catch (Throwable t) {
                 lastChunkId = chunkId;
                 throw t;

@@ -8,7 +8,6 @@ package org.h2.table;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -1115,7 +1114,7 @@ public abstract class Table extends SchemaObject {
     }
 
     public final Iterable<Constraint> getConstraints() {
-        return constraints == null ? Collections.emptyList() : constraints;
+        return constraints == null ? List.of() : constraints;
     }
 
     /**

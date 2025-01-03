@@ -84,7 +84,7 @@ public class TestMVStoreBenchmark extends TestBase {
         mapList = new ArrayList<>(count);
         mem = getMemory();
         for (int i = 0; i < count; i++) {
-            mapList.add(new ConcurrentHashMap<Integer, String>(size));
+            mapList.add(new ConcurrentHashMap<>(size));
         }
         addEntries(mapList, size);
         hash = getMemory() - mem;
@@ -93,7 +93,7 @@ public class TestMVStoreBenchmark extends TestBase {
         mapList.clear();
         mem = getMemory();
         for (int i = 0; i < count; i++) {
-            mapList.add(new ConcurrentSkipListMap<Integer, String>());
+            mapList.add(new ConcurrentSkipListMap<>());
         }
         addEntries(mapList, size);
         tree = getMemory() - mem;

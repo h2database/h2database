@@ -741,7 +741,7 @@ public class TransactionStore {
             final long toLogId) {
 
         final MVMap<Long,Record<?,?>> undoLog = undoLogs[t.getId()];
-        return new Iterator<Change>() {
+        return new Iterator<>() {
 
             private long logId = maxLogId - 1;
             private Change current;

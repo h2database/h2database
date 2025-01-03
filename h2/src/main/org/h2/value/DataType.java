@@ -174,7 +174,7 @@ public class DataType {
         add(Value.TIMESTAMP, Types.TIMESTAMP,
                 createDate(ValueTimestamp.MAXIMUM_PRECISION, ValueTimestamp.DEFAULT_PRECISION,
                         "TIMESTAMP", true, ValueTimestamp.DEFAULT_SCALE, ValueTimestamp.MAXIMUM_SCALE),
-                "TIMESTAMP", "TIMESTAMP WITHOUT TIME ZONE", "DATETIME", "DATETIME2", "SMALLDATETIME");
+                "TIMESTAMP", "TIMESTAMP WITHOUT TIME ZONE");
         add(Value.TIMESTAMP_TZ, Types.TIMESTAMP_WITH_TIMEZONE,
                 createDate(ValueTimestampTimeZone.MAXIMUM_PRECISION, ValueTimestampTimeZone.DEFAULT_PRECISION,
                         "TIMESTAMP WITH TIME ZONE", true, ValueTimestamp.DEFAULT_SCALE, ValueTimestamp.MAXIMUM_SCALE),

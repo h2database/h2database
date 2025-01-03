@@ -5779,9 +5779,6 @@ public final class Parser extends ParserBase {
         case "DATE":
             return database.getMode().dateIsTimestamp0 ? TypeInfo.getTypeInfo(Value.TIMESTAMP, -1L, 0, null)
                     : TypeInfo.TYPE_DATE;
-        case "DATETIME":
-        case "DATETIME2":
-            return parseDateTimeType(false);
         case "DEC":
         case "DECIMAL":
             return parseNumericType(true);
@@ -5840,12 +5837,16 @@ public final class Parser extends ParserBase {
             //$FALL-THROUGH$
         case "NUMERIC":
             return parseNumericType(false);
-        case "SMALLDATETIME":
-            return parseDateTimeType(true);
         case "TIME":
             return parseTimeType();
         case "TIMESTAMP":
             return parseTimestampType();
+        }
+        if (database.getMode().datetimeTypes) {
+            TypeInfo type = parseDateTimeType(original);
+            if (type != null) {
+                return type;
+            }
         }
         // Domain names can't have multiple words without quotes
         if (originalCase.length() == original.length()) {
@@ -6050,22 +6051,31 @@ public final class Parser extends ParserBase {
         return TypeInfo.getTypeInfo(type, -1L, scale, null);
     }
 
-    private TypeInfo parseDateTimeType(boolean smallDateTime) {
-        int scale;
-        if (smallDateTime) {
-            scale = 0;
-        } else {
-            scale = -1;
-            if (readIf(OPEN_PAREN)) {
-                scale = readNonNegativeInt();
-                if (scale > ValueTimestamp.MAXIMUM_SCALE) {
-                    throw DbException.get(ErrorCode.INVALID_VALUE_SCALE, Integer.toString(scale), "0",
-                            /* folds to a constant */ "" + ValueTimestamp.MAXIMUM_SCALE);
-                }
-                read(CLOSE_PAREN);
-            }
+    private TypeInfo parseDateTimeType(String original) {
+        switch (original) {
+        case "DATETIME":
+            return TypeInfo.getTypeInfo(Value.TIMESTAMP, -1L, 3, null);
+        case "DATETIME2":
+            return parseDateTimeType2(Value.TIMESTAMP);
+        case "DATETIMEOFFSET":
+            return parseDateTimeType2(Value.TIMESTAMP_TZ);
+        case "SMALLDATETIME":
+            return TypeInfo.getTypeInfo(Value.TIMESTAMP, -1L, 0, null);
+        default:
+            return null;
         }
-        return TypeInfo.getTypeInfo(Value.TIMESTAMP, -1L, scale, null);
+    }
+
+    private TypeInfo parseDateTimeType2(int type) {
+        int scale = 7;
+        if (readIf(OPEN_PAREN)) {
+            scale = readNonNegativeInt();
+            if (scale > 7) {
+                throw DbException.get(ErrorCode.INVALID_VALUE_SCALE, Integer.toString(scale), "0", "7");
+            }
+            read(CLOSE_PAREN);
+        }
+        return TypeInfo.getTypeInfo(type, -1L, scale, null);
     }
 
     private TypeInfo readIntervalQualifier() {

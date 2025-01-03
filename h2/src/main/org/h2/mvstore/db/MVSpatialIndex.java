@@ -48,7 +48,7 @@ import org.h2.value.VersionedValue;
  * @author Noel Grandin
  * @author Nicolas Fortin, Atelier SIG, IRSTV FR CNRS 24888
  */
-public class MVSpatialIndex extends MVIndex<Spatial, Value> implements SpatialIndex {
+public final class MVSpatialIndex extends MVIndex<Spatial, Value> implements SpatialIndex {
 
     /**
      * The multi-value table.

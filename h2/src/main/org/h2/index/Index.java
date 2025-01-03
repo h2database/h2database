@@ -411,7 +411,7 @@ public abstract class Index extends SchemaObject {
      * Get the index of a column in the list of index columns
      *
      * @param col the column
-     * @return the index (0 meaning first column)
+     * @return the index (0 meaning first column) or {@code -1}
      */
     public int getColumnIndex(Column col) {
         for (int i = 0, len = columns.length; i < len; i++) {
@@ -423,7 +423,10 @@ public abstract class Index extends SchemaObject {
     }
 
     /**
-     * Check if the given column is the first for this index
+     * Checks if the given column is the first for this index. For scan indexes
+     * of tables with row identifiers their {@code _ROWID_} column is considered
+     * as the first column (although it isn't included into list), because such
+     * scan indexes are ordered by this virtual column.
      *
      * @param column the column
      * @return true if the given columns is the first

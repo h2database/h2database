@@ -96,12 +96,9 @@ public class DropTable extends DefineCommand {
                         }
                     }
                 }
-                final List<Constraint> constraints = table.getConstraints();
-                if (constraints != null && !constraints.isEmpty()) {
-                    for (Constraint c : constraints) {
-                        if (!tablesToDrop.contains(c.getTable())) {
-                            dependencies.add(c.getName());
-                        }
+                for (Constraint c : table.getConstraints()) {
+                    if (!tablesToDrop.contains(c.getTable())) {
+                        dependencies.add(c.getName());
                     }
                 }
                 if (!dependencies.isEmpty()) {

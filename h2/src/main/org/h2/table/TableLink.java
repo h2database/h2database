@@ -580,7 +580,7 @@ public class TableLink extends Table {
     }
 
     @Override
-    public ArrayList<Index> getIndexes() {
+    public List<Index> getIndexes() {
         return indexes;
     }
 

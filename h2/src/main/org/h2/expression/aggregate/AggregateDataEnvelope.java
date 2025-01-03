@@ -5,7 +5,7 @@
  */
 package org.h2.expression.aggregate;
 
-import java.util.ArrayList;
+import java.util.List;
 
 import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
@@ -41,13 +41,9 @@ final class AggregateDataEnvelope extends AggregateData {
             if (column.getType().getValueType() == Value.GEOMETRY) {
                 TableFilter filter = col.getTableFilter();
                 if (filter != null) {
-                    ArrayList<Index> indexes = filter.getTable().getIndexes();
-                    if (indexes != null) {
-                        for (int i = 1, size = indexes.size(); i < size; i++) {
-                            Index index = indexes.get(i);
-                            if (index instanceof MVSpatialIndex && index.isFirstColumn(column)) {
-                                return index;
-                            }
+                    for (Index index : filter.getTable().getIndexes()) {
+                        if (index instanceof MVSpatialIndex && index.isFirstColumn(column)) {
+                            return index;
                         }
                     }
                 }

@@ -7,8 +7,10 @@ package org.h2.table;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -116,10 +118,8 @@ public abstract class Table extends SchemaObject {
     @Override
     public void rename(String newName) {
         super.rename(newName);
-        if (constraints != null) {
-            for (Constraint constraint : constraints) {
-                constraint.rebuild();
-            }
+        for (Constraint constraint : getConstraints()) {
+            constraint.rebuild();
         }
     }
 
@@ -305,7 +305,7 @@ public abstract class Table extends SchemaObject {
      *
      * @return the list of indexes
      */
-    public abstract ArrayList<Index> getIndexes();
+    public abstract List<Index> getIndexes();
 
     /**
      * Get an index by name.
@@ -314,12 +314,9 @@ public abstract class Table extends SchemaObject {
      * @return the found index
      */
     public Index getIndex(String indexName) {
-        ArrayList<Index> indexes = getIndexes();
-        if (indexes != null) {
-            for (Index index : indexes) {
-                if (index.getName().equals(indexName)) {
-                    return index;
-                }
+        for (Index index : getIndexes()) {
+            if (index.getName().equals(indexName)) {
+                return index;
             }
         }
         throw DbException.get(ErrorCode.INDEX_NOT_FOUND_1, indexName);
@@ -430,10 +427,8 @@ public abstract class Table extends SchemaObject {
         for (Column col : columns) {
             col.isEverything(visitor);
         }
-        if (constraints != null) {
-            for (Constraint c : constraints) {
-                c.isEverything(visitor);
-            }
+        for (Constraint c : getConstraints()) {
+            c.isEverything(visitor);
         }
         dependencies.add(this);
     }
@@ -441,10 +436,7 @@ public abstract class Table extends SchemaObject {
     @Override
     public ArrayList<DbObject> getChildren() {
         ArrayList<DbObject> children = Utils.newSmallArrayList();
-        ArrayList<Index> indexes = getIndexes();
-        if (indexes != null) {
-            children.addAll(indexes);
-        }
+        children.addAll(getIndexes());
         if (constraints != null) {
             children.addAll(constraints);
         }
@@ -472,7 +464,7 @@ public abstract class Table extends SchemaObject {
             throw DbException.get(ErrorCode.TOO_MANY_COLUMNS_1, "" + Constants.MAX_COLUMNS);
         }
         this.columns = columns;
-        if (columnMap.size() > 0) {
+        if (!columnMap.isEmpty()) {
             columnMap.clear();
         }
         for (int i = 0; i < columns.length; i++) {
@@ -622,43 +614,28 @@ public abstract class Table extends SchemaObject {
      *
      * @param session the session
      * @param columnsToDrop the columns to drop
-     * @throws DbException if the column is referenced by multi-column
-     *             constraints or indexes
+     * @throws DbException if some columns are referenced by multi-column constraints or indexes,
+     *                     but such constraint or index is not fully covered by deleted columns
      */
-    public void dropMultipleColumnsConstraintsAndIndexes(SessionLocal session,
-            ArrayList<Column> columnsToDrop) {
+    public void dropMultipleColumnsConstraintsAndIndexes(SessionLocal session, ArrayList<Column> columnsToDrop) {
+        HashSet<Column> columnSetToDrop = new HashSet<>(columnsToDrop);
         HashSet<Constraint> constraintsToDrop = new HashSet<>();
-        if (constraints != null) {
-            for (Column col : columnsToDrop) {
-                for (Constraint constraint : constraints) {
-                    HashSet<Column> columns = constraint.getReferencedColumns(this);
-                    if (!columns.contains(col)) {
-                        continue;
-                    }
-                    if (columns.size() == 1) {
-                        constraintsToDrop.add(constraint);
-                    } else {
-                        throw DbException.get(ErrorCode.COLUMN_IS_REFERENCED_1, constraint.getTraceSQL());
-                    }
-                }
+        for (Constraint constraint : getConstraints()) {
+            Boolean partiallyCovered = isPartiallyCovered(columnSetToDrop, constraint.getReferencedColumns(this));
+            if (partiallyCovered == null) { // fully covered
+                constraintsToDrop.add(constraint);
+            } else if (partiallyCovered) {
+                throw DbException.get(ErrorCode.COLUMN_IS_REFERENCED_1, constraint.getTraceSQL());
             }
         }
         HashSet<Index> indexesToDrop = new HashSet<>();
-        ArrayList<Index> indexes = getIndexes();
-        if (indexes != null) {
-            for (Column col : columnsToDrop) {
-                for (Index index : indexes) {
-                    if (index.getCreateSQL() == null) {
-                        continue;
-                    }
-                    if (index.getColumnIndex(col) < 0) {
-                        continue;
-                    }
-                    if (index.getColumns().length == 1) {
-                        indexesToDrop.add(index);
-                    } else {
-                        throw DbException.get(ErrorCode.COLUMN_IS_REFERENCED_1, index.getTraceSQL());
-                    }
+        for (Index index : getIndexes()) {
+            if (index.getCreateSQL() != null) {
+                Boolean partiallyCovered = isPartiallyCovered(columnSetToDrop, Arrays.asList(index.getColumns()));
+                if (partiallyCovered == null) { // fully covered
+                    indexesToDrop.add(index);
+                } else if (partiallyCovered) {
+                    throw DbException.get(ErrorCode.COLUMN_IS_REFERENCED_1, index.getTraceSQL());
                 }
             }
         }
@@ -668,12 +645,27 @@ public abstract class Table extends SchemaObject {
             }
         }
         for (Index i : indexesToDrop) {
-            // the index may already have been dropped when dropping the
-            // constraint
+            // the index may already have been dropped when dropping the constraint
             if (getIndexes().contains(i)) {
                 session.getDatabase().removeSchemaObject(session, i);
             }
         }
+    }
+
+    /**
+     * @return null if fully covered, TRUE if partially covered, FALSE if not covered at all
+     */
+    private static <T> Boolean isPartiallyCovered(Collection<T> cover, Collection<T> covered) {
+        boolean containsNone = true;
+        boolean containsAll = true;
+        for (T item : covered) {
+            if (cover.contains(item)) {
+                containsNone = false;
+            } else {
+                containsAll = false;
+            }
+        }
+        return containsAll ? null : !containsNone;
     }
 
     public RowFactory getRowFactory() {
@@ -854,21 +846,18 @@ public abstract class Table extends SchemaObject {
             TableFilter[] filters, int filter, SortOrder sortOrder,
             AllColumnsForPlan allColumnsSet, boolean isSelectCommand) {
         PlanItem item = new PlanItem();
-        item.setIndex(getScanIndex(session));
+        Index scanIndex = getScanIndex(session);
+        item.setIndex(scanIndex);
         item.cost = item.getIndex().getCost(session, null, filters, filter, null, allColumnsSet, isSelectCommand);
         Trace t = session.getTrace();
         if (t.isDebugEnabled()) {
             t.debug("Table      :     potential plan item cost {0} index {1}",
                     item.cost, item.getIndex().getPlanSQL());
         }
-        ArrayList<Index> indexes = getIndexes();
-        IndexHints indexHints = getIndexHints(filters, filter);
-
-        if (indexes != null && masks != null) {
-            for (int i = 1, size = indexes.size(); i < size; i++) {
-                Index index = indexes.get(i);
-
-                if (isIndexExcludedByHints(indexHints, index)) {
+        if (masks != null) {
+            IndexHints indexHints = getIndexHints(filters, filter);
+            for (Index index : getIndexes()) {
+                if (index == scanIndex || isIndexExcludedByHints(indexHints, index)) {
                     continue;
                 }
 
@@ -901,12 +890,9 @@ public abstract class Table extends SchemaObject {
      * @return the primary key index or null
      */
     public Index findPrimaryKey() {
-        ArrayList<Index> indexes = getIndexes();
-        if (indexes != null) {
-            for (Index idx : indexes) {
-                if (idx.getIndexType().isPrimaryKey()) {
-                    return idx;
-                }
+        for (Index idx : getIndexes()) {
+            if (idx.getIndexType().isPrimaryKey()) {
+                return idx;
             }
         }
         return null;
@@ -923,7 +909,6 @@ public abstract class Table extends SchemaObject {
 
     /**
      * Prepares the specified row for INSERT operation.
-     *
      * Identity, default, and generated values are evaluated, all values are
      * converted to target data types and validated. Base value of identity
      * column is updated when required by compatibility mode.
@@ -977,7 +962,6 @@ public abstract class Table extends SchemaObject {
 
     /**
      * Prepares the specified row for UPDATE operation.
-     *
      * Default and generated values are evaluated, all values are converted to
      * target data types and validated. Base value of identity column is updated
      * when required by compatibility mode.
@@ -1029,13 +1013,10 @@ public abstract class Table extends SchemaObject {
      * @param index the index to remove
      */
     public void removeIndex(Index index) {
-        ArrayList<Index> indexes = getIndexes();
-        if (indexes != null) {
-            remove(indexes, index);
-            if (index.getIndexType().isPrimaryKey()) {
-                for (Column col : index.getColumns()) {
-                    col.setPrimaryKey(false);
-                }
+        getIndexes().remove(index);
+        if (index.getIndexType().isPrimaryKey()) {
+            for (Column col : index.getColumns()) {
+                col.setPrimaryKey(false);
             }
         }
     }
@@ -1132,8 +1113,8 @@ public abstract class Table extends SchemaObject {
         }
     }
 
-    public ArrayList<Constraint> getConstraints() {
-        return constraints;
+    public final Iterable<Constraint> getConstraints() {
+        return constraints == null ? List.of() : constraints;
     }
 
     /**
@@ -1282,11 +1263,9 @@ public abstract class Table extends SchemaObject {
      */
     public void setCheckForeignKeyConstraints(SessionLocal session, boolean enabled, boolean checkExisting) {
         if (enabled && checkExisting) {
-            if (constraints != null) {
-                for (Constraint c : constraints) {
-                    if (c.getConstraintType() == Type.REFERENTIAL) {
-                        c.checkExistingData(session);
-                    }
+            for (Constraint c : getConstraints()) {
+                if (c.getConstraintType() == Type.REFERENTIAL) {
+                    c.checkExistingData(session);
                 }
             }
         }
@@ -1313,24 +1292,20 @@ public abstract class Table extends SchemaObject {
      */
     public Index getIndexForColumn(Column column,
             boolean needGetFirstOrLast, boolean needFindNext) {
-        ArrayList<Index> indexes = getIndexes();
         Index result = null;
-        if (indexes != null) {
-            for (int i = 1, size = indexes.size(); i < size; i++) {
-                Index index = indexes.get(i);
-                if (needGetFirstOrLast && !index.canGetFirstOrLast()) {
-                    continue;
-                }
-                if (needFindNext && !index.canFindNext()) {
-                    continue;
-                }
-                // choose the minimal covering index with the needed first
-                // column to work consistently with execution plan from
-                // Optimizer
-                if (index.isFirstColumn(column) && (result == null ||
-                        result.getColumns().length > index.getColumns().length)) {
-                    result = index;
-                }
+        for (Index index : getIndexes()) {
+            if (needGetFirstOrLast && !index.canGetFirstOrLast()) {
+                continue;
+            }
+            if (needFindNext && !index.canFindNext()) {
+                continue;
+            }
+            // choose the minimal covering index with the needed first
+            // column to work consistently with execution plan from
+            // Optimizer
+            if (index.isFirstColumn(column) && (result == null ||
+                    result.getColumns().length > index.getColumns().length)) {
+                result = index;
             }
         }
         return result;
@@ -1361,13 +1336,11 @@ public abstract class Table extends SchemaObject {
      */
     public void removeIndexOrTransferOwnership(SessionLocal session, Index index) {
         boolean stillNeeded = false;
-        if (constraints != null) {
-            for (Constraint cons : constraints) {
-                if (cons.usesIndex(index)) {
-                    cons.setIndexOwner(index);
-                    database.updateMeta(session, cons);
-                    stillNeeded = true;
-                }
+        for (Constraint cons : getConstraints()) {
+            if (cons.usesIndex(index)) {
+                cons.setIndexOwner(index);
+                database.updateMeta(session, cons);
+                stillNeeded = true;
             }
         }
         if (!stillNeeded) {

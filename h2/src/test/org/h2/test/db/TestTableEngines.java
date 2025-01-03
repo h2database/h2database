@@ -647,8 +647,8 @@ public class TestTableEngines extends TestDb {
             }
 
             @Override
-            public ArrayList<Index> getIndexes() {
-                return null;
+            public List<Index> getIndexes() {
+                return List.of();
             }
 
             @Override
@@ -777,7 +777,7 @@ public class TestTableEngines extends TestDb {
     private static class TreeSetTable extends TableBase {
         int dataModificationId;
 
-        ArrayList<Index> indexes;
+        ArrayList<Index> indexes = new ArrayList<>(2);
 
         TreeSetIndex scan = new TreeSetIndex(this, "scan",
                 IndexColumn.wrap(getColumns()), IndexType.createScan(false)) {
@@ -792,17 +792,14 @@ public class TestTableEngines extends TestDb {
 
         TreeSetTable(CreateTableData data) {
             super(data);
+            indexes.add(scan);
         }
 
         @Override
         public long truncate(SessionLocal session) {
             long result = getRowCountApproximation(session);
-            if (indexes != null) {
-                for (Index index : indexes) {
-                    index.truncate(session);
-                }
-            } else {
-                scan.truncate(session);
+            for (Index index : indexes) {
+                index.truncate(session);
             }
             dataModificationId++;
             return result;
@@ -810,24 +807,16 @@ public class TestTableEngines extends TestDb {
 
         @Override
         public void removeRow(SessionLocal session, Row row) {
-            if (indexes != null) {
-                for (Index index : indexes) {
-                    index.remove(session, row);
-                }
-            } else {
-                scan.remove(session, row);
+            for (Index index : indexes) {
+                index.remove(session, row);
             }
             dataModificationId++;
         }
 
         @Override
         public void addRow(SessionLocal session, Row row) {
-            if (indexes != null) {
-                for (Index index : indexes) {
-                    index.add(session, row);
-                }
-            } else {
-                scan.add(session, row);
+            for (Index index : indexes) {
+                index.add(session, row);
             }
             dataModificationId++;
         }
@@ -835,11 +824,6 @@ public class TestTableEngines extends TestDb {
         @Override
         public Index addIndex(SessionLocal session, String indexName, int indexId, IndexColumn[] cols,
                 int uniqueColumnCount, IndexType indexType, boolean create, String indexComment) {
-            if (indexes == null) {
-                indexes = new ArrayList<>(2);
-                // Scan must be always at 0.
-                indexes.add(scan);
-            }
             Index index = new TreeSetIndex(this, indexName, cols, indexType);
             for (SearchRow row : scan.set) {
                 index.add(session, (Row) row);

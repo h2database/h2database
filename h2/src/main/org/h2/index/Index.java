@@ -517,13 +517,10 @@ public abstract class Index extends SchemaObject {
      */
     public DbException getDuplicateKeyException(String key) {
         StringBuilder builder = new StringBuilder();
-        Iterable<Constraint> constraints = table.getConstraints();
-        if (constraints != null) {
-            for (Constraint constraint : constraints) {
-                if (constraint.usesIndex(this) && constraint.getConstraintType().isUnique()) {
-                    constraint.getSQL(builder, TRACE_SQL_FLAGS).append(" INDEX ");
-                    break;
-                }
+        for (Constraint constraint : table.getConstraints()) {
+            if (constraint.usesIndex(this) && constraint.getConstraintType().isUnique()) {
+                constraint.getSQL(builder, TRACE_SQL_FLAGS).append(" INDEX ");
+                break;
             }
         }
         getSQL(builder, TRACE_SQL_FLAGS).append(" ON ");
@@ -537,19 +534,6 @@ public abstract class Index extends SchemaObject {
         return e;
     }
 
-    private StringBuilder getIndexOrConstraintSQL(StringBuilder builder) {
-        ArrayList<Constraint> constraints = table.getConstraints();
-        if (constraints != null) {
-            for (Constraint constraint : table.getConstraints()) {
-                if (constraint.usesIndex(this) && constraint.getConstraintType() == Constraint.Type.UNIQUE) {
-                    constraint.getSQL(builder, TRACE_SQL_FLAGS);
-                    return builder;
-                }
-            }
-        }
-        return getSQL(builder, TRACE_SQL_FLAGS);
-    }
-
     /**
      * Get "PRIMARY KEY ON &lt;table&gt; [(column)]".
      *
@@ -558,13 +542,10 @@ public abstract class Index extends SchemaObject {
      */
     protected StringBuilder getDuplicatePrimaryKeyMessage(int mainIndexColumn) {
         StringBuilder builder = new StringBuilder(64);
-        Iterable<Constraint> constraints = table.getConstraints();
-        if (constraints != null) {
-            for (Constraint constraint : constraints) {
-                if (constraint.getConstraintType() == Constraint.Type.PRIMARY_KEY) {
-                    constraint.getSQL(builder, TRACE_SQL_FLAGS).append(' ');
-                    break;
-                }
+        for (Constraint constraint : table.getConstraints()) {
+            if (constraint.getConstraintType() == Constraint.Type.PRIMARY_KEY) {
+                constraint.getSQL(builder, TRACE_SQL_FLAGS).append(' ');
+                break;
             }
         }
         table.getSQL(builder.append("PRIMARY KEY ON "), TRACE_SQL_FLAGS);

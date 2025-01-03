@@ -584,14 +584,11 @@ public final class PgCatalogTable extends MetaTable {
         ArrayList<TriggerObject> triggers = table.getTriggers();
         addClass(session, rows, table.getId(), table.getName(), table.getSchema().getId(), table.isView() ? "v" : "r",
                 false, triggers != null ? triggers.size() : 0);
-        ArrayList<Index> indexes = table.getIndexes();
-        if (indexes != null) {
-            for (Index index : indexes) {
-                if (index.getCreateSQL() == null) {
-                    continue;
-                }
-                addClass(session, rows, index.getId(), index.getName(), index.getSchema().getId(), "i", true, 0);
+        for (Index index : table.getIndexes()) {
+            if (index.getCreateSQL() == null) {
+                continue;
             }
+            addClass(session, rows, index.getId(), index.getName(), index.getSchema().getId(), "i", true, 0);
         }
     }
 

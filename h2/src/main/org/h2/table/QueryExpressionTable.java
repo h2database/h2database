@@ -256,8 +256,8 @@ public abstract class QueryExpressionTable extends Table {
     }
 
     @Override
-    public final ArrayList<Index> getIndexes() {
-        return null;
+    public final List<Index> getIndexes() {
+        return List.of();
     }
 
     @Override

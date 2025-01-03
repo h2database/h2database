@@ -51,9 +51,8 @@ public class DropIndex extends SchemaCommand {
             Table table = index.getTable();
             session.getUser().checkTableRight(index.getTable(), Right.SCHEMA_OWNER);
             Constraint pkConstraint = null;
-            ArrayList<Constraint> constraints = table.getConstraints();
-            for (int i = 0; constraints != null && i < constraints.size(); i++) {
-                Constraint cons = constraints.get(i);
+            Iterable<Constraint> constraints = table.getConstraints();
+            for (Constraint cons : table.getConstraints()) {
                 if (cons.usesIndex(index)) {
                     // can drop primary key index (for compatibility)
                     if (Constraint.Type.PRIMARY_KEY == cons.getConstraintType()) {

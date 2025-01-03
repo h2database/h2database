@@ -298,7 +298,7 @@ public final class SetClauseList implements HasSQL {
 
     }
 
-    private static abstract class SetAction extends UpdateAction {
+    private abstract static class SetAction extends UpdateAction {
 
         private final Expression[] arrayIndexes;
 
@@ -448,9 +448,9 @@ public final class SetClauseList implements HasSQL {
 
         private final int position;
 
-        boolean first;
+        final boolean first;
 
-        private boolean last;
+        private final boolean last;
 
         SetMultiple(Expression[] arrayIndexes, RowExpression row, int position, boolean first, boolean last) {
             super(arrayIndexes);

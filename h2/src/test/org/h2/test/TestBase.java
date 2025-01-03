@@ -76,6 +76,8 @@ public abstract class TestBase {
      */
     private static final int MAX_ARRAY_SIZE = Integer.MAX_VALUE - 8;
 
+    private static final StackWalker STACK_WALKER = StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE);
+
     /**
      * The test configuration.
      */
@@ -1407,9 +1409,7 @@ public abstract class TestBase {
     public static TestBase createCaller() {
         org.h2.Driver.load();
         try {
-            return (TestBase) new SecurityManager() {
-                Class<?> clazz = getClassContext()[2];
-            }.clazz.getDeclaredConstructor().newInstance();
+            return (TestBase) STACK_WALKER.getCallerClass().getDeclaredConstructor().newInstance();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

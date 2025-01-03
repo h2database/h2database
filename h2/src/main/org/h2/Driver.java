@@ -28,7 +28,7 @@ import org.h2.message.DbException;
  *      &quot;jdbc:h2:&tilde;/test&quot;, &quot;sa&quot;, &quot;sa&quot;);
  * </pre>
  */
-public class Driver implements java.sql.Driver, JdbcDriverBackwardsCompat {
+public class Driver implements java.sql.Driver {
 
     private static final Driver INSTANCE = new Driver();
     private static final String DEFAULT_URL = "jdbc:default:connection";

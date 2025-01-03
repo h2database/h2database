@@ -526,7 +526,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             if (row == null) {
                 v = ValueNull.INSTANCE;
             } else {
-                v = row.getValue(index.getColumns()[0].getColumnId());
+                v = row.getValue(((ExpressionColumn) args[0]).getColumn().getColumnId());
             }
             return v;
         }

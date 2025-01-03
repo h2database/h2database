@@ -236,7 +236,7 @@ public class IntPerfectHash {
         split = Math.max(2, split);
         ArrayList<ArrayList<Integer>> lists = new ArrayList<>(split);
         for (int i = 0; i < split; i++) {
-            lists.add(new ArrayList<Integer>(size / split));
+            lists.add(new ArrayList<>(size / split));
         }
         for (int x : list) {
             ArrayList<Integer> l = lists.get(hash(x, level, 0, split));

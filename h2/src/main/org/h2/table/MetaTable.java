@@ -20,7 +20,6 @@ import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.schema.Schema;
 import org.h2.util.StringUtils;
-import org.h2.util.Utils;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
@@ -68,6 +67,7 @@ public abstract class MetaTable extends Table {
         this.type = type;
     }
 
+    @Override
     protected void setColumns(Column[] columns) {
         super.setColumns(columns);
         scanIndex = new MetaIndex(this, IndexColumn.wrap(columns), true);

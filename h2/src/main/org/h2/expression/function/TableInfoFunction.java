@@ -5,9 +5,6 @@
  */
 package org.h2.expression.function;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.h2.command.Parser;
 import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;

@@ -235,7 +235,7 @@ public class TestStreamStore extends TestBase {
     private void testTreeStructure() throws IOException {
 
         final AtomicInteger reads = new AtomicInteger();
-        Map<Long, byte[]> map = new HashMap<Long, byte[]>() {
+        Map<Long, byte[]> map = new HashMap<>() {
 
             private static final long serialVersionUID = 1L;
 
@@ -289,7 +289,7 @@ public class TestStreamStore extends TestBase {
     private void testWithExistingData() throws IOException {
 
         final AtomicInteger tests = new AtomicInteger();
-        Map<Long, byte[]> map = new HashMap<Long, byte[]>() {
+        Map<Long, byte[]> map = new HashMap<>() {
 
             private static final long serialVersionUID = 1L;
 
@@ -325,7 +325,7 @@ public class TestStreamStore extends TestBase {
 
     private void testWithFullMap() throws IOException {
         final AtomicInteger tests = new AtomicInteger();
-        Map<Long, byte[]> map = new HashMap<Long, byte[]>() {
+        Map<Long, byte[]> map = new HashMap<>() {
 
             private static final long serialVersionUID = 1L;
 

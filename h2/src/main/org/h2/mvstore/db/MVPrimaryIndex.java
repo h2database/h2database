@@ -37,7 +37,7 @@ import org.h2.value.VersionedValue;
 /**
  * A table stored in a MVStore.
  */
-public class MVPrimaryIndex extends MVIndex<Long, SearchRow> {
+public final class MVPrimaryIndex extends MVIndex<Long, SearchRow> {
 
     private final MVTable mvTable;
     private final String mapName;
@@ -356,12 +356,12 @@ public class MVPrimaryIndex extends MVIndex<Long, SearchRow> {
     @Override
     public int getColumnIndex(Column col) {
         // can not use this index - use the delegate index instead
-        return SearchRow.ROWID_INDEX;
+        return -1;
     }
 
     @Override
     public boolean isFirstColumn(Column column) {
-        return false;
+        return column.getColumnId() == SearchRow.ROWID_INDEX && column.getTable() == table;
     }
 
     @Override

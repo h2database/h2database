@@ -6,6 +6,7 @@
 package org.h2.value;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 
 import org.h2.api.ErrorCode;
@@ -138,6 +139,15 @@ abstract class ValueStringBase extends Value {
     public final long getLong() {
         try {
             return Long.parseLong(value.trim());
+        } catch (NumberFormatException e) {
+            throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, e, value);
+        }
+    }
+
+    @Override
+    public final BigInteger getBigInteger() {
+        try {
+            return new BigInteger(value.trim());
         } catch (NumberFormatException e) {
             throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, e, value);
         }

@@ -287,7 +287,7 @@ public final class ValueToObjectConverter extends TraceObject {
         } else if (type == BigDecimal.class) {
             return (T) value.getBigDecimal();
         } else if (type == BigInteger.class) {
-            return (T) value.getBigDecimal().toBigInteger();
+            return (T) value.getBigInteger();
         } else if (type == String.class) {
             return (T) value.getString();
         } else if (type == Boolean.class) {

@@ -8,6 +8,7 @@ package org.h2.value;
 import java.io.InputStream;
 import java.io.Reader;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 
 import org.h2.engine.CastDataProvider;
 import org.h2.message.DbException;
@@ -110,6 +111,11 @@ public final class ValueNull extends Value {
     @Override
     public long getLong() {
         throw DbException.getInternalError();
+    }
+
+    @Override
+    public BigInteger getBigInteger() {
+        return null;
     }
 
     @Override

@@ -6,6 +6,7 @@
 package org.h2.value;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 
 import org.h2.engine.CastDataProvider;
 
@@ -90,6 +91,11 @@ public final class ValueBoolean extends Value {
     @Override
     public long getLong() {
         return value ? 1L : 0L;
+    }
+
+    @Override
+    public BigInteger getBigInteger() {
+        return value ? BigInteger.ONE : BigInteger.ZERO;
     }
 
     @Override

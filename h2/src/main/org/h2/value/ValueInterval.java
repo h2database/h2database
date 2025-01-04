@@ -11,6 +11,7 @@ import static org.h2.util.DateTimeUtils.NANOS_PER_MINUTE;
 import static org.h2.util.DateTimeUtils.NANOS_PER_SECOND;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.math.RoundingMode;
 
 import org.h2.api.Interval;
@@ -252,6 +253,11 @@ public final class ValueInterval extends Value {
             l++;
         }
         return negative ? -l : l;
+    }
+
+    @Override
+    public BigInteger getBigInteger() {
+        return BigInteger.valueOf(getLong());
     }
 
     @Override

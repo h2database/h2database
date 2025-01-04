@@ -25,7 +25,7 @@ import org.h2.value.VersionedValue;
 /**
  * An index that delegates indexing to another index.
  */
-public class MVDelegateIndex extends MVIndex<Long, SearchRow> {
+public final class MVDelegateIndex extends MVIndex<Long, SearchRow> {
 
     private final MVPrimaryIndex mainIndex;
 
@@ -95,15 +95,12 @@ public class MVDelegateIndex extends MVIndex<Long, SearchRow> {
 
     @Override
     public int getColumnIndex(Column col) {
-        if (col.getColumnId() == mainIndex.getMainIndexColumn()) {
-            return 0;
-        }
-        return -1;
+        return isFirstColumn(col) ? 0 : -1;
     }
 
     @Override
     public boolean isFirstColumn(Column column) {
-        return getColumnIndex(column) == 0;
+        return column.getColumnId() == mainIndex.getMainIndexColumn() && column.getTable() == table;
     }
 
     @Override

@@ -5,8 +5,6 @@
  */
 package org.h2.expression.aggregate;
 
-import java.util.List;
-
 import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;

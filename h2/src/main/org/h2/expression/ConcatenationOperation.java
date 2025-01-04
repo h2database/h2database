@@ -139,7 +139,8 @@ public final class ConcatenationOperation extends OperationN {
     @Override
     public Expression optimize(SessionLocal session) {
         determineType(session);
-        inlineArguments();
+        inlineSubexpressions(arg3 -> arg3 instanceof ConcatenationOperation //
+                && arg3.getType().getValueType() == type.getValueType());
         if (type.getValueType() == Value.VARCHAR && session.getMode().treatEmptyStringsAsNull) {
             return new ConcatFunction(ConcatFunction.CONCAT, args).optimize(session);
         }
@@ -236,35 +237,6 @@ public final class ConcatenationOperation extends OperationN {
     private long getPrecision(int i) {
         TypeInfo t = args[i].getType();
         return t.getValueType() != Value.NULL ? t.getPrecision() : 0L;
-    }
-
-    private void inlineArguments() {
-        int valueType = type.getValueType();
-        int l = args.length;
-        int count = l;
-        for (int i = 0; i < l; i++) {
-            Expression arg = args[i];
-            if (arg instanceof ConcatenationOperation && arg.getType().getValueType() == valueType) {
-                count += arg.getSubexpressionCount() - 1;
-            }
-        }
-        if (count > l) {
-            Expression[] newArguments = new Expression[count];
-            for (int i = 0, offset = 0; i < l; i++) {
-                Expression arg = args[i];
-                if (arg instanceof ConcatenationOperation && arg.getType().getValueType() == valueType) {
-                    ConcatenationOperation c = (ConcatenationOperation) arg;
-                    Expression[] innerArgs = c.args;
-                    int innerLength = innerArgs.length;
-                    System.arraycopy(innerArgs, 0, newArguments, offset, innerLength);
-                    offset += innerLength;
-                } else {
-                    newArguments[offset++] = arg;
-                }
-            }
-            args = newArguments;
-            argsCount = count;
-        }
     }
 
     private static boolean isEmpty(Value v) {

@@ -200,7 +200,8 @@ public final class MergeUsing extends DataChangeStatement {
 
         TableFilter[] filters = new TableFilter[] { sourceTableFilter, targetTableFilter };
         sourceTableFilter.addJoin(targetTableFilter, true, onCondition);
-        PlanItem item = sourceTableFilter.getBestPlanItem(session, filters, 0, new AllColumnsForPlan(filters), /*isSelectCommand*/ false);
+        PlanItem item = sourceTableFilter.getBestPlanItem(session, filters, 0, new AllColumnsForPlan(filters),
+                /* isSelectCommand */ false);
         sourceTableFilter.setPlanItem(item);
         sourceTableFilter.prepare();
 

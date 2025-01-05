@@ -739,8 +739,8 @@ public abstract class Index extends SchemaObject {
         } else if (needsToReadFromScanIndex) {
             rc = rowsCost + rowsCost + sortingCost + 20;
         } else { // covering index
-            // The "+ 20" terms above, and the "+ columns.length" term here, 
-            // makes sure that when we pick a covering index, 
+            // The "+ 20" terms above, and the "+ columns.length" term here,
+            // makes sure that when we pick a covering index,
             // we pick the covering index that has the smallest number of
             // columns (the more columns we have in index - the higher cost).
             // This is faster because a smaller index will fit into fewer data

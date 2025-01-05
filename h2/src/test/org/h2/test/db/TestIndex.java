@@ -787,7 +787,8 @@ public class TestIndex extends TestDb {
     private void testCompoundIndex_4161() throws SQLException {
         Connection conn = getConnection("index");
         stat = conn.createStatement();
-        stat.execute("CREATE TABLE tbl ( c1 INTEGER, c2 INTEGER, c3 INTEGER, c4 INTEGER, c5 INTEGER, c6 INTEGER, c7 INTEGER );");
+        stat.execute("CREATE TABLE tbl ( c1 INTEGER, c2 INTEGER, c3 INTEGER, c4 INTEGER, c5 INTEGER, c6 INTEGER,"
+                + " c7 INTEGER );");
         stat.execute("insert into tbl select x, 0, 0, 0, 0, 0, 0 from system_range(1, 1000)");
 
         stat.execute("CREATE INDEX idx1 ON tbl ( c1, c2, c3, c4, c5 )");
@@ -805,5 +806,5 @@ public class TestIndex extends TestDb {
         conn.close();
         deleteDb("index");
     }
-    
+
 }

@@ -294,7 +294,8 @@ public final class MVSpatialIndex extends MVIndex<Spatial, Value> implements Spa
                 return Long.MAX_VALUE;
             }
         }
-        return 10 * getCostRangeIndex(masks, dataMap.sizeAsLongMax(), filters, filter, sortOrder, true, allColumnsSet, isSelectCommand);
+        return 10 * getCostRangeIndex(masks, dataMap.sizeAsLongMax(), filters, filter, sortOrder, true, allColumnsSet,
+                isSelectCommand);
     }
 
     @Override

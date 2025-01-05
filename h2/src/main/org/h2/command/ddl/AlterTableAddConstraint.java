@@ -329,8 +329,8 @@ public class AlterTableAddConstraint extends AlterTable {
         if (indexColumns.length == 1 && needNullsDistinct == NullsDistinct.ALL_DISTINCT) {
             needNullsDistinct = NullsDistinct.DISTINCT;
         }
-        return new ConstraintUnique(tableSchema, id, name, table, false, indexColumns, index, isOwner, needNullsDistinct
-        );
+        return new ConstraintUnique(tableSchema, id, name, table, false, indexColumns, index, isOwner,
+                needNullsDistinct);
     }
 
     private void addConstraintToTable(Database db, Table table, Constraint constraint) {

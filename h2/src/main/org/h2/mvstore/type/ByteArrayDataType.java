@@ -8,6 +8,7 @@ package org.h2.mvstore.type;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.WriteBuffer;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 
 /**
  * Class ByteArrayDataType.
@@ -42,5 +43,10 @@ public final class ByteArrayDataType extends BasicDataType<byte[]>
     @Override
     public byte[][] createStorage(int size) {
         return new byte[size][];
+    }
+
+    @Override
+    public int compare(byte[] one, byte[] two) {
+        return Arrays.compare(one, two);
     }
 }

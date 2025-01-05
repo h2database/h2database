@@ -167,7 +167,7 @@ public class TestScript extends TestDb {
                 "corr",
                 "count",
                 "covar_pop", "covar_samp",
-                "envelope", "every", "histogram",
+                "envelope", "every", "gcd_agg", "histogram",
                 "json_arrayagg", "json_objectagg",
                 "listagg", "max", "min", "mode", "percentile", "rank",
                 "regr_avgx", "regr_avgy", "regr_count", "regr_intercept", "regr_r2", "regr_slope",
@@ -181,7 +181,7 @@ public class TestScript extends TestDb {
         for (String s : new String[] { "abs", "acos", "asin", "atan", "atan2",
                 "bitand", "bitcount", "bitget", "bitnot", "bitor", "bitxor", "ceil", "compress",
                 "cos", "cosh", "cot", "decrypt", "degrees", "encrypt", "exp",
-                "expand", "floor", "hash", "length", "log", "lshift", "mod", "ora-hash", "pi",
+                "expand", "floor", "gcd", "hash", "length", "log", "lshift", "mod", "ora-hash", "pi",
                 "power", "radians", "rand", "random-uuid", "rotate", "round",
                 "roundmagic", "rshift", "secure-rand", "sign", "sin", "sinh", "sqrt",
                 "tan", "tanh", "truncate", "zero" }) {

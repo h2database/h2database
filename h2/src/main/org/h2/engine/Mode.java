@@ -6,7 +6,6 @@
 package org.h2.engine;
 
 import java.sql.Types;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -430,6 +429,11 @@ public class Mode {
     public boolean dateIsTimestamp0;
 
     /**
+     * Whether MySQL-style DATETIME and YEAR data type is parsed.
+     */
+    public boolean datetimeAndYearType;
+
+    /**
      * Whether DATETIME, SMALLDATETIME, DATETIME2, and DATETIMEOFFSET data types are parsed.
      */
     public boolean datetimeTypes;
@@ -444,7 +448,7 @@ public class Mode {
      * Certain DBMSs don't support all column types provided by H2, such as
      * "NUMBER" when using PostgreSQL mode.
      */
-    public Set<String> disallowedTypes = Collections.emptySet();
+    public Set<String> disallowedTypes = Set.of();
 
     /**
      * Custom mappings from type names to data types.
@@ -627,7 +631,7 @@ public class Mode {
         mode.cteExpressionNames = ViewExpressionNames.MYSQL_STYLE;
         mode.limit = true;
         mode.autoIncrementClause = true;
-        mode.typeByNameMap.put("YEAR", DataType.getDataType(Value.SMALLINT));
+        mode.datetimeAndYearType = true;
         mode.groupByColumnIndex = true;
         mode.numericWithBooleanComparison = true;
         mode.acceptsCommaAsJsonKeyValueSeparator = true;
@@ -660,7 +664,7 @@ public class Mode {
         mode.cteExpressionNames = ViewExpressionNames.MYSQL_STYLE;
         mode.limit = true;
         mode.autoIncrementClause = true;
-        mode.typeByNameMap.put("YEAR", DataType.getDataType(Value.SMALLINT));
+        mode.datetimeAndYearType = true;
         mode.groupByColumnIndex = true;
         mode.numericWithBooleanComparison = true;
         mode.acceptsCommaAsJsonKeyValueSeparator = true;

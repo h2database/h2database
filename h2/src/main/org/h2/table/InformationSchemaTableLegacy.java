@@ -16,7 +16,6 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.HashSet;
 import java.util.Locale;
-import java.util.Map;
 
 import org.h2.command.Command;
 import org.h2.command.ParserBase;
@@ -1038,10 +1037,6 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                     add(session, rows, "property." + s, Utils.getProperty(s, ""));
                 }
             }
-            add(session, rows, "DEFAULT_NULL_ORDERING", database.getDefaultNullOrdering().name());
-            add(session, rows, "EXCLUSIVE", database.getExclusiveSession() == null ?
-                    "FALSE" : "TRUE");
-            add(session, rows, "MODE", database.getMode().getName());
             add(session, rows, "QUERY_TIMEOUT", Integer.toString(session.getQueryTimeout()));
             add(session, rows, "TIME ZONE", session.currentTimeZone().getId());
             add(session, rows, "TRUNCATE_LARGE_LENGTH", session.isTruncateLargeLength() ? "TRUE" : "FALSE");
@@ -1051,12 +1046,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
             if (nonKeywords != null) {
                 add(session, rows, "NON_KEYWORDS", ParserBase.formatNonKeywords(nonKeywords));
             }
-            add(session, rows, "RETENTION_TIME", Integer.toString(database.getRetentionTime()));
-            // database settings
-            for (Map.Entry<String, String> entry : database.getSettings().getSortedSettings()) {
-                add(session, rows, entry.getKey(), entry.getValue());
-            }
-            database.getStore().getMvStore().populateInfo((name, value) -> add(session, rows, name, value));
+            database.populateInfo((name, value) -> add(session, rows, name, value));
             break;
         }
         case HELP: {

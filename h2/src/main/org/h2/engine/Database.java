@@ -19,6 +19,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BiConsumer;
+
 import org.h2.api.DatabaseEventListener;
 import org.h2.api.ErrorCode;
 import org.h2.api.JavaObjectSerializer;
@@ -86,8 +88,8 @@ import org.h2.value.ValueTimestampTimeZone;
 
 /**
  * There is one database object per open database.
- *
- * The format of the meta data table is:
+ * <p>
+ * The format of the metadata table is:
  *  id int, 0, objectType int, sql varchar
  *
  * @since 2004-04-15 22:49
@@ -447,7 +449,7 @@ public final class Database implements DataHandler, CastDataProvider {
     }
 
     public long getNextModificationMetaId() {
-        // if the meta data has been modified, the data is modified as well
+        // if the metadata has been modified, the data is modified as well
         // (because MetaTable returns modificationDataId)
         modificationDataId.incrementAndGet();
         return modificationMetaId.incrementAndGet() - 1;
@@ -522,6 +524,19 @@ public final class Database implements DataHandler, CastDataProvider {
             throw e;
         }
         return store;
+    }
+
+    public void populateInfo(BiConsumer<String, String> consumer) {
+        consumer.accept("DEFAULT_NULL_ORDERING", getDefaultNullOrdering().name());
+        consumer.accept("EXCLUSIVE", isInExclusiveMode() ? "TRUE" : "FALSE");
+        consumer.accept("MODE", getMode().getName());
+        consumer.accept("RETENTION_TIME", Integer.toString(getRetentionTime()));
+        consumer.accept("WRITE_DELAY", Integer.toString(getWriteDelay()));
+        // database settings
+        for (Map.Entry<String, String> entry : getSettings().getSortedSettings()) {
+            consumer.accept(entry.getKey(), entry.getValue());
+        }
+        getStore().getMvStore().populateInfo(consumer);
     }
 
     /**
@@ -2113,6 +2128,10 @@ public final class Database implements DataHandler, CastDataProvider {
 
     public SessionLocal getExclusiveSession() {
         return exclusiveSession.get();
+    }
+
+    public boolean isInExclusiveMode() {
+        return getExclusiveSession() != null;
     }
 
     /**

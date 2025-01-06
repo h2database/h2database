@@ -728,7 +728,7 @@ public final class MVStore implements AutoCloseable {
     /**
      * Unlike regular commit this method returns immediately if there is commit
      * in progress on another thread, otherwise it acts as regular commit.
-     *
+     * <p>
      * This method may return BEFORE this thread changes are actually persisted!
      *
      * @return the new version (incremented if there were changes) or -1 if there were no commit
@@ -1166,7 +1166,7 @@ public final class MVStore implements AutoCloseable {
      *
      * @return the version
      */
-    public long getVersionsToKeep() {
+    public int getVersionsToKeep() {
         return versionsToKeep;
     }
 
@@ -1534,6 +1534,12 @@ public final class MVStore implements AutoCloseable {
         consumer.accept("info.UPDATE_FAILURE_PERCENT",
             String.format(Locale.ENGLISH, "%.2f%%", 100 * getUpdateFailureRatio()));
         consumer.accept("info.LEAF_RATIO", Integer.toString(getLeafRatio()));
+
+        if (isVersioningRequired()) {
+            consumer.accept("info.VERSIONS_TO_KEEP", Integer.toString(getVersionsToKeep()));
+            consumer.accept("info.OLDEST_VERS_TO_KEEP", Long.toString(getOldestVersionToKeep()));
+            consumer.accept("info.CURRENT_VERSION", Long.toString(getCurrentVersion()));
+        }
 
         if (fileStore != null) {
             fileStore.populateInfo(consumer);
@@ -2021,7 +2027,7 @@ public final class MVStore implements AutoCloseable {
             return set("fileStore", store);
         }
 
-        public Builder adoptFileStore(FileStore store) {
+        public Builder adoptFileStore(FileStore<?> store) {
             set("fileStoreIsAdopted", true);
             return set("fileStore", store);
         }

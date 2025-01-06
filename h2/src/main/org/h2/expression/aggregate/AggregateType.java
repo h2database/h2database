@@ -235,4 +235,14 @@ public enum AggregateType {
      */
     JSON_ARRAYAGG,
 
+    /**
+     * The aggregate type for GCD_AGG(expression).
+     */
+    GCD_AGG,
+
+    /**
+     * The aggregate type for LCM_AGG(expression).
+     */
+    LCM_AGG,
+
 }

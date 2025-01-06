@@ -15,6 +15,7 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.lang.ref.SoftReference;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.math.RoundingMode;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -885,6 +886,10 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
      */
     public long getLong() {
         return convertToBigint(null).getLong();
+    }
+
+    public BigInteger getBigInteger() {
+        return getBigDecimal().toBigInteger();
     }
 
     public BigDecimal getBigDecimal() {

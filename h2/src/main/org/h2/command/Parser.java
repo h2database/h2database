@@ -262,6 +262,7 @@ import org.h2.expression.ExpressionWithVariableParameters;
 import org.h2.expression.FieldReference;
 import org.h2.expression.Format;
 import org.h2.expression.Format.FormatEnum;
+import org.h2.expression.OperationN;
 import org.h2.expression.Parameter;
 import org.h2.expression.Rownum;
 import org.h2.expression.SearchedCase;
@@ -324,6 +325,7 @@ import org.h2.expression.function.DateTimeFormatFunction;
 import org.h2.expression.function.DateTimeFunction;
 import org.h2.expression.function.DayMonthNameFunction;
 import org.h2.expression.function.FileFunction;
+import org.h2.expression.function.GCDFunction;
 import org.h2.expression.function.HashFunction;
 import org.h2.expression.function.JavaFunction;
 import org.h2.expression.function.JsonConstructorFunction;
@@ -4350,6 +4352,10 @@ public final class Parser extends ParserBase {
         case "PI":
             read(CLOSE_PAREN);
             return ValueExpression.get(ValueDouble.get(Math.PI));
+        case "GCD":
+            return readGCDFunction(GCDFunction.GCD);
+        case "LCM":
+            return readGCDFunction(GCDFunction.LCM);
         }
         ModeFunction function = ModeFunction.getFunction(database, upperName);
         return function != null ? readParameters(function) : null;
@@ -4495,13 +4501,10 @@ public final class Parser extends ParserBase {
     private Expression readCoalesceFunction(int function) {
         CoalesceFunction f = new CoalesceFunction(function);
         f.addParameter(readExpression());
-        while (readIfMore()) {
-            f.addParameter(readExpression());
-        }
+        readRemainingParameters(f);
         if (function == CoalesceFunction.GREATEST || function == CoalesceFunction.LEAST) {
             f.setIgnoreNulls(readIgnoreNulls(database.getMode().greatestLeastIgnoreNulls));
         }
-        f.doneWithParameters();
         return f;
     }
 
@@ -4512,11 +4515,7 @@ public final class Parser extends ParserBase {
         if (function == ConcatFunction.CONCAT_WS) {
             f.addParameter(readNextArgument());
         }
-        while (readIfMore()) {
-            f.addParameter(readExpression());
-        }
-        f.doneWithParameters();
-        return f;
+        return readRemainingParameters(f);
     }
 
     private Expression readSubstringFunction() {
@@ -4547,6 +4546,22 @@ public final class Parser extends ParserBase {
         read(CLOSE_PAREN);
         function.doneWithParameters();
         return function;
+    }
+
+    private Expression readGCDFunction(int function) {
+        GCDFunction f = new GCDFunction(function);
+        f.addParameter(readExpression());
+        read(COMMA);
+        f.addParameter(readExpression());
+        return readRemainingParameters(f);
+    }
+
+    private Expression readRemainingParameters(OperationN f) {
+        while (readIfMore()) {
+            f.addParameter(readExpression());
+        }
+        f.doneWithParameters();
+        return f;
     }
 
     private int readDateTimeField() {

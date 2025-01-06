@@ -183,6 +183,11 @@ public final class ValueBigint extends Value {
     }
 
     @Override
+    public BigInteger getBigInteger() {
+        return BigInteger.valueOf(value);
+    }
+
+    @Override
     public BigDecimal getBigDecimal() {
         return BigDecimal.valueOf(value);
     }

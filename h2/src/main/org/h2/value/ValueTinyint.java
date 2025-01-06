@@ -6,6 +6,7 @@
 package org.h2.value;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 
 import org.h2.api.ErrorCode;
 import org.h2.engine.CastDataProvider;
@@ -149,6 +150,11 @@ public final class ValueTinyint extends Value {
     @Override
     public long getLong() {
         return value;
+    }
+
+    @Override
+    public BigInteger getBigInteger() {
+        return BigInteger.valueOf(value);
     }
 
     @Override

@@ -95,6 +95,7 @@ public final class ConcatFunction extends FunctionN {
         if (allConst) {
             return TypedValueExpression.getTypedIfNull(getValue(session), type);
         }
+        inlineSubexpressions(t -> t instanceof ConcatFunction && ((ConcatFunction) t).function == function);
         return this;
     }
 

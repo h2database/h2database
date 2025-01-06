@@ -5453,6 +5453,30 @@ Returns the value 0. This function can be used even if numeric literals are disa
 ZERO()
 "
 
+"Functions (Numeric)","GCD","
+@h2@ GCD(numeric, numeric [,...])
+","
+Returns the greatest common divisor of specified arguments.
+Arguments must have TINYINT, SMALLINT, INTEGER, BIGINT, or NUMERIC data type with scale 0.
+This function returns result of NUMERIC data type with scale 0.
+
+For aggregate function see [GCD_AGG](https://h2database.com/html/functions-aggregate.html#gcd_agg).
+","
+GCD(A, B)
+"
+
+"Functions (Numeric)","LCM","
+@h2@ LCM(numeric, numeric [,...])
+","
+Returns the least common multiple of specified arguments.
+Arguments must have TINYINT, SMALLINT, INTEGER, BIGINT, or NUMERIC data type with scale 0.
+This function returns result of NUMERIC data type with scale 0.
+
+For aggregate function see [LCM_AGG](https://h2database.com/html/functions-aggregate.html#lcm_agg).
+","
+LCM(A, B)
+"
+
 "Functions (String)","ASCII","
 @h2@ ASCII(string)
 ","
@@ -7226,6 +7250,38 @@ If no rows are selected, the result is NULL.
 Aggregates are only allowed in select statements.
 ","
 ENVELOPE(X)
+"
+
+"Aggregate Functions (General)","GCD_AGG","
+@h2@ GCD_AGG(numeric)
+@h2@ [FILTER (WHERE expression)] @h2@ [OVER windowNameOrSpecification]
+","
+Returns the greatest common divisor of all values.
+Arguments must have TINYINT, SMALLINT, INTEGER, BIGINT, or NUMERIC data type with scale 0.
+This function returns result of NUMERIC data type with scale 0.
+NULL values are ignored in the calculation.
+If no rows are selected, the result is NULL.
+Aggregates are only allowed in select statements.
+
+For non-aggregate function see [GCD](https://h2database.com/html/functions.html#gcd).
+","
+GCD_AGG(V)
+"
+
+"Aggregate Functions (General)","LCM_AGG","
+@h2@ LCM_AGG(numeric)
+@h2@ [FILTER (WHERE expression)] @h2@ [OVER windowNameOrSpecification]
+","
+Returns the least common multiple of all values.
+Arguments must have TINYINT, SMALLINT, INTEGER, BIGINT, or NUMERIC data type with scale 0.
+This function returns result of NUMERIC data type with scale 0.
+NULL values are ignored in the calculation.
+If no rows are selected, the result is NULL.
+Aggregates are only allowed in select statements.
+
+For non-aggregate function see [LCM](https://h2database.com/html/functions.html#lcm).
+","
+LCM_AGG(V)
 "
 
 "Aggregate Functions (Binary Set)","COVAR_POP","

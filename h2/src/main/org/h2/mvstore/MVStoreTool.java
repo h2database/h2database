@@ -367,7 +367,7 @@ public class MVStoreTool {
             long maxLengthNotEmpty = 0;
             for (Entry<String, String> e : layout.entrySet()) {
                 String k = e.getKey();
-                if (k.startsWith(DataUtils.META_CHUNK)) {
+                if (k.startsWith(DataUtils.LAYOUT_CHUNK)) {
                     Chunk<?> c = store.getFileStore().createChunk(e.getValue());
                     chunks.put(c.id, c);
                     chunkLength += (long)c.len * FileStore.BLOCK_SIZE;

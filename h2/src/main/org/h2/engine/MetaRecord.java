@@ -27,13 +27,10 @@ public class MetaRecord implements Comparable<MetaRecord> {
      * constraints first.
      */
     static final Comparator<Prepared> CONSTRAINTS_COMPARATOR = (o1, o2) -> {
-        int t1 = o1.getType(), t2 = o2.getType();
-        boolean u1 = t1 == CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_PRIMARY_KEY
-                || t1 == CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_UNIQUE;
-        boolean u2 = t2 == CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_PRIMARY_KEY
-                || t2 == CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_UNIQUE;
+        boolean u1 = isPrimaryOrUniqueConstraint(o1);
+        boolean u2 = isPrimaryOrUniqueConstraint(o2);
         if (u1 == u2) {
-            return o1.getPersistedObjectId() - o2.getPersistedObjectId();
+            return Integer.compare(o1.getPersistedObjectId(), o2.getPersistedObjectId());
         }
         return u1 ? -1 : 1;
     };
@@ -113,6 +110,12 @@ public class MetaRecord implements Comparable<MetaRecord> {
         } catch (DbException e) {
             throwException(db, listener, e, sql);
         }
+    }
+
+    private static boolean isPrimaryOrUniqueConstraint(Prepared record) {
+        int type = record.getType();
+        return type == CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_PRIMARY_KEY
+            || type == CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_UNIQUE;
     }
 
     private static void throwException(Database db, DatabaseEventListener listener, DbException e, String sql) {

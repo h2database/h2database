@@ -123,7 +123,7 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
      * @return the metadata key
      */
     static String getMapRootKey(int mapId) {
-        return DataUtils.META_ROOT + Integer.toHexString(mapId);
+        return DataUtils.LAYOUT_ROOT + Integer.toHexString(mapId);
     }
 
     /**

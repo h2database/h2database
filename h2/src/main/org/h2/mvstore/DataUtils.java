@@ -157,13 +157,13 @@ public final class DataUtils {
      * The prefix for chunks ("chunk."). This, plus the chunk id (hex encoded)
      * is the key, and the serialized chunk metadata is the value.
      */
-    public static final String META_CHUNK = "chunk.";
+    public static final String LAYOUT_CHUNK = "chunk.";
 
     /**
      * The prefix for root positions of maps ("root."). This, plus the map id
      * (hex encoded) is the key, and the position (hex encoded) is the value.
      */
-    public static final String META_ROOT = "root.";
+    public static final String LAYOUT_ROOT = "root.";
 
     // The following are key prefixes used in meta map
 

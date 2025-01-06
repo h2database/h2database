@@ -5857,7 +5857,14 @@ public final class Parser extends ParserBase {
         case "TIMESTAMP":
             return parseTimestampType();
         }
-        if (database.getMode().datetimeTypes) {
+        Mode mode = database.getMode();
+        if (mode.datetimeAndYearType) {
+            TypeInfo type = parseDateTimeOrYearType(original);
+            if (type != null) {
+                return type;
+            }
+        }
+        if (mode.datetimeTypes) {
             TypeInfo type = parseDateTimeType(original);
             if (type != null) {
                 return type;
@@ -5871,7 +5878,6 @@ public final class Parser extends ParserBase {
                 return null;
             }
         }
-        Mode mode = database.getMode();
         DataType dataType = DataType.getTypeByName(original, mode);
         if (dataType == null || mode.disallowedTypes.contains(original)) {
             throw DbException.get(ErrorCode.UNKNOWN_DATA_TYPE_1, original);
@@ -6064,6 +6070,34 @@ public final class Parser extends ParserBase {
             readIf("WITHOUT", "TIME", "ZONE");
         }
         return TypeInfo.getTypeInfo(type, -1L, scale, null);
+    }
+
+    private TypeInfo parseDateTimeOrYearType(String original) {
+        switch (original) {
+        case "DATETIME": {
+            int scale = 0;
+            if (readIf(OPEN_PAREN)) {
+                scale = readNonNegativeInt();
+                if (scale > 6) {
+                    throw DbException.get(ErrorCode.INVALID_VALUE_SCALE, Integer.toString(scale), "0", "6");
+                }
+                read(CLOSE_PAREN);
+            }
+            return TypeInfo.getTypeInfo(Value.TIMESTAMP, -1L, scale, null);
+        }
+        case "YEAR": {
+            if (readIf(OPEN_PAREN)) {
+                int precision = readNonNegativeInt();
+                if (precision < 1 || precision > 4) {
+                    throw DbException.get(ErrorCode.INVALID_VALUE_PRECISION, Integer.toString(precision), "1", "4");
+                }
+                read(CLOSE_PAREN);
+            }
+            return TypeInfo.TYPE_SMALLINT;
+        }
+        default:
+            return null;
+        }
     }
 
     private TypeInfo parseDateTimeType(String original) {

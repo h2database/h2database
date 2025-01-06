@@ -65,12 +65,12 @@ import org.h2.value.ValueRow;
 
 /**
  * This class represents a simple SELECT statement.
- *
+ * <p>
  * For each select statement,
  * visibleColumnCount &lt;= distinctColumnCount &lt;= expressionCount.
  * The expression list count could include ORDER BY and GROUP BY expressions
  * that are not in the select list.
- *
+ * <p>
  * The call sequence is init(), mapColumns() if it's a subquery, prepare().
  *
  * @author Thomas Mueller
@@ -91,7 +91,7 @@ public class Select extends Query {
     /**
      * Parent select for selects in table filters.
      */
-    private Select parentSelect;
+    private final Select parentSelect;
 
     /**
      * WHERE condition.
@@ -188,10 +188,6 @@ public class Select extends Query {
         if (isTop) {
             topFilters.add(filter);
         }
-    }
-
-    public ArrayList<TableFilter> getTopFilters() {
-        return topFilters;
     }
 
     public void setExpressions(ArrayList<Expression> expressions) {
@@ -415,10 +411,8 @@ public class Select extends Query {
 
     boolean isConditionMetForUpdate() {
         if (isConditionMet()) {
-            int count = filters.size();
             boolean notChanged = true;
-            for (int i = 0; i < count; i++) {
-                TableFilter tableFilter = filters.get(i);
+            for (TableFilter tableFilter : filters) {
                 if (!tableFilter.isJoinOuter() && !tableFilter.isJoinOuterIndirect()) {
                     Row row = tableFilter.get();
                     Table table = tableFilter.getTable();
@@ -1212,9 +1206,7 @@ public class Select extends Query {
         if (expressionNames == ExpressionNames.ORIGINAL_SQL || expressionNames == ExpressionNames.POSTGRESQL_STYLE) {
             optimizeExpressionsAndPreserveAliases();
         } else {
-            for (int i = 0; i < expressions.size(); i++) {
-                expressions.set(i, expressions.get(i).optimize(session));
-            }
+            expressions.replaceAll(expression -> expression.optimize(session));
         }
         if (sort != null) {
             cleanupOrder();
@@ -1441,14 +1433,14 @@ public class Select extends Query {
             TableFilter filter = topTableFilter;
             if (filter == null) {
                 int count = topFilters.size();
-                if (count != 1 || !topFilters.get(0).isNoFromClauseFilter()) {
+                if (count != 1 || topFilters.get(0).hasFromClause()) {
                     builder.append("\nFROM ");
                     boolean isJoin = false;
                     for (int i = 0; i < count; i++) {
                         isJoin = getPlanFromFilter(builder, sqlFlags, topFilters.get(i), isJoin);
                     }
                 }
-            } else if (!filter.isNoFromClauseFilter()) {
+            } else if (filter.hasFromClause()) {
                 getPlanFromFilter(builder.append("\nFROM "), sqlFlags, filter, false);
             }
             if (condition != null) {
@@ -1792,7 +1784,7 @@ public class Select extends Query {
     @Override
     public boolean isConstantQuery() {
         if (!super.isConstantQuery() || distinctExpressions != null || condition != null || isGroupQuery
-                || isWindowQuery || !isNoFromClause()) {
+                || isWindowQuery || hasFromClause()) {
             return false;
         }
         for (int i = 0; i < visibleColumnCount; i++) {
@@ -1806,7 +1798,7 @@ public class Select extends Query {
     @Override
     public Expression getIfSingleRow() {
         if (offsetExpr != null || fetchExpr != null || condition != null || isGroupQuery || isWindowQuery
-                || !isNoFromClause()) {
+                || hasFromClause()) {
             return null;
         }
         if (visibleColumnCount == 1) {
@@ -1819,13 +1811,13 @@ public class Select extends Query {
         return new ExpressionList(array, false);
     }
 
-    private boolean isNoFromClause() {
+    private boolean hasFromClause() {
         if (topTableFilter != null) {
-            return topTableFilter.isNoFromClauseFilter();
+            return topTableFilter.hasFromClause();
         } else if (topFilters.size() == 1) {
-            return topFilters.get(0).isNoFromClauseFilter();
+            return topFilters.get(0).hasFromClause();
         }
-        return false;
+        return true;
     }
 
     /**
@@ -1861,7 +1853,7 @@ public class Select extends Query {
      */
     private final class LazyResultQueryFlat extends LazyResultSelect {
 
-        private boolean forUpdate;
+        private final boolean forUpdate;
 
         LazyResultQueryFlat(Expression[] expressions, int columnCount, boolean forUpdate) {
             super(expressions, columnCount);

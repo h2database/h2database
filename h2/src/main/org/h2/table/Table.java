@@ -1377,7 +1377,6 @@ public abstract class Table extends SchemaObject {
      * @return an object array with the sessions involved in the deadlock, or
      *         null
      */
-    @SuppressWarnings("unused")
     public ArrayList<SessionLocal> checkDeadlock(SessionLocal session, SessionLocal clash,
             Set<SessionLocal> visited) {
         return null;

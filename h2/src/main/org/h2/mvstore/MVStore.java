@@ -669,7 +669,7 @@ public final class MVStore implements AutoCloseable {
 
     private void closeStore(boolean normalShutdown, int allowedCompactionTime) {
         // If any other thead have already initiated closure procedure,
-        // isClosed() would wait until closure is done and then  we jump out of the loop.
+        // isClosed() would wait until closure is done, and then we jump out of the loop.
         // This is a subtle difference between !isClosed() and isOpen().
         while (!isClosed()) {
             setAutoCommitDelay(-1);

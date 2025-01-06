@@ -111,7 +111,7 @@ class Database {
     }
 
     /**
-     * Start the server if the this is a remote connection.
+     * Start the server if this is a remote connection.
      */
     void startServer() throws Exception {
         if (url.startsWith("jdbc:h2:tcp:")) {

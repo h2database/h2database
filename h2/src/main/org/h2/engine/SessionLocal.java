@@ -123,7 +123,7 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
 
     /**
      * The prefix of generated identifiers. It may not have letters, because
-     * they are case sensitive.
+     * they are case-sensitive.
      */
     private static final String SYSTEM_IDENTIFIER_PREFIX = "_";
     private static int nextSerialId;
@@ -342,7 +342,7 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
 
     /**
      * Get the value of the specified user defined variable. This method always
-     * returns a value; it returns ValueNull.INSTANCE if the variable doesn't
+     * returns a value; it returns ValueNull. INSTANCE if the variable doesn't
      * exist.
      *
      * @param name the variable name
@@ -357,7 +357,7 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
     /**
      * Get the list of variable names that are set for this session.
      *
-     * @return the list of names
+     * @return String[] of names
      */
     public String[] getVariableNames() {
         if (variables == null) {
@@ -448,7 +448,7 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
      * Add a local temporary index to this session.
      *
      * @param index the index to add
-     * @throws DbException if a index with this name already exists
+     * @throws DbException if an index with this name already exists
      */
     public void addLocalTempTableIndex(Index index) {
         if (localTempTableIndexes == null) {
@@ -694,8 +694,7 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
                 transaction = null;
             }
             if (!ddl) {
-                // do not clean the temp tables if the last command was a
-                // create/drop
+                // do not clean the temp tables if the last command was a creation or drop
                 cleanTempTables(false);
                 if (autoCommitAtTransactionEnd) {
                     autoCommit = true;
@@ -719,7 +718,7 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
 
     private void analyzeTables() {
         // On rare occasions it can be called concurrently (i.e. from close())
-        // without proper locking, but instead of oversynchronizing
+        // without proper locking, but instead of over-synchronizing
         // we just skip this optional operation in such case
         if (tablesToAnalyze != null && isLockedByCurrentThread()) {
             // take a local copy and clear because in rare cases we can call
@@ -733,7 +732,7 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
             // analyze can lock the meta
             getDatabase().unlockMeta(this);
             // table analysis opens a new transaction(s),
-            // so we need to commit afterwards whatever leftovers might be
+            // so we need to commit afterward whatever leftovers might be
             commit(true);
         }
     }
@@ -852,7 +851,7 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
 
     @Override
     public boolean hasPendingTransaction() {
-        return hasTransaction() && transaction.hasChanges() && transaction.getStatus() != Transaction.STATUS_PREPARED;
+        return containsUncommitted() && transaction.getStatus() != Transaction.STATUS_PREPARED;
     }
 
     /**
@@ -1100,7 +1099,7 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
      * @return true if yes
      */
     public boolean containsUncommitted() {
-        return transaction != null && transaction.hasChanges();
+        return hasTransaction() && transaction.hasChanges();
     }
 
     /**
@@ -1510,7 +1509,7 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
                 break;
             }
             if (exclusive.isLockedByCurrentThread()) {
-                // if another connection is used within the connection
+                // if another connection is used within this session
                 break;
             }
             try {
@@ -1588,7 +1587,7 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
     }
 
     public Value getTransactionId() {
-        if (transaction == null || !transaction.hasChanges()) {
+        if (!containsUncommitted()) {
             return ValueNull.INSTANCE;
         }
         return ValueVarchar.get(Long.toString(transaction.getSequenceNum()));
@@ -1776,7 +1775,7 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
     }
 
     public int getBlockingSessionId() {
-        return transaction == null ? 0 : transaction.getBlockerId();
+        return hasTransaction() ? transaction.getBlockerId() : 0;
     }
 
     @Override

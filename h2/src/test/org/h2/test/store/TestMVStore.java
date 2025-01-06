@@ -1585,7 +1585,7 @@ public class TestMVStore extends TestBase {
             s.commit();
             assertEquals("name:data", m.get(DataUtils.META_MAP + id));
             m = s.getLayoutMap();
-            assertTrue(m.get(DataUtils.META_ROOT + id).length() > 0);
+            assertTrue(!m.get(DataUtils.META_ROOT + id).isEmpty());
             assertTrue(m.containsKey(DataUtils.META_CHUNK + "1"));
 
             assertEquals(2, s.getCurrentVersion());
@@ -1767,7 +1767,7 @@ public class TestMVStore extends TestBase {
                 for (int i = 0; i < 100; i++) {
                     m.put(j + i, "Hello " + j);
                 }
-                FileStore fileStore = s.getFileStore();
+                FileStore<?> fileStore = s.getFileStore();
                 assertNotNull(fileStore);
                 trace("Before - fill rate: " + s.getFillRate() + "%, chunks fill rate: "
                         + fileStore.getChunksFillRate() + ", len: " + FileUtils.size(fileName));

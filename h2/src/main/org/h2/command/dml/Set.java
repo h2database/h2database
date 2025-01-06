@@ -363,8 +363,7 @@ public class Set extends Prepared {
             break;
         }
         case SetTypes.REDO_LOG_BINARY: {
-            DbException.getUnsupportedException("MV_STORE + SET REDO_LOG_BINARY");
-            break;
+            throw DbException.getUnsupportedException("MV_STORE + SET REDO_LOG_BINARY");
         }
         case SetTypes.REFERENTIAL_INTEGRITY: {
             session.getUser().checkAdmin();
@@ -559,7 +558,7 @@ public class Set extends Prepared {
         default:
             throw DbException.getInternalError("type="+type);
         }
-        // the meta data information has changed
+        // the metadata information has changed
         database.getNextModificationDataId();
         // query caches might be affected as well, for example
         // when changing the compatibility mode

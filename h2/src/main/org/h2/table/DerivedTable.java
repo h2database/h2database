@@ -65,13 +65,8 @@ public final class DerivedTable extends QueryExpressionTable {
 
     @Override
     public boolean isQueryComparable() {
-        if (!super.isQueryComparable()) {
-            return false;
-        }
-        if (topQuery != null && !topQuery.isEverything(ExpressionVisitor.QUERY_COMPARABLE_VISITOR)) {
-            return false;
-        }
-        return true;
+        return super.isQueryComparable()
+            && (topQuery == null || topQuery.isEverything(ExpressionVisitor.QUERY_COMPARABLE_VISITOR));
     }
 
     @Override

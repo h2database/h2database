@@ -238,10 +238,10 @@ public abstract class FileStore<C extends Chunk<C>>
         cc2.maxMemory = 1024L * 1024L;
         chunksToC = new CacheLongKeyLIRS<>(cc2);
 
-        int maxPageSize = Integer.MAX_VALUE;
+        int maxPageSize = DataUtils.getConfigParam(config, "pageSplitSize",
+                                                    cache == null ? Integer.MAX_VALUE : Constants.DEFAULT_PAGE_SIZE);
         // Make sure pages will fit into cache
         if (cache != null) {
-            maxPageSize = 16 * 1024;
             int maxCacheableSize = (int) (cache.getMaxItemSize() >> 4);
             if (maxPageSize > maxCacheableSize) {
                 maxPageSize = maxCacheableSize;

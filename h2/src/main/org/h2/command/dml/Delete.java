@@ -56,27 +56,16 @@ public final class Delete extends FilteredDataChangeStatement {
             setCurrentRowNumber(0);
             long count = 0;
             while (nextRow(limitRows, count)) {
-                Row row = targetTableFilter.get();
-                if (table.isRowLockable()) {
-                    Row lockedRow = table.lockRow(session, row, -1);
-                    if (lockedRow == null) {
-                        continue;
+                Row row = lockAndRecheckCondition();
+                if (row != null) {
+                    if (deltaChangeCollectionMode == ResultOption.OLD) {
+                        deltaChangeCollector.addRow(row.getValueList());
                     }
-                    if (!row.hasSharedData(lockedRow)) {
-                        row = lockedRow;
-                        targetTableFilter.set(row);
-                        if (condition != null && !condition.getBooleanValue(session)) {
-                            continue;
-                        }
+                    if (!table.fireRow() || !table.fireBeforeRow(session, row, null)) {
+                        rows.addRowForTable(row);
                     }
+                    count++;
                 }
-                if (deltaChangeCollectionMode == ResultOption.OLD) {
-                    deltaChangeCollector.addRow(row.getValueList());
-                }
-                if (!table.fireRow() || !table.fireBeforeRow(session, row, null)) {
-                    rows.addRowForTable(row);
-                }
-                count++;
             }
             rows.done();
             long rowScanCount = 0;

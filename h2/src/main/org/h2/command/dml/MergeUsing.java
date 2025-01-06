@@ -56,7 +56,7 @@ public final class MergeUsing extends DataChangeStatement {
      */
     Expression onCondition;
 
-    private ArrayList<When> when = Utils.newSmallArrayList();
+    private final ArrayList<When> when = Utils.newSmallArrayList();
 
     /**
      * Contains _ROWID_ of processed rows. Row
@@ -101,35 +101,23 @@ public final class MergeUsing extends DataChangeStatement {
             setCurrentRowNumber(count + 1);
             boolean nullRow = targetTableFilter.isNullRow();
             if (!nullRow) {
-                Row targetRow = targetTableFilter.get();
-                if (table.isRowLockable()) {
-                    Row lockedRow = table.lockRow(session, targetRow, -1);
-                    if (lockedRow == null) {
-                        if (previousSource != source) {
-                            missedSource = source;
-                        }
-                        continue;
-                    }
-                    if (!targetRow.hasSharedData(lockedRow)) {
-                        targetRow = lockedRow;
-                        targetTableFilter.set(targetRow);
-                        if (!onCondition.getBooleanValue(session)) {
-                            if (previousSource != source) {
-                                missedSource = source;
-                            }
-                            continue;
+                Row targetRow = lockAndRecheckCondition(targetTableFilter, onCondition);
+                if (targetRow != null) {
+                    if (hasRowId) {
+                        long targetRowId = targetRow.getKey();
+                        if (!targetRowidsRemembered.add(targetRowId)) {
+                            throw DbException.get(ErrorCode.DUPLICATE_KEY_1,
+                                    "Merge using ON column expression, " +
+                                    "duplicate _ROWID_ target record already processed:_ROWID_="
+                                            + targetRowId + ":in:"
+                                            + targetTableFilter.getTable());
                         }
                     }
-                }
-                if (hasRowId) {
-                    long targetRowId = targetRow.getKey();
-                    if (!targetRowidsRemembered.add(targetRowId)) {
-                        throw DbException.get(ErrorCode.DUPLICATE_KEY_1,
-                                "Merge using ON column expression, " +
-                                "duplicate _ROWID_ target record already processed:_ROWID_="
-                                        + targetRowId + ":in:"
-                                        + targetTableFilter.getTable());
+                } else {
+                    if (previousSource != source) {
+                        missedSource = source;
                     }
+                    continue;
                 }
             }
             countUpdatedRows += merge(nullRow, deltaChangeCollector, deltaChangeCollectionMode);

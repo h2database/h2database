@@ -51,7 +51,7 @@ public class StringDataType extends BasicDataType<String> {
             }
             x = (low + high) >>> 1;
         }
-        return -(low + 1);
+        return ~low;
     }
     @Override
     public int getMemory(String obj) {

@@ -78,6 +78,6 @@ public class LongDataType extends BasicDataType<Long> {
             }
             x = (low + high) >>> 1;
         }
-        return -(low + 1);
+        return ~low;
     }
 }

@@ -47,6 +47,6 @@ public final class ByteArrayDataType extends BasicDataType<byte[]>
 
     @Override
     public int compare(byte[] one, byte[] two) {
-        return Arrays.compare(one, two);
+        return Arrays.compareUnsigned(one, two);
     }
 }

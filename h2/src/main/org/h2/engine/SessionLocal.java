@@ -342,7 +342,7 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
 
     /**
      * Get the value of the specified user defined variable. This method always
-     * returns a value; it returns ValueNull. INSTANCE if the variable doesn't
+     * returns a value; it returns {@code ValueNull.INSTANCE} if the variable doesn't
      * exist.
      *
      * @param name the variable name

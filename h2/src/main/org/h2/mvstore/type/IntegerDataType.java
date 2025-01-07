@@ -79,6 +79,6 @@ public class IntegerDataType extends BasicDataType<Integer> {
             }
             x = (low + high) >>> 1;
         }
-        return -(low + 1);
+        return ~low;
     }
 }

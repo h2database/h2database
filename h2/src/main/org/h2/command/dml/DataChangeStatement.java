@@ -7,10 +7,13 @@ package org.h2.command.dml;
 
 import org.h2.command.Prepared;
 import org.h2.engine.SessionLocal;
+import org.h2.expression.Expression;
 import org.h2.result.ResultInterface;
 import org.h2.result.ResultTarget;
+import org.h2.result.Row;
 import org.h2.table.DataChangeDeltaTable.ResultOption;
 import org.h2.table.Table;
+import org.h2.table.TableFilter;
 
 /**
  * Data change statement.
@@ -85,4 +88,22 @@ public abstract class DataChangeStatement extends Prepared {
      */
     public abstract long update(ResultTarget deltaChangeCollector, ResultOption deltaChangeCollectionMode);
 
+    protected final Row lockAndRecheckCondition(TableFilter targetTableFilter, Expression condition) {
+        Table table = targetTableFilter.getTable();
+        Row row = targetTableFilter.get();
+        if (table.isRowLockable()) {
+            Row lockedRow = table.lockRow(session, row, -1);
+            if (lockedRow == null) {
+                return null;
+            }
+            if (!row.hasSharedData(lockedRow)) {
+                row = lockedRow;
+                targetTableFilter.set(row);
+                if (condition != null && !condition.getBooleanValue(session)) {
+                    return null;
+                }
+            }
+        }
+        return row;
+    }
 }

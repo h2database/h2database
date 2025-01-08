@@ -96,7 +96,7 @@ public class DatabaseInfo implements DatabaseInfoMBean {
 
     @Override
     public boolean isExclusive() {
-        return database.getExclusiveSession() != null;
+        return database.isInExclusiveMode();
     }
 
     @Override

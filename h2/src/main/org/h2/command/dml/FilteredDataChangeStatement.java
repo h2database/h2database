@@ -7,6 +7,7 @@ package org.h2.command.dml;
 
 import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
+import org.h2.result.Row;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
 
@@ -66,7 +67,7 @@ abstract class FilteredDataChangeStatement extends DataChangeStatement {
         this.fetchExpr = fetch;
     }
 
-    final boolean nextRow(long limitRows, long count) {
+    protected final boolean nextRow(long limitRows, long count) {
         if (limitRows < 0 || count < limitRows) {
             while (targetTableFilter.next()) {
                 setCurrentRowNumber(count + 1);
@@ -78,7 +79,7 @@ abstract class FilteredDataChangeStatement extends DataChangeStatement {
         return false;
     }
 
-    final StringBuilder appendFilterCondition(StringBuilder builder, int sqlFlags) {
+    protected final StringBuilder appendFilterCondition(StringBuilder builder, int sqlFlags) {
         if (condition != null) {
             builder.append("\nWHERE ");
             condition.getUnenclosedSQL(builder, sqlFlags);
@@ -95,4 +96,7 @@ abstract class FilteredDataChangeStatement extends DataChangeStatement {
         return builder;
     }
 
+    protected final Row lockAndRecheckCondition() {
+        return lockAndRecheckCondition(targetTableFilter, condition);
+    }
 }

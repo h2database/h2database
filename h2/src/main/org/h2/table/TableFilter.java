@@ -175,10 +175,6 @@ public class TableFilter implements ColumnResolver {
         return orderInFrom;
     }
 
-    public IndexCursor getIndexCursor() {
-        return cursor;
-    }
-
     @Override
     public Select getSelect() {
         return select;
@@ -235,8 +231,8 @@ public class TableFilter implements ColumnResolver {
                 if (condition.isCompoundColumns()) {
                     // Set the op mask in case of compound columns as well.
                     Column[] columns = condition.getColumns();
-                    for (int i = 0, n = columns.length; i < n; i++) {
-                        int id = columns[i].getColumnId();
+                    for (Column column : columns) {
+                        int id = column.getColumnId();
                         if (id >= 0) {
                             masks[id] |= condition.getMask(indexConditions);
                         }
@@ -882,10 +878,6 @@ public class TableFilter implements ColumnResolver {
         return masks;
     }
 
-    public ArrayList<IndexCondition> getIndexConditions() {
-        return indexConditions;
-    }
-
     public Index getIndex() {
         return index;
     }
@@ -1264,11 +1256,11 @@ public class TableFilter implements ColumnResolver {
      * Returns whether this is a table filter with implicit DUAL table for a
      * SELECT without a FROM clause.
      *
-     * @return whether this is a table filter with implicit DUAL table
+     * @return false if this is a table filter with implicit DUAL table, true otherwise
      */
-    public boolean isNoFromClauseFilter() {
-        return table instanceof DualTable && join == null && nestedJoin == null
-                && joinCondition == null && filterCondition == null;
+    public boolean hasFromClause() {
+        return !(table instanceof DualTable && join == null && nestedJoin == null
+                && joinCondition == null && filterCondition == null);
     }
 
     /**

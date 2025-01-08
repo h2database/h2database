@@ -598,8 +598,7 @@ public class ConstraintReferential extends Constraint {
         builder.append(')');
 
         session.startStatementWithinTransaction(null);
-        try {
-            ResultInterface r = session.prepare(builder.toString()).query(1);
+        try (ResultInterface r = session.prepare(builder.toString()).query(1)) {
             if (r.next()) {
                 throw DbException.get(ErrorCode.REFERENTIAL_INTEGRITY_VIOLATED_PARENT_MISSING_1,
                         getShortDescription(null, null));

@@ -140,7 +140,7 @@ public abstract class DbObject implements HasSQL {
     }
 
     /**
-     * Tell the object that is was modified.
+     * Tell the object that it was modified.
      */
     public final void setModified() {
         this.modificationId = database == null ? -1 : database.getNextModificationMetaId();

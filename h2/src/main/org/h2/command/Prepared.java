@@ -12,6 +12,7 @@ import org.h2.api.DatabaseEventListener;
 import org.h2.api.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
+import org.h2.engine.QueryStatisticsData;
 import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.Parameter;
@@ -375,11 +376,13 @@ public abstract class Prepared {
             String params = Trace.formatParams(parameters);
             session.getTrace().infoSQL(sqlStatement, params, rowCount, deltaTimeNanos / 1_000_000L);
         }
-        // startTime_nanos can be zero for the command that actually turns on
-        // statistics
-        if (database != null && database.getQueryStatistics() && startTimeNanos != 0) {
-            long deltaTimeNanos = System.nanoTime() - startTimeNanos;
-            database.getQueryStatisticsData().update(toString(), deltaTimeNanos, rowCount);
+        // startTime_nanos can be zero for the command that actually turns on statistics
+        if (database != null && startTimeNanos != 0) {
+            QueryStatisticsData queryStatisticsData = database.getQueryStatisticsData();
+            if (queryStatisticsData != null) {
+                long deltaTimeNanos = System.nanoTime() - startTimeNanos;
+                queryStatisticsData.update(toString(), deltaTimeNanos, rowCount);
+            }
         }
     }
 

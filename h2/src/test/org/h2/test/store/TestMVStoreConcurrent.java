@@ -437,7 +437,7 @@ public class TestMVStoreConcurrent extends TestMVStore {
                 Map<String, String> layoutMap = s.getLayoutMap();
                 int chunkCount = 0;
                 for (String k : layoutMap.keySet()) {
-                    if (k.startsWith(DataUtils.META_CHUNK)) {
+                    if (k.startsWith(DataUtils.LAYOUT_CHUNK)) {
                         // dead chunks may stay around for a little while
                         // discount them
                         Chunk<?> chunk = s.getFileStore().createChunk(layoutMap.get(k));

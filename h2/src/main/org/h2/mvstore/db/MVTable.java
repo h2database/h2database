@@ -113,7 +113,7 @@ public class MVTable extends TableBase {
 
     /**
      * The set of sessions (if any) that have a shared lock on the table. Here
-     * we are using using a ConcurrentHashMap as a set, as there is no
+     * we are using a ConcurrentHashMap as a set, as there is no
      * ConcurrentHashSet.
      */
     private final ConcurrentHashMap<SessionLocal, SessionLocal> lockSharedSessions = new ConcurrentHashMap<>();
@@ -849,7 +849,7 @@ public class MVTable extends TableBase {
                     }
                 }
             }
-            // take a local copy so we don't see inconsistent data, since we are
+            // take a local copy, so we don't see inconsistent data, since we are
             // not locked while checking the lockExclusiveSession value
             SessionLocal copyOfLockExclusiveSession = lockExclusiveSession;
             if (error == null && copyOfLockExclusiveSession != null) {

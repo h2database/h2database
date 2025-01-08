@@ -196,23 +196,23 @@ public final class Insert extends CommandWithValues implements ResultTarget {
             if (insertFromSelect) {
                 query.query(0, this);
             } else {
-                ResultInterface rows = query.query(0);
-                while (rows.next()) {
-                    Value[] r = rows.currentRow();
-                    try {
-                        addRow(r);
-                    } catch (DbException de) {
-                        if (handleOnDuplicate(de, r)) {
-                            // MySQL returns 2 for updated row
-                            // TODO: detect no-op change
-                            rowNumber++;
-                        } else {
-                            // INSERT IGNORE case
-                            rowNumber--;
+                try (ResultInterface rows = query.query(0)) {
+                    while (rows.next()) {
+                        Value[] r = rows.currentRow();
+                        try {
+                            addRow(r);
+                        } catch (DbException de) {
+                            if (handleOnDuplicate(de, r)) {
+                                // MySQL returns 2 for updated row
+                                // TODO: detect no-op change
+                                rowNumber++;
+                            } else {
+                                // INSERT IGNORE case
+                                rowNumber--;
+                            }
                         }
                     }
                 }
-                rows.close();
             }
         }
         table.fire(session, Trigger.INSERT, false);

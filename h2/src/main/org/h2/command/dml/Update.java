@@ -65,23 +65,12 @@ public final class Update extends FilteredDataChangeStatement {
                 }
             }
             while (nextRow(limitRows, count)) {
-                Row oldRow = targetTableFilter.get();
-                if (table.isRowLockable()) {
-                    Row lockedRow = table.lockRow(session, oldRow, -1);
-                    if (lockedRow == null) {
-                        continue;
+                Row row = lockAndRecheckCondition();
+                if (row != null) {
+                    if (setClauseList.prepareUpdate(table, session, deltaChangeCollector, deltaChangeCollectionMode,
+                            rows, row, onDuplicateKeyInsert != null)) {
+                        count++;
                     }
-                    if (!oldRow.hasSharedData(lockedRow)) {
-                        oldRow = lockedRow;
-                        targetTableFilter.set(oldRow);
-                        if (condition != null && !condition.getBooleanValue(session)) {
-                            continue;
-                        }
-                    }
-                }
-                if (setClauseList.prepareUpdate(table, session, deltaChangeCollector, deltaChangeCollectionMode,
-                        rows, oldRow, onDuplicateKeyInsert != null)) {
-                    count++;
                 }
             }
             doUpdate(this, session, table, rows);

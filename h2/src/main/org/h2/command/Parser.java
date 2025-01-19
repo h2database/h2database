@@ -8,131 +8,6 @@
  */
 package org.h2.command;
 
-import static org.h2.command.Token.ASTERISK;
-import static org.h2.command.Token.AT;
-import static org.h2.command.Token.BIGGER;
-import static org.h2.command.Token.BIGGER_EQUAL;
-import static org.h2.command.Token.CLOSE_BRACE;
-import static org.h2.command.Token.CLOSE_BRACKET;
-import static org.h2.command.Token.CLOSE_PAREN;
-import static org.h2.command.Token.COLON;
-import static org.h2.command.Token.COLON_COLON;
-import static org.h2.command.Token.COLON_EQ;
-import static org.h2.command.Token.COMMA;
-import static org.h2.command.Token.CONCATENATION;
-import static org.h2.command.Token.DOT;
-import static org.h2.command.Token.END_OF_INPUT;
-import static org.h2.command.Token.EQUAL;
-import static org.h2.command.Token.LITERAL;
-import static org.h2.command.Token.MINUS_SIGN;
-import static org.h2.command.Token.NOT_EQUAL;
-import static org.h2.command.Token.NOT_TILDE;
-import static org.h2.command.Token.OPEN_BRACE;
-import static org.h2.command.Token.OPEN_BRACKET;
-import static org.h2.command.Token.OPEN_PAREN;
-import static org.h2.command.Token.PARAMETER;
-import static org.h2.command.Token.PERCENT;
-import static org.h2.command.Token.PLUS_SIGN;
-import static org.h2.command.Token.SEMICOLON;
-import static org.h2.command.Token.SLASH;
-import static org.h2.command.Token.SMALLER;
-import static org.h2.command.Token.SMALLER_EQUAL;
-import static org.h2.command.Token.SPATIAL_INTERSECTS;
-import static org.h2.command.Token.TILDE;
-import static org.h2.util.HasSQL.DEFAULT_SQL_FLAGS;
-import static org.h2.util.HasSQL.QUOTE_ONLY_WHEN_REQUIRED;
-import static org.h2.util.HasSQL.TRACE_SQL_FLAGS;
-import static org.h2.util.ParserUtil.ALL;
-import static org.h2.util.ParserUtil.AND;
-import static org.h2.util.ParserUtil.ANY;
-import static org.h2.util.ParserUtil.ARRAY;
-import static org.h2.util.ParserUtil.AS;
-import static org.h2.util.ParserUtil.ASYMMETRIC;
-import static org.h2.util.ParserUtil.AUTHORIZATION;
-import static org.h2.util.ParserUtil.BETWEEN;
-import static org.h2.util.ParserUtil.CASE;
-import static org.h2.util.ParserUtil.CAST;
-import static org.h2.util.ParserUtil.CHECK;
-import static org.h2.util.ParserUtil.CONSTRAINT;
-import static org.h2.util.ParserUtil.CROSS;
-import static org.h2.util.ParserUtil.CURRENT_CATALOG;
-import static org.h2.util.ParserUtil.CURRENT_DATE;
-import static org.h2.util.ParserUtil.CURRENT_PATH;
-import static org.h2.util.ParserUtil.CURRENT_ROLE;
-import static org.h2.util.ParserUtil.CURRENT_SCHEMA;
-import static org.h2.util.ParserUtil.CURRENT_TIME;
-import static org.h2.util.ParserUtil.CURRENT_TIMESTAMP;
-import static org.h2.util.ParserUtil.CURRENT_USER;
-import static org.h2.util.ParserUtil.DAY;
-import static org.h2.util.ParserUtil.DEFAULT;
-import static org.h2.util.ParserUtil.DISTINCT;
-import static org.h2.util.ParserUtil.ELSE;
-import static org.h2.util.ParserUtil.END;
-import static org.h2.util.ParserUtil.EXCEPT;
-import static org.h2.util.ParserUtil.EXISTS;
-import static org.h2.util.ParserUtil.FALSE;
-import static org.h2.util.ParserUtil.FETCH;
-import static org.h2.util.ParserUtil.FOR;
-import static org.h2.util.ParserUtil.FOREIGN;
-import static org.h2.util.ParserUtil.FROM;
-import static org.h2.util.ParserUtil.FULL;
-import static org.h2.util.ParserUtil.GROUP;
-import static org.h2.util.ParserUtil.HAVING;
-import static org.h2.util.ParserUtil.HOUR;
-import static org.h2.util.ParserUtil.IDENTIFIER;
-import static org.h2.util.ParserUtil.IF;
-import static org.h2.util.ParserUtil.IN;
-import static org.h2.util.ParserUtil.INNER;
-import static org.h2.util.ParserUtil.INTERSECT;
-import static org.h2.util.ParserUtil.INTERVAL;
-import static org.h2.util.ParserUtil.IS;
-import static org.h2.util.ParserUtil.JOIN;
-import static org.h2.util.ParserUtil.KEY;
-import static org.h2.util.ParserUtil.LAST_KEYWORD;
-import static org.h2.util.ParserUtil.LEFT;
-import static org.h2.util.ParserUtil.LIKE;
-import static org.h2.util.ParserUtil.LIMIT;
-import static org.h2.util.ParserUtil.LOCALTIME;
-import static org.h2.util.ParserUtil.LOCALTIMESTAMP;
-import static org.h2.util.ParserUtil.MINUS;
-import static org.h2.util.ParserUtil.MINUTE;
-import static org.h2.util.ParserUtil.MONTH;
-import static org.h2.util.ParserUtil.NATURAL;
-import static org.h2.util.ParserUtil.NOT;
-import static org.h2.util.ParserUtil.NULL;
-import static org.h2.util.ParserUtil.OFFSET;
-import static org.h2.util.ParserUtil.ON;
-import static org.h2.util.ParserUtil.OR;
-import static org.h2.util.ParserUtil.ORDER;
-import static org.h2.util.ParserUtil.PRIMARY;
-import static org.h2.util.ParserUtil.QUALIFY;
-import static org.h2.util.ParserUtil.RIGHT;
-import static org.h2.util.ParserUtil.ROW;
-import static org.h2.util.ParserUtil.ROWNUM;
-import static org.h2.util.ParserUtil.SECOND;
-import static org.h2.util.ParserUtil.SELECT;
-import static org.h2.util.ParserUtil.SESSION_USER;
-import static org.h2.util.ParserUtil.SET;
-import static org.h2.util.ParserUtil.SOME;
-import static org.h2.util.ParserUtil.SYMMETRIC;
-import static org.h2.util.ParserUtil.SYSTEM_USER;
-import static org.h2.util.ParserUtil.TABLE;
-import static org.h2.util.ParserUtil.TO;
-import static org.h2.util.ParserUtil.TRUE;
-import static org.h2.util.ParserUtil.UNION;
-import static org.h2.util.ParserUtil.UNIQUE;
-import static org.h2.util.ParserUtil.UNKNOWN;
-import static org.h2.util.ParserUtil.USER;
-import static org.h2.util.ParserUtil.USING;
-import static org.h2.util.ParserUtil.VALUE;
-import static org.h2.util.ParserUtil.VALUES;
-import static org.h2.util.ParserUtil.WHEN;
-import static org.h2.util.ParserUtil.WHERE;
-import static org.h2.util.ParserUtil.WINDOW;
-import static org.h2.util.ParserUtil.WITH;
-import static org.h2.util.ParserUtil.YEAR;
-import static org.h2.util.ParserUtil._ROWID_;
-
 import java.math.BigDecimal;
 import java.nio.charset.Charset;
 import java.text.Collator;
@@ -329,6 +204,7 @@ import org.h2.expression.function.GCDFunction;
 import org.h2.expression.function.HashFunction;
 import org.h2.expression.function.JavaFunction;
 import org.h2.expression.function.JsonConstructorFunction;
+import org.h2.expression.function.JsonQueryFunction;
 import org.h2.expression.function.LengthFunction;
 import org.h2.expression.function.MathFunction;
 import org.h2.expression.function.MathFunction1;
@@ -415,6 +291,131 @@ import org.h2.value.ValueTimestamp;
 import org.h2.value.ValueTimestampTimeZone;
 import org.h2.value.ValueUuid;
 import org.h2.value.ValueVarchar;
+
+import static org.h2.command.Token.ASTERISK;
+import static org.h2.command.Token.AT;
+import static org.h2.command.Token.BIGGER;
+import static org.h2.command.Token.BIGGER_EQUAL;
+import static org.h2.command.Token.CLOSE_BRACE;
+import static org.h2.command.Token.CLOSE_BRACKET;
+import static org.h2.command.Token.CLOSE_PAREN;
+import static org.h2.command.Token.COLON;
+import static org.h2.command.Token.COLON_COLON;
+import static org.h2.command.Token.COLON_EQ;
+import static org.h2.command.Token.COMMA;
+import static org.h2.command.Token.CONCATENATION;
+import static org.h2.command.Token.DOT;
+import static org.h2.command.Token.END_OF_INPUT;
+import static org.h2.command.Token.EQUAL;
+import static org.h2.command.Token.LITERAL;
+import static org.h2.command.Token.MINUS_SIGN;
+import static org.h2.command.Token.NOT_EQUAL;
+import static org.h2.command.Token.NOT_TILDE;
+import static org.h2.command.Token.OPEN_BRACE;
+import static org.h2.command.Token.OPEN_BRACKET;
+import static org.h2.command.Token.OPEN_PAREN;
+import static org.h2.command.Token.PARAMETER;
+import static org.h2.command.Token.PERCENT;
+import static org.h2.command.Token.PLUS_SIGN;
+import static org.h2.command.Token.SEMICOLON;
+import static org.h2.command.Token.SLASH;
+import static org.h2.command.Token.SMALLER;
+import static org.h2.command.Token.SMALLER_EQUAL;
+import static org.h2.command.Token.SPATIAL_INTERSECTS;
+import static org.h2.command.Token.TILDE;
+import static org.h2.util.HasSQL.DEFAULT_SQL_FLAGS;
+import static org.h2.util.HasSQL.QUOTE_ONLY_WHEN_REQUIRED;
+import static org.h2.util.HasSQL.TRACE_SQL_FLAGS;
+import static org.h2.util.ParserUtil.ALL;
+import static org.h2.util.ParserUtil.AND;
+import static org.h2.util.ParserUtil.ANY;
+import static org.h2.util.ParserUtil.ARRAY;
+import static org.h2.util.ParserUtil.AS;
+import static org.h2.util.ParserUtil.ASYMMETRIC;
+import static org.h2.util.ParserUtil.AUTHORIZATION;
+import static org.h2.util.ParserUtil.BETWEEN;
+import static org.h2.util.ParserUtil.CASE;
+import static org.h2.util.ParserUtil.CAST;
+import static org.h2.util.ParserUtil.CHECK;
+import static org.h2.util.ParserUtil.CONSTRAINT;
+import static org.h2.util.ParserUtil.CROSS;
+import static org.h2.util.ParserUtil.CURRENT_CATALOG;
+import static org.h2.util.ParserUtil.CURRENT_DATE;
+import static org.h2.util.ParserUtil.CURRENT_PATH;
+import static org.h2.util.ParserUtil.CURRENT_ROLE;
+import static org.h2.util.ParserUtil.CURRENT_SCHEMA;
+import static org.h2.util.ParserUtil.CURRENT_TIME;
+import static org.h2.util.ParserUtil.CURRENT_TIMESTAMP;
+import static org.h2.util.ParserUtil.CURRENT_USER;
+import static org.h2.util.ParserUtil.DAY;
+import static org.h2.util.ParserUtil.DEFAULT;
+import static org.h2.util.ParserUtil.DISTINCT;
+import static org.h2.util.ParserUtil.ELSE;
+import static org.h2.util.ParserUtil.END;
+import static org.h2.util.ParserUtil.EXCEPT;
+import static org.h2.util.ParserUtil.EXISTS;
+import static org.h2.util.ParserUtil.FALSE;
+import static org.h2.util.ParserUtil.FETCH;
+import static org.h2.util.ParserUtil.FOR;
+import static org.h2.util.ParserUtil.FOREIGN;
+import static org.h2.util.ParserUtil.FROM;
+import static org.h2.util.ParserUtil.FULL;
+import static org.h2.util.ParserUtil.GROUP;
+import static org.h2.util.ParserUtil.HAVING;
+import static org.h2.util.ParserUtil.HOUR;
+import static org.h2.util.ParserUtil.IDENTIFIER;
+import static org.h2.util.ParserUtil.IF;
+import static org.h2.util.ParserUtil.IN;
+import static org.h2.util.ParserUtil.INNER;
+import static org.h2.util.ParserUtil.INTERSECT;
+import static org.h2.util.ParserUtil.INTERVAL;
+import static org.h2.util.ParserUtil.IS;
+import static org.h2.util.ParserUtil.JOIN;
+import static org.h2.util.ParserUtil.KEY;
+import static org.h2.util.ParserUtil.LAST_KEYWORD;
+import static org.h2.util.ParserUtil.LEFT;
+import static org.h2.util.ParserUtil.LIKE;
+import static org.h2.util.ParserUtil.LIMIT;
+import static org.h2.util.ParserUtil.LOCALTIME;
+import static org.h2.util.ParserUtil.LOCALTIMESTAMP;
+import static org.h2.util.ParserUtil.MINUS;
+import static org.h2.util.ParserUtil.MINUTE;
+import static org.h2.util.ParserUtil.MONTH;
+import static org.h2.util.ParserUtil.NATURAL;
+import static org.h2.util.ParserUtil.NOT;
+import static org.h2.util.ParserUtil.NULL;
+import static org.h2.util.ParserUtil.OFFSET;
+import static org.h2.util.ParserUtil.ON;
+import static org.h2.util.ParserUtil.OR;
+import static org.h2.util.ParserUtil.ORDER;
+import static org.h2.util.ParserUtil.PRIMARY;
+import static org.h2.util.ParserUtil.QUALIFY;
+import static org.h2.util.ParserUtil.RIGHT;
+import static org.h2.util.ParserUtil.ROW;
+import static org.h2.util.ParserUtil.ROWNUM;
+import static org.h2.util.ParserUtil.SECOND;
+import static org.h2.util.ParserUtil.SELECT;
+import static org.h2.util.ParserUtil.SESSION_USER;
+import static org.h2.util.ParserUtil.SET;
+import static org.h2.util.ParserUtil.SOME;
+import static org.h2.util.ParserUtil.SYMMETRIC;
+import static org.h2.util.ParserUtil.SYSTEM_USER;
+import static org.h2.util.ParserUtil.TABLE;
+import static org.h2.util.ParserUtil.TO;
+import static org.h2.util.ParserUtil.TRUE;
+import static org.h2.util.ParserUtil.UNION;
+import static org.h2.util.ParserUtil.UNIQUE;
+import static org.h2.util.ParserUtil.UNKNOWN;
+import static org.h2.util.ParserUtil.USER;
+import static org.h2.util.ParserUtil.USING;
+import static org.h2.util.ParserUtil.VALUE;
+import static org.h2.util.ParserUtil.VALUES;
+import static org.h2.util.ParserUtil.WHEN;
+import static org.h2.util.ParserUtil.WHERE;
+import static org.h2.util.ParserUtil.WINDOW;
+import static org.h2.util.ParserUtil.WITH;
+import static org.h2.util.ParserUtil.YEAR;
+import static org.h2.util.ParserUtil._ROWID_;
 
 /**
  * The parser is used to convert a SQL statement string to an command object.
@@ -4248,6 +4249,34 @@ public final class Parser extends ParserBase {
             function.doneWithParameters();
             return function;
         }
+        case "JSON_VALUE":
+        case "JSON_QUERY": {
+            final Expression input = readExpression();
+            read( COMMA );
+            final Expression jsonPath = readExpression();
+            final TypeInfo returnType;
+            if ( readIf( "RETURNING" ) ) {
+                 returnType = readIfDataType();
+            } else {
+                returnType = TypeInfo.TYPE_VARCHAR;
+            }
+            final JsonQueryFunction.Wrapper wrapper;
+            if (readIf("WITHOUT", "ARRAY", "WRAPPER")) {
+                wrapper = JsonQueryFunction.Wrapper.WITHOUT_WRAPPER;
+            } else if (readIf("WITH", "CONDITIONAL", "ARRAY", "WRAPPER")) {
+                wrapper = JsonQueryFunction.Wrapper.CONDITIONAL_WRAPPER;
+            } else if (readIf("WITH", "UNCONDITIONAL", "ARRAY", "WRAPPER")) {
+                wrapper = JsonQueryFunction.Wrapper.UNCONDITIONAL_WRAPPER;
+            } else {
+                wrapper = JsonQueryFunction.Wrapper.WITHOUT_WRAPPER;
+            }
+            final boolean omitQuotes = readIf( "OMIT", "QUOTES", "ON", "SCALAR", "STRING" );
+
+            final JsonQueryFunction function = new JsonQueryFunction( input, jsonPath, upperName.equals("JSON_VALUE"), wrapper, omitQuotes);
+            function.setExplicitReturnType(returnType);
+            readJsonErrorHandling( function );
+            return function;
+        }
         case "ENCRYPT":
             return new CryptFunction(readExpression(), readNextArgument(), readLastArgument(), CryptFunction.ENCRYPT);
         case "DECRYPT":
@@ -4359,6 +4388,37 @@ public final class Parser extends ParserBase {
         }
         ModeFunction function = ModeFunction.getFunction(database, upperName);
         return function != null ? readParameters(function) : null;
+    }
+
+    private void readJsonErrorHandling(JsonQueryFunction function) {
+        while (!readIf( CLOSE_PAREN )) {
+            if (readIf("ERROR", "ON")) {
+                if (readIf("EMPTY")) {
+                    function.setOnEmptyHandler(new JsonQueryFunction.JsonErrorOnClause());
+                } else if (readIf("ERROR")) {
+                    function.setOnErrorHandler(new JsonQueryFunction.JsonErrorOnClause());
+                } else {
+                    throw new UnsupportedOperationException();
+                }
+            } else if (readIf("NULL", "ON")) {
+                if (readIf("EMPTY")) {
+                    function.setOnEmptyHandler( new JsonQueryFunction.JsonExpressionOnClause( ValueExpression.NULL ) );
+                } else if (readIf("ERROR")) {
+                    function.setOnErrorHandler( new JsonQueryFunction.JsonExpressionOnClause( ValueExpression.NULL ) );
+                } else {
+                    throw new UnsupportedOperationException();
+                }
+            } else if (readIf("DEFAULT")) {
+                final Expression defaultValue = readExpression();
+                if (readIf("ON", "EMPTY")) {
+                    function.setOnEmptyHandler( new JsonQueryFunction.JsonExpressionOnClause( defaultValue ) );
+                } else if (readIf("ON", "ERROR")) {
+                    function.setOnErrorHandler( new JsonQueryFunction.JsonExpressionOnClause( defaultValue ) );
+                } else {
+                    throw new UnsupportedOperationException();
+                }
+            }
+        }
     }
 
     private Expression readDateTimeFormatFunction(int function) {

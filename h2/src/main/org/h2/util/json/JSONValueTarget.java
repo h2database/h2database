@@ -146,8 +146,10 @@ public final class JSONValueTarget extends JSONTarget<JSONValue> {
 
     @Override
     public JSONValue getResult() {
-        if (!stack.isEmpty() || result == null) {
-            throw new IllegalStateException();
+        if (!stack.isEmpty()) {
+            throw new IllegalStateException(String.format("Not all objects have been closed %s open objects.", stack.size()));
+        } else if (result == null) {
+            throw new IllegalStateException("No result available.");
         }
         return result;
     }

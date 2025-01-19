@@ -97,7 +97,7 @@ public abstract class JSONTextSource {
                 parseNumber(true);
                 break;
             default:
-                throw new IllegalArgumentException();
+                throw new IllegalArgumentException(String.format("Unexpected character: '%c' found.", ch));
             }
         }
     }

@@ -4252,12 +4252,26 @@ public final class Parser extends ParserBase {
             final Expression input = readExpression();
             read( COMMA );
             final Expression jsonPath = readExpression();
-            final JsonQueryFunction function = new JsonQueryFunction( input, jsonPath, upperName.equals("JSON_VALUE") );
+            final TypeInfo returnType;
             if ( readIf( "RETURNING" ) ) {
-                function.setExplicitReturnType( readIfDataType() );
+                 returnType = readIfDataType();
             } else {
-                function.setExplicitReturnType( TypeInfo.TYPE_VARCHAR );
+                returnType = TypeInfo.TYPE_VARCHAR;
             }
+            final JsonQueryFunction.Wrapper wrapper;
+            if (readIf("WITHOUT", "ARRAY", "WRAPPER")) {
+                wrapper = JsonQueryFunction.Wrapper.WITHOUT_WRAPPER;
+            } else if (readIf("WITH", "CONDITIONAL", "ARRAY", "WRAPPER")) {
+                wrapper = JsonQueryFunction.Wrapper.CONDITIONAL_WRAPPER;
+            } else if (readIf("WITH", "UNCONDITIONAL", "ARRAY", "WRAPPER")) {
+                wrapper = JsonQueryFunction.Wrapper.UNCONDITIONAL_WRAPPER;
+            } else {
+                wrapper = JsonQueryFunction.Wrapper.WITHOUT_WRAPPER;
+            }
+            final boolean omitQuotes = readIf( "OMIT", "QUOTES", "ON", "SCALAR", "STRING" );
+
+            final JsonQueryFunction function = new JsonQueryFunction( input, jsonPath, upperName.equals("JSON_VALUE"), wrapper, omitQuotes);
+            function.setExplicitReturnType(returnType);
             readJsonErrorHandling( function );
             return function;
         }

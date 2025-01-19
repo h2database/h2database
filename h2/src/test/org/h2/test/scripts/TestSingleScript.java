@@ -27,6 +27,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandContainer;
@@ -342,7 +344,14 @@ public class TestSingleScript extends TestDb {
     private static boolean hasParameters(String sql) {
         int index = 0;
         for (;;) {
-            index = sql.indexOf('?', index);
+            final int firstQuote = sql.indexOf( '\'', index );
+            final int firstQuestionmark = sql.indexOf('?', index);
+            if (firstQuote > 0 && firstQuote < firstQuestionmark) {
+                // find next quote
+                index = sql.indexOf('\'', firstQuote + 1) + 1;
+                continue;
+            }
+            index = firstQuestionmark;
             if (index < 0) {
                 return false;
             }

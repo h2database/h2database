@@ -3541,6 +3541,23 @@ ON B.ID = A.PARENT_ID
 USING (ID)
 "
 
+"Other Grammar","JSON API common syntax","
+contextExpression, jsonPathExpression [ AS jsonTablePathName ]
+[ PASSING { jsonArgumentExpression AS argumentName } [,...] ]
+","
+Specifies common arguments of JSON function.
+The first argument should be a JSON or compatible value.
+To pass a character string as JSON text, add FORMAT JSON clause after it,
+otherwise it will converted to JSON string scalar value.
+
+The second argument must be a character string with valid SQL/JSON path.
+Its alias may only be specified for JSON_TABLE function.
+
+Optional named arguments can be specified and used in SQL/JSON path.
+","
+JSON_COLUMN, 'strict $.data[*]'
+"
+
 "Other Grammar","Merge when clause","
 mergeWhenMatchedClause|mergeWhenNotMatchedClause
 ","
@@ -6915,6 +6932,61 @@ If NULL ON NULL is specified NULL values are included in the array.
 JSON_ARRAY(10, 15, 20);
 JSON_ARRAY(JSON_DATA_A FORMAT JSON, JSON_DATA_B FORMAT JSON);
 JSON_ARRAY((SELECT J FROM PROPS) FORMAT JSON);
+"
+
+"Functions (JSON)","JSON_EXISTS","
+JSON_EXISTS(jsonApiCommonSyntax
+[ { TRUE | FALSE | UNKNOWN | ERROR } ON ERROR ]
+)
+","
+Tests whether a specified SQL/JSON path exists.
+","
+JSON_EXISTS(JSON '{""array"" : [1], ""flag"" : true}', '$.flag')
+"
+
+"Functions (JSON)","JSON_QUERY","
+JSON_QUERY(jsonApiCommonSyntax
+[ RETURNING dataType [ FORMAT JSON [ ENCODING { UTF8 | UTF16 | UTF32
+    | @h2@ { UTF16BE | UTF16LE | UTF32BE | UTF32LE } } ] ] ]
+[ { WITHOUT | WITH [ CONDITIONAL | UNCONDITIONAL ] } [ ARRAY ] WRAPPER ]
+[ { KEEP | OMIT } QUOTES [ ON SCALAR STRING ] ]
+[ { ERROR | NULL | EMPTY ARRAY | EMPTY OBJECT } ON EMPTY ]
+[ { ERROR | NULL | EMPTY ARRAY | EMPTY OBJECT } ON ERROR ]
+)
+","
+Extracts a JSON value from another JSON using a specified SQL/JSON path.
+
+The specified returning data type must be a JSON, character string, or binary string data type.
+JSON is used by default.
+If binary string data type is specified, its encoding may be specified, UTF-8 is used by default.
+
+If WITH is specified, returning values will be wrappped into JSON array and QUOTES may not be specified.
+If CONDITIONAL is specified, single returning value will not be wrapped, only multiple ones.
+
+If OMIT QUOTES is specified and returning value is a single JSON string, its content will be interpreted as JSON text.
+
+ON EMPTY specifies the result if no values are produced, NULL ON EMPTY is default.
+ON ERROR specifies the result if an error was detected, NULL ON ERROR is default.
+","
+JSON_QUERY(JSON '{""array"" : [1], ""flag"" : true}', 'strict $.array[0]')
+"
+
+"Functions (JSON)","JSON_VALUE","
+JSON_VALUE(jsonApiCommonSyntax
+[ RETURNING dataType ]
+[ { ERROR | NULL | DEFAULT expression } ON EMPTY ]
+[ { ERROR | NULL | DEFAULT expression } ON ERROR ]
+)
+","
+Extracts an SQL value from JSON using a specified SQL/JSON path.
+
+The specified returning data type must be a character string, boolean, numeric, or datetime data type.
+CHARACTER VARYING is used by default.
+
+ON EMPTY specifies the result if no values are produced, NULL ON EMPTY is default.
+ON ERROR specifies the result if an error was detected, NULL ON ERROR is default.
+","
+JSON_VALUE(JSON '{""array"" : [1], ""flag"" : true}', 'strict $.array[0]')
 "
 
 "Functions (Table)","CSVREAD","

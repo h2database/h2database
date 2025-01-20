@@ -32,7 +32,9 @@ public final class ValueJson extends ValueBytesBase {
 
     private static final byte[] NULL_BYTES = "null".getBytes(StandardCharsets.ISO_8859_1),
             TRUE_BYTES = "true".getBytes(StandardCharsets.ISO_8859_1),
-            FALSE_BYTES = "false".getBytes(StandardCharsets.ISO_8859_1);
+            FALSE_BYTES = "false".getBytes(StandardCharsets.ISO_8859_1),
+            EMPTY_ARRAY_BYTES = "[]".getBytes(StandardCharsets.ISO_8859_1),
+            EMPTY_OBJECT_BYTES = "{}".getBytes(StandardCharsets.ISO_8859_1);
 
     /**
      * {@code null} JSON value.
@@ -53,6 +55,16 @@ public final class ValueJson extends ValueBytesBase {
      * {@code 0} JSON value.
      */
     public static final ValueJson ZERO = new ValueJson(new byte[] { '0' });
+
+    /**
+     * {@code []} JSON value.
+     */
+    public static final ValueJson EMPTY_ARRAY = new ValueJson(EMPTY_ARRAY_BYTES);
+
+    /**
+     * <code>{}</code> JSON value.
+     */
+    public static final ValueJson EMPTY_OBJECT = new ValueJson(EMPTY_OBJECT_BYTES);
 
     private volatile SoftReference<JSONValue> decompositionRef;
 
@@ -265,6 +277,13 @@ public final class ValueJson extends ValueBytesBase {
         case 1:
             if (bytes[0] == '0') {
                 return ZERO;
+            }
+            break;
+        case 2:
+            if (Arrays.equals(EMPTY_ARRAY_BYTES, bytes)) {
+                return EMPTY_ARRAY;
+            } else if (Arrays.equals(EMPTY_OBJECT_BYTES, bytes)) {
+                return EMPTY_OBJECT;
             }
             break;
         case 4:

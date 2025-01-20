@@ -24,6 +24,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
@@ -32,8 +33,10 @@ import org.h2.api.ErrorCode;
 import org.h2.command.CommandContainer;
 import org.h2.command.CommandInterface;
 import org.h2.command.Prepared;
+import org.h2.command.Tokenizer;
 import org.h2.command.dml.ScriptCommand;
 import org.h2.command.query.Query;
+import org.h2.engine.CastDataProvider;
 import org.h2.engine.Mode.ModeEnum;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.jdbc.JdbcPreparedStatement;
@@ -175,7 +178,7 @@ public class TestScript extends TestDb {
                 "stddev_pop", "stddev_samp", "sum", "var_pop", "var_samp" }) {
             testScript("functions/aggregate/" + s + ".sql");
         }
-        for (String s : new String[] { "json_array", "json_object" }) {
+        for (String s : new String[] { "json_array", "json_exists", "json_object", "json_query", "json_value" }) {
             testScript("functions/json/" + s + ".sql");
         }
         for (String s : new String[] { "abs", "acos", "asin", "atan", "atan2",
@@ -420,7 +423,7 @@ public class TestScript extends TestDb {
         if (statements != null) {
             statements.add(sql);
         }
-        if (!hasParameters(sql)) {
+        if (!hasParameters((JdbcConnection) conn, sql)) {
             processStatement(sql);
         } else {
             String param = readLine();
@@ -447,19 +450,13 @@ public class TestScript extends TestDb {
         write("");
     }
 
-    private static boolean hasParameters(String sql) {
-        int index = 0;
-        for (;;) {
-            index = sql.indexOf('?', index);
-            if (index < 0) {
-                return false;
-            }
-            int length = sql.length();
-            if (++index == length || sql.charAt(index) != '?') {
-                return true;
-            }
-            index++;
+    private static boolean hasParameters(CastDataProvider provider, String sql) {
+        if (sql.indexOf('?') < 0) {
+            return false;
         }
+        BitSet parameters = new BitSet();
+        new Tokenizer(provider, false, false, null).tokenize(sql, false, parameters);
+        return !parameters.isEmpty();
     }
 
     private void reconnect(boolean autocommit) throws SQLException {

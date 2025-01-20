@@ -10,7 +10,7 @@ package org.h2.util.json;
  */
 public abstract class JSONValue {
 
-    JSONValue() {
+    protected JSONValue() {
     }
 
     /**
@@ -22,7 +22,7 @@ public abstract class JSONValue {
     public abstract void addTo(JSONTarget<?> target);
 
     @Override
-    public final String toString() {
+    public String toString() {
         JSONStringTarget target = new JSONStringTarget();
         addTo(target);
         return target.getResult();

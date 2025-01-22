@@ -86,6 +86,8 @@ public final class FunctionsPostgreSQL extends ModeFunction {
 
     private static final int GEN_RANDOM_UUID = TO_TIMESTAMP + 1;
 
+    private static final int _PG_EXPAND_ARRAY = GEN_RANDOM_UUID + 1;
+
     private static final HashMap<String, FunctionInfo> FUNCTIONS = new HashMap<>(32);
 
     static {
@@ -130,6 +132,8 @@ public final class FunctionsPostgreSQL extends ModeFunction {
                 new FunctionInfo("TO_TIMESTAMP", TO_TIMESTAMP, 2, Value.TIMESTAMP_TZ, true, true));
         FUNCTIONS.put("GEN_RANDOM_UUID",
                 new FunctionInfo("GEN_RANDOM_UUID", GEN_RANDOM_UUID, 0, Value.UUID, true, false));
+        FUNCTIONS.put("_PG_EXPANDARRAY",
+                new FunctionInfo( "_PG_EXPANDARRAY", _PG_EXPAND_ARRAY, 1, Value.UNKNOWN, true, false));
     }
 
     /**
@@ -176,6 +180,10 @@ public final class FunctionsPostgreSQL extends ModeFunction {
         case ARRAY_TO_STRING:
             min = 2;
             max = 3;
+            break;
+        case _PG_EXPAND_ARRAY:
+            min = 1;
+            max = 1;
             break;
         default:
             throw DbException.getInternalError("type=" + info.type);
@@ -241,8 +249,9 @@ public final class FunctionsPostgreSQL extends ModeFunction {
             result = result.convertToBigint(null);
             break;
         case VERSION:
+            final String pgVersion = session.getNetworkConnectionInfo() == null ? Constants.PG_VERSION : session.getNetworkConnectionInfo().getServerVersion();
             result = ValueVarchar
-                    .get("PostgreSQL " + Constants.PG_VERSION + " server protocol using H2 " + Constants.FULL_VERSION);
+                    .get("PostgreSQL " + pgVersion + " server protocol using H2 " + Constants.FULL_VERSION);
             break;
         case OBJ_DESCRIPTION:
             // Not implemented
@@ -252,6 +261,7 @@ public final class FunctionsPostgreSQL extends ModeFunction {
             result = ValueVarchar.get(encodingToChar(v0.getInt()));
             break;
         case PG_GET_EXPR:
+        case _PG_EXPAND_ARRAY:
             // Not implemented
             result = ValueNull.INSTANCE;
             break;

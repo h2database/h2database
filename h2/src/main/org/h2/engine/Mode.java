@@ -470,6 +470,11 @@ public class Mode {
      */
     public boolean acceptsCommaAsJsonKeyValueSeparator;
 
+    /**
+     * Enable support for bitwise operators &, |, #, ~, <<, >>
+     */
+    public boolean supportBitwiseOperators = false;
+
     private final String name;
 
     private final ModeEnum modeEnum;
@@ -733,6 +738,7 @@ public class Mode {
         mode.typeByNameMap.put("OID", dt);
         mode.dateTimeValueWithinTransaction = true;
         mode.groupByColumnIndex = true;
+        mode.supportBitwiseOperators = true;
         add(mode);
     }
 

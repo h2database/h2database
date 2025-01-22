@@ -12,6 +12,11 @@ import static org.h2.command.Token.ASTERISK;
 import static org.h2.command.Token.AT;
 import static org.h2.command.Token.BIGGER;
 import static org.h2.command.Token.BIGGER_EQUAL;
+import static org.h2.command.Token.BITWISE_AND;
+import static org.h2.command.Token.BITWISE_OR;
+import static org.h2.command.Token.BITWISE_SHIFT_LEFT;
+import static org.h2.command.Token.BITWISE_SHIFT_RIGHT;
+import static org.h2.command.Token.BITWISE_XOR;
 import static org.h2.command.Token.CLOSE_BRACE;
 import static org.h2.command.Token.CLOSE_BRACKET;
 import static org.h2.command.Token.CLOSE_PAREN;
@@ -1215,7 +1220,8 @@ public final class Parser extends ParserBase {
             buff.append(" SEARCH_PATH");
         } else if (readIf("SERVER_VERSION")) {
             // for PostgreSQL compatibility
-            buff.append("'" + Constants.PG_VERSION + "' SERVER_VERSION");
+            final String version = session.getNetworkConnectionInfo() == null ? Constants.PG_VERSION : session.getNetworkConnectionInfo().getServerVersion();
+            buff.append("'").append(version).append("' SERVER_VERSION");
         } else if (readIf("SERVER_ENCODING")) {
             // for PostgreSQL compatibility
             buff.append("'UTF8' SERVER_ENCODING");
@@ -3275,18 +3281,18 @@ public final class Parser extends ParserBase {
     }
 
     private Expression readConcat() {
-        Expression op1 = readSum();
+        Expression op1 = readBitwise();
         for (;;) {
             switch (currentTokenType) {
             case CONCATENATION: {
                 read();
-                Expression op2 = readSum();
+                Expression op2 = readBitwise();
                 if (readIf(CONCATENATION)) {
                     ConcatenationOperation c = new ConcatenationOperation();
                     c.addParameter(op1);
                     c.addParameter(op2);
                     do {
-                        c.addParameter(readSum());
+                        c.addParameter(readBitwise());
                     } while (readIf(CONCATENATION));
                     c.doneWithParameters();
                     op1 = c;
@@ -3306,6 +3312,34 @@ public final class Parser extends ParserBase {
                 addExpected(CONCATENATION);
                 return op1;
             }
+        }
+    }
+
+    private Expression readBitwise() {
+        if (session.getMode().supportBitwiseOperators) {
+            Expression r;
+            if (readIf(TILDE)) {
+                r = new BitFunction(readSum(), null, BitFunction.BITNOT);
+            } else {
+                r = readSum();
+            }
+            while (true) {
+                if (readIf(BITWISE_AND)) {
+                    r = new BitFunction(r, readSum(), BitFunction.BITAND);
+                } else if (readIf(BITWISE_OR)) {
+                    r = new BitFunction(r, readSum(), BitFunction.BITOR);
+                } else if (readIf(BITWISE_XOR)) {
+                    r = new BitFunction(r, readSum(), BitFunction.BITXOR);
+                } else if (readIf(BITWISE_SHIFT_LEFT)) {
+                    r = new BitFunction(r, readSum(), BitFunction.LSHIFT);
+                } else if (readIf(BITWISE_SHIFT_RIGHT)) {
+                    r = new BitFunction(r, readSum(), BitFunction.RSHIFT);
+                } else {
+                    return r;
+                }
+            }
+        } else {
+            return readSum();
         }
     }
 
@@ -3342,7 +3376,7 @@ public final class Parser extends ParserBase {
         if (readIf(ASTERISK)) {
             r = new CastSpecification(r, TypeInfo.TYPE_VARCHAR_IGNORECASE);
         }
-        return new CompareLike(database, r, not, false, readSum(), null, LikeType.REGEXP);
+        return new CompareLike(database, r, not, false, readBitwise(), null, LikeType.REGEXP);
     }
 
     private Expression readAggregate(AggregateType aggregateType, String aggregateName) {
@@ -3776,11 +3810,17 @@ public final class Parser extends ParserBase {
     }
 
     private Expression readFunctionWithSchema(Schema schema, String name, String upperName) {
-        if (database.getMode().getEnum() == ModeEnum.PostgreSQL
-                && schema.getName().equals(database.sysIdentifier("PG_CATALOG"))) {
-            FunctionsPostgreSQL function = FunctionsPostgreSQL.getFunction(upperName);
-            if (function != null) {
-                return readParameters(function);
+        if (database.getMode().getEnum() == ModeEnum.PostgreSQL) {
+            if (schema.getName().equals(database.sysIdentifier("PG_CATALOG"))) {
+                final FunctionsPostgreSQL function = FunctionsPostgreSQL.getFunction(upperName);
+                if (function != null) {
+                    return readParameters(function);
+                }
+            } else if (schema.getName().equals(database.sysIdentifier("INFORMATION_SCHEMA"))) {
+                final FunctionsPostgreSQL function = FunctionsPostgreSQL.getFunction(upperName);
+                if (function != null) {
+                    return readParameters(function);
+                }
             }
         }
         Expression function = readUserDefinedFunctionIf(schema, name);
@@ -7815,6 +7855,14 @@ public final class Parser extends ParserBase {
                 }
                 command.setStringArray(list.toArray(new String[0]));
                 return command;
+            } else if (readIfCompat("EXTRA_FLOAT_DIGITS")) {
+                readIfEqualOrTo();
+                final int i = readInt();
+                return new NoOperation(session, String.format("Ignored setting extra float digits to '%d'", i));
+            } else if (readIfCompat("APPLICATION_NAME")) {
+                readIfEqualOrTo();
+                final String str = readString();
+                return new NoOperation(session, String.format("Ignored setting application name to '%s'", str));
             }
             break;
         default:

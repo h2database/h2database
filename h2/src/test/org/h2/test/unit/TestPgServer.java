@@ -20,6 +20,9 @@ import java.sql.Statement;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
+import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Properties;
 import java.util.Set;
 import java.util.TimeZone;
@@ -29,6 +32,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import org.h2.api.ErrorCode;
+import org.h2.engine.Constants;
 import org.h2.server.pg.PgServer;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
@@ -39,6 +43,12 @@ import org.h2.util.DateTimeUtils;
  * Tests the PostgreSQL server protocol compliant implementation.
  */
 public class TestPgServer extends TestDb {
+
+    private static final Collection<String> VERSIONS = Arrays.asList(
+            Constants.PG_VERSION, // default
+            "9.0.0",
+            "17.0.0"
+    );
 
     /**
      * Run just this test.
@@ -62,15 +72,17 @@ public class TestPgServer extends TestDb {
     @Override
     public void test() throws Exception {
         // testPgAdapter() starts server by itself without a wait so run it first
-        testPgAdapter();
-        testKeyAlias();
-        testCancelQuery();
-        testTextualAndBinaryTypes();
-        testBinaryNumeric();
-        testDateTime();
-        testPrepareWithUnspecifiedType();
-        testOtherPgClients();
-        testArray();
+        for (final String versionToTest : VERSIONS) {
+            testPgAdapter(versionToTest);
+            testKeyAlias(versionToTest);
+            testCancelQuery(versionToTest);
+            testTextualAndBinaryTypes(versionToTest);
+            testBinaryNumeric(versionToTest);
+            testDateTime(versionToTest);
+            testPrepareWithUnspecifiedType(versionToTest);
+            testOtherPgClients(versionToTest);
+            testArray(versionToTest);
+        }
     }
 
     private boolean getPgJdbcDriver() {
@@ -105,10 +117,10 @@ public class TestPgServer extends TestDb {
         }
     }
 
-    private void testPgAdapter() throws SQLException {
+    private void testPgAdapter(final String version) throws SQLException {
         deleteDb("pgserver");
         Server server = Server.createPgServer(
-                "-ifNotExists", "-baseDir", getBaseDir(), "-pgPort", "5535", "-pgDaemon");
+                "-ifNotExists", "-baseDir", getBaseDir(), "-pgVersion", version, "-pgPort", "5535", "-pgDaemon");
         assertEquals(5535, server.getPort());
         assertEquals("Not started", server.getStatus());
         server.start();
@@ -123,13 +135,13 @@ public class TestPgServer extends TestDb {
         }
     }
 
-    private void testCancelQuery() throws Exception {
+    private void testCancelQuery(final String version) throws Exception {
         if (!getPgJdbcDriver()) {
             return;
         }
 
         Server server = createPgServer(
-                "-ifNotExists", "-pgPort", "5535", "-pgDaemon", "-key", "pgserver", "mem:pgserver");
+                "-ifNotExists", "-pgPort", "5535", "-pgVersion", version, "-pgDaemon", "-key", "pgserver", "mem:pgserver");
 
         ExecutorService executor = Executors.newSingleThreadExecutor();
         try {
@@ -393,12 +405,12 @@ public class TestPgServer extends TestDb {
         conn.close();
     }
 
-    private void testKeyAlias() throws SQLException {
+    private void testKeyAlias(final String version) throws SQLException {
         if (!getPgJdbcDriver()) {
             return;
         }
         Server server = createPgServer(
-                "-ifNotExists", "-pgPort", "5535", "-pgDaemon", "-key", "pgserver", "mem:pgserver");
+                "-ifNotExists", "-pgPort", "5535", "-pgDaemon", "-pgVersion", version, "-key", "pgserver", "mem:pgserver");
         try {
             Connection conn = DriverManager.getConnection(
                     "jdbc:postgresql://localhost:5535/pgserver", "sa", "sa");
@@ -438,22 +450,22 @@ public class TestPgServer extends TestDb {
         return (Set<Integer>) supportedBinaryOidsField.get(null);
     }
 
-    private void testTextualAndBinaryTypes() throws SQLException {
-        testTextualAndBinaryTypes(false);
-        testTextualAndBinaryTypes(true);
+    private void testTextualAndBinaryTypes(final String version) throws SQLException {
+        testTextualAndBinaryTypes(version, false);
+        testTextualAndBinaryTypes(version, true);
         // additional support of NUMERIC for Npgsql
         supportedBinaryOids.add(1700);
-        testTextualAndBinaryTypes(true);
+        testTextualAndBinaryTypes(version, true);
         supportedBinaryOids.remove(1700);
     }
 
-    private void testTextualAndBinaryTypes(boolean binary) throws SQLException {
+    private void testTextualAndBinaryTypes(final String version, boolean binary) throws SQLException {
         if (!getPgJdbcDriver()) {
             return;
         }
 
         Server server = createPgServer(
-                "-ifNotExists", "-pgPort", "5535", "-pgDaemon", "-key", "pgserver", "mem:pgserver");
+                "-ifNotExists", "-pgPort", "5535", "-pgVersion", version, "-pgDaemon", "-key", "pgserver", "mem:pgserver");
         try {
             Properties props = new Properties();
             props.setProperty("user", "sa");
@@ -530,12 +542,12 @@ public class TestPgServer extends TestDb {
         }
     }
 
-    private void testBinaryNumeric() throws SQLException {
+    private void testBinaryNumeric(final String version) throws SQLException {
         if (!getPgJdbcDriver()) {
             return;
         }
         Server server = createPgServer(
-                "-ifNotExists", "-pgPort", "5535", "-pgDaemon", "-key", "pgserver", "mem:pgserver");
+                "-ifNotExists", "-pgPort", "5535", "-pgVersion", version, "-pgDaemon", "-key", "pgserver", "mem:pgserver");
         supportedBinaryOids.add(1700);
         try {
             Properties props = new Properties();
@@ -579,7 +591,7 @@ public class TestPgServer extends TestDb {
         }
     }
 
-    private void testDateTime() throws SQLException {
+    private void testDateTime(final String version) throws SQLException {
         if (!getPgJdbcDriver()) {
             return;
         }
@@ -592,7 +604,7 @@ public class TestPgServer extends TestDb {
         DateTimeUtils.resetCalendar();
         try {
             Server server = createPgServer(
-                    "-ifNotExists", "-pgPort", "5535", "-pgDaemon", "-key", "pgserver", "mem:pgserver");
+                    "-ifNotExists", "-pgPort", "5535", "-pgVersion", version, "-pgDaemon", "-key", "pgserver", "mem:pgserver");
             try {
                 Properties props = new Properties();
                 props.setProperty("user", "sa");
@@ -649,13 +661,13 @@ public class TestPgServer extends TestDb {
         }
     }
 
-    private void testPrepareWithUnspecifiedType() throws Exception {
+    private void testPrepareWithUnspecifiedType(final String version) throws Exception {
         if (!getPgJdbcDriver()) {
             return;
         }
 
         Server server = createPgServer(
-                "-ifNotExists", "-pgPort", "5535", "-pgDaemon", "-key", "pgserver", "mem:pgserver");
+                "-ifNotExists", "-pgPort", "5535", "-pgVersion", version, "-pgDaemon", "-key", "pgserver", "mem:pgserver");
         try {
             Properties props = new Properties();
 
@@ -696,13 +708,13 @@ public class TestPgServer extends TestDb {
         }
     }
 
-    private void testOtherPgClients() throws SQLException {
+    private void testOtherPgClients(final String version) throws SQLException {
         if (!getPgJdbcDriver()) {
             return;
         }
 
         Server server = createPgServer(
-                "-ifNotExists", "-pgPort", "5535", "-pgDaemon", "-key", "pgserver", "mem:pgserver");
+                "-ifNotExists", "-pgPort", "5535", "-pgVersion", version, "-pgDaemon", "-key", "pgserver", "mem:pgserver");
         try (
                 Connection conn = DriverManager.getConnection(
                         "jdbc:postgresql://localhost:5535/pgserver", "sa", "sa");
@@ -871,13 +883,13 @@ public class TestPgServer extends TestDb {
         }
     }
 
-    private void testArray() throws Exception {
+    private void testArray(final String version) throws Exception {
         if (!getPgJdbcDriver()) {
             return;
         }
 
         Server server = createPgServer(
-                "-ifNotExists", "-pgPort", "5535", "-pgDaemon", "-key", "pgserver", "mem:pgserver");
+                "-ifNotExists", "-pgPort", "5535", "-pgVersion", version, "-pgDaemon", "-key", "pgserver", "mem:pgserver");
         try (
                 Connection conn = DriverManager.getConnection(
                         "jdbc:postgresql://localhost:5535/pgserver", "sa", "sa");

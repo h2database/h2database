@@ -290,8 +290,7 @@ public class Recover extends Tool implements DataHandler {
                 builder.append('(').append(id).append(", ").append(precision).append(')');
                 return;
             }
-        }
-        if (v instanceof ValueJson) {
+        } else if (v instanceof ValueJson) {
             columnTypeMap.put(column, "JSON");
         }
         v.getSQL(builder, HasSQL.NO_CASTS);

@@ -58,6 +58,7 @@ import org.h2.value.CompareMode;
 import org.h2.value.Value;
 import org.h2.value.ValueCollectionBase;
 import org.h2.value.ValueLob;
+import org.h2.value.ValueJson;
 import org.h2.value.lob.LobData;
 import org.h2.value.lob.LobDataDatabase;
 
@@ -289,6 +290,9 @@ public class Recover extends Tool implements DataHandler {
                 builder.append('(').append(id).append(", ").append(precision).append(')');
                 return;
             }
+        }
+        if (v instanceof ValueJson) {
+            columnTypeMap.put(column, "JSON");
         }
         v.getSQL(builder, HasSQL.NO_CASTS);
     }

@@ -33,9 +33,6 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalQueries;
 import java.time.temporal.WeekFields;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -1078,10 +1075,13 @@ public class TestFunctions extends TestDb implements AggregateFunction {
                 int weekYear = local1.get(wf.weekBasedYear());
                 assertEquals(weekYear, rs.getInt(3));
                 assertEquals(w1 == local2.get(wf.weekOfWeekBasedYear()) ? 0 : 1, rs.getInt(4));
-                assertEquals(local1.minus(local1.get(wf.dayOfWeek()) - 1, ChronoUnit.DAYS),
-                        rs.getObject(5, LocalDate.class));
-                assertEquals(DateTimeFormatter.ofPattern("Y-w-e").parse(weekYear + "-1-1")
-                        .query(TemporalQueries.localDate()), rs.getObject(6, LocalDate.class));
+                assertEquals(
+						local1.minusDays( local1.get( wf.dayOfWeek() ) - 1 ),
+						rs.getObject(5, LocalDate.class));
+
+                assertEquals(
+                        local1.minusWeeks(w1 - 1).minusDays(local1.get(wf.dayOfWeek()) - 1),
+                        rs.getObject(6, LocalDate.class));
             }
         }
         conn.close();
@@ -1336,7 +1336,7 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         date = ValueTimestamp.parse("2013-01-29", null);
         assertEquals(date, ToDateParser.toDate(session, "2456322", "J"));
 
-        if (Locale.getDefault().getLanguage().equals("en")) {
+        if (Locale.getDefault( Locale.Category.FORMAT).getLanguage().equals( "en")) {
             date = ValueTimestamp.parse("9999-12-31 23:59:59", null);
             assertEquals(date, ToDateParser.toDate(session, "31-DEC-9999 23:59:59", "DD-MON-YYYY HH24:MI:SS"));
             assertEquals(date, ToDateParser.toDate(session, "31-DEC-9999 23:59:59", "DD-MON-RRRR HH24:MI:SS"));
@@ -1557,7 +1557,7 @@ public class TestFunctions extends TestDb implements AggregateFunction {
         assertResult("34", stat, "SELECT TO_CHAR(X, 'SS') FROM T");
         assertResult("29554", stat, "SELECT TO_CHAR(X, 'SSSSS') FROM T");
         expected = new SimpleDateFormat("h:mm:ss aa").format(timestamp1979);
-        if (Locale.getDefault().equals(Locale.US)) {
+        if (Locale.getDefault( Locale.Category.FORMAT).equals( Locale.US)) {
             assertEquals("8:12:34 AM", expected);
         }
         assertResult(expected, stat, "SELECT TO_CHAR(X, 'TS') FROM T");

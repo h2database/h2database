@@ -18,6 +18,7 @@ import java.util.Locale;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.h2.api.ErrorCode;
+import org.h2.engine.Constants;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
 
@@ -315,6 +316,10 @@ public class TestCompatibility extends TestDb {
         stat.execute("SET STATEMENT_TIMEOUT TO 30000");
         // `stat.getQueryTimeout()` returns seconds
         assertEquals(30, stat.getQueryTimeout());
+
+        ResultSet showVersion = stat.executeQuery( "SHOW SERVER_VERSION" );
+        assertTrue(showVersion.next());
+        assertEquals(showVersion.getString("SERVER_VERSION"), Constants.VERSION);
     }
 
     private void testMySQL() throws SQLException {

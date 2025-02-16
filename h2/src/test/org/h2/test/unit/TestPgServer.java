@@ -127,7 +127,7 @@ public class TestPgServer extends TestDb {
         assertStartsWith(server.getStatus(), "PG server running at pg://");
         try {
             if (getPgJdbcDriver()) {
-                testPgClient();
+                testPgClient(version);
                 testPgClientSimple();
             }
         } finally {
@@ -178,7 +178,7 @@ public class TestPgServer extends TestDb {
         deleteDb("pgserver");
     }
 
-    private void testPgClient() throws SQLException {
+    private void testPgClient(final String pgVersion) throws SQLException {
         Connection conn = DriverManager.getConnection(
                 "jdbc:postgresql://localhost:5535/pgserver", "sa", "sa");
         Statement stat = conn.createStatement();
@@ -378,6 +378,10 @@ public class TestPgServer extends TestDb {
         rs = stat.executeQuery("select * from generate_series(0, 1)");
         assertNRows(rs, 2);
         stat.setFetchSize(0);
+
+        ResultSet showVersion = stat.executeQuery( "SHOW SERVER_VERSION" );
+        assertTrue(showVersion.next());
+        assertEquals(showVersion.getString("SERVER_VERSION"), pgVersion);
 
         conn.close();
     }

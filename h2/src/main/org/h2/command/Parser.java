@@ -1220,7 +1220,7 @@ public final class Parser extends ParserBase {
             buff.append(" SEARCH_PATH");
         } else if (readIf("SERVER_VERSION")) {
             // for PostgreSQL compatibility
-            final String version = session.getNetworkConnectionInfo() == null ? Constants.PG_VERSION : session.getNetworkConnectionInfo().getServerVersion();
+            final String version = session.getNetworkConnectionInfo() == null ? Constants.VERSION : session.getNetworkConnectionInfo().getServerVersion();
             buff.append("'").append(version).append("' SERVER_VERSION");
         } else if (readIf("SERVER_ENCODING")) {
             // for PostgreSQL compatibility
@@ -3817,7 +3817,7 @@ public final class Parser extends ParserBase {
                     return readParameters(function);
                 }
             } else if (schema.getName().equals(database.sysIdentifier("INFORMATION_SCHEMA"))) {
-                final FunctionsPostgreSQL function = FunctionsPostgreSQL.getFunction(upperName);
+                final FunctionsPostgreSQL function = FunctionsPostgreSQL.getFunction("INFORMATION_SCHEMA", upperName);
                 if (function != null) {
                     return readParameters(function);
                 }

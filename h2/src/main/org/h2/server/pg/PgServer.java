@@ -77,7 +77,7 @@ public class PgServer implements Service {
     private boolean trace;
     private ServerSocket serverSocket;
     private final Set<PgServerThread> running = Collections.
-            synchronizedSet(new HashSet<PgServerThread>());
+            synchronizedSet(new HashSet<>());
     private final AtomicInteger pid = new AtomicInteger();
     private String baseDir;
     private boolean allowOthers;

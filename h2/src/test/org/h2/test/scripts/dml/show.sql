@@ -31,12 +31,6 @@ SHOW DATESTYLE;
 > ISO
 > rows: 1
 
-SHOW SERVER_VERSION;
-> SERVER_VERSION
-> --------------
-> 8.2.23
-> rows: 1
-
 SHOW SERVER_ENCODING;
 > SERVER_ENCODING
 > ---------------

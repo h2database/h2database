@@ -89,7 +89,9 @@ public final class Subquery extends Expression {
 
     @Override
     public void mapColumns(ColumnResolver resolver, int level, int state) {
-        outerResolvers.add(resolver);
+        if (outerResolvers != null) {
+            outerResolvers.add(resolver);
+        }
         query.mapColumns(resolver, level + 1, true);
     }
 

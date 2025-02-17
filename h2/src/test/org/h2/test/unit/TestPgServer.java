@@ -80,8 +80,50 @@ public class TestPgServer extends TestDb {
             testBinaryNumeric(versionToTest);
             testDateTime(versionToTest);
             testPrepareWithUnspecifiedType(versionToTest);
+            testSequences(versionToTest);
             testOtherPgClients(versionToTest);
             testArray(versionToTest);
+        }
+    }
+
+    private void testSequences(final String version) throws SQLException {
+        if (!getPgJdbcDriver()) {
+            return;
+        }
+
+        final Server server = createPgServer(
+                "-ifNotExists", "-pgPort", "5535", "-pgVersion", version, "-pgDaemon", "-key", "pgserver", "mem:pgserver");
+        try {
+            Properties props = new Properties();
+            props.setProperty( "user", "sa" );
+            props.setProperty( "password", "sa" );
+            props.setProperty( "prepareThreshold", "1" );
+
+            Connection conn = DriverManager.getConnection(
+                    "jdbc:postgresql://localhost:5535/pgserver", props );
+
+            Statement stat = conn.createStatement();
+
+            stat.executeUpdate( "CREATE SEQUENCE TEST_SEQ AS BIGINT INCREMENT BY 1 START WITH 100 CACHE 10 CYCLE");
+
+            ResultSet rs = stat.executeQuery( "SELECT nextval('TEST_SEQ') AS V" );
+            assertTrue(rs.next());
+            assertEquals(100L, rs.getLong("V"));
+
+            rs = stat.executeQuery( "SELECT nextval('TEST_SEQ') AS V" );
+            assertTrue(rs.next());
+            assertEquals(101L, rs.getLong("V"));
+
+            rs = stat.executeQuery("select s.* from information_schema.sequences s");
+            assertTrue(rs.next());
+            assertEquals("test_seq", rs.getString("sequence_name"));
+            assertEquals("BIGINT", rs.getString("data_type"));
+            assertEquals(100L, rs.getLong( "start_value"));
+            assertEquals(true, rs.getBoolean("cycle_option"));
+            assertEquals(102L, rs.getLong("base_value"));
+            assertFalse(rs.next());
+        } finally {
+            server.stop();
         }
     }
 

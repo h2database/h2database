@@ -6,6 +6,7 @@
 package org.h2.table;
 
 import org.h2.command.dml.DataChangeStatement;
+import org.h2.command.dml.DeltaChangeCollector;
 import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
@@ -14,6 +15,8 @@ import org.h2.result.ResultInterface;
 import org.h2.result.ResultTarget;
 import org.h2.result.Row;
 import org.h2.schema.Schema;
+
+import static org.h2.command.dml.DeltaChangeCollector.Action.INSERT;
 
 /**
  * A data change delta table.
@@ -51,22 +54,17 @@ public class DataChangeDeltaTable extends VirtualConstructedTable {
      *            the table
      * @param deltaChangeCollector
      *            target result
-     * @param deltaChangeCollectionMode
-     *            collection mode
      * @param newRow
      *            the inserted row
      */
-    public static void collectInsertedFinalRow(SessionLocal session, Table table, ResultTarget deltaChangeCollector,
-            ResultOption deltaChangeCollectionMode, Row newRow) {
+    public static void collectInsertedFinalRow(SessionLocal session, Table table, DeltaChangeCollector deltaChangeCollector, Row newRow) {
         if (session.getMode().takeInsertedIdentity) {
             Column column = table.getIdentityColumn();
             if (column != null) {
                 session.setLastIdentity(newRow.getValue(column.getColumnId()));
             }
         }
-        if (deltaChangeCollectionMode == ResultOption.FINAL) {
-            deltaChangeCollector.addRow(newRow.getValueList());
-        }
+        deltaChangeCollector.trigger(INSERT, ResultOption.FINAL, newRow.getValueList());
     }
 
     private final DataChangeStatement statement;
@@ -117,7 +115,8 @@ public class DataChangeDeltaTable extends VirtualConstructedTable {
         int columnCount = expressions.length;
         LocalResult result = new LocalResult(session, expressions, columnCount, columnCount);
         result.setForDataChangeDeltaTable();
-        statement.update(result, resultOption);
+        final DeltaChangeCollector deltaChangeCollector = DeltaChangeCollector.defaultCollector( result, resultOption );
+        statement.update(deltaChangeCollector);
         return result;
     }
 

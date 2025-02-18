@@ -37,6 +37,8 @@ import org.h2.table.Table;
 import org.h2.util.HasSQL;
 import org.h2.value.Value;
 
+import static org.h2.command.dml.DeltaChangeCollector.Action.INSERT;
+
 /**
  * This class represents the statement
  * INSERT
@@ -64,9 +66,7 @@ public final class Insert extends CommandWithValues implements ResultTarget {
      */
     private boolean ignore;
 
-    private ResultTarget deltaChangeCollector;
-
-    private ResultOption deltaChangeCollectionMode;
+    private DeltaChangeCollector deltaChangeCollector;
 
     public Insert(SessionLocal session) {
         super(session);
@@ -128,14 +128,12 @@ public final class Insert extends CommandWithValues implements ResultTarget {
     }
 
     @Override
-    public long update(ResultTarget deltaChangeCollector, ResultOption deltaChangeCollectionMode) {
+    public long update(final DeltaChangeCollector deltaChangeCollector) {
         this.deltaChangeCollector = deltaChangeCollector;
-        this.deltaChangeCollectionMode = deltaChangeCollectionMode;
         try {
             return insertRows();
         } finally {
             this.deltaChangeCollector = null;
-            this.deltaChangeCollectionMode = null;
         }
     }
 
@@ -165,9 +163,7 @@ public final class Insert extends CommandWithValues implements ResultTarget {
                 }
                 rowNumber++;
                 table.convertInsertRow(session, newRow, overridingSystem);
-                if (deltaChangeCollectionMode == ResultOption.NEW) {
-                    deltaChangeCollector.addRow(newRow.getValueList().clone());
-                }
+                deltaChangeCollector.trigger(INSERT, ResultOption.NEW, newRow.getValueList().clone());
                 if (!table.fireBeforeRow(session, null, newRow)) {
                     table.lock(session, Table.WRITE_LOCK);
                     try {
@@ -183,12 +179,10 @@ public final class Insert extends CommandWithValues implements ResultTarget {
                         }
                         continue;
                     }
-                    DataChangeDeltaTable.collectInsertedFinalRow(session, table, deltaChangeCollector,
-                            deltaChangeCollectionMode, newRow);
+                    DataChangeDeltaTable.collectInsertedFinalRow(session, table, deltaChangeCollector, newRow);
                     table.fireAfterRow(session, null, newRow, false);
                 } else {
-                    DataChangeDeltaTable.collectInsertedFinalRow(session, table, deltaChangeCollector,
-                            deltaChangeCollectionMode, newRow);
+                    DataChangeDeltaTable.collectInsertedFinalRow(session, table, deltaChangeCollector, newRow);
                 }
             }
         } else {
@@ -227,17 +221,13 @@ public final class Insert extends CommandWithValues implements ResultTarget {
             newRow.setValue(columns[j].getColumnId(), values[j]);
         }
         table.convertInsertRow(session, newRow, overridingSystem);
-        if (deltaChangeCollectionMode == ResultOption.NEW) {
-            deltaChangeCollector.addRow(newRow.getValueList().clone());
-        }
+        deltaChangeCollector.trigger(INSERT, ResultOption.NEW, newRow.getValueList().clone());
         if (!table.fireBeforeRow(session, null, newRow)) {
             table.addRow(session, newRow);
-            DataChangeDeltaTable.collectInsertedFinalRow(session, table, deltaChangeCollector,
-                    deltaChangeCollectionMode, newRow);
+            DataChangeDeltaTable.collectInsertedFinalRow(session, table, deltaChangeCollector, newRow);
             table.fireAfterRow(session, null, newRow, false);
         } else {
-            DataChangeDeltaTable.collectInsertedFinalRow(session, table, deltaChangeCollector,
-                    deltaChangeCollectionMode, newRow);
+            DataChangeDeltaTable.collectInsertedFinalRow(session, table, deltaChangeCollector, newRow);
         }
     }
 

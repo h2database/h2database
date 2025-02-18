@@ -17,7 +17,6 @@ import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.message.DbException;
 import org.h2.result.LocalResult;
-import org.h2.result.ResultTarget;
 import org.h2.result.Row;
 import org.h2.table.DataChangeDeltaTable.ResultOption;
 import org.h2.table.PlanItem;
@@ -25,6 +24,8 @@ import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
+
+import static org.h2.command.dml.DeltaChangeCollector.Action.DELETE;
 
 /**
  * This class represents the statement
@@ -38,12 +39,12 @@ public final class Delete extends FilteredDataChangeStatement {
 
 
     @Override
-    public long update(ResultTarget deltaChangeCollector, ResultOption deltaChangeCollectionMode) {
+    public long update(final DeltaChangeCollector deltaChangeCollector) {
         targetTableFilter.startQuery(session);
         targetTableFilter.reset();
         Table table = targetTableFilter.getTable();
         session.getUser().checkTableRight(table, Right.DELETE);
-        table.fire(session, Trigger.DELETE, true);
+        table.fire( session, Trigger.DELETE, true);
         table.lock(session, Table.WRITE_LOCK);
         long limitRows = -1;
         if (fetchExpr != null) {
@@ -58,9 +59,7 @@ public final class Delete extends FilteredDataChangeStatement {
             while (nextRow(limitRows, count)) {
                 Row row = lockAndRecheckCondition();
                 if (row != null) {
-                    if (deltaChangeCollectionMode == ResultOption.OLD) {
-                        deltaChangeCollector.addRow(row.getValueList());
-                    }
+                    deltaChangeCollector.trigger(DELETE, ResultOption.OLD, row.getValueList());
                     if (!table.fireRow() || !table.fireBeforeRow(session, row, null)) {
                         rows.addRowForTable(row);
                     }
@@ -81,7 +80,7 @@ public final class Delete extends FilteredDataChangeStatement {
                     table.fireAfterRow(session, rows.currentRowForTable(), null, false);
                 }
             }
-            table.fire(session, Trigger.DELETE, false);
+            table.fire( session, Trigger.DELETE, false);
             return count;
         }
     }

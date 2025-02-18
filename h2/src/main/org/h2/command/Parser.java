@@ -212,7 +212,7 @@ import org.h2.command.ddl.RefreshMaterializedView;
 import org.h2.command.ddl.SequenceOptions;
 import org.h2.command.ddl.SetComment;
 import org.h2.command.ddl.TruncateTable;
-import org.h2.command.dml.AlterTableSet;
+import org.h2.command.ddl.AlterTableSet;
 import org.h2.command.dml.BackupCommand;
 import org.h2.command.dml.Call;
 import org.h2.command.dml.CommandWithValues;

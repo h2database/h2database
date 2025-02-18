@@ -18,7 +18,6 @@ import org.h2.expression.Parameter;
 import org.h2.expression.ValueExpression;
 import org.h2.message.DbException;
 import org.h2.result.LocalResult;
-import org.h2.result.ResultTarget;
 import org.h2.result.Row;
 import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
@@ -28,6 +27,8 @@ import org.h2.util.HasSQL;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueNull;
+
+import static org.h2.command.dml.DeltaChangeCollector.Action.UPDATE;
 
 /**
  * Set clause list.
@@ -120,8 +121,7 @@ public final class SetClauseList implements HasSQL {
         }
     }
 
-    boolean prepareUpdate(Table table, SessionLocal session, ResultTarget deltaChangeCollector,
-            ResultOption deltaChangeCollectionMode, LocalResult rows, Row oldRow,
+    boolean prepareUpdate(Table table, SessionLocal session, final DeltaChangeCollector deltaChangeCollector, LocalResult rows, Row oldRow,
             boolean updateToCurrentValuesReturnsZero) {
         Column[] columns = table.getColumns();
         int columnCount = columns.length;
@@ -166,18 +166,13 @@ public final class SetClauseList implements HasSQL {
         } else if (updateToCurrentValuesReturnsZero && oldRow.hasSameValues(newRow)) {
             result = false;
         }
-        if (deltaChangeCollectionMode == ResultOption.OLD) {
-            deltaChangeCollector.addRow(oldRow.getValueList());
-        } else if (deltaChangeCollectionMode == ResultOption.NEW) {
-            deltaChangeCollector.addRow(newRow.getValueList().clone());
-        }
+        deltaChangeCollector.trigger(UPDATE, ResultOption.OLD, oldRow.getValueList());
+        deltaChangeCollector.trigger(UPDATE, ResultOption.NEW, newRow.getValueList().clone());
         if (!table.fireRow() || !table.fireBeforeRow(session, oldRow, newRow)) {
             rows.addRowForTable(oldRow);
             rows.addRowForTable(newRow);
         }
-        if (deltaChangeCollectionMode == ResultOption.FINAL) {
-            deltaChangeCollector.addRow(newRow.getValueList());
-        }
+        deltaChangeCollector.trigger(UPDATE, ResultOption.FINAL, newRow.getValueList());
         return result;
     }
 

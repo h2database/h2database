@@ -7,6 +7,7 @@ package org.h2.command.dml;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+
 import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
 import org.h2.command.Command;
@@ -22,7 +23,6 @@ import org.h2.index.Index;
 import org.h2.message.DbException;
 import org.h2.mvstore.db.MVPrimaryIndex;
 import org.h2.result.ResultInterface;
-import org.h2.result.ResultTarget;
 import org.h2.result.Row;
 import org.h2.table.Column;
 import org.h2.table.DataChangeDeltaTable;
@@ -85,7 +85,7 @@ public final class Merge extends CommandWithValues {
     }
 
     @Override
-    public long update(ResultTarget deltaChangeCollector, ResultOption deltaChangeCollectionMode) {
+    public long update(final DeltaChangeCollector deltaChangeCollector) {
         long count = 0;
         session.getUser().checkTableRight(table, Right.INSERT);
         session.getUser().checkTableRight(table, Right.UPDATE);
@@ -108,7 +108,7 @@ public final class Merge extends CommandWithValues {
                         }
                     }
                 }
-                count += merge(newRow, expr, deltaChangeCollector, deltaChangeCollectionMode);
+                count += merge(newRow, expr, deltaChangeCollector);
             }
         } else {
             // process select data for list
@@ -123,7 +123,7 @@ public final class Merge extends CommandWithValues {
                 for (int j = 0; j < columns.length; j++) {
                     newRow.setValue(columns[j].getColumnId(), r[j]);
                 }
-                count += merge(newRow, null, deltaChangeCollector, deltaChangeCollectionMode);
+                count += merge(newRow, null, deltaChangeCollector);
             }
             rows.close();
             table.fire(session, Trigger.UPDATE | Trigger.INSERT, false);
@@ -137,12 +137,10 @@ public final class Merge extends CommandWithValues {
      * @param row row to replace
      * @param expressions source expressions, or null
      * @param deltaChangeCollector target result
-     * @param deltaChangeCollectionMode collection mode
      * @return 1 if row was inserted, 1 if row was updated by a MERGE statement,
      *         and 2 if row was updated by a REPLACE statement
      */
-    private int merge(Row row, Expression[] expressions, ResultTarget deltaChangeCollector,
-            ResultOption deltaChangeCollectionMode) {
+    private int merge(Row row, Expression[] expressions, DeltaChangeCollector deltaChangeCollector) {
         long count;
         if (update == null) {
             // if there is no valid primary key,
@@ -189,24 +187,20 @@ public final class Merge extends CommandWithValues {
                 }
                 k.get(j++).setValue(v.convertForAssignTo(colType, session, col));
             }
-            count = update.update(deltaChangeCollector, deltaChangeCollectionMode);
+            count = update.update(deltaChangeCollector);
         }
         // if update fails try an insert
         if (count == 0) {
             try {
                 table.convertInsertRow(session, row, null);
-                if (deltaChangeCollectionMode == ResultOption.NEW) {
-                    deltaChangeCollector.addRow(row.getValueList().clone());
-                }
+                deltaChangeCollector.trigger(DeltaChangeCollector.Action.INSERT, ResultOption.NEW, row.getValueList().clone());
                 if (!table.fireBeforeRow(session, null, row)) {
                     table.lock(session, Table.WRITE_LOCK);
                     table.addRow(session, row);
-                    DataChangeDeltaTable.collectInsertedFinalRow(session, table, deltaChangeCollector,
-                            deltaChangeCollectionMode, row);
+                    DataChangeDeltaTable.collectInsertedFinalRow(session, table, deltaChangeCollector, row);
                     table.fireAfterRow(session, null, row, false);
                 } else {
-                    DataChangeDeltaTable.collectInsertedFinalRow(session, table, deltaChangeCollector,
-                            deltaChangeCollectionMode, row);
+                    DataChangeDeltaTable.collectInsertedFinalRow(session, table, deltaChangeCollector, row);
                 }
                 return 1;
             } catch (DbException e) {

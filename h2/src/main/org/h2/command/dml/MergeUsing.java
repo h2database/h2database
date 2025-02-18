@@ -33,6 +33,9 @@ import org.h2.table.TableFilter;
 import org.h2.util.HasSQL;
 import org.h2.util.Utils;
 
+import static org.h2.command.dml.DeltaChangeCollector.Action.DELETE;
+import static org.h2.command.dml.DeltaChangeCollector.Action.INSERT;
+
 /**
  * This class represents the statement syntax
  * MERGE INTO table alias USING...
@@ -70,7 +73,7 @@ public final class MergeUsing extends DataChangeStatement {
     }
 
     @Override
-    public long update(ResultTarget deltaChangeCollector, ResultOption deltaChangeCollectionMode) {
+    public long update(final DeltaChangeCollector deltaChangeCollector) {
         long countUpdatedRows = 0;
         targetRowidsRemembered.clear();
         checkRights();
@@ -91,7 +94,7 @@ public final class MergeUsing extends DataChangeStatement {
                     Row backupTarget = targetTableFilter.get();
                     sourceTableFilter.set(missedSource);
                     targetTableFilter.set(table.getNullRow());
-                    countUpdatedRows += merge(true, deltaChangeCollector, deltaChangeCollectionMode);
+                    countUpdatedRows += merge(true, deltaChangeCollector);
                     sourceTableFilter.set(source);
                     targetTableFilter.set(backupTarget);
                     count++;
@@ -120,26 +123,26 @@ public final class MergeUsing extends DataChangeStatement {
                     continue;
                 }
             }
-            countUpdatedRows += merge(nullRow, deltaChangeCollector, deltaChangeCollectionMode);
+            countUpdatedRows += merge(nullRow, deltaChangeCollector);
             count++;
             previousSource = source;
         }
         if (missedSource != null) {
             sourceTableFilter.set(missedSource);
             targetTableFilter.set(table.getNullRow());
-            countUpdatedRows += merge(true, deltaChangeCollector, deltaChangeCollectionMode);
+            countUpdatedRows += merge(true, deltaChangeCollector);
         }
         targetRowidsRemembered.clear();
         table.fire(session, evaluateTriggerMasks(), false);
         return countUpdatedRows;
     }
 
-    private int merge(boolean nullRow, ResultTarget deltaChangeCollector, ResultOption deltaChangeCollectionMode) {
+    private int merge(boolean nullRow, final DeltaChangeCollector deltaChangeCollector) {
         for (When w : when) {
             if (w.getClass() == WhenNotMatched.class == nullRow) {
                 Expression condition = w.andCondition;
                 if (condition == null || condition.getBooleanValue(session)) {
-                    w.merge(session, deltaChangeCollector, deltaChangeCollectionMode);
+                    w.merge(session, deltaChangeCollector);
                     return 1;
                 }
             }
@@ -308,11 +311,8 @@ public final class MergeUsing extends DataChangeStatement {
          *            the session
          * @param deltaChangeCollector
          *            target result
-         * @param deltaChangeCollectionMode
-         *            collection mode
          */
-        abstract void merge(SessionLocal session, ResultTarget deltaChangeCollector,
-                ResultOption deltaChangeCollectionMode);
+        abstract void merge(SessionLocal session, final DeltaChangeCollector deltaChangeCollector);
 
         /**
          * Prepares WHEN command.
@@ -378,13 +378,11 @@ public final class MergeUsing extends DataChangeStatement {
     public final class WhenMatchedThenDelete extends When {
 
         @Override
-        void merge(SessionLocal session, ResultTarget deltaChangeCollector, ResultOption deltaChangeCollectionMode) {
+        void merge(final SessionLocal session, final DeltaChangeCollector deltaChangeCollector) {
             TableFilter targetTableFilter = MergeUsing.this.targetTableFilter;
             Table table = targetTableFilter.getTable();
             Row row = targetTableFilter.get();
-            if (deltaChangeCollectionMode == ResultOption.OLD) {
-                deltaChangeCollector.addRow(row.getValueList());
-            }
+            deltaChangeCollector.trigger(DELETE, ResultOption.OLD, row.getValueList());
             if (!table.fireRow() || !table.fireBeforeRow(session, row, null)) {
                 table.removeRow(session, row);
                 table.fireAfterRow(session, row, null, false);
@@ -417,11 +415,11 @@ public final class MergeUsing extends DataChangeStatement {
         }
 
         @Override
-        void merge(SessionLocal session, ResultTarget deltaChangeCollector, ResultOption deltaChangeCollectionMode) {
+        void merge(final SessionLocal session, final DeltaChangeCollector deltaChangeCollector) {
             TableFilter targetTableFilter = MergeUsing.this.targetTableFilter;
             Table table = targetTableFilter.getTable();
             try (LocalResult rows = LocalResult.forTable(session, table)) {
-                setClauseList.prepareUpdate(table, session, deltaChangeCollector, deltaChangeCollectionMode, rows,
+                setClauseList.prepareUpdate(table, session, deltaChangeCollector, rows,
                         targetTableFilter.get(), false);
                 Update.doUpdate(MergeUsing.this, session, table, rows);
             }
@@ -472,7 +470,7 @@ public final class MergeUsing extends DataChangeStatement {
         }
 
         @Override
-        void merge(SessionLocal session, ResultTarget deltaChangeCollector, ResultOption deltaChangeCollectionMode) {
+        void merge(SessionLocal session, final DeltaChangeCollector deltaChangeCollector) {
             Table table = targetTableFilter.getTable();
             Row newRow = table.getTemplateRow();
             Expression[] expr = values;
@@ -490,17 +488,13 @@ public final class MergeUsing extends DataChangeStatement {
                 }
             }
             table.convertInsertRow(session, newRow, overridingSystem);
-            if (deltaChangeCollectionMode == ResultOption.NEW) {
-                deltaChangeCollector.addRow(newRow.getValueList().clone());
-            }
+            deltaChangeCollector.trigger(INSERT, ResultOption.NEW, newRow.getValueList().clone());
             if (!table.fireBeforeRow(session, null, newRow)) {
                 table.addRow(session, newRow);
-                DataChangeDeltaTable.collectInsertedFinalRow(session, table, deltaChangeCollector,
-                        deltaChangeCollectionMode, newRow);
+                DataChangeDeltaTable.collectInsertedFinalRow(session, table, deltaChangeCollector, newRow);
                 table.fireAfterRow(session, null, newRow, false);
             } else {
-                DataChangeDeltaTable.collectInsertedFinalRow(session, table, deltaChangeCollector,
-                        deltaChangeCollectionMode, newRow);
+                DataChangeDeltaTable.collectInsertedFinalRow(session, table, deltaChangeCollector, newRow);
             }
         }
 

@@ -12,6 +12,7 @@ import java.util.Set;
 import org.h2.api.DatabaseEventListener;
 import org.h2.api.ErrorCode;
 import org.h2.command.dml.DataChangeStatement;
+import org.h2.command.dml.DeltaChangeCollector;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
 import org.h2.engine.DbSettings;
@@ -24,56 +25,17 @@ import org.h2.index.Index;
 import org.h2.message.DbException;
 import org.h2.result.LocalResult;
 import org.h2.result.ResultInterface;
-import org.h2.result.ResultTarget;
 import org.h2.result.ResultWithGeneratedKeys;
 import org.h2.table.Column;
-import org.h2.table.DataChangeDeltaTable.ResultOption;
 import org.h2.table.Table;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
-import org.h2.value.Value;
 
 /**
  * Represents a single SQL statements.
  * It wraps a prepared statement.
  */
 public class CommandContainer extends Command {
-
-    /**
-     * Collector of generated keys.
-     */
-    private static final class GeneratedKeysCollector implements ResultTarget {
-
-        private final int[] indexes;
-        private final LocalResult result;
-
-        GeneratedKeysCollector(int[] indexes, LocalResult result) {
-            this.indexes = indexes;
-            this.result = result;
-        }
-
-        @Override
-        public void limitsWereApplied() {
-            // Nothing to do
-        }
-
-        @Override
-        public long getRowCount() {
-            // Not required
-            return 0L;
-        }
-
-        @Override
-        public void addRow(Value... values) {
-            int length = indexes.length;
-            Value[] row = new Value[length];
-            for (int i = 0; i < length; i++) {
-                row[i] = values[indexes[i]];
-            }
-            result.addRow(row);
-        }
-
-    }
 
     private Prepared prepared;
     private boolean readOnlyKnown;
@@ -208,8 +170,7 @@ public class CommandContainer extends Command {
             indexes[i] = expressions[i].getColumn().getColumnId();
         }
         LocalResult result = new LocalResult(session, expressions, columnCount, columnCount);
-        return new ResultWithGeneratedKeys.WithKeys(
-                statement.update(new GeneratedKeysCollector(indexes, result), ResultOption.FINAL), result);
+        return new ResultWithGeneratedKeys.WithKeys(statement.update(DeltaChangeCollector.generatedKeys(indexes, result)), result);
     }
 
     @Override

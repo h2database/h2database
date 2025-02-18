@@ -9,9 +9,7 @@ import org.h2.command.Prepared;
 import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.result.ResultInterface;
-import org.h2.result.ResultTarget;
 import org.h2.result.Row;
-import org.h2.table.DataChangeDeltaTable.ResultOption;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
 
@@ -74,19 +72,16 @@ public abstract class DataChangeStatement extends Prepared {
 
     @Override
     public final long update() {
-        return update(null, null);
+        return update(DeltaChangeCollector.noop());
     }
 
     /**
      * Execute the statement with specified delta change collector and collection mode.
      *
-     * @param deltaChangeCollector
-     *            target result
-     * @param deltaChangeCollectionMode
-     *            collection mode
+     * @param deltaChangeCollector target result
      * @return the update count
      */
-    public abstract long update(ResultTarget deltaChangeCollector, ResultOption deltaChangeCollectionMode);
+    public abstract long update(final DeltaChangeCollector deltaChangeCollector);
 
     protected final Row lockAndRecheckCondition(TableFilter targetTableFilter, Expression condition) {
         Table table = targetTableFilter.getTable();

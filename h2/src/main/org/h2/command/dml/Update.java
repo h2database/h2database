@@ -18,9 +18,7 @@ import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.message.DbException;
 import org.h2.result.LocalResult;
-import org.h2.result.ResultTarget;
 import org.h2.result.Row;
-import org.h2.table.DataChangeDeltaTable.ResultOption;
 import org.h2.table.PlanItem;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
@@ -46,7 +44,7 @@ public final class Update extends FilteredDataChangeStatement {
     }
 
     @Override
-    public long update(ResultTarget deltaChangeCollector, ResultOption deltaChangeCollectionMode) {
+    public long update(final DeltaChangeCollector deltaChangeCollector) {
         targetTableFilter.startQuery(session);
         targetTableFilter.reset();
         Table table = targetTableFilter.getTable();
@@ -67,7 +65,7 @@ public final class Update extends FilteredDataChangeStatement {
             while (nextRow(limitRows, count)) {
                 Row row = lockAndRecheckCondition();
                 if (row != null) {
-                    if (setClauseList.prepareUpdate(table, session, deltaChangeCollector, deltaChangeCollectionMode,
+                    if (setClauseList.prepareUpdate(table, session, deltaChangeCollector,
                             rows, row, onDuplicateKeyInsert != null)) {
                         count++;
                     }

@@ -12,6 +12,7 @@ import java.util.Iterator;
 import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
 import org.h2.command.CommandInterface;
+import org.h2.command.dml.DeltaChangeCollector.ResultOption;
 import org.h2.command.query.AllColumnsForPlan;
 import org.h2.engine.DbObject;
 import org.h2.engine.Right;
@@ -22,11 +23,8 @@ import org.h2.expression.Parameter;
 import org.h2.expression.ValueExpression;
 import org.h2.message.DbException;
 import org.h2.result.LocalResult;
-import org.h2.result.ResultTarget;
 import org.h2.result.Row;
 import org.h2.table.Column;
-import org.h2.table.DataChangeDeltaTable;
-import org.h2.table.DataChangeDeltaTable.ResultOption;
 import org.h2.table.PlanItem;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
@@ -421,7 +419,7 @@ public final class MergeUsing extends DataChangeStatement {
             try (LocalResult rows = LocalResult.forTable(session, table)) {
                 setClauseList.prepareUpdate(table, session, deltaChangeCollector, rows,
                         targetTableFilter.get(), false);
-                Update.doUpdate(MergeUsing.this, session, table, rows);
+                setClauseList.doUpdate(MergeUsing.this, session, table, rows);
             }
         }
 
@@ -491,10 +489,10 @@ public final class MergeUsing extends DataChangeStatement {
             deltaChangeCollector.trigger(INSERT, ResultOption.NEW, newRow.getValueList().clone());
             if (!table.fireBeforeRow(session, null, newRow)) {
                 table.addRow(session, newRow);
-                DataChangeDeltaTable.collectInsertedFinalRow(session, table, deltaChangeCollector, newRow);
+                deltaChangeCollector.trigger(INSERT, ResultOption.FINAL, newRow.getValueList());
                 table.fireAfterRow(session, null, newRow, false);
             } else {
-                DataChangeDeltaTable.collectInsertedFinalRow(session, table, deltaChangeCollector, newRow);
+                deltaChangeCollector.trigger(INSERT, ResultOption.FINAL, newRow.getValueList());
             }
         }
 

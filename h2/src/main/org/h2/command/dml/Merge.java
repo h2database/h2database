@@ -12,6 +12,8 @@ import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
 import org.h2.command.Command;
 import org.h2.command.CommandInterface;
+import org.h2.command.dml.DeltaChangeCollector.Action;
+import org.h2.command.dml.DeltaChangeCollector.ResultOption;
 import org.h2.command.query.Query;
 import org.h2.engine.DbObject;
 import org.h2.engine.Right;
@@ -25,14 +27,14 @@ import org.h2.mvstore.db.MVPrimaryIndex;
 import org.h2.result.ResultInterface;
 import org.h2.result.Row;
 import org.h2.table.Column;
-import org.h2.table.DataChangeDeltaTable;
-import org.h2.table.DataChangeDeltaTable.ResultOption;
 import org.h2.table.Table;
 import org.h2.util.HasSQL;
 import org.h2.value.DataType;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
+
+import static org.h2.command.dml.DeltaChangeCollector.Action.INSERT;
 
 /**
  * This class represents the statement
@@ -193,14 +195,14 @@ public final class Merge extends CommandWithValues {
         if (count == 0) {
             try {
                 table.convertInsertRow(session, row, null);
-                deltaChangeCollector.trigger(DeltaChangeCollector.Action.INSERT, ResultOption.NEW, row.getValueList().clone());
+                deltaChangeCollector.trigger(Action.INSERT, ResultOption.NEW, row.getValueList().clone());
                 if (!table.fireBeforeRow(session, null, row)) {
                     table.lock(session, Table.WRITE_LOCK);
                     table.addRow(session, row);
-                    DataChangeDeltaTable.collectInsertedFinalRow(session, table, deltaChangeCollector, row);
+                    deltaChangeCollector.trigger(INSERT, ResultOption.FINAL, row.getValueList());
                     table.fireAfterRow(session, null, row, false);
                 } else {
-                    DataChangeDeltaTable.collectInsertedFinalRow(session, table, deltaChangeCollector, row);
+                    deltaChangeCollector.trigger(INSERT, ResultOption.FINAL, row.getValueList());
                 }
                 return 1;
             } catch (DbException e) {

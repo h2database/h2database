@@ -9,6 +9,7 @@ import java.util.HashSet;
 
 import org.h2.api.Trigger;
 import org.h2.command.CommandInterface;
+import org.h2.command.dml.DeltaChangeCollector.ResultOption;
 import org.h2.command.query.AllColumnsForPlan;
 import org.h2.engine.DbObject;
 import org.h2.engine.Right;
@@ -18,7 +19,6 @@ import org.h2.expression.ExpressionVisitor;
 import org.h2.message.DbException;
 import org.h2.result.LocalResult;
 import org.h2.result.Row;
-import org.h2.table.DataChangeDeltaTable.ResultOption;
 import org.h2.table.PlanItem;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
@@ -36,7 +36,6 @@ public final class Delete extends FilteredDataChangeStatement {
     public Delete(SessionLocal session) {
         super(session);
     }
-
 
     @Override
     public long update(final DeltaChangeCollector deltaChangeCollector) {

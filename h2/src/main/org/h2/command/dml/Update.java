@@ -71,7 +71,7 @@ public final class Update extends FilteredDataChangeStatement {
                     }
                 }
             }
-            doUpdate(this, session, table, rows);
+            setClauseList.doUpdate(this, session, table, rows);
             table.fire(session, Trigger.UPDATE, false);
             return count;
         }

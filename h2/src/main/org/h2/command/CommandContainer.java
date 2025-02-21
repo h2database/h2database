@@ -170,7 +170,7 @@ public class CommandContainer extends Command {
             indexes[i] = expressions[i].getColumn().getColumnId();
         }
         LocalResult result = new LocalResult(session, expressions, columnCount, columnCount);
-        return new ResultWithGeneratedKeys.WithKeys(statement.update(DeltaChangeCollector.generatedKeys(indexes, result)), result);
+        return new ResultWithGeneratedKeys.WithKeys( statement.update(DeltaChangeCollector.generatedKeysCollector( session, table, indexes, result)), result);
     }
 
     @Override

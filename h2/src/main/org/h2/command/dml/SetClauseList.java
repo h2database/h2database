@@ -9,6 +9,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import org.h2.api.ErrorCode;
+import org.h2.command.Prepared;
+import org.h2.command.dml.DeltaChangeCollector.ResultOption;
 import org.h2.engine.Constants;
 import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
@@ -21,7 +23,6 @@ import org.h2.result.LocalResult;
 import org.h2.result.Row;
 import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
-import org.h2.table.DataChangeDeltaTable.ResultOption;
 import org.h2.table.Table;
 import org.h2.util.HasSQL;
 import org.h2.value.Value;
@@ -174,6 +175,27 @@ public final class SetClauseList implements HasSQL {
         }
         deltaChangeCollector.trigger(UPDATE, ResultOption.FINAL, newRow.getValueList());
         return result;
+    }
+
+    public void doUpdate(Prepared prepared, SessionLocal session, Table table, LocalResult rows) {
+        rows.done();
+        // TODO self referencing referential integrity constraints
+        // don't work if update is multi-row and 'inversed' the condition!
+        // probably need multi-row triggers with 'deleted' and 'inserted'
+        // at the same time. anyway good for sql compatibility
+        // TODO update in-place (but if the key changes,
+        // we need to update all indexes) before row triggers
+
+        // the cached row is already updated - we need the old values
+        table.updateRows(prepared, session, rows);
+        if (table.fireRow()) {
+            for (rows.reset(); rows.next();) {
+                Row o = rows.currentRowForTable();
+                rows.next();
+                Row n = rows.currentRowForTable();
+                table.fireAfterRow(session, o, n, false);
+            }
+        }
     }
 
     /**

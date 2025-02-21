@@ -13,6 +13,7 @@ import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
 import org.h2.command.Command;
 import org.h2.command.CommandInterface;
+import org.h2.command.dml.DeltaChangeCollector.ResultOption;
 import org.h2.command.query.Query;
 import org.h2.engine.DbObject;
 import org.h2.engine.Right;
@@ -31,8 +32,6 @@ import org.h2.result.ResultInterface;
 import org.h2.result.ResultTarget;
 import org.h2.result.Row;
 import org.h2.table.Column;
-import org.h2.table.DataChangeDeltaTable;
-import org.h2.table.DataChangeDeltaTable.ResultOption;
 import org.h2.table.Table;
 import org.h2.util.HasSQL;
 import org.h2.value.Value;
@@ -43,8 +42,7 @@ import static org.h2.command.dml.DeltaChangeCollector.Action.INSERT;
  * This class represents the statement
  * INSERT
  */
-public final class Insert extends CommandWithValues implements ResultTarget {
-
+public final class Insert extends CommandWithValues {
     private Table table;
     private Column[] columns;
     private Query query;
@@ -65,8 +63,6 @@ public final class Insert extends CommandWithValues implements ResultTarget {
      * NOTHING.
      */
     private boolean ignore;
-
-    private DeltaChangeCollector deltaChangeCollector;
 
     public Insert(SessionLocal session) {
         super(session);
@@ -129,15 +125,6 @@ public final class Insert extends CommandWithValues implements ResultTarget {
 
     @Override
     public long update(final DeltaChangeCollector deltaChangeCollector) {
-        this.deltaChangeCollector = deltaChangeCollector;
-        try {
-            return insertRows();
-        } finally {
-            this.deltaChangeCollector = null;
-        }
-    }
-
-    private long insertRows() {
         session.getUser().checkTableRight(table, Right.INSERT);
         setCurrentRowNumber(0);
         table.fire(session, Trigger.INSERT, true);
@@ -179,22 +166,22 @@ public final class Insert extends CommandWithValues implements ResultTarget {
                         }
                         continue;
                     }
-                    DataChangeDeltaTable.collectInsertedFinalRow(session, table, deltaChangeCollector, newRow);
+                    deltaChangeCollector.trigger(INSERT, ResultOption.FINAL, newRow.getValueList());
                     table.fireAfterRow(session, null, newRow, false);
                 } else {
-                    DataChangeDeltaTable.collectInsertedFinalRow(session, table, deltaChangeCollector, newRow);
+                    deltaChangeCollector.trigger(INSERT, ResultOption.FINAL, newRow.getValueList());
                 }
             }
         } else {
             table.lock(session, Table.WRITE_LOCK);
             if (insertFromSelect) {
-                query.query(0, this);
+                query.query(0, new InsertFromSelectResult(deltaChangeCollector));
             } else {
                 try (ResultInterface rows = query.query(0)) {
                     while (rows.next()) {
                         Value[] r = rows.currentRow();
                         try {
-                            addRow(r);
+                            insertRow(deltaChangeCollector, r);
                         } catch (DbException de) {
                             if (handleOnDuplicate(de, r)) {
                                 // MySQL returns 2 for updated row
@@ -213,8 +200,7 @@ public final class Insert extends CommandWithValues implements ResultTarget {
         return rowNumber;
     }
 
-    @Override
-    public void addRow(Value... values) {
+    private void insertRow(final DeltaChangeCollector deltaChangeCollector, final Value... values) {
         Row newRow = table.getTemplateRow();
         setCurrentRowNumber(++rowNumber);
         for (int j = 0, len = columns.length; j < len; j++) {
@@ -224,22 +210,11 @@ public final class Insert extends CommandWithValues implements ResultTarget {
         deltaChangeCollector.trigger(INSERT, ResultOption.NEW, newRow.getValueList().clone());
         if (!table.fireBeforeRow(session, null, newRow)) {
             table.addRow(session, newRow);
-            DataChangeDeltaTable.collectInsertedFinalRow(session, table, deltaChangeCollector, newRow);
+            deltaChangeCollector.trigger(INSERT, ResultOption.FINAL, newRow.getValueList());
             table.fireAfterRow(session, null, newRow, false);
         } else {
-            DataChangeDeltaTable.collectInsertedFinalRow(session, table, deltaChangeCollector, newRow);
+            deltaChangeCollector.trigger(INSERT, ResultOption.FINAL, newRow.getValueList());
         }
-    }
-
-    @Override
-    public long getRowCount() {
-        // This method is not used in this class
-        return rowNumber;
-    }
-
-    @Override
-    public void limitsWereApplied() {
-        // Nothing to do
     }
 
     @Override
@@ -442,4 +417,25 @@ public final class Insert extends CommandWithValues implements ResultTarget {
         }
     }
 
+    private class InsertFromSelectResult implements ResultTarget {
+        private final DeltaChangeCollector deltaChangeCollector;
+
+		private InsertFromSelectResult(final DeltaChangeCollector deltaChangeCollector) {
+			this.deltaChangeCollector = deltaChangeCollector;
+		}
+
+		@Override
+        public void addRow(Value... values) {
+            insertRow(deltaChangeCollector, values);
+        }
+
+        @Override
+        public long getRowCount() {
+            return rowNumber;
+        }
+
+        @Override
+        public void limitsWereApplied() {
+        }
+    }
 }

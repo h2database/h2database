@@ -19,12 +19,14 @@ has reduced from 4841 ms to 8 ms!
 
 |        | PUBLIC | scanCount | Query time      |
 |--------|---|---|-----------------|
-| Before | PUBLIC.POSTS.tableScan | 995087 | 10 row, 4841 ms |
- | After | PUBLIC.POST_TIMESTAMP_IDX | 10 | 10 row, 8 ms    |
+| Before | PUBLIC.POSTS.tableScan | 995087 | 10 rows, 4841 ms |
+ | After | PUBLIC.POST_TIMESTAMP_IDX | 10 | 10 rows, 8 ms    |
 
 
 **<u>EXPLAIN ANALYZE screenshot:</u>**
 
+
+<img src="https://github.com/eburhansjah/ec500-spring2025-eburhansjah-h2database/blob/hw4-eburhansjah-h2database/assets/explain-analyze-hw4-prob1.png" alt="explain-analyze-img-hw4-prob1" style="width:30%; height:auto;">
 
  
 <screenshot of EXPLAIN ANALYZE>

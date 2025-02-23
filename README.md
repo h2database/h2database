@@ -1,6 +1,31 @@
 ## Problem 1 - Recent Posts 
- 
-<change you made>
+**Objectives:**
+- Show off the most 10 recent posts that has a fast enough update times in order to be displayed on a screen at a building lobby.
+
+**<u>Changes made:</u>**
+
+Since the provided query is dependent on timestamp for retrieving the 10 most
+recent posts, index should be created on the timestamp in descending order. 
+With this, the data base can utilize a B-tree data structure to quickly fetch information
+ that is stored in descending order:
+
+`CREATE INDEX post_timestamp_idx ON posts(post_timestamp DESC);`
+
+Instead of doing a table scan through a million of rows to sort, the query can 
+now instead just fetch the 10 most recent posts immediately. 
+
+After the creation of index based on post timestamp, run time of the query 
+has reduced from 4841 ms to 8 ms!
+
+|        | PUBLIC | scanCount | Query time      |
+|--------|---|---|-----------------|
+| Before | PUBLIC.POSTS.tableScan | 995087 | 10 row, 4841 ms |
+ | After | PUBLIC.POST_TIMESTAMP_IDX | 10 | 10 row, 8 ms    |
+
+
+**<u>EXPLAIN ANALYZE screenshot:</u>**
+
+
  
 <screenshot of EXPLAIN ANALYZE>
  

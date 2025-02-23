@@ -1,8 +1,8 @@
 ## Problem 1 - Recent Posts 
-**Objectives:**
+**<ins>Objectives:</ins>**
 - Show off the most 10 recent posts that has a fast enough update times in order to be displayed on a screen at a building lobby.
 
-**<u>Changes made:</u>**
+**<ins>Changes made:</ins>**
 
 Since the provided query is dependent on timestamp for retrieving the 10 most
 recent posts, index should be created on the timestamp in descending order. 
@@ -23,20 +23,46 @@ has reduced from 4841 ms to 8 ms!
  | After | PUBLIC.POST_TIMESTAMP_IDX | 10 | 10 rows, 8 ms    |
 
 
-**<u>EXPLAIN ANALYZE screenshot:</u>**
+**<ins>EXPLAIN ANALYZE screenshot:</ins>**
 
 | Before | After |
 |--- | --- |
 |<img src="https://github.com/eburhansjah/ec500-spring2025-eburhansjah-h2database/blob/hw4-eburhansjah-h2database/assets/before-hw4-prob1.png" alt="before-explain-analyze-img-hw4-prob1" style="width:50%; height:auto;">|<img src="https://github.com/eburhansjah/ec500-spring2025-eburhansjah-h2database/blob/hw4-eburhansjah-h2database/assets/explain-analyze-hw4-prob1.png" alt="after-explain-analyze-img-hw4-prob1" style="width:80%; height:auto;">|
 
  
-<screenshot of EXPLAIN ANALYZE>
- 
 ## Problem 2 - Somewhat Strange Query
+**<ins>Objectives:</ins>**
+- Reduce query time from 300-600 ms to below 100 ms
+
+**<ins>Changes made:</ins>**
+- Creating composite index: `CREATE INDEX posts_composite_idx ON posts (post_timestamp ASC, content, author);`
+
+With the creation of composite index, the query run time was reduced to below 100 ms. Infact, it was at around 10 - 20 ms!
+
+Composite index optimizes the query that filters based on content, post_timestamp and author. The composite index was created with columns with higher selectivity ahead of those with lower selectivity. 
+
+|        | PUBLIC | scanCount | Query time      |
+|--------|---|---|-----------------|
+| Before | PUBLIC.POSTS.tableScan | 995087 | 46 rows, 590 ms |
+| After | PUBLIC.POSTS_COMPOSITE_IDX | 16874 | 46 rows, 13 ms    |
+
+Intially, I experimented with the following:
+
+**Attempt 1:** Creating indexes separately for timestamp in ascending order, content, and author
+
+Result from attempt 1 did not reduce query time to below 100 ms. In fact, it was in ~200 ms
+
+**Attempt 2:**
+
+- Creating indexes separately for timestamp in ascending order, content, and author
+- Replacing commands UPPER() and SUBSTR() to content LIKE '%C' and to author LIKE '__son%' respectively
+
+Result from attempt 2 also did not reduce query time to below 100 ms. In fact, it was also at around ~200 ms
  
-<change you made>
- 
-<screenshot of EXPLAIN ANALYZE>
+**<ins>EXPLAIN ANALYZE screenshot:</ins>**
+
+| Before | After |
+|--- | --- |
  
 ## Problem 3 - Really Fast Single Row Responses
 ### Problem 3.1 

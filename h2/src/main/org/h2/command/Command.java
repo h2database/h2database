@@ -379,7 +379,7 @@ public abstract class Command implements CommandInterface {
 
     @Override
     public void close() {
-        canReuse = true;
+        canReuse = false; // true;
     }
 
     @Override

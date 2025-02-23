@@ -43,26 +43,28 @@ Composite index optimizes the query that filters based on content, post_timestam
 
 |        | PUBLIC | scanCount | Query time      |
 |--------|---|---|-----------------|
-| Before | PUBLIC.POSTS.tableScan | 995087 | 46 rows, 590 ms |
+| Before | PUBLIC.POSTS.tableScan | 995087 | 46 rows, 636 ms |
 | After | PUBLIC.POSTS_COMPOSITE_IDX | 16874 | 46 rows, 13 ms    |
+ 
+**<ins>EXPLAIN ANALYZE screenshot:</ins>**
+
+| Before | After |
+|--- | --- |
+|<img src="https://github.com/eburhansjah/ec500-spring2025-eburhansjah-h2database/blob/hw4-eburhansjah-h2database/assets/explain-analysis-hw4-prob2-before.png" alt="before-explain-analyze-hw4-prob2" style="width:100%; height:auto;"> | <img src="https://github.com/eburhansjah/ec500-spring2025-eburhansjah-h2database/blob/hw4-eburhansjah-h2database/assets/explain-analysis-hw4-prob2-after.png" alt="after-explain-analyze-hw4-prob2" style="width:100%; height:auto;">|
+
 
 Intially, I experimented with the following:
 
 **Attempt 1:** Creating indexes separately for timestamp in ascending order, content, and author
 
-Result from attempt 1 did not reduce query time to below 100 ms. In fact, it was in ~200 ms
+Result from attempt 1 did not reduce query time to below 100 ms. In fact, it was in ~200 - 300 ms
 
 **Attempt 2:**
 
 - Creating indexes separately for timestamp in ascending order, content, and author
 - Replacing commands UPPER() and SUBSTR() to content LIKE '%C' and to author LIKE '__son%' respectively
 
-Result from attempt 2 also did not reduce query time to below 100 ms. In fact, it was also at around ~200 ms
- 
-**<ins>EXPLAIN ANALYZE screenshot:</ins>**
-
-| Before | After |
-|--- | --- |
+Result from attempt 2 also did not reduce query time to below 100 ms. In fact, it was also at around ~200 - 300 ms
  
 ## Problem 3 - Really Fast Single Row Responses
 ### Problem 3.1 

@@ -69,7 +69,14 @@ Result from attempt 2 also did not reduce query time to below 100 ms. In fact, i
 ## Problem 3 - Really Fast Single Row Responses
 ### Problem 3.1 
  
+**<ins>a) Analyze Explain Analyze outpout for the query when no indexes exist</ins>**
+
+<img src="https://github.com/eburhansjah/ec500-spring2025-eburhansjah-h2database/blob/hw4-eburhansjah-h2database/assets/explain-analyze-hw4-prob3-1-without-indexes.png" alt="explain-analyze-hw4-prob3-1-without-indexes" style="width:40%; height:autho;">
+
+The screenshot above is the output of Explain Analyze for the query when no indexes exist. We can observe that the data base is doing a table scan that involves 995087 total number of scans, which gives the following query time: (3 rows, 589 ms).
+
 <What index does H2DB end up using?  Explain the pros and cons of each index that you created.>
+
  
 ### Problem 3.2 
 ﻿

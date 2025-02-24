@@ -6,7 +6,7 @@
 
 Since the provided query is dependent on timestamp for retrieving the 10 most
 recent posts, index should be created on the timestamp in descending order. 
-With this, the data base can utilize a B-tree data structure to quickly fetch information
+With this, the data base can utilize a B+ tree data structure to quickly fetch information
  that is stored in descending order:
 
 `CREATE INDEX post_timestamp_idx ON posts(post_timestamp DESC);`

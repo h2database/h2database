@@ -75,7 +75,41 @@ Result from attempt 2 also did not reduce query time to below 100 ms. In fact, i
 
 The screenshot above is the output of Explain Analyze for the query when no indexes exist. We can observe that the data base is doing a table scan that involves 995087 total number of scans, which gives the following query time: (3 rows, 589 ms).
 
-<What index does H2DB end up using?  Explain the pros and cons of each index that you created.>
+**<ins>b) Create different indexes on the same columns and analyze outcomes</ins>**
+
+In class, there are two different physical index strategies being discussed. They are B+ tree indexes and Hash indexes. B+ tree indexes are for commonly used for general purposes and when it comes to exact match queries, run time is O(log N). Meanwhile, Hash indexes are more specialized for exact match queries, which gives a constant run time of O(1).
+
+I created four types of indexes:
+- `CREATE INDEX post_timestamp_btree_idx on posts(post_timestamp);`
+- `CREATE INDEX post_timestamp_btree_desc_idx on posts(post_timestamp DESC);`
+- `CREATE HASH INDEX post_timestamp_hash_idx on posts(post_timestamp);`
+- `CREATE HASH INDEX post_timestamp_hash_desc_idx on posts(post_timestamp DESC);`
+
+The following are the observed results from EXPLAIN ANALYZE:
+
+| Index type | PUBLIC | scanCount | Query time      |
+|--------|---|---|-----------------|
+| Without index | PUBLIC.POSTS.tableScan | 995087 | 1 row, 427 ms |
+| B+ tree (ASC) | PUBLIC.POST_TIMESTAMP_BTREE_IDX | 4 | 1 row, 18 ms |
+| B+ tree (DESC) | PUBLIC.POST_TIMESTAMP_BTREE_DESC_IDX | 4 | 1 row, 38 ms |
+| Hash (ASC) | PUBLIC.POST_TIMESTAMP_HASH_IDX | 4 | 1 row, 23 ms |
+| **Hash (DESC)** | PUBLIC.POST_TIMESTAMP_HASH_DESC_IDX | 4 | **1 row, 14 ms** |
+
+From the table above, hash index in descending order on timestamp gives the fastest query time. This makes sense because not only is hash index is specialized for exact match queries but descending order on the timestamp helps to retrieve more recent dates that is required by the query ('2024-01-26 17:52:23.000000').
+
+**<ins>c) What index does H2DB end up using?  Explain the pros and cons of each index that you created.</ins>**
+
+After creating all four indexes, H2DB ends up using the B+ tree (DESC) index.
+
+Pros:
+- Overall, the four types of indexes significantly reduce query run time from ~400 ms to ~10-40 ms for a row
+- Having either indexes in DESC order is that it allows the query to quickly fetch data from the more recent dates
+- Hash indexes are geared to exact match queries, giving a run time of O(1)
+
+Cons:
+- If the query is looking to fetch information from earlier date, the DESC order of either of the indexes would result in slower query time. ASC order would be used instead
+- B+ tree has a more general purpose in query. Because of tree traversal, exact match query will not be done at constant time and instead in O(log N)
+- Hash indexes can be problematic if there are many collisions
 
  
 ### Problem 3.2 

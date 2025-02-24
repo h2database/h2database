@@ -131,8 +131,45 @@ WHERE
 For the query above, since the WHERE clause is filtering based on a range, Hash indexes cannot be used. Hence, the indexes that would be applicable is B+ tree indexes, either in ASC or DESC order. 
  
 ### Problem 3.3
+
+```
+SELECT
+    post_id,
+    post_timestamp,
+    content
  
-<Can you modify one of the indexes from 3.2 to make this query even faster?  Explain why your change to the index made the query even faster.>
+FROM
+    posts
+ 
+WHERE
+    post_timestamp BETWEEN '2024-01-25' AND '2024-01-27';
+```
+
+**<ins>a) Look at Explain Analyze output for query with indexes in place from 3.2:</ins>**
+
+| Index type | PUBLIC | scanCount | Reads | Query time      |
+|--------|---|---|-----------------| --- |
+| Without index | PUBLIC.POSTS.tableScan | 293977 | 19148 | 1 row, 198 ms |
+| B+ tree (ASC) | PUBLIC.POST_TIMESTAMP_BTREE_IDX | 1000 | 1963 | 1 row, 212 ms |
+| B+ tree (DESC) | PUBLIC.POST_TIMESTAMP_BTREE_DESC_IDX | 1000 | 1975 | 1 row, 62 ms |
+
+
+**<ins>b) Modify one of the indexes in 3.2 to make query go faster</ins>**
+
+Changes made from one of the indexes in 3.2 would be to add another index column, content:
+
+`CREATE INDEX post_desc_timestamp_content_btree_idx on posts(post_timestamp DESC, content);`
+
+The following is Explain Analyze output for modified query:
+
+| Index type | PUBLIC | scanCount | Reads | Query time      |
+|--------|---|---|-----------------| --- |
+| B+ tree | PUBLIC.POST_DESC_TIMESTAMP_CONTENT_BTREE_IDX | 1000 | 48 | 1 row, 68 ms |
+
+**<ins>c) Explain why it makes query go faster</ins>**
+
+Having composite index of timestamp(DESC), content decreases query time because covering indexes prevents the data base from getting content values from the core table via the primary key. In other words, all of the required columns from SELECT (post_id, post_timestamp, and content) are stored in the index itself, thus the database do not need to spend extra time to hop around pages/core table to retrieve information on content, resulting to a faster query.
+
  
 ## Problem 4 - Table Join Order
 ### Problem 4.1 

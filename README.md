@@ -95,7 +95,7 @@ The following are the observed results from EXPLAIN ANALYZE:
 | Hash (ASC) | PUBLIC.POST_TIMESTAMP_HASH_IDX | 4 | 1 row, 23 ms |
 | **Hash (DESC)** | PUBLIC.POST_TIMESTAMP_HASH_DESC_IDX | 4 | **1 row, 14 ms** |
 
-From the table above, hash index in descending order on timestamp gives the fastest query time. This makes sense because not only is hash index is specialized for exact match queries but descending order on the timestamp helps to retrieve more recent dates that is required by the query ('2024-01-26 17:52:23.000000').
+From the table above, hash index in descending order on timestamp gives the fastest query time. This makes sense because not only is hash index is specialized for exact match queries. Although ASC or DESC ordering does not matter for hash data structure, I still find the results interesting.
 
 **<ins>c) What index does H2DB end up using?  Explain the pros and cons of each index that you created.</ins>**
 
@@ -114,7 +114,21 @@ Cons:
  
 ### Problem 3.2 
 ﻿
-<Which of the indexes that you created for 3.1 would you expect to be used now.  Please explain.>
+**<ins>Which of the indexes that you created for 3.1 would you expect to be used now.  Please explain.</ins>**
+
+```
+SELECT
+    post_id,
+    post_timestamp
+ 
+FROM
+    posts
+ 
+WHERE
+    post_timestamp BETWEEN '2024-01-25' AND '2024-01-27';
+```
+
+For the query above, since the WHERE clause is filtering based on a range, Hash indexes cannot be used. Hence, the indexes that would be applicable is B+ tree indexes, either in ASC or DESC order. 
  
 ### Problem 3.3
  

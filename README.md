@@ -266,7 +266,7 @@ Three tables are involved in the query above.  Theoretically, that would give us
   
 - Permutation 3: followers -> users -> posts
   - Inefficient query, but is faster than permutation 1
-  - This is because filtering is happing after joining the followers table to the users table (happing at the middle of the join order)
+  - This is because filtering is happening after joining the followers table to the users table (happing at the middle of the join order)
   - <img src="https://github.com/eburhansjah/ec500-spring2025-eburhansjah-h2database/blob/hw4-eburhansjah-h2database/assets/hw4-4-2-f-u-p-join-order.png" alt="f-u-p-join-order" style="width:50%; height:auto;">
   
 - Permutation 4: followers -> posts -> users
@@ -280,7 +280,7 @@ The user madison.anderson9901 is following 5,879 other users.  Between those use
 
 **Write a query that returns the columns post_id, author, post_timestamp, content for the most recent post by each user that madison.anderson9901 is following.  Use indexes and think about table join order to make your query efficient - it should take under a second according to EXPLAIN ANALYZE**
 
-I tried many different queries and created many indexes. Finally I settled with the following which resulted to a run time that is less than a second (1 row,679 ms):
+I tried many different queries and created many indexes. Finally I settled with the following which resulted to a run time that is less than a second (1 row, 657 ms):
 
 Features include join order that yields the most efficient query based on problem 4. Furthermore, I tried to create various indexes, but the database chose to do a table scan by default. Despite this is the case, run time of query is still less than a second.
 
@@ -297,17 +297,17 @@ FROM users
 
 WHERE users.handle = 'madison.anderson9901'
 
-ORDER BY posts.post_timestamp DESC;
+ORDER BY posts.post_timestamp DESC, posts.author;
 ```
 
 <ins>EXPLAIN ANALYZE SCREENSHOT:</ins>
 
 
-<img src="https://github.com/eburhansjah/ec500-spring2025-eburhansjah-h2database/blob/hw4-eburhansjah-h2database/assets/hw4-5-explain-analyze.png" alt="hw4-5-explain-analyze" style="width:60%; height:auto;">
+<img src="https://github.com/eburhansjah/ec500-spring2025-eburhansjah-h2database/blob/hw4-eburhansjah-h2database/assets/hw4-5-explain-analyze-output.png" alt="hw4-5-explain-analyze" style="width:60%; height:auto;">
 
 <ins>Terminal Output screenshot:</ins>
 
-<img src="https://github.com/eburhansjah/ec500-spring2025-eburhansjah-h2database/blob/hw4-eburhansjah-h2database/assets/hw4-5-terminal-output.png" alt="hw4-5-terminal-output" style="width:90%; height:auto;">
+<img src="https://github.com/eburhansjah/ec500-spring2025-eburhansjah-h2database/blob/hw4-eburhansjah-h2database/assets/hw4-5-terminal.png" alt="hw4-5-terminal-output" style="width:90%; height:auto;">
 
 
 

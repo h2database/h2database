@@ -199,13 +199,80 @@ Having composite index of timestamp(DESC), content decreases query time because 
 
  
 ## Problem 4 - Table Join Order
-### Problem 4.1 
+
+```
+SELECT
+   COUNT(1)
  
-<Your modified query here>
+FROM
+    posts
+    JOIN followers ON posts.author = followers.following_handle
+    JOIN users ON followers.follower_handle = users.handle
+ 
+WHERE
+    users.last_name = 'Anderson'
+    AND users.first_name = 'Abigail';
+```
+
+### Problem 4.1 
+
+**Can you make this query faster by only re-arranging the JOIN order of the tables in the FROM clause and without making any other changes?** 
+
+Yes, I can make this query faster. The current query that we have above is inefficient because filtering begins with posts table which does not narrow down rows to fit according to the WHERE clause. As a result, the query takes a very long time to run at (1 row, 104341 ms).
+
+My modified query:
+
+```
+SELECT
+   COUNT(1)
+
+FROM users
+    JOIN followers ON users.handle = followers.follower_handle
+    JOIN posts ON followers.following_handle = posts.author
+
+WHERE
+    users.last_name = 'Anderson'
+    AND users.first_name = 'Abigail';
+```
+
+The modified query begins filtering from users -> followers -> posts table which was efficient and significantly reduces query run time to (1 row, 24 ms).
  
 ### Problem 4.2
- 
-<List each of the four possible join orders and explain why or why not that particular join order will perform well or poorly.>
+
+Three tables are involved in the query above.  Theoretically, that would give us 6 potential permutations on Join order.  However, in practice only 4 are feasible because users and posts cannot be joined to each other directly and followers must appear before at least one of those tables (permutations 5 and 6).  
+
+**List each of the four possible join orders and explain why or why not that particular join order will perform well or poorly.**
+
+| Permutation | Join order | Run time | scanCount | reads |
+| ----------- | ---------- | -------- | --------- | ----- |
+| 1 | posts -> followers -> users | (1 row, 104341 ms) | 296895399 | 2056458 |
+| 2 | users -> followers -> posts | (1 row, 24 ms) | 10217 | 719 |
+| 3 | followers -> users -> posts | (1 row, 884 ms) | 2985331 | 44616 |
+| 4 | followers -> posts -> users | (1 row, 58218 ms) | 296895307 | 4749762 |
+| 5 | users -> posts -> followers | N/A | N/A | N/A | 
+| 6 | posts -> users -> followers | N/A | N/A | N/A | 
+
+
+<ins>EXPLAIN ANALYZE SCREENSHOTS:</ins>
+- Permutation 1: posts -> followers -> users
+  - The most inefficient query
+  - This is due to the massive size of posts table. The join order of this permutation does not help reduce rows effectively by starting with posts table. By leaving the filtering conditions to the end (users table), the data base is forced to process all unnecessary information during the query process.
+  - <img src="https://github.com/eburhansjah/ec500-spring2025-eburhansjah-h2database/blob/hw4-eburhansjah-h2database/assets/hw4-4-og-query.png" alt="p-f-u-join-order" style="width:50%; height:auto;">
+  
+- Permutation 2: users -> followers -> posts
+  - The most efficient query
+  - This is because we are doing filtering early on users table which is based on the WHERE clause. This significantly reduces the number of rows early, preventing database from unnecessary processing overhead.
+  - <img src="https://github.com/eburhansjah/ec500-spring2025-eburhansjah-h2database/blob/hw4-eburhansjah-h2database/assets/hw4-4-1-rearrange-u-f-p-join-order.png" alt="u-f-p-join-order" style="width:50%; height:auto;">
+  
+- Permutation 3: followers -> users -> posts
+  - Inefficient query, but is faster than permutation 1
+  - This is because filtering is happing after joining the followers table to the users table (happing at the middle of the join order)
+  - <img src="https://github.com/eburhansjah/ec500-spring2025-eburhansjah-h2database/blob/hw4-eburhansjah-h2database/assets/hw4-4-2-f-u-p-join-order.png" alt="f-u-p-join-order" style="width:50%; height:auto;">
+  
+- Permutation 4: followers -> posts -> users
+  - Inefficient query. Faster than permutation 1 and slower than permutation 3
+  - This is because although we start with followers table, which is a smaller table compared to the posts table, we are doing the necessary filtering at the end (users table)
+  - <img src="https://github.com/eburhansjah/ec500-spring2025-eburhansjah-h2database/blob/hw4-eburhansjah-h2database/assets/hw4-4-2-f-p-u-join-order.png" alt="f-p-u-join-order" style="width:50%; height:auto;">
  
 ## Problem 5 - Putting it All Together - Fast Most Recent Posts 
  

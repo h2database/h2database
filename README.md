@@ -275,8 +275,36 @@ Three tables are involved in the query above.  Theoretically, that would give us
   - <img src="https://github.com/eburhansjah/ec500-spring2025-eburhansjah-h2database/blob/hw4-eburhansjah-h2database/assets/hw4-4-2-f-p-u-join-order.png" alt="f-p-u-join-order" style="width:50%; height:auto;">
  
 ## Problem 5 - Putting it All Together - Fast Most Recent Posts 
- 
-<your query here>
+
+The user madison.anderson9901 is following 5,879 other users.  Between those users, they have a combined 571,121 posts.  When madison.anderson9901 logs into her dashboard, we would like to show her just the most recent post from each one of those users.  The posts should be ordered in descending order - most recent post first.
+
+**Write a query that returns the columns post_id, author, post_timestamp, content for the most recent post by each user that madison.anderson9901 is following.  Use indexes and think about table join order to make your query efficient - it should take under a second according to EXPLAIN ANALYZE**
+
+I tried many different queries and created many indexes. Finally I settled with the following which resulted to a run time that is less than a second (1 row,679 ms) without the use of indexes, but with efficient table join order based on problem 4:
+
+```
+SELECT DISTINCT ON (posts.author)
+    posts.post_id AS post_id,
+    posts.author AS author,
+    posts.post_timestamp AS post_timestamp,
+    posts.content AS content
+
+FROM users
+    JOIN followers ON users.handle = followers.follower_handle
+    JOIN posts ON followers.following_handle = posts.author
+
+WHERE users.handle = 'madison.anderson9901'
+
+ORDER BY posts.post_timestamp DESC;
+```
+
+<ins>EXPLAIN ANALYZE SCREENSHOT:</ins>
+
+
+
+
+<ins>Terminal Output screenshot:</ins>
+
 
 
 

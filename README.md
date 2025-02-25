@@ -280,7 +280,9 @@ The user madison.anderson9901 is following 5,879 other users.  Between those use
 
 **Write a query that returns the columns post_id, author, post_timestamp, content for the most recent post by each user that madison.anderson9901 is following.  Use indexes and think about table join order to make your query efficient - it should take under a second according to EXPLAIN ANALYZE**
 
-I tried many different queries and created many indexes. Finally I settled with the following which resulted to a run time that is less than a second (1 row,679 ms) without the use of indexes, but with efficient table join order based on problem 4:
+I tried many different queries and created many indexes. Finally I settled with the following which resulted to a run time that is less than a second (1 row,679 ms):
+
+Features include join order that yields the most efficient query based on problem 4. Furthermore, I tried to create various indexes, but the database chose to do a table scan by default. Despite this is the case, run time of query is still less than a second.
 
 ```
 SELECT DISTINCT ON (posts.author)
@@ -301,9 +303,11 @@ ORDER BY posts.post_timestamp DESC;
 <ins>EXPLAIN ANALYZE SCREENSHOT:</ins>
 
 
-
+<img src="https://github.com/eburhansjah/ec500-spring2025-eburhansjah-h2database/blob/hw4-eburhansjah-h2database/assets/hw4-5-explain-analyze.png" alt="hw4-5-explain-analyze" style="width:60%; height:auto;">
 
 <ins>Terminal Output screenshot:</ins>
+
+<img src="https://github.com/eburhansjah/ec500-spring2025-eburhansjah-h2database/blob/hw4-eburhansjah-h2database/assets/hw4-5-terminal-output.png" alt="hw4-5-terminal-output" style="width:90%; height:auto;">
 
 
 

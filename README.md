@@ -95,7 +95,20 @@ The following are the observed results from EXPLAIN ANALYZE:
 | Hash (ASC) | PUBLIC.POST_TIMESTAMP_HASH_IDX | 4 | 1 row, 23 ms |
 | **Hash (DESC)** | PUBLIC.POST_TIMESTAMP_HASH_DESC_IDX | 4 | **1 row, 14 ms** |
 
-From the table above, hash index in descending order on timestamp gives the fastest query time. This makes sense because not only is hash index is specialized for exact match queries. Although ASC or DESC ordering does not matter for hash data structure, I still find the results interesting.
+From the table above, hash index in descending order on timestamp gives the fastest query time. This makes sense because not only is hash index is specialized for exact match queries. Theoretically ASC or DESC ordering does not matter for hash data structure, but there is an observable effect on query time albeit a small difference.
+
+<ins>EXPLAIN ANALYZE SCREENSHOTS:</ins>
+- B+ tree (ASC) index on post_timestamp
+   - <img src="https://github.com/eburhansjah/ec500-spring2025-eburhansjah-h2database/blob/hw4-eburhansjah-h2database/assets/hw4-prob3-1-btree-asc-idx.png" alt="btree-asc-timestamp" style="width:60%; height:auto;">
+
+- B+ tree (DESC) index on post_timestamp
+  - <img src="https://github.com/eburhansjah/ec500-spring2025-eburhansjah-h2database/blob/hw4-eburhansjah-h2database/assets/hw4-prob3-1-btree-desc-idx.png" alt="btree-desc-timestamp" style="width:60%; height:auto;">
+  
+- Hash (ASC) index on post_timestamp
+  - <img src="https://github.com/eburhansjah/ec500-spring2025-eburhansjah-h2database/blob/hw4-eburhansjah-h2database/assets/hw4-prob3-1-hash-asc-idx.png" alt="hash-asc-timestamp" style="width:60%; height:auto;">
+  
+- Hash (DESC) index on post_timestamp
+  - <img src="https://github.com/eburhansjah/ec500-spring2025-eburhansjah-h2database/blob/hw4-eburhansjah-h2database/assets/hw4-prob3-1-hash-desc-idx.png" alt="hash-desc-timestamp" style="width:60%; height:auto;">
 
 **<ins>c) What index does H2DB end up using?  Explain the pros and cons of each index that you created.</ins>**
 
@@ -153,6 +166,16 @@ WHERE
 | B+ tree (ASC) | PUBLIC.POST_TIMESTAMP_BTREE_IDX | 1000 | 1963 | 1 row, 212 ms |
 | B+ tree (DESC) | PUBLIC.POST_TIMESTAMP_BTREE_DESC_IDX | 1000 | 1975 | 1 row, 62 ms |
 
+<ins>EXPLAIN ANALYZE SCREENSHOTS:</ins>
+- Without index
+  - <img src="https://github.com/eburhansjah/ec500-spring2025-eburhansjah-h2database/blob/hw4-eburhansjah-h2database/assets/hw4-prob3-3-without-idx.png" alt="3-3-without-index" style="width:50%; height:auto;">
+  
+- B+ tree (ASC) index on post_timestamp
+  - <img src="https://github.com/eburhansjah/ec500-spring2025-eburhansjah-h2database/blob/hw4-eburhansjah-h2database/assets/hw4-prob3-3-btree-asc.png" alt="3-3-btree-asc-timestamp" style="width:50%; height:auto;">
+
+- B+ tree (DESC) index on post_timestamp
+  - <img src="https://github.com/eburhansjah/ec500-spring2025-eburhansjah-h2database/blob/hw4-eburhansjah-h2database/assets/hw4-prob3-3-btree-desc.png" alt="3-3-btree-desc-timestamp" style="width:50%; height:auto;">
+
 
 **<ins>b) Modify one of the indexes in 3.2 to make query go faster</ins>**
 
@@ -165,6 +188,10 @@ The following is Explain Analyze output for modified query:
 | Index type | PUBLIC | scanCount | Reads | Query time      |
 |--------|---|---|-----------------| --- |
 | B+ tree | PUBLIC.POST_DESC_TIMESTAMP_CONTENT_BTREE_IDX | 1000 | 48 | 1 row, 68 ms |
+
+<ins>EXPLAIN ANALYZE SCREENSHOT:</ins>
+
+<img src="https://github.com/eburhansjah/ec500-spring2025-eburhansjah-h2database/blob/hw4-eburhansjah-h2database/assets/hw4-prob3-3-mod-idx.png" alt="3-3-mod-idx" style="width:50%; height:auto;">
 
 **<ins>c) Explain why it makes query go faster</ins>**
 

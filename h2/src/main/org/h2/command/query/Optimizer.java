@@ -105,12 +105,17 @@ class Optimizer {
     }
 
     private void calculateBruteForceAll(boolean isSelectCommand) {
-        TableFilter[] list = new TableFilter[filters.length];
-        Permutations<TableFilter> p = Permutations.create(filters, list);
-        for (int x = 0; !canStop(x) && p.next(); x++) {
-            testPlan(list, isSelectCommand);
-        }
-    }
+    TableFilter[] list = new TableFilter[filters.length];
+    Permutations<TableFilter> p = Permutations.create(filters, list);
+
+    p.next();
+    testPlan(list, isSelectCommand);
+
+//    for (int x = 0; !canStop(x) && p.next(); x++) {
+//        testPlan(list, isSelectCommand);
+//    }
+}
+
 
     private void calculateBruteForceSome(boolean isSelectCommand) {
         int bruteForce = getMaxBruteForceFilters(filters.length);

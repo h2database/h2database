@@ -32,6 +32,7 @@ import org.h2.result.ResultInterface;
 import org.h2.result.ResultTarget;
 import org.h2.result.Row;
 import org.h2.table.Column;
+import org.h2.table.ColumnResolver;
 import org.h2.table.Table;
 import org.h2.util.HasSQL;
 import org.h2.value.Value;
@@ -48,6 +49,7 @@ public final class Insert extends CommandWithValues {
     private Query query;
     private long rowNumber;
     private boolean insertFromSelect;
+    private final InsertColumnResolver insertColumnResolver = new InsertColumnResolver();
 
     private Boolean overridingSystem;
 
@@ -150,6 +152,7 @@ public final class Insert extends CommandWithValues {
                 }
                 rowNumber++;
                 table.convertInsertRow(session, newRow, overridingSystem);
+                insertColumnResolver.currentInsertedRow = newRow;
                 deltaChangeCollector.trigger(INSERT, ResultOption.NEW, newRow.getValueList().clone());
                 if (!table.fireBeforeRow(session, null, newRow)) {
                     table.lock(session, Table.WRITE_LOCK);
@@ -207,6 +210,7 @@ public final class Insert extends CommandWithValues {
             newRow.setValue(columns[j].getColumnId(), values[j]);
         }
         table.convertInsertRow(session, newRow, overridingSystem);
+        insertColumnResolver.currentInsertedRow = newRow;
         deltaChangeCollector.trigger(INSERT, ResultOption.NEW, newRow.getValueList().clone());
         if (!table.fireBeforeRow(session, null, newRow)) {
             table.addRow(session, newRow);
@@ -414,6 +418,32 @@ public final class Insert extends CommandWithValues {
             }
         } else {
             query.isEverything(visitor);
+        }
+    }
+
+    @Override
+    public <T extends ColumnResolver.ColumnResolverVisitor> T visit(T mapColumnVisitor) {
+        mapColumnVisitor.accept(insertColumnResolver);
+
+        return mapColumnVisitor;
+    }
+
+    private class InsertColumnResolver implements ColumnResolver {
+        private Row currentInsertedRow;
+
+        @Override
+        public Column[] getColumns() {
+            return table.getColumns();
+        }
+
+        @Override
+        public Column findColumn(String name) {
+            return table.findColumn(name);
+        }
+
+        @Override
+        public Value getValue(Column column) {
+            return currentInsertedRow.getValue(column.getColumnId());
         }
     }
 

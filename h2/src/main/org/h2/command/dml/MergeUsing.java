@@ -25,6 +25,7 @@ import org.h2.message.DbException;
 import org.h2.result.LocalResult;
 import org.h2.result.Row;
 import org.h2.table.Column;
+import org.h2.table.ColumnResolver;
 import org.h2.table.PlanItem;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
@@ -33,6 +34,7 @@ import org.h2.util.Utils;
 
 import static org.h2.command.dml.DeltaChangeCollector.Action.DELETE;
 import static org.h2.command.dml.DeltaChangeCollector.Action.INSERT;
+import static org.h2.command.dml.DeltaChangeCollector.Action.UPDATE;
 
 /**
  * This class represents the statement syntax
@@ -51,6 +53,11 @@ public final class MergeUsing extends DataChangeStatement {
      * Source table filter.
      */
     TableFilter sourceTableFilter;
+
+    /**
+     * Current action
+     */
+    private DeltaChangeCollector.Action currentMergeAction;
 
     /**
      * ON condition expression.
@@ -135,9 +142,17 @@ public final class MergeUsing extends DataChangeStatement {
         return countUpdatedRows;
     }
 
+    @Override
+    public <T extends ColumnResolver.ColumnResolverVisitor> T visit(T mapColumnVisitor) {
+        mapColumnVisitor.accept(sourceTableFilter);
+        mapColumnVisitor.accept(targetTableFilter);
+
+        return mapColumnVisitor;
+    }
+
     private int merge(boolean nullRow, final DeltaChangeCollector deltaChangeCollector) {
         for (When w : when) {
-            if (w.getClass() == WhenNotMatched.class == nullRow) {
+            if (w.getClass() == WhenNotMatchedThenInsert.class == nullRow) {
                 Expression condition = w.andCondition;
                 if (condition == null || condition.getBooleanValue(session)) {
                     w.merge(session, deltaChangeCollector);
@@ -199,7 +214,7 @@ public final class MergeUsing extends DataChangeStatement {
             When w = i.next();
             if (!w.prepare(session)) {
                 i.remove();
-            } else if (w.getClass() == WhenNotMatched.class) {
+            } else if (w.getClass() == WhenNotMatchedThenInsert.class) {
                 if (hasFinalNotMatched) {
                     i.remove();
                 } else if (w.andCondition == null) {
@@ -278,6 +293,10 @@ public final class MergeUsing extends DataChangeStatement {
             w.collectDependencies(visitor);
         }
         onCondition.isEverything(visitor);
+    }
+
+    public DeltaChangeCollector.Action getCurrentAction() {
+        return currentMergeAction;
     }
 
     /**
@@ -361,7 +380,7 @@ public final class MergeUsing extends DataChangeStatement {
         @Override
         public StringBuilder getSQL(StringBuilder builder, int sqlFlags) {
             builder.append("WHEN ");
-            if (getClass() == WhenNotMatched.class) {
+            if (getClass() == WhenNotMatchedThenInsert.class) {
                 builder.append("NOT ");
             }
             builder.append("MATCHED");
@@ -380,6 +399,7 @@ public final class MergeUsing extends DataChangeStatement {
             TableFilter targetTableFilter = MergeUsing.this.targetTableFilter;
             Table table = targetTableFilter.getTable();
             Row row = targetTableFilter.get();
+            currentMergeAction = DELETE;
             deltaChangeCollector.trigger(DELETE, ResultOption.OLD, row.getValueList());
             if (!table.fireRow() || !table.fireBeforeRow(session, row, null)) {
                 table.removeRow(session, row);
@@ -414,11 +434,11 @@ public final class MergeUsing extends DataChangeStatement {
 
         @Override
         void merge(final SessionLocal session, final DeltaChangeCollector deltaChangeCollector) {
-            TableFilter targetTableFilter = MergeUsing.this.targetTableFilter;
             Table table = targetTableFilter.getTable();
             try (LocalResult rows = LocalResult.forTable(session, table)) {
+                currentMergeAction = UPDATE;
                 setClauseList.prepareUpdate(table, session, deltaChangeCollector, rows,
-                        targetTableFilter.get(), false);
+                        targetTableFilter.get(), false, targetTableFilter);
                 setClauseList.doUpdate(MergeUsing.this, session, table, rows);
             }
         }
@@ -453,7 +473,7 @@ public final class MergeUsing extends DataChangeStatement {
 
     }
 
-    public final class WhenNotMatched extends When {
+    public final class WhenNotMatchedThenInsert extends When {
 
         private Column[] columns;
 
@@ -461,7 +481,7 @@ public final class MergeUsing extends DataChangeStatement {
 
         private final Expression[] values;
 
-        public WhenNotMatched(Column[] columns, Boolean overridingSystem, Expression[] values) {
+        public WhenNotMatchedThenInsert(Column[] columns, Boolean overridingSystem, Expression[] values) {
             this.columns = columns;
             this.overridingSystem = overridingSystem;
             this.values = values;
@@ -486,6 +506,8 @@ public final class MergeUsing extends DataChangeStatement {
                 }
             }
             table.convertInsertRow(session, newRow, overridingSystem);
+            targetTableFilter.set(newRow);
+            currentMergeAction = INSERT;
             deltaChangeCollector.trigger(INSERT, ResultOption.NEW, newRow.getValueList().clone());
             if (!table.fireBeforeRow(session, null, newRow)) {
                 table.addRow(session, newRow);
@@ -544,7 +566,5 @@ public final class MergeUsing extends DataChangeStatement {
             Column.writeColumns(builder, columns, sqlFlags).append(")\nVALUES (");
             return Expression.writeExpressions(builder, values, sqlFlags).append(')');
         }
-
     }
-
 }

@@ -43,7 +43,7 @@ public final class Delete extends FilteredDataChangeStatement {
         targetTableFilter.reset();
         Table table = targetTableFilter.getTable();
         session.getUser().checkTableRight(table, Right.DELETE);
-        table.fire( session, Trigger.DELETE, true);
+        table.fire(session, Trigger.DELETE, true);
         table.lock(session, Table.WRITE_LOCK);
         long limitRows = -1;
         if (fetchExpr != null) {
@@ -75,11 +75,11 @@ public final class Delete extends FilteredDataChangeStatement {
                 table.removeRow(session, row);
             }
             if (table.fireRow()) {
-                for (rows.reset(); rows.next();) {
+                for (rows.reset(); rows.next(); ) {
                     table.fireAfterRow(session, rows.currentRowForTable(), null, false);
                 }
             }
-            table.fire( session, Trigger.DELETE, false);
+            table.fire(session, Trigger.DELETE, false);
             return count;
         }
     }
@@ -99,7 +99,7 @@ public final class Delete extends FilteredDataChangeStatement {
                 condition.createIndexConditions(session, targetTableFilter);
             }
         }
-        TableFilter[] filters = new TableFilter[] { targetTableFilter };
+        TableFilter[] filters = new TableFilter[]{targetTableFilter};
         PlanItem item = targetTableFilter.getBestPlanItem(session, filters, 0, new AllColumnsForPlan(filters),
                 /* isSelectCommand */false);
         targetTableFilter.setPlanItem(item);

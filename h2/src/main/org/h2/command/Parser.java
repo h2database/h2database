@@ -238,7 +238,9 @@ import org.h2.command.dml.Update;
 import org.h2.command.query.ForUpdate;
 import org.h2.command.query.Query;
 import org.h2.command.query.QueryOrderBy;
+import org.h2.command.query.Returning;
 import org.h2.command.query.Select;
+import org.h2.command.query.SelectionQuery;
 import org.h2.command.query.SelectUnion;
 import org.h2.command.query.TableValueConstructor;
 import org.h2.constraint.ConstraintActionType;
@@ -339,6 +341,7 @@ import org.h2.expression.function.LengthFunction;
 import org.h2.expression.function.MathFunction;
 import org.h2.expression.function.MathFunction1;
 import org.h2.expression.function.MathFunction2;
+import org.h2.expression.function.MergeAction;
 import org.h2.expression.function.NullIfFunction;
 import org.h2.expression.function.RandFunction;
 import org.h2.expression.function.RegexpFunction;
@@ -374,20 +377,7 @@ import org.h2.schema.Schema;
 import org.h2.schema.Sequence;
 import org.h2.schema.UserAggregate;
 import org.h2.schema.UserDefinedFunction;
-import org.h2.table.CTE;
-import org.h2.table.Column;
-import org.h2.table.DataChangeDeltaTable;
-import org.h2.table.DualTable;
-import org.h2.table.FunctionTable;
-import org.h2.table.IndexColumn;
-import org.h2.table.IndexHints;
-import org.h2.table.MaterializedView;
-import org.h2.table.QueryExpressionTable;
-import org.h2.table.RangeTable;
-import org.h2.table.ShadowTable;
-import org.h2.table.Table;
-import org.h2.table.TableFilter;
-import org.h2.table.TableView;
+import org.h2.table.*;
 import org.h2.util.IntervalUtils;
 import org.h2.util.ParserUtil;
 import org.h2.util.StringUtils;
@@ -661,7 +651,7 @@ public final class Parser extends ParserBase {
                 break;
             case 'D':
                 if (readIf("DELETE")) {
-                    c = parseDelete(start);
+                    c = parseReturningIf(parseDelete(start));
                 } else if (readIf("DROP")) {
                     c = parseDrop();
                 } else if (readIfCompat("DECLARE")) {
@@ -703,12 +693,12 @@ public final class Parser extends ParserBase {
                 break;
             case 'I':
                 if (readIf("INSERT")) {
-                    c = parseInsert(start);
+                    c = parseReturningIf(parseInsert(start));
                 }
                 break;
             case 'M':
                 if (readIf("MERGE")) {
-                    c = parseMerge(start);
+                    c = parseReturningIf(parseMerge(start));
                 }
                 break;
             case 'P':
@@ -749,7 +739,7 @@ public final class Parser extends ParserBase {
                 break;
             case 'U':
                 if (readIf("UPDATE")) {
-                    c = parseUpdate(start);
+                    c = parseReturningIf(parseUpdate(start));
                 } else if (readIfCompat("USE")) {
                     c = parseUse();
                 }
@@ -785,6 +775,31 @@ public final class Parser extends ParserBase {
             setSQL(c, start);
         }
         return c;
+    }
+
+    private Query parseReturningAsQuery(final DataChangeStatement statement) {
+        read("RETURNING");
+        Returning command = new Returning(session, statement);
+        Select oldSelect = currentSelect;
+        Prepared oldPrepared = currentPrepared;
+        BitSet outerUsedParameters = openParametersScope();
+        currentPrepared = command;
+        parseSelectExpressions(command);
+        command.setParameterList(closeParametersScope(outerUsedParameters));
+        currentSelect = oldSelect;
+        currentPrepared = oldPrepared;
+        setSQL(command, 0);
+        return command;
+    }
+
+    private Prepared parseReturningIf(final DataChangeStatement statement) {
+        if ("RETURNING".equals(currentToken)) {
+            final Query q = parseReturningAsQuery(statement);
+            q.init();
+            return q;
+        } else {
+            return statement;
+        }
     }
 
     private Prepared parseBackup() {
@@ -1422,7 +1437,7 @@ public final class Parser extends ParserBase {
         return query;
     }
 
-    private Prepared parseMerge(int start) {
+    private DataChangeStatement parseMerge(int start) {
         read("INTO");
         TableFilter targetTableFilter = readSimpleTableFilter();
         if (readIf(USING)) {
@@ -1431,7 +1446,7 @@ public final class Parser extends ParserBase {
         return parseMergeInto(targetTableFilter, start);
     }
 
-    private Prepared parseMergeInto(TableFilter targetTableFilter, int start) {
+    private DataChangeStatement parseMergeInto(TableFilter targetTableFilter, int start) {
         Merge command = new Merge(session, false);
         currentPrepared = command;
         command.setTable(targetTableFilter.getTable());
@@ -1500,23 +1515,38 @@ public final class Parser extends ParserBase {
     private void parseWhenNotMatched(MergeUsing command) {
         read(NOT);
         read("MATCHED");
+        final boolean matchSource;
+        if (readIf("BY")) {
+            if (readIf("SOURCE")) {
+                matchSource = true;
+            } else {
+                read("TARGET");
+                matchSource = false;
+            }
+        } else {
+            matchSource = false;
+        }
         Expression and = readIf(AND) ? readExpression() : null;
         read("THEN");
-        read("INSERT");
-        Column[] columns = readIf(OPEN_PAREN) ? parseColumnList(command.getTargetTableFilter().getTable()) : null;
-        Boolean overridingSystem = readIfOverriding();
-        read(VALUES);
-        read(OPEN_PAREN);
-        ArrayList<Expression> values = Utils.newSmallArrayList();
-        if (!readIf(CLOSE_PAREN)) {
-            do {
-                values.add(readExpressionOrDefault());
-            } while (readIfMore());
+        if (!matchSource) {
+            read("INSERT");
+            Column[] columns = readIf(OPEN_PAREN) ? parseColumnList(command.getTargetTableFilter().getTable()) : null;
+            Boolean overridingSystem = readIfOverriding();
+            read(VALUES);
+            read(OPEN_PAREN);
+            ArrayList<Expression> values = Utils.newSmallArrayList();
+            if (!readIf(CLOSE_PAREN)) {
+                do {
+                    values.add(readExpressionOrDefault());
+                } while (readIfMore());
+            }
+            MergeUsing.WhenNotMatchedThenInsert when = command.new WhenNotMatchedThenInsert(columns, overridingSystem,
+                    values.toArray(new Expression[0]));
+            when.setAndCondition(and);
+            command.addWhen(when);
+        } else {
+            throw DbException.getUnsupportedException("RIGHT or FULL JOIN not supported in MERGE USING statement.");
         }
-        MergeUsing.WhenNotMatched when = command.new WhenNotMatched(columns, overridingSystem,
-                values.toArray(new Expression[0]));
-        when.setAndCondition(and);
-        command.addWhen(when);
     }
 
     private Insert parseInsert(int start) {
@@ -2701,9 +2731,18 @@ public final class Parser extends ParserBase {
             return parseSelect(start);
         } else if (readIf(TABLE)) {
             return parseExplicitTable(start);
+        } else if (readIf("MERGE")) {
+            return parseReturningAsQuery(parseMerge(start));
+        } else if (readIf("INSERT")) {
+            return parseReturningAsQuery(parseInsert(start));
+        } else if (readIf("DELETE")) {
+            return parseReturningAsQuery(parseDelete(start));
+        } else if (readIf("UPDATE")) {
+            return parseReturningAsQuery(parseUpdate(start));
+        } else {
+            read(VALUES);
+            return parseValues();
         }
-        read(VALUES);
-        return parseValues();
     }
 
     private void parseSelectFromPart(Select command) {
@@ -2714,7 +2753,7 @@ public final class Parser extends ParserBase {
             for (;;) {
                 TableFilter n = top.getNestedJoin();
                 if (n != null) {
-                    n.visit(f -> command.addTableFilter(f, false));
+                    n.visit((ColumnResolver.TableFilterVisitor) f -> command.addTableFilter(f, false));
                 }
                 TableFilter join = top.getJoin();
                 if (join == null) {
@@ -2738,7 +2777,7 @@ public final class Parser extends ParserBase {
         } while (readIf(COMMA));
     }
 
-    private void parseSelectExpressions(Select command) {
+    private void parseSelectExpressions(final SelectionQuery command) {
         if (database.getMode().topInSelect && readIfCompat("TOP")) {
             Select temp = currentSelect;
             // make sure aggregate functions will not work in TOP and LIMIT
@@ -3989,9 +4028,23 @@ public final class Parser extends ParserBase {
             return readCompatibilitySequenceValueFunction(true);
         case "NEXTVAL":
             return readCompatibilitySequenceValueFunction(false);
+        case "MERGE_ACTION":
+            return readCompatibilityMergeAction(currentPrepared);
         default:
             return null;
         }
+    }
+
+    private Expression readCompatibilityMergeAction(Prepared currentPrepared) {
+        if (currentPrepared instanceof Returning) {
+            DataChangeStatement statement1 = ((Returning) currentPrepared).statement;
+            if (statement1 instanceof MergeUsing) {
+                read(CLOSE_PAREN);
+                return new MergeAction((MergeUsing) statement1);
+            }
+        }
+
+        throw DbException.getSyntaxError(sqlCommand, token.start(), "MERGE_ACTION() can only be used in the RETURNING list of a MERGE command");
     }
 
     private <T extends ExpressionWithVariableParameters> T readParameters(T expression) {

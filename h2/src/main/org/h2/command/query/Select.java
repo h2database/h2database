@@ -14,9 +14,7 @@ import java.util.Arrays;
 import java.util.BitSet;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map.Entry;
 
 import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
@@ -36,7 +34,6 @@ import org.h2.expression.analysis.Window;
 import org.h2.expression.condition.Comparison;
 import org.h2.expression.condition.ConditionAndOr;
 import org.h2.expression.condition.ConditionLocalAndGlobal;
-import org.h2.expression.function.CoalesceFunction;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
 import org.h2.index.IndexSort;
@@ -59,7 +56,6 @@ import org.h2.table.TableFilter;
 import org.h2.table.TableType;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
-import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueRow;
 
@@ -76,7 +72,7 @@ import org.h2.value.ValueRow;
  * @author Thomas Mueller
  * @author Joel Turkel (Group sorted query)
  */
-public class Select extends Query {
+public class Select extends Query implements SelectionQuery {
 
     private enum QuickOffset { NO, YES, PARTIAL }
 
@@ -911,106 +907,19 @@ public class Select extends Query {
     }
 
     private void expandColumnList() {
-        // the expressions may change within the loop
-        for (int i = 0; i < expressions.size();) {
-            Expression expr = expressions.get(i);
-            if (!(expr instanceof Wildcard)) {
-                i++;
-                continue;
-            }
-            expressions.remove(i);
-            Wildcard w = (Wildcard) expr;
-            String tableAlias = w.getTableAlias();
-            boolean hasExceptColumns = w.getExceptColumns() != null;
-            HashMap<Column, ExpressionColumn> exceptTableColumns = null;
-            if (tableAlias == null) {
-                if (hasExceptColumns) {
-                    for (TableFilter filter : filters) {
-                        w.mapColumns(filter, 1, Expression.MAP_INITIAL);
-                    }
-                    exceptTableColumns = w.mapExceptColumns();
-                }
-                for (TableFilter filter : filters) {
-                    i = expandColumnList(filter, i, false, exceptTableColumns);
-                }
+        final ArrayList<Expression> exprList = new ArrayList<>();
+        boolean hasReplaced = false;
+        for (final Expression expr : expressions) {
+            if (expr instanceof Wildcard) {
+                exprList.addAll(((Wildcard) expr).expandExpressions(session, filters));
+                hasReplaced = true;
             } else {
-                Database db = getDatabase();
-                String schemaName = w.getSchemaName();
-                TableFilter filter = null;
-                for (TableFilter f : filters) {
-                    if (db.equalsIdentifiers(tableAlias, f.getTableAlias())) {
-                        if (schemaName == null || db.equalsIdentifiers(schemaName, f.getSchemaName())) {
-                            if (hasExceptColumns) {
-                                w.mapColumns(f, 1, Expression.MAP_INITIAL);
-                                exceptTableColumns = w.mapExceptColumns();
-                            }
-                            filter = f;
-                            break;
-                        }
-                    }
-                }
-                if (filter == null) {
-                    throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, tableAlias);
-                }
-                i = expandColumnList(filter, i, true, exceptTableColumns);
+                exprList.add(expr);
             }
         }
-    }
-
-    private int expandColumnList(TableFilter filter, int index, boolean forAlias,
-            HashMap<Column, ExpressionColumn> except) {
-        String schema = filter.getSchemaName();
-        String alias = filter.getTableAlias();
-        if (forAlias) {
-            for (Column c : filter.getTable().getColumns()) {
-                index = addExpandedColumn(filter, index, except, schema, alias, c);
-            }
-        } else {
-            LinkedHashMap<Column, Column> commonJoinColumns = filter.getCommonJoinColumns();
-            if (commonJoinColumns != null) {
-                TableFilter replacementFilter = filter.getCommonJoinColumnsFilter();
-                String replacementSchema = replacementFilter.getSchemaName();
-                String replacementAlias = replacementFilter.getTableAlias();
-                for (Entry<Column, Column> entry : commonJoinColumns.entrySet()) {
-                    Column left = entry.getKey(), right = entry.getValue();
-                    if (!filter.isCommonJoinColumnToExclude(right)
-                            && (except == null || except.remove(left) == null && except.remove(right) == null)) {
-                        Database database = getDatabase();
-                        Expression e;
-                        if (left == right
-                                || DataType.hasTotalOrdering(left.getType().getValueType())
-                                && DataType.hasTotalOrdering(right.getType().getValueType())) {
-                            e = new ExpressionColumn(database, replacementSchema, replacementAlias,
-                                    replacementFilter.getColumnName(right));
-                        } else {
-                            e = new Alias(new CoalesceFunction(CoalesceFunction.COALESCE,
-                                    new ExpressionColumn(database, schema, alias, filter.getColumnName(left)),
-                                    new ExpressionColumn(database, replacementSchema, replacementAlias,
-                                            replacementFilter.getColumnName(right))), //
-                                    left.getName(), true);
-                        }
-                        expressions.add(index++, e);
-                    }
-                }
-            }
-            for (Column c : filter.getTable().getColumns()) {
-                if (commonJoinColumns == null || !commonJoinColumns.containsKey(c)) {
-                    if (!filter.isCommonJoinColumnToExclude(c)) {
-                        index = addExpandedColumn(filter, index, except, schema, alias, c);
-                    }
-                }
-            }
+        if (hasReplaced) {
+            this.expressions = exprList;
         }
-        return index;
-    }
-
-    private int addExpandedColumn(TableFilter filter, int index, HashMap<Column, ExpressionColumn> except,
-            String schema, String alias, Column c) {
-        if ((except == null || except.remove(c) == null) && c.getVisible()) {
-            ExpressionColumn ec = new ExpressionColumn(getDatabase(), schema, alias, filter.getColumnName(c));
-            expressions.add(index++, ec);
-        }
-        return index;
     }
 
     @Override

@@ -1,24 +1,38 @@
 package org.h2.command.dml;
 
-import java.util.List;
-
+import org.h2.command.query.Returning;
 import org.h2.engine.SessionLocal;
+import org.h2.expression.Expression;
 import org.h2.result.LocalResult;
 import org.h2.result.ResultTarget;
 import org.h2.table.Table;
 import org.h2.value.Value;
 
+import java.util.List;
+
 public abstract class DeltaChangeCollector {
-	public static DeltaChangeCollector noopCollector(final SessionLocal session, final Table table) {
-		return enrichWithLastIdentity( session, table, new NoopDeltaChangeCollector());
+	public static DeltaChangeCollector defaultCollector(final SessionLocal session, final Table table) {
+		return enrichWithLastIdentity( session, table,
+				new NoopDeltaChangeCollector()
+		);
 	}
 
 	public static DeltaChangeCollector dataChangeDeltaTableCollector(final SessionLocal session, final Table table, final ResultTarget result, final ResultOption statementResultOption) {
-		return enrichWithLastIdentity( session, table, new DataChangeDeltaTableCollector( statementResultOption, result));
+		return enrichWithLastIdentity( session, table,
+				new DataChangeDeltaTableCollector( statementResultOption, result)
+		);
 	}
 
 	public static DeltaChangeCollector generatedKeysCollector(final SessionLocal session, final Table table, final int[] indexes, final LocalResult result) {
-		return enrichWithLastIdentity( session, table, new GeneratedKeysDeltaChangeCollector( indexes, result));
+		return enrichWithLastIdentity( session, table,
+				new GeneratedKeysDeltaChangeCollector( indexes, result)
+		);
+	}
+
+	public static DeltaChangeCollector returningDeltaChangeCollector(SessionLocal session, Returning returning, LocalResult result) {
+		return enrichWithLastIdentity(session, returning.statement.getTable(),
+				new ReturningDeltaChangeCollector(session, returning.getExpressions(), result)
+		);
 	}
 
 	private static DeltaChangeCollector enrichWithLastIdentity(final SessionLocal session, final Table table, final DeltaChangeCollector delegate) {
@@ -111,6 +125,35 @@ public abstract class DeltaChangeCollector {
 			if (this.resultOption.equals( resultOption ) ) {
 				result.addRow( values );
 			}
+		}
+	}
+
+	private static class ReturningDeltaChangeCollector extends DeltaChangeCollector {
+		private final SessionLocal session;
+		private final List<Expression> expressions;
+		private final LocalResult result;
+
+        private ReturningDeltaChangeCollector(SessionLocal session, List<Expression> expressions, LocalResult result) {
+            this.session = session;
+            this.expressions = expressions;
+            this.result = result;
+        }
+
+        @Override
+		public void trigger(final Action action, final ResultOption resultOption, final Value[] values) {
+			if (Action.DELETE.equals(action) && ResultOption.OLD.equals(resultOption)) {
+				result.addRow(collectRow());
+			} else if ((Action.INSERT.equals(action) || Action.UPDATE.equals(action)) && ResultOption.FINAL.equals(resultOption)) {
+				result.addRow(collectRow());
+			}
+		}
+
+		private Value[] collectRow() {
+			final Value[] row = new Value[expressions.size()];
+			for (int i = 0; i < expressions.size(); i++) {
+				row[i] = expressions.get(i).getValue(session);
+			}
+			return row;
 		}
 	}
 

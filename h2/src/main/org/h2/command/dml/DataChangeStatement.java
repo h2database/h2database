@@ -10,6 +10,7 @@ import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.result.ResultInterface;
 import org.h2.result.Row;
+import org.h2.table.ColumnResolver;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
 
@@ -72,7 +73,7 @@ public abstract class DataChangeStatement extends Prepared {
 
     @Override
     public final long update() {
-        return update(DeltaChangeCollector.noopCollector(session, getTable()));
+        return update(DeltaChangeCollector.defaultCollector(session, getTable()));
     }
 
     /**
@@ -100,5 +101,9 @@ public abstract class DataChangeStatement extends Prepared {
             }
         }
         return row;
+    }
+
+    public <T extends ColumnResolver.ColumnResolverVisitor> T visit(final T mapColumnVisitor) {
+        return mapColumnVisitor;
     }
 }

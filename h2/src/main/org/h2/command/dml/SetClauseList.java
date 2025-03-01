@@ -24,6 +24,7 @@ import org.h2.result.Row;
 import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
 import org.h2.table.Table;
+import org.h2.table.TableFilter;
 import org.h2.util.HasSQL;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
@@ -123,7 +124,7 @@ public final class SetClauseList implements HasSQL {
     }
 
     boolean prepareUpdate(Table table, SessionLocal session, final DeltaChangeCollector deltaChangeCollector, LocalResult rows, Row oldRow,
-            boolean updateToCurrentValuesReturnsZero) {
+            boolean updateToCurrentValuesReturnsZero, final TableFilter targetTableFilter) {
         Column[] columns = table.getColumns();
         int columnCount = columns.length;
         Row newRow = table.getTemplateRow();
@@ -168,6 +169,7 @@ public final class SetClauseList implements HasSQL {
             result = false;
         }
         deltaChangeCollector.trigger(UPDATE, ResultOption.OLD, oldRow.getValueList());
+        targetTableFilter.set(newRow);
         deltaChangeCollector.trigger(UPDATE, ResultOption.NEW, newRow.getValueList().clone());
         if (!table.fireRow() || !table.fireBeforeRow(session, oldRow, newRow)) {
             rows.addRowForTable(oldRow);

@@ -66,7 +66,7 @@ public final class Update extends FilteredDataChangeStatement {
                 Row row = lockAndRecheckCondition();
                 if (row != null) {
                     if (setClauseList.prepareUpdate(table, session, deltaChangeCollector,
-                            rows, row, onDuplicateKeyInsert != null)) {
+                            rows, row, onDuplicateKeyInsert != null, targetTableFilter)) {
                         count++;
                     }
                 }
@@ -74,27 +74,6 @@ public final class Update extends FilteredDataChangeStatement {
             setClauseList.doUpdate(this, session, table, rows);
             table.fire(session, Trigger.UPDATE, false);
             return count;
-        }
-    }
-
-    static void doUpdate(Prepared prepared, SessionLocal session, Table table, LocalResult rows) {
-        rows.done();
-        // TODO self referencing referential integrity constraints
-        // don't work if update is multi-row and 'inversed' the condition!
-        // probably need multi-row triggers with 'deleted' and 'inserted'
-        // at the same time. anyway good for sql compatibility
-        // TODO update in-place (but if the key changes,
-        // we need to update all indexes) before row triggers
-
-        // the cached row is already updated - we need the old values
-        table.updateRows(prepared, session, rows);
-        if (table.fireRow()) {
-            for (rows.reset(); rows.next();) {
-                Row o = rows.currentRowForTable();
-                rows.next();
-                Row n = rows.currentRowForTable();
-                table.fireAfterRow(session, o, n, false);
-            }
         }
     }
 

@@ -891,7 +891,7 @@ public class Select extends Query implements SelectionQuery {
 
     private void disableLazyForJoinSubqueries(final TableFilter top) {
         if (session.isLazyQueryExecution()) {
-            top.visit(f -> {
+            top.visit((ColumnResolver.TableFilterVisitor) f -> {
                 if (f != top && f.getTable().getTableType() == TableType.VIEW) {
                     QueryExpressionIndex idx = (QueryExpressionIndex) f.getIndex();
                     if (idx != null && idx.getQuery() != null) {

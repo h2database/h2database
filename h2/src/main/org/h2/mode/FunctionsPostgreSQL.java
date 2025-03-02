@@ -6,6 +6,7 @@
 package org.h2.mode;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.StringJoiner;
 
 import org.h2.api.ErrorCode;
@@ -25,6 +26,7 @@ import org.h2.server.pg.PgServer;
 import org.h2.table.Column;
 import org.h2.table.Table;
 import org.h2.util.StringUtils;
+import org.h2.value.ExtTypeInfoRow;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
@@ -86,6 +88,8 @@ public final class FunctionsPostgreSQL extends ModeFunction {
 
     private static final int GEN_RANDOM_UUID = TO_TIMESTAMP + 1;
 
+    private static final int _PG_EXPAND_ARRAY = GEN_RANDOM_UUID + 1;
+
     private static final HashMap<String, FunctionInfo> FUNCTIONS = new HashMap<>(32);
 
     static {
@@ -130,6 +134,8 @@ public final class FunctionsPostgreSQL extends ModeFunction {
                 new FunctionInfo("TO_TIMESTAMP", TO_TIMESTAMP, 2, Value.TIMESTAMP_TZ, true, true));
         FUNCTIONS.put("GEN_RANDOM_UUID",
                 new FunctionInfo("GEN_RANDOM_UUID", GEN_RANDOM_UUID, 0, Value.UUID, true, false));
+        FUNCTIONS.put("INFORMATION_SCHEMA._PG_EXPANDARRAY",
+                new FunctionInfo( "INFORMATION_SCHEMA._PG_EXPANDARRAY", _PG_EXPAND_ARRAY, 1, Value.ROW, false, false));
     }
 
     /**
@@ -146,6 +152,24 @@ public final class FunctionsPostgreSQL extends ModeFunction {
         }
         return null;
     }
+
+    /**
+     * Returns mode-specific function for a given name, or {@code null}.
+     *
+     * @param schema
+     *            the schema of the function
+     * @param upperName
+     *            the upper-case name of a function
+     * @return the function with specified name or {@code null}
+     */
+    public static FunctionsPostgreSQL getFunction(final String schema, final String upperName) {
+        FunctionInfo info = FUNCTIONS.get(schema + "." + upperName);
+        if (info != null) {
+            return new FunctionsPostgreSQL(info);
+        }
+        return null;
+    }
+
 
     private FunctionsPostgreSQL(FunctionInfo info) {
         super(info);
@@ -177,6 +201,10 @@ public final class FunctionsPostgreSQL extends ModeFunction {
             min = 2;
             max = 3;
             break;
+        case _PG_EXPAND_ARRAY:
+            min = 1;
+            max = 1;
+            break;
         default:
             throw DbException.getInternalError("type=" + info.type);
         }
@@ -199,7 +227,14 @@ public final class FunctionsPostgreSQL extends ModeFunction {
                     .optimize(session);
         default:
             boolean allConst = optimizeArguments(session);
-            type = TypeInfo.getTypeInfo(info.returnDataType);
+            if (info.type == _PG_EXPAND_ARRAY) {
+                final LinkedHashMap<String, TypeInfo> rows = new LinkedHashMap<>();
+                rows.put("n", TypeInfo.TYPE_INTEGER);
+                rows.put("x", args[0].getType().unwrapArray());
+                type = TypeInfo.getTypeInfo(Value.ROW, -1, -1, new ExtTypeInfoRow(rows));
+            } else {
+                type = TypeInfo.getTypeInfo(info.returnDataType);
+            }
             if (allConst) {
                 return ValueExpression.get(getValue(session));
             }
@@ -241,8 +276,9 @@ public final class FunctionsPostgreSQL extends ModeFunction {
             result = result.convertToBigint(null);
             break;
         case VERSION:
+            final String pgVersion = session.getNetworkConnectionInfo() == null ? Constants.PG_VERSION : session.getNetworkConnectionInfo().getServerVersion();
             result = ValueVarchar
-                    .get("PostgreSQL " + Constants.PG_VERSION + " server protocol using H2 " + Constants.FULL_VERSION);
+                    .get("PostgreSQL " + pgVersion + " server protocol using H2 " + Constants.FULL_VERSION);
             break;
         case OBJ_DESCRIPTION:
             // Not implemented
@@ -254,6 +290,11 @@ public final class FunctionsPostgreSQL extends ModeFunction {
         case PG_GET_EXPR:
             // Not implemented
             result = ValueNull.INSTANCE;
+            break;
+        case _PG_EXPAND_ARRAY:
+            // Only return first instance
+            final Value[] results = args[0].getValue(session).convertToAnyArray(session).getList();
+            result = results.length > 0 ? results[0] : ValueNull.INSTANCE;
             break;
         case PG_GET_INDEXDEF:
             result = getIndexdef(session, v0.getInt(), v1, v2);

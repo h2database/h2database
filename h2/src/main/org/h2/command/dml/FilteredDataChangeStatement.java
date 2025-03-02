@@ -8,6 +8,7 @@ package org.h2.command.dml;
 import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.result.Row;
+import org.h2.table.ColumnResolver;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
 
@@ -98,5 +99,12 @@ abstract class FilteredDataChangeStatement extends DataChangeStatement {
 
     protected final Row lockAndRecheckCondition() {
         return lockAndRecheckCondition(targetTableFilter, condition);
+    }
+
+    @Override
+    public <T extends ColumnResolver.ColumnResolverVisitor> T visit(T mapColumnVisitor) {
+        mapColumnVisitor.accept(targetTableFilter);
+
+        return mapColumnVisitor;
     }
 }

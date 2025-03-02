@@ -534,7 +534,7 @@ public class TableFilter implements ColumnResolver {
         current = table.getNullRow();
         currentSearchRow = current;
         if (nestedJoin != null) {
-            nestedJoin.visit(TableFilter::setNullRow);
+            nestedJoin.visit((TableFilterVisitor) TableFilter::setNullRow);
         }
     }
 
@@ -631,7 +631,7 @@ public class TableFilter implements ColumnResolver {
      */
     public void addJoin(TableFilter filter, boolean outer, Expression on) {
         if (on != null) {
-            TableFilterVisitor visitor = new MapColumnsVisitor(on);
+            ColumnResolverVisitor visitor = new MapColumnsVisitor(on);
             visit(visitor);
             filter.visit(visitor);
         }
@@ -1228,7 +1228,7 @@ public class TableFilter implements ColumnResolver {
      *
      * @param visitor the visitor
      */
-    public void visit(TableFilterVisitor visitor) {
+    public void visit(ColumnResolverVisitor visitor) {
         TableFilter f = this;
         do {
             visitor.accept(f);
@@ -1264,22 +1264,9 @@ public class TableFilter implements ColumnResolver {
     }
 
     /**
-     * A visitor for table filters.
-     */
-    public interface TableFilterVisitor {
-
-        /**
-         * This method is called for each nested or joined table filter.
-         *
-         * @param f the filter
-         */
-        void accept(TableFilter f);
-    }
-
-    /**
      * A visitor that maps columns.
      */
-    private static final class MapColumnsVisitor implements TableFilterVisitor {
+    private static final class MapColumnsVisitor implements ColumnResolverVisitor {
         private final Expression on;
 
         MapColumnsVisitor(Expression on) {
@@ -1287,7 +1274,7 @@ public class TableFilter implements ColumnResolver {
         }
 
         @Override
-        public void accept(TableFilter f) {
+        public void accept(final ColumnResolver f) {
             on.mapColumns(f, 0, Expression.MAP_INITIAL);
         }
     }

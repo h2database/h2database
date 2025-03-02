@@ -6,68 +6,19 @@
 package org.h2.table;
 
 import org.h2.command.dml.DataChangeStatement;
+import org.h2.command.dml.DeltaChangeCollector;
+import org.h2.command.dml.DeltaChangeCollector.ResultOption;
 import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.result.LocalResult;
 import org.h2.result.ResultInterface;
-import org.h2.result.ResultTarget;
-import org.h2.result.Row;
 import org.h2.schema.Schema;
 
 /**
  * A data change delta table.
  */
 public class DataChangeDeltaTable extends VirtualConstructedTable {
-
-    /**
-     * Result option.
-     */
-    public enum ResultOption {
-
-        /**
-         * OLD row.
-         */
-        OLD,
-
-        /**
-         * NEW row with evaluated default expressions, but before triggers.
-         */
-        NEW,
-
-        /**
-         * FINAL rows after triggers.
-         */
-        FINAL;
-
-    }
-
-    /**
-     * Collects final row for INSERT operations.
-     *
-     * @param session
-     *            the session
-     * @param table
-     *            the table
-     * @param deltaChangeCollector
-     *            target result
-     * @param deltaChangeCollectionMode
-     *            collection mode
-     * @param newRow
-     *            the inserted row
-     */
-    public static void collectInsertedFinalRow(SessionLocal session, Table table, ResultTarget deltaChangeCollector,
-            ResultOption deltaChangeCollectionMode, Row newRow) {
-        if (session.getMode().takeInsertedIdentity) {
-            Column column = table.getIdentityColumn();
-            if (column != null) {
-                session.setLastIdentity(newRow.getValue(column.getColumnId()));
-            }
-        }
-        if (deltaChangeCollectionMode == ResultOption.FINAL) {
-            deltaChangeCollector.addRow(newRow.getValueList());
-        }
-    }
 
     private final DataChangeStatement statement;
 
@@ -117,7 +68,7 @@ public class DataChangeDeltaTable extends VirtualConstructedTable {
         int columnCount = expressions.length;
         LocalResult result = new LocalResult(session, expressions, columnCount, columnCount);
         result.setForDataChangeDeltaTable();
-        statement.update(result, resultOption);
+        statement.update(DeltaChangeCollector.dataChangeDeltaTableCollector(session, statement.getTable(), result, resultOption));
         return result;
     }
 

@@ -14,13 +14,22 @@ import org.h2.result.ResultInterface;
  * Represents an empty statement or a statement that has no effect.
  */
 public class NoOperation extends Prepared {
+    private final String logLine;
 
-    public NoOperation(SessionLocal session) {
-        super(session);
+    public NoOperation(final SessionLocal sessionLocal) {
+        this(sessionLocal, null);
     }
+
+    public NoOperation(SessionLocal session, String logLine) {
+        super(session);
+		this.logLine = logLine;
+	}
 
     @Override
     public long update() {
+        if (logLine != null) {
+            session.getTrace().debug(logLine);
+        }
         return 0;
     }
 

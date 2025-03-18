@@ -402,7 +402,7 @@ public abstract class Command implements CommandInterface {
      * @return true if it can be re-used
      */
     public boolean canReuse() {
-        return canReuse;
+        return false;
     }
 
     /**

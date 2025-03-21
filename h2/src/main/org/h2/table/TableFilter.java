@@ -46,6 +46,11 @@ import org.h2.value.ValueTinyint;
  */
 public class TableFilter implements ColumnResolver {
 
+    // Homework 5
+    public Expression getFullCondition(){
+        return fullCondition;
+    }
+
     private static final int BEFORE_FIRST = 0, FOUND = 1, AFTER_LAST = 2, NULL_ROW = 3;
 
     /**

@@ -82,7 +82,11 @@ class Optimizer {
         } else {
             startNs = System.nanoTime();
             if (filters.length <= MAX_BRUTE_FORCE_FILTERS) {
-                calculateBruteForceAll(isSelectCommand);
+                // HW5
+                RuleBasedJoinOrderPicker ruleBasedJoinOrderPicker = new RuleBasedJoinOrderPicker(session, filters);
+                TableFilter[] ruleBasedResult = ruleBasedJoinOrderPicker.bestOrder();
+                testPlan(ruleBasedResult, isSelectCommand);
+//                calculateBruteForceAll(isSelectCommand); // used this in HW4
             } else {
                 calculateBruteForceSome(isSelectCommand);
                 random = new Random(0);
@@ -104,6 +108,7 @@ class Optimizer {
                 && System.nanoTime() - startNs > cost * 100_000L;
     }
 
+    // Homework 4
     private void calculateBruteForceAll(boolean isSelectCommand) {
         TableFilter[] list = new TableFilter[filters.length];
         Permutations<TableFilter> p = Permutations.create(filters, list);

@@ -109,7 +109,7 @@ public class RuleBasedJoinOrderPicker {
                     if (!adjacencyGraph.get(leftTable).contains(rightTable)) {
                         adjacencyGraph.get(leftTable).add(rightTable);
                     }
-                    if (!adjacencyGraph.get(rightTable).contains(rightTable)) {
+                    if (!adjacencyGraph.get(rightTable).contains(leftTable)) {
                         adjacencyGraph.get(rightTable).add(leftTable);
                     }
                 }

@@ -1,54 +1,152 @@
 # Homework 5
 
+The goal of home work 5 is to design an optimizer that determines the best join order by the following rules rather than considering every possible permutation. 
+
+The following are the two rules that need to be upheld:
+
+* (1) Never choose an order that would introduce a cartesian product join (joining two tables that do not
+have an explicit ON clause in the query)
+
+ * (2) Choose the table with the lowest number of roles out of all of the potential next tables to add to our
+join order as permitted by rule 1
+ 
+To implement the rule, adjacency graph is used to keep track of all table join conditions to prevent any
+the introduction of cartesian product joins (1). Building this graph will start from the smallest table (2) and
+involves extraction of all join conditions.
+ 
+After building the graph, we will recursively do DFS to determine the best join sequence. This involves sorting adjacent
+tables by row count, to ensure that we are favoring smaller tables.
+ 
+
 ## Query from HW 4 Problem 4
 
-<screenshot of EXPLAIN ANALYZE>
+**<ins>Explain Analyze Screenshot</ins>**
 
-<your explanation on whether you are satisfied that the above explain plan confirms the code changes that you made>
+| Before Rule Based Query Optimizer | After Rule Based Query Optimizer |
+|--- | --- |
+|<img src="https://github.com/eburhansjah/ec500-spring2025-eburhansjah-h2database/blob/hw5-eburhansjah-h2database/assets/hw5-hw4-query-without-rule.png" alt="hw5-hw4-without-rule" style="width:90%; height:auto;">|<img src="https://github.com/eburhansjah/ec500-spring2025-eburhansjah-h2database/blob/hw5-eburhansjah-h2database/assets/hw5-explain-hw4-with-rule.png" alt="hw5-hw4-with-rule" style="width:80%; height:auto;">|
+
+|  | Join order | Run time | scanCount | reads |
+| ----------- | ---------- | -------- | --------- | ----- |
+| Before | posts -> followers -> users | (1 row, 90621 ms) | 995087 | 2022615 |
+| After | users -> followers -> posts | (1 row, 40 ms) | 6 | 719 |
+
+I am satisfied with the above explain plan after implementing the rule based query optimizer because the optimizer picked a join order that significantly reduces the number of scan count and query time. As mentioned previously in HW4, the join order: [users -> followers -> posts] is the most efficient query because we are doing filtering early on users table which is based on the WHERE clause. This significantly reduces the number of rows early, preventing database from unnecessary processing overhead.
 
 ## HW 5 : Query 1 - Single Table
 
-<screenshot of EXPLAIN ANALYZE>
+**<ins>Explain Analyze Screenshot</ins>**
 
-<your explanation on whether you are satisfied that the above explain plan confirms the code changes that you made>
+| Query Output | Explain Analyze |
+|--- | --- |
+|<img src="https://github.com/eburhansjah/ec500-spring2025-eburhansjah-h2database/blob/hw5-eburhansjah-h2database/assets/hw5-prob1.png" alt="hw5-prob1-query-output" style="width:50%; height:auto;">|<img src="https://github.com/eburhansjah/ec500-spring2025-eburhansjah-h2database/blob/hw5-eburhansjah-h2database/assets/hw5-prob1-explainAnalyze.png" alt="hw5-prob1-explain-analyze" style="width:50%; height:auto;"> |
+
+This query was executed to confirm that we have not regressed the most basic query execution functionality.
 
 ## HW 5 : Query 2 - Just Two Tables
 
-<screenshot of EXPLAIN ANALYZE>
+**<ins>Explain Analyze Screenshot</ins>**
 
-<your explanation on whether you are satisfied that the above explain plan confirms the code changes that you made>
+| Query Output | Explain Analyze |
+|--- | --- |
+|<img src="https://github.com/eburhansjah/ec500-spring2025-eburhansjah-h2database/blob/hw5-eburhansjah-h2database/assets/hw5-prob2.png" alt="hw5-prob2-query-output" style="width:80%; height:auto;">|<img src="https://github.com/eburhansjah/ec500-spring2025-eburhansjah-h2database/blob/hw5-eburhansjah-h2database/assets/hw5-prob2-explainAnalyze.png" alt="hw5-prob2-explain-analyze" style="width:80%; height:auto;"> |
+
+This query was also executed to confirm that we have not regressed the most basic query execution functionality.
 
 ## HW 5 : Query 3 - Three Tables
 
-<screenshot of EXPLAIN ANALYZE>
+**<ins>Objectives</ins>**
 
-<your explanation on whether you are satisfied that the above explain plan confirms the code changes that you made>
+The involved tables here are:
+
+products: 50 rows, orders: 200 rows, order_details: 500 rows
+
+The expected join order is:
+
+products -> order_details -> orders
+
+Because products is the smallest table, and then from there we want to avoid cartesian joins at all costs, so the only permitted option is joining in order_details next, and bringing in orders last.
+
+**<ins>Explain Analyze Screenshot</ins>**
+
+<img src="https://github.com/eburhansjah/ec500-spring2025-eburhansjah-h2database/blob/hw5-eburhansjah-h2database/assets/hw5-prob3-explainAnalyze.png" alt="hw5-prob3-explain-analyze" style="width:50%; height:auto;">
+
+The above explain plan showed that after implementing the rule based query optimizer, the join order that was indeed confirmed to be the expected join order: products -> order_details -> orders. The optimizer maintained the two important rules.
 
 ## HW 5 : Query 4 - Four Tables
 
-<screenshot of EXPLAIN ANALYZE>
+**<ins>Objectives</ins>**
 
-<your explanation on whether you are satisfied that the above explain plan confirms the code changes that you made>
+The involved tables here are:
+
+customers: 10 rows, products: 50 rows, orders: 200 rows, order_details: 500 rows
+
+The expected join order is:
+
+customers -> orders -> order_details -> products
+
+Because customers is the smallest table, and then from there we want to avoid cartesian joins at all costs, so the only permitted path is the one above.
+
+**<ins>Explain Analyze Screenshot</ins>**
+
+<img src="https://github.com/eburhansjah/ec500-spring2025-eburhansjah-h2database/blob/hw5-eburhansjah-h2database/assets/hw5-prob4-explainAnalyze.png" alt="hw5-prob4-explain-analyze" style="width:50%; height:auto;">
+
+The above explain plan showed that after implementing the rule based query optimizer, the join order that was indeed confirmed to be the expected join order: customers -> orders -> order_details -> products. The optimizer maintained the two important rules.
 
 ## HW 5 : Query 5 - Five Tables
 
-<screenshot of EXPLAIN ANALYZE>
+**<ins>Objectives</ins>**
 
-<your explanation on whether you are satisfied that the above explain plan confirms the code changes that you made>
+The involved tables here are:
+
+customers: 10 rows, suppliers: 15 rows, products: 50 rows, orders: 200 rows, order_details: 500 rows
+
+The expected join order is:
+
+customers -> orders -> order_details -> products -> suppliers
+
+Because customers is the smallest table, and then from there we want to avoid cartesian joins at all costs, so the only permitted path is the one above.
+
+**<ins>Explain Analyze Screenshot</ins>**
+
+<img src="https://github.com/eburhansjah/ec500-spring2025-eburhansjah-h2database/blob/hw5-eburhansjah-h2database/assets/hw5-prob5-explainAnalyze.png" alt="hw5-prob5-explain-analyze" style="width:50%; height:auto;">
+
+The above explain plan showed that after implementing the rule based query optimizer, the join order that was indeed confirmed to be the expected join order: customers -> orders -> order_details -> products -> suppliers. The optimizer maintained the two important rules.
 
 ## HW 5 : Query 6 - Four Tables, More Options
 
-<screenshot of EXPLAIN ANALYZE>
+**<ins>Objectives</ins>**
 
-<your explanation on whether you are satisfied that the above explain plan confirms the code changes that you made>
+The involved tables here are:
+
+products: 50 rows, order_payments: 150 rows, orders: 200 rows, order_details: 500 rows
+
+The expected join order is:
+
+products -> order_details -> order_payments -> orders
+
+Because products is the smallest table, then orders is the only non cartesian product choice.  Then we choose order_payments over order_details because it is smaller.
+
+**<ins>Explain Analyze Screenshot</ins>**
+
+<img src="https://github.com/eburhansjah/ec500-spring2025-eburhansjah-h2database/blob/hw5-eburhansjah-h2database/assets/hw5-prob6-explainAnalyze.png" alt="hw5-prob6-explain-analyze" style="width:60%; height:auto;">
+
+The above explain plan showed that after implementing the rule based query optimizer, the join order that was indeed confirmed to be the expected join order: products -> order_details -> order_payments -> orders. The optimizer maintained the two important rules.
 
 ## Our rule based optimizer is still fairly limited.  Can you think of a query in which it would perform a fairly catastrophic join order?
 
-< response >
+Our rule prioritizes the prevention of cartesian products, and the selection of small tables based on row count, which is not perfect because this rule does not prevent whether the picked join order involves large intermediate results. Moreover, the rule also does not prioritize tables with higher selectivity (with WHERE clause).
+
+
+
 
 ## Our rule based optimizer is still fairly limited.  If you were to improve it, what additional rules would you include?
 
-< response >﻿
+If I were to improve the rule based optimizer, I would add additional rules that address the previously mentioned limitations, such as:
+
+- A method to take into consideration of indexes or create indexes to optimize the query
+- A method to compare the different join permutations, prioritizing those that has high selectivity and produces smallest intermediate results
+- Including a detailed cost-based analysis
 
 <hr>
 

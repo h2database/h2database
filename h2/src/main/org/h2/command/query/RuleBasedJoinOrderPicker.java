@@ -68,7 +68,7 @@ public class RuleBasedJoinOrderPicker {
         Set<Expression> seenFullJoinConditions = new HashSet<>();
         for (TableFilter filter : filters) {
             Expression fullCondition = filter.getFullCondition();
-            System.out.println("Full condition for table" + filter + ": " + fullCondition);
+//            System.out.println("Full condition for table" + filter + ": " + fullCondition);
 
             if (fullCondition == null) {
                 continue;
@@ -87,7 +87,7 @@ public class RuleBasedJoinOrderPicker {
     * */
     private void extractTableRelationships(Expression expression, Map<TableFilter, List<TableFilter>> adjacencyGraph) {
         int lenExpression = expression.getSubexpressionCount();
-        System.out.println("expression: " + expression);
+//        System.out.println("expression: " + expression);
 
         if (expression instanceof ConditionAndOr || expression instanceof ConditionAndOrN) {
             for (int i = 0; i < lenExpression; i++) {
@@ -97,8 +97,8 @@ public class RuleBasedJoinOrderPicker {
             Expression left = expression.getSubexpression(0);
             Expression right = expression.getSubexpression(1);
 
-            System.out.println("left: " + left);
-            System.out.println("right: " + right);
+//            System.out.println("left: " + left);
+//            System.out.println("right: " + right);
 
             if (left instanceof ExpressionColumn && right instanceof ExpressionColumn) {
                 TableFilter leftTable = ((ExpressionColumn) left).getTableFilter();

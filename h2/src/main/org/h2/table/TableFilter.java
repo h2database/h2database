@@ -1264,6 +1264,15 @@ public class TableFilter implements ColumnResolver {
     }
 
     /**
+     * Retrieves the full condition expression.
+     *
+     * @return The complete condition represented as an {@code Expression} object.
+     */
+    public Expression getFullCondition(){
+        return fullCondition;
+    }
+
+    /**
      * A visitor for table filters.
      */
     public interface TableFilterVisitor {

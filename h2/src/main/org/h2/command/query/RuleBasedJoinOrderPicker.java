@@ -27,8 +27,15 @@ public class RuleBasedJoinOrderPicker {
 
 
 //        Arrays.sort(filtersSorted, (a, b) -> Long.compare(a.getTable().getRowCountApproximation(session), b.getTable().getRowCountApproximation(session)));
+        String conditionString = "";
+        if (filters.length > 0) {
+            TableFilter temp = filters[0];
+            Expression fullCondition = temp.getFullCondition(); // all filters return the same condition
+            if (fullCondition != null) {
+                conditionString = fullCondition.toString();
+            }
+        }
 
-        String conditionString = filters[0].getFullCondition().toString(); // all filters return the same condition
         List<String> conditions = new ArrayList<>();
         // get content inside parenthesis
         Pattern pattern = Pattern.compile("\\(([^)]+)\\)");
@@ -37,7 +44,7 @@ public class RuleBasedJoinOrderPicker {
         while (matcher.find()) {
             String conditionInsideParentheses = matcher.group(1);   // only get inside of parenthesis
             conditions.add(conditionInsideParentheses);
-            System.out.println("Condition added: " + conditionInsideParentheses);
+//            System.out.println("Condition added: " + conditionInsideParentheses);
         }
 
         List<TableFilter> toRevisit = new ArrayList<>();                   // store Cartesian products here
@@ -50,10 +57,15 @@ public class RuleBasedJoinOrderPicker {
             boolean conditionSatisfied = false;
             if (insertIndex > 0 && !conditions.isEmpty()) {
                 for (String condition : conditions) {
-                    String tableNamePrev = list[insertIndex - 1].getTable().getName().replace("PUBLIC.", "");
+                    String tableNamePrev;
+                    if (list[insertIndex - 1] != null) {
+                        tableNamePrev = list[insertIndex - 1].getTable().getName().replace("PUBLIC.", "");
+                    } else {
+                        tableNamePrev = "";
+                    }
                     if (condition.contains(tableName) &&  condition.contains(tableNamePrev)) {
                         conditionSatisfied = true;
-                        System.out.println("Conditions is satisfied: " + conditionSatisfied);
+//                        System.out.println("Conditions is satisfied: " + conditionSatisfied);
                         break;
                     }
                 }
@@ -62,12 +74,12 @@ public class RuleBasedJoinOrderPicker {
                 conditionSatisfied = true;
             }
             if (conditionSatisfied) {
-                System.out.println("Filter: " + tableName + " is in " + conditionString);
+//                System.out.println("Filter: " + tableName + " is in " + conditionString);
                 list[insertIndex] = tableFilterList.get(0);
                 insertIndex++;
                 tableFilterList.remove(0);
             } else {
-                System.out.println("Filter: " + tableName + " is NOT in " + conditionString);
+//                System.out.println("Filter: " + tableName + " is NOT in " + conditionString);
                 TableFilter temp = tableFilterList.get(0);
                 tableFilterList.remove(0);
                 tableFilterList.add(temp);

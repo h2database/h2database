@@ -141,7 +141,25 @@
       <scope>test</scope>
     </dependency>
     <!-- END TEST DEPENDENCIES !-->
+
+    <!-- Mockito Core (for unit tests) -->
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <version>5.7.0</version>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- Mockito JUnit 5 Extension (if using JUnit 5) -->
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-junit-jupiter</artifactId>
+      <version>5.7.0</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
+
+
 
   <!-- The test code creates proxy files using javac or tools.jar. Through maven we need to tell it
        where to possibly find tools.jar and annoyingly its called classes.jar on OSX -->

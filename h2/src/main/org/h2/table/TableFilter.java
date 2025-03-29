@@ -183,6 +183,10 @@ public class TableFilter implements ColumnResolver {
     public Table getTable() {
         return table;
     }
+    
+    public Expression getFullCondition(){
+    	return fullCondition;
+    }
 
     /**
      * Lock the table. This will also lock joined tables.

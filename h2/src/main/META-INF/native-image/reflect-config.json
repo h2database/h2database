@@ -406,6 +406,14 @@
 	},
 	{
 		"condition": {
+			"typeReachable": "org.apache.lucene.search.TotalHits"
+		},
+		"allPublicMethods": true,
+		"allPublicFields": true,
+		"name": "org.apache.lucene.search.TotalHits"
+	},
+	{
+		"condition": {
 			"typeReachable": "org.slf4j.Logger"
 		},
 		"methods": [

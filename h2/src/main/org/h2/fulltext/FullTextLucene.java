@@ -6,6 +6,10 @@
 package org.h2.fulltext;
 
 import java.io.IOException;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodHandles.Lookup;
+import java.lang.invoke.MethodType;
 import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
@@ -35,6 +39,7 @@ import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
+import org.apache.lucene.search.TotalHits;
 import org.apache.lucene.store.ByteBuffersDirectory;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
@@ -43,6 +48,7 @@ import org.h2.command.Parser;
 import org.h2.engine.SessionLocal;
 import org.h2.expression.ExpressionColumn;
 import org.h2.jdbc.JdbcConnection;
+import org.h2.message.DbException;
 import org.h2.store.fs.FileUtils;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.StringUtils;
@@ -73,6 +79,23 @@ public class FullTextLucene extends FullText {
      * within this class and not related to the database URL.
      */
     private static final String IN_MEMORY_PREFIX = "mem:";
+
+    private static final MethodHandle TOTAL_HITS_VALUE;
+
+    static {
+        Lookup lookup = MethodHandles.lookup();
+        MethodHandle totalHitsValue;
+        try {
+            totalHitsValue = lookup.findVirtual(TotalHits.class, "value", MethodType.methodType(long.class));
+        } catch (Exception e) {
+            try {
+                totalHitsValue = lookup.findGetter(TotalHits.class, "value", long.class);
+            } catch (Exception ex) {
+                throw DbException.getInternalError("This version of Lucene isn't supported");
+            }
+        }
+        TOTAL_HITS_VALUE = totalHitsValue;
+    }
 
     /**
      * Initializes full text search functionality for this database. This adds
@@ -246,7 +269,7 @@ public class FullTextLucene extends FullText {
      * @param e the original exception
      * @return the converted SQL exception
      */
-    protected static SQLException convertException(Exception e) {
+    protected static SQLException convertException(Throwable e) {
         return new SQLException("Error while indexing document", "FULLTEXT", e);
     }
 
@@ -437,7 +460,12 @@ public class FullTextLucene extends FullText {
                 // will trigger writing results to disk.
                 int maxResults = (limit == 0 ? 100 : limit) + offset;
                 TopDocs docs = searcher.search(query, maxResults);
-                long totalHits = docs.totalHits.value;
+                long totalHits;
+                try {
+                    totalHits = (long) TOTAL_HITS_VALUE.invokeExact(docs.totalHits);
+                } catch (Throwable e) {
+                    throw convertException(e);
+                }
                 if (limit == 0) {
                     // in this context it's safe to cast
                     limit = (int) totalHits;

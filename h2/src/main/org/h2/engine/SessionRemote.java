@@ -110,6 +110,12 @@ public final class SessionRemote extends Session implements DataHandler {
 
     private volatile DynamicSettings dynamicSettings;
 
+    private ArrayList<String> sessionState;
+
+    private boolean sessionStateChanged;
+
+    private boolean sessionStateUpdating;
+
     public SessionRemote(ConnectionInfo ci) {
         this.connectionInfo = ci;
         oldInformationSchema = ci.getProperty("OLD_INFORMATION_SCHEMA", false);
@@ -1019,6 +1025,43 @@ public final class SessionRemote extends Session implements DataHandler {
     @Override
     public boolean zeroBasedEnums() {
         return false;
+    }
+
+
+    /**
+     * Re-create the session state using the stored sessionState list.
+     */
+    private void recreateSessionState() {
+        if (sessionState != null && !sessionState.isEmpty()) {
+            sessionStateUpdating = true;
+            try {
+                for (String sql : sessionState) {
+                    CommandInterface ci = prepareCommand(sql);
+                    ci.executeUpdate(null);
+                }
+            } finally {
+                sessionStateUpdating = false;
+                sessionStateChanged = false;
+            }
+        }
+    }
+
+    /**
+     * Read the session state if necessary.
+     */
+    public void readSessionState() {
+        if (!sessionStateChanged || sessionStateUpdating) {
+            return;
+        }
+        sessionStateChanged = false;
+        sessionState = Utils.newSmallArrayList();
+        CommandInterface ci = prepareCommand(!isOldInformationSchema()
+                ? "SELECT STATE_COMMAND FROM INFORMATION_SCHEMA.SESSION_STATE"
+                : "SELECT SQL FROM INFORMATION_SCHEMA.SESSION_STATE");
+        ResultInterface result = ci.executeQuery(0, Integer.MAX_VALUE, false);
+        while (result.next()) {
+            sessionState.add(result.currentRow()[0].getString());
+        }
     }
 
 }

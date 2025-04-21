@@ -11,11 +11,9 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.h2.command.CommandInterface;
 import org.h2.jdbc.meta.DatabaseMeta;
 import org.h2.message.Trace;
-import org.h2.result.ResultInterface;
 import org.h2.store.DataHandler;
 import org.h2.util.NetworkConnectionInfo;
 import org.h2.util.TimeZoneProvider;
-import org.h2.util.Utils;
 import org.h2.value.ValueLob;
 
 /**
@@ -92,12 +90,6 @@ public abstract class Session implements CastDataProvider, AutoCloseable {
     }
 
     private final ReentrantLock lock = new ReentrantLock();
-
-    private ArrayList<String> sessionState;
-
-    boolean sessionStateChanged;
-
-    private boolean sessionStateUpdating;
 
     volatile StaticSettings staticSettings;
 
@@ -289,42 +281,6 @@ public abstract class Session implements CastDataProvider, AutoCloseable {
      * @return whether INFORMATION_SCHEMA contains old-style tables
      */
     public abstract boolean isOldInformationSchema();
-
-    /**
-     * Re-create the session state using the stored sessionState list.
-     */
-    void recreateSessionState() {
-        if (sessionState != null && !sessionState.isEmpty()) {
-            sessionStateUpdating = true;
-            try {
-                for (String sql : sessionState) {
-                    CommandInterface ci = prepareCommand(sql);
-                    ci.executeUpdate(null);
-                }
-            } finally {
-                sessionStateUpdating = false;
-                sessionStateChanged = false;
-            }
-        }
-    }
-
-    /**
-     * Read the session state if necessary.
-     */
-    public void readSessionState() {
-        if (!sessionStateChanged || sessionStateUpdating) {
-            return;
-        }
-        sessionStateChanged = false;
-        sessionState = Utils.newSmallArrayList();
-        CommandInterface ci = prepareCommand(!isOldInformationSchema()
-                ? "SELECT STATE_COMMAND FROM INFORMATION_SCHEMA.SESSION_STATE"
-                : "SELECT SQL FROM INFORMATION_SCHEMA.SESSION_STATE");
-        ResultInterface result = ci.executeQuery(0, Integer.MAX_VALUE, false);
-        while (result.next()) {
-            sessionState.add(result.currentRow()[0].getString());
-        }
-    }
 
     /**
      * Sets this session as thread local session, if this session is a local

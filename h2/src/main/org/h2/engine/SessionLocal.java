@@ -974,7 +974,6 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
         }
         Database.unlockMetaDebug(this);
         savepoints = null;
-        sessionStateChanged = true;
     }
 
     private void cleanTempTables(boolean closeSession) {

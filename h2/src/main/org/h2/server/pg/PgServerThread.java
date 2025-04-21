@@ -28,6 +28,7 @@ import java.util.Properties;
 import java.util.regex.Pattern;
 
 import org.h2.api.ErrorCode;
+import org.h2.command.Command;
 import org.h2.command.CommandInterface;
 import org.h2.engine.ConnectionInfo;
 import org.h2.engine.Constants;
@@ -113,7 +114,7 @@ public final class PgServerThread implements Runnable {
     private String databaseName;
     private int processId;
     private final int secret;
-    private CommandInterface activeRequest;
+    private Command activeRequest;
     private String clientEncoding = SysProperties.PG_DEFAULT_CLIENT_ENCODING;
     private String dateStyle = "ISO, MDY";
     private TimeZoneProvider timeZone = DateTimeUtils.getTimeZone();
@@ -410,7 +411,7 @@ public final class PgServerThread implements Runnable {
                 if (p == null) {
                     sendErrorResponse("Portal not found: " + name);
                 } else {
-                    CommandInterface prep = p.prep.prep;
+                    Command prep = p.prep.prep;
                     try {
                         sendRowDescription(prep.getMetaData(), p.resultColumnFormat);
                     } catch (Exception e) {
@@ -433,7 +434,7 @@ public final class PgServerThread implements Runnable {
             }
             int maxRows = readInt();
             Prepared prepared = p.prep;
-            CommandInterface prep = prepared.prep;
+            Command prep = prepared.prep;
             server.trace(prepared.sql);
             try {
                 setActiveRequest(prep);
@@ -465,10 +466,10 @@ public final class PgServerThread implements Runnable {
                     break;
                 }
                 s = getSQL(s);
-                try (CommandInterface command = session.prepareLocal(s)) {
+                try (Command command = session.prepareLocal(s)) {
                     setActiveRequest(command);
                     if (command.isQuery()) {
-                        try (ResultInterface result = command.executeQuery(0, false)) {
+                        try (ResultInterface result = command.executeQuery(0, -1, false)) {
                             sendRowDescription(result, null);
                             while (result.next()) {
                                 sendDataRow(result, null);
@@ -499,11 +500,11 @@ public final class PgServerThread implements Runnable {
         }
     }
 
-    private void executeQuery(Prepared prepared, CommandInterface prep, int[] resultColumnFormat, int maxRows)
+    private void executeQuery(Prepared prepared, Command prep, int[] resultColumnFormat, int maxRows)
             throws Exception {
         ResultInterface result = prepared.result;
         if (result == null) {
-            result = prep.executeQuery(0L, false);
+            result = prep.executeQuery(0L, -1, false);
         }
         try {
             // the meta-data is sent in the prior 'Describe'
@@ -543,7 +544,7 @@ public final class PgServerThread implements Runnable {
         return s;
     }
 
-    private void sendCommandComplete(CommandInterface command, long updateCount) throws IOException {
+    private void sendCommandComplete(Command command, long updateCount) throws IOException {
         startMessage('C');
         switch (command.getCommandType()) {
         case CommandInterface.INSERT:
@@ -1144,13 +1145,13 @@ public final class PgServerThread implements Runnable {
 
     private void initDb() {
         session.setTimeZone(timeZone);
-        try (CommandInterface command = session.prepareLocal("set search_path = public, pg_catalog")) {
+        try (Command command = session.prepareLocal("set search_path = public, pg_catalog")) {
             command.executeUpdate(null);
         }
         HashSet<Integer> typeSet = server.getTypeSet();
         if (typeSet.isEmpty()) {
-            try (CommandInterface command = session.prepareLocal("select oid from pg_catalog.pg_type");
-                    ResultInterface result = command.executeQuery(0, false)) {
+            try (Command command = session.prepareLocal("select oid from pg_catalog.pg_type");
+                    ResultInterface result = command.executeQuery(0, -1, false)) {
                 while (result.next()) {
                     typeSet.add(result.currentRow()[0].getInt());
                 }
@@ -1294,7 +1295,7 @@ public final class PgServerThread implements Runnable {
         return this.processId;
     }
 
-    private synchronized void setActiveRequest(CommandInterface statement) {
+    private synchronized void setActiveRequest(Command statement) {
         activeRequest = statement;
     }
 
@@ -1326,7 +1327,7 @@ public final class PgServerThread implements Runnable {
         /**
          * The prepared statement.
          */
-        CommandInterface prep;
+        Command prep;
 
         /**
          * The current result (for suspended portal).

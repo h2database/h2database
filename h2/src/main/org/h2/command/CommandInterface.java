@@ -588,10 +588,11 @@ public interface CommandInterface extends AutoCloseable {
      * Execute the query.
      *
      * @param maxRows the maximum number of rows returned
+     * @param fetchSize the number of rows to fetch (for remote commands only)
      * @param scrollable if the result set must be scrollable
      * @return the result
      */
-    ResultInterface executeQuery(long maxRows, boolean scrollable);
+    ResultInterface executeQuery(long maxRows, int fetchSize, boolean scrollable);
 
     /**
      * Execute the statement

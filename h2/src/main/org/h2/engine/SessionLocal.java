@@ -556,7 +556,7 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
     }
 
     @Override
-    public CommandInterface prepareCommand(String sql, int fetchSize) {
+    public CommandInterface prepareCommand(String sql) {
         lock();
         try {
             return prepareLocal(sql);
@@ -974,7 +974,6 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
         }
         Database.unlockMetaDebug(this);
         savepoints = null;
-        sessionStateChanged = true;
     }
 
     private void cleanTempTables(boolean closeSession) {

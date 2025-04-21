@@ -121,6 +121,7 @@ public class TestPreparedStatement extends TestDb {
         testAfterRollback(conn);
         testUnnestWithArrayParameter(conn);
         testDateTimeWithParameter(conn);
+        testFetchSize(conn);
         conn.close();
         testPreparedStatementWithLiteralsNone();
         testPreparedStatementWithIndexedParameterAndLiteralsNone();
@@ -1830,6 +1831,18 @@ public class TestPreparedStatement extends TestDb {
         assertTrue(rs.next());
         assertFalse(rs.getBoolean(1));
         stat.execute("DROP TABLE TEST");
+    }
+
+    private void testFetchSize(Connection conn) throws SQLException {
+        if (!config.networked) {
+            return;
+        }
+        PreparedStatement prep = conn.prepareStatement("SELECT * FROM SYSTEM_RANGE(1, 20)");
+        prep.setFetchSize(10);
+        ResultSet rs = prep.executeQuery();
+        assertEquals(10, rs.getFetchSize());
+        rs.close();
+        prep.close();
     }
 
 }

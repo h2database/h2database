@@ -63,9 +63,7 @@ public final class JdbcSavepoint extends TraceObject implements Savepoint {
      */
     void rollback() {
         checkValid();
-        conn.prepareCommand(
-                "ROLLBACK TO SAVEPOINT " + getName(name, savepointId),
-                Integer.MAX_VALUE).executeUpdate(null);
+        conn.prepareCommand("ROLLBACK TO SAVEPOINT " + getName(name, savepointId)).executeUpdate(null);
     }
 
     private void checkValid() {

@@ -115,7 +115,7 @@ public class RunScriptCommand extends ScriptBase {
             Prepared command = session.prepare(sql);
             CommandContainer commandContainer = new CommandContainer(session, sql, command);
             if (commandContainer.isQuery()) {
-                commandContainer.executeQuery(0, false);
+                commandContainer.executeQuery(0, -1, false);
             } else {
                 commandContainer.executeUpdate(null);
             }

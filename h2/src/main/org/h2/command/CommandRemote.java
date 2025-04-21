@@ -39,7 +39,6 @@ public class CommandRemote implements CommandInterface {
     private final ArrayList<ParameterInterface> parameters;
     private final Trace trace;
     private final String sql;
-    private final int fetchSize;
     private SessionRemote session;
     private int id;
     private boolean isQuery;
@@ -48,7 +47,7 @@ public class CommandRemote implements CommandInterface {
     private final int created;
 
     public CommandRemote(SessionRemote session,
-            ArrayList<Transfer> transferList, String sql, int fetchSize) {
+            ArrayList<Transfer> transferList, String sql) {
         this.transferList = transferList;
         trace = session.getTrace();
         this.sql = sql;
@@ -57,7 +56,6 @@ public class CommandRemote implements CommandInterface {
         // set session late because prepare might fail - in this case we don't
         // need to close the object
         this.session = session;
-        this.fetchSize = fetchSize;
         created = session.getLastReconnect();
     }
 
@@ -158,7 +156,7 @@ public class CommandRemote implements CommandInterface {
     }
 
     @Override
-    public ResultInterface executeQuery(long maxRows, boolean scrollable) {
+    public ResultInterface executeQuery(long maxRows, int fetchSize, boolean scrollable) {
         checkParameters();
         final SessionRemote session = this.session;
         session.lock();

@@ -652,7 +652,7 @@ public final class DatabaseMetaLegacy extends DatabaseMetaLocalBase {
         checkClosed();
         session.lock();
         try {
-            CommandInterface command = session.prepareCommand(sql, Integer.MAX_VALUE);
+            CommandInterface command = session.prepareCommand(sql);
             int l = args.length;
             if (l > 0) {
                 ArrayList<? extends ParameterInterface> parameters = command.getParameters();
@@ -660,7 +660,7 @@ public final class DatabaseMetaLegacy extends DatabaseMetaLocalBase {
                     parameters.get(i).setValue(args[i], true);
                 }
             }
-            ResultInterface result = command.executeQuery(0, false);
+            ResultInterface result = command.executeQuery(0, Integer.MAX_VALUE, false);
             command.close();
             return result;
         } finally {

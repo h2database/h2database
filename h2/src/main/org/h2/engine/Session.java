@@ -152,10 +152,9 @@ public abstract class Session implements CastDataProvider, AutoCloseable {
      * Parse a command and prepare it for execution.
      *
      * @param sql the SQL statement
-     * @param fetchSize the number of rows to fetch in one step
      * @return the prepared command
      */
-    public abstract CommandInterface prepareCommand(String sql, int fetchSize);
+    public abstract CommandInterface prepareCommand(String sql);
 
     /**
      * Roll back pending transactions and close the session.
@@ -299,7 +298,7 @@ public abstract class Session implements CastDataProvider, AutoCloseable {
             sessionStateUpdating = true;
             try {
                 for (String sql : sessionState) {
-                    CommandInterface ci = prepareCommand(sql, Integer.MAX_VALUE);
+                    CommandInterface ci = prepareCommand(sql);
                     ci.executeUpdate(null);
                 }
             } finally {
@@ -320,8 +319,8 @@ public abstract class Session implements CastDataProvider, AutoCloseable {
         sessionState = Utils.newSmallArrayList();
         CommandInterface ci = prepareCommand(!isOldInformationSchema()
                 ? "SELECT STATE_COMMAND FROM INFORMATION_SCHEMA.SESSION_STATE"
-                : "SELECT SQL FROM INFORMATION_SCHEMA.SESSION_STATE", Integer.MAX_VALUE);
-        ResultInterface result = ci.executeQuery(0, false);
+                : "SELECT SQL FROM INFORMATION_SCHEMA.SESSION_STATE");
+        ResultInterface result = ci.executeQuery(0, Integer.MAX_VALUE, false);
         while (result.next()) {
             sessionState.add(result.currentRow()[0].getString());
         }

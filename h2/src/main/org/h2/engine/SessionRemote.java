@@ -222,7 +222,7 @@ public final class SessionRemote extends Session implements DataHandler {
         if (autoCommit && transferList.size() > 1) {
             setAutoCommitSend(false);
             CommandInterface c = prepareCommand(
-                    "SET CLUSTER " + serverList, Integer.MAX_VALUE);
+                    "SET CLUSTER " + serverList);
             // this will set autoCommit to false
             c.executeUpdate(null);
             // so we need to switch it on
@@ -458,7 +458,7 @@ public final class SessionRemote extends Session implements DataHandler {
     }
 
     private void switchOffCluster() {
-        CommandInterface ci = prepareCommand("SET CLUSTER ''", Integer.MAX_VALUE);
+        CommandInterface ci = prepareCommand("SET CLUSTER ''");
         ci.executeUpdate(null);
     }
 
@@ -481,11 +481,11 @@ public final class SessionRemote extends Session implements DataHandler {
     }
 
     @Override
-    public CommandInterface prepareCommand(String sql, int fetchSize) {
+    public CommandInterface prepareCommand(String sql) {
         lock();
         try {
             checkClosed();
-            return new CommandRemote(this, transferList, sql, fetchSize);
+            return new CommandRemote(this, transferList, sql);
         } finally {
             unlock();
         }
@@ -831,8 +831,8 @@ public final class SessionRemote extends Session implements DataHandler {
         if (schema == null) {
             lock();
             try {
-                try (CommandInterface command = prepareCommand("CALL SCHEMA()", 1);
-                        ResultInterface result = command.executeQuery(1, false)) {
+                try (CommandInterface command = prepareCommand("CALL SCHEMA()");
+                        ResultInterface result = command.executeQuery(1, 1, false)) {
                     result.next();
                     currentSchemaName = schema = result.currentRow()[0].getString();
                 }
@@ -849,7 +849,7 @@ public final class SessionRemote extends Session implements DataHandler {
         try {
             currentSchemaName = null;
             try (CommandInterface command = prepareCommand(
-                    StringUtils.quoteIdentifier(new StringBuilder("SET SCHEMA "), schema).toString(), 0)) {
+                    StringUtils.quoteIdentifier(new StringBuilder("SET SCHEMA "), schema).toString())) {
                 command.executeUpdate(null);
                 currentSchemaName = schema;
             }
@@ -868,14 +868,14 @@ public final class SessionRemote extends Session implements DataHandler {
         if (clientVersion >= Constants.TCP_PROTOCOL_VERSION_19) {
             try (CommandInterface command = prepareCommand(!isOldInformationSchema()
                     ? "SELECT ISOLATION_LEVEL FROM INFORMATION_SCHEMA.SESSIONS WHERE SESSION_ID = SESSION_ID()"
-                    : "SELECT ISOLATION_LEVEL FROM INFORMATION_SCHEMA.SESSIONS WHERE ID = SESSION_ID()", 1);
-                    ResultInterface result = command.executeQuery(1, false)) {
+                    : "SELECT ISOLATION_LEVEL FROM INFORMATION_SCHEMA.SESSIONS WHERE ID = SESSION_ID()");
+                    ResultInterface result = command.executeQuery(1, 1, false)) {
                 result.next();
                 return IsolationLevel.fromSql(result.currentRow()[0].getString());
             }
         } else {
-            try (CommandInterface command = prepareCommand("CALL LOCK_MODE()", 1);
-                    ResultInterface result = command.executeQuery(1, false)) {
+            try (CommandInterface command = prepareCommand("CALL LOCK_MODE()");
+                    ResultInterface result = command.executeQuery(1, 1, false)) {
                 result.next();
                 return IsolationLevel.fromLockMode(result.currentRow()[0].getInt());
             }
@@ -886,11 +886,11 @@ public final class SessionRemote extends Session implements DataHandler {
     public void setIsolationLevel(IsolationLevel isolationLevel) {
         if (clientVersion >= Constants.TCP_PROTOCOL_VERSION_19) {
             try (CommandInterface command = prepareCommand(
-                    "SET SESSION CHARACTERISTICS AS TRANSACTION ISOLATION LEVEL " + isolationLevel.getSQL(), 0)) {
+                    "SET SESSION CHARACTERISTICS AS TRANSACTION ISOLATION LEVEL " + isolationLevel.getSQL())) {
                 command.executeUpdate(null);
             }
         } else {
-            try (CommandInterface command = prepareCommand("SET LOCK_MODE ?", 0)) {
+            try (CommandInterface command = prepareCommand("SET LOCK_MODE ?")) {
                 command.getParameters().get(0).setValue(ValueInteger.get(isolationLevel.getLockMode()), false);
                 command.executeUpdate(null);
             }
@@ -907,7 +907,7 @@ public final class SessionRemote extends Session implements DataHandler {
                 parameters.get(0).setValue(ValueVarchar.get("DATABASE_TO_UPPER"), false);
                 parameters.get(1).setValue(ValueVarchar.get("DATABASE_TO_LOWER"), false);
                 parameters.get(2).setValue(ValueVarchar.get("CASE_INSENSITIVE_IDENTIFIERS"), false);
-                try (ResultInterface result = command.executeQuery(0, false)) {
+                try (ResultInterface result = command.executeQuery(0, Integer.MAX_VALUE, false)) {
                     while (result.next()) {
                         Value[] row = result.currentRow();
                         String value = row[1].getString();
@@ -945,7 +945,7 @@ public final class SessionRemote extends Session implements DataHandler {
                 parameters.get(0).setValue(ValueVarchar.get("MODE"), false);
                 parameters.get(1).setValue(ValueVarchar.get("TIME ZONE"), false);
                 parameters.get(2).setValue(ValueVarchar.get("JAVA_OBJECT_SERIALIZER"), false);
-                try (ResultInterface result = command.executeQuery(0, false)) {
+                try (ResultInterface result = command.executeQuery(0, Integer.MAX_VALUE, false)) {
                     while (result.next()) {
                         Value[] row = result.currentRow();
                         String value = row[1].getString();
@@ -987,8 +987,7 @@ public final class SessionRemote extends Session implements DataHandler {
         return prepareCommand(
                 (!isOldInformationSchema()
                         ? "SELECT SETTING_NAME, SETTING_VALUE FROM INFORMATION_SCHEMA.SETTINGS WHERE SETTING_NAME"
-                        : "SELECT NAME, `VALUE` FROM INFORMATION_SCHEMA.SETTINGS WHERE NAME") + args,
-                Integer.MAX_VALUE);
+                        : "SELECT NAME, `VALUE` FROM INFORMATION_SCHEMA.SETTINGS WHERE NAME") + args);
     }
 
     @Override

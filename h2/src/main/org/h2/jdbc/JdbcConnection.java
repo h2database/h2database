@@ -583,7 +583,7 @@ public class JdbcConnection extends TraceObject implements Connection, CastDataP
             debugCodeCall("isReadOnly");
             checkClosed();
             getReadOnly = prepareCommand("CALL READONLY()", getReadOnly);
-            ResultInterface result = getReadOnly.executeQuery(0, false);
+            ResultInterface result = getReadOnly.executeQuery(0, 1, false);
             result.next();
             return result.currentRow()[0].getBoolean();
         } catch (Exception e) {
@@ -619,9 +619,8 @@ public class JdbcConnection extends TraceObject implements Connection, CastDataP
             debugCodeCall("getCatalog");
             checkClosed();
             if (catalog == null) {
-                CommandInterface cat = prepareCommand("CALL DATABASE()",
-                        Integer.MAX_VALUE);
-                ResultInterface result = cat.executeQuery(0, false);
+                CommandInterface cat = prepareCommand("CALL DATABASE()");
+                ResultInterface result = cat.executeQuery(0, 1, false);
                 result.next();
                 catalog = result.currentRow()[0].getString();
                 cat.close();
@@ -748,7 +747,7 @@ public class JdbcConnection extends TraceObject implements Connection, CastDataP
                         : "SELECT `VALUE` FROM INFORMATION_SCHEMA.SETTINGS WHERE NAME=?", getQueryTimeout);
                 getQueryTimeout.getParameters().get(0)
                         .setValue(ValueVarchar.get("QUERY_TIMEOUT"), false);
-                ResultInterface result = getQueryTimeout.executeQuery(0, false);
+                ResultInterface result = getQueryTimeout.executeQuery(0, 1, false);
                 result.next();
                 int queryTimeout = result.currentRow()[0].getInt();
                 result.close();
@@ -954,8 +953,7 @@ public class JdbcConnection extends TraceObject implements Connection, CastDataP
             debugCodeAssign("Savepoint", TraceObject.SAVEPOINT, id, "setSavepoint()");
             checkClosed();
             CommandInterface set = prepareCommand(
-                    "SAVEPOINT " + JdbcSavepoint.getName(null, savepointId),
-                    Integer.MAX_VALUE);
+                    "SAVEPOINT " + JdbcSavepoint.getName(null, savepointId));
             set.executeUpdate(null);
             JdbcSavepoint savepoint = new JdbcSavepoint(this, savepointId, null,
                     trace, id);
@@ -981,8 +979,7 @@ public class JdbcConnection extends TraceObject implements Connection, CastDataP
             }
             checkClosed();
             CommandInterface set = prepareCommand(
-                    "SAVEPOINT " + JdbcSavepoint.getName(name, 0),
-                    Integer.MAX_VALUE);
+                    "SAVEPOINT " + JdbcSavepoint.getName(name, 0));
             set.executeUpdate(null);
             return new JdbcSavepoint(this, 0, name, trace, id);
         } catch (Exception e) {
@@ -1157,16 +1154,14 @@ public class JdbcConnection extends TraceObject implements Connection, CastDataP
      * Prepare an command. This will parse the SQL statement.
      *
      * @param sql the SQL statement
-     * @param fetchSize the fetch size (used in remote connections)
      * @return the command
      */
-    CommandInterface prepareCommand(String sql, int fetchSize) {
-        return session.prepareCommand(sql, fetchSize);
+    CommandInterface prepareCommand(String sql) {
+        return session.prepareCommand(sql);
     }
 
     private CommandInterface prepareCommand(String sql, CommandInterface old) {
-        return old == null ? session.prepareCommand(sql, Integer.MAX_VALUE)
-                : old;
+        return old == null ? session.prepareCommand(sql) : old;
     }
 
     private static int translateGetEnd(String sql, int i, char c) {

@@ -44,7 +44,7 @@ class CommandList extends Command {
         for (Prepared prepared : commands) {
             CommandContainer commandContainer = new CommandContainer(session, prepared.getSQL(), prepared);
             if (prepared.isQuery()) {
-                commandContainer.executeQuery(0, false);
+                commandContainer.executeQuery(0, -1, false);
             } else {
                 commandContainer.executeUpdate(null);
             }
@@ -53,7 +53,7 @@ class CommandList extends Command {
             remainingCommand = session.prepareLocal(remaining);
             remaining = null;
             if (remainingCommand.isQuery()) {
-                remainingCommand.executeQuery(0, false);
+                remainingCommand.executeQuery(0, -1, false);
             } else {
                 remainingCommand.executeUpdate(null);
             }

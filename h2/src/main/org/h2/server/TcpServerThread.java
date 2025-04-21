@@ -357,7 +357,7 @@ public class TcpServerThread implements Runnable {
             ResultInterface result;
             session.lock();
             try {
-                result = command.executeQuery(maxRows, false);
+                result = command.executeQuery(maxRows, -1, false);
             } finally {
                 session.unlock();
             }

@@ -91,14 +91,14 @@ public class JdbcStatement extends TraceObject implements Statement {
                 checkClosed();
                 closeOldResultSet();
                 sql = JdbcConnection.translateSQL(sql, escapeProcessing);
-                CommandInterface command = conn.prepareCommand(sql, fetchSize);
+                CommandInterface command = conn.prepareCommand(sql);
                 ResultInterface result;
                 boolean lazy = false;
                 boolean scrollable = resultSetType != ResultSet.TYPE_FORWARD_ONLY;
                 boolean updatable = resultSetConcurrency == ResultSet.CONCUR_UPDATABLE;
                 setExecutingStatement(command);
                 try {
-                    result = command.executeQuery(maxRows, scrollable);
+                    result = command.executeQuery(maxRows, fetchSize, scrollable);
                     lazy = result.isLazy();
                 } finally {
                     if (!lazy) {
@@ -187,7 +187,7 @@ public class JdbcStatement extends TraceObject implements Statement {
         checkClosed();
         closeOldResultSet();
         sql = JdbcConnection.translateSQL(sql, escapeProcessing);
-        CommandInterface command = conn.prepareCommand(sql, fetchSize);
+        CommandInterface command = conn.prepareCommand(sql);
         final Session session = this.session;
         session.lock();
         try {
@@ -242,7 +242,7 @@ public class JdbcStatement extends TraceObject implements Statement {
         checkClosed();
         closeOldResultSet();
         sql = JdbcConnection.translateSQL(sql, escapeProcessing);
-        CommandInterface command = conn.prepareCommand(sql, fetchSize);
+        CommandInterface command = conn.prepareCommand(sql);
         boolean lazy = false;
         boolean returnsResultSet;
         final Session session = this.session;
@@ -254,7 +254,7 @@ public class JdbcStatement extends TraceObject implements Statement {
                     returnsResultSet = true;
                     boolean scrollable = resultSetType != ResultSet.TYPE_FORWARD_ONLY;
                     boolean updatable = resultSetConcurrency == ResultSet.CONCUR_UPDATABLE;
-                    ResultInterface result = command.executeQuery(maxRows, scrollable);
+                    ResultInterface result = command.executeQuery(maxRows, fetchSize, scrollable);
                     lazy = result.isLazy();
                     resultSet = new JdbcResultSet(conn, this, command, result, id, scrollable, updatable, false);
                 } else {

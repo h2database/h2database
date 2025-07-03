@@ -69,6 +69,9 @@ Export-Package: org.h2;version="${version}",
  org.h2.mvstore.tx;version="${version}",
  org.h2.mvstore.type;version="${version}",
  org.h2.mvstore.rtree;version="${version}",
+ org.h2.server;version="${version}",
+ org.h2.server.pg;version="${version}",
+ org.h2.server.web;version="${version}",
  org.h2.store.fs;version="${version}"
 Provide-Capability: osgi.service;objectClass:List<String>=org.osgi.service.jdbc.DataSourceFactory
 Premain-Class: org.h2.util.Profiler

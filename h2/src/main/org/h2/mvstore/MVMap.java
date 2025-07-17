@@ -213,7 +213,7 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
      * @return the key list
      */
     public final List<K> keyList() {
-        return new AbstractList<>() {
+        return new AbstractList<K>() {
 
             @Override
             public K get(int index) {
@@ -733,12 +733,12 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
     @Override
     public final Set<Map.Entry<K, V>> entrySet() {
         final RootReference<K,V> rootReference = flushAndGetRoot();
-        return new AbstractSet<>() {
+        return new AbstractSet<Entry<K, V>>() {
 
             @Override
             public Iterator<Entry<K, V>> iterator() {
                 final Cursor<K, V> cursor = cursor(rootReference, null, null, false);
-                return new Iterator<>() {
+                return new Iterator<Entry<K, V>>() {
 
                     @Override
                     public boolean hasNext() {
@@ -771,7 +771,7 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
     @Override
     public Set<K> keySet() {
         final RootReference<K,V> rootReference = flushAndGetRoot();
-        return new AbstractSet<>() {
+        return new AbstractSet<K>() {
 
             @Override
             public Iterator<K> iterator() {
@@ -1617,7 +1617,7 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
         /**
          * Decision maker for transaction rollback.
          */
-        public static final DecisionMaker<Object> DEFAULT = new DecisionMaker<>() {
+        public static final DecisionMaker<Object> DEFAULT = new DecisionMaker<Object>() {
             @Override
             public Decision decide(Object existingValue, Object providedValue) {
                 return providedValue == null ? Decision.REMOVE : Decision.PUT;
@@ -1632,7 +1632,7 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
         /**
          * Decision maker for put().
          */
-        public static final DecisionMaker<Object> PUT = new DecisionMaker<>() {
+        public static final DecisionMaker<Object> PUT = new DecisionMaker<Object>() {
             @Override
             public Decision decide(Object existingValue, Object providedValue) {
                 return Decision.PUT;
@@ -1647,7 +1647,7 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
         /**
          * Decision maker for remove().
          */
-        public static final DecisionMaker<Object> REMOVE = new DecisionMaker<>() {
+        public static final DecisionMaker<Object> REMOVE = new DecisionMaker<Object>() {
             @Override
             public Decision decide(Object existingValue, Object providedValue) {
                 return Decision.REMOVE;
@@ -1662,7 +1662,7 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
         /**
          * Decision maker for putIfAbsent() key/value.
          */
-        static final DecisionMaker<Object> IF_ABSENT = new DecisionMaker<>() {
+        static final DecisionMaker<Object> IF_ABSENT = new DecisionMaker<Object>() {
             @Override
             public Decision decide(Object existingValue, Object providedValue) {
                 return existingValue == null ? Decision.PUT : Decision.ABORT;
@@ -1677,7 +1677,7 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
         /**
          * Decision maker for replace().
          */
-        static final DecisionMaker<Object> IF_PRESENT= new DecisionMaker<>() {
+        static final DecisionMaker<Object> IF_PRESENT= new DecisionMaker<Object>() {
             @Override
             public Decision decide(Object existingValue, Object providedValue) {
                 return existingValue != null ? Decision.PUT : Decision.ABORT;

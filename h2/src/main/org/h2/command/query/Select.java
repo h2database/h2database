@@ -12,6 +12,7 @@ import static org.h2.util.HasSQL.DEFAULT_SQL_FLAGS;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -628,7 +629,7 @@ public class Select extends Query {
                 return null;
             }
             // sort just on constants - can use scan index
-            return List.of(new IndexSort(topTableFilter.getTable().getScanIndex(session), false));
+            return Collections.singletonList(new IndexSort(topTableFilter.getTable().getScanIndex(session), false));
         }
         Column[] sortCols;
         int[] sortTypes = sort.getSortTypesWithNullOrdering();
@@ -638,7 +639,7 @@ public class Select extends Query {
                 // special case: order by _ROWID_
                 Index index = topTableFilter.getTable().getScanIndex(session);
                 if (index.isRowIdIndex()) {
-                    return List.of(new IndexSort(index, needMore ? sortedColumns : IndexSort.FULLY_SORTED,
+                    return Collections.singletonList(new IndexSort(index, needMore ? sortedColumns : IndexSort.FULLY_SORTED,
                             (sortTypes[sortIndex[0]] & SortOrder.DESCENDING) != 0));
                 }
             }

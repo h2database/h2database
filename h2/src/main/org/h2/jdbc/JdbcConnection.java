@@ -830,7 +830,7 @@ public class JdbcConnection extends TraceObject implements Connection, CastDataP
         try {
             debugCodeCall("getTypeMap");
             checkClosed();
-            return Map.of();
+            return Collections.emptyMap();
         } catch (Exception e) {
             throw logAndConvert(e);
         }

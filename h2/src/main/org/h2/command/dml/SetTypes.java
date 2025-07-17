@@ -5,6 +5,7 @@
  */
 package org.h2.command.dml;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -251,7 +252,7 @@ public class SetTypes {
     }
 
     static {
-        TYPES = List.of( //
+        TYPES = Arrays.asList( //
                 "IGNORECASE", //
                 "MAX_LOG_SIZE", //
                 "MODE", //

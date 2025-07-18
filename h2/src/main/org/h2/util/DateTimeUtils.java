@@ -187,7 +187,7 @@ public class DateTimeUtils {
                 throw new IllegalArgumentException(s);
             }
         }
-        int year = Integer.parseInt(s, start, yEnd, 10);
+        int year = Integer.parseInt(s.substring(start, yEnd), 10);
         int month = StringUtils.parseUInt31(s, mStart, mEnd);
         int day = StringUtils.parseUInt31(s, dStart, end);
         if (!isValidDate(year, month, day)) {

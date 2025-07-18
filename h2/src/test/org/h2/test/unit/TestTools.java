@@ -706,7 +706,7 @@ public class TestTools extends TestDb {
         }
         assertEquals(exitCode, result);
         ps.flush();
-        return buff.toString(StandardCharsets.UTF_8);
+        return buff.toString(StandardCharsets.UTF_8.name());
     }
 
     private void shutdownServers() {
@@ -978,7 +978,7 @@ public class TestTools extends TestDb {
         tool.setOut(new PrintStream(buff, false, "UTF-8"));
         tool.runTool("-url", url, "-user", user, "-password", password,
                 "-script", fileName + ".txt", "-showResults");
-        assertContains(buff.toString(StandardCharsets.UTF_8), "Hello");
+        assertContains(buff.toString(StandardCharsets.UTF_8.name()), "Hello");
 
 
         // test parsing of BLOCKSIZE option

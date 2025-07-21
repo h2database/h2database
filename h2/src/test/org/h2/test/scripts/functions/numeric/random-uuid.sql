@@ -9,8 +9,11 @@ SELECT CHAR_LENGTH(CAST(RANDOM_UUID() AS VARCHAR));
 SELECT RANDOM_UUID() = RANDOM_UUID();
 >> FALSE
 
-SELECT RANDOM_UUID(7) < RANDOM_UUID(7);
->> TRUE
+-- Check that RANDOM_UUID is based on nanotime
+-- DISABLED: On some machines, timer granularity is too low and execution speed is too fast so the two RANDOM_UUID
+-- calls will actually be based on the same timestamp.
+-- SELECT RANDOM_UUID(7) < RANDOM_UUID(7);
+-- >> TRUE
 
 SELECT RANDOM_UUID(100);
 > exception INVALID_VALUE_2

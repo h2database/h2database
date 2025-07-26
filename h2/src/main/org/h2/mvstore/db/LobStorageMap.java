@@ -118,10 +118,12 @@ public final class LobStorageMap implements LobStorageInterface
                 if (needCleanup()) {
                     try {
                         cleanupExecutor.execute(() -> {
-                            try {
-                                cleanup(oldestVersionToKeep);
-                            } catch (MVStoreException e) {
-                                mvStore.panic(e);
+                            if (!mvStore.isClosed()) {
+                                try {
+                                    cleanup(oldestVersionToKeep);
+                                } catch (MVStoreException e) {
+                                    mvStore.panic(e);
+                                }
                             }
                         });
                     } catch (RejectedExecutionException ignore) {/**/}

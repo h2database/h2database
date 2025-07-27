@@ -672,7 +672,7 @@ public final class MVStore implements AutoCloseable {
         // isClosed() would wait until closure is done, and then we jump out of the loop.
         // This is a subtle difference between !isClosed() and isOpen().
         while (!isClosed()) {
-            setAutoCommitDelay(-1);
+            setAutoCommitDelay(normalShutdown ? -1 : 0);    // stop background thread (with/without waiting)
             setOldestVersionTracker(null);
             storeLock.lock();
             try {
@@ -687,10 +687,9 @@ public final class MVStore implements AutoCloseable {
                                     }
                                 }
                                 setRetentionTime(0);
-                                commit();
+                                fileStore.stop(allowedCompactionTime);
                                 assert oldestVersionToKeep.get() == currentVersion : oldestVersionToKeep.get() + " != "
                                         + currentVersion;
-                                fileStore.stop(allowedCompactionTime);
                             }
 
                             if (meta != null) {
@@ -1196,8 +1195,9 @@ public final class MVStore implements AutoCloseable {
         } while (!success);
         assert version <= currentVersion : version + " <= " + currentVersion;
 
-        if (oldestVersionTracker != null) {
-            oldestVersionTracker.accept(version);
+        LongConsumer versionTracker = oldestVersionTracker;
+        if (versionTracker != null) {
+            versionTracker.accept(version);
         }
     }
 

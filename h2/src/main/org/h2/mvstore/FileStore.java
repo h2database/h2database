@@ -274,6 +274,7 @@ public abstract class FileStore<C extends Chunk<C>>
         if (allowedCompactionTime > 0) {
             compactStore(allowedCompactionTime);
         }
+        mvStore.commit();
         writeCleanShutdown();
         clearCaches();
     }

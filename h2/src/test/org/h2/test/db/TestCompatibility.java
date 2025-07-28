@@ -18,6 +18,7 @@ import java.util.Locale;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.h2.api.ErrorCode;
+import org.h2.engine.Constants;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
 
@@ -241,6 +242,16 @@ public class TestCompatibility extends TestDb {
         assertResult("ABC", stat, "SELECT SUBSTRING('ABCDEF' FOR 3)");
         assertResult("ABCD", stat, "SELECT SUBSTRING('0ABCDEF' FROM 2 FOR 4)");
 
+        /* Test bitwise operators, bitwise operators have less precedence as compared to other operators */
+        assertResult("-1", stat, "SELECT ~0::smallint");
+        assertResult("8", stat, "SELECT 12::smallint & 10::smallint");
+        assertResult("14", stat, "SELECT 12::smallint | 10::smallint");
+        assertResult("6", stat, "SELECT 12::smallint # 10::smallint");
+        assertResult("12", stat, "SELECT 3::smallint << 2");
+        assertResult("25", stat, "SELECT 100::smallint >> 2");
+        assertResult("7", stat, "SELECT ~10::smallint & 5::smallint | 3::smallint");
+        assertResult("-4", stat, "SELECT ~1::smallint + 2::smallint");
+
         /* --------- Behaviour of CHAR(N) --------- */
 
         /* Test right-padding of CHAR(N) at INSERT */
@@ -305,6 +316,10 @@ public class TestCompatibility extends TestDb {
         stat.execute("SET STATEMENT_TIMEOUT TO 30000");
         // `stat.getQueryTimeout()` returns seconds
         assertEquals(30, stat.getQueryTimeout());
+
+        ResultSet showVersion = stat.executeQuery( "SHOW SERVER_VERSION" );
+        assertTrue(showVersion.next());
+        assertEquals(showVersion.getString("SERVER_VERSION"), Constants.VERSION);
     }
 
     private void testMySQL() throws SQLException {

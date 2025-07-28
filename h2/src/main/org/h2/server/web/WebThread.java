@@ -18,6 +18,7 @@ import java.util.Locale;
 import java.util.Properties;
 import java.util.StringTokenizer;
 
+import org.h2.engine.Constants;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.util.IOUtils;
@@ -156,6 +157,7 @@ class WebThread extends WebApp implements Runnable {
                         NetUtils.ipToShortForm(new StringBuilder(server.getSSL() ? "https://" : "http://"),
                                 socket.getLocalAddress().getAddress(), true) //
                                 .append(':').append(socket.getLocalPort()).toString(), //
+                        Constants.VERSION,
                         socket.getInetAddress().getAddress(), socket.getPort(), null));
         if (file.length() == 0) {
             // asynchronous request

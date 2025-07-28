@@ -1481,6 +1481,14 @@ public class TypeInfo extends ExtTypeInfo implements Typed {
         return this;
     }
 
+    public TypeInfo unwrapArray() {
+        if (valueType == Value.ARRAY) {
+            return ((TypeInfo) extTypeInfo).unwrapArray();
+        } else {
+            return this;
+        }
+    }
+
     /**
      * Returns approximate precision in decimal digits for binary numeric data
      * types and precision for all other types.
@@ -1534,5 +1542,4 @@ public class TypeInfo extends ExtTypeInfo implements Typed {
         }
         return Value.getTypeName(valueType);
     }
-
 }

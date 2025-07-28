@@ -206,6 +206,8 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
                     i++;
                 } else if ("-pgPort".equals(arg)) {
                     i++;
+                } else if ("-pgVersion".equals(arg)) {
+                    i++;
                 } else {
                     throwUnsupportedOption(arg);
                 }

@@ -15,6 +15,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.h2.api.ErrorCode;
+import org.h2.engine.Constants;
 import org.h2.message.DbException;
 import org.h2.server.Service;
 import org.h2.util.NetUtils;
@@ -69,13 +70,14 @@ public class PgServer implements Service {
 
     private final HashSet<Integer> typeSet = new HashSet<>();
 
+    private String emulatedVersion = Constants.PG_VERSION;
     private int port = PgServer.DEFAULT_PORT;
     private boolean portIsSet;
     private boolean stop;
     private boolean trace;
     private ServerSocket serverSocket;
     private final Set<PgServerThread> running = Collections.
-            synchronizedSet(new HashSet<PgServerThread>());
+            synchronizedSet(new HashSet<>());
     private final AtomicInteger pid = new AtomicInteger();
     private String baseDir;
     private boolean allowOthers;
@@ -94,6 +96,8 @@ public class PgServer implements Service {
             } else if (Tool.isOption(a, "-pgPort")) {
                 port = Integer.decode(args[++i]);
                 portIsSet = true;
+            } else if (Tool.isOption(a, "-pgVersion")) {
+                emulatedVersion = args[++i];
             } else if (Tool.isOption(a, "-baseDir")) {
                 baseDir = args[++i];
             } else if (Tool.isOption(a, "-pgAllowOthers")) {
@@ -117,6 +121,10 @@ public class PgServer implements Service {
 
     boolean getTrace() {
         return trace;
+    }
+
+    public String getEmulatedVersion() {
+        return emulatedVersion;
     }
 
     /**

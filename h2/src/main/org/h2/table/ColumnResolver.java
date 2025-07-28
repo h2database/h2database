@@ -126,4 +126,37 @@ public interface ColumnResolver {
         return expressionColumn;
     }
 
+    /**
+     * A visitor for columnResolvers
+     */
+    interface ColumnResolverVisitor {
+        /**
+         * This method is called for each nested or joined columnresolver
+         *
+         * @param f the column resolver
+         */
+        void accept(final ColumnResolver f);
+    }
+
+    /**
+     * A visitor for only table filters
+     */
+    interface TableFilterVisitor extends ColumnResolverVisitor {
+        /**
+         * This method is called for each nested or joined table filter
+         * @param f the table filter
+         */
+        void accept(final TableFilter f);
+
+        /**
+         * Default implementation only responds to Column Resolvers of type Table Filter
+         * @param f the column resolver
+         */
+        @Override
+        default void accept(final ColumnResolver f) {
+            if (f instanceof TableFilter) {
+                accept((TableFilter) f);
+            }
+        }
+    }
 }

@@ -166,6 +166,7 @@ public class TcpServerThread implements Runnable {
                         NetUtils.ipToShortForm(new StringBuilder(server.getSSL() ? "ssl://" : "tcp://"),
                                 socket.getLocalAddress().getAddress(), true) //
                                 .append(':').append(socket.getLocalPort()).toString(), //
+                        Constants.VERSION,
                         socket.getInetAddress().getAddress(), socket.getPort(),
                         new StringBuilder().append('P').append(clientVersion).toString()));
                 if (clientVersion < Constants.TCP_PROTOCOL_VERSION_20) {

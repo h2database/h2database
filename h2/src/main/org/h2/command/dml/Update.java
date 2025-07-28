@@ -18,9 +18,7 @@ import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.message.DbException;
 import org.h2.result.LocalResult;
-import org.h2.result.ResultTarget;
 import org.h2.result.Row;
-import org.h2.table.DataChangeDeltaTable.ResultOption;
 import org.h2.table.PlanItem;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
@@ -46,7 +44,7 @@ public final class Update extends FilteredDataChangeStatement {
     }
 
     @Override
-    public long update(ResultTarget deltaChangeCollector, ResultOption deltaChangeCollectionMode) {
+    public long update(final DeltaChangeCollector deltaChangeCollector) {
         targetTableFilter.startQuery(session);
         targetTableFilter.reset();
         Table table = targetTableFilter.getTable();
@@ -67,36 +65,15 @@ public final class Update extends FilteredDataChangeStatement {
             while (nextRow(limitRows, count)) {
                 Row row = lockAndRecheckCondition();
                 if (row != null) {
-                    if (setClauseList.prepareUpdate(table, session, deltaChangeCollector, deltaChangeCollectionMode,
-                            rows, row, onDuplicateKeyInsert != null)) {
+                    if (setClauseList.prepareUpdate(table, session, deltaChangeCollector,
+                            rows, row, onDuplicateKeyInsert != null, targetTableFilter)) {
                         count++;
                     }
                 }
             }
-            doUpdate(this, session, table, rows);
+            setClauseList.doUpdate(this, session, table, rows);
             table.fire(session, Trigger.UPDATE, false);
             return count;
-        }
-    }
-
-    static void doUpdate(Prepared prepared, SessionLocal session, Table table, LocalResult rows) {
-        rows.done();
-        // TODO self referencing referential integrity constraints
-        // don't work if update is multi-row and 'inversed' the condition!
-        // probably need multi-row triggers with 'deleted' and 'inserted'
-        // at the same time. anyway good for sql compatibility
-        // TODO update in-place (but if the key changes,
-        // we need to update all indexes) before row triggers
-
-        // the cached row is already updated - we need the old values
-        table.updateRows(prepared, session, rows);
-        if (table.fireRow()) {
-            for (rows.reset(); rows.next();) {
-                Row o = rows.currentRowForTable();
-                rows.next();
-                Row n = rows.currentRowForTable();
-                table.fireAfterRow(session, o, n, false);
-            }
         }
     }
 

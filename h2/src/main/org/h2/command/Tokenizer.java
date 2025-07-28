@@ -9,6 +9,10 @@ import static org.h2.command.Token.ASTERISK;
 import static org.h2.command.Token.AT;
 import static org.h2.command.Token.BIGGER;
 import static org.h2.command.Token.BIGGER_EQUAL;
+import static org.h2.command.Token.BITWISE_AND;
+import static org.h2.command.Token.BITWISE_OR;
+import static org.h2.command.Token.BITWISE_SHIFT_LEFT;
+import static org.h2.command.Token.BITWISE_SHIFT_RIGHT;
 import static org.h2.command.Token.CLOSE_BRACE;
 import static org.h2.command.Token.CLOSE_BRACKET;
 import static org.h2.command.Token.CLOSE_PAREN;
@@ -189,6 +193,9 @@ public final class Tokenizer {
                 if (provider.getMode().supportPoundSymbolForColumnNames) {
                     i = readIdentifier(sql, end, i, i, tokens);
                     continue loop;
+                } else if (provider.getMode().supportBitwiseOperators) {
+                    token = new Token.KeywordToken(i, Token.KeywordToken.BITWISE_XOR);
+                    break;
                 }
                 throw DbException.getSyntaxError(sql, i);
             case '$':
@@ -217,6 +224,9 @@ public final class Tokenizer {
             case '&':
                 if (i < end && sql.charAt(i + 1) == '&') {
                     token = new Token.KeywordToken(i++, SPATIAL_INTERSECTS);
+                    break;
+                } else if (provider.getMode().supportBitwiseOperators ) {
+                    token = new Token.KeywordToken(i, BITWISE_AND);
                     break;
                 }
                 throw DbException.getSyntaxError(sql, i);
@@ -326,9 +336,11 @@ public final class Tokenizer {
                     if (c2 == '=') {
                         token = new Token.KeywordToken(i++, SMALLER_EQUAL);
                         break;
-                    }
-                    if (c2 == '>') {
+                    } else if (c2 == '>') {
                         token = new Token.KeywordToken(i++, NOT_EQUAL);
+                        break;
+                    } else if (c2 == '<') {
+                        token = new Token.KeywordToken(i++, BITWISE_SHIFT_LEFT);
                         break;
                     }
                 }
@@ -338,9 +350,15 @@ public final class Tokenizer {
                 token = new Token.KeywordToken(i, EQUAL);
                 break;
             case '>':
-                if (i < end && sql.charAt(i + 1) == '=') {
-                    token = new Token.KeywordToken(i++, BIGGER_EQUAL);
-                    break;
+                if (i < end) {
+                    final char c2 = sql.charAt(i + 1);
+                    if (c2 == '=') {
+                        token = new Token.KeywordToken(i++, BIGGER_EQUAL);
+                        break;
+                    } else if (c2 == '>') {
+                        token = new Token.KeywordToken(i++, BITWISE_SHIFT_RIGHT);
+                        break;
+                    }
                 }
                 token = new Token.KeywordToken(i, BIGGER);
                 break;
@@ -514,6 +532,9 @@ public final class Tokenizer {
             case '|':
                 if (i < end && sql.charAt(i + 1) == '|') {
                     token = new Token.KeywordToken(i++, CONCATENATION);
+                    break;
+                } else if (provider.getMode().supportBitwiseOperators) {
+                    token = new Token.KeywordToken(i, BITWISE_OR);
                     break;
                 }
                 throw DbException.getSyntaxError(sql, i);

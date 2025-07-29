@@ -33,11 +33,11 @@ public class SequenceMap extends MVMap<Long, Long> {
 
     @Override
     public Set<Long> keySet() {
-        return new AbstractSet<>() {
+        return new AbstractSet<Long>() {
 
             @Override
             public Iterator<Long> iterator() {
-                return new Iterator<>() {
+                return new Iterator<Long>() {
 
                     long x = min;
 

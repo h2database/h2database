@@ -6,7 +6,6 @@
 package org.h2.expression.condition;
 
 import java.util.Arrays;
-import java.util.List;
 
 import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;

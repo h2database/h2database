@@ -443,7 +443,7 @@ public class StringUtils {
      */
     public static String urlEncode(String s) {
         try {
-            return URLEncoder.encode(s, StandardCharsets.UTF_8);
+            return URLEncoder.encode(s, StandardCharsets.UTF_8.name());
         } catch (Exception e) {
             // UnsupportedEncodingException
             throw DbException.convert(e);

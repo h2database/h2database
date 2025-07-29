@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -41,6 +41,7 @@ import org.h2.expression.function.CoalesceFunction;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
 import org.h2.index.IndexSort;
+import org.h2.index.IndexType;
 import org.h2.index.QueryExpressionIndex;
 import org.h2.message.DbException;
 import org.h2.mode.DefaultNullOrdering;
@@ -65,12 +66,12 @@ import org.h2.value.ValueRow;
 
 /**
  * This class represents a simple SELECT statement.
- *
+ * <p>
  * For each select statement,
  * visibleColumnCount &lt;= distinctColumnCount &lt;= expressionCount.
  * The expression list count could include ORDER BY and GROUP BY expressions
  * that are not in the select list.
- *
+ * <p>
  * The call sequence is init(), mapColumns() if it's a subquery, prepare().
  *
  * @author Thomas Mueller
@@ -91,7 +92,7 @@ public class Select extends Query {
     /**
      * Parent select for selects in table filters.
      */
-    private Select parentSelect;
+    private final Select parentSelect;
 
     /**
      * WHERE condition.
@@ -188,10 +189,6 @@ public class Select extends Query {
         if (isTop) {
             topFilters.add(filter);
         }
-    }
-
-    public ArrayList<TableFilter> getTopFilters() {
-        return topFilters;
     }
 
     public void setExpressions(ArrayList<Expression> expressions) {
@@ -366,19 +363,10 @@ public class Select extends Query {
         if (groupIndex == null || groupByExpression == null) {
             return null;
         }
-        ArrayList<Index> indexes = topTableFilter.getTable().getIndexes();
-        if (indexes != null) {
-            for (Index index : indexes) {
-                if (index.getIndexType().isScan()) {
-                    continue;
-                }
-                if (index.getIndexType().isHash()) {
-                    // does not allow scanning entries
-                    continue;
-                }
-                if (isGroupSortedIndex(topTableFilter, index)) {
-                    return index;
-                }
+        for (Index index : topTableFilter.getTable().getIndexes()) {
+            IndexType indexType = index.getIndexType();
+            if (!indexType.isScan() && !indexType.isHash() && isGroupSortedIndex(topTableFilter, index)) {
+                return index;
             }
         }
         return null;
@@ -424,10 +412,8 @@ public class Select extends Query {
 
     boolean isConditionMetForUpdate() {
         if (isConditionMet()) {
-            int count = filters.size();
             boolean notChanged = true;
-            for (int i = 0; i < count; i++) {
-                TableFilter tableFilter = filters.get(i);
+            for (TableFilter tableFilter : filters) {
                 if (!tableFilter.isJoinOuter() && !tableFilter.isJoinOuterIndirect()) {
                     Row row = tableFilter.get();
                     Table table = tableFilter.getTable();
@@ -647,13 +633,9 @@ public class Select extends Query {
         } else {
             sortCols = sortColumns.toArray(new Column[0]);
         }
-        ArrayList<Index> list = topTableFilter.getTable().getIndexes();
-        if (list == null) {
-            return null;
-        }
         DefaultNullOrdering defaultNullOrdering = getDatabase().getDefaultNullOrdering();
         ArrayList<IndexSort> indexSorts = Utils.newSmallArrayList();
-        loop: for (Index index : list) {
+        loop: for (Index index : topTableFilter.getTable().getIndexes()) {
             if (index.getCreateSQL() == null || index.getIndexType().isHash()) {
                 // can't use scan or hash indexes
                 continue;
@@ -900,8 +882,8 @@ public class Select extends Query {
             if (fetch > 0) {
                 lazyResult.setLimit(fetch);
             }
-            if (randomAccessResult) {
-                return convertToDistinct(lazyResult);
+            if (inPredicateSortTypes != null) {
+                return convertToInPredicateValueList(lazyResult);
             } else {
                 return lazyResult;
             }
@@ -1225,9 +1207,7 @@ public class Select extends Query {
         if (expressionNames == ExpressionNames.ORIGINAL_SQL || expressionNames == ExpressionNames.POSTGRESQL_STYLE) {
             optimizeExpressionsAndPreserveAliases();
         } else {
-            for (int i = 0; i < expressions.size(); i++) {
-                expressions.set(i, expressions.get(i).optimize(session));
-            }
+            expressions.replaceAll(expression -> expression.optimize(session));
         }
         if (sort != null) {
             cleanupOrder();
@@ -1286,12 +1266,8 @@ public class Select extends Query {
                     boolean reverse = sortIndex.isReverse();
                     if (current.getIndexType().isScan() || current == index) {
                         topTableFilter.setIndex(index, reverse);
-                        if (!topTableFilter.hasInComparisons()) {
-                            // in(select ...) and in(1,2,3) may return the key in
-                            // another order
-                            indexSortedColumns = sortIndex.getSortedColumns();
-                            break;
-                        }
+                        indexSortedColumns = sortIndex.getSortedColumns();
+                        break;
                     } else if (index.getIndexColumns() != null
                             && index.getIndexColumns().length >= current
                                     .getIndexColumns().length) {
@@ -1382,7 +1358,7 @@ public class Select extends Query {
         }
 
         Optimizer optimizer = new Optimizer(topArray, condition, session);
-        optimizer.optimize(parse);
+        optimizer.optimize(parse, /*isSelectCommand*/true);
         topTableFilter = optimizer.getTopFilter();
         double planCost = optimizer.getCost();
 
@@ -1458,14 +1434,14 @@ public class Select extends Query {
             TableFilter filter = topTableFilter;
             if (filter == null) {
                 int count = topFilters.size();
-                if (count != 1 || !topFilters.get(0).isNoFromClauseFilter()) {
+                if (count != 1 || topFilters.get(0).hasFromClause()) {
                     builder.append("\nFROM ");
                     boolean isJoin = false;
                     for (int i = 0; i < count; i++) {
                         isJoin = getPlanFromFilter(builder, sqlFlags, topFilters.get(i), isJoin);
                     }
                 }
-            } else if (!filter.isNoFromClauseFilter()) {
+            } else if (filter.hasFromClause()) {
                 getPlanFromFilter(builder.append("\nFROM "), sqlFlags, filter, false);
             }
             if (condition != null) {
@@ -1809,7 +1785,7 @@ public class Select extends Query {
     @Override
     public boolean isConstantQuery() {
         if (!super.isConstantQuery() || distinctExpressions != null || condition != null || isGroupQuery
-                || isWindowQuery || !isNoFromClause()) {
+                || isWindowQuery || hasFromClause()) {
             return false;
         }
         for (int i = 0; i < visibleColumnCount; i++) {
@@ -1823,7 +1799,7 @@ public class Select extends Query {
     @Override
     public Expression getIfSingleRow() {
         if (offsetExpr != null || fetchExpr != null || condition != null || isGroupQuery || isWindowQuery
-                || !isNoFromClause()) {
+                || hasFromClause()) {
             return null;
         }
         if (visibleColumnCount == 1) {
@@ -1836,13 +1812,13 @@ public class Select extends Query {
         return new ExpressionList(array, false);
     }
 
-    private boolean isNoFromClause() {
+    private boolean hasFromClause() {
         if (topTableFilter != null) {
-            return topTableFilter.isNoFromClauseFilter();
+            return topTableFilter.hasFromClause();
         } else if (topFilters.size() == 1) {
-            return topFilters.get(0).isNoFromClauseFilter();
+            return topFilters.get(0).hasFromClause();
         }
-        return false;
+        return true;
     }
 
     /**
@@ -1878,7 +1854,7 @@ public class Select extends Query {
      */
     private final class LazyResultQueryFlat extends LazyResultSelect {
 
-        private boolean forUpdate;
+        private final boolean forUpdate;
 
         LazyResultQueryFlat(Expression[] expressions, int columnCount, boolean forUpdate) {
             super(expressions, columnCount);

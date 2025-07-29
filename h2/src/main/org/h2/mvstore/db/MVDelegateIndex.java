@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -25,7 +25,7 @@ import org.h2.value.VersionedValue;
 /**
  * An index that delegates indexing to another index.
  */
-public class MVDelegateIndex extends MVIndex<Long, SearchRow> {
+public final class MVDelegateIndex extends MVIndex<Long, SearchRow> {
 
     private final MVPrimaryIndex mainIndex;
 
@@ -95,23 +95,20 @@ public class MVDelegateIndex extends MVIndex<Long, SearchRow> {
 
     @Override
     public int getColumnIndex(Column col) {
-        if (col.getColumnId() == mainIndex.getMainIndexColumn()) {
-            return 0;
-        }
-        return -1;
+        return isFirstColumn(col) ? 0 : -1;
     }
 
     @Override
     public boolean isFirstColumn(Column column) {
-        return getColumnIndex(column) == 0;
+        return column.getColumnId() == mainIndex.getMainIndexColumn() && column.getTable() == table;
     }
 
     @Override
     public double getCost(SessionLocal session, int[] masks,
             TableFilter[] filters, int filter, SortOrder sortOrder,
-            AllColumnsForPlan allColumnsSet) {
+            AllColumnsForPlan allColumnsSet, boolean isSelectCommand) {
         return 10 * getCostRangeIndex(masks, mainIndex.getRowCountApproximation(session),
-                filters, filter, sortOrder, true, allColumnsSet);
+                filters, filter, sortOrder, true, allColumnsSet, isSelectCommand);
     }
 
     @Override

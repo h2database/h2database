@@ -30,6 +30,7 @@
 42001=SQL语法错误 {0}; 预期： {1}
 42602=#Invalid name {0}
 42622=#The name that starts with {0} is too long. The maximum length is {1}
+42809=#{0} is not an enum
 42S01= {0}表已存在
 42S02=找不到表 {0}
 42S03=#Table {0} not found (candidates are: {1})

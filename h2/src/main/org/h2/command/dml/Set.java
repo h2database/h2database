@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -363,8 +363,7 @@ public class Set extends Prepared {
             break;
         }
         case SetTypes.REDO_LOG_BINARY: {
-            DbException.getUnsupportedException("MV_STORE + SET REDO_LOG_BINARY");
-            break;
+            throw DbException.getUnsupportedException("MV_STORE + SET REDO_LOG_BINARY");
         }
         case SetTypes.REFERENTIAL_INTEGRITY: {
             session.getUser().checkAdmin();
@@ -559,7 +558,7 @@ public class Set extends Prepared {
         default:
             throw DbException.getInternalError("type="+type);
         }
-        // the meta data information has changed
+        // the metadata information has changed
         database.getNextModificationDataId();
         // query caches might be affected as well, for example
         // when changing the compatibility mode

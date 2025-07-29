@@ -1,12 +1,14 @@
 /*
- * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.index;
 
+import static org.h2.util.HasSQL.TRACE_SQL_FLAGS;
+
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.TreeSet;
 
@@ -20,14 +22,13 @@ import org.h2.expression.ValueExpression;
 import org.h2.expression.condition.Comparison;
 import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
+import org.h2.result.SortOrder;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.TableType;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueRow;
-
-import static org.h2.util.HasSQL.TRACE_SQL_FLAGS;
 
 /**
  * An index condition object is made for each condition that can potentially use
@@ -95,7 +96,7 @@ public class IndexCondition {
             this.column = column.getColumn();
             this.columns = null;
             this.compoundColumns = false;
-        } else if (columns !=null) {
+        } else if (columns != null) {
             this.column = null;
             this.columns = columns;
             this.compoundColumns = true;
@@ -139,14 +140,8 @@ public class IndexCondition {
      * @param list the expression list
      * @return the index condition
      */
-    public static IndexCondition getCompoundInList(ExpressionList columns, List<Expression> list) {
-        int listSize = columns.getSubexpressionCount();
-        Column[] cols = new Column[listSize];
-        for (int i = listSize; --i >= 0; ) {
-            cols[i] = ((ExpressionColumn) columns.getSubexpression(i)).getColumn();
-        }
-
-        return new IndexCondition(Comparison.IN_LIST, null, cols, null, list, null);
+    public static IndexCondition getCompoundInList(Column[] columns, List<Expression> list) {
+        return new IndexCondition(Comparison.IN_LIST, null, columns, null, list, null);
     }
 
     /**
@@ -168,7 +163,7 @@ public class IndexCondition {
      * @return the index condition
      */
     public static IndexCondition getInQuery(ExpressionColumn column, Query query) {
-        assert query.isRandomAccessResult();
+        assert query.isInPredicateResult();
         return new IndexCondition(Comparison.IN_QUERY, column, null, null, null, query);
     }
 
@@ -187,20 +182,30 @@ public class IndexCondition {
      * same type as the column, distinct, and sorted.
      *
      * @param session the session
+     * @param sortTypes sort types
      * @return the value list
      */
-    public Value[] getCurrentValueList(SessionLocal session) {
-        TreeSet<Value> valueSet = new TreeSet<>(session.getDatabase().getCompareMode());
+    public Value[] getCurrentValueList(SessionLocal session, int[] sortTypes) {
+        Comparator<Value> comparator;
+        if (compoundColumns) {
+            SortOrder sortOrder = SortOrder.ofSortTypes(session, sortTypes);
+            comparator = (o1, o2) -> sortOrder.compare(((ValueRow) o1).getList(), ((ValueRow) o2).getList());
+        } else {
+            comparator = session;
+            if ((sortTypes[0] & SortOrder.DESCENDING) != 0) {
+                comparator = comparator.reversed();
+            }
+        }
+        TreeSet<Value> valueSet = new TreeSet<>(comparator);
         if (compareType == Comparison.IN_LIST) {
-            if (isCompoundColumns()) {
+            if (compoundColumns) {
                 Column[] columns = getColumns();
                 for (Expression e : expressionList) {
                     ValueRow v = (ValueRow) e.getValue(session);
                     v = Column.convert(session, columns, v);
                     valueSet.add(v);
                 }
-            }
-            else {
+            } else {
                 Column column = getColumn();
                 for (Expression e : expressionList) {
                     Value v = e.getValue(session);
@@ -218,18 +223,19 @@ public class IndexCondition {
         } else {
             throw DbException.getInternalError("compareType = " + compareType);
         }
-        Value[] array = valueSet.toArray(new Value[valueSet.size()]);
-        Arrays.sort(array, session.getDatabase().getCompareMode());
-        return array;
+        return valueSet.toArray(new Value[valueSet.size()]);
     }
 
     /**
      * Get the current result of the expression. The rows may not be of the same
      * type, therefore the rows may not be unique.
      *
+     * @param session the session
+     * @param sortTypes sort types
      * @return the result
      */
-    public ResultInterface getCurrentResult() {
+    public ResultInterface getCurrentResult(SessionLocal session, int[] sortTypes) {
+        expressionQuery.setInPredicateResultSortTypes(sortTypes);
         return expressionQuery.query(0);
     }
 

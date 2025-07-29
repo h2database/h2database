@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -125,7 +125,7 @@ public final class TableView extends QueryExpressionTable {
             Query compiledQuery = compileViewQuery(session, querySQL);
             this.querySQL = compiledQuery.getPlanSQL(DEFAULT_SQL_FLAGS);
             tables = new ArrayList<>(compiledQuery.getTables());
-            cols = initColumns(session, columnTemplates, compiledQuery, false);
+            cols = initColumns(session, columnTemplates, compiledQuery, false, false);
             createException = null;
             viewQuery = compiledQuery;
         } catch (DbException e) {

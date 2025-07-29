@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -1211,7 +1211,7 @@ public class TestCases extends TestDb {
         Connection conn = getConnection("cases");
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE TEST(ORDER_ID INT PRIMARY KEY, " +
-                "ORDER_DATE DATETIME, " +
+                "ORDER_DATE TIMESTAMP, " +
                 "USER_ID INT, DESCRIPTION VARCHAR, STATE VARCHAR, " +
                 "TRACKING_ID VARCHAR)");
         Timestamp orderDate = Timestamp.valueOf("2005-05-21 17:46:00");

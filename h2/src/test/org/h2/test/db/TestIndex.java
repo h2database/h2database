@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -63,6 +63,7 @@ public class TestIndex extends TestDb {
         testRandomized();
         testDescIndex();
         testHashIndex();
+        testCompoundIndex_4161();
 
         if (config.networked && config.big) {
             return;
@@ -164,10 +165,10 @@ public class TestIndex extends TestDb {
         stat.execute("create table test(id int, name int primary key)");
         testErrorMessage("PRIMARY", "KEY", " ON PUBLIC.TEST(NAME)");
         stat.execute("create table test(id int, name int, unique(name))");
-        testErrorMessage("CONSTRAINT_INDEX_2 ON PUBLIC.TEST(NAME NULLS FIRST)");
+        testErrorMessage("CONSTRAINT_2 INDEX PUBLIC.CONSTRAINT_INDEX_2 ON PUBLIC.TEST(NAME NULLS FIRST)");
         stat.execute("create table test(id int, name int, " +
                 "constraint abc unique(name, id))");
-        testErrorMessage("ABC_INDEX_2 ON PUBLIC.TEST(NAME NULLS FIRST, ID NULLS FIRST)");
+        testErrorMessage("ABC INDEX PUBLIC.ABC_INDEX_2 ON PUBLIC.TEST(NAME NULLS FIRST, ID NULLS FIRST)");
     }
 
     private void testErrorMessage(String... expected) throws SQLException {
@@ -775,6 +776,32 @@ public class TestIndex extends TestDb {
 
         stat.execute("DELETE FROM TEST WHERE V = 'A'");
         stat.execute("DROP TABLE TEST");
+
+        conn.close();
+        deleteDb("index");
+    }
+
+    // Pick the better index when there are two competing indexes that both cover the required columns
+    //
+    // https://github.com/h2database/h2database/issues/4161
+    private void testCompoundIndex_4161() throws SQLException {
+        Connection conn = getConnection("index");
+        stat = conn.createStatement();
+        stat.execute("CREATE TABLE tbl ( c1 INTEGER, c2 INTEGER, c3 INTEGER, c4 INTEGER, c5 INTEGER, c6 INTEGER,"
+                + " c7 INTEGER );");
+        stat.execute("insert into tbl select x, 0, 0, 0, 0, 0, 0 from system_range(1, 1000)");
+
+        stat.execute("CREATE INDEX idx1 ON tbl ( c1, c2, c3, c4, c5 )");
+        ResultSet rs = stat.executeQuery(
+                "EXPLAIN ANALYZE UPDATE tbl SET c6=6 WHERE c1=1 AND c2=2 AND c3=3 AND c4=4 AND c5=5");
+        assertTrue(rs.next());
+        assertContains(rs.getString(1), "PUBLIC.IDX1: C1 = 1");
+
+        stat.execute("CREATE INDEX idx2 ON tbl ( c1, c7 )");
+        rs = stat.executeQuery(
+                "EXPLAIN ANALYZE UPDATE tbl SET c6=6 WHERE c1=1 AND c2=2 AND c3=3 AND c4=4 AND c5=5");
+        assertTrue(rs.next());
+        assertContains(rs.getString(1), "PUBLIC.IDX1: C1 = 1");
 
         conn.close();
         deleteDb("index");

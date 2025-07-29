@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -367,7 +367,7 @@ public class MVStoreTool {
             long maxLengthNotEmpty = 0;
             for (Entry<String, String> e : layout.entrySet()) {
                 String k = e.getKey();
-                if (k.startsWith(DataUtils.META_CHUNK)) {
+                if (k.startsWith(DataUtils.LAYOUT_CHUNK)) {
                     Chunk<?> c = store.getFileStore().createChunk(e.getValue());
                     chunks.put(c.id, c);
                     chunkLength += (long)c.len * FileStore.BLOCK_SIZE;

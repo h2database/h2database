@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -559,6 +559,11 @@ public interface CommandInterface extends AutoCloseable {
     int DROP_MATERIALIZED_VIEW = 104;
 
     /**
+     * The type of a ALTER TYPE statement.
+     */
+    int ALTER_TYPE = 105;
+
+    /**
      * Get command type.
      *
      * @return one of the constants above
@@ -583,10 +588,11 @@ public interface CommandInterface extends AutoCloseable {
      * Execute the query.
      *
      * @param maxRows the maximum number of rows returned
+     * @param fetchSize the number of rows to fetch (for remote commands only)
      * @param scrollable if the result set must be scrollable
      * @return the result
      */
-    ResultInterface executeQuery(long maxRows, boolean scrollable);
+    ResultInterface executeQuery(long maxRows, int fetchSize, boolean scrollable);
 
     /**
      * Execute the statement

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -342,32 +342,10 @@ public final class Store {
         try {
             FileStore<?> fileStore = mvStore.getFileStore();
             if (!mvStore.isClosed() && fileStore != null) {
-                boolean compactFully = allowedCompactionTime == -1;
-                if (fileStore.isReadOnly()) {
-                    compactFully = false;
-                } else {
+                if (!fileStore.isReadOnly()) {
                     transactionStore.close();
                 }
-                if (compactFully) {
-                    allowedCompactionTime = 0;
-                }
-
-                String fileName = null;
-                FileStore<?> targetFileStore = null;
-                if (compactFully) {
-                    fileName = fileStore.getFileName();
-                    String tempName = fileName + Constants.SUFFIX_MV_STORE_TEMP_FILE;
-                    FileUtils.delete(tempName);
-                    targetFileStore = fileStore.open(tempName, false);
-                }
-
                 mvStore.close(allowedCompactionTime);
-
-                if (compactFully && FileUtils.exists(fileName)) {
-                    // the file could have been deleted concurrently,
-                    // so only compact if the file still exists
-                    compact(fileName, targetFileStore);
-                }
             }
         } catch (MVStoreException e) {
             mvStore.closeImmediately();
@@ -375,19 +353,6 @@ public final class Store {
         }
     }
 
-
-    private static void compact(String sourceFilename, FileStore<?> targetFileStore) {
-        MVStore.Builder targetBuilder = new MVStore.Builder().compress().adoptFileStore(targetFileStore);
-        try (MVStore targetMVStore = targetBuilder.open()) {
-            FileStore<?> sourceFileStore = targetFileStore.open(sourceFilename, true);
-            MVStore.Builder sourceBuilder = new MVStore.Builder();
-            sourceBuilder.readOnly().adoptFileStore(sourceFileStore);
-            try (MVStore sourceMVStore = sourceBuilder.open()) {
-                MVStoreTool.compact(sourceMVStore, targetMVStore);
-            }
-        }
-        MVStoreTool.moveAtomicReplace(targetFileStore.getFileName(), sourceFilename);
-    }
 
     /**
      * Start collecting statistics.

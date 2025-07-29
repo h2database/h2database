@@ -1,12 +1,11 @@
 /*
- * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.engine;
 
 import java.sql.Types;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -380,6 +379,11 @@ public class Mode {
     public ViewExpressionNames viewExpressionNames = ViewExpressionNames.AS_IS;
 
     /**
+     * How column names are generated for CTEs.
+     */
+    public ViewExpressionNames cteExpressionNames = ViewExpressionNames.AS_IS;
+
+    /**
      * Whether TOP clause in SELECT queries is supported.
      */
     public boolean topInSelect;
@@ -425,6 +429,16 @@ public class Mode {
     public boolean dateIsTimestamp0;
 
     /**
+     * Whether MySQL-style DATETIME and YEAR data type is parsed.
+     */
+    public boolean datetimeAndYearType;
+
+    /**
+     * Whether DATETIME, SMALLDATETIME, DATETIME2, and DATETIMEOFFSET data types are parsed.
+     */
+    public boolean datetimeTypes;
+
+    /**
      * Whether NUMERIC and DECIMAL/DEC without parameters are parsed as DECFLOAT.
      */
     public boolean numericIsDecfloat;
@@ -434,7 +448,7 @@ public class Mode {
      * Certain DBMSs don't support all column types provided by H2, such as
      * "NUMBER" when using PostgreSQL mode.
      */
-    public Set<String> disallowedTypes = Collections.emptySet();
+    public Set<String> disallowedTypes = Set.of();
 
     /**
      * Custom mappings from type names to data types.
@@ -501,6 +515,8 @@ public class Mode {
         mode.numericWithBooleanComparison = true;
         // Legacy GREATEST and LEAST null treatment
         mode.greatestLeastIgnoreNulls = true;
+        // Legacy data types
+        mode.datetimeTypes = true;
         add(mode);
 
         mode = new Mode(ModeEnum.DB2);
@@ -519,6 +535,7 @@ public class Mode {
         mode.nextvalAndCurrvalPseudoColumns = true;
         mode.expressionNames = ExpressionNames.NUMBER;
         mode.viewExpressionNames = ViewExpressionNames.EXCEPTION;
+        mode.cteExpressionNames = ViewExpressionNames.EXCEPTION;
         mode.limit = true;
         mode.minusIsExcept = true;
         mode.numericWithBooleanComparison = true;
@@ -535,6 +552,7 @@ public class Mode {
         mode.takeInsertedIdentity = true;
         mode.expressionNames = ExpressionNames.NUMBER;
         mode.viewExpressionNames = ViewExpressionNames.EXCEPTION;
+        mode.cteExpressionNames = ViewExpressionNames.EXCEPTION;
         add(mode);
 
         mode = new Mode(ModeEnum.HSQLDB);
@@ -544,6 +562,7 @@ public class Mode {
         // http://hsqldb.org/doc/apidocs/org/hsqldb/jdbc/JDBCConnection.html#setClientInfo-java.lang.String-java.lang.String-
         mode.supportedClientInfoPropertiesRegEx = null;
         mode.expressionNames = ExpressionNames.C_NUMBER;
+        mode.cteExpressionNames = ViewExpressionNames.EXCEPTION;
         mode.topInSelect = true;
         mode.limit = true;
         mode.minusIsExcept = true;
@@ -566,6 +585,7 @@ public class Mode {
         mode.zeroExLiteralsAreBinaryStrings = true;
         mode.truncateTableRestartIdentity = true;
         mode.takeInsertedIdentity = true;
+        mode.datetimeTypes = true;
         DataType dt = DataType.createNumeric(19, 4);
         dt.type = Value.NUMERIC;
         dt.sqlType = Types.NUMERIC;
@@ -580,6 +600,7 @@ public class Mode {
         mode.allowEmptySchemaValuesAsDefaultSchema = true;
         mode.expressionNames = ExpressionNames.EMPTY;
         mode.viewExpressionNames = ViewExpressionNames.EXCEPTION;
+        mode.cteExpressionNames = ViewExpressionNames.EXCEPTION;
         mode.topInSelect = true;
         mode.topInDML = true;
         mode.identityClause = true;
@@ -607,9 +628,10 @@ public class Mode {
         mode.identityColumnsHaveDefaultOnNull = true;
         mode.expressionNames = ExpressionNames.ORIGINAL_SQL;
         mode.viewExpressionNames = ViewExpressionNames.MYSQL_STYLE;
+        mode.cteExpressionNames = ViewExpressionNames.MYSQL_STYLE;
         mode.limit = true;
         mode.autoIncrementClause = true;
-        mode.typeByNameMap.put("YEAR", DataType.getDataType(Value.SMALLINT));
+        mode.datetimeAndYearType = true;
         mode.groupByColumnIndex = true;
         mode.numericWithBooleanComparison = true;
         mode.acceptsCommaAsJsonKeyValueSeparator = true;
@@ -639,9 +661,10 @@ public class Mode {
         mode.createUniqueConstraintForReferencedColumns = true;
         mode.expressionNames = ExpressionNames.ORIGINAL_SQL;
         mode.viewExpressionNames = ViewExpressionNames.MYSQL_STYLE;
+        mode.cteExpressionNames = ViewExpressionNames.MYSQL_STYLE;
         mode.limit = true;
         mode.autoIncrementClause = true;
-        mode.typeByNameMap.put("YEAR", DataType.getDataType(Value.SMALLINT));
+        mode.datetimeAndYearType = true;
         mode.groupByColumnIndex = true;
         mode.numericWithBooleanComparison = true;
         mode.acceptsCommaAsJsonKeyValueSeparator = true;

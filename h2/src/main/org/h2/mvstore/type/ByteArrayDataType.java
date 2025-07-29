@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -8,6 +8,7 @@ package org.h2.mvstore.type;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.WriteBuffer;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 
 /**
  * Class ByteArrayDataType.
@@ -42,5 +43,10 @@ public final class ByteArrayDataType extends BasicDataType<byte[]>
     @Override
     public byte[][] createStorage(int size) {
         return new byte[size][];
+    }
+
+    @Override
+    public int compare(byte[] one, byte[] two) {
+        return Arrays.compareUnsigned(one, two);
     }
 }

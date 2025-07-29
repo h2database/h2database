@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -16,7 +16,6 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.HashSet;
 import java.util.Locale;
-import java.util.Map;
 
 import org.h2.command.Command;
 import org.h2.command.ParserBase;
@@ -890,16 +889,13 @@ public final class InformationSchemaTableLegacy extends MetaTable {
         }
         case INDEXES: {
             getAllTables(session, indexFrom, indexTo).forEach(table -> {
-                ArrayList<Index> indexes = table.getIndexes();
-                ArrayList<Constraint> constraints = table.getConstraints();
-                for (int j = 0; indexes != null && j < indexes.size(); j++) {
-                    Index index = indexes.get(j);
+                Iterable<Constraint> constraints = table.getConstraints();
+                for (Index index : table.getIndexes()) {
                     if (index.getCreateSQL() == null) {
                         continue;
                     }
                     String constraintName = null;
-                    for (int k = 0; constraints != null && k < constraints.size(); k++) {
-                        Constraint constraint = constraints.get(k);
+                    for (Constraint constraint : constraints) {
                         if (constraint.usesIndex(index)) {
                             if (index.getIndexType().isPrimaryKey()) {
                                 if (constraint.getConstraintType() == Constraint.Type.PRIMARY_KEY) {
@@ -1041,10 +1037,6 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                     add(session, rows, "property." + s, Utils.getProperty(s, ""));
                 }
             }
-            add(session, rows, "DEFAULT_NULL_ORDERING", database.getDefaultNullOrdering().name());
-            add(session, rows, "EXCLUSIVE", database.getExclusiveSession() == null ?
-                    "FALSE" : "TRUE");
-            add(session, rows, "MODE", database.getMode().getName());
             add(session, rows, "QUERY_TIMEOUT", Integer.toString(session.getQueryTimeout()));
             add(session, rows, "TIME ZONE", session.currentTimeZone().getId());
             add(session, rows, "TRUNCATE_LARGE_LENGTH", session.isTruncateLargeLength() ? "TRUE" : "FALSE");
@@ -1054,12 +1046,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
             if (nonKeywords != null) {
                 add(session, rows, "NON_KEYWORDS", ParserBase.formatNonKeywords(nonKeywords));
             }
-            add(session, rows, "RETENTION_TIME", Integer.toString(database.getRetentionTime()));
-            // database settings
-            for (Map.Entry<String, String> entry : database.getSettings().getSortedSettings()) {
-                add(session, rows, entry.getKey(), entry.getValue());
-            }
-            database.getStore().getMvStore().populateInfo((name, value) -> add(session, rows, name, value));
+            database.populateInfo((name, value) -> add(session, rows, name, value));
             break;
         }
         case HELP: {
@@ -2194,6 +2181,8 @@ public final class InformationSchemaTableLegacy extends MetaTable {
 
     private static short getRefAction(ConstraintActionType action) {
         switch (action) {
+        case NO_ACTION:
+            return DatabaseMetaData.importedKeyNoAction;
         case CASCADE:
             return DatabaseMetaData.importedKeyCascade;
         case RESTRICT:

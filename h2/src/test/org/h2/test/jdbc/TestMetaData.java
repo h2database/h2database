@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -455,14 +455,14 @@ public class TestMetaData extends TestDb {
         assertResultSetOrdered(rs, new String[][] {
                 { CATALOG, Constants.SCHEMA_MAIN, "PARENT", "A", CATALOG,
                         Constants.SCHEMA_MAIN, "CHILD", "PA", "1",
-                        "" + DatabaseMetaData.importedKeyRestrict,
-                        "" + DatabaseMetaData.importedKeyRestrict, "AB",
+                        "" + DatabaseMetaData.importedKeyNoAction,
+                        "" + DatabaseMetaData.importedKeyNoAction, "AB",
                         "CONSTRAINT_8",
                         "" + DatabaseMetaData.importedKeyNotDeferrable },
                 { CATALOG, Constants.SCHEMA_MAIN, "PARENT", "B", CATALOG,
                         Constants.SCHEMA_MAIN, "CHILD", "PB", "2",
-                        "" + DatabaseMetaData.importedKeyRestrict,
-                        "" + DatabaseMetaData.importedKeyRestrict, "AB",
+                        "" + DatabaseMetaData.importedKeyNoAction,
+                        "" + DatabaseMetaData.importedKeyNoAction, "AB",
                         "CONSTRAINT_8",
                         "" + DatabaseMetaData.importedKeyNotDeferrable } });
     }
@@ -821,7 +821,7 @@ public class TestMetaData extends TestDb {
         }
         stat.executeUpdate("CREATE TABLE TEST(" + "ID INT PRIMARY KEY,"
                 + "TEXT_V VARCHAR(120)," + "DEC_V DECIMAL(12,3)," + "NUM_V NUMERIC(12,3),"
-                + "DATE_V DATETIME," + "BLOB_V BLOB," + "CLOB_V CLOB" + ")");
+                + "DATE_V TIMESTAMP," + "BLOB_V BLOB," + "CLOB_V CLOB" + ")");
         rs = meta.getTables(null, Constants.SCHEMA_MAIN, null,
                 new String[] { "TABLE" });
         assertResultSetOrdered(rs, new String[][] { { CATALOG,

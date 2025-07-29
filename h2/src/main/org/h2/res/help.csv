@@ -1,4 +1,4 @@
-# Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
+# Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
 # and the EPL 1.0 (https://h2database.com/html/license.html).
 # Initial Developer: H2 Group
 
@@ -3670,11 +3670,11 @@ FOREIGN KEY(ID) REFERENCES TEST(ID)
 
 "Other Grammar","References Specification","
 REFERENCES [ refTableName ] [ ( refColumnName [,...] ) ]
-[ ON DELETE referentialAction ] [ ON UPDATE referentialAction ]
+[ referentialTriggeredAction ]
 ","
 Defines a referential specification of a referential constraint.
 If the table name is not specified, then the same table is referenced.
-RESTRICT is the default action.
+NO ACTION is the default action, but currently it works like stricter RESTRICT.
 If the referenced columns are not specified, then the primary key columns are used.
 Referential constraint requires an existing unique or primary key constraint on referenced columns,
 this constraint must include all referenced columns in any order and must not include any other columns.
@@ -3683,12 +3683,21 @@ Some tables may not be referenced, such as metadata tables.
 REFERENCES TEST(ID)
 "
 
+"Other Grammar","Referential Triggered Action","
+ON UPDATE referentialAction [ ON DELETE referentialAction ]
+    | ON DELETE referentialAction [ ON UPDATE referentialAction ]
+","
+Referential actions triggered during unique key updates and row deletions in the referenced table.
+","
+ON UPDATE CASCADE ON DELETE CASCADE
+"
+
 "Other Grammar","Referential Action","
 CASCADE | RESTRICT | NO ACTION | SET { DEFAULT | NULL }
 ","
 The action CASCADE will cause conflicting rows in the referencing (child) table to be deleted or updated.
-RESTRICT is the default action.
-As this database does not support deferred checking, RESTRICT and NO ACTION will both throw an exception if the constraint is violated.
+NO ACTION is the default action, but because this database does not support deferred checking,
+RESTRICT and NO ACTION will both throw an exception immediately if the constraint is violated.
 The action SET DEFAULT will set the column in the referencing (child) table to the default value, while SET NULL will set it to NULL.
 ","
 CASCADE
@@ -4542,6 +4551,18 @@ The maximum number of values is 65536.
 The maximum allowed length of complete data type definition with all values is 1,000,000,000 characters.
 ","
 ENUM('clubs', 'diamonds', 'hearts', 'spades')
+"
+
+"Commands (DDL)","ALTER TYPE","
+ALTER TYPE @h2@ [schemaName.]enumName ADD VALUE string
+","
+Adds new value to enum.
+
+Duplicate and empty values are not permitted.
+The maximum number of values is 65536.
+The maximum allowed length of complete data type definition with all values is 1,000,000,000 characters.
+","
+ALTER TYPE card_suit ADD VALUE 'clubs'
 "
 
 "Data Types","GEOMETRY Type","
@@ -5430,6 +5451,30 @@ UTF8TOSTRING(EXPAND(COMPRESS(STRINGTOUTF8('Test'))))
 Returns the value 0. This function can be used even if numeric literals are disabled.
 ","
 ZERO()
+"
+
+"Functions (Numeric)","GCD","
+@h2@ GCD(numeric, numeric [,...])
+","
+Returns the greatest common divisor of specified arguments.
+Arguments must have TINYINT, SMALLINT, INTEGER, BIGINT, or NUMERIC data type with scale 0.
+This function returns result of NUMERIC data type with scale 0.
+
+For aggregate function see [GCD_AGG](https://h2database.com/html/functions-aggregate.html#gcd_agg).
+","
+GCD(A, B)
+"
+
+"Functions (Numeric)","LCM","
+@h2@ LCM(numeric, numeric [,...])
+","
+Returns the least common multiple of specified arguments.
+Arguments must have TINYINT, SMALLINT, INTEGER, BIGINT, or NUMERIC data type with scale 0.
+This function returns result of NUMERIC data type with scale 0.
+
+For aggregate function see [LCM_AGG](https://h2database.com/html/functions-aggregate.html#lcm_agg).
+","
+LCM(A, B)
 "
 
 "Functions (String)","ASCII","
@@ -7205,6 +7250,38 @@ If no rows are selected, the result is NULL.
 Aggregates are only allowed in select statements.
 ","
 ENVELOPE(X)
+"
+
+"Aggregate Functions (General)","GCD_AGG","
+@h2@ GCD_AGG(numeric)
+@h2@ [FILTER (WHERE expression)] @h2@ [OVER windowNameOrSpecification]
+","
+Returns the greatest common divisor of all values.
+Arguments must have TINYINT, SMALLINT, INTEGER, BIGINT, or NUMERIC data type with scale 0.
+This function returns result of NUMERIC data type with scale 0.
+NULL values are ignored in the calculation.
+If no rows are selected, the result is NULL.
+Aggregates are only allowed in select statements.
+
+For non-aggregate function see [GCD](https://h2database.com/html/functions.html#gcd).
+","
+GCD_AGG(V)
+"
+
+"Aggregate Functions (General)","LCM_AGG","
+@h2@ LCM_AGG(numeric)
+@h2@ [FILTER (WHERE expression)] @h2@ [OVER windowNameOrSpecification]
+","
+Returns the least common multiple of all values.
+Arguments must have TINYINT, SMALLINT, INTEGER, BIGINT, or NUMERIC data type with scale 0.
+This function returns result of NUMERIC data type with scale 0.
+NULL values are ignored in the calculation.
+If no rows are selected, the result is NULL.
+Aggregates are only allowed in select statements.
+
+For non-aggregate function see [LCM](https://h2database.com/html/functions.html#lcm).
+","
+LCM_AGG(V)
 "
 
 "Aggregate Functions (Binary Set)","COVAR_POP","

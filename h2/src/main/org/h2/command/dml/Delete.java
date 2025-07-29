@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -56,27 +56,16 @@ public final class Delete extends FilteredDataChangeStatement {
             setCurrentRowNumber(0);
             long count = 0;
             while (nextRow(limitRows, count)) {
-                Row row = targetTableFilter.get();
-                if (table.isRowLockable()) {
-                    Row lockedRow = table.lockRow(session, row, -1);
-                    if (lockedRow == null) {
-                        continue;
+                Row row = lockAndRecheckCondition();
+                if (row != null) {
+                    if (deltaChangeCollectionMode == ResultOption.OLD) {
+                        deltaChangeCollector.addRow(row.getValueList());
                     }
-                    if (!row.hasSharedData(lockedRow)) {
-                        row = lockedRow;
-                        targetTableFilter.set(row);
-                        if (condition != null && !condition.getBooleanValue(session)) {
-                            continue;
-                        }
+                    if (!table.fireRow() || !table.fireBeforeRow(session, row, null)) {
+                        rows.addRowForTable(row);
                     }
+                    count++;
                 }
-                if (deltaChangeCollectionMode == ResultOption.OLD) {
-                    deltaChangeCollector.addRow(row.getValueList());
-                }
-                if (!table.fireRow() || !table.fireBeforeRow(session, row, null)) {
-                    rows.addRowForTable(row);
-                }
-                count++;
             }
             rows.done();
             long rowScanCount = 0;
@@ -113,7 +102,8 @@ public final class Delete extends FilteredDataChangeStatement {
             }
         }
         TableFilter[] filters = new TableFilter[] { targetTableFilter };
-        PlanItem item = targetTableFilter.getBestPlanItem(session, filters, 0, new AllColumnsForPlan(filters));
+        PlanItem item = targetTableFilter.getBestPlanItem(session, filters, 0, new AllColumnsForPlan(filters),
+                /* isSelectCommand */false);
         targetTableFilter.setPlanItem(item);
         targetTableFilter.prepare();
     }

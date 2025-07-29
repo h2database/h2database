@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -37,7 +37,7 @@ import org.h2.value.VersionedValue;
 /**
  * A table stored in a MVStore.
  */
-public class MVPrimaryIndex extends MVIndex<Long, SearchRow> {
+public final class MVPrimaryIndex extends MVIndex<Long, SearchRow> {
 
     private final MVTable mvTable;
     private final String mapName;
@@ -344,10 +344,10 @@ public class MVPrimaryIndex extends MVIndex<Long, SearchRow> {
     @Override
     public double getCost(SessionLocal session, int[] masks,
             TableFilter[] filters, int filter, SortOrder sortOrder,
-            AllColumnsForPlan allColumnsSet) {
+            AllColumnsForPlan allColumnsSet, boolean isSelectCommand) {
         try {
             return 10 * getCostRangeIndex(masks, dataMap.sizeAsLongMax(),
-                    filters, filter, sortOrder, true, allColumnsSet);
+                    filters, filter, sortOrder, true, allColumnsSet, isSelectCommand);
         } catch (MVStoreException e) {
             throw DbException.get(ErrorCode.OBJECT_CLOSED, e);
         }
@@ -356,12 +356,12 @@ public class MVPrimaryIndex extends MVIndex<Long, SearchRow> {
     @Override
     public int getColumnIndex(Column col) {
         // can not use this index - use the delegate index instead
-        return SearchRow.ROWID_INDEX;
+        return -1;
     }
 
     @Override
     public boolean isFirstColumn(Column column) {
-        return false;
+        return column.getColumnId() == SearchRow.ROWID_INDEX && column.getTable() == table;
     }
 
     @Override

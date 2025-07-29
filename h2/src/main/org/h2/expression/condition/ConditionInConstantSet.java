@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -28,12 +28,8 @@ import org.h2.value.ValueRow;
  * Used for optimised IN(...) queries where the contents of the IN list are all
  * constant and of the same type.
  */
-public final class ConditionInConstantSet extends Condition {
+public final class ConditionInConstantSet extends ConditionIn {
 
-    private Expression left;
-    private final boolean not;
-    private final boolean whenOperand;
-    private final ArrayList<Expression> valueList;
     // HashSet cannot be used here, because we need to compare values of
     // different type or scale properly.
     private final TreeSet<Value> valueSet;
@@ -56,11 +52,8 @@ public final class ConditionInConstantSet extends Condition {
      */
     ConditionInConstantSet(SessionLocal session, Expression left, boolean not, boolean whenOperand,
             ArrayList<Expression> valueList) {
-        this.left = left;
-        this.not = not;
-        this.whenOperand = whenOperand;
-        this.valueList = valueList;
-        this.valueSet = new TreeSet<>(session.getDatabase().getCompareMode());
+        super(left, not, whenOperand, valueList);
+        this.valueSet = new TreeSet<>(session);
         TypeInfo type = left.getType();
         for (Expression expression : valueList) {
             type = TypeInfo.getHigherType(type, expression.getType());
@@ -80,19 +73,7 @@ public final class ConditionInConstantSet extends Condition {
     }
 
     @Override
-    public Value getValue(SessionLocal session) {
-        return getValue(left.getValue(session), session);
-    }
-
-    @Override
-    public boolean getWhenValue(SessionLocal session, Value left) {
-        if (!whenOperand) {
-            return super.getWhenValue(session, left);
-        }
-        return getValue(left, session).isTrue();
-    }
-
-    private Value getValue(Value left, SessionLocal session) {
+    Value getValue(SessionLocal session, Value left) {
         if ((left = left.convertTo(type, session)).containsNull()) {
             return ValueNull.INSTANCE;
         }
@@ -101,11 +82,6 @@ public final class ConditionInConstantSet extends Condition {
             return ValueNull.INSTANCE;
         }
         return ValueBoolean.get(not ^ result);
-    }
-
-    @Override
-    public boolean isWhenConditionOperand() {
-        return whenOperand;
     }
 
     @Override
@@ -127,50 +103,12 @@ public final class ConditionInConstantSet extends Condition {
         return new ConditionInConstantSet(session, left, !not, false, valueList);
     }
 
-    @Override
-    public void createIndexConditions(SessionLocal session, TableFilter filter) {
-        if (not || whenOperand || !session.getDatabase().getSettings().optimizeInList) {
-            return;
-        }
-        if (left instanceof ExpressionColumn) {
-            ExpressionColumn l = (ExpressionColumn) left;
-            if (filter == l.getTableFilter()) {
-                createIndexConditions(filter, l, valueList, type);
-            }
-        } else if (left instanceof ExpressionList) {
-            ExpressionList list = (ExpressionList) left;
-            if (!list.isArray()) {
-                // First we create a compound index condition.
-                createCompoundIndexCondition(filter);
-                // If there is no compound index, then the TableFilter#prepare() method will drop this condition.
-                // Then we create a unique index condition for each column.
-                createUniqueIndexConditions(filter, list);
-                // If there are two or more index conditions, IndexCursor will only use the first one.
-                // See: IndexCursor#canUseIndexForIn(Column)
-            }
-        }
-    }
-
-    /**
-     * Creates a compound index condition containing every item in the expression list.
-     * @see IndexCondition#getCompoundInList(ExpressionList, List)
-     */
-    private void createCompoundIndexCondition(TableFilter filter) {
-        // We do not check filter here, because the IN condition can contain columns from multiple tables.
-        ExpressionVisitor visitor = ExpressionVisitor.getNotFromResolverVisitor(filter);
-        for (Expression e : valueList) {
-            if (!e.isEverything(visitor)) {
-                return;
-            }
-        }
-        filter.addIndexCondition(IndexCondition.getCompoundInList((ExpressionList) left, valueList));
-    }
-
     /**
      * Creates a unique index condition for every item in the expression list.
      * @see IndexCondition#getInList(ExpressionColumn, List)
      */
-    private void createUniqueIndexConditions(TableFilter filter, ExpressionList list) {
+    @Override
+    void createUniqueIndexConditions(TableFilter filter, ExpressionList list) {
         int c = list.getSubexpressionCount();
         for (int i = 0; i < c; i++) {
             Expression e = list.getSubexpression(i);
@@ -209,6 +147,11 @@ public final class ConditionInConstantSet extends Condition {
         }
     }
 
+    @Override
+    void createIndexConditions(TableFilter filter, ExpressionColumn l, ArrayList<Expression> valueList) {
+        createIndexConditions(filter, l, valueList, type);
+    }
+
     private static void createIndexConditions(TableFilter filter, ExpressionColumn l, ArrayList<Expression> valueList,
             TypeInfo type) {
         TypeInfo colType = l.getType();
@@ -220,24 +163,6 @@ public final class ConditionInConstantSet extends Condition {
     @Override
     public void setEvaluatable(TableFilter tableFilter, boolean b) {
         left.setEvaluatable(tableFilter, b);
-    }
-
-    @Override
-    public boolean needParentheses() {
-        return true;
-    }
-
-    @Override
-    public StringBuilder getUnenclosedSQL(StringBuilder builder, int sqlFlags) {
-        return getWhenSQL(left.getSQL(builder, sqlFlags, AUTO_PARENTHESES), sqlFlags);
-    }
-
-    @Override
-    public StringBuilder getWhenSQL(StringBuilder builder, int sqlFlags) {
-        if (not) {
-            builder.append(" NOT");
-        }
-        return writeExpressions(builder.append(" IN("), valueList, sqlFlags).append(')');
     }
 
     @Override
@@ -276,21 +201,6 @@ public final class ConditionInConstantSet extends Condition {
             }
         }
         return null;
-    }
-
-    @Override
-    public int getSubexpressionCount() {
-        return 1 + valueList.size();
-    }
-
-    @Override
-    public Expression getSubexpression(int index) {
-        if (index == 0) {
-            return left;
-        } else if (index > 0 && index <= valueList.size()) {
-            return valueList.get(index - 1);
-        }
-        throw new IndexOutOfBoundsException();
     }
 
 }

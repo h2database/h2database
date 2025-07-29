@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -7,6 +7,7 @@ package org.h2.constraint;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+
 import org.h2.api.ErrorCode;
 import org.h2.command.Prepared;
 import org.h2.engine.SessionLocal;
@@ -33,8 +34,8 @@ public class ConstraintReferential extends Constraint {
 
     private IndexColumn[] columns;
     private IndexColumn[] refColumns;
-    private ConstraintActionType deleteAction = ConstraintActionType.RESTRICT;
-    private ConstraintActionType updateAction = ConstraintActionType.RESTRICT;
+    private ConstraintActionType deleteAction = ConstraintActionType.NO_ACTION;
+    private ConstraintActionType updateAction = ConstraintActionType.NO_ACTION;
     private Table refTable;
     private Index index;
     private ConstraintUnique refConstraint;
@@ -102,11 +103,11 @@ public class ConstraintReferential extends Constraint {
         builder.append('(');
         IndexColumn.writeColumns(builder, refCols, DEFAULT_SQL_FLAGS);
         builder.append(')');
-        if (deleteAction != ConstraintActionType.RESTRICT) {
-            builder.append(" ON DELETE ").append(deleteAction.getSqlName());
-        }
-        if (updateAction != ConstraintActionType.RESTRICT) {
+        if (updateAction != ConstraintActionType.NO_ACTION) {
             builder.append(" ON UPDATE ").append(updateAction.getSqlName());
+        }
+        if (deleteAction != ConstraintActionType.NO_ACTION) {
+            builder.append(" ON DELETE ").append(deleteAction.getSqlName());
         }
         return builder.append(" NOCHECK").toString();
     }
@@ -375,7 +376,7 @@ public class ConstraintReferential extends Constraint {
         }
         if (newRow == null) {
             // this is a delete
-            if (deleteAction == ConstraintActionType.RESTRICT) {
+            if (deleteAction.isNoActionOrRestrict()) {
                 checkRow(session, oldRow);
             } else {
                 int i = deleteAction == ConstraintActionType.CASCADE ? 0 : columns.length;
@@ -385,7 +386,7 @@ public class ConstraintReferential extends Constraint {
             }
         } else {
             // this is an update
-            if (updateAction == ConstraintActionType.RESTRICT) {
+            if (updateAction.isNoActionOrRestrict()) {
                 checkRow(session, oldRow);
             } else {
                 Prepared updateCommand = getUpdate(session);
@@ -439,9 +440,6 @@ public class ConstraintReferential extends Constraint {
         if (action == deleteAction && deleteSQL == null) {
             return;
         }
-        if (deleteAction != ConstraintActionType.RESTRICT) {
-            throw DbException.get(ErrorCode.CONSTRAINT_ALREADY_EXISTS_1, "ON DELETE");
-        }
         this.deleteAction = action;
         buildDeleteSQL();
     }
@@ -461,7 +459,7 @@ public class ConstraintReferential extends Constraint {
     }
 
     private void buildDeleteSQL() {
-        if (deleteAction == ConstraintActionType.RESTRICT) {
+        if (deleteAction.isNoActionOrRestrict()) {
             return;
         }
         StringBuilder builder = new StringBuilder();
@@ -496,15 +494,12 @@ public class ConstraintReferential extends Constraint {
         if (action == updateAction && updateSQL == null) {
             return;
         }
-        if (updateAction != ConstraintActionType.RESTRICT) {
-            throw DbException.get(ErrorCode.CONSTRAINT_ALREADY_EXISTS_1, "ON UPDATE");
-        }
         this.updateAction = action;
         buildUpdateSQL();
     }
 
     private void buildUpdateSQL() {
-        if (updateAction == ConstraintActionType.RESTRICT) {
+        if (updateAction.isNoActionOrRestrict()) {
             return;
         }
         StringBuilder builder = new StringBuilder();
@@ -603,8 +598,7 @@ public class ConstraintReferential extends Constraint {
         builder.append(')');
 
         session.startStatementWithinTransaction(null);
-        try {
-            ResultInterface r = session.prepare(builder.toString()).query(1);
+        try (ResultInterface r = session.prepare(builder.toString()).query(1)) {
             if (r.next()) {
                 throw DbException.get(ErrorCode.REFERENTIAL_INTEGRITY_VIOLATED_PARENT_MISSING_1,
                         getShortDescription(null, null));

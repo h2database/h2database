@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -9,6 +9,7 @@ import static org.h2.expression.Expression.WITHOUT_PARENTHESES;
 import static org.h2.util.HasSQL.DEFAULT_SQL_FLAGS;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -126,9 +127,9 @@ public abstract class Query extends Prepared {
     boolean distinct;
 
     /**
-     * Whether the result needs to support random access.
+     * Sort types for IN predicate.
      */
-    boolean randomAccessResult;
+    int[] inPredicateSortTypes;
 
     /**
      * The visible columns (the ones required in the result).
@@ -148,6 +149,7 @@ public abstract class Query extends Prepared {
     private ResultInterface lastResult;
     private Boolean lastExists;
     private Value[] lastParameters;
+    private int[] lastInPredicateSortTypes;
     private boolean cacheableChecked;
     private boolean neverLazy;
 
@@ -422,21 +424,30 @@ public abstract class Query extends Prepared {
     }
 
     /**
-     * Returns whether results support random access.
+     * Returns whether result is generated for the IN predicate.
      *
-     * @return whether results support random access
+     * @return whether result is generated for the IN predicate
      */
-    public boolean isRandomAccessResult() {
-        return randomAccessResult;
+    public boolean isInPredicateResult() {
+        return inPredicateSortTypes != null;
     }
 
     /**
-     * Whether results need to support random access.
-     *
-     * @param b the new value
+     * Convert results to compatible with IN predicate.
      */
-    public void setRandomAccessResult(boolean b) {
-        randomAccessResult = b;
+    public void setInPredicateResult() {
+        if (inPredicateSortTypes == null) {
+            inPredicateSortTypes = new int[0];
+        }
+    }
+
+    /**
+     * Sets sort types for the IN predicate.
+     *
+     * @param inPredicateSortTypes sort types for the IN predicate
+     */
+    public void setInPredicateResultSortTypes(int[] inPredicateSortTypes) {
+        this.inPredicateSortTypes = inPredicateSortTypes;
     }
 
     @Override
@@ -519,7 +530,8 @@ public abstract class Query extends Prepared {
         Value[] params = getParameterValues();
         long now = session.getStatementModificationDataId(), maxDataModificationId = getMaxDataModificationId();
         if (lastResult != null && !lastResult.isClosed() && limit == lastLimit //
-                && maxDataModificationId <= lastEvaluated && sameParameters(params, lastParameters)) {
+                && maxDataModificationId <= lastEvaluated && sameParameters(params, lastParameters)
+                && Arrays.equals(inPredicateSortTypes, lastInPredicateSortTypes)) {
             lastResult = lastResult.createShallowCopy(session);
             if (lastResult != null) {
                 lastResult.reset();
@@ -531,11 +543,13 @@ public abstract class Query extends Prepared {
         if (maxDataModificationId <= now) {
             lastParameters = params;
             lastResult = r;
+            lastInPredicateSortTypes = inPredicateSortTypes;
             lastEvaluated = now;
             lastLimit = limit;
         } else {
             lastParameters = null;
             lastResult = null;
+            lastInPredicateSortTypes = null;
             lastLimit = lastEvaluated = 0L;
         }
         lastExists = null;
@@ -1038,8 +1052,8 @@ public abstract class Query extends Prepared {
             }
         }
         result.done();
-        if (randomAccessResult && !distinct) {
-            result = convertToDistinct(result);
+        if (inPredicateSortTypes != null) {
+            result = convertToInPredicateValueListIfNecessary(result);
         }
         if (target != null) {
             while (result.next()) {
@@ -1051,15 +1065,37 @@ public abstract class Query extends Prepared {
         return result;
     }
 
+    private LocalResult convertToInPredicateValueListIfNecessary(LocalResult result) {
+        if (distinct) {
+            if (inPredicateSortTypes == null) {
+                return result;
+            }
+            if (sort != null) {
+                int[] sortTypes = sort.getSortTypes();
+                int l = inPredicateSortTypes.length;
+                testSort: if (sortTypes.length >= l) {
+                    for (int i = 0; i < l; i++) {
+                        if ((sortTypes[i] & SortOrder.DESCENDING) != (inPredicateSortTypes[i]
+                                & SortOrder.DESCENDING)) {
+                            break testSort;
+                        }
+                    }
+                    return result;
+                }
+            }
+        }
+        return convertToInPredicateValueList(result);
+    }
+
     /**
-     * Convert a result into a distinct result, using the current columns.
+     * Convert a result into result with value list of the IN predicate.
      *
      * @param result the source
      * @return the distinct result
      */
-    LocalResult convertToDistinct(ResultInterface result) {
+    LocalResult convertToInPredicateValueList(ResultInterface result) {
         LocalResult distinctResult = new LocalResult(session, expressionArray, visibleColumnCount, resultColumnCount);
-        distinctResult.setDistinct();
+        distinctResult.setInPredicateValueListResult(inPredicateSortTypes);
         result.reset();
         while (result.next()) {
             distinctResult.addRow(result.currentRow());

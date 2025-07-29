@@ -1,4 +1,4 @@
--- Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
+-- Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
 -- and the EPL 1.0 (https://h2database.com/html/license.html).
 -- Initial Developer: H2 Group
 --
@@ -9,11 +9,14 @@ SELECT CHAR_LENGTH(CAST(RANDOM_UUID() AS VARCHAR));
 SELECT RANDOM_UUID() = RANDOM_UUID();
 >> FALSE
 
--- Check that RANDOM_UUID is based on nanotime
--- DISABLED: On some machines, timer granularity is too low and execution speed is too fast so the two RANDOM_UUID
--- calls will actually be based on the same timestamp.
--- SELECT RANDOM_UUID(7) < RANDOM_UUID(7);
--- >> TRUE
+CREATE LOCAL TEMPORARY TABLE TEST(X BIGINT PRIMARY KEY, R UUID) AS SELECT X, RANDOM_UUID(7) FROM SYSTEM_RANGE(1, 100);
+> ok
+
+VALUES ((SELECT R FROM TEST WHERE X = 1) < (SELECT R FROM TEST WHERE X = 100));
+>> TRUE
+
+DROP TABLE TEST;
+> ok
 
 SELECT RANDOM_UUID(100);
 > exception INVALID_VALUE_2

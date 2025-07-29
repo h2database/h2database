@@ -1,12 +1,12 @@
 /*
- * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.table;
 
-import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 
 import org.h2.command.query.AllColumnsForPlan;
 import org.h2.command.query.Query;
@@ -68,8 +68,8 @@ public class MaterializedView extends Table {
 
     @Override
     public final PlanItem getBestPlanItem(SessionLocal session, int[] masks, TableFilter[] filters, int filter,
-            SortOrder sortOrder, AllColumnsForPlan allColumnsSet) {
-        return table.getBestPlanItem(session, masks, filters, filter, sortOrder, allColumnsSet);
+            SortOrder sortOrder, AllColumnsForPlan allColumnsSet, boolean isSelectCommand) {
+        return table.getBestPlanItem(session, masks, filters, filter, sortOrder, allColumnsSet, isSelectCommand);
     }
 
     @Override
@@ -123,19 +123,21 @@ public class MaterializedView extends Table {
     }
 
     @Override
-    public final ArrayList<Index> getIndexes() {
+    public final List<Index> getIndexes() {
         return table.getIndexes();
     }
 
     @Override
     public final Index getScanIndex(SessionLocal session) {
-        return getBestPlanItem(session, null, null, -1, null, null).getIndex();
+        return getBestPlanItem(session, null, null, -1, null, null,
+                /* isSelectCommand */true).getIndex();
     }
 
     @Override
     public Index getScanIndex(SessionLocal session, int[] masks, TableFilter[] filters, int filter, //
             SortOrder sortOrder, AllColumnsForPlan allColumnsSet) {
-        return getBestPlanItem(session, masks, filters, filter, sortOrder, allColumnsSet).getIndex();
+        return getBestPlanItem(session, masks, filters, filter, sortOrder, allColumnsSet,
+                /* isSelectCommand */true).getIndex();
     }
 
     @Override

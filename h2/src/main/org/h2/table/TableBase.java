@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -33,7 +33,7 @@ public abstract class TableBase extends Table {
     private final boolean globalTemporary;
 
     /**
-     * Returns main index column if index is an primary key index and has only
+     * Returns main index column if index is a primary key index and has only
      * one column with _ROWID_ compatible data type.
      *
      * @param indexType type of an index

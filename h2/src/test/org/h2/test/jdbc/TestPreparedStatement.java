@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -120,6 +120,8 @@ public class TestPreparedStatement extends TestDb {
         testParameterInSubquery(conn);
         testAfterRollback(conn);
         testUnnestWithArrayParameter(conn);
+        testDateTimeWithParameter(conn);
+        testFetchSize(conn);
         conn.close();
         testPreparedStatementWithLiteralsNone();
         testPreparedStatementWithIndexedParameterAndLiteralsNone();
@@ -1163,7 +1165,7 @@ public class TestPreparedStatement extends TestDb {
         stat.execute("CREATE TABLE T_DECIMAL_10" +
                 "(ID INT PRIMARY KEY,V DECIMAL(20,10))");
         stat.execute("CREATE TABLE T_DATETIME" +
-                "(ID INT PRIMARY KEY,V DATETIME)");
+                "(ID INT PRIMARY KEY,V TIMESTAMP)");
         stat.execute("CREATE TABLE T_BIGINT" +
                 "(ID INT PRIMARY KEY,V DECIMAL(30,0))");
         prep = conn.prepareStatement("INSERT INTO T_INT VALUES(?,?)",
@@ -1817,6 +1819,30 @@ public class TestPreparedStatement extends TestDb {
         ResultSet rs = prep.executeQuery();
         assertTrue(rs.next());
         assertEquals(new Integer[] { 1, 2 }, rs.getObject(1, Integer[].class));
+    }
+
+    private void testDateTimeWithParameter(Connection conn) throws SQLException {
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE TABLE TEST(ID BIGINT PRIMARY KEY, T TIMESTAMP WITH TIME ZONE) "
+                + "AS VALUES (1, CURRENT_TIMESTAMP)");
+        PreparedStatement prep = conn.prepareStatement("SELECT T = ANY(SELECT CAST(? AS TIMESTAMP)) FROM TEST");
+        prep.setObject(1, LocalDateTime.now());
+        ResultSet rs = prep.executeQuery();
+        assertTrue(rs.next());
+        assertFalse(rs.getBoolean(1));
+        stat.execute("DROP TABLE TEST");
+    }
+
+    private void testFetchSize(Connection conn) throws SQLException {
+        if (!config.networked) {
+            return;
+        }
+        PreparedStatement prep = conn.prepareStatement("SELECT * FROM SYSTEM_RANGE(1, 20)");
+        prep.setFetchSize(10);
+        ResultSet rs = prep.executeQuery();
+        assertEquals(10, rs.getFetchSize());
+        rs.close();
+        prep.close();
     }
 
 }

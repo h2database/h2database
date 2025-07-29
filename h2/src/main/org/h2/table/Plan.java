@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -100,7 +100,7 @@ public class Plan {
      * @param allColumnsSet calculates all columns on-demand
      * @return the cost
      */
-    public double calculateCost(SessionLocal session, AllColumnsForPlan allColumnsSet) {
+    public double calculateCost(SessionLocal session, AllColumnsForPlan allColumnsSet, boolean isSelectCommand) {
         Trace t = session.getTrace();
         if (t.isDebugEnabled()) {
             t.debug("Plan       : calculate cost for plan {0}", Arrays.toString(allFilters));
@@ -112,7 +112,7 @@ public class Plan {
             if (t.isDebugEnabled()) {
                 t.debug("Plan       :   for table filter {0}", tableFilter);
             }
-            PlanItem item = tableFilter.getBestPlanItem(session, allFilters, i, allColumnsSet);
+            PlanItem item = tableFilter.getBestPlanItem(session, allFilters, i, allColumnsSet, isSelectCommand);
             planItems.put(tableFilter, item);
             if (t.isDebugEnabled()) {
                 t.debug("Plan       :   best plan item cost {0} index {1}",

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -56,7 +56,7 @@ public final class RecursiveIndex extends QueryExpressionIndex {
 
     @Override
     public double getCost(SessionLocal session, int[] masks, TableFilter[] filters, int filter, SortOrder sortOrder,
-            AllColumnsForPlan allColumnsSet) {
+            AllColumnsForPlan allColumnsSet, boolean isSelectCommand) {
         return 1000d;
     }
 

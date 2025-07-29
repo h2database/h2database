@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -65,23 +65,12 @@ public final class Update extends FilteredDataChangeStatement {
                 }
             }
             while (nextRow(limitRows, count)) {
-                Row oldRow = targetTableFilter.get();
-                if (table.isRowLockable()) {
-                    Row lockedRow = table.lockRow(session, oldRow, -1);
-                    if (lockedRow == null) {
-                        continue;
+                Row row = lockAndRecheckCondition();
+                if (row != null) {
+                    if (setClauseList.prepareUpdate(table, session, deltaChangeCollector, deltaChangeCollectionMode,
+                            rows, row, onDuplicateKeyInsert != null)) {
+                        count++;
                     }
-                    if (!oldRow.hasSharedData(lockedRow)) {
-                        oldRow = lockedRow;
-                        targetTableFilter.set(oldRow);
-                        if (condition != null && !condition.getBooleanValue(session)) {
-                            continue;
-                        }
-                    }
-                }
-                if (setClauseList.prepareUpdate(table, session, deltaChangeCollector, deltaChangeCollectionMode,
-                        rows, oldRow, onDuplicateKeyInsert != null)) {
-                    count++;
                 }
             }
             doUpdate(this, session, table, rows);
@@ -129,7 +118,8 @@ public final class Update extends FilteredDataChangeStatement {
         }
         setClauseList.mapAndOptimize(session, targetTableFilter, null);
         TableFilter[] filters = new TableFilter[] { targetTableFilter };
-        PlanItem item = targetTableFilter.getBestPlanItem(session, filters, 0, new AllColumnsForPlan(filters));
+        PlanItem item = targetTableFilter.getBestPlanItem(session, filters, 0, new AllColumnsForPlan(filters),
+                /* isSelectCommand */false);
         targetTableFilter.setPlanItem(item);
         targetTableFilter.prepare();
     }

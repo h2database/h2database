@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -90,7 +90,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
         super(conn, id, resultSetType, resultSetConcurrency);
         this.generatedKeysRequest = generatedKeysRequest;
         setTrace(session.getTrace(), TraceObject.PREPARED_STATEMENT, id);
-        command = conn.prepareCommand(sql, fetchSize);
+        command = conn.prepareCommand(sql);
     }
 
     /**
@@ -127,7 +127,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
                 boolean updatable = resultSetConcurrency == ResultSet.CONCUR_UPDATABLE;
                 try {
                     setExecutingStatement(command);
-                    result = command.executeQuery(maxRows, scrollable);
+                    result = command.executeQuery(maxRows, fetchSize, scrollable);
                     lazy = result.isLazy();
                 } finally {
                     if (!lazy) {
@@ -253,7 +253,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
                         returnsResultSet = true;
                         boolean scrollable = resultSetType != ResultSet.TYPE_FORWARD_ONLY;
                         boolean updatable = resultSetConcurrency == ResultSet.CONCUR_UPDATABLE;
-                        ResultInterface result = command.executeQuery(maxRows, scrollable);
+                        ResultInterface result = command.executeQuery(maxRows, fetchSize, scrollable);
                         lazy = result.isLazy();
                         resultSet = new JdbcResultSet(conn, this, command, result, id, scrollable, updatable,
                                 cachedColumnLabelMap);

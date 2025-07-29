@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -22,7 +22,6 @@ import org.h2.mode.DefaultNullOrdering;
 import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
 import org.h2.table.Column;
-import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.IntervalUtils;
@@ -61,24 +60,15 @@ final class Percentile {
      */
     static Index getColumnIndex(Database database, Expression on) {
         DefaultNullOrdering defaultNullOrdering = database.getDefaultNullOrdering();
+        Index result = null;
         if (on instanceof ExpressionColumn) {
             ExpressionColumn col = (ExpressionColumn) on;
             Column column = col.getColumn();
             TableFilter filter = col.getTableFilter();
             if (filter != null) {
-                Table table = filter.getTable();
-                ArrayList<Index> indexes = table.getIndexes();
-                Index result = null;
-                if (indexes != null) {
-                    boolean nullable = column.isNullable();
-                    for (int i = 1, size = indexes.size(); i < size; i++) {
-                        Index index = indexes.get(i);
-                        if (!index.canFindNext()) {
-                            continue;
-                        }
-                        if (!index.isFirstColumn(column)) {
-                            continue;
-                        }
+                boolean nullable = column.isNullable();
+                for (Index index : filter.getTable().getIndexes()) {
+                    if (index.canFindNext() && index.isFirstColumn(column)) {
                         // Prefer index without nulls last for nullable columns
                         if (result == null || result.getColumns().length > index.getColumns().length
                                 || nullable && isNullsLast(defaultNullOrdering, result)
@@ -87,10 +77,9 @@ final class Percentile {
                         }
                     }
                 }
-                return result;
             }
         }
-        return null;
+        return result;
     }
 
     /**
@@ -107,7 +96,7 @@ final class Percentile {
     static Value getValue(SessionLocal session, Value[] array, int dataType, ArrayList<QueryOrderBy> orderByList,
             BigDecimal percentile, boolean interpolate) {
         final CompareMode compareMode = session.getDatabase().getCompareMode();
-        Arrays.sort(array, compareMode);
+        Arrays.sort(array, session);
         int count = array.length;
         boolean reverseIndex = orderByList != null && (orderByList.get(0).sortType & SortOrder.DESCENDING) != 0;
         BigDecimal fpRow = BigDecimal.valueOf(count - 1).multiply(percentile);

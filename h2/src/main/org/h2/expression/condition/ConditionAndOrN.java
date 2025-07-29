@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0, and the
+ * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0, and the
  * EPL 1.0 (https://h2database.com/html/license.html). Initial Developer: H2
  * Group
  */
@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
+
 import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
@@ -150,7 +151,7 @@ public class ConditionAndOrN extends Condition {
         }
     }
 
-    private static final Comparator<Expression> COMPARE_BY_COST = new Comparator<Expression>() {
+    private static final Comparator<Expression> COMPARE_BY_COST = new Comparator<>() {
         @Override
         public int compare(Expression lhs, Expression rhs) {
             return lhs.getCost() - rhs.getCost();
@@ -209,10 +210,10 @@ public class ConditionAndOrN extends Condition {
                 Expression reduced;
                 if (left instanceof Comparison && right instanceof Comparison) {
                     reduced = ((Comparison) left).optimizeOr(session, (Comparison) right);
-                } else if (left instanceof ConditionIn && right instanceof Comparison) {
-                    reduced = ((ConditionIn) left).getAdditional((Comparison) right);
-                } else if (right instanceof ConditionIn && left instanceof Comparison) {
-                    reduced = ((ConditionIn) right).getAdditional((Comparison) left);
+                } else if (left instanceof ConditionInList && right instanceof Comparison) {
+                    reduced = ((ConditionInList) left).getAdditional((Comparison) right);
+                } else if (right instanceof ConditionInList && left instanceof Comparison) {
+                    reduced = ((ConditionInList) right).getAdditional((Comparison) left);
                 } else if (left instanceof ConditionInConstantSet && right instanceof Comparison) {
                     reduced = ((ConditionInConstantSet) left).getAdditional(session, (Comparison) right);
                 } else if (right instanceof ConditionInConstantSet && left instanceof Comparison) {

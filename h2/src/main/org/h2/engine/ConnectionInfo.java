@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -8,6 +8,7 @@ package org.h2.engine;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Properties;
@@ -158,12 +159,8 @@ public class ConnectionInfo implements Cloneable {
                 "UUID_COLLATION", //
         };
         set = new HashSet<>(32);
-        for (String setting : commonSettings) {
-            set.add(setting);
-        }
-        for (String setting : settings) {
-            set.add(setting);
-        }
+        Collections.addAll(set, commonSettings);
+        Collections.addAll(set, settings);
         IGNORED_BY_PARSER = set;
     }
 

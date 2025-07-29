@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -11,6 +11,7 @@ import static org.h2.util.DateTimeUtils.NANOS_PER_MINUTE;
 import static org.h2.util.DateTimeUtils.NANOS_PER_SECOND;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.math.RoundingMode;
 
 import org.h2.api.Interval;
@@ -252,6 +253,11 @@ public final class ValueInterval extends Value {
             l++;
         }
         return negative ? -l : l;
+    }
+
+    @Override
+    public BigInteger getBigInteger() {
+        return BigInteger.valueOf(getLong());
     }
 
     @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -380,7 +380,7 @@ public final class Interval {
      * @param minutes
      *            minutes, |minutes|&lt;60
      * @param nanos
-     *            nanoseconds, |seconds|&lt;60,000,000,000
+     *            nanoseconds, |nanos|&lt;60,000,000,000
      * @return INTERVAL HOUR TO SECOND
      */
     public static Interval ofHoursMinutesNanos(long hours, int minutes, long nanos) {

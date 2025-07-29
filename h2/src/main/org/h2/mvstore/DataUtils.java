@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -157,13 +157,13 @@ public final class DataUtils {
      * The prefix for chunks ("chunk."). This, plus the chunk id (hex encoded)
      * is the key, and the serialized chunk metadata is the value.
      */
-    public static final String META_CHUNK = "chunk.";
+    public static final String LAYOUT_CHUNK = "chunk.";
 
     /**
      * The prefix for root positions of maps ("root."). This, plus the map id
      * (hex encoded) is the key, and the position (hex encoded) is the value.
      */
-    public static final String META_ROOT = "root.";
+    public static final String LAYOUT_ROOT = "root.";
 
     // The following are key prefixes used in meta map
 

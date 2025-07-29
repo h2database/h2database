@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -8,6 +8,7 @@ package org.h2.mvstore.db;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -112,7 +113,7 @@ public class MVTable extends TableBase {
 
     /**
      * The set of sessions (if any) that have a shared lock on the table. Here
-     * we are using using a ConcurrentHashMap as a set, as there is no
+     * we are using a ConcurrentHashMap as a set, as there is no
      * ConcurrentHashSet.
      */
     private final ConcurrentHashMap<SessionLocal, SessionLocal> lockSharedSessions = new ConcurrentHashMap<>();
@@ -342,7 +343,7 @@ public class MVTable extends TableBase {
         int mainIndexColumn = primaryIndex.getMainIndexColumn() != SearchRow.ROWID_INDEX
                 ? SearchRow.ROWID_INDEX : getMainIndexColumn(indexType, cols);
         if (database.isStarting()) {
-            // if index does exists as a separate map it can't be a delegate
+            // if index does exist as a separate map it can't be a delegate
             if (transactionStore.hasMap("index." + indexId)) {
                 // we can not reuse primary index
                 mainIndexColumn = SearchRow.ROWID_INDEX;
@@ -576,7 +577,7 @@ public class MVTable extends TableBase {
     }
 
     @Override
-    public ArrayList<Index> getIndexes() {
+    public List<Index> getIndexes() {
         return indexes;
     }
 
@@ -803,12 +804,8 @@ public class MVTable extends TableBase {
     @Override
     public boolean canTruncate() {
         if (getCheckForeignKeyConstraints() && database.getReferentialIntegrity()) {
-            ArrayList<Constraint> constraints = getConstraints();
-            if (constraints != null) {
-                for (Constraint c : constraints) {
-                    if (c.getConstraintType() != Constraint.Type.REFERENTIAL) {
-                        continue;
-                    }
+            for (Constraint c : getConstraints()) {
+                if (c.getConstraintType() == Constraint.Type.REFERENTIAL) {
                     ConstraintReferential ref = (ConstraintReferential) c;
                     if (ref.getRefTable() == this) {
                         return false;
@@ -852,7 +849,7 @@ public class MVTable extends TableBase {
                     }
                 }
             }
-            // take a local copy so we don't see inconsistent data, since we are
+            // take a local copy, so we don't see inconsistent data, since we are
             // not locked while checking the lockExclusiveSession value
             SessionLocal copyOfLockExclusiveSession = lockExclusiveSession;
             if (error == null && copyOfLockExclusiveSession != null) {

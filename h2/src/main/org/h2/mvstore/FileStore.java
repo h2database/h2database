@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -238,10 +238,10 @@ public abstract class FileStore<C extends Chunk<C>>
         cc2.maxMemory = 1024L * 1024L;
         chunksToC = new CacheLongKeyLIRS<>(cc2);
 
-        int maxPageSize = Integer.MAX_VALUE;
+        int maxPageSize = DataUtils.getConfigParam(config, "pageSplitSize",
+                                                    cache == null ? Integer.MAX_VALUE : Constants.DEFAULT_PAGE_SIZE);
         // Make sure pages will fit into cache
         if (cache != null) {
-            maxPageSize = 16 * 1024;
             int maxCacheableSize = (int) (cache.getMaxItemSize() >> 4);
             if (maxPageSize > maxCacheableSize) {
                 maxPageSize = maxCacheableSize;
@@ -274,6 +274,7 @@ public abstract class FileStore<C extends Chunk<C>>
         if (allowedCompactionTime > 0) {
             compactStore(allowedCompactionTime);
         }
+        mvStore.commit();
         writeCleanShutdown();
         clearCaches();
     }
@@ -601,9 +602,9 @@ public abstract class FileStore<C extends Chunk<C>>
         }
 
         // remove roots of non-existent maps (leftover after unfinished map removal)
-        for (Iterator<String> it = layout.keyIterator(DataUtils.META_ROOT); it.hasNext();) {
+        for (Iterator<String> it = layout.keyIterator(DataUtils.LAYOUT_ROOT); it.hasNext();) {
             String key = it.next();
-            if (!key.startsWith(DataUtils.META_ROOT)) {
+            if (!key.startsWith(DataUtils.LAYOUT_ROOT)) {
                 break;
             }
             String mapIdStr = key.substring(key.lastIndexOf('.') + 1);
@@ -1084,14 +1085,14 @@ public abstract class FileStore<C extends Chunk<C>>
     }
 
     private Iterable<C> getChunksFromLayoutMap(MVMap<String, String> layoutMap) {
-        return () -> new Iterator<C>() {
-            private final Cursor<String, String> cursor = layoutMap.cursor(DataUtils.META_CHUNK);
+        return () -> new Iterator<>() {
+            private final Cursor<String, String> cursor = layoutMap.cursor(DataUtils.LAYOUT_CHUNK);
             private C nextChunk;
 
             @Override
             public boolean hasNext() {
                 if(nextChunk == null && cursor.hasNext()) {
-                    if (cursor.next().startsWith(DataUtils.META_CHUNK)) {
+                    if (cursor.next().startsWith(DataUtils.LAYOUT_CHUNK)) {
                         nextChunk = createChunk(cursor.getValue());
                         // might be there already, due to layout traversal
                         // see readPage() ... getChunkIfFound(),
@@ -1425,9 +1426,9 @@ public abstract class FileStore<C extends Chunk<C>>
             WriteBuffer buff;
             try {
                 c = createChunk(time, version);
+                chunks.put(c.id, c);
                 buff = getWriteBuffer();
                 serializeToBuffer(buff, changed, c, lastChunk);
-                chunks.put(c.id, c);
             } catch (Throwable t) {
                 lastChunkId = chunkId;
                 throw t;

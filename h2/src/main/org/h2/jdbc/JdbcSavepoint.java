@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -63,9 +63,7 @@ public final class JdbcSavepoint extends TraceObject implements Savepoint {
      */
     void rollback() {
         checkValid();
-        conn.prepareCommand(
-                "ROLLBACK TO SAVEPOINT " + getName(name, savepointId),
-                Integer.MAX_VALUE).executeUpdate(null);
+        conn.prepareCommand("ROLLBACK TO SAVEPOINT " + getName(name, savepointId)).executeUpdate(null);
     }
 
     private void checkValid() {

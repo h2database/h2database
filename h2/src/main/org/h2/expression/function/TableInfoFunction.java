@@ -1,11 +1,9 @@
 /*
- * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.expression.function;
-
-import java.util.ArrayList;
 
 import org.h2.command.Parser;
 import org.h2.engine.SessionLocal;
@@ -56,14 +54,10 @@ public final class TableInfoFunction extends Function1_2 {
             break;
         case ESTIMATED_ENVELOPE: {
             Column column = table.getColumn(v2.getString());
-            ArrayList<Index> indexes = table.getIndexes();
-            if (indexes != null) {
-                for (int i = 1, size = indexes.size(); i < size; i++) {
-                    Index index = indexes.get(i);
-                    if (index instanceof MVSpatialIndex && index.isFirstColumn(column)) {
-                        v1 = ((MVSpatialIndex) index).getEstimatedBounds(session);
-                        break l;
-                    }
+            for (Index index : table.getIndexes()) {
+                if (index instanceof MVSpatialIndex && index.isFirstColumn(column)) {
+                    v1 = ((MVSpatialIndex) index).getEstimatedBounds(session);
+                    break l;
                 }
             }
             v1 = ValueNull.INSTANCE;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -175,11 +175,12 @@ public abstract class Command implements CommandInterface {
      * This method prepares everything and calls {@link #query(long)} finally.
      *
      * @param maxrows the maximum number of rows to return
+     * @param fetchSize ignored by local commands
      * @param scrollable if the result set must be scrollable (ignored)
      * @return the result set
      */
     @Override
-    public ResultInterface executeQuery(long maxrows, boolean scrollable) {
+    public ResultInterface executeQuery(long maxrows, int fetchSize, boolean scrollable) {
         startTimeNanos = 0L;
         long start = 0L;
         Database database = getDatabase();

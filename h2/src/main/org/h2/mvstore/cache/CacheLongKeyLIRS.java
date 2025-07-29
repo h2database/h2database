@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -396,7 +396,7 @@ public class CacheLongKeyLIRS<V> {
      * @return the cache misses
      */
     public long getMisses() {
-        int x = 0;
+        long x = 0;
         for (Segment<V> s : segments) {
             x += s.misses;
         }

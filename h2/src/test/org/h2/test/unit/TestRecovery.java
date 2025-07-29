@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -9,6 +9,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import org.h2.store.fs.FileUtils;
@@ -43,6 +44,7 @@ public class TestRecovery extends TestDb {
     public void test() throws Exception {
         testRecoverClob();
         testRecoverFulltext();
+        testRecoverJson();
         testCompressedAndUncompressed();
         testRunScript();
         testRunScript2();
@@ -80,6 +82,29 @@ public class TestRecovery extends TestDb {
         conn = getConnection(
                 "recovery;init=runscript from '" +
                 getBaseDir() + "/recovery.h2.sql'");
+        conn.close();
+    }
+
+    private void testRecoverJson() throws Exception {
+        DeleteDbFiles.execute(getBaseDir(), "recovery", true);
+        Connection conn = getConnection("recovery");
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(id int, data json)");
+        stat.execute("insert into test values(1, JSON '{\"value\":[]}')");
+        conn.close();
+        Recover.main("-dir", getBaseDir(), "-db", "recovery");
+        DeleteDbFiles.execute(getBaseDir(), "recovery", true);
+        conn = getConnection(
+                "recovery;init=runscript from '" +
+                        getBaseDir() + "/recovery.h2.sql'");
+        stat = conn.createStatement();
+        assertTrue(stat.execute("select * from test"));
+        try (ResultSet rs = stat.getResultSet()) {
+            assertEquals("JSON", rs.getMetaData().getColumnTypeName(2));
+            assertTrue(rs.next());
+            assertEquals(1, rs.getInt(1));
+            assertEquals("{\"value\":[]}", rs.getString(2));
+        }
         conn.close();
     }
 

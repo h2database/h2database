@@ -1,4 +1,4 @@
--- Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
+-- Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
 -- and the EPL 1.0 (https://h2database.com/html/license.html).
 -- Initial Developer: H2 Group
 --
@@ -425,4 +425,87 @@ EXPLAIN SELECT V, V IN (SELECT * FROM TEST) FROM (VALUES 1, 1000000000000) T(V);
 >> SELECT "V", "V" IN( SELECT DISTINCT "PUBLIC"."TEST"."C" FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */) FROM (VALUES (1), (1000000000000)) "T"("V") /* table scan */
 
 DROP TABLE TEST;
+> ok
+
+CREATE TABLE D(A INT, B INT, C INT);
+> ok
+
+CREATE INDEX D_IDX ON D(A DESC, B);
+> ok
+
+INSERT INTO D VALUES (1, 1, 1), (1, 2, 2), (2, 1, 4), (2, 2, 3);
+> update count: 4
+
+SELECT * FROM D WHERE (A, B) IN ((1, 1), (1, 2), (1, 3), (2, 1), (2, 2), (2, 3)) ORDER BY A DESC, B;
+> A B C
+> - - -
+> 2 1 4
+> 2 2 3
+> 1 1 1
+> 1 2 2
+> rows (ordered): 4
+
+EXPLAIN SELECT * FROM D WHERE (A, B) IN ((1, 1), (1, 2), (1, 3), (2, 1), (2, 2), (2, 3)) ORDER BY A DESC, B;
+>> SELECT "PUBLIC"."D"."A", "PUBLIC"."D"."B", "PUBLIC"."D"."C" FROM "PUBLIC"."D" /* PUBLIC.D_IDX: IN(ROW (1, 1), ROW (1, 2), ROW (1, 3), ROW (2, 1), ROW (2, 2), ROW (2, 3)) */ WHERE ROW ("A", "B") IN(ROW (1, 1), ROW (1, 2), ROW (1, 3), ROW (2, 1), ROW (2, 2), ROW (2, 3)) ORDER BY 1 DESC, 2 /* index sorted */
+
+SELECT * FROM D WHERE (A, B) IN ((1, 1), (1, 2), (1, 3), (2, 1), (2, 2), (2, 3)) ORDER BY A, B DESC;
+> A B C
+> - - -
+> 1 2 2
+> 1 1 1
+> 2 2 3
+> 2 1 4
+> rows (ordered): 4
+
+EXPLAIN SELECT * FROM D WHERE (A, B) IN ((1, 1), (1, 2), (1, 3), (2, 1), (2, 2), (2, 3)) ORDER BY A, B DESC;
+>> SELECT "PUBLIC"."D"."A", "PUBLIC"."D"."B", "PUBLIC"."D"."C" FROM "PUBLIC"."D" /* PUBLIC.D_IDX: IN(ROW (1, 1), ROW (1, 2), ROW (1, 3), ROW (2, 1), ROW (2, 2), ROW (2, 3)) */ WHERE ROW ("A", "B") IN(ROW (1, 1), ROW (1, 2), ROW (1, 3), ROW (2, 1), ROW (2, 2), ROW (2, 3)) ORDER BY 1, 2 DESC /* index sorted */
+
+
+SELECT * FROM D WHERE (A, B) IN ((1, 1), (1, 2), (1, 3), (2, 1), (2, 2), (2, 3)) ORDER BY A, B;
+> A B C
+> - - -
+> 1 1 1
+> 1 2 2
+> 2 1 4
+> 2 2 3
+> rows (ordered): 4
+
+EXPLAIN SELECT * FROM D WHERE (A, B) IN ((1, 1), (1, 2), (1, 3), (2, 1), (2, 2), (2, 3)) ORDER BY A, B;
+>> SELECT "PUBLIC"."D"."A", "PUBLIC"."D"."B", "PUBLIC"."D"."C" FROM "PUBLIC"."D" /* PUBLIC.D_IDX: IN(ROW (1, 1), ROW (1, 2), ROW (1, 3), ROW (2, 1), ROW (2, 2), ROW (2, 3)) */ WHERE ROW ("A", "B") IN(ROW (1, 1), ROW (1, 2), ROW (1, 3), ROW (2, 1), ROW (2, 2), ROW (2, 3)) ORDER BY 1, 2 /* index sorted: 1 of 2 columns */
+
+SELECT * FROM D WHERE A IN (1, 2) ORDER BY A DESC, B;
+> A B C
+> - - -
+> 2 1 4
+> 2 2 3
+> 1 1 1
+> 1 2 2
+> rows (ordered): 4
+
+EXPLAIN SELECT * FROM D WHERE A IN (1, 2) ORDER BY A DESC, B;
+>> SELECT "PUBLIC"."D"."A", "PUBLIC"."D"."B", "PUBLIC"."D"."C" FROM "PUBLIC"."D" /* PUBLIC.D_IDX: A IN(1, 2) */ WHERE "A" IN(1, 2) ORDER BY 1 DESC, 2 /* index sorted */
+
+SELECT * FROM D WHERE (A, C) IN ((1, 1), (1, 2), (1, 3), (2, 1), (2, 2), (2, 3)) ORDER BY A, B;
+> A B C
+> - - -
+> 1 1 1
+> 1 2 2
+> 2 2 3
+> rows (ordered): 3
+
+EXPLAIN SELECT * FROM D WHERE (A, C) IN ((1, 1), (1, 2), (1, 3), (2, 1), (2, 2), (2, 3)) ORDER BY A, B;
+>> SELECT "PUBLIC"."D"."A", "PUBLIC"."D"."B", "PUBLIC"."D"."C" FROM "PUBLIC"."D" /* PUBLIC.D_IDX: A IN(1, 1, 1, 2, 2, 2) */ WHERE ROW ("A", "C") IN(ROW (1, 1), ROW (1, 2), ROW (1, 3), ROW (2, 1), ROW (2, 2), ROW (2, 3)) ORDER BY 1, 2 /* index sorted: 1 of 2 columns */
+
+SELECT * FROM D WHERE (A, C) IN ((1, 1), (1, 2), (1, 3), (2, 1), (2, 2), (2, 3)) ORDER BY A, B DESC;
+> A B C
+> - - -
+> 1 2 2
+> 1 1 1
+> 2 2 3
+> rows (ordered): 3
+
+EXPLAIN SELECT * FROM D WHERE (A, C) IN ((1, 1), (1, 2), (1, 3), (2, 1), (2, 2), (2, 3)) ORDER BY A, B DESC;
+>> SELECT "PUBLIC"."D"."A", "PUBLIC"."D"."B", "PUBLIC"."D"."C" FROM "PUBLIC"."D" /* PUBLIC.D_IDX: A IN(1, 1, 1, 2, 2, 2) */ WHERE ROW ("A", "C") IN(ROW (1, 1), ROW (1, 2), ROW (1, 3), ROW (2, 1), ROW (2, 2), ROW (2, 3)) ORDER BY 1, 2 DESC /* index sorted */
+
+DROP TABLE D;
 > ok

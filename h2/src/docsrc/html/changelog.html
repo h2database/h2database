@@ -1,6 +1,6 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <!--
-Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
+Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
 and the EPL 1.0 (https://h2database.com/html/license.html).
 Initial Developer: H2 Group
 -->
@@ -21,7 +21,52 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul>
-<li>Nothing yet
+<li>Issue #4217: JdbcPreparedStatement ignores query fetch size
+</li>
+<li>Issue #4225: Incompatibility in FullTextLucene with Lucene version 10.x onward
+</li>
+<li>Issue #4198: NullPointerException when running MERGE statement with correlated subquery in ON clause
+</li>
+<li>Issue #4191: Recover JSON column fail
+</li>
+<li>PR #4184: Code cleanup
+</li>
+<li>PR #4182: GCD, LCM, GCD_AGG, and LCM_AGG functions
+</li>
+<li>Issue #4178: SELECT MIN/MAX(_ROWID_) can be optimized
+</li>
+<li>Issue #4179: Support for SQL Server DATETIMEOFFSET data type
+</li>
+<li>PR #4177: Code cleanup around Table.getConstraints()/getIndexes()
+</li>
+<li>Issue #4021: h2 does not correctly report the name of a violated unique constraint
+</li>
+<li>PR #4168: simplify Store#close
+</li>
+<li>Issue #4161: h2 uses wrong index
+</li>
+<li>Issue #4159: Consider storing NO ACTION in the INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS columns
+when this is the declaration
+</li>
+<li>Issue #4152: NPE in convertToTimestampTimeZone on timestamp comparison
+</li>
+<li>PR #4150: fix:Fix some errors in the javadoc
+</li>
+<li>PR #4149: fix:Possible overflow issues with CacheLongKeyLIRS.getMisses()
+</li>
+<li>Issue #4144: [2.3.232] Regression in ORDER BY ... DESC with WHERE ... IN and OR clauses
+</li>
+<li>Issue #4139: Oracle compatibility mode: unexpected Column alias is not specified exception in CTE
+</li>
+<li>Issue #4136: ArrayIndexOutOfBoundsException with compound index
+</li>
+<li>Issue #4124: java.lang.NullPointerException: Cannot invoke "String.equals(Object)" because "[0]" is null
+</li>
+<li>Issue #4116: Optimizer chooses wrong execution plan in some cases when index-sorted optimization is possible
+</li>
+<li>Issue #4114: Regression when using CAST expressions in ROW IN predicates
+</li>
+<li>Issue #4111: ALTER TYPE name ADD VALUE new_enum_value is not supported
 </li>
 </ul>
 

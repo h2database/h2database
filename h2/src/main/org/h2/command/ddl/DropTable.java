@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -7,7 +7,6 @@ package org.h2.command.ddl;
 
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.h2.api.ErrorCode;
@@ -96,12 +95,9 @@ public class DropTable extends DefineCommand {
                         }
                     }
                 }
-                final List<Constraint> constraints = table.getConstraints();
-                if (constraints != null && !constraints.isEmpty()) {
-                    for (Constraint c : constraints) {
-                        if (!tablesToDrop.contains(c.getTable())) {
-                            dependencies.add(c.getName());
-                        }
+                for (Constraint c : table.getConstraints()) {
+                    if (!tablesToDrop.contains(c.getTable())) {
+                        dependencies.add(c.getName());
                     }
                 }
                 if (!dependencies.isEmpty()) {

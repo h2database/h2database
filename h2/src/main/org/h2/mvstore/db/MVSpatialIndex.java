@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -48,7 +48,7 @@ import org.h2.value.VersionedValue;
  * @author Noel Grandin
  * @author Nicolas Fortin, Atelier SIG, IRSTV FR CNRS 24888
  */
-public class MVSpatialIndex extends MVIndex<Spatial, Value> implements SpatialIndex {
+public final class MVSpatialIndex extends MVIndex<Spatial, Value> implements SpatialIndex {
 
     /**
      * The multi-value table.
@@ -282,7 +282,7 @@ public class MVSpatialIndex extends MVIndex<Spatial, Value> implements SpatialIn
     @Override
     public double getCost(SessionLocal session, int[] masks, TableFilter[] filters,
             int filter, SortOrder sortOrder,
-            AllColumnsForPlan allColumnsSet) {
+            AllColumnsForPlan allColumnsSet, boolean isSelectCommand) {
         // Never use spatial tree index without spatial filter
         if (columns.length == 0) {
             return Long.MAX_VALUE;
@@ -294,7 +294,8 @@ public class MVSpatialIndex extends MVIndex<Spatial, Value> implements SpatialIn
                 return Long.MAX_VALUE;
             }
         }
-        return 10 * getCostRangeIndex(masks, dataMap.sizeAsLongMax(), filters, filter, sortOrder, true, allColumnsSet);
+        return 10 * getCostRangeIndex(masks, dataMap.sizeAsLongMax(), filters, filter, sortOrder, true, allColumnsSet,
+                isSelectCommand);
     }
 
     @Override

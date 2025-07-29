@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -8,6 +8,7 @@ package org.h2.value;
 import static org.h2.util.Bits.INT_VH_BE;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 
 import org.h2.api.ErrorCode;
 import org.h2.engine.CastDataProvider;
@@ -157,6 +158,11 @@ public final class ValueInteger extends Value {
     @Override
     public long getLong() {
         return value;
+    }
+
+    @Override
+    public BigInteger getBigInteger() {
+        return BigInteger.valueOf(value);
     }
 
     @Override

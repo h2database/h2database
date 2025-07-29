@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -58,6 +58,7 @@ import org.h2.value.CompareMode;
 import org.h2.value.Value;
 import org.h2.value.ValueCollectionBase;
 import org.h2.value.ValueLob;
+import org.h2.value.ValueJson;
 import org.h2.value.lob.LobData;
 import org.h2.value.lob.LobDataDatabase;
 
@@ -289,6 +290,8 @@ public class Recover extends Tool implements DataHandler {
                 builder.append('(').append(id).append(", ").append(precision).append(')');
                 return;
             }
+        } else if (v instanceof ValueJson) {
+            columnTypeMap.put(column, "JSON");
         }
         v.getSQL(builder, HasSQL.NO_CASTS);
     }

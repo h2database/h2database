@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -217,7 +217,7 @@ public class CreateTable extends CommandWithColumns {
         ArrayList<Expression> expressions = asQuery.getExpressions();
         for (int i = 0; i < columnCount; i++) {
             Expression expr = expressions.get(i);
-            addColumn(new Column(expr.getColumnNameForView(session, i), expr.getType()));
+            addColumn(new Column(expr.getColumnNameForView(session, i, false), expr.getType()));
         }
     }
 

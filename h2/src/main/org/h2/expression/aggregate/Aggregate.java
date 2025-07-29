@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -7,6 +7,7 @@ package org.h2.expression.aggregate;
 
 import java.io.ByteArrayOutputStream;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -26,10 +27,12 @@ import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.ExpressionWithFlags;
+import org.h2.expression.TypedValueExpression;
 import org.h2.expression.ValueExpression;
 import org.h2.expression.aggregate.AggregateDataCollecting.NullCollectionMode;
 import org.h2.expression.analysis.Window;
 import org.h2.expression.function.BitFunction;
+import org.h2.expression.function.GCDFunction;
 import org.h2.expression.function.JsonConstructorFunction;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
@@ -177,6 +180,9 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
 
         addAggregate("JSON_OBJECTAGG", AggregateType.JSON_OBJECTAGG);
         addAggregate("JSON_ARRAYAGG", AggregateType.JSON_ARRAYAGG);
+
+        addAggregate("GCD_AGG", AggregateType.GCD_AGG);
+        addAggregate("LCM_AGG", AggregateType.LCM_AGG);
     }
 
     private static void addAggregate(String name, AggregateType type) {
@@ -248,7 +254,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
         Arrays.sort(array,
                 sortOrder != null
                         ? (v1, v2) -> sortOrder.compare(((ValueRow) v1).getList(), ((ValueRow) v2).getList())
-                        : select.getSession().getDatabase().getCompareMode());
+                        : select.getSession());
     }
 
     @Override
@@ -495,6 +501,10 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
         case JSON_OBJECTAGG:
             // ROW(key, value) are collected, so NULL values can't be passed
             return new AggregateDataCollecting(distinct, false, NullCollectionMode.USED_OR_IMPOSSIBLE);
+        case GCD_AGG:
+            return new AggregateDataGCD(false);
+        case LCM_AGG:
+            return new AggregateDataGCD(true);
         default:
             throw DbException.getInternalError("type=" + aggregateType);
         }
@@ -526,7 +536,7 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
             if (row == null) {
                 v = ValueNull.INSTANCE;
             } else {
-                v = row.getValue(index.getColumns()[0].getColumnId());
+                v = row.getValue(((ExpressionColumn) args[0]).getColumn().getColumnId());
             }
             return v;
         }
@@ -1094,6 +1104,18 @@ public class Aggregate extends AbstractAggregate implements ExpressionWithFlags 
         case JSON_ARRAYAGG:
             type = TypeInfo.TYPE_JSON;
             break;
+        case GCD_AGG:
+        case LCM_AGG: {
+            Expression e = args[0];
+            GCDFunction.checkType(e, aggregateType.name());
+            if (e.isConstant()) {
+                BigInteger bi = e.getValue(session).getBigInteger();
+                return bi != null ? ValueExpression.get(ValueNumeric.get(bi.abs()))
+                        : TypedValueExpression.get(ValueNull.INSTANCE, TypeInfo.TYPE_NUMERIC_SCALE_0);
+            }
+            type = TypeInfo.TYPE_NUMERIC_SCALE_0;
+            break;
+        }
         default:
             throw DbException.getInternalError("type=" + aggregateType);
         }

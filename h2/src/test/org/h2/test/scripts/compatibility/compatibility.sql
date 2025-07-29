@@ -1,4 +1,4 @@
--- Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
+-- Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
 -- and the EPL 1.0 (https://h2database.com/html/license.html).
 -- Initial Developer: H2 Group
 --
@@ -466,6 +466,16 @@ SELECT SIN(A), A+1, A FROM TEST;
 > 0.0    1     0
 > rows: 1
 
+CREATE VIEW V AS SELECT SIN(A), A+1, A FROM TEST;
+> exception COLUMN_ALIAS_IS_NOT_SPECIFIED_1
+
+WITH CTE AS (SELECT SIN(A), A+1, A FROM TEST)
+SELECT * FROM CTE;
+> SIN(A) A + 1 A
+> ------ ----- -
+> 0.0    1     0
+> rows: 1
+
 SET MODE PostgreSQL;
 > ok
 
@@ -477,6 +487,13 @@ SELECT SIN(A), A+1, A FROM TEST;
 
 CREATE VIEW V AS SELECT SIN(A), A+1, (((((A + 1) * A + 1) * A + 1) * A + 1) * A + 1) * A + 1 FROM TEST;
 > exception DUPLICATE_COLUMN_NAME_1
+
+WITH CTE AS (SELECT SIN(A), A+1, A FROM TEST)
+SELECT * FROM CTE;
+> sin ?column? A
+> --- -------- -
+> 0.0 1        0
+> rows: 1
 
 CREATE VIEW V AS SELECT SIN(0), COS(0);
 > ok
@@ -826,6 +843,111 @@ UPDATE FOO SET BAR.VAL = FOO.VAL FROM BAR WHERE FOO.ID = BAR.ID;
 > exception TABLE_OR_VIEW_NOT_FOUND_1
 
 DROP TABLE FOO, BAR;
+> ok
+
+SET MODE Regular;
+> ok
+
+-- SQL Server and MySQL/MariaDB data types
+
+CREATE TABLE TEST(C SMALLDATETIME);
+> exception UNKNOWN_DATA_TYPE_1
+
+CREATE TABLE TEST(C DATETIME);
+> exception UNKNOWN_DATA_TYPE_1
+
+CREATE TABLE TEST(C DATETIME2);
+> exception UNKNOWN_DATA_TYPE_1
+
+CREATE TABLE TEST(C DATETIMEOFFSET);
+> exception UNKNOWN_DATA_TYPE_1
+
+CREATE TABLE TEST(C YEAR);
+> exception UNKNOWN_DATA_TYPE_1
+
+SET MODE MSSQLServer;
+> ok
+
+CREATE TABLE TEST(C SMALLDATETIME(0));
+> exception SYNTAX_ERROR_2
+
+CREATE TABLE TEST(C DATETIME(0));
+> exception SYNTAX_ERROR_2
+
+CREATE TABLE TEST(C DATETIME2(8));
+> exception INVALID_VALUE_SCALE
+
+CREATE TABLE TEST(C DATETIMEOFFSET(8));
+> exception INVALID_VALUE_SCALE
+
+CREATE TABLE TEST(
+    SDT SMALLDATETIME,
+    DT DATETIME,
+    DT2 DATETIME2, DT2_0 DATETIME2(0), DT2_7 DATETIME2(7),
+    DTO DATETIMEOFFSET, DTO_0 DATETIMEOFFSET(0), DTO_7 DATETIMEOFFSET(7));
+> ok
+
+SELECT COLUMN_NAME, DATA_TYPE, DATETIME_PRECISION FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_NAME = 'TEST' ORDER BY ORDINAL_POSITION;
+> COLUMN_NAME DATA_TYPE                DATETIME_PRECISION
+> ----------- ------------------------ ------------------
+> SDT         TIMESTAMP                0
+> DT          TIMESTAMP                3
+> DT2         TIMESTAMP                7
+> DT2_0       TIMESTAMP                0
+> DT2_7       TIMESTAMP                7
+> DTO         TIMESTAMP WITH TIME ZONE 7
+> DTO_0       TIMESTAMP WITH TIME ZONE 0
+> DTO_7       TIMESTAMP WITH TIME ZONE 7
+> rows (ordered): 8
+
+DROP TABLE TEST;
+> ok
+
+SET MODE MySQL;
+> ok
+
+CREATE TABLE TEST(
+    DT DATETIME,
+    DT6 DATETIME(6),
+    Y YEAR,
+    Y4 YEAR(4));
+> ok
+
+SELECT COLUMN_NAME, DATA_TYPE, DATETIME_PRECISION FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_NAME = 'TEST' ORDER BY ORDINAL_POSITION;
+> COLUMN_NAME DATA_TYPE DATETIME_PRECISION
+> ----------- --------- ------------------
+> DT          TIMESTAMP 0
+> DT6         TIMESTAMP 6
+> Y           SMALLINT  null
+> Y4          SMALLINT  null
+> rows (ordered): 4
+
+DROP TABLE TEST;
+> ok
+
+SET MODE MariaDB;
+> ok
+
+CREATE TABLE TEST(
+    DT DATETIME,
+    DT6 DATETIME(6),
+    Y YEAR,
+    Y4 YEAR(4));
+> ok
+
+SELECT COLUMN_NAME, DATA_TYPE, DATETIME_PRECISION FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_NAME = 'TEST' ORDER BY ORDINAL_POSITION;
+> COLUMN_NAME DATA_TYPE DATETIME_PRECISION
+> ----------- --------- ------------------
+> DT          TIMESTAMP 0
+> DT6         TIMESTAMP 6
+> Y           SMALLINT  null
+> Y4          SMALLINT  null
+> rows (ordered): 4
+
+DROP TABLE TEST;
 > ok
 
 SET MODE Regular;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -437,7 +437,7 @@ public class TestMVStoreConcurrent extends TestMVStore {
                 Map<String, String> layoutMap = s.getLayoutMap();
                 int chunkCount = 0;
                 for (String k : layoutMap.keySet()) {
-                    if (k.startsWith(DataUtils.META_CHUNK)) {
+                    if (k.startsWith(DataUtils.LAYOUT_CHUNK)) {
                         // dead chunks may stay around for a little while
                         // discount them
                         Chunk<?> chunk = s.getFileStore().createChunk(layoutMap.get(k));

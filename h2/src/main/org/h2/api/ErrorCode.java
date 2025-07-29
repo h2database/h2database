@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -490,6 +490,16 @@ public class ErrorCode {
      * </pre>
      */
     public static final int NAME_TOO_LONG_2 = 42622;
+    /**
+     * The error with code <code>42809</code> is thrown on attempt
+     * to add value to any type other than enum
+     * Example:
+     * <pre>
+     * statement.executeQuery("CREATE TYPE my_number AS NUMBER");
+     * statement.executeQuery("ALTER TYPE my_number ADD VALUE 'value'");
+     * </pre>
+     */
+    public static final int WRONG_OBJECT_TYPE = 42809;
 
     // 54: program limit exceeded
 

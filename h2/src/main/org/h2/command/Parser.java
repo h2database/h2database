@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  *
@@ -164,6 +164,7 @@ import org.h2.command.ddl.AlterTableDropConstraint;
 import org.h2.command.ddl.AlterTableRename;
 import org.h2.command.ddl.AlterTableRenameColumn;
 import org.h2.command.ddl.AlterTableRenameConstraint;
+import org.h2.command.ddl.AlterType;
 import org.h2.command.ddl.AlterUser;
 import org.h2.command.ddl.AlterView;
 import org.h2.command.ddl.Analyze;
@@ -261,6 +262,7 @@ import org.h2.expression.ExpressionWithVariableParameters;
 import org.h2.expression.FieldReference;
 import org.h2.expression.Format;
 import org.h2.expression.Format.FormatEnum;
+import org.h2.expression.OperationN;
 import org.h2.expression.Parameter;
 import org.h2.expression.Rownum;
 import org.h2.expression.SearchedCase;
@@ -294,8 +296,8 @@ import org.h2.expression.condition.CompareLike.LikeType;
 import org.h2.expression.condition.Comparison;
 import org.h2.expression.condition.ConditionAndOr;
 import org.h2.expression.condition.ConditionAndOrN;
-import org.h2.expression.condition.ConditionIn;
 import org.h2.expression.condition.ConditionInArray;
+import org.h2.expression.condition.ConditionInList;
 import org.h2.expression.condition.ConditionInQuery;
 import org.h2.expression.condition.ConditionLocalAndGlobal;
 import org.h2.expression.condition.ConditionNot;
@@ -323,6 +325,7 @@ import org.h2.expression.function.DateTimeFormatFunction;
 import org.h2.expression.function.DateTimeFunction;
 import org.h2.expression.function.DayMonthNameFunction;
 import org.h2.expression.function.FileFunction;
+import org.h2.expression.function.GCDFunction;
 import org.h2.expression.function.HashFunction;
 import org.h2.expression.function.JavaFunction;
 import org.h2.expression.function.JsonConstructorFunction;
@@ -1818,7 +1821,7 @@ public final class Parser extends ParserBase {
                 if (derivedColumnNames != null) {
                     query.init();
                     columnTemplates = QueryExpressionTable.createQueryColumnTemplateList(
-                            derivedColumnNames.toArray(new String[0]), query)
+                            derivedColumnNames.toArray(new String[0]), query, false)
                             .toArray(new Column[0]);
                 }
                 table = query.toTable(alias, columnTemplates, queryParameters, createView != null, currentSelect);
@@ -3209,7 +3212,7 @@ public final class Parser extends ParserBase {
         do {
             v.add(readExpression());
         } while (readIfMore());
-        return new ConditionIn(left, not, whenOperand, v);
+        return new ConditionInList(left, not, whenOperand, v);
     }
 
     private IsJsonPredicate readJsonPredicate(Expression left, boolean not, boolean whenOperand) {
@@ -4349,6 +4352,10 @@ public final class Parser extends ParserBase {
         case "PI":
             read(CLOSE_PAREN);
             return ValueExpression.get(ValueDouble.get(Math.PI));
+        case "GCD":
+            return readGCDFunction(GCDFunction.GCD);
+        case "LCM":
+            return readGCDFunction(GCDFunction.LCM);
         }
         ModeFunction function = ModeFunction.getFunction(database, upperName);
         return function != null ? readParameters(function) : null;
@@ -4494,13 +4501,10 @@ public final class Parser extends ParserBase {
     private Expression readCoalesceFunction(int function) {
         CoalesceFunction f = new CoalesceFunction(function);
         f.addParameter(readExpression());
-        while (readIfMore()) {
-            f.addParameter(readExpression());
-        }
+        readRemainingParameters(f);
         if (function == CoalesceFunction.GREATEST || function == CoalesceFunction.LEAST) {
             f.setIgnoreNulls(readIgnoreNulls(database.getMode().greatestLeastIgnoreNulls));
         }
-        f.doneWithParameters();
         return f;
     }
 
@@ -4511,11 +4515,7 @@ public final class Parser extends ParserBase {
         if (function == ConcatFunction.CONCAT_WS) {
             f.addParameter(readNextArgument());
         }
-        while (readIfMore()) {
-            f.addParameter(readExpression());
-        }
-        f.doneWithParameters();
-        return f;
+        return readRemainingParameters(f);
     }
 
     private Expression readSubstringFunction() {
@@ -4546,6 +4546,22 @@ public final class Parser extends ParserBase {
         read(CLOSE_PAREN);
         function.doneWithParameters();
         return function;
+    }
+
+    private Expression readGCDFunction(int function) {
+        GCDFunction f = new GCDFunction(function);
+        f.addParameter(readExpression());
+        read(COMMA);
+        f.addParameter(readExpression());
+        return readRemainingParameters(f);
+    }
+
+    private Expression readRemainingParameters(OperationN f) {
+        while (readIfMore()) {
+            f.addParameter(readExpression());
+        }
+        f.doneWithParameters();
+        return f;
     }
 
     private int readDateTimeField() {
@@ -5778,9 +5794,6 @@ public final class Parser extends ParserBase {
         case "DATE":
             return database.getMode().dateIsTimestamp0 ? TypeInfo.getTypeInfo(Value.TIMESTAMP, -1L, 0, null)
                     : TypeInfo.TYPE_DATE;
-        case "DATETIME":
-        case "DATETIME2":
-            return parseDateTimeType(false);
         case "DEC":
         case "DECIMAL":
             return parseNumericType(true);
@@ -5839,12 +5852,23 @@ public final class Parser extends ParserBase {
             //$FALL-THROUGH$
         case "NUMERIC":
             return parseNumericType(false);
-        case "SMALLDATETIME":
-            return parseDateTimeType(true);
         case "TIME":
             return parseTimeType();
         case "TIMESTAMP":
             return parseTimestampType();
+        }
+        Mode mode = database.getMode();
+        if (mode.datetimeAndYearType) {
+            TypeInfo type = parseDateTimeOrYearType(original);
+            if (type != null) {
+                return type;
+            }
+        }
+        if (mode.datetimeTypes) {
+            TypeInfo type = parseDateTimeType(original);
+            if (type != null) {
+                return type;
+            }
         }
         // Domain names can't have multiple words without quotes
         if (originalCase.length() == original.length()) {
@@ -5854,7 +5878,6 @@ public final class Parser extends ParserBase {
                 return null;
             }
         }
-        Mode mode = database.getMode();
         DataType dataType = DataType.getTypeByName(original, mode);
         if (dataType == null || mode.disallowedTypes.contains(original)) {
             throw DbException.get(ErrorCode.UNKNOWN_DATA_TYPE_1, original);
@@ -6049,22 +6072,59 @@ public final class Parser extends ParserBase {
         return TypeInfo.getTypeInfo(type, -1L, scale, null);
     }
 
-    private TypeInfo parseDateTimeType(boolean smallDateTime) {
-        int scale;
-        if (smallDateTime) {
-            scale = 0;
-        } else {
-            scale = -1;
+    private TypeInfo parseDateTimeOrYearType(String original) {
+        switch (original) {
+        case "DATETIME": {
+            int scale = 0;
             if (readIf(OPEN_PAREN)) {
                 scale = readNonNegativeInt();
-                if (scale > ValueTimestamp.MAXIMUM_SCALE) {
-                    throw DbException.get(ErrorCode.INVALID_VALUE_SCALE, Integer.toString(scale), "0",
-                            /* folds to a constant */ "" + ValueTimestamp.MAXIMUM_SCALE);
+                if (scale > 6) {
+                    throw DbException.get(ErrorCode.INVALID_VALUE_SCALE, Integer.toString(scale), "0", "6");
                 }
                 read(CLOSE_PAREN);
             }
+            return TypeInfo.getTypeInfo(Value.TIMESTAMP, -1L, scale, null);
         }
-        return TypeInfo.getTypeInfo(Value.TIMESTAMP, -1L, scale, null);
+        case "YEAR": {
+            if (readIf(OPEN_PAREN)) {
+                int precision = readNonNegativeInt();
+                if (precision < 1 || precision > 4) {
+                    throw DbException.get(ErrorCode.INVALID_VALUE_PRECISION, Integer.toString(precision), "1", "4");
+                }
+                read(CLOSE_PAREN);
+            }
+            return TypeInfo.TYPE_SMALLINT;
+        }
+        default:
+            return null;
+        }
+    }
+
+    private TypeInfo parseDateTimeType(String original) {
+        switch (original) {
+        case "DATETIME":
+            return TypeInfo.getTypeInfo(Value.TIMESTAMP, -1L, 3, null);
+        case "DATETIME2":
+            return parseDateTimeType2(Value.TIMESTAMP);
+        case "DATETIMEOFFSET":
+            return parseDateTimeType2(Value.TIMESTAMP_TZ);
+        case "SMALLDATETIME":
+            return TypeInfo.getTypeInfo(Value.TIMESTAMP, -1L, 0, null);
+        default:
+            return null;
+        }
+    }
+
+    private TypeInfo parseDateTimeType2(int type) {
+        int scale = 7;
+        if (readIf(OPEN_PAREN)) {
+            scale = readNonNegativeInt();
+            if (scale > 7) {
+                throw DbException.get(ErrorCode.INVALID_VALUE_SCALE, Integer.toString(scale), "0", "7");
+            }
+            read(CLOSE_PAREN);
+        }
+        return TypeInfo.getTypeInfo(type, -1L, scale, null);
     }
 
     private TypeInfo readIntervalQualifier() {
@@ -6971,11 +7031,11 @@ public final class Parser extends ParserBase {
                 queryParameters = closeParametersScope(outerUsedParameters);
                 queryScope.tableSubqueries.remove(cteName);
             }
-            columnTemplateList = QueryExpressionTable.createQueryColumnTemplateList(cols, withQuery);
+            columnTemplateList = QueryExpressionTable.createQueryColumnTemplateList(cols, withQuery, true);
             sql = withQuery.getPlanSQL(DEFAULT_SQL_FLAGS);
             try {
                 withQuery = (Query) session.prepare(sql, false, true, queryScope);
-                columnTemplateList = QueryExpressionTable.createQueryColumnTemplateList(cols, withQuery);
+                columnTemplateList = QueryExpressionTable.createQueryColumnTemplateList(cols, withQuery, true);
                 sql = withQuery.getPlanSQL(DEFAULT_SQL_FLAGS);
                 isPotentiallyRecursive = false;
             } catch (DbException e) {
@@ -6988,7 +7048,7 @@ public final class Parser extends ParserBase {
             } finally {
                 queryParameters = closeParametersScope(outerUsedParameters);
             }
-            columnTemplateList = QueryExpressionTable.createQueryColumnTemplateList(cols, withQuery);
+            columnTemplateList = QueryExpressionTable.createQueryColumnTemplateList(cols, withQuery, true);
             sql = withQuery.getPlanSQL(DEFAULT_SQL_FLAGS);
         }
         read(CLOSE_PAREN);
@@ -7088,6 +7148,8 @@ public final class Parser extends ParserBase {
             return parseAlterView();
         } else if (readIf("DOMAIN")) {
             return parseAlterDomain();
+        } else if (readIf("TYPE")) {
+            return parseAlterType();
         }
         throw getSyntaxError();
     }
@@ -7401,6 +7463,20 @@ public final class Parser extends ParserBase {
         throw getSyntaxError();
     }
 
+    private AlterType parseAlterType() {
+        String typeName = readIdentifierWithSchema();
+        if (readIf("ADD")) {
+            Schema schema = getSchema();
+            AlterType command = new AlterType(session, schema);
+            command.setDomainName(typeName);
+            read(VALUE);
+            String value = readString();
+            command.setValue(value);
+            return command;
+        }
+        throw getSyntaxError();
+    }
+
     private void readIfEqualOrTo() {
         if (!readIf(EQUAL)) {
             readIf(TO);
@@ -7557,6 +7633,9 @@ public final class Parser extends ParserBase {
         } else if (readIfCompat("LOG")) {
             throw DbException.getUnsupportedException("LOG");
         } else {
+            if (currentToken == null) {
+                throw getSyntaxError();
+            }
             String upperName = upperName(currentToken);
             if (ConnectionInfo.isIgnoredByParser(upperName)) {
                 read();
@@ -8571,7 +8650,7 @@ public final class Parser extends ParserBase {
             return result;
         }
         if (readIf("NO", "ACTION")) {
-            return ConstraintActionType.RESTRICT;
+            return ConstraintActionType.NO_ACTION;
         }
         read(SET);
         if (readIf(NULL)) {
@@ -8736,11 +8815,14 @@ public final class Parser extends ParserBase {
             String indexName = readIdentifierWithSchema();
             command.setRefIndex(getSchema().findIndex(session, indexName));
         }
-        while (readIf(ON)) {
-            if (readIf("DELETE")) {
+        if (readIf(ON, "UPDATE")) {
+            command.setUpdateAction(parseAction());
+            if (readIf(ON, "DELETE")) {
                 command.setDeleteAction(parseAction());
-            } else {
-                read("UPDATE");
+            }
+        } else if (readIf(ON, "DELETE")) {
+            command.setDeleteAction(parseAction());
+            if (readIf(ON, "UPDATE")) {
                 command.setUpdateAction(parseAction());
             }
         }

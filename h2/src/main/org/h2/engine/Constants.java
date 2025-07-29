@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -21,12 +21,12 @@ public class Constants {
      * Sequential version number. Even numbers are used for official releases,
      * odd numbers are used for development builds.
      */
-    public static final int BUILD_ID = 232;
+    public static final int BUILD_ID = 239;
 
     /**
      * Whether this is a snapshot version.
      */
-    public static final boolean BUILD_SNAPSHOT = false;
+    public static final boolean BUILD_SNAPSHOT = true;
 
     /**
      * If H2 is compiled to be included in a product, this should be set to
@@ -207,7 +207,7 @@ public class Constants {
     /**
      * The default page size to use for new databases.
      */
-    public static final int DEFAULT_PAGE_SIZE = 4096;
+    public static final int DEFAULT_PAGE_SIZE = 16 * 1024;
 
     /**
      * The default result set concurrency for statements created with

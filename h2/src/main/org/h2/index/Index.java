@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -10,12 +10,14 @@ import java.util.Arrays;
 
 import org.h2.api.ErrorCode;
 import org.h2.command.query.AllColumnsForPlan;
+import org.h2.constraint.Constraint;
 import org.h2.engine.Constants;
 import org.h2.engine.DbObject;
 import org.h2.engine.NullsDistinct;
 import org.h2.engine.SessionLocal;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
+import org.h2.mode.DefaultNullOrdering;
 import org.h2.result.Row;
 import org.h2.result.RowFactory;
 import org.h2.result.SearchRow;
@@ -261,10 +263,11 @@ public abstract class Index extends SchemaObject {
      * @param filter the current table filter index
      * @param sortOrder the sort order
      * @param allColumnsSet the set of all columns
+     * @param isSelectCommand is this for an SELECT command
      * @return the estimated cost
      */
     public abstract double getCost(SessionLocal session, int[] masks, TableFilter[] filters, int filter,
-            SortOrder sortOrder, AllColumnsForPlan allColumnsSet);
+            SortOrder sortOrder, AllColumnsForPlan allColumnsSet, boolean isSelectCommand);
 
     /**
      * Remove the index.
@@ -408,7 +411,7 @@ public abstract class Index extends SchemaObject {
      * Get the index of a column in the list of index columns
      *
      * @param col the column
-     * @return the index (0 meaning first column)
+     * @return the index (0 meaning first column) or {@code -1}
      */
     public int getColumnIndex(Column col) {
         for (int i = 0, len = columns.length; i < len; i++) {
@@ -420,7 +423,10 @@ public abstract class Index extends SchemaObject {
     }
 
     /**
-     * Check if the given column is the first for this index
+     * Checks if the given column is the first for this index. For scan indexes
+     * of tables with row identifiers their {@code _ROWID_} column is considered
+     * as the first column (although it isn't included into list), because such
+     * scan indexes are ordered by this virtual column.
      *
      * @param column the column
      * @return true if the given columns is the first
@@ -512,8 +518,14 @@ public abstract class Index extends SchemaObject {
      * @param key the key values
      * @return the exception
      */
-    public DbException getDuplicateKeyException(String key) {
-        StringBuilder builder = new StringBuilder();
+    protected DbException getDuplicateKeyException(String key) {
+        StringBuilder builder = new StringBuilder(128);
+        for (Constraint constraint : table.getConstraints()) {
+            if (constraint.usesIndex(this) && constraint.getConstraintType().isUnique()) {
+                constraint.getSQL(builder, TRACE_SQL_FLAGS).append(" INDEX ");
+                break;
+            }
+        }
         getSQL(builder, TRACE_SQL_FLAGS).append(" ON ");
         table.getSQL(builder, TRACE_SQL_FLAGS);
         getColumnListSQL(builder, TRACE_SQL_FLAGS);
@@ -532,8 +544,14 @@ public abstract class Index extends SchemaObject {
      * @return the message
      */
     protected StringBuilder getDuplicatePrimaryKeyMessage(int mainIndexColumn) {
-        StringBuilder builder = new StringBuilder("PRIMARY KEY ON ");
-        table.getSQL(builder, TRACE_SQL_FLAGS);
+        StringBuilder builder = new StringBuilder(64);
+        for (Constraint constraint : table.getConstraints()) {
+            if (constraint.getConstraintType() == Constraint.Type.PRIMARY_KEY) {
+                constraint.getSQL(builder, TRACE_SQL_FLAGS).append(' ');
+                break;
+            }
+        }
+        table.getSQL(builder.append("PRIMARY KEY ON "), TRACE_SQL_FLAGS);
         if (mainIndexColumn >= 0 && mainIndexColumn < indexColumns.length) {
             builder.append('(');
             indexColumns[mainIndexColumn].getSQL(builder, TRACE_SQL_FLAGS).append(')');
@@ -554,10 +572,11 @@ public abstract class Index extends SchemaObject {
      * @param sortOrder the sort order
      * @param isScanIndex whether this is a "table scan" index
      * @param allColumnsSet the set of all columns
+     * @param isSelectCommand is this a SELECT command (as opposed to INSERT, DELETE, UPDATE)
      * @return the estimated cost
      */
     protected final long getCostRangeIndex(int[] masks, long rowCount, TableFilter[] filters, int filter,
-            SortOrder sortOrder, boolean isScanIndex, AllColumnsForPlan allColumnsSet) {
+            SortOrder sortOrder, boolean isScanIndex, AllColumnsForPlan allColumnsSet, boolean isSelectCommand) {
         rowCount += Constants.COST_ROW_OFFSET;
         int totalSelectivity = 0;
         long rowsCost = rowCount;
@@ -621,12 +640,14 @@ public abstract class Index extends SchemaObject {
         if (sortOrder != null) {
             sortingCost = 100 + rowCount / 10;
         }
-        if (sortOrder != null && !isScanIndex) {
-            boolean sortOrderMatches = true;
+        if (sortOrder != null && !isScanIndex && filters != null && filter == 0) {
             int coveringCount = 0;
             int[] sortTypes = sortOrder.getSortTypesWithNullOrdering();
-            TableFilter tableFilter = filters == null ? null : filters[filter];
-            for (int i = 0, len = sortTypes.length; i < len; i++) {
+            int sortOrderLength = sortTypes.length;
+            TableFilter tableFilter = filters[0];
+            DefaultNullOrdering defaultNullOrdering = getDatabase().getDefaultNullOrdering();
+            boolean reverse = false;
+            for (int i = 0; i < sortOrderLength; i++) {
                 if (i >= indexColumns.length) {
                     // We can still use this index if we are sorting by more
                     // than it's columns, it's just that the coveringCount
@@ -636,22 +657,44 @@ public abstract class Index extends SchemaObject {
                 }
                 Column col = sortOrder.getColumn(i, tableFilter);
                 if (col == null) {
-                    sortOrderMatches = false;
                     break;
                 }
-                IndexColumn indexCol = indexColumns[i];
-                if (!col.equals(indexCol.column)) {
-                    sortOrderMatches = false;
+                IndexColumn idxCol = indexColumns[i];
+                if (!col.equals(idxCol.column)) {
                     break;
                 }
-                int sortType = sortTypes[i];
-                if (sortType != indexCol.sortType) {
-                    sortOrderMatches = false;
+                boolean mismatch = false;
+                if (col.isNullable()) {
+                    int o1 = defaultNullOrdering.addExplicitNullOrdering(idxCol.sortType);
+                    int o2 = sortTypes[i];
+                    if (i == 0) {
+                        if (o1 != o2) {
+                            if (o1 == SortOrder.inverse(o2)) {
+                                reverse = true;
+                            } else {
+                                mismatch = true;
+                            }
+                        }
+                    } else {
+                        if (o1 != (reverse ? SortOrder.inverse(o2) : o2)) {
+                            mismatch = true;
+                        }
+                    }
+                } else {
+                    boolean different = (idxCol.sortType & SortOrder.DESCENDING) //
+                            != (sortTypes[i] & SortOrder.DESCENDING);
+                    if (i == 0) {
+                        reverse = different;
+                    } else {
+                        mismatch = different != reverse;
+                    }
+                }
+                if (mismatch) {
                     break;
                 }
                 coveringCount++;
             }
-            if (sortOrderMatches) {
+            if (coveringCount > 0) {
                 // "coveringCount" makes sure that when we have two
                 // or more covering indexes, we choose the one
                 // that covers more.
@@ -661,8 +704,10 @@ public abstract class Index extends SchemaObject {
         // If we have two indexes with the same cost, and one of the indexes can
         // satisfy the query without needing to read from the primary table
         // (scan index), make that one slightly lower cost.
+        // For INSERT or UPDATE commands, we have to touch the primary table anyway
+        // so this makes no difference.
         boolean needsToReadFromScanIndex;
-        if (!isScanIndex && allColumnsSet != null) {
+        if (isSelectCommand && !isScanIndex && allColumnsSet != null) {
             needsToReadFromScanIndex = false;
             ArrayList<Column> foundCols = allColumnsSet.get(getTable());
             if (foundCols != null) {
@@ -685,13 +730,18 @@ public abstract class Index extends SchemaObject {
             needsToReadFromScanIndex = true;
         }
         long rc;
-        if (isScanIndex) {
+        if (!isSelectCommand) {
+            // For UPDATE or INSERT, we have to touch the primary table
+            // so the covering index calculations below are irrelevant.
+            rc = rowsCost + sortingCost;
+        } else if (isScanIndex) {
             rc = rowsCost + sortingCost + 20;
         } else if (needsToReadFromScanIndex) {
             rc = rowsCost + rowsCost + sortingCost + 20;
-        } else {
-            // The (20-x) calculation makes sure that when we pick a covering
-            // index, we pick the covering index that has the smallest number of
+        } else { // covering index
+            // The "+ 20" terms above, and the "+ columns.length" term here,
+            // makes sure that when we pick a covering index,
+            // we pick the covering index that has the smallest number of
             // columns (the more columns we have in index - the higher cost).
             // This is faster because a smaller index will fit into fewer data
             // blocks.

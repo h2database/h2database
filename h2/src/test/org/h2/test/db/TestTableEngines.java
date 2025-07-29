@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -576,7 +576,7 @@ public class TestTableEngines extends TestDb {
                 @Override
                 public double getCost(SessionLocal session, int[] masks,
                         TableFilter[] filters, int filter, SortOrder sortOrder,
-                        AllColumnsForPlan allColumnsSet) {
+                        AllColumnsForPlan allColumnsSet, boolean isSelectCommand) {
                     return 0;
                 }
 
@@ -647,8 +647,8 @@ public class TestTableEngines extends TestDb {
             }
 
             @Override
-            public ArrayList<Index> getIndexes() {
-                return null;
+            public List<Index> getIndexes() {
+                return List.of();
             }
 
             @Override
@@ -777,32 +777,29 @@ public class TestTableEngines extends TestDb {
     private static class TreeSetTable extends TableBase {
         int dataModificationId;
 
-        ArrayList<Index> indexes;
+        ArrayList<Index> indexes = new ArrayList<>(2);
 
         TreeSetIndex scan = new TreeSetIndex(this, "scan",
                 IndexColumn.wrap(getColumns()), IndexType.createScan(false)) {
             @Override
             public double getCost(SessionLocal session, int[] masks,
                     TableFilter[] filters, int filter, SortOrder sortOrder,
-                    AllColumnsForPlan allColumnsSet) {
+                    AllColumnsForPlan allColumnsSet, boolean isSelectCommand) {
                 return getCostRangeIndex(masks, getRowCount(session), filters,
-                        filter, sortOrder, true, allColumnsSet);
+                        filter, sortOrder, true, allColumnsSet, isSelectCommand);
             }
         };
 
         TreeSetTable(CreateTableData data) {
             super(data);
+            indexes.add(scan);
         }
 
         @Override
         public long truncate(SessionLocal session) {
             long result = getRowCountApproximation(session);
-            if (indexes != null) {
-                for (Index index : indexes) {
-                    index.truncate(session);
-                }
-            } else {
-                scan.truncate(session);
+            for (Index index : indexes) {
+                index.truncate(session);
             }
             dataModificationId++;
             return result;
@@ -810,24 +807,16 @@ public class TestTableEngines extends TestDb {
 
         @Override
         public void removeRow(SessionLocal session, Row row) {
-            if (indexes != null) {
-                for (Index index : indexes) {
-                    index.remove(session, row);
-                }
-            } else {
-                scan.remove(session, row);
+            for (Index index : indexes) {
+                index.remove(session, row);
             }
             dataModificationId++;
         }
 
         @Override
         public void addRow(SessionLocal session, Row row) {
-            if (indexes != null) {
-                for (Index index : indexes) {
-                    index.add(session, row);
-                }
-            } else {
-                scan.add(session, row);
+            for (Index index : indexes) {
+                index.add(session, row);
             }
             dataModificationId++;
         }
@@ -835,11 +824,6 @@ public class TestTableEngines extends TestDb {
         @Override
         public Index addIndex(SessionLocal session, String indexName, int indexId, IndexColumn[] cols,
                 int uniqueColumnCount, IndexType indexType, boolean create, String indexComment) {
-            if (indexes == null) {
-                indexes = new ArrayList<>(2);
-                // Scan must be always at 0.
-                indexes.add(scan);
-            }
             Index index = new TreeSetIndex(this, indexName, cols, indexType);
             for (SearchRow row : scan.set) {
                 index.add(session, (Row) row);
@@ -993,9 +977,9 @@ public class TestTableEngines extends TestDb {
         @Override
         public double getCost(SessionLocal session, int[] masks,
                 TableFilter[] filters, int filter, SortOrder sortOrder,
-                AllColumnsForPlan allColumnsSet) {
+                AllColumnsForPlan allColumnsSet, boolean isSelectCommand) {
             return getCostRangeIndex(masks, set.size(), filters, filter,
-                    sortOrder, false, allColumnsSet);
+                    sortOrder, false, allColumnsSet, isSelectCommand);
         }
 
         @Override

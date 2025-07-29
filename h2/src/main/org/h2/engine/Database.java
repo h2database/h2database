@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -19,6 +19,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BiConsumer;
+
 import org.h2.api.DatabaseEventListener;
 import org.h2.api.ErrorCode;
 import org.h2.api.JavaObjectSerializer;
@@ -86,8 +88,8 @@ import org.h2.value.ValueTimestampTimeZone;
 
 /**
  * There is one database object per open database.
- *
- * The format of the meta data table is:
+ * <p>
+ * The format of the metadata table is:
  *  id int, 0, objectType int, sql varchar
  *
  * @since 2004-04-15 22:49
@@ -210,7 +212,7 @@ public final class Database implements DataHandler, CastDataProvider {
     private volatile boolean javaObjectSerializerInitialized;
     private volatile boolean queryStatistics;
     private int queryStatisticsMaxEntries = Constants.QUERY_STATISTICS_MAX_ENTRIES;
-    private QueryStatisticsData queryStatisticsData;
+    private final AtomicReference<QueryStatisticsData> queryStatisticsData = new AtomicReference<>();
     private RowFactory rowFactory = RowFactory.getRowFactory();
     private boolean ignoreCatalogs;
 
@@ -218,9 +220,9 @@ public final class Database implements DataHandler, CastDataProvider {
 
     public Database(ConnectionInfo ci, String cipher) {
         if (ASSERT) {
-            META_LOCK_DEBUGGING.set(null);
-            META_LOCK_DEBUGGING_DB.set(null);
-            META_LOCK_DEBUGGING_STACK.set(null);
+            META_LOCK_DEBUGGING.remove();
+            META_LOCK_DEBUGGING_DB.remove();
+            META_LOCK_DEBUGGING_STACK.remove();
         }
         String databaseName = ci.getName();
         this.dbSettings = ci.getDbSettings();
@@ -447,7 +449,7 @@ public final class Database implements DataHandler, CastDataProvider {
     }
 
     public long getNextModificationMetaId() {
-        // if the meta data has been modified, the data is modified as well
+        // if the metadata has been modified, the data is modified as well
         // (because MetaTable returns modificationDataId)
         modificationDataId.incrementAndGet();
         return modificationMetaId.incrementAndGet() - 1;
@@ -522,6 +524,19 @@ public final class Database implements DataHandler, CastDataProvider {
             throw e;
         }
         return store;
+    }
+
+    public void populateInfo(BiConsumer<String, String> consumer) {
+        consumer.accept("DEFAULT_NULL_ORDERING", getDefaultNullOrdering().name());
+        consumer.accept("EXCLUSIVE", isInExclusiveMode() ? "TRUE" : "FALSE");
+        consumer.accept("MODE", getMode().getName());
+        consumer.accept("RETENTION_TIME", Integer.toString(getRetentionTime()));
+        consumer.accept("WRITE_DELAY", Integer.toString(getWriteDelay()));
+        // database settings
+        for (Map.Entry<String, String> entry : getSettings().getSortedSettings()) {
+            consumer.accept(entry.getKey(), entry.getValue());
+        }
+        getStore().getMvStore().populateInfo(consumer);
     }
 
     /**
@@ -789,10 +804,9 @@ public final class Database implements DataHandler, CastDataProvider {
                 META_LOCK_DEBUGGING_STACK.set(new Throwable("Last meta lock granted in this stack trace, "
                         + "this is debug information for following IllegalStateException"));
             } else if (prev != session) {
-                META_LOCK_DEBUGGING_STACK.get().printStackTrace();
                 throw new IllegalStateException("meta currently locked by " + prev + ", sessionid=" + prev.getId()
                         + " and trying to be locked by different session, " + session + ", sessionid=" //
-                        + session.getId() + " on same thread");
+                        + session.getId() + " on same thread", META_LOCK_DEBUGGING_STACK.get());
             }
         }
     }
@@ -819,15 +833,15 @@ public final class Database implements DataHandler, CastDataProvider {
     static void unlockMetaDebug(SessionLocal session) {
         if (ASSERT) {
             if (META_LOCK_DEBUGGING.get() == session) {
-                META_LOCK_DEBUGGING.set(null);
-                META_LOCK_DEBUGGING_DB.set(null);
-                META_LOCK_DEBUGGING_STACK.set(null);
+                META_LOCK_DEBUGGING.remove();
+                META_LOCK_DEBUGGING_DB.remove();
+                META_LOCK_DEBUGGING_STACK.remove();
             }
         }
     }
 
     /**
-     * Remove the given object from the meta data.
+     * Remove the given object from the metadata.
      *
      * @param session the session
      * @param id the id of the object to remove
@@ -1006,7 +1020,7 @@ public final class Database implements DataHandler, CastDataProvider {
      * Get user with the given name. This method throws an exception if the user
      * does not exist.
      *
-     * @param name the user name
+     * @param name the username
      * @return the user
      * @throws DbException if the user does not exist
      */
@@ -1134,7 +1148,7 @@ public final class Database implements DataHandler, CastDataProvider {
         for (SessionLocal s : all) {
             if (s != except && !s.isClosed()) {
                 try {
-                    // this will rollback outstanding transaction
+                    // this will roll back outstanding transaction
                     s.close();
                 } catch (Throwable e) {
                     trace.error(e, "disconnecting session #{0}", s.getId());
@@ -1373,7 +1387,7 @@ public final class Database implements DataHandler, CastDataProvider {
     }
 
     /**
-     * Get all tables and views. Meta data tables may be excluded.
+     * Get all tables and views. Metadata tables may be excluded.
      *
      * @return all objects of that type
      */
@@ -1446,9 +1460,8 @@ public final class Database implements DataHandler, CastDataProvider {
     /**
      * Get all sessions that are currently connected to the database.
      *
-     * @param includingSystemSession if the system session should also be
-     *            included
-     * @return the list of sessions
+     * @param includingSystemSession if the system session should also be included
+     * @return array of sessions
      */
     public SessionLocal[] getSessions(boolean includingSystemSession) {
         ArrayList<SessionLocal> list;
@@ -1806,7 +1819,7 @@ public final class Database implements DataHandler, CastDataProvider {
     }
 
     /**
-     * If there is a background store thread, and if there wasn an exception in
+     * If there is a background store thread, and if there was an exception in
      * that thread, throw it now.
      */
     void throwLastBackgroundException() {
@@ -1874,7 +1887,7 @@ public final class Database implements DataHandler, CastDataProvider {
     }
 
     /**
-     * Set the progress of a long running operation.
+     * Set the progress of a long-running operation.
      * This method calls the {@link DatabaseEventListener} if one is registered.
      *
      * @param state the {@link DatabaseEventListener} state
@@ -1979,7 +1992,7 @@ public final class Database implements DataHandler, CastDataProvider {
 
     public boolean getIgnoreCase() {
         if (starting) {
-            // tables created at startup must not be converted to ignorecase
+            // tables created at startup must not be converted to ignore-case
             return false;
         }
         return ignoreCase;
@@ -2031,7 +2044,7 @@ public final class Database implements DataHandler, CastDataProvider {
         queryStatistics = b;
         synchronized (this) {
             if (!b) {
-                queryStatisticsData = null;
+                queryStatisticsData.set(null);
             }
         }
     }
@@ -2042,12 +2055,9 @@ public final class Database implements DataHandler, CastDataProvider {
 
     public void setQueryStatisticsMaxEntries(int n) {
         queryStatisticsMaxEntries = n;
-        if (queryStatisticsData != null) {
-            synchronized (this) {
-                if (queryStatisticsData != null) {
-                    queryStatisticsData.setMaxQueryEntries(queryStatisticsMaxEntries);
-                }
-            }
+        QueryStatisticsData statisticsData = getQueryStatisticsData();
+        if (statisticsData != null) {
+            statisticsData.setMaxQueryEntries(queryStatisticsMaxEntries);
         }
     }
 
@@ -2055,14 +2065,14 @@ public final class Database implements DataHandler, CastDataProvider {
         if (!queryStatistics) {
             return null;
         }
-        if (queryStatisticsData == null) {
-            synchronized (this) {
-                if (queryStatisticsData == null) {
-                    queryStatisticsData = new QueryStatisticsData(queryStatisticsMaxEntries);
-                }
+        QueryStatisticsData statisticsData;
+        while ((statisticsData = queryStatisticsData.get()) == null) {
+            statisticsData = new QueryStatisticsData(queryStatisticsMaxEntries);
+            if (queryStatisticsData.compareAndSet(null, statisticsData)) {
+                break;
             }
         }
-        return queryStatisticsData;
+        return statisticsData;
     }
 
     /**
@@ -2113,6 +2123,10 @@ public final class Database implements DataHandler, CastDataProvider {
 
     public SessionLocal getExclusiveSession() {
         return exclusiveSession.get();
+    }
+
+    public boolean isInExclusiveMode() {
+        return getExclusiveSession() != null;
     }
 
     /**
@@ -2179,7 +2193,7 @@ public final class Database implements DataHandler, CastDataProvider {
      *
      * @param driver the database driver or null
      * @param url the database URL
-     * @param user the user name
+     * @param user the username
      * @param password the password
      * @return the connection
      */
@@ -2292,8 +2306,7 @@ public final class Database implements DataHandler, CastDataProvider {
     }
 
     /**
-     * Create a new hash map. Depending on the configuration, the key is case
-     * sensitive or case insensitive.
+     * Create a new hash map. Depending on the configuration, the key is case-sensitive or case-insensitive.
      *
      * @param <V> the value type
      * @return the hash map
@@ -2303,8 +2316,7 @@ public final class Database implements DataHandler, CastDataProvider {
     }
 
     /**
-     * Create a new hash map. Depending on the configuration, the key is case
-     * sensitive or case insensitive.
+     * Create a new hash map. Depending on the configuration, the key is case-sensitive or case-insensitive.
      *
      * @param <V> the value type
      * @param  initialCapacity the initial capacity
@@ -2316,8 +2328,7 @@ public final class Database implements DataHandler, CastDataProvider {
     }
 
     /**
-     * Create a new hash map. Depending on the configuration, the key is case
-     * sensitive or case insensitive.
+     * Create a new hash map. Depending on the configuration, the key is case-sensitive or case-insensitive.
      *
      * @param <V> the value type
      * @return the hash map

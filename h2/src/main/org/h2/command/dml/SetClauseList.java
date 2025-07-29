@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -298,7 +298,7 @@ public final class SetClauseList implements HasSQL {
 
     }
 
-    private static abstract class SetAction extends UpdateAction {
+    private abstract static class SetAction extends UpdateAction {
 
         private final Expression[] arrayIndexes;
 
@@ -448,9 +448,9 @@ public final class SetClauseList implements HasSQL {
 
         private final int position;
 
-        boolean first;
+        final boolean first;
 
-        private boolean last;
+        private final boolean last;
 
         SetMultiple(Expression[] arrayIndexes, RowExpression row, int position, boolean first, boolean last) {
             super(arrayIndexes);

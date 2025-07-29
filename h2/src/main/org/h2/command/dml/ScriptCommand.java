@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -292,12 +292,9 @@ public class ScriptCommand extends ScriptBase {
                 }
                 final TableType tableType = table.getTableType();
                 add(createTableSql, false);
-                final ArrayList<Constraint> constraints = table.getConstraints();
-                if (constraints != null) {
-                    for (Constraint constraint : constraints) {
-                        if (Constraint.Type.PRIMARY_KEY == constraint.getConstraintType()) {
-                            add(constraint.getCreateSQLWithoutIndexes(), false);
-                        }
+                for (Constraint constraint : table.getConstraints()) {
+                    if (Constraint.Type.PRIMARY_KEY == constraint.getConstraintType()) {
+                        add(constraint.getCreateSQLWithoutIndexes(), false);
                     }
                 }
                 if (TableType.TABLE == tableType) {
@@ -312,9 +309,7 @@ public class ScriptCommand extends ScriptBase {
                         count = generateInsertValues(count, table);
                     }
                 }
-                final ArrayList<Index> indexes = table.getIndexes();
-                for (int j = 0; indexes != null && j < indexes.size(); j++) {
-                    Index index = indexes.get(j);
+                for (Index index : table.getIndexes()) {
                     if (!index.getIndexType().getBelongsToConstraint()) {
                         add(index.getCreateSQL(), false);
                     }
@@ -472,7 +467,7 @@ public class ScriptCommand extends ScriptBase {
     }
 
     private int generateInsertValues(int count, Table table) throws IOException {
-        PlanItem plan = table.getBestPlanItem(session, null, null, -1, null, null);
+        PlanItem plan = table.getBestPlanItem(session, null, null, -1, null, null, /*isSelectCommand*/true);
         Index index = plan.getIndex();
         Cursor cursor = index.find(session, null, null, false);
         Column[] columns = table.getColumns();

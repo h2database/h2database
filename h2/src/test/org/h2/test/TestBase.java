@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -75,6 +75,8 @@ public abstract class TestBase {
      * The maximum size of byte array.
      */
     private static final int MAX_ARRAY_SIZE = Integer.MAX_VALUE - 8;
+
+    private static final StackWalker STACK_WALKER = StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE);
 
     /**
      * The test configuration.
@@ -1407,9 +1409,7 @@ public abstract class TestBase {
     public static TestBase createCaller() {
         org.h2.Driver.load();
         try {
-            return (TestBase) new SecurityManager() {
-                Class<?> clazz = getClassContext()[2];
-            }.clazz.getDeclaredConstructor().newInstance();
+            return (TestBase) STACK_WALKER.getCallerClass().getDeclaredConstructor().newInstance();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -287,7 +287,7 @@ public final class ValueToObjectConverter extends TraceObject {
         } else if (type == BigDecimal.class) {
             return (T) value.getBigDecimal();
         } else if (type == BigInteger.class) {
-            return (T) value.getBigDecimal().toBigInteger();
+            return (T) value.getBigInteger();
         } else if (type == String.class) {
             return (T) value.getString();
         } else if (type == Boolean.class) {

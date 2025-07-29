@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -2447,11 +2447,7 @@ public final class InformationSchemaTable extends MetaTable {
     }
 
     private void indexes(SessionLocal session, ArrayList<Row> rows, String catalog, boolean columns, Table table) {
-        ArrayList<Index> indexes = table.getIndexes();
-        if (indexes == null) {
-            return;
-        }
-        for (Index index : indexes) {
+        for (Index index : table.getIndexes()) {
             if (index.getCreateSQL() == null) {
                 continue;
             }
@@ -2802,9 +2798,6 @@ public final class InformationSchemaTable extends MetaTable {
                 add(session, rows, "property." + s, Utils.getProperty(s, ""));
             }
         }
-        add(session, rows, "DEFAULT_NULL_ORDERING", database.getDefaultNullOrdering().name());
-        add(session, rows, "EXCLUSIVE", database.getExclusiveSession() == null ? "FALSE" : "TRUE");
-        add(session, rows, "MODE", database.getMode().getName());
         add(session, rows, "QUERY_TIMEOUT", Integer.toString(session.getQueryTimeout()));
         add(session, rows, "TIME ZONE", session.currentTimeZone().getId());
         add(session, rows, "TRUNCATE_LARGE_LENGTH", session.isTruncateLargeLength() ? "TRUE" : "FALSE");
@@ -2814,13 +2807,7 @@ public final class InformationSchemaTable extends MetaTable {
         if (nonKeywords != null) {
             add(session, rows, "NON_KEYWORDS", ParserBase.formatNonKeywords(nonKeywords));
         }
-        add(session, rows, "RETENTION_TIME", Integer.toString(database.getRetentionTime()));
-        add(session, rows, "WRITE_DELAY", Integer.toString(database.getWriteDelay()));
-        // database settings
-        for (Map.Entry<String, String> entry : database.getSettings().getSortedSettings()) {
-            add(session, rows, entry.getKey(), entry.getValue());
-        }
-        database.getStore().getMvStore().populateInfo((name, value) -> add(session, rows, name, value));
+        database.populateInfo((name, value) -> add(session, rows, name, value));
     }
 
     private void synonyms(SessionLocal session, ArrayList<Row> rows, String catalog) {

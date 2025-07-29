@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -132,7 +132,7 @@ public class SelectUnion extends Query {
         }
         int columnCount = left.getColumnCount();
         if (session.isLazyQueryExecution() && unionType == UnionType.UNION_ALL && !distinct &&
-                sort == null && !randomAccessResult && forUpdate == null &&
+                sort == null && inPredicateSortTypes == null && forUpdate == null &&
                 offset == 0 && !fetchPercent && !withTies && isReadOnly()) {
             // limit 0 means no rows
             if (fetch != 0) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -44,7 +44,7 @@ class CommandList extends Command {
         for (Prepared prepared : commands) {
             CommandContainer commandContainer = new CommandContainer(session, prepared.getSQL(), prepared);
             if (prepared.isQuery()) {
-                commandContainer.executeQuery(0, false);
+                commandContainer.executeQuery(0, -1, false);
             } else {
                 commandContainer.executeUpdate(null);
             }
@@ -53,7 +53,7 @@ class CommandList extends Command {
             remainingCommand = session.prepareLocal(remaining);
             remaining = null;
             if (remainingCommand.isQuery()) {
-                remainingCommand.executeQuery(0, false);
+                remainingCommand.executeQuery(0, -1, false);
             } else {
                 remainingCommand.executeUpdate(null);
             }

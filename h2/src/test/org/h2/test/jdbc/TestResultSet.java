@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -1328,7 +1328,7 @@ public class TestResultSet extends TestDb {
         rs.next();
         assertEquals("-99999-12-23 01:02:03", rs.getString(1));
 
-        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY,\"VALUE\" DATETIME)");
+        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY,\"VALUE\" TIMESTAMP)");
         stat.execute("INSERT INTO TEST VALUES(1,DATE '2011-11-11')");
         stat.execute("INSERT INTO TEST VALUES(2,TIMESTAMP '2002-02-02 02:02:02')");
         stat.execute("INSERT INTO TEST VALUES(3,TIMESTAMP '1800-1-1 0:0:0')");

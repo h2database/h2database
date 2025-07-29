@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -235,7 +235,7 @@ public class TestStreamStore extends TestBase {
     private void testTreeStructure() throws IOException {
 
         final AtomicInteger reads = new AtomicInteger();
-        Map<Long, byte[]> map = new HashMap<Long, byte[]>() {
+        Map<Long, byte[]> map = new HashMap<>() {
 
             private static final long serialVersionUID = 1L;
 
@@ -289,7 +289,7 @@ public class TestStreamStore extends TestBase {
     private void testWithExistingData() throws IOException {
 
         final AtomicInteger tests = new AtomicInteger();
-        Map<Long, byte[]> map = new HashMap<Long, byte[]>() {
+        Map<Long, byte[]> map = new HashMap<>() {
 
             private static final long serialVersionUID = 1L;
 
@@ -325,7 +325,7 @@ public class TestStreamStore extends TestBase {
 
     private void testWithFullMap() throws IOException {
         final AtomicInteger tests = new AtomicInteger();
-        Map<Long, byte[]> map = new HashMap<Long, byte[]>() {
+        Map<Long, byte[]> map = new HashMap<>() {
 
             private static final long serialVersionUID = 1L;
 

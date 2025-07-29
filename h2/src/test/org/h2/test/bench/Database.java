@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -111,7 +111,7 @@ class Database {
     }
 
     /**
-     * Start the server if the this is a remote connection.
+     * Start the server if this is a remote connection.
      */
     void startServer() throws Exception {
         if (url.startsWith("jdbc:h2:tcp:")) {

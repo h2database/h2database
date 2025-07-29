@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -123,7 +123,7 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
      * @return the metadata key
      */
     static String getMapRootKey(int mapId) {
-        return DataUtils.META_ROOT + Integer.toHexString(mapId);
+        return DataUtils.LAYOUT_ROOT + Integer.toHexString(mapId);
     }
 
     /**
@@ -867,21 +867,9 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
     }
 
     /**
-     * Rollback to the given version.
-     *
-     * @param version the version
-     */
-    final void rollbackTo(long version) {
-        // check if the map was removed and re-created later ?
-        if (version > createVersion) {
-            rollbackRoot(version);
-        }
-    }
-
-    /**
      * Roll the root back to the specified version.
      *
-     * @param version to rollback to
+     * @param version to roll back to
      * @return true if rollback was a success, false if there was not enough in-memory history
      */
     boolean rollbackRoot(long version) {
@@ -1950,10 +1938,9 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
      * Unlock the root page.
      *
      * @param newRootPage the new root
-     * @return the new root reference (never null)
      */
-    protected RootReference<K,V> unlockRoot(Page<K,V> newRootPage) {
-        return unlockRoot(newRootPage, -1);
+    protected void unlockRoot(Page<K,V> newRootPage) {
+        unlockRoot(newRootPage, -1);
     }
 
     private void unlockRoot(int appendCounter) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -47,7 +47,7 @@ public final class DerivedTable extends QueryExpressionTable {
             this.querySQL = query.getPlanSQL(DEFAULT_SQL_FLAGS);
             originalParameters = query.getParameters();
             tables = new ArrayList<>(query.getTables());
-            setColumns(initColumns(session, columnTemplates, query, true));
+            setColumns(initColumns(session, columnTemplates, query, true, false));
             viewQuery = query;
         } catch (DbException e) {
             if (e.getErrorCode() == ErrorCode.COLUMN_ALIAS_IS_NOT_SPECIFIED_1) {
@@ -65,13 +65,8 @@ public final class DerivedTable extends QueryExpressionTable {
 
     @Override
     public boolean isQueryComparable() {
-        if (!super.isQueryComparable()) {
-            return false;
-        }
-        if (topQuery != null && !topQuery.isEverything(ExpressionVisitor.QUERY_COMPARABLE_VISITOR)) {
-            return false;
-        }
-        return true;
+        return super.isQueryComparable()
+            && (topQuery == null || topQuery.isEverything(ExpressionVisitor.QUERY_COMPARABLE_VISITOR));
     }
 
     @Override

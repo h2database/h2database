@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -206,7 +206,7 @@ public class LocalResult implements ResultInterface, ResultTarget {
     public void setDistinct() {
         assert distinctIndexes == null;
         distinct = true;
-        distinctRows = new TreeMap<>(session.getDatabase().getCompareMode());
+        distinctRows = new TreeMap<>(session);
     }
 
     /**
@@ -217,7 +217,20 @@ public class LocalResult implements ResultInterface, ResultTarget {
     public void setDistinct(int[] distinctIndexes) {
         assert !distinct;
         this.distinctIndexes = distinctIndexes;
-        distinctRows = new TreeMap<>(session.getDatabase().getCompareMode());
+        distinctRows = new TreeMap<>(session);
+    }
+
+    /**
+     * Configures result to hold value list of the IN predicate.
+     *
+     * @param inPredicateSortTypes sort order bit masks or an empty array
+     */
+    public void setInPredicateValueListResult(int[] inPredicateSortTypes) {
+        distinct = true;
+        distinctRows = new TreeMap<>(session);
+        if (inPredicateSortTypes.length != 0) {
+            sort = SortOrder.ofSortTypes(session, inPredicateSortTypes);
+        }
     }
 
     /**
@@ -239,7 +252,7 @@ public class LocalResult implements ResultInterface, ResultTarget {
             return external.contains(values);
         }
         if (distinctRows == null) {
-            distinctRows = new TreeMap<>(session.getDatabase().getCompareMode());
+            distinctRows = new TreeMap<>(session);
             for (Value[] row : rows) {
                 ValueRow array = getDistinctRow(row);
                 distinctRows.put(array, array.getList());

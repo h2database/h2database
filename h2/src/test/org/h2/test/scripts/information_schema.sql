@@ -1,4 +1,4 @@
--- Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
+-- Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
 -- and the EPL 1.0 (https://h2database.com/html/license.html).
 -- Initial Developer: H2 Group
 --
@@ -89,7 +89,7 @@ SELECT CONSTRAINT_NAME, UNIQUE_CONSTRAINT_NAME, MATCH_OPTION, UPDATE_RULE, DELET
     ORDER BY CONSTRAINT_NAME, UNIQUE_CONSTRAINT_NAME;
 > CONSTRAINT_NAME UNIQUE_CONSTRAINT_NAME MATCH_OPTION UPDATE_RULE DELETE_RULE
 > --------------- ---------------------- ------------ ----------- -----------
-> FK_1            CONSTRAINT_A           NONE         RESTRICT    SET NULL
+> FK_1            CONSTRAINT_A           NONE         NO ACTION   SET NULL
 > FK_2            U_1                    NONE         CASCADE     SET DEFAULT
 > rows (ordered): 2
 

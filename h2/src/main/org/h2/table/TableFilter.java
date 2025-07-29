@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2024 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -175,10 +175,6 @@ public class TableFilter implements ColumnResolver {
         return orderInFrom;
     }
 
-    public IndexCursor getIndexCursor() {
-        return cursor;
-    }
-
     @Override
     public Select getSelect() {
         return select;
@@ -211,7 +207,7 @@ public class TableFilter implements ColumnResolver {
      * @return the best plan item
      */
     public PlanItem getBestPlanItem(SessionLocal s, TableFilter[] filters, int filter,
-            AllColumnsForPlan allColumnsSet) {
+            AllColumnsForPlan allColumnsSet, boolean isSelectCommand) {
         PlanItem item1 = null;
         SortOrder sortOrder = null;
         if (select != null) {
@@ -222,7 +218,7 @@ public class TableFilter implements ColumnResolver {
             item1.setIndex(table.getScanIndex(s, null, filters, filter,
                     sortOrder, allColumnsSet));
             item1.cost = item1.getIndex().getCost(s, null, filters, filter,
-                    sortOrder, allColumnsSet);
+                    sortOrder, allColumnsSet, isSelectCommand);
         }
         int len = table.getColumns().length;
         int[] masks = new int[len];
@@ -235,8 +231,8 @@ public class TableFilter implements ColumnResolver {
                 if (condition.isCompoundColumns()) {
                     // Set the op mask in case of compound columns as well.
                     Column[] columns = condition.getColumns();
-                    for (int i = 0, n = columns.length; i < n; i++) {
-                        int id = columns[i].getColumnId();
+                    for (Column column : columns) {
+                        int id = column.getColumnId();
                         if (id >= 0) {
                             masks[id] |= condition.getMask(indexConditions);
                         }
@@ -250,7 +246,7 @@ public class TableFilter implements ColumnResolver {
                 }
             }
         }
-        PlanItem item = table.getBestPlanItem(s, masks, filters, filter, sortOrder, allColumnsSet);
+        PlanItem item = table.getBestPlanItem(s, masks, filters, filter, sortOrder, allColumnsSet, isSelectCommand);
         item.setMasks(masks);
         // The more index conditions, the earlier the table.
         // This is to ensure joins without indexes run quickly:
@@ -263,7 +259,7 @@ public class TableFilter implements ColumnResolver {
 
         if (nestedJoin != null) {
             setEvaluatable(true);
-            item.setNestedJoinPlan(nestedJoin.getBestPlanItem(s, filters, filter, allColumnsSet));
+            item.setNestedJoinPlan(nestedJoin.getBestPlanItem(s, filters, filter, allColumnsSet, isSelectCommand));
             // TODO optimizer: calculate cost of a join: should use separate
             // expected row number and lookup cost
             item.cost += item.cost * item.getNestedJoinPlan().cost;
@@ -273,7 +269,7 @@ public class TableFilter implements ColumnResolver {
             do {
                 filter++;
             } while (filters[filter] != join);
-            item.setJoinPlan(join.getBestPlanItem(s, filters, filter, allColumnsSet));
+            item.setJoinPlan(join.getBestPlanItem(s, filters, filter, allColumnsSet, isSelectCommand));
             // TODO optimizer: calculate cost of a join: should use separate
             // expected row number and lookup cost
             item.cost += item.cost * item.getJoinPlan().cost;
@@ -882,10 +878,6 @@ public class TableFilter implements ColumnResolver {
         return masks;
     }
 
-    public ArrayList<IndexCondition> getIndexConditions() {
-        return indexConditions;
-    }
-
     public Index getIndex() {
         return index;
     }
@@ -1227,24 +1219,6 @@ public class TableFilter implements ColumnResolver {
         return hashCode;
     }
 
-    /**
-     * Are there any index conditions that involve IN(...).
-     *
-     * @return whether there are IN(...) comparisons
-     */
-    public boolean hasInComparisons() {
-        for (IndexCondition cond : indexConditions) {
-            int compareType = cond.getCompareType();
-            switch (compareType) {
-            case Comparison.IN_LIST:
-            case Comparison.IN_ARRAY:
-            case Comparison.IN_QUERY:
-                return true;
-            }
-        }
-        return false;
-    }
-
     public TableFilter getNestedJoin() {
         return nestedJoin;
     }
@@ -1282,11 +1256,11 @@ public class TableFilter implements ColumnResolver {
      * Returns whether this is a table filter with implicit DUAL table for a
      * SELECT without a FROM clause.
      *
-     * @return whether this is a table filter with implicit DUAL table
+     * @return false if this is a table filter with implicit DUAL table, true otherwise
      */
-    public boolean isNoFromClauseFilter() {
-        return table instanceof DualTable && join == null && nestedJoin == null
-                && joinCondition == null && filterCondition == null;
+    public boolean hasFromClause() {
+        return !(table instanceof DualTable && join == null && nestedJoin == null
+                && joinCondition == null && filterCondition == null);
     }
 
     /**

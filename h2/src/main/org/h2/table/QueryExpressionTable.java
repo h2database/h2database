@@ -7,6 +7,7 @@ package org.h2.table;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -257,7 +258,7 @@ public abstract class QueryExpressionTable extends Table {
 
     @Override
     public final List<Index> getIndexes() {
-        return List.of();
+        return Collections.emptyList();
     }
 
     @Override

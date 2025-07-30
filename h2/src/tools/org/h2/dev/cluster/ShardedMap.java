@@ -239,7 +239,7 @@ public class ShardedMap<K, V> extends AbstractMap<K, V> {
 
         @Override
         public Iterator<Entry<K, V>> iterator() {
-            return new Iterator<>() {
+            return new Iterator<Entry<K, V>>() {
 
                 boolean init;
                 Entry<K, V> current;

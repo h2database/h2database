@@ -5,6 +5,8 @@
  */
 package org.h2.value;
 
+import org.h2.util.ArrayUtils;
+
 import java.nio.charset.Charset;
 import java.text.CollationKey;
 import java.text.Collator;
@@ -28,7 +30,7 @@ public class CharsetCollator extends Collator {
 
     @Override
     public int compare(String source, String target) {
-        return Arrays.compare(toBytes(source), toBytes(target));
+        return ArrayUtils.compare(toBytes(source), toBytes(target));
     }
 
     /**
@@ -66,7 +68,7 @@ public class CharsetCollator extends Collator {
 
         @Override
         public int compareTo(CollationKey target) {
-            return Arrays.compare(bytes, target.toByteArray());
+            return ArrayUtils.compare(bytes, target.toByteArray());
         }
 
         @Override

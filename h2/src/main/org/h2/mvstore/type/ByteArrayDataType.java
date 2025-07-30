@@ -7,6 +7,8 @@ package org.h2.mvstore.type;
 
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.WriteBuffer;
+import org.h2.util.ArrayUtils;
+
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
@@ -47,6 +49,6 @@ public final class ByteArrayDataType extends BasicDataType<byte[]>
 
     @Override
     public int compare(byte[] one, byte[] two) {
-        return Arrays.compareUnsigned(one, two);
+        return ArrayUtils.compareUnsigned(one, two);
     }
 }

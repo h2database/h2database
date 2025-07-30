@@ -6,6 +6,7 @@
 package org.h2.engine;
 
 import java.sql.Types;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -448,7 +449,7 @@ public class Mode {
      * Certain DBMSs don't support all column types provided by H2, such as
      * "NUMBER" when using PostgreSQL mode.
      */
-    public Set<String> disallowedTypes = Set.of();
+    public Set<String> disallowedTypes = Collections.emptySet();
 
     /**
      * Custom mappings from type names to data types.

@@ -44,7 +44,6 @@ public class TestNetUtils extends TestBase {
         testFrequentConnections(true, 100);
         testFrequentConnections(false, 1000);
         testIpToShortForm();
-        testTcpQuickack();
     }
 
     private static void testFrequentConnections(boolean ssl, int count) throws Exception {
@@ -152,38 +151,6 @@ public class TestNetUtils extends TestBase {
         assertEquals(expected, NetUtils.ipToShortForm(new StringBuilder(), addr, addBrackets).toString());
         assertEquals(expected,
                 NetUtils.ipToShortForm(new StringBuilder("*"), addr, addBrackets).deleteCharAt(0).toString());
-    }
-
-    private void testTcpQuickack() {
-        final boolean ssl = !config.ci && BuildBase.getJavaVersion() < 11;
-        try (ServerSocket serverSocket = NetUtils.createServerSocket(PORT, ssl)) {
-            Thread thread = new Thread() {
-                @Override
-                public void run() {
-                    try (Socket s = NetUtils.createLoopbackSocket(PORT, ssl)) {
-                        s.getInputStream().read();
-                    } catch (IOException e) {
-                    }
-                }
-            };
-            thread.start();
-            try (Socket socket = serverSocket.accept()) {
-                boolean supported = Utils10.setTcpQuickack(socket, true);
-                if (supported) {
-                    assertTrue(Utils10.getTcpQuickack(socket));
-                    Utils10.setTcpQuickack(socket, false);
-                    assertFalse(Utils10.getTcpQuickack(socket));
-                }
-                socket.getOutputStream().write(1);
-            } finally {
-                try {
-                    thread.join();
-                } catch (InterruptedException e) {
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
 }

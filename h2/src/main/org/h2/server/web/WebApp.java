@@ -460,7 +460,7 @@ public class WebApp {
             try {
                 tool.runTool(argList);
                 out.flush();
-                String o = outBuff.toString(StandardCharsets.UTF_8);
+                String o = outBuff.toString(StandardCharsets.UTF_8.name());
                 String result = PageParser.escapeHtml(o);
                 session.put("toolResult", result);
             } catch (Exception e) {

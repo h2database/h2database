@@ -47,7 +47,7 @@ public class Build extends BuildBase {
 
     private static final String JUNIT_VERSION = "5.10.0";
 
-    private static final String LUCENE_VERSION = "9.7.0";
+    private static final String LUCENE_VERSION = "8.5.2";
 
     private static final String MYSQL_CONNECTOR_VERSION = "8.1.0";
 
@@ -159,7 +159,7 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/javax.servlet-api-" + JAVAX_SERVLET_VERSION + ".jar" +
                 File.pathSeparator + "ext/jakarta.servlet-api-" + JAKARTA_SERVLET_VERSION + ".jar" +
                 File.pathSeparator + "ext/lucene-core-" + LUCENE_VERSION + ".jar" +
-                File.pathSeparator + "ext/lucene-analysis-common-" + LUCENE_VERSION + ".jar" +
+                File.pathSeparator + "ext/lucene-analyzers-common-" + LUCENE_VERSION + ".jar" +
                 File.pathSeparator + "ext/lucene-queryparser-" + LUCENE_VERSION + ".jar" +
                 File.pathSeparator + "ext/slf4j-api-" + SLF4J_VERSION + ".jar" +
                 File.pathSeparator + "ext/org.osgi.core-" + OSGI_VERSION + ".jar" +
@@ -201,7 +201,7 @@ public class Build extends BuildBase {
                 "org.h2.tools", "org.h2.jmx",
                 "-classpath",
                 "ext/lucene-core-" + LUCENE_VERSION + ".jar" +
-                File.pathSeparator + "ext/lucene-analysis-common-" + LUCENE_VERSION + ".jar" +
+                File.pathSeparator + "ext/lucene-analyzers-common-" + LUCENE_VERSION + ".jar" +
                 File.pathSeparator + "ext/lucene-queryparser-" + LUCENE_VERSION + ".jar" +
                 File.pathSeparator + "ext/org.osgi.core-" + OSGI_VERSION + ".jar" +
                 File.pathSeparator + "ext/org.osgi.service.jdbc-" + OSGI_JDBC_VERSION + ".jar" +
@@ -270,7 +270,7 @@ public class Build extends BuildBase {
             File.pathSeparator + "ext/javax.servlet-api-" + JAVAX_SERVLET_VERSION + ".jar" +
             File.pathSeparator + "ext/jakarta.servlet-api-" + JAKARTA_SERVLET_VERSION + ".jar" +
             File.pathSeparator + "ext/lucene-core-" + LUCENE_VERSION + ".jar" +
-            File.pathSeparator + "ext/lucene-analysis-common-" + LUCENE_VERSION + ".jar" +
+            File.pathSeparator + "ext/lucene-analyzers-common-" + LUCENE_VERSION + ".jar" +
             File.pathSeparator + "ext/lucene-queryparser-" + LUCENE_VERSION + ".jar" +
             File.pathSeparator + "ext/org.osgi.core-" + OSGI_VERSION + ".jar" +
             File.pathSeparator + "ext/org.osgi.service.jdbc-" + OSGI_JDBC_VERSION + ".jar" +
@@ -391,9 +391,9 @@ public class Build extends BuildBase {
         downloadOrVerify("ext/lucene-core-" + LUCENE_VERSION + ".jar",
                 "org/apache/lucene", "lucene-core", LUCENE_VERSION,
                 "ad391210ffd806931334be9670a35af00c56f959", offline);
-        downloadOrVerify("ext/lucene-analysis-common-" + LUCENE_VERSION + ".jar",
-                "org/apache/lucene", "lucene-analysis-common", LUCENE_VERSION,
-                "27ba6caaa4587a982cd451f7217b5a982bcfc44a", offline);
+        downloadOrVerify("ext/lucene-analyzers-common-" + LUCENE_VERSION + ".jar",
+                "org/apache/lucene", "lucene-analyzers-common", LUCENE_VERSION,
+                "2c4a7e8583e2061aa35db85705393b8b6e67a679", offline);
         downloadOrVerify("ext/lucene-queryparser-" + LUCENE_VERSION + ".jar",
                 "org/apache/lucene", "lucene-queryparser", LUCENE_VERSION,
                 "6e77bde908ff698354e4a2149e6dd4658b56d7b0", offline);
@@ -614,7 +614,7 @@ public class Build extends BuildBase {
                 "org.h2.tools", "org.h2.api", "org.h2.engine", "org.h2.fulltext",
                 "-classpath",
                 "ext/lucene-core-" + LUCENE_VERSION + ".jar" +
-                File.pathSeparator + "ext/lucene-analysis-common-" + LUCENE_VERSION + ".jar" +
+                File.pathSeparator + "ext/lucene-analyzers-common-" + LUCENE_VERSION + ".jar" +
                 File.pathSeparator + "ext/lucene-queryparser-" + LUCENE_VERSION + ".jar" +
                 File.pathSeparator + "ext/org.osgi.core-" + OSGI_VERSION + ".jar" +
                 File.pathSeparator + "ext/org.osgi.service.jdbc-" + OSGI_JDBC_VERSION + ".jar" +
@@ -639,7 +639,7 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/javax.servlet-api-" + JAVAX_SERVLET_VERSION + ".jar" +
                 File.pathSeparator + "ext/jakarta.servlet-api-" + JAKARTA_SERVLET_VERSION + ".jar" +
                 File.pathSeparator + "ext/lucene-core-" + LUCENE_VERSION + ".jar" +
-                File.pathSeparator + "ext/lucene-analysis-common-" + LUCENE_VERSION + ".jar" +
+                File.pathSeparator + "ext/lucene-analyzers-common-" + LUCENE_VERSION + ".jar" +
                 File.pathSeparator + "ext/lucene-queryparser-" + LUCENE_VERSION + ".jar" +
                 File.pathSeparator + "ext/org.osgi.core-" + OSGI_VERSION + ".jar" +
                 File.pathSeparator + "ext/org.osgi.service.jdbc-" + OSGI_JDBC_VERSION + ".jar" +
@@ -659,7 +659,7 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/javax.servlet-api-" + JAVAX_SERVLET_VERSION + ".jar" +
                 File.pathSeparator + "ext/jakarta.servlet-api-" + JAKARTA_SERVLET_VERSION + ".jar" +
                 File.pathSeparator + "ext/lucene-core-" + LUCENE_VERSION + ".jar" +
-                File.pathSeparator + "ext/lucene-analysis-common-" + LUCENE_VERSION + ".jar" +
+                File.pathSeparator + "ext/lucene-analyzers-common-" + LUCENE_VERSION + ".jar" +
                 File.pathSeparator + "ext/lucene-queryparser-" + LUCENE_VERSION + ".jar" +
                 File.pathSeparator + "ext/org.osgi.core-" + OSGI_VERSION + ".jar" +
                 File.pathSeparator + "ext/org.osgi.service.jdbc-" + OSGI_JDBC_VERSION + ".jar" +
@@ -679,7 +679,7 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/javax.servlet-api-" + JAVAX_SERVLET_VERSION + ".jar" +
                 File.pathSeparator + "ext/jakarta.servlet-api-" + JAKARTA_SERVLET_VERSION + ".jar" +
                 File.pathSeparator + "ext/lucene-core-" + LUCENE_VERSION + ".jar" +
-                File.pathSeparator + "ext/lucene-analysis-common-" + LUCENE_VERSION + ".jar" +
+                File.pathSeparator + "ext/lucene-analyzers-common-" + LUCENE_VERSION + ".jar" +
                 File.pathSeparator + "ext/lucene-queryparser-" + LUCENE_VERSION + ".jar" +
                 File.pathSeparator + "ext/org.osgi.core-" + OSGI_VERSION + ".jar" +
                 File.pathSeparator + "ext/org.osgi.service.jdbc-" + OSGI_JDBC_VERSION + ".jar" +
@@ -906,7 +906,7 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/javax.servlet-api-" + JAVAX_SERVLET_VERSION + ".jar" +
                 File.pathSeparator + "ext/jakarta.servlet-api-" + JAKARTA_SERVLET_VERSION + ".jar" +
                 File.pathSeparator + "ext/lucene-core-" + LUCENE_VERSION + ".jar" +
-                File.pathSeparator + "ext/lucene-analysis-common-" + LUCENE_VERSION + ".jar" +
+                File.pathSeparator + "ext/lucene-analyzers-common-" + LUCENE_VERSION + ".jar" +
                 File.pathSeparator + "ext/lucene-queryparser-" + LUCENE_VERSION + ".jar" +
                 File.pathSeparator + "ext/org.osgi.core-" + OSGI_VERSION + ".jar" +
                 File.pathSeparator + "ext/org.osgi.service.jdbc-" + OSGI_JDBC_VERSION + ".jar" +

@@ -5,9 +5,6 @@
  */
 package org.h2.util;
 
-import java.lang.invoke.MethodHandles;
-import java.lang.invoke.VarHandle;
-import java.nio.ByteOrder;
 import java.util.UUID;
 
 /**
@@ -17,46 +14,40 @@ import java.util.UUID;
 public final class Bits {
 
     /**
-     * VarHandle giving access to elements of a byte[] array viewed as if it
+     * Access to elements of a byte[] array viewed as if it
      * were a int[] array on big-endian system.
      */
-    public static final VarHandle INT_VH_BE = MethodHandles.byteArrayViewVarHandle(int[].class, //
-            ByteOrder.BIG_ENDIAN);
+    public static final ByteArrayAsIntArray INT_VH_BE = new ByteArrayAsIntArray(true);
 
     /**
-     * VarHandle giving access to elements of a byte[] array viewed as if it
+     * Access to elements of a byte[] array viewed as if it
      * were a int[] array on little-endian system.
      */
-    public static final VarHandle INT_VH_LE = MethodHandles.byteArrayViewVarHandle(int[].class,
-            ByteOrder.LITTLE_ENDIAN);
+    public static final ByteArrayAsIntArray INT_VH_LE = new ByteArrayAsIntArray(false);
 
     /**
-     * VarHandle giving access to elements of a byte[] array viewed as if it
+     * Access to elements of a byte[] array viewed as if it
      * were a long[] array on big-endian system.
      */
-    public static final VarHandle LONG_VH_BE = MethodHandles.byteArrayViewVarHandle(long[].class, //
-            ByteOrder.BIG_ENDIAN);
+    public static final ByteArrayAsLongArray LONG_VH_BE = new ByteArrayAsLongArray(true);
 
     /**
-     * VarHandle giving access to elements of a byte[] array viewed as if it
+     * Access to elements of a byte[] array viewed as if it
      * were a long[] array on little-endian system.
      */
-    public static final VarHandle LONG_VH_LE = MethodHandles.byteArrayViewVarHandle(long[].class,
-            ByteOrder.LITTLE_ENDIAN);
+    public static final ByteArrayAsLongArray LONG_VH_LE = new ByteArrayAsLongArray(false);
 
     /**
-     * VarHandle giving access to elements of a byte[] array viewed as if it
+     * Access to elements of a byte[] array viewed as if it
      * were a double[] array on big-endian system.
      */
-    public static final VarHandle DOUBLE_VH_BE = MethodHandles.byteArrayViewVarHandle(double[].class,
-            ByteOrder.BIG_ENDIAN);
+    public static final ByteArrayAsDoubleArray DOUBLE_VH_BE = new ByteArrayAsDoubleArray(true);
 
     /**
-     * VarHandle giving access to elements of a byte[] array viewed as if it
+     * Access to elements of a byte[] array viewed as if it
      * were a double[] array on little-endian system.
      */
-    public static final VarHandle DOUBLE_VH_LE = MethodHandles.byteArrayViewVarHandle(double[].class,
-            ByteOrder.LITTLE_ENDIAN);
+    public static final ByteArrayAsDoubleArray DOUBLE_VH_LE = new ByteArrayAsDoubleArray(false);
 
     /**
      * Converts UUID value to byte array in big-endian order.

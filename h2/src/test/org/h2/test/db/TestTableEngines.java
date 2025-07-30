@@ -648,7 +648,7 @@ public class TestTableEngines extends TestDb {
 
             @Override
             public List<Index> getIndexes() {
-                return List.of();
+                return Collections.emptyList();
             }
 
             @Override

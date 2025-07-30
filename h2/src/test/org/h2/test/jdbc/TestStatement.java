@@ -52,8 +52,6 @@ public class TestStatement extends TestDb {
         testMultipleCommands();
         conn.close();
         deleteDb("statement");
-        testIdentifiers();
-        deleteDb("statement");
     }
 
     private void testUnwrap() throws SQLException {
@@ -444,94 +442,6 @@ public class TestStatement extends TestDb {
         Statement stat = conn.createStatement();
         stat.executeQuery("VALUES 1; VALUES 2");
         stat.close();
-    }
-
-    private void testIdentifiers() throws SQLException {
-        Connection conn = getConnection("statement");
-
-        Statement stat = conn.createStatement();
-        assertEquals("SOME_ID", stat.enquoteIdentifier("SOME_ID", false));
-        assertEquals("\"SOME ID\"", stat.enquoteIdentifier("SOME ID", false));
-        assertEquals("\"SOME_ID\"", stat.enquoteIdentifier("SOME_ID", true));
-        assertEquals("\"FROM\"", stat.enquoteIdentifier("FROM", false));
-        assertEquals("\"Test\"", stat.enquoteIdentifier("Test", false));
-        assertEquals("\"test\"", stat.enquoteIdentifier("test", false));
-        assertEquals("\"TOP\"", stat.enquoteIdentifier("TOP", false));
-        assertEquals("\"Test\"", stat.enquoteIdentifier("\"Test\"", false));
-        assertEquals("\"Test\"", stat.enquoteIdentifier("\"Test\"", true));
-        assertEquals("\"\"\"Test\"", stat.enquoteIdentifier("\"\"\"Test\"", true));
-        assertEquals("\"\"", stat.enquoteIdentifier("", false));
-        assertEquals("\"\"", stat.enquoteIdentifier("", true));
-        assertEquals("U&\"\"", stat.enquoteIdentifier("U&\"\"", false));
-        assertEquals("U&\"\"", stat.enquoteIdentifier("U&\"\"", true));
-        assertEquals("U&\"\0100\"", stat.enquoteIdentifier("U&\"\0100\"", false));
-        assertEquals("U&\"\0100\"", stat.enquoteIdentifier("U&\"\0100\"", true));
-        assertThrows(NullPointerException.class, () -> stat.enquoteIdentifier(null, false));
-        assertThrows(ErrorCode.INVALID_NAME_1, () -> stat.enquoteIdentifier("\"Test", true));
-        assertThrows(ErrorCode.INVALID_NAME_1, () -> stat.enquoteIdentifier("\"a\"a\"", true));
-        assertThrows(ErrorCode.INVALID_NAME_1, () -> stat.enquoteIdentifier("U&\"a\"a\"", true));
-        assertThrows(ErrorCode.STRING_FORMAT_ERROR_1, () -> stat.enquoteIdentifier("U&\"\\111\"", true));
-        assertEquals("U&\"\\02b0\"", stat.enquoteIdentifier("\u02B0", false));
-
-        assertTrue(stat.isSimpleIdentifier("SOME_ID_1"));
-        assertFalse(stat.isSimpleIdentifier("SOME ID"));
-        assertFalse(stat.isSimpleIdentifier("FROM"));
-        assertFalse(stat.isSimpleIdentifier("Test"));
-        assertFalse(stat.isSimpleIdentifier("test"));
-        assertFalse(stat.isSimpleIdentifier("TOP"));
-        assertFalse(stat.isSimpleIdentifier("_"));
-        assertFalse(stat.isSimpleIdentifier("_1"));
-        assertFalse(stat.isSimpleIdentifier("\u02B0"));
-
-        conn.close();
-        deleteDb("statement");
-        conn = getConnection("statement;DATABASE_TO_LOWER=TRUE");
-
-        Statement stat2 = conn.createStatement();
-        assertEquals("some_id", stat2.enquoteIdentifier("some_id", false));
-        assertEquals("\"some id\"", stat2.enquoteIdentifier("some id", false));
-        assertEquals("\"some_id\"", stat2.enquoteIdentifier("some_id", true));
-        assertEquals("\"from\"", stat2.enquoteIdentifier("from", false));
-        assertEquals("\"Test\"", stat2.enquoteIdentifier("Test", false));
-        assertEquals("\"TEST\"", stat2.enquoteIdentifier("TEST", false));
-        assertEquals("\"top\"", stat2.enquoteIdentifier("top", false));
-
-        assertTrue(stat2.isSimpleIdentifier("some_id"));
-        assertFalse(stat2.isSimpleIdentifier("some id"));
-        assertFalse(stat2.isSimpleIdentifier("from"));
-        assertFalse(stat2.isSimpleIdentifier("Test"));
-        assertFalse(stat2.isSimpleIdentifier("TEST"));
-        assertFalse(stat2.isSimpleIdentifier("top"));
-
-        conn.close();
-        deleteDb("statement");
-        conn = getConnection("statement;DATABASE_TO_UPPER=FALSE");
-
-        Statement stat3 = conn.createStatement();
-        assertEquals("SOME_ID", stat3.enquoteIdentifier("SOME_ID", false));
-        assertEquals("some_id", stat3.enquoteIdentifier("some_id", false));
-        assertEquals("\"SOME ID\"", stat3.enquoteIdentifier("SOME ID", false));
-        assertEquals("\"some id\"", stat3.enquoteIdentifier("some id", false));
-        assertEquals("\"SOME_ID\"", stat3.enquoteIdentifier("SOME_ID", true));
-        assertEquals("\"some_id\"", stat3.enquoteIdentifier("some_id", true));
-        assertEquals("\"FROM\"", stat3.enquoteIdentifier("FROM", false));
-        assertEquals("\"from\"", stat3.enquoteIdentifier("from", false));
-        assertEquals("Test", stat3.enquoteIdentifier("Test", false));
-        assertEquals("\"TOP\"", stat3.enquoteIdentifier("TOP", false));
-        assertEquals("\"top\"", stat3.enquoteIdentifier("top", false));
-
-        assertTrue(stat3.isSimpleIdentifier("SOME_ID"));
-        assertTrue(stat3.isSimpleIdentifier("some_id"));
-        assertFalse(stat3.isSimpleIdentifier("SOME ID"));
-        assertFalse(stat3.isSimpleIdentifier("some id"));
-        assertFalse(stat3.isSimpleIdentifier("FROM"));
-        assertFalse(stat3.isSimpleIdentifier("from"));
-        assertTrue(stat3.isSimpleIdentifier("Test"));
-        assertFalse(stat3.isSimpleIdentifier("TOP"));
-        assertFalse(stat3.isSimpleIdentifier("top"));
-        assertThrows(NullPointerException.class, () -> stat3.isSimpleIdentifier(null));
-
-        conn.close();
     }
 
 }

@@ -630,8 +630,8 @@ public class DirectRecover extends Recover {
 
             // Basic compression settings
             configMap.put("transform", "BWT+RANK+ZRLT+MTFT");   // Good for text
-            configMap.put("entropy", "FPAQ");                   // Good entropy coder
-            configMap.put("blockSize", 4194304);                // 4MB blocks
+            configMap.put("entropy", "TPAQ");                   // Text and structured data
+            configMap.put("blockSize", 8 * 1024 * 1024);        // 8MB blocks
             configMap.put("level", 9);                          // Max. compression level
             configMap.put("checksum", 64);                      // Enable checksums
 

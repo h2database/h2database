@@ -69,15 +69,16 @@ public class Recover extends Tool implements DataHandler {
 
     private String databaseName;
     private int storageId;
-    private String storageName;
-    private int recordLength;
+    String storageName;
+    int recordLength;
     private int valueId;
-    private boolean trace;
+    boolean trace;
     private ArrayList<MetaRecord> schema;
     private HashSet<Integer> objectIdSet;
     private HashMap<Integer, String> tableMap;
     private HashMap<String, String> columnTypeMap;
     private boolean lobMaps;
+
 
     /**
      * Options are case sensitive.
@@ -202,13 +203,13 @@ public class Recover extends Tool implements DataHandler {
         return new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8));
     }
 
-    private void trace(String message) {
+    void trace(String message) {
         if (trace) {
             out.println(message);
         }
     }
 
-    private void traceError(String message, Throwable t) {
+    void traceError(String message, Throwable t) {
         out.println(message + ": " + t.toString());
         if (trace) {
             t.printStackTrace(out);
@@ -250,7 +251,7 @@ public class Recover extends Tool implements DataHandler {
         }
     }
 
-    private PrintWriter getWriter(String fileName, String suffix) {
+    PrintWriter getWriter(String fileName, String suffix) {
         fileName = fileName.substring(0, fileName.length() - 3);
         String outputFile = fileName + suffix;
         trace("Created file: " + outputFile);
@@ -262,7 +263,7 @@ public class Recover extends Tool implements DataHandler {
         }
     }
 
-    private void getSQL(StringBuilder builder, String column, Value v) {
+    void getSQL(StringBuilder builder, String column, Value v) {
         if (v instanceof ValueLob) {
             ValueLob lob = (ValueLob) v;
             LobData lobData = lob.getLobData();
@@ -296,7 +297,7 @@ public class Recover extends Tool implements DataHandler {
         v.getSQL(builder, HasSQL.NO_CASTS);
     }
 
-    private void setDatabaseName(String name) {
+    void setDatabaseName(String name) {
         databaseName = name;
     }
 
@@ -406,21 +407,21 @@ public class Recover extends Tool implements DataHandler {
         }
     }
 
-    private static void dumpLayout(PrintWriter writer, MVStore mv) {
+    static void dumpLayout(PrintWriter writer, MVStore mv) {
         Map<String, String> layout = mv.getLayoutMap();
         for (Entry<String, String> e : layout.entrySet()) {
             writer.println("-- " + e.getKey() + " = " + e.getValue());
         }
     }
 
-    private static void dumpMeta(PrintWriter writer, MVStore mv) {
+    static void dumpMeta(PrintWriter writer, MVStore mv) {
         MVMap<String, String> meta = mv.getMetaMap();
         for (Entry<String, String> e : meta.entrySet()) {
             writer.println("-- " + e.getKey() + " = " + e.getValue());
         }
     }
 
-    private static void dumpTypes(PrintWriter writer, MVStore mv) {
+    static void dumpTypes(PrintWriter writer, MVStore mv) {
         MVMap.Builder<String, DataType<?>> builder = new MVMap.Builder<String, DataType<?>>()
                                                 .keyType(StringDataType.INSTANCE)
                                                 .valueType(new MetaType<>(null, null));
@@ -430,7 +431,7 @@ public class Recover extends Tool implements DataHandler {
         }
     }
 
-    private void dumpLobMaps(PrintWriter writer, MVStore mv) {
+    void dumpLobMaps(PrintWriter writer, MVStore mv) {
         lobMaps = mv.hasMap("lobData");
         if (!lobMaps) {
             return;
@@ -487,13 +488,13 @@ public class Recover extends Tool implements DataHandler {
         }
     }
 
-    private String setStorage(int storageId) {
+    String setStorage(int storageId) {
         this.storageId = storageId;
         this.storageName = "O_" + Integer.toString(storageId).replace('-', 'M');
         return storageName;
     }
 
-    private void writeMetaRow(Row r) {
+    void writeMetaRow(Row r) {
         MetaRecord meta = new MetaRecord(r);
         int objectType = meta.getObjectType();
         if (objectType == DbObject.INDEX && meta.getSQL().startsWith("CREATE PRIMARY KEY ")) {
@@ -505,14 +506,14 @@ public class Recover extends Tool implements DataHandler {
         }
     }
 
-    private void resetSchema() {
+    void resetSchema() {
         schema = new ArrayList<>();
         objectIdSet = new HashSet<>();
         tableMap = new HashMap<>();
         columnTypeMap = new HashMap<>();
     }
 
-    private void writeSchemaSET(PrintWriter writer) {
+    void writeSchemaSET(PrintWriter writer) {
         writer.println("---- Schema SET ----");
         for (MetaRecord m : schema) {
             if (m.getObjectType() == DbObject.SETTING) {
@@ -522,7 +523,7 @@ public class Recover extends Tool implements DataHandler {
         }
     }
 
-    private void writeSchema(PrintWriter writer) {
+    void writeSchema(PrintWriter writer) {
         writer.println("---- Schema ----");
         Collections.sort(schema);
         for (MetaRecord m : schema) {
@@ -607,7 +608,7 @@ public class Recover extends Tool implements DataHandler {
         return false;
     }
 
-    private void createTemporaryTable(PrintWriter writer) {
+    void createTemporaryTable(PrintWriter writer) {
         if (!objectIdSet.contains(storageId)) {
             objectIdSet.add(storageId);
             writer.write("CREATE TABLE ");
@@ -663,7 +664,7 @@ public class Recover extends Tool implements DataHandler {
     }
 
 
-    private void writeError(PrintWriter writer, Throwable e) {
+    void writeError(PrintWriter writer, Throwable e) {
         if (writer != null) {
             writer.println("// error: " + e);
         }

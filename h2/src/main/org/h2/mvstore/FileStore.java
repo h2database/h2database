@@ -1085,7 +1085,7 @@ public abstract class FileStore<C extends Chunk<C>>
     }
 
     private Iterable<C> getChunksFromLayoutMap(MVMap<String, String> layoutMap) {
-        return () -> new Iterator<>() {
+        return () -> new Iterator<C>() {
             private final Cursor<String, String> cursor = layoutMap.cursor(DataUtils.LAYOUT_CHUNK);
             private C nextChunk;
 

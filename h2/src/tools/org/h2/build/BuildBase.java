@@ -886,9 +886,14 @@ public class BuildBase {
      * @return the Java version (8, 9, 10, 11, 12, 13, etc)
      */
     public static int getJavaVersion() {
-        int version = 11;
+        int version = 8;
         String v = getJavaSpecVersion();
         if (v != null) {
+            int idx = v.indexOf('.');
+            if (idx >= 0) {
+                // 1.8
+                v = v.substring(idx + 1);
+            }
             version = Integer.parseInt(v);
         }
         return version;

@@ -257,7 +257,6 @@ public class TcpServer implements Service {
         try {
             while (!stop) {
                 Socket s = serverSocket.accept();
-                Utils10.setTcpQuickack(s, true);
                 int id = nextThreadId++;
                 TcpServerThread c = new TcpServerThread(s, this, id);
                 running.add(c);

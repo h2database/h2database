@@ -197,7 +197,6 @@ public class PgServer implements Service {
                     trace("Connection not allowed");
                     s.close();
                 } else {
-                    Utils10.setTcpQuickack(s, true);
                     PgServerThread c = new PgServerThread(s, this);
                     running.add(c);
                     int id = pid.incrementAndGet();

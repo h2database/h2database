@@ -21,8 +21,6 @@ public class AbbaDetector {
 
     private static final ThreadLocal<Deque<Object>> STACK = ThreadLocal.withInitial(ArrayDeque::new);
 
-    private static final StackWalker STACK_WALKER = StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE);
-
     /**
      * Map of (object A) -> (
      *      map of (object locked before object A) ->
@@ -42,7 +40,9 @@ public class AbbaDetector {
      */
     public static Object begin(Object o) {
         if (o == null) {
-            o = STACK_WALKER.getCallerClass();
+            o = new SecurityManager() {
+                Class<?> clazz = getClassContext()[2];
+            }.clazz;
         }
         Deque<Object> stack = STACK.get();
         if (!stack.isEmpty()) {

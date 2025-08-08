@@ -1,5 +1,5 @@
 [![CI](h2/src/docsrc/images/h2-logo-2.png)](https://github.com/h2database/h2database/actions?query=workflow%3ACI)
-# Welcome to H2, the Java SQL database.
+# Welcome to the Java 8 port of H2, the Java SQL database.
 
 ## The main features of H2 are:
 
@@ -14,17 +14,20 @@
 
 More information: https://h2database.com
 
+__The work on this fork was graciously sponsored by [XSO](xso.nl).__
+
 ## Downloads
 
-[Download latest version](https://h2database.com/html/download.html) or add to `pom.xml`:
+There is currently no download or Maven dependency available for the Java 8 fork of H2.  
 
-```XML
-<dependency>
-    <groupId>com.h2database</groupId>
-    <artifactId>h2</artifactId>
-    <version>2.3.232</version>
-</dependency>
-```
+You can easily build it locally with any JDK for Java 8 or later:
+
+* `git clone` this repository.
+* `git checkout backport-java8-2.3.232` for a backport of `version-2.3.232`, or
+`git checkout backport-java8`
+ for the latest available backport of the `master` branch.
+* `cd h2; ./build-backport-java8.sh`
+
 
 ## Documentation
 

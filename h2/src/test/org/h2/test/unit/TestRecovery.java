@@ -171,7 +171,7 @@ public class TestRecovery extends TestDb {
         ByteArrayOutputStream buff = new ByteArrayOutputStream();
         rec.setOut(new PrintStream(buff, false, "UTF-8"));
         rec.runTool("-dir", getBaseDir(), "-db", "recovery", "-trace");
-        String out = buff.toString(StandardCharsets.UTF_8);
+        String out = buff.toString(StandardCharsets.UTF_8.name());
         assertContains(out, "Created file");
 
         Connection conn2 = getConnection("recovery2");
@@ -214,7 +214,7 @@ public class TestRecovery extends TestDb {
         final ByteArrayOutputStream buff = new ByteArrayOutputStream(); // capture the console output
         recover.setOut(new PrintStream(buff, false, "UTF-8"));
         recover.runTool("-dir", getBaseDir(), "-db", "recovery", "-trace");
-        String consoleOut = buff.toString(StandardCharsets.UTF_8);
+        String consoleOut = buff.toString(StandardCharsets.UTF_8.name());
         assertContains(consoleOut, "Created file");
 
         Connection conn2 = getConnection("recovery2");

@@ -12,6 +12,10 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
 import org.h2.api.ErrorCode;
 import org.h2.command.Prepared;
 import org.h2.engine.Constants;
@@ -61,6 +65,9 @@ abstract class ScriptBase extends Prepared {
     private String cipher;
     private FileStore store;
     private String compressionAlgorithm;
+
+    // supervisor for parallel (de-)compression
+    ExecutorService executor = null;
 
     ScriptBase(SessionLocal session) {
         super(session);
@@ -145,7 +152,11 @@ abstract class ScriptBase extends Prepared {
                 throw DbException.convertIOException(e, null);
             }
             out = new BufferedOutputStream(o, Constants.IO_BUFFER_SIZE);
-            out = CompressTool.wrapOutputStream(out, compressionAlgorithm, SCRIPT_SQL);
+
+            if ("kanzi".equalsIgnoreCase(compressionAlgorithm) && executor==null) {
+                executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+            }
+            out = CompressTool.wrapOutputStream(out, compressionAlgorithm, SCRIPT_SQL, executor);
         }
     }
 
@@ -169,7 +180,11 @@ abstract class ScriptBase extends Prepared {
             } catch (IOException e) {
                 throw DbException.convertIOException(e, file);
             }
-            in = CompressTool.wrapInputStream(in, compressionAlgorithm, SCRIPT_SQL);
+
+            if ("kanzi".equalsIgnoreCase(compressionAlgorithm) && executor==null) {
+                executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+            }
+            in = CompressTool.wrapInputStream(in, compressionAlgorithm, SCRIPT_SQL, executor);
             if (in == null) {
                 throw DbException.get(ErrorCode.FILE_NOT_FOUND_1, SCRIPT_SQL + " in " + file);
             }
@@ -181,6 +196,16 @@ abstract class ScriptBase extends Prepared {
      * Close input and output streams.
      */
     void closeIO() {
+        if (executor!=null) {
+            executor.shutdown();
+            try {
+                executor.awaitTermination(1, TimeUnit.DAYS);
+            } catch (InterruptedException ignore) {
+                // really nothing we can do here
+            }
+            executor = null;
+        }
+
         IOUtils.closeSilently(out);
         out = null;
         IOUtils.closeSilently(reader);

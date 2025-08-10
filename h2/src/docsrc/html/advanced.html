@@ -1027,6 +1027,7 @@ consult the source code of the listener and test application.
 </p>
 
 <h2 id="using_recover_tool">Using the Recover Tool</h2>
+<h3 id="traditional_two_phase_recover_tool">Traditional 2-phase Recover</h3>
 <p>
 The <code>Recover</code> tool can be used to extract the contents of a database file, even if the database is corrupted.
 It also extracts the content of the transaction log and large objects (CLOB or BLOB).
@@ -1036,17 +1037,15 @@ To run the tool, type on the command line:
 java -cp h2*.jar org.h2.tools.Recover
 </pre>
 <p>
-For each database in the current directory, a text file will be created.
-This file contains raw insert statements (for the data) and data definition (DDL) statements to recreate
+For each database in the current directory, a text-dump file (*.mv.txt) and a SQL script file (*.h2.sql) will be created.
+Those uncompressed files are rather large, taking approximately twice the filespace of the database.</p>
+<p>The SQL script file contains raw insert statements (for the data) and data definition (DDL) statements to recreate
 the schema of the database. This file can be executed using the <code>RunScript</code> tool or a
 <a href="https://h2database.com/html/commands.html#runscript"><code>RUNSCRIPT</code></a> SQL statement.
 The script includes at least one
 <code>CREATE USER</code> statement. If you run the script against a database that was created with the same
 user, or if there are conflicting users, running the script will fail. Consider running the script
-against a database that was created with a user name that is not in the script.
-</p>
-<p>
-The <code>Recover</code> tool creates a SQL script from database file. It also processes the transaction log.
+against a database that was created with a username that is not in the script.
 </p>
 <p>
 To verify the database can recover at any time, append <code>;RECOVER_TEST=64</code>
@@ -1054,6 +1053,38 @@ to the database URL in your test environment. This will simulate an application 
 A log file named <code>databaseName.h2.db.log</code> is created that lists the operations.
 The recovery is tested using an in-memory file system, that means it may require a larger heap setting.
 </p>
+<h3 id="direct_one_phase_recover_tool">Direct Recover</h3>
+<p>Since H2-2.3.239 there is an enhanced <code>DirectRecover</code> tool which features:</p>
+<ul>
+    <li>Direct output into SQL-script (using a pipe)</li>
+    <li>Compression using ZIP, GZIP,  KANZI (when in classpath) or BZip2 (when in classpath)</li>
+</ul>
+<p>Especially KANZI can be useful for very large databases on servers with many CPU cores as it yields in very small SQL script files. Its compression ratio beats BZip2 at a much faster speed.</p>
+<pre>
+# Database: testdb.mv.db (1.7GB)
+
+# parallel compression using KANZI from https://github.com/flanglet/kanzi
+java -Xmx8g -cp "h2-2.3.239-SNAPSHOT.jar:kanzi-2.4.0.jar" org.h2.tools.DirectRecover -dir ~/ -db testdb -compress kanzi
+
+# serial compression using BZip2 from https://dlcdn.apache.org/commons/compress/binaries/
+java -Xmx8g -cp "h2-2.3.239-SNAPSHOT.jar:commons-compress-1.28.0.jar" org.h2.tools.DirectRecover -dir ~/ -db testdb -compress bzip2
+
+# serial compression using GZIP w/o any additional libraries
+java -Xmx8g -cp "h2-2.3.239-SNAPSHOT.jar" org.h2.tools.DirectRecover -dir ~/ -db testdb -compress gzip
+
+# resulting SQL script files on a AMD Zen3 Ryzen5:
+# KANZI: testdb.h2.sql.knz (114.1 MB in 128 secs)
+# BZip2: testdb.h2.sql.bz2 (153.7 MB in 18 mins)
+# GZip:  testdb.h2.sql.gz  (207.4 MB in 74 secs)
+</pre>
+<p>Since H2-2.3.239 the <code>RunScript</code> tool can read the KANZI or BZip2 compressed script files directly when the libraries are added to the classpath:</p>
+<pre>
+#KANZI from https://github.com/flanglet/kanzi
+java -Xmx8G -cp "h2-2.3.239-SNAPSHOT.jar:kanzi-2.4.0.jar" org.h2.tools.RunScript -url jdbc:h2:~/testdb -user sa -script ~/testdb.h2.sql.knz -options "COMPRESSION kanzi"
+
+#BZIP2 from https://dlcdn.apache.org/commons/compress/binaries/
+java -Xmx8G -cp "h2-2.3.239-SNAPSHOT.jar:commons-compress-1.28.0.jar" org.h2.tools.RunScript -url jdbc:h2:~/testdb -user sa -script ~/testdb.h2.sql.bz2 -options "COMPRESSION bzip2"
+</pre>
 
 <h2 id="file_locking_protocols">File Locking Protocols</h2>
 <p>

@@ -13,7 +13,6 @@ import java.io.PipedReader;
 import java.io.PipedWriter;
 import java.io.PrintWriter;
 import java.io.File;
-import java.lang.reflect.Constructor;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -113,7 +112,7 @@ import org.h2.value.ValueCollectionBase;
  *
  * <h2>Performance Notes:</h2>
  * <ul>
- * <li><strong>Streaming:</strong> Memory usage is bounded (~64KB) regardless of database size</li>
+ * <li><strong>Streaming:</strong> Memory usage is bounded (~256KB) regardless of database size</li>
  * <li><strong>Parallel:</strong> Dump generation and SQL writing happen simultaneously</li>
  * <li><strong>Compression:</strong> Applied on-the-fly, no temporary uncompressed files</li>
  * <li><strong>Large Databases:</strong> Designed to handle multi-GB databases efficiently</li>
@@ -128,20 +127,7 @@ import org.h2.value.ValueCollectionBase;
  *
  */
 public class DirectRecover extends Recover {
-    public static final String KANZI_CLASS_NAME = "io.github.flanglet.kanzi.io.CompressedOutputStream";
-    public static final String BZIP2_CLASS_NAME = "org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream";
     private ExecutorService kanziExecutor = null;
-
-    /**
-     * Compression types for SQL output
-     */
-    public enum CompressionType {
-        NONE,
-        GZIP,
-        ZIP,
-        BZIP2,
-        KANZI
-    }
 
     private CompressionType compressionType = CompressionType.NONE;
     private boolean debugMode = false;
@@ -185,8 +171,8 @@ public class DirectRecover extends Recover {
                 }
             }
 
-            bar.append(String.format("] %3d%% (%s)", progress, formatBytes(current)));
-            System.out.print(bar.toString());
+            bar.append(String.format("] %3d%% ", progress));
+            System.out.print(bar);
             System.out.flush();
 
             if (progress >= 100) {
@@ -198,13 +184,6 @@ public class DirectRecover extends Recover {
             if (lastProgress < 100) {
                 System.out.println(); // Ensure we end with a newline
             }
-        }
-
-        private String formatBytes(long bytes) {
-            if (bytes < 1024) return bytes + " B";
-            if (bytes < 1024 * 1024) return (bytes / 1024) + " KB";
-            if (bytes < 1024 * 1024 * 1024) return (bytes / (1024 * 1024)) + " MB";
-            return (bytes / (1024 * 1024 * 1024)) + " GB";
         }
     }
 
@@ -325,7 +304,7 @@ public class DirectRecover extends Recover {
                         debug("Creating pipes for: " + fileName);
                         // Create pipe for ASCII dump -> SQL conversion
                         pipeWriter = new PipedWriter();
-                        pipeReader = new PipedReader(pipeWriter, 64 * 1024); // 64KB buffer
+                        pipeReader = new PipedReader(pipeWriter, 256 * 1024); // 256k buffer
 
                         final PipedWriter finalPipeWriter = pipeWriter;
                         final PipedReader finalPipeReader = pipeReader;
@@ -542,7 +521,7 @@ public class DirectRecover extends Recover {
                                 // Ensure Kanzi stream is properly closed
                                 if (kanziExecutor!=null) {
                                     kanziExecutor.shutdown();
-                                    kanziExecutor.awaitTermination(1, TimeUnit.DAYS);
+                                    boolean b = kanziExecutor.awaitTermination(1, TimeUnit.DAYS);
                                 }
                                 compressedOut.close();
                                 debug("KANZI writer closed successfully.");
@@ -591,93 +570,13 @@ public class DirectRecover extends Recover {
     private OutputStream createCompressedStream(CompressionType type, OutputStream baseOutputStream) throws Exception {
         switch (type) {
             case BZIP2:
-                return createBZip2Stream(baseOutputStream);
+                return CompressTool.createBZip2OutputStream(baseOutputStream);
             case KANZI:
-                return createKanziStream(baseOutputStream);
+                int n = Runtime.getRuntime().availableProcessors();
+                kanziExecutor = Executors.newFixedThreadPool(n);
+                return CompressTool.createKanziOutputStream(baseOutputStream, kanziExecutor);
             default:
                 return baseOutputStream;
-        }
-    }
-
-    /**
-     * Creates a BZip2 compressed stream using reflection.
-     */
-    private OutputStream createBZip2Stream(OutputStream baseOutputStream) throws Exception {
-        try {
-            // Try Apache Commons Compress first
-            Class<?> bzip2Class = Class.forName(BZIP2_CLASS_NAME);
-            Constructor<?> constructor = bzip2Class.getConstructor(OutputStream.class);
-            return (OutputStream) constructor.newInstance(baseOutputStream);
-        } catch (ClassNotFoundException e) {
-            throw new Exception("BZip2 compression requires Apache Commons Compress library. " +
-                    "Add commons-compress to your classpath.", e);
-        }
-    }
-
-    /**
-     * Creates a Kanzi compressed stream using reflection.
-     */
-    private OutputStream createKanziStream(OutputStream baseOutputStream) throws Exception {
-        try {
-            debug("KANZI: Starting Kanzi stream creation");
-
-            // Load Kanzi classes using reflection
-            Class<?> kanziOutputStreamClass = Class.forName(KANZI_CLASS_NAME);
-            debug("KANZI: Found CompressedOutputStream class");
-
-            // Create configuration map with proper Kanzi parameters
-            java.util.Map<String, Object> configMap = new java.util.HashMap<>();
-
-            // Basic compression settings
-            configMap.put("transform", "BWT+RANK+ZRLT+MTFT");   // Good for text
-            configMap.put("entropy", "TPAQ");                   // Text and structured data
-            configMap.put("blockSize", 8 * 1024 * 1024);        // 8MB blocks
-            configMap.put("level", 9);                          // Max. compression level
-            configMap.put("checksum", 64);                      // Enable checksums
-
-            int n = Runtime.getRuntime().availableProcessors();
-            kanziExecutor = Executors.newFixedThreadPool(n);
-            configMap.put("pool", kanziExecutor);               // Multi-threaded
-            configMap.put("jobs", n);
-
-
-            debug("KANZI: Created config map: " + configMap);
-
-            // Try the 2-parameter constructor first
-            try {
-                Constructor<?> constructor = kanziOutputStreamClass.getConstructor(
-                        OutputStream.class,
-                        java.util.Map.class
-                );
-                debug("KANZI: Found 2-parameter constructor, attempting creation...");
-                OutputStream result = (OutputStream) constructor.newInstance(baseOutputStream, configMap);
-                debug("KANZI: Successfully created Kanzi stream with 2-parameter constructor");
-                return result;
-            } catch (Exception e) {
-                debug("KANZI: 2-parameter constructor failed: " + e.getClass().getSimpleName() + ": " + e.getMessage());
-                throw e;
-            }
-
-        } catch (ClassNotFoundException e) {
-            debug("KANZI: ClassNotFoundException: " + e.getMessage());
-            throw new Exception("Kanzi compression requires Kanzi library. " +
-                    "Add kanzi.jar to your classpath. Download from: https://github.com/flanglet/kanzi-java", e);
-        } catch (Exception e) {
-            debug("KANZI: Exception during initialization: " + e.getClass().getSimpleName() + ": " + e.getMessage());
-
-            // Print the full stack trace for debugging
-            e.printStackTrace();
-
-            // If it's an InvocationTargetException, also print the cause
-            if (e instanceof java.lang.reflect.InvocationTargetException) {
-                Throwable cause = e.getCause();
-                if (cause != null) {
-                    debug("KANZI: Root cause: " + cause.getClass().getSimpleName() + ": " + cause.getMessage());
-                    cause.printStackTrace();
-                }
-            }
-
-            throw new Exception("Failed to initialize Kanzi compression: " + e.getMessage(), e);
         }
     }
 
@@ -904,14 +803,14 @@ public class DirectRecover extends Recover {
         switch (type) {
             case BZIP2:
                 try {
-                    Class.forName(BZIP2_CLASS_NAME);
+                    Class.forName(CompressTool.BZIP2_OUTPUT_CLASS_NAME);
                     return true;
                 } catch (ClassNotFoundException e) {
                     return false;
                 }
             case KANZI:
                 try {
-                    Class.forName(KANZI_CLASS_NAME);
+                    Class.forName(CompressTool.KANZI_OUTPUT_CLASS_NAME);
                     return true;
                 } catch (ClassNotFoundException e) {
                     return false;

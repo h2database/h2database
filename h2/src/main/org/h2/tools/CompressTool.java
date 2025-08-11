@@ -82,23 +82,6 @@ public class CompressTool {
         }
     }
 
-    public static int determineBlockSize() {
-        long freeMemory = Runtime.getRuntime().freeMemory() / 2;
-        long blockSize = 1L * 1024 * 1024; // start with 1MB
-        long maxBlockSize = 1024L * 1024 * 1024; // 1GB
-
-        // Increase block size while quadrupling each step (1MB -> 4MB -> 8MB -> ...)
-        while (blockSize < maxBlockSize && blockSize * 4 <= freeMemory) {
-            blockSize *= 2; // doubling per step (1, 2, 4, 8, 16, etc.)
-            if (blockSize >= 4 * 1024 * 1024) {
-                // Adjust to the pattern: 1MB, 4MB, then doubling
-                blockSize *= 2;
-            }
-        }
-
-        return (int) blockSize;
-    }
-
     /**
      * Creates a Kanzi compressing output stream using reflection.
      */
@@ -116,9 +99,9 @@ public class CompressTool {
             //  85411430 kanzi -x64 -b 256m -t TEXT+RLT+LZP+PACK -e TPAQX
             //  85397152 kanzi -x64 -b 256m -t TEXT+RLT+LZP+PACK+RLT -e TPAQX
 
-            configMap.put("transform", "TEXT+RLT+LZP+PACK+RLT");// Good for text
+            configMap.put("transform", "TEXT+RLT+LZP+PACK+RLT");// Good for SQL dump
             configMap.put("entropy", "TPAQ");                   // Text and structured data
-            configMap.put("blockSize", 64 * 1024 * 1024);       // 128MB blocks
+            configMap.put("blockSize", 64 * 1024 * 1024);       // 64MB blocks
             configMap.put("level", 9);                          // Max. compression level
             configMap.put("checksum", 64);                      // Enable checksums
 

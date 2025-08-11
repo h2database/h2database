@@ -15,6 +15,8 @@ public enum CompressionType {
     LZF;
 
     public static CompressionType from(String type) {
-        return  Enum.valueOf(CompressionType.class, type.toUpperCase(Locale.ENGLISH));
+        return type==null || type.isEmpty()
+            ? NONE
+            : Enum.valueOf(CompressionType.class, type.toUpperCase(Locale.ENGLISH));
     }
 }

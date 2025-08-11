@@ -110,10 +110,15 @@ public class CompressTool {
             // Create configuration map with proper Kanzi parameters
             java.util.Map<String, Object> configMap = new java.util.HashMap<>();
 
-            // Basic compression settings
-            configMap.put("transform", "LZP+BWT");              // Good for text
-            configMap.put("entropy", "CM");                     // Text and structured data
-            configMap.put("blockSize", 128 * 1024 * 1024);      // 128MB blocks
+            //  Best compression settings (brute tested on a 1.7 GB database)
+            //  88658331 kanzi -x64 -b 256m -t RLT+PACK+LZP -e TPAQX
+            //  88654035 kanzi -x64 -b 256m -t RLT+PACK+LZP+RLT -e TPAQX
+            //  85411430 kanzi -x64 -b 256m -t TEXT+RLT+LZP+PACK -e TPAQX
+            //  85397152 kanzi -x64 -b 256m -t TEXT+RLT+LZP+PACK+RLT -e TPAQX
+
+            configMap.put("transform", "TEXT+RLT+LZP+PACK+RLT");// Good for text
+            configMap.put("entropy", "TPAQ");                   // Text and structured data
+            configMap.put("blockSize", 64 * 1024 * 1024);       // 128MB blocks
             configMap.put("level", 9);                          // Max. compression level
             configMap.put("checksum", 64);                      // Enable checksums
 
@@ -153,6 +158,8 @@ public class CompressTool {
                     InputStream.class,
                     java.util.Map.class
             );
+            // workaround Zero byte EOF issue
+            // it has been fixed only recently so we should still guard for a while
             return new ZeroBytesEOFInputStream( (InputStream) constructor.newInstance(inputStream, configMap));
 
         } catch (ClassNotFoundException e) {

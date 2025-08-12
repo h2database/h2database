@@ -19,6 +19,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.h2.engine.Constants;
 import org.h2.util.NetworkConnectionInfo;
 
 /**
@@ -126,7 +127,7 @@ public class WebServlet extends HttpServlet {
             builder.append(':').append(serverPort);
         }
         String path = builder.append(req.getContextPath()).toString();
-        file = app.processRequest(file, new NetworkConnectionInfo(path, req.getRemoteAddr(), req.getRemotePort()));
+        file = app.processRequest(file, new NetworkConnectionInfo(path, Constants.VERSION, req.getRemoteAddr(), req.getRemotePort()));
         session = app.getSession();
 
         String mimeType = app.getMimeType();

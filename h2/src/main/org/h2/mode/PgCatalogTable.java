@@ -11,6 +11,7 @@ import java.util.HashSet;
 import org.h2.constraint.Constraint;
 import org.h2.engine.Constants;
 import org.h2.engine.RightOwner;
+import org.h2.engine.Session;
 import org.h2.engine.SessionLocal;
 import org.h2.engine.User;
 import org.h2.index.Index;
@@ -30,6 +31,7 @@ import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueBoolean;
+import org.h2.value.ValueChar;
 import org.h2.value.ValueDouble;
 import org.h2.value.ValueInteger;
 import org.h2.value.ValueSmallint;
@@ -113,6 +115,7 @@ public final class PgCatalogTable extends MetaTable {
             cols = new Column[] { //
                     column("OID", TypeInfo.TYPE_INTEGER), //
                     column("AMNAME", TypeInfo.TYPE_VARCHAR), //
+                    column("AMCANORDER", TypeInfo.TYPE_BOOLEAN), //
             };
             break;
         case PG_ATTRDEF:
@@ -138,6 +141,8 @@ public final class PgCatalogTable extends MetaTable {
                     column("ATTNOTNULL", TypeInfo.TYPE_BOOLEAN), //
                     column("ATTISDROPPED", TypeInfo.TYPE_BOOLEAN), //
                     column("ATTHASDEF", TypeInfo.TYPE_BOOLEAN), //
+                    column("ATTIDENTITY", TypeInfo.getTypeInfo( Value.CHAR, 1, -1, null)), //
+                    column("ATTGENERATED", TypeInfo.getTypeInfo(Value.CHAR, 1, -1, null)), //
             };
             break;
         case PG_AUTHID:
@@ -228,6 +233,7 @@ public final class PgCatalogTable extends MetaTable {
                     column("INDEXPRS", TypeInfo.TYPE_VARCHAR), //
                     column("INDKEY", TypeInfo.getTypeInfo(Value.ARRAY, -1L, 0, TypeInfo.TYPE_INTEGER)), //
                     column("INDPRED", TypeInfo.TYPE_VARCHAR), // pg_node_tree
+                    column("INDOPTION", TypeInfo.getTypeInfo(Value.ARRAY, -1L, 0, TypeInfo.TYPE_SMALLINT)), //
             };
             break;
         case PG_INHERITS:
@@ -344,7 +350,10 @@ public final class PgCatalogTable extends MetaTable {
                         // OID
                         ValueInteger.get(i),
                         // AMNAME
-                        am[i]);
+                        am[i],
+                        // AMCANORDER
+                        ValueBoolean.FALSE
+                );
             }
             break;
         }
@@ -641,7 +650,20 @@ public final class PgCatalogTable extends MetaTable {
                 // ATTISDROPPED
                 ValueBoolean.FALSE,
                 // ATTHASDEF
-                ValueBoolean.FALSE);
+                ValueBoolean.FALSE,
+                // ATTIDENTITY
+                getAttributeIdentity(column),
+                // ATTGENERATED
+                column.isGenerated() ? ValueChar.get("s") : ValueChar.get("")
+        );
+    }
+
+    private ValueChar getAttributeIdentity(final Column column) {
+        if (column.isIdentity()) {
+            return ValueChar.get(column.isGeneratedAlways() ? "a" : "d");
+        } else {
+            return ValueChar.get("");
+        }
     }
 
     private void addClass(SessionLocal session, ArrayList<Row> rows, int id, String name, int schema, String kind,

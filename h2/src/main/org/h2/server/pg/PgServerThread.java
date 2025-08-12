@@ -31,7 +31,6 @@ import org.h2.api.ErrorCode;
 import org.h2.command.Command;
 import org.h2.command.CommandInterface;
 import org.h2.engine.ConnectionInfo;
-import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Engine;
 import org.h2.engine.SessionLocal;
@@ -284,11 +283,12 @@ public final class PgServerThread implements Runnable {
                 if (server.getIfExists()) {
                     ci.setProperty("FORBID_CREATION", "TRUE");
                 }
-                ci.setNetworkConnectionInfo(new NetworkConnectionInfo( //
-                        NetUtils.ipToShortForm(new StringBuilder("pg://"), //
-                                socket.getLocalAddress().getAddress(), true) //
-                                .append(':').append(socket.getLocalPort()).toString(), //
-                        socket.getInetAddress().getAddress(), socket.getPort(), null));
+                ci.setNetworkConnectionInfo(new NetworkConnectionInfo(
+                        NetUtils.ipToShortForm(new StringBuilder("pg://"), socket.getLocalAddress().getAddress(), true).append(':').append(socket.getLocalPort()).toString(),
+						server.getEmulatedVersion(),
+                        socket.getInetAddress().getAddress(), socket.getPort(),
+						null)
+				);
                 session = Engine.createSession(ci);
                 initDb();
                 sendAuthenticationOk();
@@ -458,7 +458,6 @@ public final class PgServerThread implements Runnable {
         case 'Q': {
             server.trace("Query");
             String query = readString();
-            @SuppressWarnings("resource")
             ScriptReader reader = new ScriptReader(new StringReader(query));
             while (true) {
                 String s = reader.readStatement();
@@ -1199,7 +1198,7 @@ public final class PgServerThread implements Runnable {
         sendParameterStatus("DateStyle", dateStyle);
         sendParameterStatus("is_superuser", "off");
         sendParameterStatus("server_encoding", "SQL_ASCII");
-        sendParameterStatus("server_version", Constants.PG_VERSION);
+        sendParameterStatus("server_version", server.getEmulatedVersion());
         sendParameterStatus("session_authorization", userName);
         sendParameterStatus("standard_conforming_strings", "off");
         sendParameterStatus("TimeZone", pgTimeZone(timeZone.getId()));

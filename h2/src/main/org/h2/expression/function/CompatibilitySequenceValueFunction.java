@@ -62,6 +62,10 @@ public final class CompatibilitySequenceValueFunction extends Function1_2 {
         Sequence seq = s.findSequence(sequenceName);
         if (seq == null) {
             sequenceName = StringUtils.toUpperEnglish(sequenceName);
+            seq = s.findSequence(sequenceName);
+        }
+        if (seq == null) {
+            sequenceName = database.sysIdentifier(sequenceName);
             seq = s.getSequence(sequenceName);
         }
         return (current ? session.getCurrentValueFor(seq) : session.getNextValueFor(seq, null)).convertTo(type);

@@ -177,6 +177,31 @@ public abstract class Token implements Cloneable {
      */
     static final int NOT_TILDE = COLON_EQ + 1;
 
+    /**
+     * The token "&".
+     */
+    static final int BITWISE_AND = NOT_TILDE + 1;
+
+    /**
+     * The token "|"
+     */
+    static final int BITWISE_OR = BITWISE_AND + 1;
+
+    /**
+     * The token "#"
+     */
+    static final int BITWISE_XOR = BITWISE_OR + 1;
+
+    /**
+     * The token "<<"
+     */
+    static final int BITWISE_SHIFT_LEFT = BITWISE_XOR + 1;
+
+    /**
+     * The token ">>"
+     */
+    static final int BITWISE_SHIFT_RIGHT = BITWISE_SHIFT_LEFT + 1;
+
     static final String[] TOKENS = {
             // Unused
             null,
@@ -424,6 +449,16 @@ public abstract class Token implements Cloneable {
             ":=",
             // NOT_TILDE
             "!~",
+            // BITWISE_AND
+            "&",
+            // BITWISE_OR
+            "|",
+            // BITWISE_XOR
+            "#",
+            // BITWISE_SHIFT_LEFT
+            "<<",
+            // BITWISE_SHIFT_RIGHT
+            ">>",
             // End
     };
 

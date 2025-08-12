@@ -10,7 +10,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        java-version: [11, 17]
+        java-version: [11, 17, 21]
     name: Java ${{ matrix.java-version }}
     runs-on: ubuntu-latest
     steps:

@@ -9,6 +9,7 @@ import java.util.HashSet;
 
 import org.h2.api.Trigger;
 import org.h2.command.CommandInterface;
+import org.h2.command.dml.DeltaChangeCollector.ResultOption;
 import org.h2.command.query.AllColumnsForPlan;
 import org.h2.engine.DbObject;
 import org.h2.engine.Right;
@@ -17,14 +18,14 @@ import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.message.DbException;
 import org.h2.result.LocalResult;
-import org.h2.result.ResultTarget;
 import org.h2.result.Row;
-import org.h2.table.DataChangeDeltaTable.ResultOption;
 import org.h2.table.PlanItem;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
+
+import static org.h2.command.dml.DeltaChangeCollector.Action.DELETE;
 
 /**
  * This class represents the statement
@@ -36,9 +37,8 @@ public final class Delete extends FilteredDataChangeStatement {
         super(session);
     }
 
-
     @Override
-    public long update(ResultTarget deltaChangeCollector, ResultOption deltaChangeCollectionMode) {
+    public long update(final DeltaChangeCollector deltaChangeCollector) {
         targetTableFilter.startQuery(session);
         targetTableFilter.reset();
         Table table = targetTableFilter.getTable();
@@ -58,9 +58,7 @@ public final class Delete extends FilteredDataChangeStatement {
             while (nextRow(limitRows, count)) {
                 Row row = lockAndRecheckCondition();
                 if (row != null) {
-                    if (deltaChangeCollectionMode == ResultOption.OLD) {
-                        deltaChangeCollector.addRow(row.getValueList());
-                    }
+                    deltaChangeCollector.trigger(DELETE, ResultOption.OLD, row.getValueList());
                     if (!table.fireRow() || !table.fireBeforeRow(session, row, null)) {
                         rows.addRowForTable(row);
                     }
@@ -77,7 +75,7 @@ public final class Delete extends FilteredDataChangeStatement {
                 table.removeRow(session, row);
             }
             if (table.fireRow()) {
-                for (rows.reset(); rows.next();) {
+                for (rows.reset(); rows.next(); ) {
                     table.fireAfterRow(session, rows.currentRowForTable(), null, false);
                 }
             }
@@ -101,7 +99,7 @@ public final class Delete extends FilteredDataChangeStatement {
                 condition.createIndexConditions(session, targetTableFilter);
             }
         }
-        TableFilter[] filters = new TableFilter[] { targetTableFilter };
+        TableFilter[] filters = new TableFilter[]{targetTableFilter};
         PlanItem item = targetTableFilter.getBestPlanItem(session, filters, 0, new AllColumnsForPlan(filters),
                 /* isSelectCommand */false);
         targetTableFilter.setPlanItem(item);

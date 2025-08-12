@@ -15,6 +15,8 @@ public final class NetworkConnectionInfo {
 
     private final String server;
 
+    private final String serverVersion;
+
     private final byte[] clientAddr;
 
     private final int clientPort;
@@ -33,8 +35,8 @@ public final class NetworkConnectionInfo {
      * @throws UnknownHostException
      *             if clientAddr cannot be resolved
      */
-    public NetworkConnectionInfo(String server, String clientAddr, int clientPort) throws UnknownHostException {
-        this(server, InetAddress.getByName(clientAddr).getAddress(), clientPort, null);
+    public NetworkConnectionInfo(String server, String serverVersion, String clientAddr, int clientPort) throws UnknownHostException {
+        this(server, serverVersion, InetAddress.getByName(clientAddr).getAddress(), clientPort, null);
     }
 
     /**
@@ -49,8 +51,9 @@ public final class NetworkConnectionInfo {
      * @param clientInfo
      *            additional client information, or {@code null}
      */
-    public NetworkConnectionInfo(String server, byte[] clientAddr, int clientPort, String clientInfo) {
+    public NetworkConnectionInfo(String server, String serverVersion, byte[] clientAddr, int clientPort, String clientInfo) {
         this.server = server;
+        this.serverVersion = serverVersion;
         this.clientAddr = clientAddr;
         this.clientPort = clientPort;
         this.clientInfo = clientInfo;
@@ -63,6 +66,15 @@ public final class NetworkConnectionInfo {
      */
     public String getServer() {
         return server;
+    }
+
+    /**
+     * Returns the version of the server.
+     *
+     * @return the version of the server.
+     */
+    public String getServerVersion() {
+        return serverVersion;
     }
 
     /**

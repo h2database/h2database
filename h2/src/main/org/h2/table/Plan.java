@@ -43,7 +43,7 @@ public class Plan {
         }
         for (int i = 0; i < count; i++) {
             TableFilter f = filters[i];
-            f.visit(f1 -> {
+            f.visit((ColumnResolver.TableFilterVisitor) f1 -> {
                 all.add(f1);
                 if (f1.getJoinCondition() != null) {
                     allCond.add(f1.getJoinCondition());

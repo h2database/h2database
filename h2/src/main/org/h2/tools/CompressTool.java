@@ -93,20 +93,23 @@ public class CompressTool {
             // Create configuration map with proper Kanzi parameters
             java.util.Map<String, Object> configMap = new java.util.HashMap<>();
 
-            //  Best compression settings (brute tested on a 1.7 GB database)
+            //  Best compression settings (brute tested on a 1.7 GB database, 4.7GB SQL file)
             //  88658331 kanzi -x64 -b 256m -t RLT+PACK+LZP -e TPAQX
             //  88654035 kanzi -x64 -b 256m -t RLT+PACK+LZP+RLT -e TPAQX
             //  85411430 kanzi -x64 -b 256m -t TEXT+RLT+LZP+PACK -e TPAQX
             //  85397152 kanzi -x64 -b 256m -t TEXT+RLT+LZP+PACK+RLT -e TPAQX
 
             configMap.put("transform", "TEXT+RLT+LZP+PACK+RLT");// Good for SQL dump
-            configMap.put("entropy", "TPAQ");                   // Text and structured data
-            configMap.put("blockSize", 64 * 1024 * 1024);       // 64MB blocks
-            configMap.put("level", 9);                          // Max. compression level
+            configMap.put("entropy", "TPAQX");                  // Text and structured data
+            configMap.put("blockSize", 32 * 1024 * 1024);       // 32MB blocks
             configMap.put("checksum", 64);                      // Enable checksums
 
             configMap.put("pool", executor);                    // Multi-threaded
-            configMap.put("jobs", Runtime.getRuntime().availableProcessors());
+            if (Runtime.getRuntime().freeMemory() < 8L * 1024 * 1024 * 1024) {
+                configMap.put("jobs", 4);
+            } else {
+                configMap.put("jobs", Runtime.getRuntime().availableProcessors() / 2);
+            }
 
             Constructor<?> constructor = clazz.getConstructor(
                     OutputStream.class,

@@ -5,6 +5,7 @@
  */
 package org.h2.table;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.h2.api.ErrorCode;
@@ -103,7 +104,7 @@ public class RangeTable extends VirtualTable {
 
     @Override
     public List<Index> getIndexes() {
-        return List.of(
+        return Arrays.asList(
             // Scan index (ignored by MIN/MAX optimization)
             index,
             // Normal index

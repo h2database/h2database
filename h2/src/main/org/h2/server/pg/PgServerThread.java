@@ -159,7 +159,7 @@ public final class PgServerThread implements Runnable {
             }
             buff.write(x);
         }
-        return buff.toString(getEncoding());
+        return buff.toString(getEncoding().name());
     }
 
     private int readInt() throws IOException {

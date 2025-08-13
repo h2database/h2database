@@ -181,7 +181,7 @@ public abstract class MetaTable extends Table {
             return Stream
                     .concat(database.getAllSchemas().stream()
                             .map(schema -> schema.getTableOrViewByName(session, tableName)),
-                            Stream.ofNullable(session.findLocalTempTable(tableName)))
+                            Stream.of(session.findLocalTempTable(tableName)))
                     .filter(Objects::nonNull);
         } else {
             return Stream

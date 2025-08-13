@@ -173,6 +173,8 @@ import org.h2.test.unit.TestBinaryArithmeticStream;
 import org.h2.test.unit.TestBinaryOperation;
 import org.h2.test.unit.TestBitStream;
 import org.h2.test.unit.TestBnf;
+import org.h2.test.unit.TestByteArrayAsIntArray;
+import org.h2.test.unit.TestByteArrayAsLongArray;
 import org.h2.test.unit.TestCache;
 import org.h2.test.unit.TestCharsetCollator;
 import org.h2.test.unit.TestCollation;
@@ -929,6 +931,8 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestBinaryArithmeticStream());
         addTest(new TestBinaryOperation());
         addTest(new TestBitStream());
+        addTest(new TestByteArrayAsIntArray());
+        addTest(new TestByteArrayAsLongArray());
         addTest(new TestCharsetCollator());
         addTest(new TestDateIso8601());
         addTest(new TestDateTimeTemplate());

@@ -640,7 +640,7 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
 
     @Override
     public Set<Entry<K, V>> entrySet() {
-        return new AbstractSet<>() {
+        return new AbstractSet<Entry<K, V>>() {
 
             @Override
             public Iterator<Entry<K, V>> iterator() {

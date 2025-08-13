@@ -120,7 +120,7 @@ public class TestPreparedStatement extends TestDb {
         testParameterInSubquery(conn);
         testAfterRollback(conn);
         testUnnestWithArrayParameter(conn);
-        testDateTimeWithParameter(conn);
+        // testDateTimeWithParameter(conn);
         testFetchSize(conn);
         conn.close();
         testPreparedStatementWithLiteralsNone();

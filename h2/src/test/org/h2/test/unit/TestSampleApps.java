@@ -137,7 +137,7 @@ public class TestSampleApps extends TestDb {
         out.flush();
         System.setOut(oldOut);
         System.setErr(oldErr);
-        String s = buff.toString(StandardCharsets.UTF_8);
+        String s = buff.toString(StandardCharsets.UTF_8.name());
         s = StringUtils.replaceAll(s, "\r\n", "\n");
         s = s.trim();
         expected = expected.trim();

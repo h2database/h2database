@@ -5,6 +5,7 @@
  */
 package org.h2.table;
 
+import java.util.Collections;
 import java.util.List;
 
 import org.h2.engine.SessionLocal;
@@ -73,7 +74,7 @@ public abstract class VirtualTable extends Table {
 
     @Override
     public List<Index> getIndexes() {
-        return List.of();
+        return Collections.emptyList();
     }
 
     @Override

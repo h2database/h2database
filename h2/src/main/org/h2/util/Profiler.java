@@ -266,11 +266,11 @@ public class Profiler implements Runnable {
             copyInThread(p.getInputStream(), out);
             copyInThread(p.getErrorStream(), err);
             p.waitFor();
-            String e = err.toString(StandardCharsets.UTF_8);
+            String e = err.toString(StandardCharsets.UTF_8.name());
             if (e.length() > 0) {
                 throw new RuntimeException(e);
             }
-            return out.toString(StandardCharsets.UTF_8);
+            return out.toString(StandardCharsets.UTF_8.name());
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

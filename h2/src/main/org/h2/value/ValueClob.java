@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 
 import org.h2.engine.CastDataProvider;
 import org.h2.engine.Constants;
@@ -21,6 +20,7 @@ import org.h2.store.FileStore;
 import org.h2.store.FileStoreOutputStream;
 import org.h2.store.LobStorageInterface;
 import org.h2.store.RangeReader;
+import org.h2.util.ArrayUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.StringUtils;
@@ -251,7 +251,7 @@ public final class ValueClob extends ValueLob {
                         || IOUtils.readFully(reader2, buf2, BLOCK_COMPARISON_SIZE) != BLOCK_COMPARISON_SIZE) {
                     throw DbException.getUnsupportedException("Invalid LOB");
                 }
-                int cmp = Integer.signum(Arrays.compare(buf1, buf2));
+                int cmp = Integer.signum(ArrayUtils.compare(buf1, buf2));
                 if (cmp != 0) {
                     return cmp;
                 }

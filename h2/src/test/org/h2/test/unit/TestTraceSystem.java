@@ -60,7 +60,7 @@ public class TestTraceSystem extends TestBase {
         ts.setLevelSystemOut(TraceSystem.DEBUG);
         ts.getTrace("test").debug(new Exception("error"), "test");
         ts.close();
-        String outString = out.toString(StandardCharsets.UTF_8);
+        String outString = out.toString(StandardCharsets.UTF_8.name());
         assertContains(outString, "error");
         assertContains(outString, "Exception");
         assertContains(outString, "test");

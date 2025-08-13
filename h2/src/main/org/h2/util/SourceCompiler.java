@@ -388,7 +388,7 @@ public class SourceCompiler {
             copyInThread(p.getInputStream(), buff);
             copyInThread(p.getErrorStream(), buff);
             p.waitFor();
-            String output = buff.toString(StandardCharsets.UTF_8);
+            String output = buff.toString(StandardCharsets.UTF_8.name());
             handleSyntaxError(output, p.exitValue());
             return p.exitValue();
         } catch (Exception e) {
@@ -422,7 +422,7 @@ public class SourceCompiler {
                     "-d", COMPILE_DIR,
                     "-encoding", "UTF-8",
                     javaFile.toAbsolutePath().toString() });
-            String output = buff.toString(StandardCharsets.UTF_8);
+            String output = buff.toString(StandardCharsets.UTF_8.name());
             handleSyntaxError(output, status);
         } catch (Exception e) {
             throw DbException.convert(e);

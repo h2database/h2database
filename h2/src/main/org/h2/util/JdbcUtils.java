@@ -87,7 +87,7 @@ public class JdbcUtils {
         "teradata:", "com.ncr.teradata.TeraDriver",
     };
 
-    private static final byte[] UUID_PREFIX =
+    public static final byte[] UUID_PREFIX =
             "\254\355\0\5sr\0\16java.util.UUID\274\231\3\367\230m\205/\2\0\2J\0\14leastSigBitsJ\0\13mostSigBitsxp"
             .getBytes(StandardCharsets.ISO_8859_1);
 
@@ -448,7 +448,7 @@ public class JdbcUtils {
      * @throws DbException if serialization fails
      */
     public static ValueUuid deserializeUuid(byte[] data) {
-        if (data.length == 80 && Arrays.mismatch(data, 0, 64, UUID_PREFIX, 0, 64) < 0) {
+        if (data.length == 80 && ArrayUtils.mismatch(data, 0, 64, UUID_PREFIX, 0, 64) < 0) {
             return ValueUuid.get((long) LONG_VH_BE.get(data, 72), (long) LONG_VH_BE.get(data, 64));
         }
         throw DbException.get(ErrorCode.DESERIALIZATION_FAILED_1, "Is not a UUID");

@@ -1419,43 +1419,6 @@ public class JdbcStatement extends TraceObject implements Statement {
         }
     }
 
-    /**
-     * @param identifier
-     *            identifier to quote if required, may be quoted or unquoted
-     * @param alwaysQuote
-     *            if {@code true} identifier will be quoted unconditionally
-     * @return specified identifier quoted if required, explicitly requested, or
-     *         if it was already quoted
-     * @throws NullPointerException
-     *             if identifier is {@code null}
-     * @throws SQLException
-     *             if identifier is not a valid identifier
-     */
-    @Override
-    public String enquoteIdentifier(String identifier, boolean alwaysQuote) throws SQLException {
-        if (isSimpleIdentifier(identifier)) {
-            return alwaysQuote ? '"' + identifier + '"': identifier;
-        }
-        try {
-            int length = identifier.length();
-            if (length > 0) {
-                if (identifier.charAt(0) == '"') {
-                    checkQuotes(identifier, 1, length);
-                    return identifier;
-                } else if (identifier.startsWith("U&\"") || identifier.startsWith("u&\"")) {
-                    // Check validity of double quotes
-                    checkQuotes(identifier, 3, length);
-                    // Check validity of escape sequences
-                    StringUtils.decodeUnicodeStringSQL(identifier, '\\');
-                    return identifier;
-                }
-            }
-            return StringUtils.quoteIdentifier(identifier);
-        } catch (Exception e) {
-            throw logAndConvert(e);
-        }
-    }
-
     private static void checkQuotes(String identifier, int offset, int length) {
         boolean quoted = true;
         for (int i = offset; i < length; i++) {
@@ -1471,25 +1434,6 @@ public class JdbcStatement extends TraceObject implements Statement {
     }
 
     /**
-     * @param identifier
-     *            identifier to check
-     * @return is specified identifier may be used without quotes
-     * @throws NullPointerException
-     *             if identifier is {@code null}
-     */
-    @Override
-    public boolean isSimpleIdentifier(String identifier) throws SQLException {
-        Session.StaticSettings settings;
-        try {
-            checkClosed();
-            settings = conn.getStaticSettings();
-        } catch (Exception e) {
-            throw logAndConvert(e);
-        }
-        return ParserUtil.isSimpleIdentifier(identifier, settings.databaseToUpper, settings.databaseToLower);
-    }
-
-    /**
      * INTERNAL
      */
     @Override
@@ -1498,4 +1442,3 @@ public class JdbcStatement extends TraceObject implements Statement {
     }
 
 }
-

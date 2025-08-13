@@ -558,7 +558,7 @@ public class ArchiveTool {
     }
 
     private static Iterator<Chunk> merge(final TreeSet<ChunkStream> segmentIn, final Log log) {
-        return new Iterator<>() {
+        return new Iterator<Chunk>() {
 
             @Override
             public boolean hasNext() {

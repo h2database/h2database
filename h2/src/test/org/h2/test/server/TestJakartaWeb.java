@@ -679,7 +679,11 @@ public class TestJakartaWeb extends TestDb {
 
         @Override
         public String toString() {
-            return buff.toString(StandardCharsets.UTF_8);
+            try {
+                return buff.toString(StandardCharsets.UTF_8.name());
+            } catch (UnsupportedEncodingException e) {
+                throw new RuntimeException(e);
+            }
         }
 
         @Override

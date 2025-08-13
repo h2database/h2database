@@ -152,14 +152,15 @@ public final class Tokenizer {
 
     private final BitSet nonKeywords;
 
-    Tokenizer(CastDataProvider provider, boolean identifiersToUpper, boolean identifiersToLower, BitSet nonKeywords) {
+    public Tokenizer(CastDataProvider provider, boolean identifiersToUpper, boolean identifiersToLower,
+            BitSet nonKeywords) {
         this.provider = provider;
         this.identifiersToUpper = identifiersToUpper;
         this.identifiersToLower = identifiersToLower;
         this.nonKeywords = nonKeywords;
     }
 
-    ArrayList<Token> tokenize(String sql, boolean stopOnCloseParen, BitSet parameters) {
+    public ArrayList<Token> tokenize(String sql, boolean stopOnCloseParen, BitSet parameters) {
         ArrayList<Token> tokens = new ArrayList<>();
         int end = sql.length() - 1;
         boolean foundUnicode = false;

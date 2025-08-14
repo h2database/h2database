@@ -226,21 +226,22 @@ public final class JdbcBlob extends JdbcLob implements Blob {
                     if (x < 0) {
                         break;
                     }
+                    pos++;
                     if (x == (pattern[patternPos] & 0xff)) {
-                        if (patternPos == 0) {
+                        patternPos++;
+                        if (patternPos == 1) {
                             in.mark(pattern.length);
                         }
                         if (patternPos == pattern.length) {
                             return pos - patternPos;
                         }
-                        patternPos++;
                     } else {
                         if (patternPos > 0) {
                             in.reset();
                             pos -= patternPos;
+                            patternPos = 0;
                         }
                     }
-                    pos++;
                 }
                 return -1;
             } catch (Exception e) {

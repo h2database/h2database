@@ -927,9 +927,16 @@ public final class Database implements DataHandler, CastDataProvider {
             obj.getSchema().add(obj);
             addMeta(session, obj);
         }
-    }
+		clearQueryCache(id);
+	}
 
-    /**
+	private void clearQueryCache(int id) {
+		if (id > 0 && !starting) {
+			getNextModificationMetaId();
+		}
+	}
+
+	/**
      * Add an object to the database.
      *
      * @param session the session
@@ -954,6 +961,7 @@ public final class Database implements DataHandler, CastDataProvider {
         lockMeta(session);
         addMeta(session, obj);
         map.put(name, obj);
+		clearQueryCache(id);
     }
 
     /**
@@ -1520,6 +1528,7 @@ public final class Database implements DataHandler, CastDataProvider {
         checkWritingAllowed();
         obj.getSchema().rename(obj, newName);
         updateMetaAndFirstLevelChildren(session, obj);
+		clearQueryCache(obj.getId());
     }
 
     private synchronized void updateMetaAndFirstLevelChildren(SessionLocal session, DbObject obj) {
@@ -1564,6 +1573,7 @@ public final class Database implements DataHandler, CastDataProvider {
         obj.rename(newName);
         map.put(newName, obj);
         updateMetaAndFirstLevelChildren(session, obj);
+		clearQueryCache(obj.getId());
     }
 
     private void deleteOldTempFiles() {
@@ -1615,6 +1625,7 @@ public final class Database implements DataHandler, CastDataProvider {
         obj.removeChildrenAndResources(session);
         map.remove(objName);
         removeMeta(session, id);
+		clearQueryCache(id);
     }
 
     /**
@@ -1702,7 +1713,8 @@ public final class Database implements DataHandler, CastDataProvider {
             }
             removeMeta(session, id);
         }
-    }
+		clearQueryCache(obj.getId());
+	}
 
     /**
      * Check if this database is disk-based.

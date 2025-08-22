@@ -115,7 +115,7 @@ public class JSR310Utils {
     }
 
     /**
-     * Converts a value to a Instant.
+     * Converts a value to an Instant.
      *
      * This method should only be called from Java 8 or later version.
      *
@@ -277,7 +277,7 @@ public class JSR310Utils {
     }
 
     /**
-     * Converts a Instant to a Value.
+     * Converts an Instant to a Value.
      *
      * @param instant
      *            the Instant to convert, not {@code null}

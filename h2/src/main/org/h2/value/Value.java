@@ -830,7 +830,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
      * Returns this value as a Java {@code boolean} value.
      *
      * @throws DbException
-     *             if this value is {@code NULL} or cannot be casted to
+     *             if this value is {@code NULL} or cannot be cast to
      *             {@code BOOLEAN}
      * @return value
      * @see #isTrue()
@@ -844,7 +844,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
      * Returns this value as a Java {@code byte} value.
      *
      * @throws DbException
-     *             if this value is {@code NULL} or cannot be casted to
+     *             if this value is {@code NULL} or cannot be cast to
      *             {@code TINYINT}
      * @return value
      */
@@ -856,7 +856,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
      * Returns this value as a Java {@code short} value.
      *
      * @throws DbException
-     *             if this value is {@code NULL} or cannot be casted to
+     *             if this value is {@code NULL} or cannot be cast to
      *             {@code SMALLINT}
      * @return value
      */
@@ -868,7 +868,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
      * Returns this value as a Java {@code int} value.
      *
      * @throws DbException
-     *             if this value is {@code NULL} or cannot be casted to
+     *             if this value is {@code NULL} or cannot be cast to
      *             {@code INTEGER}
      * @return value
      */
@@ -880,7 +880,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
      * Returns this value as a Java {@code long} value.
      *
      * @throws DbException
-     *             if this value is {@code NULL} or cannot be casted to
+     *             if this value is {@code NULL} or cannot be cast to
      *             {@code BIGINT}
      * @return value
      */
@@ -900,7 +900,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
      * Returns this value as a Java {@code float} value.
      *
      * @throws DbException
-     *             if this value is {@code NULL} or cannot be casted to
+     *             if this value is {@code NULL} or cannot be cast to
      *             {@code REAL}
      * @return value
      */
@@ -912,7 +912,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
      * Returns this value as a Java {@code double} value.
      *
      * @throws DbException
-     *             if this value is {@code NULL} or cannot be casted to
+     *             if this value is {@code NULL} or cannot be cast to
      *             {@code DOUBLE PRECISION}
      * @return value
      */
@@ -1462,10 +1462,10 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
         case REAL:
         case DECFLOAT:
             return ValueBoolean.get(getSignum() != 0);
-        default:
-            throw getDataConversionError(BOOLEAN);
         case NULL:
             throw DbException.getInternalError();
+        default:
+            throw getDataConversionError(BOOLEAN);
         }
     }
 
@@ -1585,7 +1585,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
     }
 
     /**
-     * Converts this value to a INT value. May not be called on a NULL value.
+     * Converts this value to INT value. May not be called on a NULL value.
      *
      * @param column
      *            the column, used for to improve the error message if
@@ -2852,7 +2852,7 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
      * @see #isFalse()
      */
     public final boolean isTrue() {
-        return this != ValueNull.INSTANCE ? getBoolean() : false;
+        return this != ValueNull.INSTANCE && getBoolean();
     }
 
     /**

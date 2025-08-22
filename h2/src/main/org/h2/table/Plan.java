@@ -65,9 +65,9 @@ public class Plan {
     }
 
     /**
-     * The the list of tables.
+     * The list of tables.
      *
-     * @return the list of tables
+     * @return the array of tables
      */
     public TableFilter[] getFilters() {
         return filters;

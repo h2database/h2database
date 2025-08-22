@@ -18,14 +18,14 @@ public final class Bits {
 
     /**
      * VarHandle giving access to elements of a byte[] array viewed as if it
-     * were a int[] array on big-endian system.
+     * were an int[] array on big-endian system.
      */
     public static final VarHandle INT_VH_BE = MethodHandles.byteArrayViewVarHandle(int[].class, //
             ByteOrder.BIG_ENDIAN);
 
     /**
      * VarHandle giving access to elements of a byte[] array viewed as if it
-     * were a int[] array on little-endian system.
+     * were an int[] array on little-endian system.
      */
     public static final VarHandle INT_VH_LE = MethodHandles.byteArrayViewVarHandle(int[].class,
             ByteOrder.LITTLE_ENDIAN);

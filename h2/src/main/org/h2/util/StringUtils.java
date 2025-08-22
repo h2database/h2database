@@ -23,7 +23,7 @@ import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 
 /**
- * A few String utility functions.
+ * A few String-related utility functions.
  */
 public class StringUtils {
 
@@ -210,7 +210,7 @@ public class StringUtils {
      *
      * @param s the text to convert
      * @param buff the Java representation to return
-     * @param forSQL true if we embedding this inside a STRINGDECODE SQL command
+     * @param forSQL true if we embed this inside a STRINGDECODE SQL command
      */
     public static void javaEncode(String s, StringBuilder buff, boolean forSQL) {
         int length = s.length();
@@ -560,8 +560,8 @@ public class StringUtils {
      * The data is indented with 4 spaces if it contains a newline character.
      *
      * @param name the element name
-     * @param attributes the attributes (may be null)
-     * @param content the content (may be null)
+     * @param attributes the attributes (might be null)
+     * @param content the content (might be null)
      * @return the node
      */
     public static String xmlNode(String name, String attributes, String content) {
@@ -574,8 +574,8 @@ public class StringUtils {
      * parameter is set to true.
      *
      * @param name the element name
-     * @param attributes the attributes (may be null)
-     * @param content the content (may be null)
+     * @param attributes the attributes (might be null)
+     * @param content the content (migh be null)
      * @param indent whether to indent the content if it contains a newline
      * @return the node
      */
@@ -777,7 +777,7 @@ public class StringUtils {
      * escaped using a double quote.
      *
      * @param s the text
-     * @return the double quoted text
+     * @return the double-quoted text
      */
     public static String quoteIdentifier(String s) {
         return quoteIdentifierOrLiteral(new StringBuilder(s.length() + 2), s, '"').toString();
@@ -886,7 +886,7 @@ public class StringUtils {
      * Create a new char array and copy all the data. If the size of the byte
      * array is zero, the same array is returned.
      *
-     * @param chars the char array (may be null)
+     * @param chars the char array (might be null)
      * @return a new char array
      */
     public static char[] cloneCharArray(char[] chars) {

@@ -209,7 +209,7 @@ public final class DateTimeTemplate {
 
         static final Field SSSSS = new Field(SECOND_OF_DAY, 5);
 
-        private static final Field FF[];
+        private static final Field[] FF;
 
         static final Field AM_PM = new Field(AMPM, 4);
 

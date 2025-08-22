@@ -165,7 +165,7 @@ public final class RootReference<K,V> {
     }
 
     /**
-     * Removed old versions that are not longer used.
+     * Removed old versions that are no longer used.
      *
      * @param oldestVersionToKeep the oldest version that needs to be retained
      */

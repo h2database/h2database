@@ -67,7 +67,7 @@ public class FileLister {
      * @return the normalized directory name
      */
     public static String getDir(String dir) {
-        if (dir == null || dir.equals("")) {
+        if (dir == null || dir.isEmpty()) {
             return ".";
         }
         return FileUtils.toRealPath(dir);

@@ -8,7 +8,7 @@ package org.h2.util;
 import java.util.ArrayList;
 
 /**
- * An alternative cache implementation. This implementation uses two caches: a
+ * An alternative cache implementation. This implementation uses two caches: an
  * LRU cache and a FIFO cache. Entries are first kept in the FIFO cache, and if
  * referenced again then marked in a hash set. If referenced again, they are
  * moved to the LRU cache. Stream pages are never added to the LRU cache. It is

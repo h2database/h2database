@@ -16,7 +16,7 @@ import java.util.Map;
  *
  * @author <a href="mailto:andrei.tokar@gmail.com">Andrei Tokar</a>
  */
-final class SFChunk extends Chunk<SFChunk>
+public final class SFChunk extends Chunk<SFChunk>
 {
     SFChunk(int id) {
         super(id);

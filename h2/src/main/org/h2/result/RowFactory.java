@@ -74,8 +74,6 @@ public abstract class RowFactory {
 
     public abstract int getColumnCount();
 
-    public abstract boolean getStoreKeys();
-
 
     /**
      * Default implementation of row factory.
@@ -84,7 +82,7 @@ public abstract class RowFactory {
         private final RowDataType dataType;
         private final int         columnCount;
         private final int[]       indexes;
-        private TypeInfo[]        columnTypes;
+        private final TypeInfo[]        columnTypes;
         private final int[]       map;
 
         public static final DefaultRowFactory INSTANCE = new DefaultRowFactory();
@@ -197,11 +195,6 @@ public abstract class RowFactory {
         @Override
         public int getColumnCount() {
             return columnCount;
-        }
-
-        @Override
-        public boolean getStoreKeys() {
-            return dataType.isStoreKeys();
         }
     }
 }

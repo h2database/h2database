@@ -53,14 +53,14 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
     private final Transaction transaction;
 
     /**
-     * Snapshot of this map as of beginning of transaction or
+     * Snapshot of this map as of beginning of the transaction or
      * first usage within transaction or
      * beginning of the statement, depending on isolation level
      */
     private Snapshot<K,VersionedValue<V>> snapshot;
 
     /**
-     * Snapshot of this map as of beginning of beginning of the statement
+     * Snapshot of this map as of beginning of the statement
      */
     private Snapshot<K,VersionedValue<V>> statementSnapshot;
 
@@ -98,8 +98,8 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
     }
 
     /**
-     * Get the number of entries, as a integer. {@link Integer#MAX_VALUE} is
-     * returned if there are more than this entries.
+     * Get the number of entries, as an integer. {@link Integer#MAX_VALUE} is
+     * returned if there are more entries than it can hold.
      *
      * @return the number of entries, as an integer
      * @see #sizeAsLong()
@@ -245,7 +245,7 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
     @SuppressWarnings("unchecked")
     @Override
     public V remove(Object key) {
-        return set((K)key, (V)null);
+        return set((K)key, null);
     }
 
     /**
@@ -697,7 +697,7 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
     }
 
     /**
-     * Get the entry with smallest key that is larger than the given key, or null if no
+     * Get the entry with the smallest key that is larger than the given key, or null if no
      * such key exists.
      *
      * @param key the key (may not be null)
@@ -719,7 +719,7 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
     }
 
     /**
-     * Get the entry with smallest key that is larger than or equal to this key,
+     * Get the entry with the smallest key that is larger than or equal to this key,
      * or null if no such key exists.
      *
      * @param key the key (may not be null)
@@ -741,7 +741,7 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
     }
 
     /**
-     * Get the entry with largest key that is smaller than or equal to this key,
+     * Get the entry with the largest key that is smaller than or equal to this key,
      * or null if no such key exists.
      *
      * @param key the key (may not be null)
@@ -763,7 +763,7 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
     }
 
     /**
-     * Get the entry with largest key that is smaller than the given key, or null if no
+     * Get the entry with the largest key that is smaller than the given key, or null if no
      * such key exists.
      *
      * @param key the key (may not be null)
@@ -984,7 +984,7 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
             while (cursor.hasNext()) {
                 K key = cursor.next();
                 VersionedValue<?> data = cursor.getValue();
-                // If value doesn't exist or it was deleted by a committed transaction,
+                // If value doesn't exist, or it was deleted by a committed transaction,
                 // or if value is a committed one, just return it.
                 if (data != null) {
                     long id = data.getOperationId();
@@ -1075,7 +1075,7 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
             while (cursor.hasNext()) {
                 K key = cursor.next();
                 VersionedValue<?> data = cursor.getValue();
-                // If value doesn't exist or it was deleted by a committed transaction,
+                // If value doesn't exist, or it was deleted by a committed transaction,
                 // or if value is a committed one, just return it.
                 if (data != null) {
                     Object value = data.getCommittedValue();
@@ -1084,7 +1084,7 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
                         int tx = TransactionStore.getTransactionId(id);
                         if (tx == transactionId || committingTransactions.get(tx)) {
                             // value comes from this transaction or another committed transaction
-                            // take current value instead instead of committed one
+                            // take current value instead of committed one
                             value = data.getCurrentValue();
                         }
                     }

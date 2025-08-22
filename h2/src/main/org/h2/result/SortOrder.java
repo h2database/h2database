@@ -243,7 +243,7 @@ public final class SortOrder implements Comparator<Value[]> {
      * Get the column for the given table filter, if the sort column is for this
      * filter.
      *
-     * @param index the column index (0, 1,..)
+     * @param index the column index (0, 1,...)
      * @param filter the table filter
      * @return the column, or null
      */

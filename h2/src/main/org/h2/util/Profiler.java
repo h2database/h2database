@@ -267,7 +267,7 @@ public class Profiler implements Runnable {
             copyInThread(p.getErrorStream(), err);
             p.waitFor();
             String e = err.toString(StandardCharsets.UTF_8);
-            if (e.length() > 0) {
+            if (!e.isEmpty()) {
                 throw new RuntimeException(e);
             }
             return out.toString(StandardCharsets.UTF_8);
@@ -411,7 +411,7 @@ public class Profiler implements Runnable {
 
     private static boolean startsWithAny(String s, String[] prefixes) {
         for (String p : prefixes) {
-            if (p.length() > 0 && s.startsWith(p)) {
+            if (!p.isEmpty() && s.startsWith(p)) {
                 return true;
             }
         }
@@ -420,12 +420,7 @@ public class Profiler implements Runnable {
 
     private static int increment(HashMap<String, Integer> map, String trace,
             int minCount) {
-        Integer oldCount = map.get(trace);
-        if (oldCount == null) {
-            map.put(trace, 1);
-        } else {
-            map.put(trace, oldCount + 1);
-        }
+        map.merge(trace, 1, Integer::sum);
         while (map.size() > MAX_ELEMENTS) {
             for (Iterator<Map.Entry<String, Integer>> ei =
                     map.entrySet().iterator(); ei.hasNext();) {
@@ -462,7 +457,7 @@ public class Profiler implements Runnable {
             buff.append(" of ").append(threadDumps).append(" thread dumps");
         }
         buff.append(":").append(LINE_SEPARATOR);
-        if (counts.size() == 0) {
+        if (counts.isEmpty()) {
             buff.append("(none)").append(LINE_SEPARATOR);
         }
         HashMap<String, Integer> copy = new HashMap<>(counts);

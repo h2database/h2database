@@ -118,7 +118,7 @@ class TxDecisionMaker<K,V> extends MVMap.DecisionMaker<VersionedValue<V>> {
             lastOperationId = 0;
             if (decision == MVMap.Decision.PUT) {
                 // positive decision has been made already and undo record created,
-                // but map was updated afterwards and undo record deletion required
+                // but map was updated afterward and undo record deletion required
                 transaction.logUndo();
             }
         }

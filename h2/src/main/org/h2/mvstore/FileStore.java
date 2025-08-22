@@ -460,7 +460,7 @@ public abstract class FileStore<C extends Chunk<C>>
             MVMap<String, String> oldLayoutMap = getLayoutMap(version);
             for (C chunk : getChunksFromLayoutMap(oldLayoutMap)) {
                 String chunkKey = Chunk.getMetaKey(chunk.id);
-                // if current layout map does not have it - verify it's existence
+                // if current layout map does not have it - verify its existence
                 if (!layout.containsKey(chunkKey) && !isValidChunk(chunk)) {
                     return false;
                 }

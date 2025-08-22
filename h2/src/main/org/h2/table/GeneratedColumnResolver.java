@@ -56,8 +56,8 @@ class GeneratedColumnResolver implements ColumnResolver {
     private Column[] createColumns() {
         Column[] allColumns = table.getColumns();
         int totalCount = allColumns.length, baseCount = totalCount;
-        for (int i = 0; i < totalCount; i++) {
-            if (allColumns[i].isGenerated()) {
+        for (Column allColumn : allColumns) {
+            if (allColumn.isGenerated()) {
                 baseCount--;
             }
         }

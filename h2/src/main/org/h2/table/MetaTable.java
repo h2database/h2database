@@ -27,7 +27,7 @@ import org.h2.value.ValueVarchar;
 import org.h2.value.ValueVarcharIgnoreCase;
 
 /**
- * This class is responsible to build the database meta data pseudo tables.
+ * This class is responsible to build the database metadata pseudo tables.
  */
 public abstract class MetaTable extends Table {
 

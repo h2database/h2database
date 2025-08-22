@@ -1191,7 +1191,7 @@ public abstract class Table extends SchemaObject {
      *
      * @param session the session
      * @param oldRow the old data or null for an insert
-     * @param newRow the new data or null for a delete
+     * @param newRow the new data or null for a deletion
      * @return true if no further action is required (for 'instead of' triggers)
      */
     public boolean fireBeforeRow(SessionLocal session, Row oldRow, Row newRow) {
@@ -1216,7 +1216,7 @@ public abstract class Table extends SchemaObject {
      *
      *  @param session the session
      *  @param oldRow the old data or null for an insert
-     *  @param newRow the new data or null for a delete
+     *  @param newRow the new data or null for a deletion
      *  @param rollback when the operation occurred within a rollback
      */
     public void fireAfterRow(SessionLocal session, Row oldRow, Row newRow,
@@ -1410,7 +1410,7 @@ public abstract class Table extends SchemaObject {
 
     /**
      * Tests if the table can be written. Usually, this depends on the
-     * database.checkWritingAllowed method, but some tables (eg. TableLink)
+     * database.checkWritingAllowed method, but some tables (e.g. TableLink)
      * overwrite this default behaviour.
      */
     public void checkWritingAllowed() {

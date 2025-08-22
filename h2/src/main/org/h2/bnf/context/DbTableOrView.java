@@ -12,7 +12,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 
 /**
- * Contains meta data information about a table or a view.
+ * Contains metadata information about a table or a view.
  * This class is used by the H2 Console.
  */
 public class DbTableOrView {

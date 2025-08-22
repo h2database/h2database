@@ -73,7 +73,7 @@ public class MathUtils {
             secureRandom = SecureRandom.getInstance("SHA1PRNG");
             // On some systems, secureRandom.generateSeed() is very slow.
             // In this case it is initialized using our own seed implementation
-            // and afterwards (in the thread) using the regular algorithm.
+            // and afterward (in the thread) using the regular algorithm.
             Runnable runnable = () -> {
                 try {
                     SecureRandom sr = SecureRandom.getInstance("SHA1PRNG");
@@ -296,7 +296,7 @@ public class MathUtils {
     }
 
     /**
-     * Get a pseudo random int value between 0 (including and the given value
+     * Get a pseudo random int value between 0 (including) and the given value
      * (excluding). The value is not cryptographically secure.
      *
      * @param lowerThan the value returned will be lower than this value
@@ -308,7 +308,7 @@ public class MathUtils {
 
     /**
      * Get a cryptographically secure pseudo random int value between 0
-     * (including and the given value (excluding).
+     * (including) and the given value (excluding).
      *
      * @param lowerThan the value returned will be lower than this value
      * @return the random long value

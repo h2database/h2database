@@ -291,12 +291,10 @@ public class SourceCompiler {
         } finally {
             try {
                 Files.deleteIfExists(javaFile);
-            } catch (IOException e) {
-            }
+            } catch (IOException e) {/**/}
             try {
                 Files.deleteIfExists(classFile);
-            } catch (IOException e) {
-            }
+            } catch (IOException e) {/**/}
         }
     }
 
@@ -377,7 +375,7 @@ public class SourceCompiler {
         ByteArrayOutputStream buff = new ByteArrayOutputStream();
         try {
             ProcessBuilder builder = new ProcessBuilder();
-            // The javac executable allows some of it's flags
+            // The javac executable allows some of its flags
             // to be smuggled in via environment variables.
             // But if it sees those flags, it will write out a message
             // to stderr, which messes up our parsing of the output.
@@ -409,7 +407,7 @@ public class SourceCompiler {
         PrintStream old = System.err;
         ByteArrayOutputStream buff = new ByteArrayOutputStream();
         try {
-            System.setErr(new PrintStream(buff, false, "UTF-8"));
+            System.setErr(new PrintStream(buff, false, StandardCharsets.UTF_8));
             Method compile;
             compile = JAVAC_SUN.getMethod("compile", String[].class);
             Object javac = JAVAC_SUN.getDeclaredConstructor().newInstance();
@@ -575,11 +573,11 @@ public class SourceCompiler {
             ForwardingJavaFileManager<StandardJavaFileManager> {
 
         /**
-         * We use map because there can be nested, anonymous etc classes.
+         * We use map because there can be nested, anonymous etc. classes.
          */
         Map<String, JavaClassObject> classObjectsByName = new HashMap<>();
 
-        private SecureClassLoader classLoader = new SecureClassLoader() {
+        private final SecureClassLoader classLoader = new SecureClassLoader() {
 
             @Override
             protected Class<?> findClass(String name)

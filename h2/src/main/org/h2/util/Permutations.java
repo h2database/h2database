@@ -100,7 +100,7 @@ public class Permutations<T> {
             return;
         }
 
-        // find the least greater element to the right of the dip
+        // find the least great element to the right of the dip
         int leastToRightIndex = i + 1;
         for (int j = i + 2; j < n; j++) {
             if (index[j] < index[leastToRightIndex] && index[j] > index[i]) {
@@ -108,7 +108,7 @@ public class Permutations<T> {
             }
         }
 
-        // switch dip element with least greater element to its right
+        // switch dip element with the least great element to its right
         int t = index[i];
         index[i] = index[leastToRightIndex];
         index[leastToRightIndex] = t;

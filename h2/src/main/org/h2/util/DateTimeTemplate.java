@@ -365,7 +365,7 @@ public final class DateTimeTemplate {
                             if (v > year + 50) {
                                 v -= 100;
                             } else if (v < year - 49) {
-                                year += 100;
+                                v += 100;
                             }
                         }
                     } else if (digits == 3) {

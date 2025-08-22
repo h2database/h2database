@@ -1509,29 +1509,28 @@ public final class InformationSchemaTableLegacy extends MetaTable {
             break;
         }
         case VIEWS: {
-            getAllTables(session, indexFrom, indexTo).filter(Table::isView).forEach(table -> {
+            getAllTables(session, indexFrom, indexTo).filter(Table::isView).forEach(table ->
                 add(session,
-                        rows,
-                        // TABLE_CATALOG
-                        catalog,
-                        // TABLE_SCHEMA
-                        table.getSchema().getName(),
-                        // TABLE_NAME
-                        table.getName(),
-                        // VIEW_DEFINITION
-                        table.getCreateSQL(),
-                        // CHECK_OPTION
-                        "NONE",
-                        // IS_UPDATABLE
-                        "NO",
-                        // STATUS
-                        table instanceof TableView && ((TableView) table).isInvalid() ? "INVALID" : "VALID",
-                        // REMARKS
-                        replaceNullWithEmpty(table.getComment()),
-                        // ID
-                        ValueInteger.get(table.getId())
-                );
-            });
+                    rows,
+                    // TABLE_CATALOG
+                    catalog,
+                    // TABLE_SCHEMA
+                    table.getSchema().getName(),
+                    // TABLE_NAME
+                    table.getName(),
+                    // VIEW_DEFINITION
+                    table.getCreateSQL(),
+                    // CHECK_OPTION
+                    "NONE",
+                    // IS_UPDATABLE
+                    "NO",
+                    // STATUS
+                    table instanceof TableView && ((TableView) table).isInvalid() ? "INVALID" : "VALID",
+                    // REMARKS
+                    replaceNullWithEmpty(table.getComment()),
+                    // ID
+                    ValueInteger.get(table.getId())
+            ));
             break;
         }
         case IN_DOUBT: {
@@ -2123,17 +2122,16 @@ public final class InformationSchemaTableLegacy extends MetaTable {
         }
         case CHECK_CONSTRAINTS: {
             getAllConstraints(session).filter(constraint -> constraint.getConstraintType().isCheck()
-                    && checkIndex(session, constraint.getName(), indexFrom, indexTo)).forEach(constraint -> {
+                    && checkIndex(session, constraint.getName(), indexFrom, indexTo)).forEach(constraint ->
                         add(session, rows,
-                                // CONSTRAINT_CATALOG
-                                catalog,
-                                // CONSTRAINT_SCHEMA
-                                constraint.getSchema().getName(),
-                                // CONSTRAINT_NAME
-                                constraint.getName(),
-                                // CHECK_CLAUSE
-                                constraint.getExpression().getSQL(DEFAULT_SQL_FLAGS, Expression.WITHOUT_PARENTHESES));
-                    });
+                            // CONSTRAINT_CATALOG
+                            catalog,
+                            // CONSTRAINT_SCHEMA
+                            constraint.getSchema().getName(),
+                            // CONSTRAINT_NAME
+                            constraint.getName(),
+                            // CHECK_CLAUSE
+                            constraint.getExpression().getSQL(DEFAULT_SQL_FLAGS, Expression.WITHOUT_PARENTHESES)));
             break;
         }
         case CONSTRAINT_COLUMN_USAGE: {

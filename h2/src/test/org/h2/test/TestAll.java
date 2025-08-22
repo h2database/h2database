@@ -90,6 +90,7 @@ import org.h2.test.db.TestView;
 import org.h2.test.db.TestViewAlterTable;
 import org.h2.test.db.TestViewDropView;
 import org.h2.test.jdbc.TestBatchUpdates;
+import org.h2.test.jdbc.TestCachedQueryResults;
 import org.h2.test.jdbc.TestCallableStatement;
 import org.h2.test.jdbc.TestCancel;
 import org.h2.test.jdbc.TestConcurrentConnectionUsage;
@@ -793,6 +794,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
             addTest(new TestUpdatableResultSet());
             addTest(new TestZloty());
             addTest(new TestSetCollation());
+            addTest(new TestCachedQueryResults());
 
             // jdbcx
             addTest(new TestConnectionPool());

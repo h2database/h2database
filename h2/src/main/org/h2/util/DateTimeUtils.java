@@ -522,12 +522,12 @@ public class DateTimeUtils {
             return ValueTime.fromNanos(timeNanos);
         case Value.TIME_TZ:
             return ValueTimeTimeZone.fromNanos(timeNanos, ((ValueTimeTimeZone) original).getTimeZoneOffsetSeconds());
-        case Value.TIMESTAMP:
-        default:
-            return ValueTimestamp.fromDateValueAndNanos(dateValue, timeNanos);
         case Value.TIMESTAMP_TZ:
             return ValueTimestampTimeZone.fromDateValueAndNanos(dateValue, timeNanos,
                     ((ValueTimestampTimeZone) original).getTimeZoneOffsetSeconds());
+        case Value.TIMESTAMP:
+        default:
+            return ValueTimestamp.fromDateValueAndNanos(dateValue, timeNanos);
         }
     }
 
@@ -836,7 +836,7 @@ public class DateTimeUtils {
     /**
      * Calculate the normalized nanos of day.
      *
-     * @param nanos the nanoseconds (may be negative or larger than one day)
+     * @param nanos the nanoseconds (might be negative or larger than one day)
      * @return the nanos of day within a day
      */
     public static long normalizeNanosOfDay(long nanos) {

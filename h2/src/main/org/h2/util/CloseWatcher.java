@@ -50,7 +50,7 @@ public class CloseWatcher extends PhantomReference<Object> {
     }
 
     /**
-     * Check for an collected object.
+     * Check for a collected object.
      *
      * @return the first watcher
      */

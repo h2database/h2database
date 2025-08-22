@@ -49,7 +49,7 @@ public interface DataHandler {
     void checkWritingAllowed() throws DbException;
 
     /**
-     * Get the maximum length of a in-place large object
+     * Get the maximum length of in-place large object
      *
      * @return the maximum size
      */

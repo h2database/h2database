@@ -149,6 +149,7 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
     private NetworkConnectionInfo networkConnectionInfo;
 
     private final ArrayList<Table> locks = Utils.newSmallArrayList();
+    private final Set<Table> updates = new HashSet<>();
     private boolean autoCommit = true;
     private Random random;
     private int lockTimeout;
@@ -686,6 +687,7 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
         beforeCommitOrRollback();
         if (hasTransaction()) {
             try {
+                markUsedTablesAsUpdated();
                 transaction.commit();
                 markUsedTablesAsUpdated();
                 removeTemporaryLobs(true);
@@ -705,12 +707,21 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
         }
     }
 
+    public void invalidateCachedResults(Table table) {
+        if (queryCache != null) {
+            for (Command command : queryCache.values()) {
+                command.invalidateCachedResult(table);
+            }
+        }
+    }
     private void markUsedTablesAsUpdated() {
         // TODO should not rely on locking
-        if (!locks.isEmpty()) {
-            for (Table t : locks) {
+        if (!updates.isEmpty()) {
+            long nextModificationDataId = database.getNextModificationDataId();
+            Table[] array = updates.toArray(new Table[0]);
+            for (Table t : array) {
                 if (t instanceof MVTable) {
-                    ((MVTable) t).afterCommit();
+                    ((MVTable) t).setModificationDataId(nextModificationDataId);
                 }
             }
         }
@@ -777,6 +788,7 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
             }
             removeLobMap = null;
         }
+        updates.clear();
         unlockAll();
         if (idsToRelease != null) {
             getDatabase().releaseDatabaseObjectIds(idsToRelease);
@@ -822,6 +834,7 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
     public void rollbackTo(Savepoint savepoint) {
         int index = savepoint == null ? 0 : savepoint.logIndex;
         if (hasTransaction()) {
+            markUsedTablesAsUpdated();
             if (savepoint == null) {
                 transaction.rollback();
                 transaction = null;
@@ -899,6 +912,7 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
 
                 // release any open table locks
                 if (hasPreparedTransaction()) {
+                    unlockAll();
                     removeLobMap = null;
                     endTransaction();
                 } else {
@@ -943,9 +957,17 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
      * @param table to register
      */
     public void registerTableAsUpdated(Table table) {
-        if (!locks.contains(table)) {
-            locks.add(table);
+        if (updates.add(table)) {
+            invalidateCachedResults(table);
         }
+    }
+
+    /**
+     * Checks if table was updated within current transaction.
+     * @param table to check
+     */
+    public boolean isUpdatedInCurrentTransaction(Table table) {
+        return updates.contains(table);
     }
 
     /**

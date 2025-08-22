@@ -67,14 +67,12 @@ public abstract class FileBase extends FileChannel {
     }
 
     @Override
-    public long transferFrom(ReadableByteChannel src, long position, long count)
-            throws IOException {
+    public long transferFrom(ReadableByteChannel src, long position, long count) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public long transferTo(long position, long count, WritableByteChannel target)
-            throws IOException {
+    public long transferTo(long position, long count, WritableByteChannel target) {
         throw new UnsupportedOperationException();
     }
 

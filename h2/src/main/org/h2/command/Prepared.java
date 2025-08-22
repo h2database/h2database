@@ -19,6 +19,7 @@ import org.h2.expression.Parameter;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.result.ResultInterface;
+import org.h2.table.Table;
 import org.h2.util.HasSQL;
 
 /**
@@ -90,7 +91,7 @@ public abstract class Prepared {
     public abstract boolean isTransactional();
 
     /**
-     * Get an empty result set containing the meta data.
+     * Get an empty result set containing the metadata.
      *
      * @return the result set
      */
@@ -131,7 +132,7 @@ public abstract class Prepared {
     }
 
     /**
-     * Get the meta data modification id of the database when this statement was
+     * Get the metadata modification id of the database when this statement was
      * compiled.
      *
      * @return the meta data modification id
@@ -141,7 +142,7 @@ public abstract class Prepared {
     }
 
     /**
-     * Set the meta data modification id of this statement.
+     * Set the metadata modification id of this statement.
      *
      * @param id the new id
      */
@@ -489,12 +490,13 @@ public abstract class Prepared {
     }
 
     /**
-     * Returns is this command can be repeated again on locking failure.
+     * Returns is this command can be repeated on locking failure.
      *
-     * @return is this command can be repeated again on locking failure
+     * @return is this command can be repeated on locking failure
      */
     public boolean isRetryable() {
         return true;
     }
 
+    public void invalidateCachedResult(Table reason) {}
 }

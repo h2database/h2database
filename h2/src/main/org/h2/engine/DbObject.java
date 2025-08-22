@@ -326,6 +326,18 @@ public abstract class DbObject implements HasSQL {
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof DbObject)) return false;
+        DbObject dbObject = (DbObject) o;
+        return id == dbObject.id;
+    }
+
+    @Override
+    public int hashCode() {
+        return id;
+    }
+
+    @Override
     public String toString() {
         return objectName + ":" + id + ":" + super.toString();
     }

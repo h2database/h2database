@@ -169,7 +169,7 @@ public class FilePathDisk extends FilePath {
                 } catch (FileAlreadyExistsException ex2) {
                     throw DbException.get(ErrorCode.FILE_RENAME_FAILED_2, name, newName + " (exists)");
                 } catch (IOException ex2) {
-                    cause = ex;
+                    cause = ex2;
                 }
                 wait(i);
             }
@@ -415,8 +415,8 @@ public class FilePathDisk extends FilePath {
     @Override
     public InputStream newInputStream() throws IOException {
         if (name.matches("[a-zA-Z]{2,19}:.*")) {
-            // if the ':' is in position 1, a windows file access is assumed:
-            // C:.. or D:, and if the ':' is not at the beginning, assume its a
+            // if the ':' is in position 1, a Windows file access is assumed:
+            // C:... or D:, and if the ':' is not at the beginning, assume it's a
             // file name with a colon
             if (name.startsWith(CLASSPATH_PREFIX)) {
                 String fileName = name.substring(CLASSPATH_PREFIX.length());

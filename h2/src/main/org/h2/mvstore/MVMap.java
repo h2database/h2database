@@ -646,7 +646,7 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
             // the first map's instantiation (both maps share the same id)
             assert id == root.map.id;
             // since it is unknown which one will win the race,
-            // let each map instance to have it's own copy
+            // let each map instance to have its own copy
             root = root.copy(this, false);
         }
         setInitialRoot(root, version - 1);
@@ -924,7 +924,7 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
 
     /**
      * Whether this is volatile map, meaning that changes
-     * are not persisted. By default (even if the store is not persisted),
+     * are not persisted. By default, even if the store is not persisted,
      * maps are not volatile.
      *
      * @return whether this map is volatile
@@ -967,8 +967,8 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
     }
 
     /**
-     * Get the number of entries, as a integer. {@link Integer#MAX_VALUE} is
-     * returned if there are more than this entries.
+     * Get the number of entries, as integer. {@link Integer#MAX_VALUE} is
+     * returned if there are more entries than it can hold.
      *
      * @return the number of entries, as an integer
      * @see #sizeAsLong()
@@ -1062,7 +1062,7 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
      * Does the root have changes since the specified version?
      *
      * @param version root version
-     * @return true if has changes
+     * @return true if it has changes
      */
     final boolean hasChangesSince(long version) {
         return getRoot().hasChangesSince(version, isPersistent());
@@ -1592,7 +1592,7 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
 
     /**
      * Class DecisionMaker provides callback interface (and should become a such in Java 8)
-     * for MVMap.operate method.
+     * for MVMap.operate() method.
      * It provides control logic to make a decision about how to proceed with update
      * at the point in execution when proper place and possible existing value
      * for insert/update/delete key is found.
@@ -1715,7 +1715,7 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
         }
 
         /**
-         * Resets internal state (if any) of a this DecisionMaker to it's initial state.
+         * Resets internal state (if any) of this DecisionMaker to it's initial state.
          * This method is invoked whenever concurrent update failure is encountered,
          * so we can re-start update process.
          */
@@ -1892,18 +1892,9 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
         }
         assert !rootReference.isLockedByCurrentThread() : rootReference;
         RootReference<K,V> oldRootReference = rootReference.previous;
-        int contention = 1;
-        if (oldRootReference != null) {
-            long updateAttemptCounter = rootReference.updateAttemptCounter -
-                                        oldRootReference.updateAttemptCounter;
-            assert updateAttemptCounter >= 0 : updateAttemptCounter;
-            long updateCounter = rootReference.updateCounter - oldRootReference.updateCounter;
-            assert updateCounter >= 0 : updateCounter;
-            assert updateAttemptCounter >= updateCounter : updateAttemptCounter + " >= " + updateCounter;
-            contention += (int)((updateAttemptCounter+1) / (updateCounter+1));
-        }
 
         if(attempt > 4) {
+            int contention = estimateContention(rootReference, oldRootReference);
             if (attempt <= 12) {
                 Thread.yield();
             } else if (attempt <= 70 - 2 * contention) {
@@ -1923,6 +1914,20 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
             }
         }
         return null;
+    }
+
+    private static <K, V> int estimateContention(RootReference<K, V> rootReference, RootReference<K, V> oldRootReference) {
+        int contention = 1;
+        if (oldRootReference != null) {
+            long updateAttemptCounter = rootReference.updateAttemptCounter -
+                                        oldRootReference.updateAttemptCounter;
+            assert updateAttemptCounter >= 0 : updateAttemptCounter;
+            long updateCounter = rootReference.updateCounter - oldRootReference.updateCounter;
+            assert updateCounter >= 0 : updateCounter;
+            assert updateAttemptCounter >= updateCounter : updateAttemptCounter + " >= " + updateCounter;
+            contention += (int)((updateAttemptCounter+1) / (updateCounter+1));
+        }
+        return contention;
     }
 
     /**

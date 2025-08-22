@@ -38,7 +38,7 @@ public class DataChangeDeltaTable extends VirtualConstructedTable {
         /**
          * FINAL rows after triggers.
          */
-        FINAL;
+        FINAL
 
     }
 

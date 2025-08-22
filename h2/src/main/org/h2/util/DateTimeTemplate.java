@@ -209,7 +209,7 @@ public final class DateTimeTemplate {
 
         static final Field SSSSS = new Field(SECOND_OF_DAY, 5);
 
-        private static final Field FF[];
+        private static final Field[] FF;
 
         static final Field AM_PM = new Field(AMPM, 4);
 
@@ -365,7 +365,7 @@ public final class DateTimeTemplate {
                             if (v > year + 50) {
                                 v -= 100;
                             } else if (v < year - 49) {
-                                year += 100;
+                                v += 100;
                             }
                         }
                     } else if (digits == 3) {

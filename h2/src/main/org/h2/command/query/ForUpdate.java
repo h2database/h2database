@@ -37,7 +37,7 @@ public final class ForUpdate implements HasSQL {
         /**
          * Skip locked rows.
          */
-        SKIP_LOCKED;
+        SKIP_LOCKED
 
     }
 
@@ -63,7 +63,7 @@ public final class ForUpdate implements HasSQL {
      *            timeout in milliseconds
      * @return FOR UPDATE WAIT N clause
      */
-    public static final ForUpdate wait(int timeoutMillis) {
+    public static ForUpdate wait(int timeoutMillis) {
         if (timeoutMillis < 0) {
             throw DbException.getInvalidValueException("timeout", timeoutMillis);
         }

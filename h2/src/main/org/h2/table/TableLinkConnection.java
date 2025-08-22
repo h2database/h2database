@@ -56,7 +56,7 @@ public class TableLinkConnection {
      *      (if shared connections are enabled).
      * @param driver the JDBC driver class name
      * @param url the database URL
-     * @param user the user name
+     * @param user the username
      * @param password the password
      * @param shareLinkedConnections if connections should be shared
      * @return a connection
@@ -75,7 +75,7 @@ public class TableLinkConnection {
             TableLinkConnection result = map.get(t);
             if (result == null) {
                 t.open();
-                // put the connection in the map after is has been opened,
+                // put the connection in the map after it has been opened,
                 // when we know it works
                 map.put(t, t);
                 result = t;

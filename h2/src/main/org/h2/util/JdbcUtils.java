@@ -263,7 +263,7 @@ public class JdbcUtils {
      *
      * @param driver the driver class name
      * @param url the database URL
-     * @param user the user name
+     * @param user the username
      * @param password the password
      * @return the database connection
      * @throws SQLException on failure
@@ -278,7 +278,7 @@ public class JdbcUtils {
      *
      * @param driver the driver class name
      * @param url the database URL
-     * @param user the user name or {@code null}
+     * @param user the username or {@code null}
      * @param password the password or {@code null}
      * @param networkConnectionInfo the network connection information, or {@code null}
      * @param forbidCreation whether database creation is forbidden
@@ -375,7 +375,7 @@ public class JdbcUtils {
      * the connection info if set, or the default serializer.
      *
      * @param obj the object to serialize
-     * @param javaObjectSerializer the object serializer (may be null)
+     * @param javaObjectSerializer the object serializer (might be null)
      * @return the byte array
      */
     public static byte[] serialize(Object obj, JavaObjectSerializer javaObjectSerializer) {
@@ -400,7 +400,7 @@ public class JdbcUtils {
      * specified by the connection info.
      *
      * @param data the byte array
-     * @param javaObjectSerializer the object serializer (may be null)
+     * @param javaObjectSerializer the object serializer (might be null)
      * @return the object
      * @throws DbException if serialization fails
      */
@@ -745,7 +745,7 @@ public class JdbcUtils {
     }
 
     /**
-     * Check is the SQL string starts with a prefix (case insensitive).
+     * Check is the SQL string starts with a prefix (case-insensitive).
      *
      * @param sql the SQL statement
      * @param builtIn the prefix

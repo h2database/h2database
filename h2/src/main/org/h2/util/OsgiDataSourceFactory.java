@@ -28,7 +28,7 @@ import org.osgi.service.jdbc.DataSourceFactory;
  * {@link #JDBC_INITIAL_POOL_SIZE}, {@link #JDBC_MAX_POOL_SIZE},
  * {@link #JDBC_MIN_POOL_SIZE}, {@link #JDBC_MAX_IDLE_TIME},
  * {@link #JDBC_MAX_STATEMENTS}, {@link #JDBC_PROPERTY_CYCLE}. Any other
- * property will be treated as a H2 specific option. If the {@link #JDBC_URL}
+ * property will be treated as an H2 specific option. If the {@link #JDBC_URL}
  * property is passed to any of the DataSource factories, the following
  * properties will be ignored: {@link #JDBC_DATASOURCE_NAME},
  * {@link #JDBC_NETWORK_PROTOCOL}, {@link #JDBC_SERVER_NAME},
@@ -174,7 +174,7 @@ public class OsgiDataSourceFactory implements DataSourceFactory {
     }
 
     /**
-     * Applies common OSGi properties to a H2 data source. Non standard
+     * Applies common OSGi properties to an H2 data source. Non-standard
      * properties will be applied as H2 options.
      *
      * @param dataSource the data source to configure

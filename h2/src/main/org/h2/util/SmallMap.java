@@ -41,13 +41,7 @@ public class SmallMap {
      */
     public int addObject(int id, Object o) {
         if (map.size() > maxElements * 2) {
-            Iterator<Integer> it = map.keySet().iterator();
-            while (it.hasNext()) {
-                Integer k = it.next();
-                if (k + maxElements < lastId) {
-                    it.remove();
-                }
-            }
+            map.keySet().removeIf(k -> k + maxElements < lastId);
         }
         if (id > lastId) {
             lastId = id;

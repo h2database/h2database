@@ -109,7 +109,7 @@ public class SortedProperties extends Properties {
     }
 
     /**
-     * Store a properties file. The header and the date is not written.
+     * Store a properties file. The header and the date are not written.
      *
      * @param fileName the target file name
      * @throws IOException on failure

@@ -42,8 +42,8 @@ public final class Transaction {
     /**
      * The status of a transaction that has been logically committed or rather
      * marked as committed, because it might be still listed among prepared,
-     * if it was prepared for commit. Undo log entries might still exists for it
-     * and not all of it's changes within map's are re-written as committed yet.
+     * if it was prepared for commit. Undo log entries might still exist for it
+     * and not all the transaction changes within maps are re-written as committed yet.
      * Nevertheless, those changes should be already viewed by other
      * transactions as committed.
      * This transaction's id can not be re-used until all of the above is completed
@@ -113,7 +113,7 @@ public final class Transaction {
     private final AtomicLong statusAndLogId;
 
     /**
-     * Reference to a counter for an earliest store version used by this transaction.
+     * Reference to a counter for earliest store version used by this transaction.
      * Referenced version and all newer ones can not be discarded
      * at least until this transaction ends.
      */
@@ -219,8 +219,6 @@ public final class Transaction {
             boolean valid;
             switch (status) {
                 case STATUS_ROLLING_BACK:
-                    valid = currentStatus == STATUS_OPEN;
-                    break;
                 case STATUS_PREPARED:
                     valid = currentStatus == STATUS_OPEN;
                     break;
@@ -478,7 +476,7 @@ public final class Transaction {
     }
 
     /**
-     * Prepare the transaction. Afterwards, the transaction can only be
+     * Prepare the transaction. Afterward, the transaction can only be
      * committed or completely rolled back.
      */
     public void prepare() {
@@ -487,7 +485,7 @@ public final class Transaction {
     }
 
     /**
-     * Commit the transaction. Afterwards, this transaction is closed.
+     * Commit the transaction. Afterward, this transaction is closed.
      */
     public void commit() {
         assert store.openTransactions.get().get(transactionId);
@@ -540,7 +538,7 @@ public final class Transaction {
                 success = statusAndLogId.compareAndSet(expectedState, newState);
             } while (!success && statusAndLogId.get() == expectedState);
         }
-        // this is moved outside of finally block to avert masking original exception, if any
+        // this is moved outside finally block to avert masking original exception, if any
         if (!success) {
             throw DataUtils.newMVStoreException(
                     DataUtils.ERROR_TRANSACTION_ILLEGAL_STATE,
@@ -550,7 +548,7 @@ public final class Transaction {
     }
 
     /**
-     * Roll the transaction back. Afterwards, this transaction is closed.
+     * Roll the transaction back. Afterward, this transaction is closed.
      */
     public void rollback() {
         markTransactionEnd();

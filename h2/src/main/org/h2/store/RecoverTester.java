@@ -160,7 +160,7 @@ public class RecoverTester implements Recorder {
             }
             String s = buff.toString();
             if (!knownErrors.contains(s)) {
-                out.println(writeCount + " code: " + errorCode + " " + e.toString());
+                out.println(writeCount + " code: " + errorCode + " " + e);
                 e.printStackTrace(System.out);
                 knownErrors.add(s);
             } else {

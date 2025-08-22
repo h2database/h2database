@@ -304,7 +304,7 @@ public final class StreamStore
     }
 
     /**
-     * Convert the id to a human readable string.
+     * Convert the id to a human-readable string.
      *
      * @param id the stream id
      * @return the string

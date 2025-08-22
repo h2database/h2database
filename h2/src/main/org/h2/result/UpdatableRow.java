@@ -41,7 +41,7 @@ public class UpdatableRow {
 
     /**
      * Construct a new object that is linked to the result set. The constructor
-     * reads the database meta data to find out if the result set is updatable.
+     * reads the database metadata to find out if the result set is updatable.
      *
      * @param conn the database connection
      * @param result the result
@@ -87,9 +87,9 @@ public class UpdatableRow {
             return;
         }
         String table = rs.getString("TABLE_NAME");
-        // if the table name in the database meta data is lower case,
-        // but the table in the result set meta data is not, then the column
-        // in the database meta data is also lower case
+        // if the table name in the database metadata is lower case,
+        // but the table in the result set metadata is not, then the column
+        // in the database metadata is also lower case
         boolean toUpper = !table.equals(tableName) && table.equalsIgnoreCase(tableName);
         key = Utils.newSmallArrayList();
         rs = meta.getPrimaryKeys(null,
@@ -216,7 +216,7 @@ public class UpdatableRow {
 //    }
 
     private void appendTableName(StringBuilder builder) {
-        if (schemaName != null && schemaName.length() > 0) {
+        if (schemaName != null && !schemaName.isEmpty()) {
             StringUtils.quoteIdentifier(builder, schemaName).append('.');
         }
         StringUtils.quoteIdentifier(builder, tableName);

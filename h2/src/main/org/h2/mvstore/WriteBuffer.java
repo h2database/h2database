@@ -29,7 +29,7 @@ public class WriteBuffer {
     private ByteBuffer reuse;
 
     /**
-     * The current buffer (may be replaced if it is too small).
+     * The current buffer (might be replaced if it is too small).
      */
     private ByteBuffer buff;
 

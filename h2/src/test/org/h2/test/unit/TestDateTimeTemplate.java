@@ -108,7 +108,8 @@ public class TestDateTimeTemplate extends TestBase {
         assertEquals("74-01-01", date(1974, 1, 1), date(2074, 1, 1), "RR-MM-DD", provider);
         assertEquals("73-01-01", date(2073, 1, 1), date(1973, 1, 1), "RR-MM-DD", provider);
         Provider altProvider = new Provider(2090, 1);
-        assertEquals("40-01-01", date(2040, 1, 1), date(2040, 1, 1), "RR-MM-DD", altProvider);
+        assertEquals("40-01-01", date(2040, 1, 1), date(2040, 1, 1), "RR-MM-DD", provider);
+        assertEquals("40-01-01", date(2140, 1, 1), date(2040, 1, 1), "RR-MM-DD", altProvider);
 
         date = date(12345, 5, 7);
         assertEquals("12345-05-07", date, "YYYY-MM-DD", provider);

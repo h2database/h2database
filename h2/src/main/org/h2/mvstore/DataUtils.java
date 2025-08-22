@@ -396,7 +396,7 @@ public final class DataUtils {
      * @param oldSize the size of the old array
      * @param gapIndex the index of the gap
      */
-    public static void copyWithGap(Object src, Object dst, int oldSize,
+    public static <T> void copyWithGap(T[] src, T[] dst, int oldSize,
             int gapIndex) {
         if (gapIndex > 0) {
             System.arraycopy(src, 0, dst, 0, gapIndex);
@@ -415,7 +415,7 @@ public final class DataUtils {
      * @param oldSize the size of the old array
      * @param removeIndex the index of the entry to remove
      */
-    public static void copyExcept(Object src, Object dst, int oldSize,
+    public static <T> void copyExcept(T[] src, T[] dst, int oldSize,
             int removeIndex) {
         if (removeIndex > 0 && oldSize > 0) {
             System.arraycopy(src, 0, dst, 0, removeIndex);

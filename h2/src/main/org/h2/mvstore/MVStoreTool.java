@@ -37,7 +37,7 @@ public class MVStoreTool {
 
     /**
      * Runs this tool.
-     * Options are case sensitive. Supported options are:
+     * Options are case-sensitive. Supported options are:
      * <table>
      * <caption>Command line options</caption>
      * <tr><td>[-dump &lt;fileName&gt;]</td>
@@ -344,7 +344,7 @@ public class MVStoreTool {
      *
      * @param fileName the name of the file
      * @param writer the print writer
-     * @return null if successful (if there was no error), otherwise the error
+     * @return null if successful (there was no error), otherwise the error
      *         message
      */
     public static String info(String fileName, Writer writer) {

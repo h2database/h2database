@@ -36,7 +36,7 @@ public abstract class TableBase extends Table {
      * Returns main index column if index is a primary key index and has only
      * one column with _ROWID_ compatible data type.
      *
-     * @param indexType type of an index
+     * @param indexType type of index
      * @param cols columns of the index
      * @return main index column or {@link SearchRow#ROWID_INDEX}
      */
@@ -64,11 +64,7 @@ public abstract class TableBase extends Table {
                 data.persistIndexes, data.persistData);
         this.tableEngine = data.tableEngine;
         this.globalTemporary = data.globalTemporary;
-        if (data.tableEngineParams != null) {
-            this.tableEngineParams = data.tableEngineParams;
-        } else {
-            this.tableEngineParams = Collections.emptyList();
-        }
+        this.tableEngineParams = data.tableEngineParams != null ? data.tableEngineParams : Collections.emptyList();
         setTemporary(data.temporary);
         setColumns(data.columns.toArray(new Column[0]));
     }

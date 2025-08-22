@@ -88,7 +88,7 @@ public class FileUtils {
     /**
      * Create a new file. This method is similar to Java 7
      * <code>java.nio.file.Path.createFile</code>, but returns false instead of
-     * throwing a exception if the file already existed.
+     * throwing exception if the file already existed.
      *
      * @param fileName the file name
      * @return true if creating was successful
@@ -321,7 +321,7 @@ public class FileUtils {
     // special methods =======================================
 
     /**
-     * Disable the ability to write. The file can still be deleted afterwards.
+     * Disable the ability to write. The file can still be deleted afterward.
      *
      * @param fileName the file name
      * @return true if the call was successful

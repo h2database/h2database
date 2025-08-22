@@ -60,38 +60,36 @@ public class TestCachedQueryResults extends TestDb
                 try (Connection conn = getConnection(name)) {
                     conn.setAutoCommit(false);
 
-                    try {
-                        String selectQuery = "SELECT counter FROM Counter WHERE id = 1";
-                        String lockRowQuery = "SELECT counter FROM Counter WHERE id = 1 FOR UPDATE";
+                    String selectQuery = "SELECT counter FROM Counter WHERE id = 1";
+                    String lockRowQuery = "SELECT counter FROM Counter WHERE id = 1 FOR UPDATE";
 
 
-                        PreparedStatement selectCounterStmt = conn.prepareStatement(selectQuery);
-                        int countBefore = queryCounter(selectCounterStmt); // Select counter before lock
+                    PreparedStatement selectCounterStmt = conn.prepareStatement(selectQuery);
+                    int countBefore = queryCounter(selectCounterStmt); // Select counter before lock
 
-                        PreparedStatement lockStmt = conn.prepareStatement(lockRowQuery);
-                        int countAtLock = queryCounter(lockStmt);     // Lock row and select
+                    PreparedStatement lockStmt = conn.prepareStatement(lockRowQuery);
+                    int countAtLock = queryCounter(lockStmt);     // Lock row and select
 
-                        int countAfter = queryCounter(selectCounterStmt);  // select after lock
-                        if (countAfter != countAtLock) {
-                            println(countAfter + " != " + countAtLock + " " + Thread.currentThread().getName());
-                        }
-                        if (!concurrentSet.add(countAfter)) {
-                            println("LOST UPDATE! value: " + countAfter); // lost update warning, if concurrentSet already contains current value
-                        }
-
-                        String updateCounterQuery = "UPDATE Counter SET counter = ? WHERE id = 1";
-                        PreparedStatement updateStmt = conn.prepareStatement(updateCounterQuery);
-                        updateStmt.setInt(1, countAfter + 1); // Update counter++
-                        updateStmt.executeUpdate();
-
-                        conn.commit();
-
-                        selectCounterStmt.close();
-                        lockStmt.close();
-                        return 0;
-                    } catch (SQLException e) {
-                        return -1;
+                    int countAfter = queryCounter(selectCounterStmt);  // select after lock
+                    if (countAfter != countAtLock) {
+                        println(countAfter + " != " + countAtLock + " " + Thread.currentThread().getName());
                     }
+                    if (!concurrentSet.add(countAfter)) {
+                        println("LOST UPDATE! value: " + countAfter); // lost update warning, if concurrentSet already contains current value
+                    }
+
+                    String updateCounterQuery = "UPDATE Counter SET counter = ? WHERE id = 1";
+                    PreparedStatement updateStmt = conn.prepareStatement(updateCounterQuery);
+                    updateStmt.setInt(1, countAfter + 1); // Update counter++
+                    updateStmt.executeUpdate();
+
+                    conn.commit();
+
+                    selectCounterStmt.close();
+                    lockStmt.close();
+                    return 0;
+                } catch (SQLException e) {
+                    return -1;
                 }
             };
             ArrayList<Callable<Object>> callables = new ArrayList<>();

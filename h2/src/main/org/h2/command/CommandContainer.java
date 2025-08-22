@@ -256,6 +256,10 @@ public class CommandContainer extends Command {
         return dependencies;
     }
 
+    public void invalidateCachedResult(Table reason) {
+        prepared.invalidateCachedResult(reason);
+    }
+
     @Override
     protected boolean isRetryable() {
         return prepared.isRetryable();

@@ -20,6 +20,7 @@ import org.h2.command.Prepared;
 import org.h2.command.QueryScope;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
+import org.h2.engine.IsolationLevel;
 import org.h2.engine.SessionLocal;
 import org.h2.expression.Alias;
 import org.h2.expression.Expression;
@@ -240,7 +241,7 @@ public abstract class Query extends Prepared {
     public abstract void preparePlan();
 
     /**
-     * The the list of select expressions.
+     * The list of select expressions.
      * This may include invisible expressions such as order by expressions.
      *
      * @return the list of expressions
@@ -527,10 +528,14 @@ public abstract class Query extends Prepared {
                 (session.isLazyQueryExecution() && !neverLazy)) {
             return queryWithoutCacheLazyCheck(limit, target);
         }
+        boolean isStable = session.getTransaction().getIsolationLevel() != IsolationLevel.READ_UNCOMMITTED
+                            && !isUpdatedInCurrentTransaction();
         Value[] params = getParameterValues();
-        long now = session.getStatementModificationDataId(), maxDataModificationId = getMaxDataModificationId();
-        if (lastResult != null && !lastResult.isClosed() && limit == lastLimit //
-                && maxDataModificationId <= lastEvaluated && sameParameters(params, lastParameters)
+        long now = session.getStatementModificationDataId();
+        long maxDataModificationId = getMaxDataModificationId();
+        if (lastResult != null && !lastResult.isClosed()
+                && isStable && maxDataModificationId <= lastEvaluated
+                && limit == lastLimit && sameParameters(params, lastParameters)
                 && Arrays.equals(inPredicateSortTypes, lastInPredicateSortTypes)) {
             lastResult = lastResult.createShallowCopy(session);
             if (lastResult != null) {
@@ -539,18 +544,17 @@ public abstract class Query extends Prepared {
             }
         }
         closeLastResult();
+
         ResultInterface r = queryWithoutCacheLazyCheck(limit, target);
-        if (maxDataModificationId <= now) {
+
+        if (isStable && maxDataModificationId <= now) {
             lastParameters = params;
             lastResult = r;
             lastInPredicateSortTypes = inPredicateSortTypes;
             lastEvaluated = now;
             lastLimit = limit;
         } else {
-            lastParameters = null;
-            lastResult = null;
-            lastInPredicateSortTypes = null;
-            lastLimit = lastEvaluated = 0L;
+            resetLastResult();
         }
         lastExists = null;
         return r;
@@ -588,12 +592,24 @@ public abstract class Query extends Prepared {
             lastExists = exists;
             lastEvaluated = now;
         } else {
-            lastParameters = null;
-            lastExists = null;
-            lastEvaluated = 0L;
+            resetLastResult();
         }
         lastResult = null;
         return exists;
+    }
+
+    private boolean isUpdatedInCurrentTransaction() {
+        HashSet<DbObject> dependencies = new HashSet<>();
+        collectDependencies(dependencies);
+        for (DbObject dependency : dependencies) {
+            if (dependency instanceof Table) {
+                Table table = (Table) dependency;
+                if (session.isUpdatedInCurrentTransaction(table)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private boolean executeExists() {
@@ -797,17 +813,16 @@ public abstract class Query extends Prepared {
 
     /**
      * Removes constant expressions from the sort order.
-     *
      * Some constants are detected only after optimization of expressions, this
      * method removes them from the sort order only. They are currently
      * preserved in the list of expressions.
      */
     void cleanupOrder() {
-        int sourceIndexes[] = sort.getQueryColumnIndexes();
+        int[] sourceIndexes = sort.getQueryColumnIndexes();
         int count = sourceIndexes.length;
         int constants = 0;
-        for (int i = 0; i < count; i++) {
-            if (expressions.get(sourceIndexes[i]).isConstant()) {
+        for (int sourceIndex : sourceIndexes) {
+            if (expressions.get(sourceIndex).isConstant()) {
                 constants++;
             }
         }
@@ -1159,4 +1174,20 @@ public abstract class Query extends Prepared {
         return forUpdate == null || forUpdate.getType() == ForUpdate.Type.SKIP_LOCKED;
     }
 
+    public void invalidateCachedResult(Table reason) {
+        HashSet<DbObject> dependencies = new HashSet<>();
+        collectDependencies(dependencies);
+        if (dependencies.contains(reason)) {
+            resetLastResult();
+        }
+    }
+
+    private void resetLastResult() {
+        lastParameters = null;
+        lastResult = null;
+        lastInPredicateSortTypes = null;
+        lastLimit = 0L;
+        lastEvaluated = 0L;
+        lastExists = null;
+    }
 }

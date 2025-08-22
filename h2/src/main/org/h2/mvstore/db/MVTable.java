@@ -15,6 +15,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import org.h2.api.DatabaseEventListener;
 import org.h2.api.ErrorCode;
+import org.h2.command.Prepared;
 import org.h2.command.ddl.CreateTableData;
 import org.h2.constraint.Constraint;
 import org.h2.constraint.ConstraintReferential;
@@ -32,6 +33,7 @@ import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVStoreException;
 import org.h2.mvstore.tx.Transaction;
 import org.h2.mvstore.tx.TransactionStore;
+import org.h2.result.LocalResult;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
@@ -60,7 +62,7 @@ public class MVTable extends TableBase {
     public static final DebuggingThreadLocal<ArrayList<String>> EXCLUSIVE_LOCKS;
 
     /**
-     * The tables names this thread has a shared lock on.
+     * The table names this thread has a shared lock on.
      */
     public static final DebuggingThreadLocal<ArrayList<String>> SHARED_LOCKS;
 
@@ -491,7 +493,7 @@ public class MVTable extends TableBase {
             }
             throw DbException.convert(e);
         }
-        syncLastModificationIdWithDatabase();
+        session.registerTableAsUpdated(this);
         analyzeIfRequired(session);
     }
 
@@ -525,7 +527,7 @@ public class MVTable extends TableBase {
             }
             throw DbException.convert(e);
         }
-        syncLastModificationIdWithDatabase();
+        session.registerTableAsUpdated(this);
         analyzeIfRequired(session);
     }
 
@@ -546,15 +548,15 @@ public class MVTable extends TableBase {
             }
             throw DbException.convert(e);
         }
-        syncLastModificationIdWithDatabase();
+        session.registerTableAsUpdated(this);
         analyzeIfRequired(session);
     }
 
     @Override
     public Row lockRow(SessionLocal session, Row row, int timeoutMillis) {
         Row lockedRow = primaryIndex.lockRow(session, row, timeoutMillis);
-        if (lockedRow == null || !row.hasSharedData(lockedRow)) {
-            syncLastModificationIdWithDatabase();
+        if (lockedRow != null) {
+            session.registerTableAsUpdated(this);
         }
         return lockedRow;
     }
@@ -652,14 +654,9 @@ public class MVTable extends TableBase {
         return true;
     }
 
-    /**
-     * Called after commit to increment database data modification counter for
-     * this table.
-     */
-    public void afterCommit() {
-        if (database != null) {
-            syncLastModificationIdWithDatabase();
-        }
+    private void syncLastModificationIdWithDatabase() {
+        long nextModificationDataId = database.getNextModificationDataId();
+        setModificationDataId(nextModificationDataId);
     }
 
     // Field lastModificationId can not be just a volatile, because window of opportunity
@@ -669,8 +666,7 @@ public class MVTable extends TableBase {
     // modification id, and when first thread finally updates the field, it will
     // result in lastModificationId jumping back.
     // This is, of course, unacceptable.
-    private void syncLastModificationIdWithDatabase() {
-        long nextModificationDataId = database.getNextModificationDataId();
+    public void setModificationDataId(long nextModificationDataId) {
         long currentId;
         do {
             currentId = lastModificationId.get();
@@ -716,6 +712,13 @@ public class MVTable extends TableBase {
         return primaryIndex.getMainIndexColumn();
     }
 
+    @Override
+    public void updateRows(Prepared prepared, SessionLocal session, LocalResult rows) {
+        super.updateRows(prepared, session, rows);
+        if (rows.getRowCount() > 0) {
+            session.registerTableAsUpdated(this);
+        }
+    }
 
     /**
      * Appends the specified rows to the specified index.
@@ -927,7 +930,7 @@ public class MVTable extends TableBase {
      *
      * @param database the database
      * @param cols the index columns
-     * @param indexType the type of an index
+     * @param indexType the type of index
      * @return the prepared columns with flags set
      */
     private static IndexColumn[] prepareColumns(Database database, IndexColumn[] cols, IndexType indexType) {

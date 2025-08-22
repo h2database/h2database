@@ -14,6 +14,7 @@ import org.h2.expression.Parameter;
 import org.h2.expression.ParameterInterface;
 import org.h2.result.ResultInterface;
 import org.h2.result.ResultWithGeneratedKeys;
+import org.h2.table.Table;
 
 /**
  * Represents a list of SQL statements.
@@ -114,6 +115,12 @@ class CommandList extends Command {
             prepared.collectDependencies(dependencies);
         }
         return dependencies;
+    }
+
+    public void invalidateCachedResult(Table reason) {
+        for (Prepared prepared : commands) {
+            prepared.invalidateCachedResult(reason);
+        }
     }
 
     @Override

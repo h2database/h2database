@@ -24,6 +24,7 @@ import org.h2.result.MergedResult;
 import org.h2.result.ResultInterface;
 import org.h2.result.ResultWithGeneratedKeys;
 import org.h2.result.ResultWithPaddedStrings;
+import org.h2.table.Table;
 import org.h2.util.Utils;
 import org.h2.value.Value;
 
@@ -94,7 +95,7 @@ public abstract class Command implements CommandInterface {
     public abstract boolean isReadOnly();
 
     /**
-     * Get an empty result set containing the meta data.
+     * Get an empty result set containing the metadata.
      *
      * @return an empty result set
      */
@@ -418,16 +419,22 @@ public abstract class Command implements CommandInterface {
         }
     }
 
-    public void setCanReuse(boolean canReuse) {
-        this.canReuse = canReuse;
-    }
-
+    /**
+     * Collect all database objects, this command depends on
+     * @return Set of dependencies
+     */
     public abstract Set<DbObject> getDependencies();
 
     /**
-     * Returns is this command can be repeated again on locking failure.
+     * Clear cached results of all prepared statements, which depends on a given table
+     * @param reason table causing invalidation
+     */
+    public abstract void invalidateCachedResult(Table reason);
+
+    /**
+     * Checks if this command can be repeated on locking failure.
      *
-     * @return is this command can be repeated again on locking failure
+     * @return true if this command can be repeated on locking failure
      */
     protected abstract boolean isRetryable();
 

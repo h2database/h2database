@@ -87,7 +87,8 @@ import org.h2.value.ValueCollectionBase;
  * <caption>Supported Options</caption>
  * <tr><th>Option</th><th>Description</th><th>Default</th></tr>
  * <tr><td>-dir &lt;directory&gt;</td><td>Database directory</td><td>. (current directory)</td></tr>
- * <tr><td>-db &lt;database&gt;</td><td>Database name (without .mv.db extension)</td><td>All databases in directory</td></tr>
+ * <tr><td>-db &lt;database&gt;</td><td>Database name (without .mv.db extension)</td>
+ * <td>All databases in directory</td></tr>
  * <tr><td>-compress &lt;type&gt;</td><td>Compression: none, gzip, zip, bzip2, kanzi</td><td>none</td></tr>
  * <tr><td>-trace</td><td>Enable debug output and verbose logging</td><td>false</td></tr>
  * <tr><td>-help or -?</td><td>Show help information</td><td>-</td></tr>
@@ -105,7 +106,9 @@ import org.h2.value.ValueCollectionBase;
  * <h2>External Dependencies (Optional):</h2>
  * <ul>
  * <li><strong>Apache Commons Compress:</strong> Required for BZIP2 compression
- *     <br>Download: <a href="https://commons.apache.org/proper/commons-compress/">https://commons.apache.org/proper/commons-compress/</a></li>
+ * <br>
+ * Download: <a href=
+ * "https://commons.apache.org/proper/commons-compress/">https://commons.apache.org/proper/commons-compress/</a></li>
  * <li><strong>Kanzi:</strong> Required for KANZI compression (best compression ratio)
  *     <br>Download: <a href="https://github.com/flanglet/kanzi-java">https://github.com/flanglet/kanzi-java</a></li>
  * </ul>
@@ -163,11 +166,11 @@ public class DirectRecover extends Recover {
 
             for (int i = 0; i < width; i++) {
                 if (i < filled) {
-                    bar.append('█');
+                    bar.append('\u2588');
                 } else if (i == filled && progress < 100) {
-                    bar.append('▓');
+                    bar.append('\u2593');
                 } else {
-                    bar.append('░');
+                    bar.append('\u2591');
                 }
             }
 
@@ -521,7 +524,7 @@ public class DirectRecover extends Recover {
                                 // Ensure Kanzi stream is properly closed
                                 if (kanziExecutor!=null) {
                                     kanziExecutor.shutdown();
-                                    boolean b = kanziExecutor.awaitTermination(1, TimeUnit.DAYS);
+                                    kanziExecutor.awaitTermination(1, TimeUnit.DAYS);
                                 }
                                 compressedOut.close();
                                 debug("KANZI writer closed successfully.");
@@ -589,7 +592,8 @@ public class DirectRecover extends Recover {
      * @param fileName original database file name
      * @param progressBar progress bar for visual feedback (can be null)
      */
-    private void processPipedDumpToSQL(PipedReader pipeReader, PrintWriter sqlWriter, String fileName, ProgressBar progressBar) {
+    private void processPipedDumpToSQL(PipedReader pipeReader, PrintWriter sqlWriter, String fileName,
+            ProgressBar progressBar) {
         BufferedReader reader = null;
         try {
             debug("PROCESS: Starting processPipedDumpToSQL for " + fileName);
@@ -618,11 +622,10 @@ public class DirectRecover extends Recover {
 
             // Consume dump output in parallel (to prevent blocking)
             debug("PROCESS: Starting parallel dump consumption");
-            String line;
             int lineCount = 0;
             long estimatedTotal = 1000000; // Rough estimate for progress bar
 
-            while ((line = reader.readLine()) != null) {
+            while (reader.readLine() != null) {
                 lineCount++;
                 // Just consume the line to prevent pipe blocking
                 if (debugMode && lineCount % 10000 == 0) {

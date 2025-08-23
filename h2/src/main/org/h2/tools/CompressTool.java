@@ -39,8 +39,10 @@ public class CompressTool {
 
     public static final String KANZI_OUTPUT_CLASS_NAME = "io.github.flanglet.kanzi.io.CompressedOutputStream";
     public static final String KANZI_INPUT_CLASS_NAME = "io.github.flanglet.kanzi.io.CompressedInputStream";
-    public static final String BZIP2_OUTPUT_CLASS_NAME = "org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream";
-    public static final String BZIP2_INPUT_CLASS_NAME = "org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream";
+    public static final String BZIP2_OUTPUT_CLASS_NAME //
+            = "org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream";
+    public static final String BZIP2_INPUT_CLASS_NAME //
+            = "org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream";
 
     private static final int MAX_BUFFER_SIZE = 3 * Constants.IO_BUFFER_SIZE_COMPRESS;
 
@@ -59,26 +61,26 @@ public class CompressTool {
             Class<?> clazz = Class.forName(BZIP2_OUTPUT_CLASS_NAME);
             Constructor<?> constructor = clazz.getConstructor(OutputStream.class);
             return (OutputStream) constructor.newInstance(baseOutputStream);
-        } catch (ClassNotFoundException | NoSuchMethodException | InstantiationException | IllegalAccessException |
-                 InvocationTargetException e) {
-            throw new RuntimeException("BZip2 compression requires Apache Commons Compress library. " +
-                    "Add commons-compress to your classpath.", e);
+        } catch (ClassNotFoundException | NoSuchMethodException | InstantiationException | IllegalAccessException
+                | InvocationTargetException e) {
+            throw new RuntimeException("BZip2 compression requires Apache Commons Compress library. "
+                    + "Add commons-compress to your classpath.", e);
         }
     }
 
     /**
      * Creates a BZip2 decompressing input stream using reflection.
      */
-    public static InputStream createBZip2InputStream(InputStream inputStream)  {
+    public static InputStream createBZip2InputStream(InputStream inputStream) {
         try {
             // Try Apache Commons Compress first
             Class<?> clazz = Class.forName(BZIP2_INPUT_CLASS_NAME);
             Constructor<?> constructor = clazz.getConstructor(InputStream.class);
             return (InputStream) constructor.newInstance(inputStream);
-        } catch (ClassNotFoundException | NoSuchMethodException | InstantiationException | IllegalAccessException |
-                 InvocationTargetException e) {
-            throw new RuntimeException("BZip2 compression requires Apache Commons Compress library. " +
-                    "Add commons-compress to your classpath.", e);
+        } catch (ClassNotFoundException | NoSuchMethodException | InstantiationException | IllegalAccessException
+                | InvocationTargetException e) {
+            throw new RuntimeException("BZip2 compression requires Apache Commons Compress library. "
+                    + "Add commons-compress to your classpath.", e);
         }
     }
 
@@ -93,33 +95,34 @@ public class CompressTool {
             // Create configuration map with proper Kanzi parameters
             java.util.Map<String, Object> configMap = new java.util.HashMap<>();
 
-            //  Best compression settings (brute tested on a 1.7 GB database, 4.7GB SQL file)
-            //  88658331 kanzi -x64 -b 256m -t RLT+PACK+LZP -e TPAQX
-            //  88654035 kanzi -x64 -b 256m -t RLT+PACK+LZP+RLT -e TPAQX
-            //  85411430 kanzi -x64 -b 256m -t TEXT+RLT+LZP+PACK -e TPAQX
-            //  85397152 kanzi -x64 -b 256m -t TEXT+RLT+LZP+PACK+RLT -e TPAQX
+            // Best compression settings (brute tested on a 1.7 GB database,
+            // 4.7GB SQL file)
+            // 88658331 kanzi -x64 -b 256m -t RLT+PACK+LZP -e TPAQX
+            // 88654035 kanzi -x64 -b 256m -t RLT+PACK+LZP+RLT -e TPAQX
+            // 85411430 kanzi -x64 -b 256m -t TEXT+RLT+LZP+PACK -e TPAQX
+            // 85397152 kanzi -x64 -b 256m -t TEXT+RLT+LZP+PACK+RLT -e TPAQX
 
-            configMap.put("transform", "TEXT+RLT+LZP+PACK+RLT");// Good for SQL dump
-            configMap.put("entropy", "TPAQX");                  // Text and structured data
-            configMap.put("blockSize", 32 * 1024 * 1024);       // 32MB blocks
-            configMap.put("checksum", 64);                      // Enable checksums
+            configMap.put("transform", "TEXT+RLT+LZP+PACK+RLT");// Good for SQL
+                                                                // dump
+            configMap.put("entropy", "TPAQX"); // Text and structured data
+            configMap.put("blockSize", 32 * 1024 * 1024); // 32MB blocks
+            configMap.put("checksum", 64); // Enable checksums
 
-            configMap.put("pool", executor);                    // Multi-threaded
+            configMap.put("pool", executor); // Multi-threaded
             if (Runtime.getRuntime().freeMemory() < 8L * 1024 * 1024 * 1024) {
                 configMap.put("jobs", 4);
             } else {
                 configMap.put("jobs", Runtime.getRuntime().availableProcessors() / 2);
             }
 
-            Constructor<?> constructor = clazz.getConstructor(
-                    OutputStream.class,
-                    java.util.Map.class
-            );
+            Constructor<?> constructor = clazz.getConstructor(OutputStream.class, java.util.Map.class);
             return (OutputStream) constructor.newInstance(baseOutputStream, configMap);
 
         } catch (ClassNotFoundException e) {
-            throw new RuntimeException("Kanzi compression requires Kanzi library. " +
-                    "Add kanzi.jar to your classpath. Download from: https://github.com/flanglet/kanzi-java", e);
+            throw new RuntimeException(
+                    "Kanzi compression requires Kanzi library. "
+                            + "Add kanzi.jar to your classpath. Download from: https://github.com/flanglet/kanzi-java",
+                    e);
         } catch (Exception e) {
             throw new RuntimeException("Failed to initialize Kanzi compression: " + e.getMessage(), e);
         }
@@ -137,20 +140,20 @@ public class CompressTool {
             java.util.Map<String, Object> configMap = new java.util.HashMap<>();
 
             // Basic compression settings
-            configMap.put("pool", executor);                    // Multi-threaded
+            configMap.put("pool", executor); // Multi-threaded
             configMap.put("jobs", Runtime.getRuntime().availableProcessors());
 
-            Constructor<?> constructor = clazz.getConstructor(
-                    InputStream.class,
-                    java.util.Map.class
-            );
+            Constructor<?> constructor = clazz.getConstructor(InputStream.class, java.util.Map.class);
             // workaround Zero byte EOF issue
-            // it has been fixed only recently so we should still guard for a while
-            return new ZeroBytesEOFInputStream( (InputStream) constructor.newInstance(inputStream, configMap));
+            // it has been fixed only recently so we should still guard for a
+            // while
+            return new ZeroBytesEOFInputStream((InputStream) constructor.newInstance(inputStream, configMap));
 
         } catch (ClassNotFoundException e) {
-            throw new RuntimeException("Kanzi compression requires Kanzi library. " +
-                    "Add kanzi.jar to your classpath. Download from: https://github.com/flanglet/kanzi-java", e);
+            throw new RuntimeException(
+                    "Kanzi compression requires Kanzi library. "
+                            + "Add kanzi.jar to your classpath. Download from: https://github.com/flanglet/kanzi-java",
+                    e);
         } catch (Exception e) {
             throw new RuntimeException("Failed to initialize Kanzi compression: " + e.getMessage(), e);
         }
@@ -181,8 +184,10 @@ public class CompressTool {
      * Compressed the data using the specified algorithm. If no algorithm is
      * supplied, LZF is used
      *
-     * @param in the byte array with the original data
-     * @param algorithm the algorithm (LZF, DEFLATE)
+     * @param in
+     *            the byte array with the original data
+     * @param algorithm
+     *            the algorithm (LZF, DEFLATE)
      * @return the compressed data
      */
     public byte[] compress(byte[] in, String algorithm) {
@@ -196,8 +201,7 @@ public class CompressTool {
         return Utils.copyBytes(buff, newLen);
     }
 
-    private static int compress(byte[] in, int len, Compressor compress,
-            byte[] out) {
+    private static int compress(byte[] in, int len, Compressor compress, byte[] out) {
         out[0] = (byte) compress.getAlgorithm();
         int start = 1 + writeVariableInt(out, 1, len);
         int newLen = compress.compress(in, 0, len, out, start);
@@ -210,9 +214,10 @@ public class CompressTool {
     }
 
     /**
-     * Expands the compressed  data.
+     * Expands the compressed data.
      *
-     * @param in the byte array with the compressed data
+     * @param in
+     *            the byte array with the compressed data
      * @return the uncompressed data
      */
     public byte[] expand(byte[] in) {
@@ -234,9 +239,13 @@ public class CompressTool {
 
     /**
      * INTERNAL
-     * @param in compressed data
-     * @param out uncompressed result
-     * @param outPos the offset at the output array
+     *
+     * @param in
+     *            compressed data
+     * @param out
+     *            uncompressed result
+     * @param outPos
+     *            the offset at the output array
      */
     public static void expand(byte[] in, byte[] out, int outPos) {
         int algorithm = in[0];
@@ -253,8 +262,10 @@ public class CompressTool {
     /**
      * Read a variable size integer using Rice coding.
      *
-     * @param buff the buffer
-     * @param pos the position
+     * @param buff
+     *            the buffer
+     * @param pos
+     *            the position
      * @return the integer
      */
     public static int readVariableInt(byte[] buff, int pos) {
@@ -266,26 +277,24 @@ public class CompressTool {
             return ((x & 0x3f) << 8) + (buff[pos] & 0xff);
         }
         if (x < 0xe0) {
-            return ((x & 0x1f) << 16) +
-                    ((buff[pos++] & 0xff) << 8) +
-                    (buff[pos] & 0xff);
+            return ((x & 0x1f) << 16) + ((buff[pos++] & 0xff) << 8) + (buff[pos] & 0xff);
         }
         if (x < 0xf0) {
-            return ((x & 0xf) << 24) +
-                    ((buff[pos++] & 0xff) << 16) +
-                    ((buff[pos++] & 0xff) << 8) +
-                    (buff[pos] & 0xff);
+            return ((x & 0xf) << 24) + ((buff[pos++] & 0xff) << 16) + ((buff[pos++] & 0xff) << 8) + (buff[pos] & 0xff);
         }
         return (int) INT_VH_BE.get(buff, pos);
     }
 
     /**
-     * Write a variable size integer using Rice coding.
-     * Negative values need 5 bytes.
+     * Write a variable size integer using Rice coding. Negative values need 5
+     * bytes.
      *
-     * @param buff the buffer
-     * @param pos the position
-     * @param x the value
+     * @param buff
+     *            the buffer
+     * @param pos
+     *            the position
+     * @param x
+     *            the value
      * @return the number of bytes written (0-5)
      */
     public static int writeVariableInt(byte[] buff, int pos, int x) {
@@ -316,10 +325,11 @@ public class CompressTool {
     }
 
     /**
-     * Get a variable size integer length using Rice coding.
-     * Negative values need 5 bytes.
+     * Get a variable size integer length using Rice coding. Negative values
+     * need 5 bytes.
      *
-     * @param x the value
+     * @param x
+     *            the value
      * @return the number of bytes needed (0-5)
      */
     public static int getVariableIntLength(int x) {
@@ -356,7 +366,9 @@ public class CompressTool {
 
     /**
      * INTERNAL
-     * @param algorithm to translate into index
+     *
+     * @param algorithm
+     *            to translate into index
      * @return index of the specified algorithm
      */
     private static int getCompressAlgorithm(String algorithm) {
@@ -368,9 +380,7 @@ public class CompressTool {
         } else if ("DEFLATE".equals(algorithm)) {
             return Compressor.DEFLATE;
         } else {
-            throw DbException.get(
-                    ErrorCode.UNSUPPORTED_COMPRESSION_ALGORITHM_1,
-                    algorithm);
+            throw DbException.get(ErrorCode.UNSUPPORTED_COMPRESSION_ALGORITHM_1, algorithm);
         }
     }
 
@@ -383,117 +393,126 @@ public class CompressTool {
         case Compressor.DEFLATE:
             return new CompressDeflate();
         default:
-            throw DbException.get(
-                    ErrorCode.UNSUPPORTED_COMPRESSION_ALGORITHM_1,
-                    Integer.toString(algorithm));
+            throw DbException.get(ErrorCode.UNSUPPORTED_COMPRESSION_ALGORITHM_1, Integer.toString(algorithm));
         }
     }
 
     /**
      * INTERNAL
-     * @param out stream
-     * @param compressionAlgorithm to be used
-     * @param entryName in a zip file
+     *
+     * @param out
+     *            stream
+     * @param compressionAlgorithm
+     *            to be used
+     * @param entryName
+     *            in a zip file
      * @return compressed stream
      */
-    public static OutputStream wrapOutputStream(OutputStream out,
-                                                String compressionAlgorithm, String entryName) {
+    public static OutputStream wrapOutputStream(OutputStream out, String compressionAlgorithm, String entryName) {
         return wrapOutputStream(out, compressionAlgorithm, entryName, null);
     }
 
     /**
      * INTERNAL
-     * @param out stream
-     * @param compressionAlgorithm to be used
-     * @param entryName in a zip file
-     * @param executor for supervising the parallel execution (KANZI only)
+     *
+     * @param out
+     *            stream
+     * @param compressionAlgorithm
+     *            to be used
+     * @param entryName
+     *            in a zip file
+     * @param executor
+     *            for supervising the parallel execution (KANZI only)
      * @return compressed stream
      */
-    public static OutputStream wrapOutputStream(OutputStream out,
-            String compressionAlgorithm, String entryName, ExecutorService executor) {
+    public static OutputStream wrapOutputStream(OutputStream out, String compressionAlgorithm, String entryName,
+            ExecutorService executor) {
         try {
             CompressionType compressionType = CompressionType.from(compressionAlgorithm);
             switch (compressionType) {
-                case GZIP:
-                    return new GZIPOutputStream(out);
-                case ZIP:
-                    ZipOutputStream z = new ZipOutputStream(out);
-                    z.putNextEntry(new ZipEntry(entryName));
-                    return z;
-                case BZIP2:
-                    return createBZip2OutputStream(out);
-                case KANZI:
-                    return createKanziOutputStream(out, executor);
-                case DEFLATE:
-                    return new DeflaterOutputStream(out);
-                case LZF:
-                   return new LZFOutputStream(out);
-                default:
-                    return out;
+            case GZIP:
+                return new GZIPOutputStream(out);
+            case ZIP:
+                ZipOutputStream z = new ZipOutputStream(out);
+                z.putNextEntry(new ZipEntry(entryName));
+                return z;
+            case BZIP2:
+                return createBZip2OutputStream(out);
+            case KANZI:
+                return createKanziOutputStream(out, executor);
+            case DEFLATE:
+                return new DeflaterOutputStream(out);
+            case LZF:
+                return new LZFOutputStream(out);
+            default:
+                return out;
             }
         } catch (Exception e) {
-            throw DbException.get(
-                    ErrorCode.UNSUPPORTED_COMPRESSION_ALGORITHM_1,
-                    compressionAlgorithm);
+            throw DbException.get(ErrorCode.UNSUPPORTED_COMPRESSION_ALGORITHM_1, compressionAlgorithm);
         }
     }
 
     /**
      * INTERNAL
-     * @param in stream
-     * @param compressionAlgorithm to be used
-     * @param entryName in a zip file
+     *
+     * @param in
+     *            stream
+     * @param compressionAlgorithm
+     *            to be used
+     * @param entryName
+     *            in a zip file
      * @return in stream or null if there is no such entry
      */
-    public static InputStream wrapInputStream(InputStream in,
-                                              String compressionAlgorithm, String entryName) {
+    public static InputStream wrapInputStream(InputStream in, String compressionAlgorithm, String entryName) {
         return wrapInputStream(in, compressionAlgorithm, entryName, null);
     }
 
     /**
      * INTERNAL
-     * @param in stream
-     * @param compressionAlgorithm to be used
-     * @param entryName in a zip file
-     * @param executor for supervising the parallel execution (KANZI only)
+     *
+     * @param in
+     *            stream
+     * @param compressionAlgorithm
+     *            to be used
+     * @param entryName
+     *            in a zip file
+     * @param executor
+     *            for supervising the parallel execution (KANZI only)
      * @return in stream or null if there is no such entry
      */
-    public static InputStream wrapInputStream(InputStream in,
-            String compressionAlgorithm, String entryName, ExecutorService executor) {
+    public static InputStream wrapInputStream(InputStream in, String compressionAlgorithm, String entryName,
+            ExecutorService executor) {
         try {
             CompressionType compressionType = CompressionType.from(compressionAlgorithm);
             switch (compressionType) {
-                case GZIP:
-                    return new GZIPInputStream(in);
-                case ZIP:
-                    ZipInputStream z = new ZipInputStream(in);
-                    while (true) {
-                        ZipEntry entry = z.getNextEntry();
-                        if (entry == null) {
-                            return null;
-                        }
-                        if (entryName.equals(entry.getName())) {
-                            break;
-                        }
+            case GZIP:
+                return new GZIPInputStream(in);
+            case ZIP:
+                ZipInputStream z = new ZipInputStream(in);
+                while (true) {
+                    ZipEntry entry = z.getNextEntry();
+                    if (entry == null) {
+                        return null;
                     }
-                    return z;
-                case BZIP2:
-                    return createBZip2InputStream(in);
-                case KANZI:
-                    return createKanziInputStream(in, executor);
-                case DEFLATE:
-                    return in = new InflaterInputStream(in);
-                case LZF:
-                    return new LZFInputStream(in);
-                default:
-                    return in;
+                    if (entryName.equals(entry.getName())) {
+                        break;
+                    }
+                }
+                return z;
+            case BZIP2:
+                return createBZip2InputStream(in);
+            case KANZI:
+                return createKanziInputStream(in, executor);
+            case DEFLATE:
+                return in = new InflaterInputStream(in);
+            case LZF:
+                return new LZFInputStream(in);
+            default:
+                return in;
             }
         } catch (Exception e) {
-            throw DbException.get(
-                    ErrorCode.UNSUPPORTED_COMPRESSION_ALGORITHM_1,
-                    compressionAlgorithm);
+            throw DbException.get(ErrorCode.UNSUPPORTED_COMPRESSION_ALGORITHM_1, compressionAlgorithm);
         }
     }
 
 }
-

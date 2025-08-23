@@ -2132,8 +2132,8 @@ SET TRACE_MAX_FILE_SIZE 10
 @h2@ SET TRUNCATE_LARGE_LENGTH { TRUE | FALSE }
 ","
 If ""TRUE"" is specified, the ""CHARACTER"", ""CHARACTER VARYING"", ""VARCHAR_IGNORECASE"", ""BINARY"",
-"BINARY_VARYING", "JAVA_OBJECT"" and ""JSON"" data types with too large length will be treated as these data types with
-maximum allowed length instead.
+""BINARY_VARYING"", ""JAVA_OBJECT"" and ""JSON"" data types with too large length will be treated
+as these data types with maximum allowed length instead.
 By default, or if ""FALSE"" is specified, such definitions throw an exception.
 This setting can be used for compatibility with definitions from older versions of H2.
 

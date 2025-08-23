@@ -21,7 +21,6 @@ import org.h2.compress.CompressDeflate;
 import org.h2.compress.CompressLZF;
 import org.h2.compress.Compressor;
 import org.h2.engine.Constants;
-import org.h2.mvstore.tx.TransactionStore;
 import org.h2.mvstore.type.BasicDataType;
 import org.h2.mvstore.type.StringDataType;
 import org.h2.store.fs.FilePath;
@@ -443,10 +442,7 @@ public class MVStoreTool {
      * @param compress whether to compress the data
      */
     public static void compact(String fileName, boolean compress) {
-        String tempName = fileName + Constants.SUFFIX_MV_STORE_TEMP_FILE;
-        FileUtils.delete(tempName);
-        compact(fileName, tempName, compress);
-        moveAtomicReplace(tempName, fileName);
+        MVStore.compact(fileName, compress, null);
     }
 
     /**
@@ -488,90 +484,6 @@ public class MVStoreTool {
             } else {
                 FileUtils.move(newName, fileName);
             }
-        }
-    }
-
-    /**
-     * Copy all live pages from the source store to the target store.
-     *
-     * @param sourceFileName the name of the source store
-     * @param targetFileName the name of the target store
-     * @param compress whether to compress the data
-     */
-    public static void compact(String sourceFileName, String targetFileName, boolean compress) {
-        try (MVStore source = new MVStore.Builder().
-                fileName(sourceFileName).readOnly().open()) {
-            // Bugfix - Add double "try-finally" statements to close source and target stores for
-            //releasing lock and file resources in these stores even if OOM occurs.
-            // Fix issues such as "Cannot delete file "/h2/data/test.mv.db.tempFile" [90025-197]"
-            //when client connects to this server and reopens this store database in this process.
-            // @since 2018-09-13 little-pan
-            FileUtils.delete(targetFileName);
-            MVStore.Builder b = new MVStore.Builder().
-                fileName(targetFileName);
-            if (compress) {
-                b.compress();
-            }
-            try (MVStore target = b.open()) {
-                compact(source, target);
-            }
-        }
-    }
-
-    /**
-     * Copy all live pages from the source store to the target store.
-     *
-     * @param source the source store
-     * @param target the target store
-     */
-    public static void compact(MVStore source, MVStore target) {
-        target.setCurrentVersion(source.getCurrentVersion());
-        target.adjustLastMapId(source.getLastMapId());
-        int autoCommitDelay = target.getAutoCommitDelay();
-        boolean reuseSpace = target.isSpaceReused();
-        try {
-            target.setReuseSpace(false);  // disable unused chunks collection
-            target.setAutoCommitDelay(0); // disable autocommit
-            MVMap<String, String> sourceMeta = source.getMetaMap();
-            MVMap<String, String> targetMeta = target.getMetaMap();
-            for (Entry<String, String> m : sourceMeta.entrySet()) {
-                String key = m.getKey();
-                if (key.startsWith(DataUtils.META_MAP)) {
-                    // ignore
-                } else if (key.startsWith(DataUtils.META_NAME)) {
-                    // ignore
-                } else {
-                    targetMeta.put(key, m.getValue());
-                }
-            }
-            // We are going to cheat a little bit in the copyFrom() by employing "incomplete" pages,
-            // which would be spared of saving, but save completed pages underneath,
-            // and those may appear as dead (non-reachable).
-            // That's why it is important to preserve all chunks
-            // created in the process, especially if retention time
-            // is set to a lower value, or even 0.
-            for (String mapName : source.getMapNames()) {
-                MVMap.Builder<Object, Object> mp = getGenericMapBuilder();
-                // This is a hack to preserve chunks occupancy rate accounting.
-                // It exposes design deficiency flaw in MVStore related to lack of
-                // map's type metadata.
-                // TODO: Introduce type metadata which will allow to open any store
-                // TODO: without prior knowledge of keys / values types and map implementation
-                // TODO: (MVMap vs MVRTreeMap, regular vs. singleWriter etc.)
-                if (mapName.startsWith(TransactionStore.UNDO_LOG_NAME_PREFIX)) {
-                    mp.singleWriter();
-                }
-                MVMap<Object, Object> sourceMap = source.openMap(mapName, mp);
-                MVMap<Object, Object> targetMap = target.openMap(mapName, mp);
-                targetMap.copyFrom(sourceMap);
-                targetMeta.put(MVMap.getMapKey(targetMap.getId()), sourceMeta.get(MVMap.getMapKey(sourceMap.getId())));
-            }
-            // this will end hacky mode of operation with incomplete pages
-            // end ensure that all pages are saved
-            target.commit();
-        } finally {
-            target.setAutoCommitDelay(autoCommitDelay);
-            target.setReuseSpace(reuseSpace);
         }
     }
 

@@ -30,6 +30,8 @@ import java.util.function.Predicate;
 import org.h2.compress.CompressDeflate;
 import org.h2.compress.CompressLZF;
 import org.h2.compress.Compressor;
+import org.h2.engine.Constants;
+import org.h2.mvstore.tx.TransactionStore;
 import org.h2.mvstore.type.StringDataType;
 import org.h2.store.fs.FileUtils;
 import org.h2.util.Utils;
@@ -315,6 +317,122 @@ public final class MVStore implements AutoCloseable {
         MVMap<String,String> map = new MVMap<>(this, metaId, StringDataType.INSTANCE, StringDataType.INSTANCE);
         map.setRootPos(getRootPos(map.getId()), currentVersion);
         return map;
+    }
+
+    /**
+     * Compact database file by copying only live pages.
+     * @param fileName to compact
+     * @param compress whether new database file should use compression
+     * @param fileStore open filestore instance based on fileName provided, if database is not encrypted
+     *                  it can be null, and the standard fileStore opening procedure will be used,
+     *                  but for encrypted files that fileStore is used as a factory with the knowledge of
+     *                  encryption key, and it must be supplied.
+     *                  This fileStore will be closed here.
+     */
+    public static void compact(String fileName, boolean compress, FileStore<?> fileStore) {
+        String tempName = fileName + Constants.SUFFIX_MV_STORE_TEMP_FILE;
+        compact(fileName, tempName, compress, fileStore);
+        MVStoreTool.moveAtomicReplace(tempName, fileName);
+    }
+
+    /**
+     * Copy all live pages from the source store to the target store.
+     *
+     * @param sourceFileName the name of the source store
+     * @param targetFileName the name of the target store
+     * @param compress whether to compress the data
+     * @param fileStore open filestore instance based on sourceFileName provided, if database is not encrypted
+     *                  it can be null, and the standard fileStore opening procedure will be used,
+     *                  but for encrypted files that fileStore is used as a factory with the knowledge of
+     *                  encryption key, and it must be supplied.
+     *                  This fileStore will be closed here.
+     */
+    public static void compact(String sourceFileName, String targetFileName, boolean compress,
+                               FileStore<?> fileStore) {
+        try {
+            FileUtils.delete(targetFileName);
+            Builder targetBuilder = new Builder();
+            if (fileStore == null) {
+                targetBuilder.fileName(targetFileName);
+            } else {
+                targetBuilder.adoptFileStore(fileStore.open(targetFileName, false));
+            }
+            if (compress) {
+                targetBuilder.compress();
+            }
+            try (MVStore target = targetBuilder.open()) {
+                if (fileStore != null) {
+                    fileStore.close();
+                    fileStore = null;
+                }
+                Builder sourceBuilder = new Builder().readOnly()
+                        .adoptFileStore(target.getFileStore().open(sourceFileName, true));
+                try (MVStore source = sourceBuilder.open()) {
+                    compact(source, target);
+                }
+            }
+        } finally {
+            if (fileStore != null) {
+                fileStore.close();
+            }
+        }
+    }
+
+    /**
+     * Copy all live pages from the source store to the target store.
+     *
+     * @param source the source store
+     * @param target the target store
+     */
+    private static void compact(MVStore source, MVStore target) {
+        target.setCurrentVersion(source.getCurrentVersion());
+        target.adjustLastMapId(source.getLastMapId());
+        int autoCommitDelay = target.getAutoCommitDelay();
+        boolean reuseSpace = target.isSpaceReused();
+        try {
+            target.setReuseSpace(false);  // disable unused chunks collection
+            target.setAutoCommitDelay(0); // disable autocommit
+            MVMap<String, String> sourceMeta = source.getMetaMap();
+            MVMap<String, String> targetMeta = target.getMetaMap();
+            for (Map.Entry<String, String> m : sourceMeta.entrySet()) {
+                String key = m.getKey();
+                if (key.startsWith(DataUtils.META_MAP)) {
+                    // ignore
+                } else if (key.startsWith(DataUtils.META_NAME)) {
+                    // ignore
+                } else {
+                    targetMeta.put(key, m.getValue());
+                }
+            }
+            // We are going to cheat a little bit in the copyFrom() by employing "incomplete" pages,
+            // which would be spared of saving, but save completed pages underneath,
+            // and those may appear as dead (non-reachable).
+            // That's why it is important to preserve all chunks
+            // created in the process, especially if retention time
+            // is set to a lower value, or even 0.
+            for (String mapName : source.getMapNames()) {
+                MVMap.Builder<Object, Object> mp = MVStoreTool.getGenericMapBuilder();
+                // This is a hack to preserve chunks occupancy rate accounting.
+                // It exposes design deficiency flaw in MVStore related to lack of
+                // map's type metadata.
+                // TODO: Introduce type metadata which will allow to open any store
+                // TODO: without prior knowledge of keys / values types and map implementation
+                // TODO: (MVMap vs MVRTreeMap, regular vs. singleWriter etc.)
+                if (mapName.startsWith(TransactionStore.UNDO_LOG_NAME_PREFIX)) {
+                    mp.singleWriter();
+                }
+                MVMap<Object, Object> sourceMap = source.openMap(mapName, mp);
+                MVMap<Object, Object> targetMap = target.openMap(mapName, mp);
+                targetMap.copyFrom(sourceMap);
+                targetMeta.put(MVMap.getMapKey(targetMap.getId()), sourceMeta.get(MVMap.getMapKey(sourceMap.getId())));
+            }
+            // this will end hacky mode of operation with incomplete pages
+            // end ensure that all pages are saved
+            target.commit();
+        } finally {
+            target.setAutoCommitDelay(autoCommitDelay);
+            target.setReuseSpace(reuseSpace);
+        }
     }
 
     private void scrubMetaMap() {
@@ -629,28 +747,7 @@ public final class MVStore implements AutoCloseable {
      */
     public void close(int allowedCompactionTime) {
         if (!isClosed()) {
-            if (fileStore != null) {
-                boolean compactFully = allowedCompactionTime == -1;
-                if (fileStore.isReadOnly()) {
-                    compactFully = false;
-                } else {
-                    commit();
-                }
-                if (compactFully) {
-                    allowedCompactionTime = 0;
-                }
-
-                closeStore(true, allowedCompactionTime);
-
-                String fileName = fileStore.getFileName();
-                if (compactFully && FileUtils.exists(fileName)) {
-                    // the file could have been deleted concurrently,
-                    // so only compact if the file still exists
-                    MVStoreTool.compact(fileName, true);
-                }
-            } else {
-                close();
-            }
+            closeStore(true, allowedCompactionTime);
         }
     }
 
@@ -679,15 +776,18 @@ public final class MVStore implements AutoCloseable {
                 if (state == STATE_OPEN) {
                     state = STATE_STOPPING;
                     try {
+                        boolean compactFully = false;
                         try {
                             if (normalShutdown && fileStore != null && !fileStore.isReadOnly()) {
+                                compactFully = allowedCompactionTime == -1 && fileStoreShallBeClosed;
+                                commit();
                                 for (MVMap<?, ?> map : maps.values()) {
                                     if (map.isClosed()) {
                                         fileStore.deregisterMapRoot(map.getId());
                                     }
                                 }
                                 setRetentionTime(0);
-                                fileStore.stop(allowedCompactionTime);
+                                fileStore.stop(compactFully ? 0 : allowedCompactionTime);
                                 assert oldestVersionToKeep.get() == currentVersion : oldestVersionToKeep.get() + " != "
                                         + currentVersion;
                             }
@@ -699,6 +799,16 @@ public final class MVStore implements AutoCloseable {
                                 m.close();
                             }
                             maps.clear();
+
+                            if (compactFully) {
+                                String fileName = fileStore.getFileName();
+                                if (FileUtils.exists(fileName)) {
+                                    // the file could have been deleted concurrently,
+                                    // so only compact if the file still exists
+                                    compact(fileName, true, fileStore);
+                                    // fileStore has been closed within the call above
+                                }
+                            }
                         } finally {
                             if (fileStore != null && fileStoreShallBeClosed) {
                                 fileStore.close();
@@ -2029,7 +2139,7 @@ public final class MVStore implements AutoCloseable {
 
         public Builder adoptFileStore(FileStore<?> store) {
             set("fileStoreIsAdopted", true);
-            return set("fileStore", store);
+            return fileStore(store);
         }
 
         /**

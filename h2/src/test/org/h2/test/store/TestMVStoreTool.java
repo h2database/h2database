@@ -81,7 +81,7 @@ public class TestMVStoreTool extends TestBase {
             }
             s.commit();
         }
-        MVRTreeMap<String> rTreeMap = s.openMap("rtree", new MVRTreeMap.Builder<String>());
+        MVRTreeMap<String> rTreeMap = s.openMap("rtree", new MVRTreeMap.Builder<>());
         Random r = new Random(1);
         for (int i = 0; i < 10; i++) {
             float x = r.nextFloat();
@@ -98,9 +98,12 @@ public class TestMVStoreTool extends TestBase {
         trace("Created in " + (System.currentTimeMillis() - start) + " ms.");
 
         start = System.currentTimeMillis();
-        MVStoreTool.compact(fileName, fileNameNew, false);
-        MVStoreTool.compact(fileName, fileNameCompressed, true);
+        MVStore.compact(fileName, fileNameNew, false, null);
         trace("Compacted in " + (System.currentTimeMillis() - start) + " ms.");
+        start = System.currentTimeMillis();
+        MVStore.compact(fileName, fileNameCompressed, true, null);
+        trace("Compacted in (with compression) " + (System.currentTimeMillis() - start) + " ms.");
+
         long size1 = FileUtils.size(fileName);
         long size2 = FileUtils.size(fileNameNew);
         long size3 = FileUtils.size(fileNameCompressed);
@@ -109,10 +112,13 @@ public class TestMVStoreTool extends TestBase {
 
         start = System.currentTimeMillis();
         MVStoreTool.compact(fileNameNew, false);
-        assertTrue(100L * Math.abs(size2 - FileUtils.size(fileNameNew)) / size2 < 1);
-        MVStoreTool.compact(fileNameCompressed, true);
-        assertEquals(size3, FileUtils.size(fileNameCompressed));
         trace("Re-compacted in " + (System.currentTimeMillis() - start) + " ms.");
+        assertTrue(100L * Math.abs(size2 - FileUtils.size(fileNameNew)) / size2 < 1);
+
+        start = System.currentTimeMillis();
+        MVStoreTool.compact(fileNameCompressed, true);
+        assertTrue(100L * Math.abs(size3 - FileUtils.size(fileNameCompressed)) / size3 < 1);
+        trace("Re-compacted (with compression) in " + (System.currentTimeMillis() - start) + " ms.");
 
         start = System.currentTimeMillis();
         MVStore s1 = new MVStore.Builder().
@@ -134,9 +140,9 @@ public class TestMVStoreTool extends TestBase {
         for (String mapName : a.getMapNames()) {
             if (mapName.startsWith("rtree")) {
                 MVRTreeMap<String> ma = a.openMap(
-                        mapName, new MVRTreeMap.Builder<String>());
+                        mapName, new MVRTreeMap.Builder<>());
                 MVRTreeMap<String> mb = b.openMap(
-                        mapName, new MVRTreeMap.Builder<String>());
+                        mapName, new MVRTreeMap.Builder<>());
                 assertEquals(ma.sizeAsLong(), mb.sizeAsLong());
                 for (Entry<Spatial, String> e : ma.entrySet()) {
                     Object x = mb.get(e.getKey());

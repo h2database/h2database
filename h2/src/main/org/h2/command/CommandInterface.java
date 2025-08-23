@@ -324,7 +324,7 @@ public interface CommandInterface extends AutoCloseable {
     int EXECUTE = 59;
 
     /**
-     * The type ofn EXPLAIN statement.
+     * The type of EXPLAIN statement.
      */
     int EXPLAIN = 60;
 

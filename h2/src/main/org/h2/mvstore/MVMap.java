@@ -1916,7 +1916,8 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
         return null;
     }
 
-    private static <K, V> int estimateContention(RootReference<K, V> rootReference, RootReference<K, V> oldRootReference) {
+    private static <K, V> int estimateContention(RootReference<K, V> rootReference,
+            RootReference<K, V> oldRootReference) {
         int contention = 1;
         if (oldRootReference != null) {
             long updateAttemptCounter = rootReference.updateAttemptCounter -

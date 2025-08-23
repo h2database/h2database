@@ -46,7 +46,8 @@ public class TestCachedQueryResults extends TestDb
         Set<Integer> concurrentSet = ConcurrentHashMap.newKeySet();
 
         try (Connection mainConn = getConnection(name)) {
-            String createTableQuery = "CREATE TABLE IF NOT EXISTS Counter (id INT PRIMARY KEY, counter INT) AS SELECT * FROM (Values (1,0))";
+            String createTableQuery = "CREATE TABLE IF NOT EXISTS Counter (id INT PRIMARY KEY, counter INT) "
+                    + "AS SELECT * FROM (Values (1,0))";
 
             try (Statement stmt = mainConn.createStatement()) {
                 stmt.execute(createTableQuery);
@@ -75,7 +76,8 @@ public class TestCachedQueryResults extends TestDb
                         println(countAfter + " != " + countAtLock + " " + Thread.currentThread().getName());
                     }
                     if (!concurrentSet.add(countAfter)) {
-                        println("LOST UPDATE! value: " + countAfter); // lost update warning, if concurrentSet already contains current value
+                        // lost update warning, if concurrentSet already contains current value
+                        println("LOST UPDATE! value: " + countAfter);
                     }
 
                     String updateCounterQuery = "UPDATE Counter SET counter = ? WHERE id = 1";

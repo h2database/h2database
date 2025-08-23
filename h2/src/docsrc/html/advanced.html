@@ -1027,7 +1027,7 @@ consult the source code of the listener and test application.
 </p>
 
 <h2 id="using_recover_tool">Using the Recover Tool</h2>
-<h3 id="traditional_two_phase_recover_tool">Traditional 2-phase Recover</h3>
+<h3>Traditional 2-phase Recover</h3>
 <p>
 The <code>Recover</code> tool can be used to extract the contents of a database file, even if the database is corrupted.
 It also extracts the content of the transaction log and large objects (CLOB or BLOB).
@@ -1053,7 +1053,7 @@ to the database URL in your test environment. This will simulate an application 
 A log file named <code>databaseName.h2.db.log</code> is created that lists the operations.
 The recovery is tested using an in-memory file system, that means it may require a larger heap setting.
 </p>
-<h3 id="direct_one_phase_recover_tool">Direct Recover</h3>
+<h3>Direct Recover</h3>
 <p>Since H2-2.3.239 there is an enhanced <code>DirectRecover</code> tool which features:</p>
 <ul>
     <li>Direct output into SQL-script (using a pipe)</li>

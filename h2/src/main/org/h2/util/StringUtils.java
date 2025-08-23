@@ -575,7 +575,7 @@ public class StringUtils {
      *
      * @param name the element name
      * @param attributes the attributes (might be null)
-     * @param content the content (migh be null)
+     * @param content the content (might be null)
      * @param indent whether to indent the content if it contains a newline
      * @return the node
      */

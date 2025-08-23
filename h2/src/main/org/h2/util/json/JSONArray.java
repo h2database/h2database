@@ -8,6 +8,7 @@ package org.h2.util.json;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 /**
  * JSON array.
@@ -16,7 +17,7 @@ public final class JSONArray extends JSONValue {
 
     private final ArrayList<JSONValue> elements = new ArrayList<>();
 
-    JSONArray() {
+    public JSONArray() {
     }
 
     /**
@@ -25,7 +26,7 @@ public final class JSONArray extends JSONValue {
      * @param value
      *            the value to add
      */
-    void addElement(JSONValue value) {
+    public void addElement(JSONValue value) {
         elements.add(value);
     }
 
@@ -54,6 +55,15 @@ public final class JSONArray extends JSONValue {
      */
     public JSONValue[] getArray() {
         return elements.toArray(new JSONValue[0]);
+    }
+
+    /**
+     * Returns the value as stream.
+     *
+     * @return the value
+     */
+    public Stream<JSONValue> stream() {
+        return elements.stream();
     }
 
     /**

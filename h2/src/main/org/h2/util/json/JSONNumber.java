@@ -12,9 +12,13 @@ import java.math.BigDecimal;
  */
 public final class JSONNumber extends JSONValue {
 
+    public static JSONNumber valueOf(long value) {
+        return new JSONNumber(BigDecimal.valueOf(value));
+    }
+
     private final BigDecimal value;
 
-    JSONNumber(BigDecimal value) {
+    public JSONNumber(BigDecimal value) {
         this.value = value;
     }
 

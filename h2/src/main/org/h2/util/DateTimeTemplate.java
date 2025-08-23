@@ -22,9 +22,10 @@ import static org.h2.util.DateTimeTemplate.FieldType.TIME_ZONE_MINUTE;
 import static org.h2.util.DateTimeTemplate.FieldType.TIME_ZONE_SECOND;
 import static org.h2.util.DateTimeTemplate.FieldType.YEAR;
 import static org.h2.util.DateTimeUtils.FRACTIONAL_SECONDS_TABLE;
-import static org.h2.util.DateTimeUtils.*;
+import static org.h2.util.DateTimeUtils.NANOS_PER_HOUR;
 import static org.h2.util.DateTimeUtils.NANOS_PER_MINUTE;
 import static org.h2.util.DateTimeUtils.NANOS_PER_SECOND;
+import static org.h2.util.DateTimeUtils.SECONDS_PER_DAY;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -680,6 +681,22 @@ public final class DateTimeTemplate {
             part.format(builder, dateValue, nanoOfDay, offsetSeconds);
         }
         return builder.toString();
+    }
+
+    public Value parse(String string, CastDataProvider provider) {
+        TypeInfo targetType;
+        if (containsDate) {
+            if (containsTime) {
+                targetType = containsTimeZone ? TypeInfo.TYPE_TIMESTAMP_TZ : TypeInfo.TYPE_TIMESTAMP;
+            } else {
+                targetType = TypeInfo.TYPE_DATE;
+            }
+        } else if (containsTime) {
+            targetType = containsTimeZone ? TypeInfo.TYPE_TIME_TZ : TypeInfo.TYPE_TIME;
+        } else {
+            targetType = TypeInfo.TYPE_TIMESTAMP_TZ;
+        }
+        return parse(string, targetType, provider);
     }
 
     public Value parse(String string, TypeInfo targetType, CastDataProvider provider) {

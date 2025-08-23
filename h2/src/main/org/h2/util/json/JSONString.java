@@ -12,7 +12,7 @@ public final class JSONString extends JSONValue {
 
     private final String value;
 
-    JSONString(String value) {
+    public JSONString(String value) {
         this.value = value;
     }
 

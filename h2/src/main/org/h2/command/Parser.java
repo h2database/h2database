@@ -141,6 +141,7 @@ import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -350,11 +351,22 @@ import org.h2.expression.function.ToCharFunction;
 import org.h2.expression.function.TrimFunction;
 import org.h2.expression.function.TruncateValueFunction;
 import org.h2.expression.function.XMLFunction;
+import org.h2.expression.function.json.JsonFunction;
+import org.h2.expression.function.json.JsonQuery;
+import org.h2.expression.function.json.QueryQuotesBehavior;
+import org.h2.expression.function.json.QueryWrapperBehavior;
+import org.h2.expression.function.json.JsonEmptyErrorBehavior;
+import org.h2.expression.function.json.JsonEncoding;
 import org.h2.expression.function.table.ArrayTableFunction;
 import org.h2.expression.function.table.CSVReadFunction;
 import org.h2.expression.function.table.JavaTableFunction;
+import org.h2.expression.function.table.JsonTableFunction;
 import org.h2.expression.function.table.LinkSchemaFunction;
 import org.h2.expression.function.table.TableFunction;
+import org.h2.expression.function.table.JsonTableFunction.AbstractJsonColumn;
+import org.h2.expression.function.table.JsonTableFunction.JsonColumn;
+import org.h2.expression.function.table.JsonTableFunction.NestedJsonColumns;
+import org.h2.expression.function.table.JsonTableFunction.OrdinalityJsonColumn;
 import org.h2.index.Index;
 import org.h2.message.DbException;
 import org.h2.mode.FunctionsPostgreSQL;
@@ -1908,6 +1920,8 @@ public final class Parser extends ParserBase {
             switch (upperName(name)) {
             case "UNNEST":
                 return readUnnestFunction();
+            case "JSON_TABLE":
+                return readJsonTableFunction();
             case "TABLE_DISTINCT":
                 return readTableFunction(ArrayTableFunction.TABLE_DISTINCT);
             case "CSVREAD":
@@ -4248,6 +4262,26 @@ public final class Parser extends ParserBase {
             function.doneWithParameters();
             return function;
         }
+        case "JSON_EXISTS": {
+            JsonFunction function = (JsonFunction) parseJsonApiCommonSyntax(JsonFunction.JSON_EXISTS);
+            parseIfJsonExistsBehavior(function);
+            read(CLOSE_PAREN);
+            return function;
+        }
+        case "JSON_QUERY": {
+            JsonFunction function = (JsonFunction) parseJsonApiCommonSyntax(JsonFunction.JSON_QUERY);
+            parseJsonOutput(function, true);
+            parseJsonQueryBehavior(function);
+            read(CLOSE_PAREN);
+            return function;
+        }
+        case "JSON_VALUE": {
+            JsonFunction function = (JsonFunction) parseJsonApiCommonSyntax(JsonFunction.JSON_VALUE);
+            parseJsonOutput(function, false);
+            parseJsonValueBehavior(function);
+            read(CLOSE_PAREN);
+            return function;
+        }
         case "ENCRYPT":
             return new CryptFunction(readExpression(), readNextArgument(), readLastArgument(), CryptFunction.ENCRYPT);
         case "DECRYPT":
@@ -4361,6 +4395,178 @@ public final class Parser extends ParserBase {
         return function != null ? readParameters(function) : null;
     }
 
+    private Object parseJsonApiCommonSyntax(int function) {
+        Expression arg = readExpression();
+        read(COMMA);
+        Expression path = readExpression();
+        String pathAlias = function == -1 && readIf(AS) ? readIdentifier() : null;
+        HashMap<String, Expression> passing = null;
+        if (readIf("PASSING")) {
+            passing = new HashMap<>();
+            do {
+                Expression a = readExpression();
+                read(AS);
+                String name = readIdentifier();
+                if (passing.putIfAbsent(name, a) != null) {
+                    throw DbException.get(ErrorCode.DUPLICATE_COLUMN_NAME_1, name);
+                }
+            } while (readIf(COMMA));
+        }
+        return function == -1 ? new JsonTableFunction(arg, path, pathAlias, passing)
+                : new JsonFunction(arg, path, function, passing);
+    }
+
+    private void parseIfJsonExistsBehavior(JsonFunction function) {
+        if (readIf(TRUE)) {
+            function.setOnError(ValueExpression.TRUE);
+        } else if (readIf(FALSE)) {
+            function.setOnError(ValueExpression.FALSE);
+        } else if (readIf(UNKNOWN)) {
+            function.setOnError(TypedValueExpression.UNKNOWN);
+        } else if (!readIf("ERROR")) {
+            function.setOnError(ValueExpression.FALSE);
+            return;
+        }
+        read(ON);
+        read("ERROR");
+    }
+
+    private void parseJsonOutput(JsonFunction function, boolean forJson) {
+        if (readIf("RETURNING")) {
+            TypeInfo type = parseDataType();
+            JsonEncoding encoding = null;
+            if (forJson && readIf("FORMAT")) {
+                encoding = readJsonRepresentation();
+            }
+            function.setFormat(type, encoding);
+        }
+    }
+
+    private JsonEncoding readJsonRepresentation() {
+        read("JSON");
+        JsonEncoding encoding = null;
+        if (readIf("ENCODING")) {
+            if (readIf("UTF8")) {
+                encoding = JsonEncoding.UTF8;
+            } else if (readIf("UTF16") || readIf("UTF16BE")) {
+                encoding = JsonEncoding.UTF16BE;
+            } else if (readIf("UTF16LE")) {
+                encoding = JsonEncoding.UTF16LE;
+            } else if (readIf("UTF32") || readIf("UTF32BE")) {
+                encoding = JsonEncoding.UTF32BE;
+            } else if (readIf("UTF32LE")) {
+                encoding = JsonEncoding.UTF32LE;
+            }
+        }
+        return encoding;
+    }
+
+    private void parseJsonQueryBehavior(JsonQuery function) {
+        QueryWrapperBehavior queryWrapperBehavior;
+        if (readIf(WITH)) {
+            if (readIf("CONDITIONAL")) {
+                queryWrapperBehavior = QueryWrapperBehavior.WITH_CONDITIONAL;
+            } else {
+                readIf("UNCONDITIONAL");
+                queryWrapperBehavior = QueryWrapperBehavior.WITH_UNCONDITIONAL;
+            }
+            readIf(ARRAY);
+            read("WRAPPER");
+        } else {
+            if (readIf("WITHOUT")) {
+                readIf(ARRAY);
+                read("WRAPPER");
+            }
+            queryWrapperBehavior = QueryWrapperBehavior.WITHOUT;
+        }
+        function.setQueryWrapperBehavior(queryWrapperBehavior);
+        QueryQuotesBehavior queryQuotesBehavior = QueryQuotesBehavior.KEEP;
+        l: if (queryWrapperBehavior == QueryWrapperBehavior.WITHOUT) {
+            if (readIf("OMIT", "QUOTES")) {
+                queryQuotesBehavior = QueryQuotesBehavior.OMIT;
+            } else if (!readIf("KEEP", "QUOTES")) {
+                break l;
+            }
+            readIf(ON, "SCALAR", "STRING");
+        }
+        function.setQueryQuotesBehavior(queryQuotesBehavior);
+        Expression e = null;
+        if (readIf(NULL)) {
+            e = ValueExpression.NULL;
+        } else if (readIf("EMPTY")) {
+            if (readIf(ARRAY)) {
+                e = ValueExpression.get(ValueJson.EMPTY_ARRAY);
+            } else {
+                read("OBJECT");
+                e = ValueExpression.get(ValueJson.EMPTY_OBJECT);
+            }
+        } else if (!readIf("ERROR")) {
+            function.setOnEmpty(ValueExpression.NULL);
+            function.setOnError(ValueExpression.NULL);
+            return;
+        }
+        read(ON);
+        if (readIf("ERROR")) {
+            function.setOnEmpty(ValueExpression.NULL);
+            function.setOnError(e);
+            return;
+        } else {
+            read("EMPTY");
+            function.setOnEmpty(e);
+        }
+        e = null;
+        if (readIf(NULL)) {
+            e = ValueExpression.NULL;
+        } else if (readIf("EMPTY")) {
+            if (readIf(ARRAY)) {
+                e = ValueExpression.get(ValueJson.EMPTY_ARRAY);
+            } else {
+                read("OBJECT");
+                e = ValueExpression.get(ValueJson.EMPTY_OBJECT);
+            }
+        } else if (!readIf("ERROR")) {
+            function.setOnError(ValueExpression.NULL);
+            return;
+        }
+        read(ON);
+        read("ERROR");
+        function.setOnError(e);
+    }
+
+    private void parseJsonValueBehavior(JsonEmptyErrorBehavior function) {
+        Expression e = null;
+        if (readIf(NULL)) {
+            e = ValueExpression.NULL;
+        } else if (readIf(DEFAULT)) {
+            e = readExpression();
+        } else if (!readIf("ERROR")) {
+            function.setOnEmpty(ValueExpression.NULL);
+            function.setOnError(ValueExpression.NULL);
+            return;
+        }
+        read(ON);
+        if (readIf("ERROR")) {
+            function.setOnEmpty(ValueExpression.NULL);
+            function.setOnError(e);
+            return;
+        } else {
+            read("EMPTY");
+            function.setOnEmpty(e);
+        }
+        e = null;
+        if (readIf(NULL)) {
+            e = ValueExpression.NULL;
+        } else if (readIf(DEFAULT)) {
+            e = readExpression();
+        } else if (!readIf("ERROR")) {
+            function.setOnError(ValueExpression.NULL);
+            return;
+        }
+        read(ON);
+        read("ERROR");
+        function.setOnError(e);
+    }
+
     private Expression readDateTimeFormatFunction(int function) {
         DateTimeFormatFunction f = new DateTimeFormatFunction(function);
         f.addParameter(readExpression());
@@ -4448,6 +4654,141 @@ public final class Parser extends ParserBase {
         f.setColumns(columns);
         f.doneWithParameters();
         return f;
+    }
+
+    private JsonTableFunction readJsonTableFunction() {
+        JsonTableFunction function = (JsonTableFunction) parseJsonApiCommonSyntax(-1);
+        function.setJsonColumns(readJsonTableColumns());
+        if (readIf("PLAN")) {
+            if (readIf(DEFAULT)) {
+                readJsonTableDefaultPlan(function);
+            } else {
+                readJsonTableSpecificPlan(function);
+            }
+        }
+        if (readIf("ERROR", ON, "ERROR")) {
+            function.setErrorOnError(true);
+        } else {
+            readIf("EMPTY", ON, "ERROR");
+        }
+        read(CLOSE_PAREN);
+        return function;
+    }
+
+    private ArrayList<AbstractJsonColumn> readJsonTableColumns() {
+        read("COLUMNS");
+        read(OPEN_PAREN);
+        ArrayList<AbstractJsonColumn> list = new ArrayList<>();
+        do {
+            int index = tokenIndex;
+            if (readIf("NESTED")) {
+                if (readIf("PATH") || currentTokenType == LITERAL) {
+                    Expression path = readExpression();
+                    String pathAlias = readIf(AS) ? readIdentifier() : null;
+                    list.add(new NestedJsonColumns(path, pathAlias, readJsonTableColumns()));
+                    continue;
+                } else {
+                    setTokenIndex(index);
+                }
+            }
+            String columnName = readIdentifier();
+            if (readIf(FOR, "ORDINALITY")) {
+                list.add(new OrdinalityJsonColumn(columnName));
+            } else {
+                JsonColumn column = new JsonColumn(columnName);
+                TypeInfo type = parseDataType();
+                JsonEncoding encoding = null;
+                Expression path;
+                if (readIf("FORMAT")) {
+                    column.setFormatted(true);
+                    encoding = readJsonRepresentation();
+                    path = readIf("PATH") ? readExpression() : null;
+                    parseJsonQueryBehavior(column);
+                } else {
+                    path = readIf("PATH") ? readExpression() : null;
+                    parseJsonValueBehavior(column);
+                }
+                column.setPath(path);
+                column.setType(type, encoding);
+                list.add(column);
+            }
+        } while (readIfMore());
+        return list;
+    }
+
+    private void readJsonTableSpecificPlan(JsonTableFunction function) {
+        read(OPEN_PAREN);
+        readJsonTablePlan();
+        read(CLOSE_PAREN);
+    }
+
+    @SuppressWarnings("unused")
+    private void readJsonTablePlan() {
+        if (readIf(OPEN_PAREN)) {
+            readJsonTablePlanPrimary();
+            readIf(CLOSE_PAREN);
+        } else {
+            String pathName = readIdentifier();
+            if (readIf("OUTER")) {
+                readJsonTablePlanPrimary();
+                return;
+            } else if (readIf(INNER)) {
+                readJsonTablePlanPrimary();
+                return;
+            }
+        }
+        if (readIf(UNION)) {
+            readJsonTablePlanPrimary();
+            while (readIf(UNION)) {
+                readJsonTablePlanPrimary();
+            }
+        } else if (readIf(CROSS)) {
+            readJsonTablePlanPrimary();
+            while (readIf(CROSS)) {
+                readJsonTablePlanPrimary();
+            }
+        }
+    }
+
+    @SuppressWarnings("unused")
+    private void readJsonTablePlanPrimary() {
+        if (readIf(OPEN_PAREN)) {
+            readJsonTablePlan();
+            read(CLOSE_PAREN);
+        } else {
+            String pathName = readIdentifier();
+        }
+    }
+
+    private void readJsonTableDefaultPlan(JsonTableFunction function) {
+        read(OPEN_PAREN);
+        if (readIf(INNER)) {
+            if (readIf(UNION)) {
+                //
+            } else {
+                read(CROSS);
+            }
+        } else if (readIf("OUTER")) {
+            if (readIf(UNION)) {
+                //
+            } else {
+                read(CROSS);
+            }
+        } else if (readIf(UNION)) {
+            if (readIf(INNER)) {
+                //
+            } else {
+                read("OUTER");
+            }
+        } else {
+            read(CROSS);
+            if (readIf(INNER)) {
+                //
+            } else {
+                read("OUTER");
+            }
+        }
+        read(CLOSE_PAREN);
     }
 
     private ArrayTableFunction readTableFunction(int functionType) {

@@ -62,7 +62,7 @@ public class TestCachedQueryResults extends TestDb
                     conn.setAutoCommit(false);
 
                     String selectQuery = "SELECT counter FROM Counter WHERE id = 1";
-                    String lockRowQuery = "SELECT counter FROM Counter WHERE id = 1 FOR UPDATE";
+                    String lockRowQuery = "SELECT counter FROM Counter WHERE id = 1 FOR UPDATE WAIT 0.5";
 
 
                     PreparedStatement selectCounterStmt = conn.prepareStatement(selectQuery);
@@ -91,6 +91,7 @@ public class TestCachedQueryResults extends TestDb
                     lockStmt.close();
                     return 0;
                 } catch (SQLException e) {
+                    println(e.getMessage());
                     return -1;
                 }
             };

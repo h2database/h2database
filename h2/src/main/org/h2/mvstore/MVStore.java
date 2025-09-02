@@ -17,7 +17,10 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -404,28 +407,36 @@ public final class MVStore implements AutoCloseable {
                     targetMeta.put(key, m.getValue());
                 }
             }
-            // We are going to cheat a little bit in the copyFrom() by employing "incomplete" pages,
-            // which would be spared of saving, but save completed pages underneath,
-            // and those may appear as dead (non-reachable).
-            // That's why it is important to preserve all chunks
-            // created in the process, especially if retention time
-            // is set to a lower value, or even 0.
-            for (String mapName : source.getMapNames()) {
-                MVMap.Builder<Object, Object> mp = MVStoreTool.getGenericMapBuilder();
-                // This is a hack to preserve chunks occupancy rate accounting.
-                // It exposes design deficiency flaw in MVStore related to lack of
-                // map's type metadata.
-                // TODO: Introduce type metadata which will allow to open any store
-                // TODO: without prior knowledge of keys / values types and map implementation
-                // TODO: (MVMap vs MVRTreeMap, regular vs. singleWriter etc.)
-                if (mapName.startsWith(TransactionStore.UNDO_LOG_NAME_PREFIX)) {
-                    mp.singleWriter();
-                }
-                MVMap<Object, Object> sourceMap = source.openMap(mapName, mp);
-                MVMap<Object, Object> targetMap = target.openMap(mapName, mp);
-                targetMap.copyFrom(sourceMap);
-                targetMeta.put(MVMap.getMapKey(targetMap.getId()), sourceMeta.get(MVMap.getMapKey(sourceMap.getId())));
-            }
+
+            int poolSize = Integer.getInteger("h2.compactThreads", 1);
+            ExecutorService pool = Executors.newFixedThreadPool(poolSize);
+            CompletableFuture.allOf(
+                // We are going to cheat a little bit in the copyFrom() by employing "incomplete" pages,
+                // which would be spared of saving, but save completed pages underneath,
+                // and those may appear as dead (non-reachable).
+                // That's why it is important to preserve all chunks
+                // created in the process, especially if retention time
+                // is set to a lower value, or even 0.
+        		source.getMapNames().stream().map(mapName ->
+                    CompletableFuture.runAsync(() -> {
+                        MVMap.Builder<Object, Object> mp = MVStoreTool.getGenericMapBuilder();
+                        // This is a hack to preserve chunks occupancy rate accounting.
+                        // It exposes design deficiency flaw in MVStore related to lack of
+                        // map's type metadata.
+                        // TODO: Introduce type metadata which will allow to open any store
+                        // TODO: without prior knowledge of keys / values types and map implementation
+                        // TODO: (MVMap vs MVRTreeMap, regular vs. singleWriter etc.)
+                        if (mapName.startsWith(TransactionStore.UNDO_LOG_NAME_PREFIX)) {
+                            mp.singleWriter();
+                        }
+                        MVMap<Object, Object> sourceMap = source.openMap(mapName, mp);
+                        MVMap<Object, Object> targetMap = target.openMap(mapName, mp);
+                        targetMap.copyFrom(sourceMap);
+                        targetMeta.put(MVMap.getMapKey(targetMap.getId()), sourceMeta.get(MVMap.getMapKey(sourceMap.getId())));
+                    }, pool)
+                ).toArray(CompletableFuture[]::new)
+            ).join();
+            pool.shutdownNow();
             // this will end hacky mode of operation with incomplete pages
             // end ensure that all pages are saved
             target.commit();

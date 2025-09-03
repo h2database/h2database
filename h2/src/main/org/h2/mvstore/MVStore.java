@@ -408,7 +408,7 @@ public final class MVStore implements AutoCloseable {
                 }
             }
 
-            int poolSize = Integer.getInteger("h2.compactThreads", 1);
+            int poolSize = Integer.getInteger("h2.compactThreads", Math.max(1, Runtime.getRuntime().availableProcessors() / 4));
             ExecutorService pool = Executors.newFixedThreadPool(poolSize);
             CompletableFuture.allOf(
                 // We are going to cheat a little bit in the copyFrom() by employing "incomplete" pages,

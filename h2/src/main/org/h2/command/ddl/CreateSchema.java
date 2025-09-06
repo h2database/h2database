@@ -19,6 +19,7 @@ import org.h2.schema.Schema;
  * CREATE SCHEMA
  */
 public class CreateSchema extends DefineCommand {
+
     private String schemaName;
     private String authorization;
     private boolean ifNotExists;

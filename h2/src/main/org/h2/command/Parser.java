@@ -2193,14 +2193,7 @@ public final class Parser extends ParserBase {
         } else if (readIf("SCHEMA")) {
             boolean ifExists = readIfExists(false);
             DropSchema command = new DropSchema(session);
-
-            String name = readIdentifier();
-            if (readIf(DOT)) {
-                command.setCatalogName(name);
-                command.setSchemaName(readIdentifier());
-            } else {
-                command.setSchemaName(name);
-            }
+            command.setSchemaName(readIdentifierWithCatalog());
             ifExists = readIfExists(ifExists);
             command.setIfExists(ifExists);
             ConstraintActionType dropAction = parseCascadeOrRestrict();
@@ -5539,6 +5532,27 @@ public final class Parser extends ParserBase {
         return readIdentifierWithSchema(session.getCurrentSchemaName());
     }
 
+    /**
+     * Reads the schema name with or without a catalog name.
+     * Merely for SQL:2016 compatibility.
+     * Since H2 does not support multiple catalogs:
+     * - we verify against current catalog name and throw an exception when not matching
+     * - we are going to ignore the catalog name because it is not needed anywhere
+     *
+     * @return the SCHEMA name only (without the catalog name)
+     */
+    private String readIdentifierWithCatalog() {
+        String name = readIdentifier();
+        if (readIf(DOT)) {
+            if (database!=null && (equalsToken(name, database.getShortName()) || database.getIgnoreCatalogs())) {
+                name = readIdentifier();
+            } else {
+                throw DbException.get(ErrorCode.INVALID_NAME_1, name);
+            }
+        }
+        return name;
+    }
+
     private String readIdentifier() {
         if (!isIdentifier()) {
             /*
@@ -6715,13 +6729,7 @@ public final class Parser extends ParserBase {
             command.setSchemaName(authorization);
             command.setAuthorization(authorization);
         } else {
-            String name = readIdentifier();
-            if (readIf(DOT)) {
-                command.setCatalogName(name);
-                command.setSchemaName(readIdentifier());
-            } else {
-                command.setSchemaName(name);
-            }
+            command.setSchemaName(readIdentifierWithCatalog());
 
             if (readIf(AUTHORIZATION)) {
                 authorization = readIdentifier();

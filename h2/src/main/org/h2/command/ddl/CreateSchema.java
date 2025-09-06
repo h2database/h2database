@@ -19,7 +19,6 @@ import org.h2.schema.Schema;
  * CREATE SCHEMA
  */
 public class CreateSchema extends DefineCommand {
-    private String catalogName;
     private String schemaName;
     private String authorization;
     private boolean ifNotExists;
@@ -60,15 +59,6 @@ public class CreateSchema extends DefineCommand {
 
     public void setAuthorization(String userName) {
         this.authorization = userName;
-    }
-
-    public String getCatalogName() {
-        return catalogName;
-    }
-
-    public CreateSchema setCatalogName(String catalogName) {
-        this.catalogName = catalogName;
-        return this;
     }
 
     public void setTableEngineParams(ArrayList<String> tableEngineParams) {

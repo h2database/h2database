@@ -18,6 +18,14 @@ CREATE SCHEMA S2 AUTHORIZATION TEST_USER;
 CREATE SCHEMA SCRIPT.S3 AUTHORIZATION TEST_ROLE;
 > ok
 
+-- invalid catalog name shall fail
+CREATE SCHEMA 1.S3 AUTHORIZATION TEST_ROLE;
+> exception SYNTAX_ERROR_2
+
+-- valid catalog name, but shall fail since we do not support multiple catalogs
+CREATE SCHEMA UNNAMED.S3 AUTHORIZATION TEST_ROLE;
+> exception INVALID_NAME_1
+
 CREATE SCHEMA AUTHORIZATION TEST_USER;
 > ok
 

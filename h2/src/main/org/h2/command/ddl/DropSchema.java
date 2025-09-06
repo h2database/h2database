@@ -20,7 +20,7 @@ import org.h2.schema.SchemaObject;
  * DROP SCHEMA
  */
 public class DropSchema extends DefineCommand {
-
+    private String catalogName;
     private String schemaName;
     private boolean ifExists;
     private ConstraintActionType dropAction;
@@ -33,6 +33,15 @@ public class DropSchema extends DefineCommand {
 
     public void setSchemaName(String name) {
         this.schemaName = name;
+    }
+
+    public String getCatalogName() {
+        return catalogName;
+    }
+
+    public DropSchema setCatalogName(String catalogName) {
+        this.catalogName = catalogName;
+        return this;
     }
 
     @Override

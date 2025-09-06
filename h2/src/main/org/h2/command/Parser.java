@@ -2193,7 +2193,14 @@ public final class Parser extends ParserBase {
         } else if (readIf("SCHEMA")) {
             boolean ifExists = readIfExists(false);
             DropSchema command = new DropSchema(session);
-            command.setSchemaName(readIdentifier());
+
+            String name = readIdentifier();
+            if (readIf(DOT)) {
+                command.setCatalogName(name);
+                command.setSchemaName(readIdentifier());
+            } else {
+                command.setSchemaName(name);
+            }
             ifExists = readIfExists(ifExists);
             command.setIfExists(ifExists);
             ConstraintActionType dropAction = parseCascadeOrRestrict();
@@ -6708,7 +6715,14 @@ public final class Parser extends ParserBase {
             command.setSchemaName(authorization);
             command.setAuthorization(authorization);
         } else {
-            command.setSchemaName(readIdentifier());
+            String name = readIdentifier();
+            if (readIf(DOT)) {
+                command.setCatalogName(name);
+                command.setSchemaName(readIdentifier());
+            } else {
+                command.setSchemaName(name);
+            }
+
             if (readIf(AUTHORIZATION)) {
                 authorization = readIdentifier();
             } else {

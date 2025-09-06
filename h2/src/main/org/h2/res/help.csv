@@ -914,7 +914,7 @@ CREATE ROLE READONLY
 
 "Commands (DDL)","CREATE SCHEMA","
 CREATE SCHEMA @h2@ [ IF NOT EXISTS ]
-{ name [ AUTHORIZATION ownerName ] | [ AUTHORIZATION ownerName ] }
+{ [catalogName.]name [ AUTHORIZATION ownerName ] | [ AUTHORIZATION ownerName ] }
 @h2@ [ WITH tableEngineParamName [,...] ]
 ","
 Creates a new schema.
@@ -1213,7 +1213,7 @@ DROP ROLE READONLY
 "
 
 "Commands (DDL)","DROP SCHEMA","
-DROP SCHEMA @h2@ [ IF EXISTS ] schemaName [ RESTRICT | CASCADE ]
+DROP SCHEMA @h2@ [ IF EXISTS ] [catalogName.]schemaName [ RESTRICT | CASCADE ]
 ","
 Drops a schema.
 Schema owner rights are required to execute this command.

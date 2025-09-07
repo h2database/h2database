@@ -5533,18 +5533,22 @@ public final class Parser extends ParserBase {
     }
 
     /**
-     * Reads the schema name with or without a catalog name.
-     * Merely for SQL:2016 compatibility.
-     * Since H2 does not support multiple catalogs:
-     * - we verify against current catalog name and throw an exception when not matching
-     * - we are going to ignore the catalog name because it is not needed anywhere
+     * <p>Reads the schema name with or without a catalog name.</p>
+     * <p>Merely for SQL:2016 compatibility.</p>
+     * <p>Since H2 does not support multiple catalogs:</p>
+     * <ul>
+     * <li>we verify against current catalog name and throw an exception when
+     * not matching</li>
+     * <li>we are going to ignore the catalog name because it is not needed
+     * anywhere</li>
+     * </ul>
      *
      * @return the SCHEMA name only (without the catalog name)
      */
     private String readIdentifierWithCatalog() {
         String name = readIdentifier();
         if (readIf(DOT)) {
-            if (database!=null && (equalsToken(name, database.getShortName()) || database.getIgnoreCatalogs())) {
+            if (equalsToken(name, database.getShortName()) || database.getIgnoreCatalogs()) {
                 name = readIdentifier();
             } else {
                 throw DbException.get(ErrorCode.INVALID_NAME_1, name);
@@ -6730,7 +6734,6 @@ public final class Parser extends ParserBase {
             command.setAuthorization(authorization);
         } else {
             command.setSchemaName(readIdentifierWithCatalog());
-
             if (readIf(AUTHORIZATION)) {
                 authorization = readIdentifier();
             } else {

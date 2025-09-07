@@ -99,6 +99,18 @@ public class StringUtils {
         return s2;
     }
 
+    // Custom ASCII-only uppercase converter (SQL keywords are always ASCII)
+    public static String toUpperAscii(String input) {
+        char[] chars = input.toCharArray();
+        for (int i = 0; i < chars.length; i++) {
+            char c = chars[i];
+            if (c >= 'a' && c <= 'z') {
+                chars[i] = (char)(c - 32);
+            }
+        }
+        return new String(chars);
+    }
+
     /**
      * Convert a string to lowercase using the English locale.
      *

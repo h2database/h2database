@@ -15,6 +15,7 @@ import org.h2.command.Prepared;
 import org.h2.engine.SessionLocal;
 import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
+import org.h2.tools.RunScript;
 import org.h2.util.ScriptReader;
 import org.h2.util.StringUtils;
 
@@ -68,7 +69,20 @@ public class RunScriptCommand extends ScriptBase {
                 if (sql == null) {
                     break;
                 }
-                execute(sql);
+
+                // Normalize the statement
+                String upper = StringUtils.toUpperAscii(sql);
+                boolean stale = false;
+                for (String pattern : RunScript.STALE_OBJECT_PATTERNS) {
+                    if (upper.indexOf(pattern) >= 0) {
+                        stale = true;
+                        break; // stop early on first match
+                    }
+                }
+                if (!stale) {
+                    execute(sql); // keep original sql
+                }
+
                 count++;
                 if ((count & 127) == 0) {
                     checkCanceled();

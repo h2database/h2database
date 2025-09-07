@@ -579,7 +579,7 @@ public class BuildBase {
      */
     protected void downloadUsingMaven(String target, String group,
             String artifact, String version, String sha1Checksum) {
-        String repoDir = "https://repo1.maven.org/maven2";
+        String repoDir = "https://repo.maven.apache.org/maven2";
         Path targetFile = Paths.get(target);
         if (Files.exists(targetFile)) {
             return;

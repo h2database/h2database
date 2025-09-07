@@ -130,7 +130,7 @@ public final class Upgrade {
             //
     };
 
-    private static final String REPOSITORY = "https://repo1.maven.org/maven2";
+    private static final String REPOSITORY = "https://repo.maven.apache.org/maven2";
 
     /**
      * Performs database upgrade from an older version of H2.

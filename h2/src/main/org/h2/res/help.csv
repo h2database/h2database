@@ -1290,7 +1290,7 @@ DROP MATERIALIZED VIEW TEST_VIEW
 "
 
 "Commands (DDL)","REFRESH MATERIALIZED VIEW","
-@h2@ REFRESH MATERIALIZED VIEW [ IF EXISTS ] [schemaName.]viewName
+@h2@ REFRESH MATERIALIZED VIEW [schemaName.]viewName
 ","
 Recreates an existing materialized view.
 Schema owner rights are required to execute this command.
@@ -1638,7 +1638,7 @@ SET DB_CLOSE_DELAY -1
 "
 
 "Commands (Other)","SET DEFAULT_LOCK_TIMEOUT","
-@h2@ SET DEFAULT LOCK_TIMEOUT int
+@h2@ SET DEFAULT_LOCK_TIMEOUT int
 ","
 Sets the default lock timeout (in milliseconds) in this database that is used
 for the new sessions. The default value for this setting is 1000 (one second).

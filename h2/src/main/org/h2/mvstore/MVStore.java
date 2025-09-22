@@ -351,7 +351,7 @@ public final class MVStore implements AutoCloseable {
      *                  This fileStore will be closed here.
      */
     public static void compact(String sourceFileName, String targetFileName, boolean compress,
-                               FileStore<?> fileStore) {
+                                FileStore<?> fileStore) {
         try {
             FileUtils.delete(targetFileName);
             Builder targetBuilder = new Builder();
@@ -408,7 +408,8 @@ public final class MVStore implements AutoCloseable {
                 }
             }
 
-            int poolSize = Integer.getInteger("h2.compactThreads", Math.max(1, Runtime.getRuntime().availableProcessors() / 4));
+            int poolSize = Integer.getInteger("h2.compactThreads",
+                    Math.max(1, Runtime.getRuntime().availableProcessors() / 4));
             ExecutorService pool = Executors.newFixedThreadPool(poolSize);
             CompletableFuture.allOf(
                 // We are going to cheat a little bit in the copyFrom() by employing "incomplete" pages,
@@ -417,7 +418,7 @@ public final class MVStore implements AutoCloseable {
                 // That's why it is important to preserve all chunks
                 // created in the process, especially if retention time
                 // is set to a lower value, or even 0.
-        		source.getMapNames().stream().map(mapName ->
+                source.getMapNames().stream().map(mapName ->
                     CompletableFuture.runAsync(() -> {
                         MVMap.Builder<Object, Object> mp = MVStoreTool.getGenericMapBuilder();
                         // This is a hack to preserve chunks occupancy rate accounting.
@@ -432,7 +433,8 @@ public final class MVStore implements AutoCloseable {
                         MVMap<Object, Object> sourceMap = source.openMap(mapName, mp);
                         MVMap<Object, Object> targetMap = target.openMap(mapName, mp);
                         targetMap.copyFrom(sourceMap);
-                        targetMeta.put(MVMap.getMapKey(targetMap.getId()), sourceMeta.get(MVMap.getMapKey(sourceMap.getId())));
+                        targetMeta.put(MVMap.getMapKey(targetMap.getId()),
+                                        sourceMeta.get(MVMap.getMapKey(sourceMap.getId())));
                     }, pool)
                 ).toArray(CompletableFuture[]::new)
             ).join();

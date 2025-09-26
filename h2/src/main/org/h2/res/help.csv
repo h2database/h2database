@@ -4415,8 +4415,7 @@ In ""org.h2.api.Aggregate"", ""org.h2.api.AggregateFunction"", and ""org.h2.api.
 this data type is mapped to ""java.time.LocalTime"".
 
 Use ""java.time.LocalTime"" or ""String"" instead of ""java.sql.Time"" when non-zero precision is needed.
-Cast from higher fractional seconds precision to lower fractional seconds precision performs round half up;
-if result of rounding is higher than maximum supported value 23:59:59.999999999 the value is rounded down instead.
+Cast from higher fractional seconds precision to lower fractional seconds precision performs floor;
 The CAST operation to TIMESTAMP and TIMESTAMP WITH TIME ZONE data types uses the
 [CURRENT_DATE](https://h2database.com/html/functions.html#current_date) for date fields.
 ","
@@ -4432,8 +4431,7 @@ If fractional seconds precision is specified it should be from 0 to 9, 0 is defa
 
 See also [time with time zone](https://h2database.com/html/grammar.html#time_with_time_zone) literal grammar.
 Mapped to ""java.time.OffsetTime"".
-Cast from higher fractional seconds precision to lower fractional seconds precision performs round half up;
-if result of rounding is higher than maximum supported value 23:59:59.999999999 the value is rounded down instead.
+Cast from higher fractional seconds precision to lower fractional seconds precision performs floor;
 The CAST operation to TIMESTAMP and TIMESTAMP WITH TIME ZONE data types uses the
 [CURRENT_DATE](https://h2database.com/html/functions.html#current_date) for date fields.
 ","
@@ -4467,7 +4465,7 @@ If you deal with very old dates (before 1582-10-15) note that ""java.sql.Timesta
 use a mixed Julian/Gregorian calendar, ""java.util.GregorianCalendar"" can be configured to proleptic Gregorian with
 ""setGregorianChange(new java.util.Date(Long.MIN_VALUE))"" and used to read or write fields of timestamps.
 
-Cast from higher fractional seconds precision to lower fractional seconds precision performs round half up.
+Cast from higher fractional seconds precision to lower fractional seconds precision performs floor.
 ","
 TIMESTAMP
 TIMESTAMP(9)
@@ -4487,7 +4485,7 @@ Values of this data type are compared by UTC values. It means that ""2010-01-01 
 
 Conversion to ""TIMESTAMP"" uses time zone offset to get UTC time and converts it to local time using the system time zone.
 Conversion from ""TIMESTAMP"" does the same operations in reverse and sets time zone offset to offset of the system time zone.
-Cast from higher fractional seconds precision to lower fractional seconds precision performs round half up.
+Cast from higher fractional seconds precision to lower fractional seconds precision performs floor.
 ","
 TIMESTAMP WITH TIME ZONE
 TIMESTAMP(9) WITH TIME ZONE

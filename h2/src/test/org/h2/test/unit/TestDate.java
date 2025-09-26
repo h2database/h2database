@@ -234,15 +234,15 @@ public class TestDate extends TestBase {
                 t1.getString());
         assertEquals("2001-01-01 01:01:01.123456789",
                 t1.castTo(TypeInfo.getTypeInfo(Value.TIMESTAMP, 0L, 9, null), provider).getString());
-        assertEquals("2001-01-01 01:01:01.12345679",
+        assertEquals("2001-01-01 01:01:01.12345678",
                 t1.castTo(TypeInfo.getTypeInfo(Value.TIMESTAMP, 0L, 8, null), provider).getString());
-        assertEquals("2001-01-01 01:01:01.1234568",
+        assertEquals("2001-01-01 01:01:01.1234567",
                 t1.castTo(TypeInfo.getTypeInfo(Value.TIMESTAMP, 0L, 7, null), provider).getString());
-        assertEquals("2001-01-01 01:01:01.123457",
+        assertEquals("2001-01-01 01:01:01.123456",
                 t1.castTo(TypeInfo.getTypeInfo(Value.TIMESTAMP, 0L, 6, null), provider).getString());
-        assertEquals("2001-01-01 01:01:01.12346",
+        assertEquals("2001-01-01 01:01:01.12345",
                 t1.castTo(TypeInfo.getTypeInfo(Value.TIMESTAMP, 0L, 5, null), provider).getString());
-        assertEquals("2001-01-01 01:01:01.1235",
+        assertEquals("2001-01-01 01:01:01.1234",
                 t1.castTo(TypeInfo.getTypeInfo(Value.TIMESTAMP, 0L, 4, null), provider).getString());
         assertEquals("2001-01-01 01:01:01.123",
                 t1.castTo(TypeInfo.getTypeInfo(Value.TIMESTAMP, 0L, 3, null), provider).getString());
@@ -253,7 +253,7 @@ public class TestDate extends TestBase {
         assertEquals("2001-01-01 01:01:01",
                 t1.castTo(TypeInfo.getTypeInfo(Value.TIMESTAMP, 0L, 0, null), provider).getString());
         t1 = ValueTimestamp.parse("-2001-01-01 01:01:01.123456789", null);
-        assertEquals("-2001-01-01 01:01:01.123457",
+        assertEquals("-2001-01-01 01:01:01.123456",
                 t1.castTo(TypeInfo.getTypeInfo(Value.TIMESTAMP, 0L, 6, null), provider).getString());
         // classes do not match
         assertFalse(ValueTimestamp.parse("2001-01-01", null).
@@ -289,6 +289,14 @@ public class TestDate extends TestBase {
                 () -> ValueTimestamp.parse("1970-01-01 00:00:00.000 ABC", null));
         assertThrows(ErrorCode.INVALID_DATETIME_CONSTANT_2,
                 () -> ValueTimestamp.parse("1970-01-01T00:00:00.000+ABC", null));
+        
+        ValueTimestamp tRound1 = ValueTimestamp.parse("2001-01-31 23:59:59.499999", null);
+        assertEquals("2001-01-31 23:59:59",
+                tRound1.castTo(TypeInfo.getTypeInfo(Value.TIMESTAMP, 0L, 0, null), provider).getString());
+        
+        ValueTimestamp tRound2 = ValueTimestamp.parse("2001-01-31 23:59:59.999999", null);
+        assertEquals("2001-01-31 23:59:59",
+                tRound2.castTo(TypeInfo.getTypeInfo(Value.TIMESTAMP, 0L, 0, null), provider).getString());
     }
 
     private void testAbsoluteDay() {

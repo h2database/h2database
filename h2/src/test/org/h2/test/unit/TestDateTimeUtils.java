@@ -195,24 +195,32 @@ public class TestDateTimeUtils extends TestBase {
         assertEquals(555_500_000_000L, DateTimeUtils.convertScale(555_549_999_999L, 1, Long.MAX_VALUE));
         assertEquals(555_000_000_000L, DateTimeUtils.convertScale(555_499_999_999L, 0, Long.MAX_VALUE));
         assertEquals(555_555_555_555L, DateTimeUtils.convertScale(555_555_555_555L, 9, Long.MAX_VALUE));
-        assertEquals(555_555_555_560L, DateTimeUtils.convertScale(555_555_555_555L, 8, Long.MAX_VALUE));
-        assertEquals(555_555_555_600L, DateTimeUtils.convertScale(555_555_555_550L, 7, Long.MAX_VALUE));
-        assertEquals(555_555_556_000L, DateTimeUtils.convertScale(555_555_555_500L, 6, Long.MAX_VALUE));
-        assertEquals(555_555_560_000L, DateTimeUtils.convertScale(555_555_555_000L, 5, Long.MAX_VALUE));
-        assertEquals(555_555_600_000L, DateTimeUtils.convertScale(555_555_550_000L, 4, Long.MAX_VALUE));
-        assertEquals(555_556_000_000L, DateTimeUtils.convertScale(555_555_500_000L, 3, Long.MAX_VALUE));
-        assertEquals(555_560_000_000L, DateTimeUtils.convertScale(555_555_000_000L, 2, Long.MAX_VALUE));
-        assertEquals(555_600_000_000L, DateTimeUtils.convertScale(555_550_000_000L, 1, Long.MAX_VALUE));
-        assertEquals(556_000_000_000L, DateTimeUtils.convertScale(555_500_000_000L, 0, Long.MAX_VALUE));
+        assertEquals(555_555_555_550L, DateTimeUtils.convertScale(555_555_555_555L, 8, Long.MAX_VALUE));
+        assertEquals(555_555_555_500L, DateTimeUtils.convertScale(555_555_555_550L, 7, Long.MAX_VALUE));
+        assertEquals(555_555_555_000L, DateTimeUtils.convertScale(555_555_555_500L, 6, Long.MAX_VALUE));
+        assertEquals(555_555_550_000L, DateTimeUtils.convertScale(555_555_555_000L, 5, Long.MAX_VALUE));
+        assertEquals(555_555_500_000L, DateTimeUtils.convertScale(555_555_550_000L, 4, Long.MAX_VALUE));
+        assertEquals(555_555_000_000L, DateTimeUtils.convertScale(555_555_500_000L, 3, Long.MAX_VALUE));
+        assertEquals(555_550_000_000L, DateTimeUtils.convertScale(555_555_000_000L, 2, Long.MAX_VALUE));
+        assertEquals(555_500_000_000L, DateTimeUtils.convertScale(555_550_000_000L, 1, Long.MAX_VALUE));
+        assertEquals(555_000_000_000L, DateTimeUtils.convertScale(555_500_000_000L, 0, Long.MAX_VALUE));
         assertEquals(100_999_999_999L, DateTimeUtils.convertScale(100_999_999_999L, 9, Long.MAX_VALUE));
         assertEquals(100_999_999_999L, DateTimeUtils.convertScale(100_999_999_999L, 9, DateTimeUtils.NANOS_PER_DAY));
         assertEquals(86_399_999_999_999L, DateTimeUtils.convertScale(86_399_999_999_999L, 9, Long.MAX_VALUE));
+        
+        long value1 = 100_999_999_999L;
+        long value2 = 86_399_999_999_999L;
         for (int i = 8; i >= 0; i--) {
-            assertEquals(101_000_000_000L, DateTimeUtils.convertScale(100_999_999_999L, i, Long.MAX_VALUE));
-            assertEquals(101_000_000_000L,
-                    DateTimeUtils.convertScale(100_999_999_999L, i, DateTimeUtils.NANOS_PER_DAY));
-            assertEquals(86_400_000_000_000L, DateTimeUtils.convertScale(86_399_999_999_999L, i, Long.MAX_VALUE));
+            long expected1 = value1 - (long)(9*Math.pow(10, 8-i));
+            assertEquals(expected1, DateTimeUtils.convertScale(value1, i, Long.MAX_VALUE));
+            assertEquals(expected1, DateTimeUtils.convertScale(value1, i, DateTimeUtils.NANOS_PER_DAY));
+            value1 = expected1;
+            
+            long expected2 = value2 - (long)(9*Math.pow(10, 8-i));
+            assertEquals(expected2, DateTimeUtils.convertScale(value2, i, Long.MAX_VALUE));
+            value2 = expected2;
         }
+        
         assertEquals(86_399_999_999_999L,
                 DateTimeUtils.convertScale(86_399_999_999_999L, 9, DateTimeUtils.NANOS_PER_DAY));
         assertEquals(86_399_999_999_990L,

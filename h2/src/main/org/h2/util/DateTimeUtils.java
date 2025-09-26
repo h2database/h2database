@@ -1126,9 +1126,6 @@ public class DateTimeUtils {
         }
         int m = FRACTIONAL_SECONDS_TABLE[scale];
         long mod = nanosOfDay % m;
-        if (mod >= m >>> 1) {
-            nanosOfDay += m;
-        }
         long r = nanosOfDay - mod;
         if (r >= range) {
             r = range - m;

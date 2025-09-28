@@ -14,6 +14,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Properties;
 import org.h2.store.fs.FileUtils;
@@ -189,7 +190,7 @@ public class TestPerformance implements Database.DatabaseTest {
             System.out.println("Total time: " + db.getTotalTime() + " ms");
             int statPerSec = (int) (db.getExecutedStatements() * 1000L / db.getTotalTime());
             db.log("Statements per second", "#/s", statPerSec);
-            System.out.println("Statements per second: " + statPerSec);
+            System.out.println("Statements per second: " + NumberFormat.getInstance().format(statPerSec));
             System.out.println("GC overhead: " + (100 * db.getTotalGCTime() / db.getTotalTime()) + "%");
             collect = false;
             db.stopServer();

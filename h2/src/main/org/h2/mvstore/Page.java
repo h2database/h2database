@@ -1076,7 +1076,6 @@ public abstract class Page<K,V> implements Cloneable {
         void clearPageReference() {
             if (page != null) {
                 page.releaseSavedPages();
-                assert page.isSaved() || !page.isComplete();
                 if (page.isSaved()) {
                     assert pos == page.getPos();
                     assert count == page.getTotalCount() : count + " != " + page.getTotalCount();

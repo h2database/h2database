@@ -14,6 +14,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -105,7 +106,7 @@ public class TestScalability implements Database.DatabaseTest {
         }
 
         BenchB test = new BenchB() {
-            // Since we focus on scalability here, lets emphasize multi-threaded
+            // Since we focus on scalability here, lets emphasize multithreaded
             // part of the test (transactions) and minimize impact of the init.
             @Override
             protected int getTransactionsPerClient(int size) {
@@ -215,7 +216,7 @@ public class TestScalability implements Database.DatabaseTest {
                     int statPerSec = (int) (executedStatements * 1000L / totalTime);
                     db.log("Statements per second", "#/s", statPerSec);
                     collect = false;
-                    System.out.println("Statements per second: " + statPerSec);
+                    System.out.println("Statements per second: " + NumberFormat.getInstance().format(statPerSec));
                     System.out.println("GC overhead: " + (100 * totalGCTime / totalTime) + "%");
                     ArrayList<Measurement> measurements = db.reset();
                     runSequence.results.add(measurements);

@@ -12,6 +12,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.text.NumberFormat;
+import java.util.concurrent.TimeUnit;
 
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
@@ -43,48 +44,56 @@ public class TestDefrag  extends TestDb {
         config.traceTest = true;
         try {
             config.cipher = null;
-            testIt();
+            testIt(860_000_000L);
             config.cipher = "AES";
-            testIt();
+            testIt(920_000_000L);
         } finally {
             config.cipher = cipher;
         }
     }
 
-    public void testIt() throws Exception {
+    public void testIt(long expectedSizeLimit) throws Exception {
         String dbName = getTestName();
         deleteDb(dbName);
         File dbFile = new File(getBaseDir(), dbName + SUFFIX_MV_FILE);
         NumberFormat nf = NumberFormat.getInstance();
+        long startNs;
         try (Connection c = getConnection(dbName)) {
             try (Statement st = c.createStatement()) {
-                st.execute("CREATE TABLE IF NOT EXISTS test (id INT PRIMARY KEY, txt varchar)" +
-                            " AS SELECT x, x || SPACE(200) FROM SYSTEM_RANGE(1,10000000)");
+                for (int i = 0; i < 4; i++) {
+                    st.execute("CREATE TABLE IF NOT EXISTS test" + i + " (id INT PRIMARY KEY, txt varchar)" +
+                                " AS SELECT x, x || SPACE(200) FROM SYSTEM_RANGE(1,10000000)");
+                }
                 st.execute("checkpoint");
             }
             long origSize = dbFile.length();
             String message = "before defrag: " + nf.format(origSize);
             trace(message);
-            assertTrue(message, origSize > 4_000_000_000L);
+            assertTrue(message, origSize > 11_000_000_000L);
+            startNs = System.nanoTime();
             try (Statement st = c.createStatement()) {
                 st.execute("shutdown defrag");
             }
         }
         long compactedSize = dbFile.length();
-        String message = "after defrag: " + nf.format(compactedSize);
-        assertTrue(message, compactedSize < 400_000_000L);
+        String message = "after defrag: " + nf.format(compactedSize) +
+                " time: " + TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startNs) + " ms";
+        assertTrue(message, compactedSize < expectedSizeLimit);
         trace(message);
 
         try (Connection c = getConnection(dbName + ";LAZY_QUERY_EXECUTION=1")) {
             try (Statement st = c.createStatement()) {
-                ResultSet rs = st.executeQuery("SELECT * FROM  test");
-                int count = 0;
-                while (rs.next()) {
-                    ++count;
-                    assertEquals(count, rs.getInt(1));
-                    assertTrue(rs.getString(2).startsWith(count + "   "));
+                for (int i = 0; i < 4; i++) {
+                    int count = 0;
+                    try (ResultSet rs = st.executeQuery("SELECT * FROM  test"+i)) {
+                        while (rs.next()) {
+                            ++count;
+                            assertEquals(count, rs.getInt(1));
+                            assertTrue(rs.getString(2).startsWith(count + "   "));
+                        }
+                    }
+                    assertEquals(10_000_000, count);
                 }
-                assertEquals(10_000_000, count);
             }
         }
         deleteDb(dbName);

@@ -438,6 +438,25 @@ public final class Insert extends CommandWithValues implements ResultTarget {
         return onDuplicateKeyRow[columnIndex];
     }
 
+    /**
+     * Create VALUES alias resolver if alias is set.
+     * This enables alias.column references in ON DUPLICATE KEY UPDATE.
+     */
+    public void createValuesAliasResolver() {
+        if (valuesAlias != null && table != null) {
+            valuesAliasResolver = new org.h2.mode.ValuesAliasResolver(valuesAlias, table.getColumns(), this);
+        }
+    }
+
+    @Override
+    public void setValuesAlias(String alias) {
+        super.setValuesAlias(alias);
+        // Create resolver immediately when alias is set and table is available
+        if (alias != null && table != null) {
+            createValuesAliasResolver();
+        }
+    }
+
     @Override
     public void collectDependencies(HashSet<DbObject> dependencies) {
         ExpressionVisitor visitor = ExpressionVisitor.getDependenciesVisitor(dependencies);

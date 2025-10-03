@@ -273,6 +273,7 @@ import org.h2.expression.TimeZoneOperation;
 import org.h2.expression.TypedValueExpression;
 import org.h2.expression.UnaryOperation;
 import org.h2.expression.ValueExpression;
+import org.h2.expression.ValuesAliasExpression;
 import org.h2.expression.Variable;
 import org.h2.expression.Wildcard;
 import org.h2.expression.aggregate.AbstractAggregate;
@@ -1595,6 +1596,11 @@ public final class Parser extends ParserBase {
     private void parseInsertCompatibility(Insert command, Table table, Mode mode) {
         if (mode.onDuplicateKeyUpdate) {
             if (readIfCompat(ON, "DUPLICATE", KEY, "UPDATE")) {
+                // Create VALUES alias resolver if alias is set and not already created
+                if (command.getValuesAlias() != null && command.getValuesAliasResolver() == null) {
+                    command.createValuesAliasResolver();
+                }
+                
                 do {
                     String columnName = readIdentifier();
                     if (readIf(DOT)) {
@@ -1693,6 +1699,12 @@ public final class Parser extends ParserBase {
             }
             command.addRow(values.toArray(new Expression[0]));
         } while (readIf(COMMA));
+        
+        // Parse AS alias for MySQL 8.0.19+ style syntax
+        if (database.getMode().onDuplicateKeyUpdate && readIf(AS)) {
+            String alias = readIdentifier();
+            command.setValuesAlias(alias);
+        }
     }
 
     private TableFilter readTablePrimary() {
@@ -4806,6 +4818,27 @@ public final class Parser extends ParserBase {
             return expr;
         }
         String name = readIdentifier();
+        
+        // Check for VALUES alias reference (MySQL 8.0.19+ style)
+        Insert insert = null;
+        if (database.getMode().onDuplicateKeyUpdate) {
+            if (currentPrepared instanceof Insert) {
+                insert = (Insert) currentPrepared;
+            } else if (currentPrepared instanceof Update) {
+                Update update = (Update) currentPrepared;
+                insert = update.getOnDuplicateKeyInsert();
+            }
+        }
+        
+        if (insert != null && insert.getValuesAliasResolver() != null) {
+            if (objectName.equalsIgnoreCase(insert.getValuesAliasResolver().getAlias())) {
+                Column column = insert.getValuesAliasResolver().findColumn(name);
+                if (column != null) {
+                    return new ValuesAliasExpression(insert.getValuesAliasResolver(), column);
+                }
+            }
+        }
+        
         if (readIf(OPEN_PAREN)) {
             return readFunction(database.getSchema(objectName), name);
         } else if (readIf(DOT)) {

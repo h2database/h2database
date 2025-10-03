@@ -33,6 +33,14 @@ public class RunScript extends Tool {
     private boolean showResults;
     private boolean checkResults;
 
+    // Pre-compute the patterns once as uppercase constants
+    public static final String[] STALE_OBJECT_PATTERNS = {
+            "CREATE FORCE ALIAS \"PUBLIC\".\"READ_BLOB_MAP\"",
+            "CREATE FORCE ALIAS \"PUBLIC\".\"READ_CLOB_MAP\"",
+            "CREATE CACHED TABLE \"INFORMATION_SCHEMA\".\"LOB_BLOCKS\"",
+            "ALTER TABLE \"INFORMATION_SCHEMA\".\"LOB_BLOCKS\""
+    };
+
     /**
      * Options are case sensitive.
      * <table>
@@ -202,6 +210,20 @@ public class RunScript extends Tool {
             if (trim.isEmpty()) {
                 continue;
             }
+
+            // Normalize the statement
+            String upper = StringUtils.toUpperAscii(sql);
+            boolean stale = false;
+            for (String pattern : RunScript.STALE_OBJECT_PATTERNS) {
+                if (upper.indexOf(pattern) >= 0) {
+                    stale = true;
+                    break; // stop early on first match
+                }
+            }
+            if (stale) {
+                continue;
+            }
+
             if (trim.startsWith("@") && StringUtils.toUpperEnglish(trim).
                     startsWith("@INCLUDE")) {
                 sql = StringUtils.trimSubstring(sql, "@INCLUDE".length());

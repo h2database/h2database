@@ -249,8 +249,17 @@ public final class Upgrade {
             throw new IllegalArgumentException("version=" + version);
         }
         String fullVersion = prefix + version;
-        byte[] data = downloadUsingMaven("com.h2database", "h2", fullVersion,
-                CHECKSUMS[version >= 202 ? (version >>> 1) - 20 : version - 120]);
+        byte[] data;
+        if (System.getProperty("h2LocalJars") != null) {
+            Path h2Jar = Paths.get(System.getProperty("h2LocalJars"),"h2-" + fullVersion + ".jar");
+            if (!Files.exists(h2Jar)) {
+                throw new IOException("Unable to locally find " + h2Jar);
+            }
+            data = Files.readAllBytes(Paths.get(System.getProperty("h2LocalJars"),fullVersion + ".jar"));
+        } else {
+            data = downloadUsingMaven("com.h2database", "h2", fullVersion,
+                    CHECKSUMS[version >= 202 ? (version >>> 1) - 20 : version - 120]);
+        }
         ZipInputStream is = new ZipInputStream(new ByteArrayInputStream(data));
         HashMap<String, byte[]> map = new HashMap<>(version >= 198 ? 2048 : 1024);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();

@@ -203,8 +203,7 @@ public class TransactionStore {
                         if (store.hasData(mapName)) {
                             int transactionId = StringUtils.parseUInt31(mapName, UNDO_LOG_NAME_PREFIX.length() + 1,
                                     mapName.length());
-                            VersionedBitSet openTxBitSet = openTransactions.get();
-                            if (!openTxBitSet.get(transactionId)) {
+                            if (!openTransactions.get().get(transactionId)) {
                                 Object[] data = preparedTransactions.get(transactionId);
                                 int status;
                                 String name;
@@ -346,7 +345,7 @@ public class TransactionStore {
         }
         ArrayList<Transaction> list = new ArrayList<>();
         int transactionId = 0;
-        BitSet bitSet = openTransactions.get();
+        VersionedBitSet bitSet = openTransactions.get();
         while((transactionId = bitSet.nextSetBit(transactionId + 1)) > 0) {
             Transaction transaction = getTransaction(transactionId);
             if(transaction != null) {
@@ -409,10 +408,9 @@ public class TransactionStore {
                         "There are {0} open transactions",
                         transactionId - 1);
             }
-            VersionedBitSet clone = original.clone();
-            clone.set(transactionId);
-            sequenceNo = clone.getVersion() + 1;
-            clone.setVersion(sequenceNo);
+            assert !original.get(transactionId);
+            VersionedBitSet clone = new VersionedBitSet(original, transactionId);
+            sequenceNo = clone.getVersion();
             success = openTransactions.compareAndSet(original, clone);
         } while(!success);
 
@@ -617,8 +615,7 @@ public class TransactionStore {
         do {
             VersionedBitSet original = openTransactions.get();
             assert original.get(txId);
-            VersionedBitSet clone = original.clone();
-            clone.clear(txId);
+            VersionedBitSet clone = new VersionedBitSet(original, txId);
             success = openTransactions.compareAndSet(original, clone);
         } while(!success);
 
@@ -655,7 +652,7 @@ public class TransactionStore {
      * @return the array of root references or null if snapshotting is not possible
      */
     RootReference<Long,Record<?,?>>[] collectUndoLogRootReferences() {
-        BitSet opentransactions = openTransactions.get();
+        VersionedBitSet opentransactions = openTransactions.get();
         @SuppressWarnings("unchecked")
         RootReference<Long,Record<?,?>>[] undoLogRootReferences = new RootReference[opentransactions.length()];
         for (int i = opentransactions.nextSetBit(0); i >= 0; i = opentransactions.nextSetBit(i+1)) {
@@ -690,7 +687,7 @@ public class TransactionStore {
     }
 
     private boolean isUndoEmpty() {
-        BitSet openTrans = openTransactions.get();
+        VersionedBitSet openTrans = openTransactions.get();
         for (int i = openTrans.nextSetBit(0); i >= 0; i = openTrans.nextSetBit(i + 1)) {
             MVMap<Long,Record<?,?>> undoLog = undoLogs[i];
             if (undoLog != null && !undoLog.isEmpty()) {

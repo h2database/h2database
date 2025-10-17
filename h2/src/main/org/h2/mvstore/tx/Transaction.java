@@ -336,7 +336,7 @@ public final class Transaction {
             // The purpose of the following loop is to get a coherent picture
             // In order to get such a "snapshot", we wait for a moment of silence,
             // when no new transaction were committed / closed.
-            BitSet committingTransactions;
+            long[] committingTransactions;
             do {
                 committingTransactions = store.committingTransactions.get();
                 for (MVMap<Object,VersionedValue<Object>> map : maps) {

@@ -82,7 +82,7 @@ public class TransactionStore {
      * and undo record are still around.
      * Nevertheless, all of those should be considered by other transactions as committed.
      */
-    final AtomicReference<BitSet> committingTransactions = new AtomicReference<>(new BitSet());
+    final AtomicReference<long[]> committingTransactions = new AtomicReference<>(new long[0]);
 
     private boolean init;
 
@@ -537,10 +537,10 @@ public class TransactionStore {
     private void flipCommittingTransactionsBit(int transactionId, boolean flag) {
         boolean success;
         do {
-            BitSet original = committingTransactions.get();
-            assert original.get(transactionId) != flag : flag ? "Double commit" : "Mysterious bit's disappearance";
-            BitSet clone = (BitSet) original.clone();
-            clone.set(transactionId, flag);
+            long[] original = committingTransactions.get();
+            assert BitSetHelper.get(original, transactionId) != flag :
+                    flag ? "Double commit" : "Mysterious bit's disappearance";
+            long[] clone = BitSetHelper.flip(original, transactionId);
             success = committingTransactions.compareAndSet(original, clone);
         } while(!success);
     }

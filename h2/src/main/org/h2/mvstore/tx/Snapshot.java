@@ -5,8 +5,6 @@
  */
 package org.h2.mvstore.tx;
 
-import java.util.BitSet;
-
 import org.h2.mvstore.RootReference;
 
 /**
@@ -22,9 +20,9 @@ final class Snapshot<K,V> {
     /**
      * The committing transactions (see also TransactionStore.committingTransactions).
      */
-    final BitSet committingTransactions;
+    final long[] committingTransactions;
 
-    Snapshot(RootReference<K,V> root, BitSet committingTransactions) {
+    Snapshot(RootReference<K,V> root, long[] committingTransactions) {
         this.root = root;
         this.committingTransactions = committingTransactions;
     }
@@ -33,7 +31,7 @@ final class Snapshot<K,V> {
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + committingTransactions.hashCode();
+        result = prime * result + System.identityHashCode(committingTransactions);
         result = prime * result + root.hashCode();
         return result;
     }

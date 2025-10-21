@@ -8,10 +8,7 @@ package org.h2.mvstore.tx;
 import java.util.Arrays;
 
 /**
- * Class BitSetHelper.
- * <UL>
- * <LI> 10/17/25 12:25 PM initial creation
- * </UL>
+ * Class BitSetHelper provides very limited functionality of BitSet used by TransactionStore.
  *
  * @author <a href="mailto:andrei.tokar@gmail.com">Andrei Tokar</a>
  */
@@ -19,7 +16,6 @@ public class BitSetHelper
 {
     private static final int ADDRESS_BITS_PER_WORD = 6;
     private static final int BITS_PER_WORD = 1 << ADDRESS_BITS_PER_WORD;
-    private static final int BIT_INDEX_MASK = BITS_PER_WORD - 1;
     private static final long WORD_MASK = 0xffffffffffffffffL;
 
     private BitSetHelper() {
@@ -32,22 +28,11 @@ public class BitSetHelper
 
     public static long[] flip(long[] bits, int bitIndex) {
         int wordIndex = wordIndex(bitIndex);
-        bits = Arrays.copyOf(bits, Math.max(bits.length, wordIndex + 1));
+
+        int length = bits.length;
+        while (--length > wordIndex && bits[length] == 0L) {/**/}
+        bits = Arrays.copyOf(bits, Math.max(length, wordIndex) + 1);
         bits[wordIndex] ^= 1L << bitIndex;
-        return bits;
-    }
-
-    public static long[] set(long[] bits, int nitIndex) {
-        int wordIndex = wordIndex(nitIndex);
-        bits = Arrays.copyOf(bits, Math.max(bits.length, wordIndex + 1));
-        bits[wordIndex] |= 1L << nitIndex;
-        return bits;
-    }
-
-    public static long[] clear(long[] bits, int transactionId) {
-        int wordIndex = wordIndex(transactionId);
-        bits = Arrays.copyOf(bits, Math.max(bits.length, wordIndex + 1));
-        bits[wordIndex] &= ~(1L << transactionId);
         return bits;
     }
 

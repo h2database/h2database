@@ -63,7 +63,7 @@ public class TransactionStore {
      * Key: opId, value: [ mapId, key, oldValue ].
      */
     @SuppressWarnings("unchecked")
-    final MVMap<Long,Record<?,?>>[] undoLogs = new MVMap[MAX_OPEN_TRANSACTIONS];
+    private final MVMap<Long,Record<?,?>>[] undoLogs = new MVMap[MAX_OPEN_TRANSACTIONS];
     private final MVMap.Builder<Long, Record<?,?>> undoLogBuilder;
 
     private final DataType<?> dataType;
@@ -73,7 +73,7 @@ public class TransactionStore {
      * It provides easy way to find first unoccupied slot, and also allows for copy-on-write
      * non-blocking updates.
      */
-    final AtomicReference<VersionedBitSet> openTransactions = new AtomicReference<>(new VersionedBitSet());
+    private final AtomicReference<VersionedBitSet> openTransactions = new AtomicReference<>(new VersionedBitSet());
 
     /**
      * This is intended to be the source of ultimate truth about transaction being committed.
@@ -203,7 +203,7 @@ public class TransactionStore {
                         if (store.hasData(mapName)) {
                             int transactionId = StringUtils.parseUInt31(mapName, UNDO_LOG_NAME_PREFIX.length() + 1,
                                     mapName.length());
-                            if (!openTransactions.get().get(transactionId)) {
+                            if (!isTransactionOpen(transactionId)) {
                                 Object[] data = preparedTransactions.get(transactionId);
                                 int status;
                                 String name;
@@ -247,6 +247,10 @@ public class TransactionStore {
             }
             init = true;
         }
+    }
+
+    boolean isTransactionOpen(int transactionId) {
+        return openTransactions.get().get(transactionId);
     }
 
     private void markUndoLogAsCommitted(int transactionId) {

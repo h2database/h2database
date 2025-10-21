@@ -488,7 +488,7 @@ public final class Transaction {
      * Commit the transaction. Afterward, this transaction is closed.
      */
     public void commit() {
-        assert store.openTransactions.get().get(transactionId);
+        assert store.isTransactionOpen(transactionId);
         markTransactionEnd();
         Throwable ex = null;
         boolean hasChanges = false;

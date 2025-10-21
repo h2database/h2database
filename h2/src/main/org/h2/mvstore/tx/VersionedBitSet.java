@@ -8,8 +8,8 @@ package org.h2.mvstore.tx;
 import java.util.BitSet;
 
 /**
- * Class VersionedBitSet extends standard BitSet to add a version field.
- * This will allow bit set and version to be changed atomically.
+ * Class VersionedBitSet combines very limited functionality of a standard BitSet and a version field.
+ * This will allow bit set to be immutable. In addition, it allows bit set and version to be changed atomically.
  */
 final class VersionedBitSet {
 

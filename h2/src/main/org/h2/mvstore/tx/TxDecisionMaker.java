@@ -206,7 +206,7 @@ class TxDecisionMaker<K,V> extends MVMap.DecisionMaker<VersionedValue<V>> {
         TransactionStore store = transaction.store;
         do {
             blockingTx = store.getTransaction(transactionId);
-            result = store.committingTransactions.get().get(transactionId);
+            result = BitSetHelper.get(store.committingTransactions.get(), transactionId);
         } while (blockingTx != store.getTransaction(transactionId));
 
         if (!result) {

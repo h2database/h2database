@@ -63,7 +63,7 @@ public class TransactionStore {
      * Key: opId, value: [ mapId, key, oldValue ].
      */
     @SuppressWarnings("unchecked")
-    final MVMap<Long,Record<?,?>>[] undoLogs = new MVMap[MAX_OPEN_TRANSACTIONS];
+    private final MVMap<Long,Record<?,?>>[] undoLogs = new MVMap[MAX_OPEN_TRANSACTIONS];
     private final MVMap.Builder<Long, Record<?,?>> undoLogBuilder;
 
     private final DataType<?> dataType;
@@ -73,7 +73,7 @@ public class TransactionStore {
      * It provides easy way to find first unoccupied slot, and also allows for copy-on-write
      * non-blocking updates.
      */
-    final AtomicReference<VersionedBitSet> openTransactions = new AtomicReference<>(new VersionedBitSet());
+    private final AtomicReference<VersionedBitSet> openTransactions = new AtomicReference<>(new VersionedBitSet());
 
     /**
      * This is intended to be the source of ultimate truth about transaction being committed.
@@ -82,7 +82,7 @@ public class TransactionStore {
      * and undo record are still around.
      * Nevertheless, all of those should be considered by other transactions as committed.
      */
-    final AtomicReference<BitSet> committingTransactions = new AtomicReference<>(new BitSet());
+    final AtomicReference<long[]> committingTransactions = new AtomicReference<>(new long[0]);
 
     private boolean init;
 
@@ -203,8 +203,7 @@ public class TransactionStore {
                         if (store.hasData(mapName)) {
                             int transactionId = StringUtils.parseUInt31(mapName, UNDO_LOG_NAME_PREFIX.length() + 1,
                                     mapName.length());
-                            VersionedBitSet openTxBitSet = openTransactions.get();
-                            if (!openTxBitSet.get(transactionId)) {
+                            if (!isTransactionOpen(transactionId)) {
                                 Object[] data = preparedTransactions.get(transactionId);
                                 int status;
                                 String name;
@@ -248,6 +247,10 @@ public class TransactionStore {
             }
             init = true;
         }
+    }
+
+    boolean isTransactionOpen(int transactionId) {
+        return openTransactions.get().get(transactionId);
     }
 
     private void markUndoLogAsCommitted(int transactionId) {
@@ -346,7 +349,7 @@ public class TransactionStore {
         }
         ArrayList<Transaction> list = new ArrayList<>();
         int transactionId = 0;
-        BitSet bitSet = openTransactions.get();
+        VersionedBitSet bitSet = openTransactions.get();
         while((transactionId = bitSet.nextSetBit(transactionId + 1)) > 0) {
             Transaction transaction = getTransaction(transactionId);
             if(transaction != null) {
@@ -409,10 +412,9 @@ public class TransactionStore {
                         "There are {0} open transactions",
                         transactionId - 1);
             }
-            VersionedBitSet clone = original.clone();
-            clone.set(transactionId);
-            sequenceNo = clone.getVersion() + 1;
-            clone.setVersion(sequenceNo);
+            assert !original.get(transactionId);
+            VersionedBitSet clone = new VersionedBitSet(original, transactionId);
+            sequenceNo = clone.getVersion();
             success = openTransactions.compareAndSet(original, clone);
         } while(!success);
 
@@ -537,10 +539,10 @@ public class TransactionStore {
     private void flipCommittingTransactionsBit(int transactionId, boolean flag) {
         boolean success;
         do {
-            BitSet original = committingTransactions.get();
-            assert original.get(transactionId) != flag : flag ? "Double commit" : "Mysterious bit's disappearance";
-            BitSet clone = (BitSet) original.clone();
-            clone.set(transactionId, flag);
+            long[] original = committingTransactions.get();
+            assert BitSetHelper.get(original, transactionId) != flag :
+                    flag ? "Double commit" : "Mysterious bit's disappearance";
+            long[] clone = BitSetHelper.flip(original, transactionId);
             success = committingTransactions.compareAndSet(original, clone);
         } while(!success);
     }
@@ -617,8 +619,7 @@ public class TransactionStore {
         do {
             VersionedBitSet original = openTransactions.get();
             assert original.get(txId);
-            VersionedBitSet clone = original.clone();
-            clone.clear(txId);
+            VersionedBitSet clone = new VersionedBitSet(original, txId);
             success = openTransactions.compareAndSet(original, clone);
         } while(!success);
 
@@ -655,7 +656,7 @@ public class TransactionStore {
      * @return the array of root references or null if snapshotting is not possible
      */
     RootReference<Long,Record<?,?>>[] collectUndoLogRootReferences() {
-        BitSet opentransactions = openTransactions.get();
+        VersionedBitSet opentransactions = openTransactions.get();
         @SuppressWarnings("unchecked")
         RootReference<Long,Record<?,?>>[] undoLogRootReferences = new RootReference[opentransactions.length()];
         for (int i = opentransactions.nextSetBit(0); i >= 0; i = opentransactions.nextSetBit(i+1)) {
@@ -690,7 +691,7 @@ public class TransactionStore {
     }
 
     private boolean isUndoEmpty() {
-        BitSet openTrans = openTransactions.get();
+        VersionedBitSet openTrans = openTransactions.get();
         for (int i = openTrans.nextSetBit(0); i >= 0; i = openTrans.nextSetBit(i + 1)) {
             MVMap<Long,Record<?,?>> undoLog = undoLogs[i];
             if (undoLog != null && !undoLog.isEmpty()) {

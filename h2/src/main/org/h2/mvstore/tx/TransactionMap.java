@@ -154,7 +154,7 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
     }
 
     private long adjustSize(RootReference<Long, Record<?, ?>>[] undoLogRootReferences,
-            RootReference<K, VersionedValue<V>> mapRootReference, BitSet committingTransactions, long size,
+            RootReference<K, VersionedValue<V>> mapRootReference, long[] committingTransactions, long size,
             long undoLogsTotalSize) {
         // Entries describing removals from the map by this transaction and all transactions,
         // which are committed but not closed yet,
@@ -211,13 +211,13 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
         return size;
     }
 
-    private boolean isIrrelevant(long operationId, VersionedValue<?> currentValue, BitSet committingTransactions) {
+    private boolean isIrrelevant(long operationId, VersionedValue<?> currentValue, long[] committingTransactions) {
         Object v;
         if (committingTransactions == null) {
             v = currentValue.getCurrentValue();
         } else {
             int txId = TransactionStore.getTransactionId(operationId);
-            v = txId == transaction.transactionId || committingTransactions.get(txId)
+            v = txId == transaction.transactionId || BitSetHelper.get(committingTransactions, txId)
                     ? currentValue.getCurrentValue() : currentValue.getCommittedValue();
         }
         return v == null;
@@ -488,7 +488,7 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
         }
     }
 
-    private V getFromSnapshot(RootReference<K, VersionedValue<V>> rootRef, BitSet committingTransactions, K key) {
+    private V getFromSnapshot(RootReference<K, VersionedValue<V>> rootRef, long[] committingTransactions, K key) {
         VersionedValue<V> data = map.get(rootRef.root, key);
         if (data == null) {
             // doesn't exist
@@ -497,7 +497,7 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
         long id = data.getOperationId();
         if (id != 0) {
             int tx = TransactionStore.getTransactionId(id);
-            if (tx != transaction.transactionId && !committingTransactions.get(tx)) {
+            if (tx != transaction.transactionId && !BitSetHelper.get(committingTransactions, tx)) {
                 // added/modified/removed by uncommitted transaction, change should not be visible
                 return data.getCommittedValue();
             }
@@ -555,16 +555,16 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
      *            function to invoke on a snapshot
      * @return function's result
      */
-    <R> R useSnapshot(BiFunction<RootReference<K,VersionedValue<V>>, BitSet, R> snapshotConsumer) {
+    <R> R useSnapshot(BiFunction<RootReference<K,VersionedValue<V>>, long[], R> snapshotConsumer) {
         // The purpose of the following loop is to get a coherent picture
         // of a state of two independent volatile / atomic variables,
         // which they had at some recent moment in time.
         // In order to get such a "snapshot", we wait for a moment of silence,
         // when neither of the variables concurrently changes it's value.
-        AtomicReference<BitSet> holder = transaction.store.committingTransactions;
-        BitSet committingTransactions = holder.get();
+        AtomicReference<long[]> holder = transaction.store.committingTransactions;
+        long[] committingTransactions = holder.get();
         while (true) {
-            BitSet prevCommittingTransactions = committingTransactions;
+            long[] prevCommittingTransactions = committingTransactions;
             RootReference<K,VersionedValue<V>> root = map.getRoot();
             committingTransactions = holder.get();
             if (committingTransactions == prevCommittingTransactions) {
@@ -959,7 +959,7 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
             long id = data.getOperationId();
             if (id != 0) {
                 int tx = TransactionStore.getTransactionId(id);
-                return transactionId != tx && !committingTransactions.get(tx);
+                return transactionId != tx && !BitSetHelper.get(committingTransactions, tx);
             }
             return false;
         }
@@ -990,7 +990,7 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
                     long id = data.getOperationId();
                     if (id != 0) {
                         int tx = TransactionStore.getTransactionId(id);
-                        if (tx != transactionId && !committingTransactions.get(tx)) {
+                        if (tx != transactionId && !BitSetHelper.get(committingTransactions, tx)) {
                             // current value comes from another uncommitted transaction
                             // take committed value instead
                             Object committedValue = data.getCommittedValue();
@@ -1082,7 +1082,7 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
                     long id = data.getOperationId();
                     if (id != 0) {
                         int tx = TransactionStore.getTransactionId(id);
-                        if (tx == transactionId || committingTransactions.get(tx)) {
+                        if (tx == transactionId || BitSetHelper.get(committingTransactions, tx)) {
                             // value comes from this transaction or another committed transaction
                             // take current value instead of committed one
                             value = data.getCurrentValue();
@@ -1116,7 +1116,7 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
     public abstract static class TMIterator<K,V,X> implements Iterator<X> {
         final int transactionId;
 
-        final BitSet committingTransactions;
+        final long[] committingTransactions;
 
         protected final Cursor<K, VersionedValue<V>> cursor;
 

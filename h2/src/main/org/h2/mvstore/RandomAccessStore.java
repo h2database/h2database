@@ -157,8 +157,9 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
     @Override
     protected final boolean validateFileLength(String msg) {
         assert saveChunkLock.isHeldByCurrentThread();
-        assert getFileLengthInUse() == measureFileLengthInUse() :
-                getFileLengthInUse() + " != " + measureFileLengthInUse() + " " + msg;
+        assert !mvStore.isLockedByCurrentThread() || getFileLengthInUse() == measureFileLengthInUse() :
+                        mvStore.isLockedByCurrentThread() + " && " +
+                        getFileLengthInUse() + " != " + measureFileLengthInUse() + " " + msg;
         return true;
     }
 
@@ -676,7 +677,9 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
     protected void shrinkStoreIfPossible(int minPercent) {
         assert saveChunkLock.isHeldByCurrentThread();
         long result = getFileLengthInUse();
-        assert result == measureFileLengthInUse() : result + " != " + measureFileLengthInUse();
+        assert !mvStore.isLockedByCurrentThread() || result == measureFileLengthInUse() :
+                mvStore.isLockedByCurrentThread() + " && " +
+                result + " != " + measureFileLengthInUse();
         shrinkIfPossible(minPercent);
     }
 

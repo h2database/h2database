@@ -236,7 +236,7 @@ public class TestCrashAPI extends TestDb implements Runnable {
             }
             throw e;
         }
-        int len = random.getInt(50);
+        int len = random.getInt(statements.size());
         int first = random.getInt(statements.size() - len);
         int end = first + len;
         Statement stat = conn.createStatement();

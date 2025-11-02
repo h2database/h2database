@@ -581,13 +581,17 @@ public abstract class Query extends Prepared {
         if (getNoCache() || !getDatabase().getOptimizeReuseResults()) {
             return executeExists();
         }
+        boolean isStable = session.getTransaction().getIsolationLevel() != IsolationLevel.READ_UNCOMMITTED
+                            && !isUpdatedInCurrentTransaction();
         Value[] params = getParameterValues();
         long now = session.getStatementModificationDataId(), maxDataModificationId = getMaxDataModificationId();
-        if (lastExists != null && maxDataModificationId <= lastEvaluated && sameParameters(params, lastParameters)) {
+        if (lastExists != null
+                && isStable && maxDataModificationId <= lastEvaluated
+                && sameParameters(params, lastParameters)) {
             return lastExists;
         }
         boolean exists = executeExists();
-        if (maxDataModificationId <= now) {
+        if (isStable && maxDataModificationId <= now) {
             lastParameters = params;
             lastExists = exists;
             lastEvaluated = now;

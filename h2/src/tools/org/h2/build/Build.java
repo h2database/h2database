@@ -23,6 +23,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map.Entry;
+import java.util.TimeZone;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 
@@ -108,7 +109,8 @@ public class Build extends BuildBase {
                 "com.mysql", "mysql-connector-j", MYSQL_CONNECTOR_VERSION,
                 "3f78d2963935f44a61edb3961a591cdc392c8941");
         downloadUsingMaven("ext/sqlite-" + SQLITE_VERSION + ".jar",
-            "org.xerial", "sqlite-jdbc", SQLITE_VERSION, "7fa71c4dfab806490cb909714fb41373ec552c29");
+                "org.xerial", "sqlite-jdbc", SQLITE_VERSION,
+                "7fa71c4dfab806490cb909714fb41373ec552c29");
         compile();
 
         String cp = "temp" +
@@ -932,12 +934,14 @@ public class Build extends BuildBase {
                     "-ea",
                     "-Xmx128m",
                     "-XX:MaxDirectMemorySize=2g",
+                    "-Duser.timezone=" + TimeZone.getDefault().getID(),
                     "-cp", cp,
                     "org.h2.test.TestAll", "ci"));
         } else {
             ret = execJava(args(
                     "-ea",
                     "-Xmx128m",
+                    "-Duser.timezone=" + TimeZone.getDefault().getID(),
                     "-cp", cp,
                     "org.h2.test.TestAll"));
         }

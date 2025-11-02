@@ -232,7 +232,7 @@ public class TestScript extends TestDb {
                 "type", "unique" }) {
             testScript("predicates/" + s + ".sql");
         }
-        for (String s : new String[] { "derived-column-names", "distinct", "joins", "query-optimisations", "select",
+        for (String s : new String[] { "derived-column-names", "distinct", "joins", "query-cache", "query-optimisations", "select",
                 "table", "values", "window" }) {
             testScript("queries/" + s + ".sql");
         }
@@ -429,17 +429,18 @@ public class TestScript extends TestDb {
                 throw new AssertionError("expected '{', got " + param + " in " + sql);
             }
             try {
-                PreparedStatement prep = conn.prepareStatement(sql);
-                int count = 0;
-                while (true) {
-                    param = readLine();
-                    write(param);
-                    if (param.startsWith("}")) {
-                        break;
+                try(PreparedStatement prep = conn.prepareStatement(sql)) {
+                    int count = 0;
+                    while (true) {
+                        param = readLine();
+                        write(param);
+                        if (param.startsWith("}")) {
+                            break;
+                        }
+                        count += processPrepared(sql, prep, param);
                     }
-                    count += processPrepared(sql, prep, param);
+                    writeResult(sql, "update count: " + count, null);
                 }
-                writeResult(sql, "update count: " + count, null);
             } catch (SQLException e) {
                 writeException(sql, e);
             }
@@ -530,6 +531,9 @@ public class TestScript extends TestDb {
             } else {
                 int count = s.getUpdateCount();
                 writeResult(sql, count < 1 ? "ok" : "update count: " + count, null);
+            }
+            if (s != stat) {
+                s.close();
             }
         } catch (SQLException e) {
             writeException(sql, e);

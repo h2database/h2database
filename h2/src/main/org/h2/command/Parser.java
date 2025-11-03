@@ -4142,6 +4142,8 @@ public final class Parser extends ParserBase {
             return new StringFunction1(readSingleArgument(), StringFunction1.HEXTORAW);
         case "RAWTOHEX":
             return new StringFunction1(readSingleArgument(), StringFunction1.RAWTOHEX);
+        case "HEX":
+            return new StringFunction1(readSingleArgument(), StringFunction1.HEX);
         case "SPACE":
             return new StringFunction1(readSingleArgument(), StringFunction1.SPACE);
         case "QUOTE_IDENT":

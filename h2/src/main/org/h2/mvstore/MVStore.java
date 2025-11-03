@@ -910,11 +910,11 @@ public final class MVStore implements AutoCloseable {
         // we need to prevent re-entrance, which may be possible,
         // because meta map is modified within storeNow() and that
         // causes beforeWrite() call with possibility of going back here
-        return !storeLock.isHeldByCurrentThread() || !storeOperationInProgress.get();
+        return !isLockedByCurrentThread() || !storeOperationInProgress.get();
     }
 
     private long store(boolean syncWrite) {
-        assert storeLock.isHeldByCurrentThread();
+        assert isLockedByCurrentThread();
         if (isOpenOrStopping() && hasUnsavedChanges() && storeOperationInProgress.compareAndSet(false, true)) {
             try {
                 @SuppressWarnings({"NonAtomicVolatileUpdate", "NonAtomicOperationOnVolatileField"})
@@ -961,7 +961,7 @@ public final class MVStore implements AutoCloseable {
             int currentUnsavedMemory = unsavedMemory;
             long version = currentVersion;
 
-            assert storeLock.isHeldByCurrentThread();
+            assert isLockedByCurrentThread();
             fileStore.storeIt(collectChangedMapRoots(version), version, syncWrite);
 
             // some pages might have been changed in the meantime (in the newest
@@ -1383,7 +1383,7 @@ public final class MVStore implements AutoCloseable {
                 // condition below is to prevent potential deadlock,
                 // because we should never seek storeLock while holding
                 // map root lock
-                (storeLock.isHeldByCurrentThread() || !map.getRoot().isLockedByCurrentThread()) &&
+                (isLockedByCurrentThread() || !map.getRoot().isLockedByCurrentThread()) &&
                 // to avoid infinite recursion via store() -> dropUnusedChunks() -> layout.remove()
                 fileStore.isRegularMap(map)) {
             saveNeeded = false;
@@ -1818,7 +1818,7 @@ public final class MVStore implements AutoCloseable {
      */
     public void deregisterVersionUsage(TxCounter txCounter) {
         if(decrementVersionUsageCounter(txCounter)) {
-            if (storeLock.isHeldByCurrentThread()) {
+            if (isLockedByCurrentThread()) {
                 dropUnusedVersions();
             } else if (storeLock.tryLock()) {
                 try {
@@ -1839,6 +1839,10 @@ public final class MVStore implements AutoCloseable {
      */
     public boolean decrementVersionUsageCounter(TxCounter txCounter) {
         return txCounter != null &&  txCounter.decrementAndGet() <= 0;
+    }
+
+    boolean isLockedByCurrentThread() {
+        return storeLock.isHeldByCurrentThread();
     }
 
     void onVersionChange(long version) {

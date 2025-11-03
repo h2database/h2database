@@ -147,6 +147,23 @@ public final class Upgrade {
      *             on failure
      */
     public static boolean upgrade(String url, Properties info, int version) throws Exception {
+        return upgrade(url, info, provision(version));
+    }
+    /**
+     * Performs database upgrade from an older version of H2.
+     *
+     * @param url
+     *            the JDBC connection URL
+     * @param info
+     *            the connection properties ("user", "password", etc).
+     * @param oldDriverCl
+     *            class loader for the old version of H2
+     * @return {@code true} on success, {@code false} if URL is a remote or
+     *         in-memory URL
+     * @throws Exception
+     *             on failure
+     */
+    public static boolean upgrade(String url, Properties info, ClassLoader oldDriverCl) throws Exception {
         Properties oldInfo = new Properties();
         oldInfo.putAll(info);
         Object password = info.get("password");
@@ -164,7 +181,8 @@ public final class Upgrade {
         copyProperty(ci, oldUrl, "MV_STORE");
         String cipher = copyProperty(ci, oldUrl, "CIPHER");
         String scriptCommandSuffix = cipher == null ? "" : " CIPHER AES PASSWORD '" + UUID.randomUUID() + "' --hide--";
-        java.sql.Driver driver = loadH2(version);
+        java.sql.Driver driver = loadH2(oldDriverCl);
+        final int oldMajorVer = driver.getMajorVersion();
         try (Connection conn = driver.connect(oldUrl.toString(), oldInfo)) {
             conn.createStatement().execute(StringUtils.quoteStringSQL(new StringBuilder("SCRIPT TO "), script)
                     .append(scriptCommandSuffix).toString());
@@ -175,7 +193,7 @@ public final class Upgrade {
         try (JdbcConnection conn = new JdbcConnection(url, info, null, null, false)) {
             StringBuilder builder = StringUtils.quoteStringSQL(new StringBuilder("RUNSCRIPT FROM "), script)
                     .append(scriptCommandSuffix);
-            if (version <= 200) {
+            if (oldMajorVer < 2) {
                 builder.append(" FROM_1X");
             }
             conn.createStatement().execute(builder.toString());
@@ -219,18 +237,9 @@ public final class Upgrade {
         }
     }
 
-    /**
-     * Loads the specified version of H2 in a separate class loader.
-     *
-     * @param version
-     *            the version to load
-     * @return the driver of the specified version
-     * @throws IOException
-     *             on I/O exception
-     * @throws ReflectiveOperationException
-     *             on exception during initialization of the driver
-     */
-    public static java.sql.Driver loadH2(int version) throws IOException, ReflectiveOperationException {
+    // Finds or downloads the JAR for the given version using downloadToMaven
+    // and creates a ClassLoader for it.
+    private static ClassLoader provision(int version) throws IOException {
         String prefix;
         if (version >= 201) {
             if ((version & 1) != 0 || version > Constants.BUILD_ID) {
@@ -262,7 +271,7 @@ public final class Upgrade {
             map.put(ze.getName(), baos.toByteArray());
             baos.reset();
         }
-        ClassLoader cl = new ClassLoader(null) {
+        return new ClassLoader(null) {
             @Override
             protected Class<?> findClass(String name) throws ClassNotFoundException {
                 String resourceName = name.replace('.', '/') + ".class";
@@ -279,6 +288,31 @@ public final class Upgrade {
                 return b != null ? new ByteArrayInputStream(b) : null;
             }
         };
+    }
+
+    /**
+     * Loads the specified version of H2 in a separate class loader.
+     *
+     * @param version
+     *            the version to load
+     * @return the driver of the specified version
+     * @throws IOException
+     *             on I/O exception during provisioning of the driver
+     * @throws ReflectiveOperationException
+     *             on exception during initialization of the driver
+     */
+    public static java.sql.Driver loadH2(int version) throws IOException, ReflectiveOperationException {
+        return loadH2(provision(version));
+    }
+    /**
+     * Loads a different version of H2 from the given class loader.
+     *
+     * @param cl loader to use, must provide access to class {@code "org.h2.Driver"}
+     * @return the driver of the specified version
+     * @throws ReflectiveOperationException
+     *             on exception during initialization of the driver
+     */
+    public static java.sql.Driver loadH2(ClassLoader cl) throws ReflectiveOperationException {
         return (java.sql.Driver) cl.loadClass("org.h2.Driver").getDeclaredMethod("load").invoke(null);
     }
 

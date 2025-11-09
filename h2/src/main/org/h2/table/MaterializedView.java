@@ -207,7 +207,7 @@ public class MaterializedView extends Table {
 
     @Override
     public void removeChildrenAndResources(SessionLocal session) {
-        table.removeChildrenAndResources(session);
+        database.removeSchemaObject(session, table);
         database.removeMeta(session, getId());
         querySQL = null;
         invalidate();

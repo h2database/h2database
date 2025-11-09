@@ -232,9 +232,11 @@ public class ScriptCommand extends ScriptBase {
             }
 
             final ArrayList<Table> tables = db.getAllTablesAndViews();
-            // sort by id, so that views are after tables and views on views
-            // after the base views
-            tables.sort(Comparator.comparingInt(Table::getId));
+            // Primary sorting criteria is type (table or view) which ensures that views are exported into target script
+            // after tables. Secondary sorting criteria is the database ID which should ensure that dependant views are
+            // exported after the "base" views.
+            // TODO - Ordering of views depending on each other might stil not be fully reliable and needs further imporovement. See issue #2391 on GitHub.
+            tables.sort(new TableComparator());
 
             // Generate the DROP XXX  ... IF EXISTS
             for (Table table : tables) {
@@ -838,6 +840,21 @@ public class ScriptCommand extends ScriptBase {
     @Override
     public int getType() {
         return CommandInterface.SCRIPT;
+    }
+
+    /**
+     * Comparator of {@link Table} instances ensuring that all tables are exported before all views to avoid dependency
+     * issues.
+     */
+    private static class TableComparator implements Comparator<Table> {
+        @Override
+        public int compare(Table t1, Table t2) {
+            if (t1.isView()) {
+                return (t2.isView()) ? Integer.compare(t1.getId(), t2.getId()) : 1;
+            } else {
+                return (t2.isView()) ? -1 :  Integer.compare(t1.getId(), t2.getId());
+            }
+        }
     }
 
 }

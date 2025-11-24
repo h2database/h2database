@@ -1,0 +1,202 @@
+Note: src/tools/org/h2/build/BuildBase.java uses or overrides a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+Target: test
+/Library/Java/JavaVirtualMachines/jdk-23.jdk/Contents/Home/bin/java -ea -Xmx128m -cp src/java21/precompiled:src/java10/precompiled:src/java9/precompiled:temp:bin:ext/postgresql-42.7.2.jar:ext/javax.servlet-api-4.0.1.jar:ext/jakarta.servlet-api-5.0.0.jar:ext/lucene-core-9.7.0.jar:ext/lucene-analysis-common-9.7.0.jar:ext/lucene-queryparser-9.7.0.jar:ext/org.osgi.core-5.0.0.jar:ext/org.osgi.service.jdbc-1.1.0.jar:ext/jts-core-1.19.0.jar:ext/slf4j-api-2.0.7.jar:ext/slf4j-nop-2.0.7.jar:ext/asm-9.5.jar:/Library/Java/JavaVirtualMachines/jdk-23.jdk/Contents/Home/../lib/tools.jar:ext/nashorn-core-15.4.jar:ext/asm-commons-9.5.jar:ext/asm-tree-9.5.jar:ext/asm-util-9.5.jar org.h2.test.TestAll
+H2 2.2.229-SNAPSHOT (2023-08-22) @ 2025-11-23 23:04:15.979
+Java 23.0.1+11-39, Java HotSpot(TM) 64-Bit Server VM, Oracle Corporation, 64
+Mac OS X, aarch64, 26.1, null, / : \n CA en America/Toronto null UTF-8
+
+Test memory  (1966 KB used)
+ERROR: org/h2/test/scripts/testScript.sql
+line: 2361
+exp: > 1        3  33
+got: > rows: 0
+------------------------------
+ERROR: org/h2/test/scripts/testScript.sql
+line: 2361
+exp: <command>
+got: > 2        2  22
+------------------------------
+ERROR: org/h2/test/scripts/testScript.sql
+line: 2361
+exp: <command>
+got: > rows: 2
+------------------------------
+ERROR: org/h2/test/scripts/testScript.sql
+line: 2545
+exp: >> SELECT "T0"."ID", "T1"."ID" FROM "PUBLIC"."TEST" "T0" /* PUBLIC.TEST.tableScan */ INNER JOIN "PUBLIC"."TEST" "T1" /* PUBLIC.TEST.tableScan */ ON 1=1 ORDER BY 1, 2
+got: >> SELECT "T0"."ID", "T1"."ID" FROM "PUBLIC"."TEST" "T0" /* PUBLIC.PRIMARY_KEY_2 */ INNER JOIN "PUBLIC"."TEST" "T1" /* PUBLIC.TEST.tableScan */ ON 1=1 ORDER BY 1, 2 /* index sorted: 1 of 2 columns */
+------------------------------
+ERROR: org/h2/test/scripts/functions/numeric/log.sql
+line: 55
+exp: > -0.6931471805599453 0.0 0.6931471805599453 1.0986122886681098 2.302585092994046
+got: > -0.6931471805599453 0.0 0.6931471805599453 1.0986122886681096 2.302585092994046
+------------------------------
+ERROR: org/h2/test/scripts/functions/numeric/log.sql
+line: 61
+exp: > VH   V1  V2  V3                 V10                V64
+got: > VH   V1  V2  V3                V10                V64
+------------------------------
+ERROR: org/h2/test/scripts/functions/numeric/log.sql
+line: 61
+exp: > ---- --- --- ------------------ ------------------ ---
+got: > ---- --- --- ----------------- ------------------ ---
+------------------------------
+ERROR: org/h2/test/scripts/functions/numeric/log.sql
+line: 61
+exp: > -1.0 0.0 1.0 1.5849625007211563 3.3219280948873626 6.0
+got: > -1.0 0.0 1.0 1.584962500721156 3.3219280948873626 6.0
+------------------------------
+ERROR: org/h2/test/scripts/functions/numeric/log.sql
+line: 73
+exp: > -0.6931471805599453 0.0 0.6931471805599453 1.0986122886681098 2.302585092994046
+got: > -0.6931471805599453 0.0 0.6931471805599453 1.0986122886681096 2.302585092994046
+------------------------------
+ERROR: org/h2/test/scripts/functions/numeric/log.sql
+line: 97
+exp: > VH   V1  V2  V3                 V10                V64
+got: > VH   V1  V2  V3                V10                V64
+------------------------------
+ERROR: org/h2/test/scripts/functions/numeric/log.sql
+line: 97
+exp: > ---- --- --- ------------------ ------------------ ---
+got: > ---- --- --- ----------------- ------------------ ---
+------------------------------
+ERROR: org/h2/test/scripts/functions/numeric/log.sql
+line: 97
+exp: > -1.0 0.0 1.0 1.5849625007211563 3.3219280948873626 6.0
+got: > -1.0 0.0 1.0 1.584962500721156 3.3219280948873626 6.0
+------------------------------
+ERROR: org/h2/test/scripts/queries/joins.sql
+line: 125
+exp: >> SELECT "TESTA"."ID" AS "A", "TESTB"."ID" AS "B" FROM "PUBLIC"."TESTA" /* PUBLIC.TESTA.tableScan */ INNER JOIN "PUBLIC"."TESTB" /* PUBLIC.TESTB.tableScan */ ON 1=1 ORDER BY 1, 2
+got: >> SELECT "TESTA"."ID" AS "A", "TESTB"."ID" AS "B" FROM "PUBLIC"."TESTA" /* PUBLIC.PRIMARY_KEY_4 */ INNER JOIN "PUBLIC"."TESTB" /* PUBLIC.TESTB.tableScan */ ON 1=1 ORDER BY 1, 2 /* index sorted: 1 of 2 columns */
+------------------------------
+ERROR: org/h2/test/scripts/queries/select.sql
+line: 1170
+exp: >> SELECT "A", 1 AS "X", "B" FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */ ORDER BY 1, 2, 3 DESC
+got: >> SELECT "A", 1 AS "X", "B" FROM "PUBLIC"."TEST" /* PUBLIC.TEST_IDX */ ORDER BY 1, 2, 3 DESC /* index sorted: 1 of 3 columns */
+------------------------------
+23:04:22 00:06.309 org.h2.test.scripts.TestScript FAIL java.lang.Exception: errors in script found
+ERROR: FAIL (memory ) java.lang.Exception: errors in script found java.lang.Exception: errors in script found ------------------------------
+java.lang.Exception: errors in script found
+	at org.h2.test.scripts.TestScript.test(TestScript.java:245)
+	at org.h2.test.TestBase.runTest(TestBase.java:145)
+	at org.h2.test.TestAll.addTest(TestAll.java:994)
+	at org.h2.test.TestAll.test(TestAll.java:711)
+	at org.h2.test.TestAll.runTests(TestAll.java:607)
+	at org.h2.test.TestAll.testAll(TestAll.java:551)
+	at org.h2.test.TestAll.run(TestAll.java:535)
+	at org.h2.test.TestAll.main(TestAll.java:436)
+23:04:22 00:00.012 org.h2.test.db.TestAlter 
+23:04:22 00:00.033 org.h2.test.db.TestAlterSchemaRename 
+23:04:22 00:00.010 org.h2.test.db.TestAutoRecompile 
+23:04:22 00:00.382 org.h2.test.db.TestCases 
+23:04:22 00:00.000 org.h2.test.db.TestCheckpoint 
+23:04:23 00:00.267 org.h2.test.db.TestCompatibility 
+23:04:23 00:00.011 org.h2.test.db.TestCompatibilityOracle 
+23:04:23 00:00.000 org.h2.test.db.TestCompatibilitySQLServer 
+23:04:23 00:00.028 org.h2.test.db.TestCsv 
+23:04:25 00:02.511 org.h2.test.db.TestDeadlock 
+23:04:25 00:00.012 org.h2.test.db.TestDuplicateKeyUpdate 
+23:04:25 00:00.004 org.h2.test.db.TestExclusive 
+23:04:25 00:00.110 org.h2.test.db.TestFullText create FT: 1
+23:04:25 00:00.112 org.h2.test.db.TestFullText search FT: 0 count: 0
+23:04:27 00:02.340 org.h2.test.db.TestFullText create FTL: 1
+23:04:27 00:02.340 org.h2.test.db.TestFullText search FTL: 0 count: 0
+23:04:27 00:02.340 org.h2.test.db.TestFullText 
+23:04:27 00:00.002 org.h2.test.db.TestFunctionOverload 
+23:04:28 00:00.121 org.h2.test.db.TestFunctions Expected: 08:12:34.56<*>00 (13) actual: 08:12:34.5599 (13) 
+23:04:28 00:00.121 org.h2.test.db.TestFunctions FAIL java.lang.AssertionError: Expected: 08:12:34.56<*>00 (13) actual: 08:12:34.5599 (13) 
+ERROR: FAIL (memory ) java.lang.AssertionError: Expected: 08:12:34.56<*>00 (13) actual: 08:12:34.5599 (13)  java.lang.AssertionError: Expected: 08:12:34.56<*>00 (13) actual: 08:12:34.5599 (13)  ------------------------------
+java.lang.AssertionError: Expected: 08:12:34.56<*>00 (13) actual: 08:12:34.5599 (13) 
+	at org.h2.test.TestBase.fail(TestBase.java:332)
+	at org.h2.test.TestBase.assertEquals(TestBase.java:678)
+	at org.h2.test.TestBase.assertEquals(TestBase.java:691)
+	at org.h2.test.TestBase.assertResult(TestBase.java:988)
+	at org.h2.test.db.TestFunctions.testToCharFromDateTime(TestFunctions.java:1500)
+	at org.h2.test.db.TestFunctions.test(TestFunctions.java:135)
+	at org.h2.test.TestBase.runTest(TestBase.java:145)
+	at org.h2.test.TestAll.addTest(TestAll.java:994)
+	at org.h2.test.TestAll.test(TestAll.java:733)
+	at org.h2.test.TestAll.runTests(TestAll.java:607)
+	at org.h2.test.TestAll.testAll(TestAll.java:551)
+	at org.h2.test.TestAll.run(TestAll.java:535)
+	at org.h2.test.TestAll.main(TestAll.java:436)
+23:04:28 00:00.001 org.h2.test.server.TestInit 
+23:04:28 00:00.516 org.h2.test.db.TestIndex 
+23:04:28 00:00.000 org.h2.test.db.TestIndexHints 
+23:04:28 00:00.001 org.h2.test.db.TestCompoundIndexSearch 
+23:04:28 00:00.001 org.h2.test.db.TestCompoundIndexParamSearch 
+23:04:28 00:00.008 org.h2.test.db.TestLinkedTable 
+23:04:28 00:00.002 org.h2.test.db.TestListener 
+23:04:40 00:11.380 org.h2.test.db.TestLob 
+23:04:40 00:00.001 org.h2.test.db.TestMaterializedView 
+23:04:40 00:00.010 org.h2.test.db.TestMergeUsing 
+23:04:40 00:00.416 org.h2.test.db.TestMultiConn 
+23:04:40 00:00.027 org.h2.test.db.TestMultiDimension 
+23:04:43 00:03.019 org.h2.test.db.TestMultiThreadedKernel 
+23:04:44 00:01.057 org.h2.test.db.TestOpenClose 
+23:04:44 00:00.013 org.h2.test.db.TestRecursiveQueries 
+23:04:44 00:00.009 org.h2.test.db.TestGeneralCommonTableQueries 
+23:04:44 00:00.002 org.h2.test.db.TestAlterTableNotFound 
+23:04:44 00:00.001 org.h2.test.db.TestSelectTableNotFound 
+23:04:44 00:00.009 org.h2.test.db.TestRights 
+23:04:47 00:02.434 org.h2.test.db.TestRunscript 
+23:04:47 00:00.001 org.h2.test.db.TestSQLInjection 
+23:04:47 00:00.215 org.h2.test.db.TestSessionsLocks 
+23:04:49 00:02.020 org.h2.test.db.TestSequence 
+23:04:49 00:00.001 org.h2.test.db.TestSpeed 
+23:04:49 00:00.009 org.h2.test.db.TestTableEngines Index 'scan' is not used in query plan: SELECTk    "PUBLIC"."T"."A",k    "PUBLIC"."T"."B",k    "PUBLIC"."T"."C",k    "PUBLIC"."T"."D"kFROM "PUBLIC"."T"k    /* PUBLIC.IDX_B_A */kORDER BY 2, 3k/* index sorted: 1 of 2 columns */
+23:04:49 00:00.009 org.h2.test.db.TestTableEngines FAIL java.lang.AssertionError: Index 'scan' is not used in query plan: SELECTk    "PUBLIC"."T"."A",k    "PUBLIC"."T"."B",k    "PUBLIC"."T"."C",k    "PUBLIC"."T"."D"kFROM "PUBLIC"."T"k    /* PUBLIC.IDX_B_A */kORDER BY 2, 3k/* index sorted: 1 of 2 columns */
+ERROR: FAIL (memory ) java.lang.AssertionError: Index 'scan' is not used in query plan: SELECTk    "PUBLIC"."T"."A",k    "PUBLIC"."T"."B",k    "PUBLIC"."T"."C",k    "PUBLIC"."T"."D"kFROM "PUBLIC"."T"k    /* PUBLIC.IDX_B_A */kORDER BY 2, 3k/* index sorted: 1 of 2 columns */ java.lang.AssertionError: Index 'scan' is not used in query plan: SELECTk    "PUBLIC"."T"."A",k    "PUBLIC"."T"."B",k    "PUBLIC"."T"."C",k    "PUBLIC"."T"."D"kFROM "PUBLIC"."T"k    /* PUBLIC.IDX_B_A */kORDER BY 2, 3k/* index sorted: 1 of 2 columns */ ------------------------------
+java.lang.AssertionError: Index 'scan' is not used in query plan: SELECTk    "PUBLIC"."T"."A",k    "PUBLIC"."T"."B",k    "PUBLIC"."T"."C",k    "PUBLIC"."T"."D"kFROM "PUBLIC"."T"k    /* PUBLIC.IDX_B_A */kORDER BY 2, 3k/* index sorted: 1 of 2 columns */
+	at org.h2.test.TestBase.fail(TestBase.java:332)
+	at org.h2.test.TestBase.assertTrue(TestBase.java:914)
+	at org.h2.test.db.TestTableEngines.checkPlan(TestTableEngines.java:517)
+	at org.h2.test.db.TestTableEngines.testMultiColumnTreeSetIndex(TestTableEngines.java:241)
+	at org.h2.test.db.TestTableEngines.test(TestTableEngines.java:70)
+	at org.h2.test.TestBase.runTest(TestBase.java:145)
+	at org.h2.test.TestAll.addTest(TestAll.java:994)
+	at org.h2.test.TestAll.test(TestAll.java:766)
+	at org.h2.test.TestAll.runTests(TestAll.java:607)
+	at org.h2.test.TestAll.testAll(TestAll.java:551)
+	at org.h2.test.TestAll.run(TestAll.java:535)
+	at org.h2.test.TestAll.main(TestAll.java:436)
+23:04:49 00:00.477 org.h2.test.db.TestTempTables 
+23:04:57 00:07.605 org.h2.test.db.TestTransaction 
+23:04:57 00:00.226 org.h2.test.db.TestTriggersConstraints 
+23:04:57 00:00.024 org.h2.test.db.TestView 
+23:04:57 00:00.004 org.h2.test.db.TestViewAlterTable 
+23:04:57 00:00.001 org.h2.test.db.TestViewDropView 
+23:04:57 00:00.003 org.h2.test.db.TestSynonymForTable 
+23:04:57 00:00.010 org.h2.test.jdbc.TestBatchUpdates 
+23:04:57 00:00.020 org.h2.test.jdbc.TestCallableStatement 
+23:04:58 00:01.131 org.h2.test.jdbc.TestCancel 
+23:04:58 00:00.001 org.h2.test.jdbc.TestConcurrentConnectionUsage 
+23:04:58 00:00.055 org.h2.test.jdbc.TestConnection 
+23:04:58 00:00.002 org.h2.test.jdbc.TestDatabaseEventListener 
+23:04:58 00:00.041 org.h2.test.jdbc.TestLobApi 
+23:04:58 00:00.052 org.h2.test.jdbc.TestSQLXML 
+23:04:58 00:00.000 org.h2.test.jdbc.TestManyJdbcObjects 
+23:04:58 00:00.018 org.h2.test.jdbc.TestMetaData 
+23:04:58 00:00.004 org.h2.test.jdbc.TestNativeSQL 
+23:04:59 00:00.232 org.h2.test.jdbc.TestPreparedStatement 
+23:04:59 00:00.021 org.h2.test.jdbc.TestResultSet 
+23:04:59 00:00.004 org.h2.test.jdbc.TestStatement 
+23:04:59 00:00.116 org.h2.test.jdbc.TestGetGeneratedKeys 
+23:05:01 00:01.740 org.h2.test.jdbc.TestTransactionIsolation 
+23:05:01 00:00.021 org.h2.test.jdbc.TestUpdatableResultSet 
+23:05:01 00:00.002 org.h2.test.jdbc.TestZloty 
+23:05:01 00:00.006 org.h2.test.db.TestSetCollation 
+23:05:03 00:02.065 org.h2.test.jdbcx.TestConnectionPool 
+23:05:03 00:00.007 org.h2.test.jdbcx.TestDataSource 
+23:05:03 00:00.005 org.h2.test.jdbcx.TestXA 
+23:05:03 00:00.001 org.h2.test.jdbcx.TestXASimple 
+23:05:03 00:00.001 org.h2.test.server.TestAutoServer 
+23:05:03 00:00.052 org.h2.test.server.TestNestedLoop 
+23:05:03 00:00.047 org.h2.test.mvcc.TestMvcc1 
+23:05:03 00:00.053 org.h2.test.mvcc.TestMvcc2 
+23:05:03 00:00.052 org.h2.test.mvcc.TestMvcc3 
+23:05:03 00:00.002 org.h2.test.mvcc.TestMvcc4 
+23:05:05 00:02.049 org.h2.test.mvcc.TestMvccMultiThreaded 

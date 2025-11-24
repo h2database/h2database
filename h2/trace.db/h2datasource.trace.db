@@ -1,0 +1,18 @@
+2025-11-23 23:05:03.219874-05:00 JDBCX: exception
+org.h2.jdbc.JdbcSQLDataException: Invalid value "class java.lang.String" for parameter "iface" [90008-229]
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:658)
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:489)
+	at org.h2.message.DbException.get(DbException.java:223)
+	at org.h2.message.DbException.getInvalidValueException(DbException.java:298)
+	at org.h2.jdbcx.JdbcDataSource.unwrap(JdbcDataSource.java:385)
+	at org.h2.test.jdbcx.TestDataSource.lambda$testUnwrap$0(TestDataSource.java:207)
+	at org.h2.test.TestBase.assertThrows(TestBase.java:1636)
+	at org.h2.test.jdbcx.TestDataSource.testUnwrap(TestDataSource.java:207)
+	at org.h2.test.jdbcx.TestDataSource.test(TestDataSource.java:77)
+	at org.h2.test.TestBase.runTest(TestBase.java:145)
+	at org.h2.test.TestAll.addTest(TestAll.java:994)
+	at org.h2.test.TestAll.test(TestAll.java:799)
+	at org.h2.test.TestAll.runTests(TestAll.java:607)
+	at org.h2.test.TestAll.testAll(TestAll.java:551)
+	at org.h2.test.TestAll.run(TestAll.java:535)
+	at org.h2.test.TestAll.main(TestAll.java:436)

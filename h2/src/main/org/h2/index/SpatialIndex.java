@@ -25,6 +25,6 @@ public interface SpatialIndex {
      *            null for anything
      * @return the cursor to iterate over the results
      */
-    Cursor findByGeometry(SessionLocal session, SearchRow first, SearchRow last, SearchRow intersection);
+    Cursor findByGeometry(SessionLocal session, SearchRow first, SearchRow last, boolean reverse, SearchRow intersection);
 
 }

@@ -347,11 +347,15 @@ public class TestOptimizations extends TestDb {
                 "where id > 10 order by id");
         rs.next();
         assertContains(rs.getString(1), "IDX_ID_ASC");
+        assertContains(rs.getString(1), "index sorted");
 
         rs = stat.executeQuery("explain select * from test " +
                 "where id < 10 order by id desc");
         rs.next();
-        assertContains(rs.getString(1), "IDX_ID_DESC");
+        String plan = rs.getString(1);
+        // With reverse index iteration, can use either IDX_ID_DESC or IDX_ID_ASC (in reverse)
+        assertTrue(plan.contains("IDX_ID_DESC") || plan.contains("IDX_ID_ASC"));
+        assertContains(plan, "index sorted");
 
         rs.next();
         stat.execute("drop table test");

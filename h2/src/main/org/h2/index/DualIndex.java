@@ -25,7 +25,7 @@ public class DualIndex extends VirtualTableIndex {
     }
 
     @Override
-    public Cursor find(SessionLocal session, SearchRow first, SearchRow last) {
+    public Cursor find(SessionLocal session, SearchRow first, SearchRow last, boolean reverse) {
         return new DualCursor();
     }
 

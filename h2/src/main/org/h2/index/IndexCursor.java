@@ -37,6 +37,7 @@ public class IndexCursor implements Cursor {
     private Table table;
     private IndexColumn[] indexColumns;
     private boolean alwaysFalse;
+    private boolean reverse;
 
     private SearchRow start, end, intersects;
     private Cursor cursor;
@@ -52,9 +53,10 @@ public class IndexCursor implements Cursor {
     public IndexCursor() {
     }
 
-    public void setIndex(Index index) {
+    public void setIndex(Index index, boolean reverse) {
         this.index = index;
         this.table = index.getTable();
+        this.reverse = reverse;
         Column[] columns = table.getColumns();
         indexColumns = new IndexColumn[columns.length];
         IndexColumn[] idxCols = index.getIndexColumns();
@@ -180,10 +182,18 @@ public class IndexCursor implements Cursor {
             return;
         }
         if (!alwaysFalse) {
+            SearchRow first, last;
+            if (reverse) {
+                first = end;
+                last = start;
+            } else {
+                first = start;
+                last = end;
+            }
             if (intersects != null && index instanceof SpatialIndex) {
-                cursor = ((SpatialIndex) index).findByGeometry(session, start, end, intersects);
+                cursor = ((SpatialIndex) index).findByGeometry(session, start, end, reverse, intersects);
             } else if (index != null) {
-                cursor = index.find(session, start, end);
+                cursor = index.find(session, start, end, reverse);
             }
         }
     }
@@ -384,7 +394,7 @@ public class IndexCursor implements Cursor {
             int id = column.getColumnId();
             start.setValue(id, v);
         }
-        cursor = index.find(session, start, start);
+        cursor = index.find(session, start, start, reverse);
     }
 
     @Override

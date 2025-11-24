@@ -586,7 +586,7 @@ public class TestTableEngines extends TestDb {
                 }
 
                 @Override
-                public Cursor find(SessionLocal session, SearchRow first, SearchRow last) {
+                public Cursor find(SessionLocal session, SearchRow first, SearchRow last, boolean reverse) {
                     return new SingleRowCursor(row);
                 }
 
@@ -736,7 +736,7 @@ public class TestTableEngines extends TestDb {
                 }
 
                 @Override
-                public Cursor find(SessionLocal session, SearchRow first, SearchRow last) {
+                public Cursor find(SessionLocal session, SearchRow first, SearchRow last, boolean reverse) {
                     return new SingleRowCursor(row);
                 }
 
@@ -954,7 +954,7 @@ public class TestTableEngines extends TestDb {
         }
 
         @Override
-        public Cursor find(SessionLocal session, SearchRow first, SearchRow last) {
+        public Cursor find(SessionLocal session, SearchRow first, SearchRow last, boolean reverse) {
             Set<SearchRow> subSet;
             if (first != null && last != null && compareRows(last, first) < 0) {
                 subSet = Collections.emptySet();

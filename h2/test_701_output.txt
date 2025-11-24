@@ -1,0 +1,34 @@
+Issue #701 Test:
+Plan: SELECT
+    "PUBLIC"."MY_TABLE"."K1"
+FROM "PUBLIC"."MY_TABLE"
+    /* PUBLIC.MY_INDEX */
+ORDER BY 1 DESC
+/* index sorted */
+✅ Issue #701 test PASSED - ASC index used for DESC ordering
+
+Multi-column DESC test:
+Plan: SELECT
+    "PUBLIC"."TEST"."A",
+    "PUBLIC"."TEST"."B"
+FROM "PUBLIC"."TEST"
+    /* PUBLIC.IDX_AB */
+ORDER BY 1 DESC, 2 DESC
+/* index sorted */
+✅ Multi-column DESC test PASSED
+
+Mixed ASC/DESC indexes test:
+ASC plan: SELECT
+    "PUBLIC"."TEST"."ID"
+FROM "PUBLIC"."TEST"
+    /* PUBLIC.IDX_ASC */
+ORDER BY 1
+/* index sorted */
+DESC plan: SELECT
+    "PUBLIC"."TEST"."ID"
+FROM "PUBLIC"."TEST"
+    /* PUBLIC.IDX_ASC */
+ORDER BY 1 DESC
+/* index sorted */
+✅ Mixed indexes test PASSED
+

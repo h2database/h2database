@@ -1,0 +1,681 @@
+Note: src/tools/org/h2/build/BuildBase.java uses or overrides a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+Target: test
+/Library/Java/JavaVirtualMachines/jdk-23.jdk/Contents/Home/bin/java -ea -Xmx128m -cp src/java21/precompiled:src/java10/precompiled:src/java9/precompiled:temp:bin:ext/postgresql-42.7.2.jar:ext/javax.servlet-api-4.0.1.jar:ext/jakarta.servlet-api-5.0.0.jar:ext/lucene-core-9.7.0.jar:ext/lucene-analysis-common-9.7.0.jar:ext/lucene-queryparser-9.7.0.jar:ext/org.osgi.core-5.0.0.jar:ext/org.osgi.service.jdbc-1.1.0.jar:ext/jts-core-1.19.0.jar:ext/slf4j-api-2.0.7.jar:ext/slf4j-nop-2.0.7.jar:ext/asm-9.5.jar:/Library/Java/JavaVirtualMachines/jdk-23.jdk/Contents/Home/../lib/tools.jar:ext/nashorn-core-15.4.jar:ext/asm-commons-9.5.jar:ext/asm-tree-9.5.jar:ext/asm-util-9.5.jar org.h2.test.TestAll
+H2 2.2.229-SNAPSHOT (2023-08-22) @ 2025-11-23 21:52:40.529
+Java 23.0.1+11-39, Java HotSpot(TM) 64-Bit Server VM, Oracle Corporation, 64
+Mac OS X, aarch64, 26.1, null, / : \n CA en America/Toronto null UTF-8
+
+Test memory  (1966 KB used)
+ERROR: org/h2/test/scripts/testScript.sql
+line: 2361
+exp: > 1        3  33
+got: > rows: 0
+------------------------------
+ERROR: org/h2/test/scripts/testScript.sql
+line: 2361
+exp: <command>
+got: > 2        2  22
+------------------------------
+ERROR: org/h2/test/scripts/testScript.sql
+line: 2361
+exp: <command>
+got: > rows: 2
+------------------------------
+ERROR: org/h2/test/scripts/testScript.sql
+line: 2545
+exp: >> SELECT "T0"."ID", "T1"."ID" FROM "PUBLIC"."TEST" "T0" /* PUBLIC.TEST.tableScan */ INNER JOIN "PUBLIC"."TEST" "T1" /* PUBLIC.TEST.tableScan */ ON 1=1 ORDER BY 1, 2
+got: >> SELECT "T0"."ID", "T1"."ID" FROM "PUBLIC"."TEST" "T0" /* PUBLIC.PRIMARY_KEY_2 */ INNER JOIN "PUBLIC"."TEST" "T1" /* PUBLIC.TEST.tableScan */ ON 1=1 ORDER BY 1, 2 /* index sorted: 1 of 2 columns */
+------------------------------
+ERROR: org/h2/test/scripts/indexes.sql
+line: 230
+exp: >> SELECT "A" FROM "PUBLIC"."TEST" /* PUBLIC.A_IDX_DESC */ ORDER BY 1 DESC /* index sorted */
+got: >> SELECT "A" FROM "PUBLIC"."TEST" /* PUBLIC.A_IDX_ASC */ ORDER BY 1 DESC /* index sorted */
+------------------------------
+ERROR: org/h2/test/scripts/indexes.sql
+line: 233
+exp: >> SELECT "A" FROM "PUBLIC"."TEST" /* PUBLIC.A_IDX_DESC_NF */ ORDER BY 1 DESC NULLS FIRST /* index sorted */
+got: >> SELECT "A" FROM "PUBLIC"."TEST" /* PUBLIC.A_IDX_ASC_NL */ ORDER BY 1 DESC NULLS FIRST /* index sorted */
+------------------------------
+ERROR: org/h2/test/scripts/indexes.sql
+line: 236
+exp: >> SELECT "A" FROM "PUBLIC"."TEST" /* PUBLIC.A_IDX_DESC */ ORDER BY 1 DESC NULLS LAST /* index sorted */
+got: >> SELECT "A" FROM "PUBLIC"."TEST" /* PUBLIC.A_IDX_ASC */ ORDER BY 1 DESC NULLS LAST /* index sorted */
+------------------------------
+ERROR: org/h2/test/scripts/indexes.sql
+line: 263
+exp: >> SELECT "A" FROM "PUBLIC"."TEST" /* PUBLIC.A_IDX_DESC_NL */ ORDER BY 1 DESC /* index sorted */
+got: >> SELECT "A" FROM "PUBLIC"."TEST" /* PUBLIC.A_IDX_ASC_NF */ ORDER BY 1 DESC /* index sorted */
+------------------------------
+ERROR: org/h2/test/scripts/indexes.sql
+line: 266
+exp: >> SELECT "A" FROM "PUBLIC"."TEST" /* PUBLIC.A_IDX_DESC_NF */ ORDER BY 1 DESC NULLS FIRST /* index sorted */
+got: >> SELECT "A" FROM "PUBLIC"."TEST" /* PUBLIC.A_IDX_ASC_NL */ ORDER BY 1 DESC NULLS FIRST /* index sorted */
+------------------------------
+ERROR: org/h2/test/scripts/indexes.sql
+line: 269
+exp: >> SELECT "A" FROM "PUBLIC"."TEST" /* PUBLIC.A_IDX_DESC_NL */ ORDER BY 1 DESC NULLS LAST /* index sorted */
+got: >> SELECT "A" FROM "PUBLIC"."TEST" /* PUBLIC.A_IDX_ASC_NF */ ORDER BY 1 DESC NULLS LAST /* index sorted */
+------------------------------
+ERROR: org/h2/test/scripts/functions/numeric/log.sql
+line: 55
+exp: > -0.6931471805599453 0.0 0.6931471805599453 1.0986122886681098 2.302585092994046
+got: > -0.6931471805599453 0.0 0.6931471805599453 1.0986122886681096 2.302585092994046
+------------------------------
+ERROR: org/h2/test/scripts/functions/numeric/log.sql
+line: 61
+exp: > VH   V1  V2  V3                 V10                V64
+got: > VH   V1  V2  V3                V10                V64
+------------------------------
+ERROR: org/h2/test/scripts/functions/numeric/log.sql
+line: 61
+exp: > ---- --- --- ------------------ ------------------ ---
+got: > ---- --- --- ----------------- ------------------ ---
+------------------------------
+ERROR: org/h2/test/scripts/functions/numeric/log.sql
+line: 61
+exp: > -1.0 0.0 1.0 1.5849625007211563 3.3219280948873626 6.0
+got: > -1.0 0.0 1.0 1.584962500721156 3.3219280948873626 6.0
+------------------------------
+ERROR: org/h2/test/scripts/functions/numeric/log.sql
+line: 73
+exp: > -0.6931471805599453 0.0 0.6931471805599453 1.0986122886681098 2.302585092994046
+got: > -0.6931471805599453 0.0 0.6931471805599453 1.0986122886681096 2.302585092994046
+------------------------------
+ERROR: org/h2/test/scripts/functions/numeric/log.sql
+line: 97
+exp: > VH   V1  V2  V3                 V10                V64
+got: > VH   V1  V2  V3                V10                V64
+------------------------------
+ERROR: org/h2/test/scripts/functions/numeric/log.sql
+line: 97
+exp: > ---- --- --- ------------------ ------------------ ---
+got: > ---- --- --- ----------------- ------------------ ---
+------------------------------
+ERROR: org/h2/test/scripts/functions/numeric/log.sql
+line: 97
+exp: > -1.0 0.0 1.0 1.5849625007211563 3.3219280948873626 6.0
+got: > -1.0 0.0 1.0 1.584962500721156 3.3219280948873626 6.0
+------------------------------
+ERROR: org/h2/test/scripts/queries/joins.sql
+line: 125
+exp: >> SELECT "TESTA"."ID" AS "A", "TESTB"."ID" AS "B" FROM "PUBLIC"."TESTA" /* PUBLIC.TESTA.tableScan */ INNER JOIN "PUBLIC"."TESTB" /* PUBLIC.TESTB.tableScan */ ON 1=1 ORDER BY 1, 2
+got: >> SELECT "TESTA"."ID" AS "A", "TESTB"."ID" AS "B" FROM "PUBLIC"."TESTA" /* PUBLIC.PRIMARY_KEY_4 */ INNER JOIN "PUBLIC"."TESTB" /* PUBLIC.TESTB.tableScan */ ON 1=1 ORDER BY 1, 2 /* index sorted: 1 of 2 columns */
+------------------------------
+ERROR: org/h2/test/scripts/queries/select.sql
+line: 1170
+exp: >> SELECT "A", 1 AS "X", "B" FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */ ORDER BY 1, 2, 3 DESC
+got: >> SELECT "A", 1 AS "X", "B" FROM "PUBLIC"."TEST" /* PUBLIC.TEST_IDX */ ORDER BY 1, 2, 3 DESC /* index sorted: 1 of 3 columns */
+------------------------------
+21:52:47 00:06.411 org.h2.test.scripts.TestScript FAIL java.lang.Exception: errors in script found
+ERROR: FAIL (memory ) java.lang.Exception: errors in script found java.lang.Exception: errors in script found ------------------------------
+java.lang.Exception: errors in script found
+	at org.h2.test.scripts.TestScript.test(TestScript.java:245)
+	at org.h2.test.TestBase.runTest(TestBase.java:145)
+	at org.h2.test.TestAll.addTest(TestAll.java:994)
+	at org.h2.test.TestAll.test(TestAll.java:711)
+	at org.h2.test.TestAll.runTests(TestAll.java:607)
+	at org.h2.test.TestAll.testAll(TestAll.java:551)
+	at org.h2.test.TestAll.run(TestAll.java:535)
+	at org.h2.test.TestAll.main(TestAll.java:436)
+21:52:47 00:00.013 org.h2.test.db.TestAlter 
+21:52:47 00:00.028 org.h2.test.db.TestAlterSchemaRename 
+21:52:47 00:00.010 org.h2.test.db.TestAutoRecompile 
+21:52:47 00:00.393 org.h2.test.db.TestCases 
+21:52:47 00:00.000 org.h2.test.db.TestCheckpoint 
+21:52:47 00:00.230 org.h2.test.db.TestCompatibility 
+21:52:47 00:00.009 org.h2.test.db.TestCompatibilityOracle 
+21:52:47 00:00.001 org.h2.test.db.TestCompatibilitySQLServer 
+21:52:47 00:00.034 org.h2.test.db.TestCsv 
+21:52:50 00:02.516 org.h2.test.db.TestDeadlock 
+21:52:50 00:00.012 org.h2.test.db.TestDuplicateKeyUpdate 
+21:52:50 00:00.003 org.h2.test.db.TestExclusive 
+21:52:50 00:00.091 org.h2.test.db.TestFullText create FT: 0
+21:52:50 00:00.092 org.h2.test.db.TestFullText search FT: 0 count: 0
+21:52:52 00:02.304 org.h2.test.db.TestFullText create FTL: 1
+21:52:52 00:02.304 org.h2.test.db.TestFullText search FTL: 0 count: 0
+21:52:52 00:02.307 org.h2.test.db.TestFullText 
+21:52:52 00:00.002 org.h2.test.db.TestFunctionOverload 
+21:52:52 00:00.138 org.h2.test.db.TestFunctions Expected: 08:12:34.56<*>00 (13) actual: 08:12:34.5599 (13) 
+21:52:52 00:00.138 org.h2.test.db.TestFunctions FAIL java.lang.AssertionError: Expected: 08:12:34.56<*>00 (13) actual: 08:12:34.5599 (13) 
+ERROR: FAIL (memory ) java.lang.AssertionError: Expected: 08:12:34.56<*>00 (13) actual: 08:12:34.5599 (13)  java.lang.AssertionError: Expected: 08:12:34.56<*>00 (13) actual: 08:12:34.5599 (13)  ------------------------------
+java.lang.AssertionError: Expected: 08:12:34.56<*>00 (13) actual: 08:12:34.5599 (13) 
+	at org.h2.test.TestBase.fail(TestBase.java:332)
+	at org.h2.test.TestBase.assertEquals(TestBase.java:678)
+	at org.h2.test.TestBase.assertEquals(TestBase.java:691)
+	at org.h2.test.TestBase.assertResult(TestBase.java:988)
+	at org.h2.test.db.TestFunctions.testToCharFromDateTime(TestFunctions.java:1500)
+	at org.h2.test.db.TestFunctions.test(TestFunctions.java:135)
+	at org.h2.test.TestBase.runTest(TestBase.java:145)
+	at org.h2.test.TestAll.addTest(TestAll.java:994)
+	at org.h2.test.TestAll.test(TestAll.java:733)
+	at org.h2.test.TestAll.runTests(TestAll.java:607)
+	at org.h2.test.TestAll.testAll(TestAll.java:551)
+	at org.h2.test.TestAll.run(TestAll.java:535)
+	at org.h2.test.TestAll.main(TestAll.java:436)
+21:52:52 00:00.001 org.h2.test.server.TestInit 
+21:52:53 00:00.410 org.h2.test.db.TestIndex 
+21:52:53 00:00.001 org.h2.test.db.TestIndexHints 
+21:52:53 00:00.001 org.h2.test.db.TestCompoundIndexSearch 
+21:52:53 00:00.002 org.h2.test.db.TestCompoundIndexParamSearch 
+21:52:53 00:00.008 org.h2.test.db.TestLinkedTable 
+21:52:53 00:00.002 org.h2.test.db.TestListener 
+21:53:04 00:11.451 org.h2.test.db.TestLob 
+21:53:04 00:00.001 org.h2.test.db.TestMaterializedView 
+21:53:04 00:00.009 org.h2.test.db.TestMergeUsing 
+21:53:05 00:00.416 org.h2.test.db.TestMultiConn 
+21:53:05 00:00.033 org.h2.test.db.TestMultiDimension 
+21:53:08 00:03.016 org.h2.test.db.TestMultiThreadedKernel 
+21:53:09 00:01.059 org.h2.test.db.TestOpenClose 
+21:53:09 00:00.030 org.h2.test.db.TestRecursiveQueries 
+21:53:09 00:00.005 org.h2.test.db.TestGeneralCommonTableQueries 
+21:53:09 00:00.003 org.h2.test.db.TestAlterTableNotFound 
+21:53:09 00:00.001 org.h2.test.db.TestSelectTableNotFound 
+21:53:09 00:00.009 org.h2.test.db.TestRights 
+21:53:11 00:02.437 org.h2.test.db.TestRunscript 
+21:53:11 00:00.001 org.h2.test.db.TestSQLInjection 
+21:53:11 00:00.215 org.h2.test.db.TestSessionsLocks 
+21:53:13 00:02.066 org.h2.test.db.TestSequence 
+21:53:13 00:00.000 org.h2.test.db.TestSpeed 
+21:53:13 00:00.005 org.h2.test.db.TestTableEngines Index 'scan' is not used in query plan: SELECTk    "PUBLIC"."T"."A",k    "PUBLIC"."T"."B",k    "PUBLIC"."T"."C",k    "PUBLIC"."T"."D"kFROM "PUBLIC"."T"k    /* PUBLIC.IDX_B_A */kORDER BY 2, 3k/* index sorted: 1 of 2 columns */
+21:53:13 00:00.005 org.h2.test.db.TestTableEngines FAIL java.lang.AssertionError: Index 'scan' is not used in query plan: SELECTk    "PUBLIC"."T"."A",k    "PUBLIC"."T"."B",k    "PUBLIC"."T"."C",k    "PUBLIC"."T"."D"kFROM "PUBLIC"."T"k    /* PUBLIC.IDX_B_A */kORDER BY 2, 3k/* index sorted: 1 of 2 columns */
+ERROR: FAIL (memory ) java.lang.AssertionError: Index 'scan' is not used in query plan: SELECTk    "PUBLIC"."T"."A",k    "PUBLIC"."T"."B",k    "PUBLIC"."T"."C",k    "PUBLIC"."T"."D"kFROM "PUBLIC"."T"k    /* PUBLIC.IDX_B_A */kORDER BY 2, 3k/* index sorted: 1 of 2 columns */ java.lang.AssertionError: Index 'scan' is not used in query plan: SELECTk    "PUBLIC"."T"."A",k    "PUBLIC"."T"."B",k    "PUBLIC"."T"."C",k    "PUBLIC"."T"."D"kFROM "PUBLIC"."T"k    /* PUBLIC.IDX_B_A */kORDER BY 2, 3k/* index sorted: 1 of 2 columns */ ------------------------------
+java.lang.AssertionError: Index 'scan' is not used in query plan: SELECTk    "PUBLIC"."T"."A",k    "PUBLIC"."T"."B",k    "PUBLIC"."T"."C",k    "PUBLIC"."T"."D"kFROM "PUBLIC"."T"k    /* PUBLIC.IDX_B_A */kORDER BY 2, 3k/* index sorted: 1 of 2 columns */
+	at org.h2.test.TestBase.fail(TestBase.java:332)
+	at org.h2.test.TestBase.assertTrue(TestBase.java:914)
+	at org.h2.test.db.TestTableEngines.checkPlan(TestTableEngines.java:517)
+	at org.h2.test.db.TestTableEngines.testMultiColumnTreeSetIndex(TestTableEngines.java:241)
+	at org.h2.test.db.TestTableEngines.test(TestTableEngines.java:70)
+	at org.h2.test.TestBase.runTest(TestBase.java:145)
+	at org.h2.test.TestAll.addTest(TestAll.java:994)
+	at org.h2.test.TestAll.test(TestAll.java:766)
+	at org.h2.test.TestAll.runTests(TestAll.java:607)
+	at org.h2.test.TestAll.testAll(TestAll.java:551)
+	at org.h2.test.TestAll.run(TestAll.java:535)
+	at org.h2.test.TestAll.main(TestAll.java:436)
+21:53:14 00:00.518 org.h2.test.db.TestTempTables 
+21:53:22 00:07.614 org.h2.test.db.TestTransaction 
+21:53:22 00:00.326 org.h2.test.db.TestTriggersConstraints 
+21:53:22 00:00.030 org.h2.test.db.TestView 
+21:53:22 00:00.005 org.h2.test.db.TestViewAlterTable 
+21:53:22 00:00.002 org.h2.test.db.TestViewDropView 
+21:53:22 00:00.002 org.h2.test.db.TestSynonymForTable 
+21:53:22 00:00.014 org.h2.test.jdbc.TestBatchUpdates 
+21:53:22 00:00.019 org.h2.test.jdbc.TestCallableStatement 
+21:53:23 00:01.136 org.h2.test.jdbc.TestCancel 
+21:53:23 00:00.001 org.h2.test.jdbc.TestConcurrentConnectionUsage 
+21:53:23 00:00.061 org.h2.test.jdbc.TestConnection 
+21:53:23 00:00.001 org.h2.test.jdbc.TestDatabaseEventListener 
+21:53:23 00:00.061 org.h2.test.jdbc.TestLobApi 
+21:53:23 00:00.054 org.h2.test.jdbc.TestSQLXML 
+21:53:23 00:00.000 org.h2.test.jdbc.TestManyJdbcObjects 
+21:53:23 00:00.025 org.h2.test.jdbc.TestMetaData 
+21:53:23 00:00.004 org.h2.test.jdbc.TestNativeSQL 
+21:53:24 00:00.239 org.h2.test.jdbc.TestPreparedStatement 
+21:53:24 00:00.020 org.h2.test.jdbc.TestResultSet 
+21:53:24 00:00.003 org.h2.test.jdbc.TestStatement 
+21:53:24 00:00.129 org.h2.test.jdbc.TestGetGeneratedKeys 
+21:53:25 00:01.747 org.h2.test.jdbc.TestTransactionIsolation 
+21:53:26 00:00.020 org.h2.test.jdbc.TestUpdatableResultSet 
+21:53:26 00:00.001 org.h2.test.jdbc.TestZloty 
+21:53:26 00:00.007 org.h2.test.db.TestSetCollation 
+21:53:28 00:02.065 org.h2.test.jdbcx.TestConnectionPool 
+21:53:28 00:00.012 org.h2.test.jdbcx.TestDataSource 
+21:53:28 00:00.004 org.h2.test.jdbcx.TestXA 
+21:53:28 00:00.000 org.h2.test.jdbcx.TestXASimple 
+21:53:28 00:00.000 org.h2.test.server.TestAutoServer 
+21:53:28 00:00.058 org.h2.test.server.TestNestedLoop 
+21:53:28 00:00.043 org.h2.test.mvcc.TestMvcc1 
+21:53:28 00:00.056 org.h2.test.mvcc.TestMvcc2 
+21:53:28 00:00.051 org.h2.test.mvcc.TestMvcc3 
+21:53:28 00:00.001 org.h2.test.mvcc.TestMvcc4 
+21:53:30 00:02.057 org.h2.test.mvcc.TestMvccMultiThreaded 
+21:53:36 00:06.003 org.h2.test.mvcc.TestMvccMultiThreaded2 
+21:53:36 00:00.159 org.h2.test.rowlock.TestRowLocks 
+21:53:36 00:00.194 org.h2.test.db.TestAnalyzeTableTx 
+21:53:36 00:00.037 org.h2.test.synth.TestBtreeIndex 21:53:36 testIndex 1270934675
+21:53:36 00:00.054 org.h2.test.synth.TestBtreeIndex 
+21:53:38 00:02.008 org.h2.test.synth.TestConcurrentUpdate 
+21:53:39 00:00.610 org.h2.test.synth.TestDiskFull 
+ERROR: org/h2/test/scripts/testScript.sql
+line: 2361
+exp: > 1        3  33
+got: > rows: 0
+------------------------------
+ERROR: org/h2/test/scripts/testScript.sql
+line: 2361
+exp: <command>
+got: > 2        2  22
+------------------------------
+ERROR: org/h2/test/scripts/testScript.sql
+line: 2361
+exp: <command>
+got: > rows: 2
+------------------------------
+ERROR: org/h2/test/scripts/testScript.sql
+line: 2545
+exp: >> SELECT "T0"."ID", "T1"."ID" FROM "PUBLIC"."TEST" "T0" /* PUBLIC.TEST.tableScan */ INNER JOIN "PUBLIC"."TEST" "T1" /* PUBLIC.TEST.tableScan */ ON 1=1 ORDER BY 1, 2
+got: >> SELECT "T0"."ID", "T1"."ID" FROM "PUBLIC"."TEST" "T0" /* PUBLIC.PRIMARY_KEY_2 */ INNER JOIN "PUBLIC"."TEST" "T1" /* PUBLIC.TEST.tableScan */ ON 1=1 ORDER BY 1, 2 /* index sorted: 1 of 2 columns */
+------------------------------
+ERROR: org/h2/test/scripts/indexes.sql
+line: 230
+exp: >> SELECT "A" FROM "PUBLIC"."TEST" /* PUBLIC.A_IDX_DESC */ ORDER BY 1 DESC /* index sorted */
+got: >> SELECT "A" FROM "PUBLIC"."TEST" /* PUBLIC.A_IDX_ASC */ ORDER BY 1 DESC /* index sorted */
+------------------------------
+ERROR: org/h2/test/scripts/indexes.sql
+line: 233
+exp: >> SELECT "A" FROM "PUBLIC"."TEST" /* PUBLIC.A_IDX_DESC_NF */ ORDER BY 1 DESC NULLS FIRST /* index sorted */
+got: >> SELECT "A" FROM "PUBLIC"."TEST" /* PUBLIC.A_IDX_ASC_NL */ ORDER BY 1 DESC NULLS FIRST /* index sorted */
+------------------------------
+ERROR: org/h2/test/scripts/indexes.sql
+line: 236
+exp: >> SELECT "A" FROM "PUBLIC"."TEST" /* PUBLIC.A_IDX_DESC */ ORDER BY 1 DESC NULLS LAST /* index sorted */
+got: >> SELECT "A" FROM "PUBLIC"."TEST" /* PUBLIC.A_IDX_ASC */ ORDER BY 1 DESC NULLS LAST /* index sorted */
+------------------------------
+ERROR: org/h2/test/scripts/indexes.sql
+line: 263
+exp: >> SELECT "A" FROM "PUBLIC"."TEST" /* PUBLIC.A_IDX_DESC_NL */ ORDER BY 1 DESC /* index sorted */
+got: >> SELECT "A" FROM "PUBLIC"."TEST" /* PUBLIC.A_IDX_ASC_NF */ ORDER BY 1 DESC /* index sorted */
+------------------------------
+ERROR: org/h2/test/scripts/indexes.sql
+line: 266
+exp: >> SELECT "A" FROM "PUBLIC"."TEST" /* PUBLIC.A_IDX_DESC_NF */ ORDER BY 1 DESC NULLS FIRST /* index sorted */
+got: >> SELECT "A" FROM "PUBLIC"."TEST" /* PUBLIC.A_IDX_ASC_NL */ ORDER BY 1 DESC NULLS FIRST /* index sorted */
+------------------------------
+ERROR: org/h2/test/scripts/indexes.sql
+line: 269
+exp: >> SELECT "A" FROM "PUBLIC"."TEST" /* PUBLIC.A_IDX_DESC_NL */ ORDER BY 1 DESC NULLS LAST /* index sorted */
+got: >> SELECT "A" FROM "PUBLIC"."TEST" /* PUBLIC.A_IDX_ASC_NF */ ORDER BY 1 DESC NULLS LAST /* index sorted */
+------------------------------
+ERROR: org/h2/test/scripts/functions/numeric/log.sql
+line: 55
+exp: > -0.6931471805599453 0.0 0.6931471805599453 1.0986122886681098 2.302585092994046
+got: > -0.6931471805599453 0.0 0.6931471805599453 1.0986122886681096 2.302585092994046
+------------------------------
+ERROR: org/h2/test/scripts/functions/numeric/log.sql
+line: 61
+exp: > VH   V1  V2  V3                 V10                V64
+got: > VH   V1  V2  V3                V10                V64
+------------------------------
+ERROR: org/h2/test/scripts/functions/numeric/log.sql
+line: 61
+exp: > ---- --- --- ------------------ ------------------ ---
+got: > ---- --- --- ----------------- ------------------ ---
+------------------------------
+ERROR: org/h2/test/scripts/functions/numeric/log.sql
+line: 61
+exp: > -1.0 0.0 1.0 1.5849625007211563 3.3219280948873626 6.0
+got: > -1.0 0.0 1.0 1.584962500721156 3.3219280948873626 6.0
+------------------------------
+ERROR: org/h2/test/scripts/functions/numeric/log.sql
+line: 73
+exp: > -0.6931471805599453 0.0 0.6931471805599453 1.0986122886681098 2.302585092994046
+got: > -0.6931471805599453 0.0 0.6931471805599453 1.0986122886681096 2.302585092994046
+------------------------------
+ERROR: org/h2/test/scripts/functions/numeric/log.sql
+line: 97
+exp: > VH   V1  V2  V3                 V10                V64
+got: > VH   V1  V2  V3                V10                V64
+------------------------------
+ERROR: org/h2/test/scripts/functions/numeric/log.sql
+line: 97
+exp: > ---- --- --- ------------------ ------------------ ---
+got: > ---- --- --- ----------------- ------------------ ---
+------------------------------
+ERROR: org/h2/test/scripts/functions/numeric/log.sql
+line: 97
+exp: > -1.0 0.0 1.0 1.5849625007211563 3.3219280948873626 6.0
+got: > -1.0 0.0 1.0 1.584962500721156 3.3219280948873626 6.0
+------------------------------
+ERROR: org/h2/test/scripts/queries/joins.sql
+line: 125
+exp: >> SELECT "TESTA"."ID" AS "A", "TESTB"."ID" AS "B" FROM "PUBLIC"."TESTA" /* PUBLIC.TESTA.tableScan */ INNER JOIN "PUBLIC"."TESTB" /* PUBLIC.TESTB.tableScan */ ON 1=1 ORDER BY 1, 2
+got: >> SELECT "TESTA"."ID" AS "A", "TESTB"."ID" AS "B" FROM "PUBLIC"."TESTA" /* PUBLIC.PRIMARY_KEY_4 */ INNER JOIN "PUBLIC"."TESTB" /* PUBLIC.TESTB.tableScan */ ON 1=1 ORDER BY 1, 2 /* index sorted: 1 of 2 columns */
+------------------------------
+ERROR: org/h2/test/scripts/queries/select.sql
+line: 1170
+exp: >> SELECT "A", 1 AS "X", "B" FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */ ORDER BY 1, 2, 3 DESC
+got: >> SELECT "A", 1 AS "X", "B" FROM "PUBLIC"."TEST" /* PUBLIC.TEST_IDX */ ORDER BY 1, 2, 3 DESC /* index sorted: 1 of 3 columns */
+------------------------------
+21:53:44 00:04.906 org.h2.test.synth.TestCrashAPI FAIL java.lang.Exception: errors in script found
+ERROR: FAIL (memory ) java.lang.Exception: errors in script found java.lang.Exception: errors in script found ------------------------------
+java.lang.Exception: errors in script found
+	at org.h2.test.scripts.TestScript.test(TestScript.java:245)
+	at org.h2.test.scripts.TestScript.getAllStatements(TestScript.java:111)
+	at org.h2.test.synth.TestCrashAPI.test(TestCrashAPI.java:164)
+	at org.h2.test.TestBase.runTest(TestBase.java:145)
+	at org.h2.test.TestAll.addTest(TestAll.java:994)
+	at org.h2.test.TestAll.test(TestAll.java:821)
+	at org.h2.test.TestAll.runTests(TestAll.java:607)
+	at org.h2.test.TestAll.testAll(TestAll.java:551)
+	at org.h2.test.TestAll.run(TestAll.java:535)
+	at org.h2.test.TestAll.main(TestAll.java:436)
+21:53:44 00:00.004 org.h2.test.synth.TestFuzzOptimizations testIn() seed: -3426649941197970947
+21:53:44 00:00.005 org.h2.test.synth.TestFuzzOptimizations testIn() seed: 7786586279895740452
+21:53:44 00:00.007 org.h2.test.synth.TestFuzzOptimizations testIn() seed: 8159235145214016516
+21:53:44 00:00.008 org.h2.test.synth.TestFuzzOptimizations testIn() seed: -3973601173674969088
+21:53:44 00:00.008 org.h2.test.synth.TestFuzzOptimizations testIn() seed: 8748941898633042940
+21:53:44 00:00.009 org.h2.test.synth.TestFuzzOptimizations testIn() seed: -2756056460083727091
+21:53:44 00:00.010 org.h2.test.synth.TestFuzzOptimizations testIn() seed: 3297330440796164481
+21:53:44 00:00.013 org.h2.test.synth.TestFuzzOptimizations testIn() seed: -5955442990621222213
+21:53:44 00:00.013 org.h2.test.synth.TestFuzzOptimizations testIn() seed: 212699419707936887
+21:53:44 00:00.019 org.h2.test.synth.TestFuzzOptimizations testIn() seed: -6161255896956131987
+21:53:44 00:00.020 org.h2.test.synth.TestFuzzOptimizations testIn() seed: 255533285648827249
+21:53:44 00:00.021 org.h2.test.synth.TestFuzzOptimizations testIn() seed: 6892597167422967168
+21:53:44 00:00.021 org.h2.test.synth.TestFuzzOptimizations testIn() seed: -8540062008544812970
+21:53:44 00:00.022 org.h2.test.synth.TestFuzzOptimizations testIn() seed: -6682630603176008053
+21:53:44 00:00.023 org.h2.test.synth.TestFuzzOptimizations testIn() seed: -7794732624894909631
+21:53:44 00:00.023 org.h2.test.synth.TestFuzzOptimizations testIn() seed: -5955456436097732888
+21:53:44 00:00.024 org.h2.test.synth.TestFuzzOptimizations testIn() seed: -858098649672412247
+21:53:44 00:00.024 org.h2.test.synth.TestFuzzOptimizations testIn() seed: -5606205930147851405
+21:53:44 00:00.025 org.h2.test.synth.TestFuzzOptimizations testIn() seed: 3005269277445420994
+21:53:44 00:00.026 org.h2.test.synth.TestFuzzOptimizations testIn() seed: 321103004457773969
+21:53:44 00:00.026 org.h2.test.synth.TestFuzzOptimizations testIn() seed: -7417915057475200478
+21:53:44 00:00.027 org.h2.test.synth.TestFuzzOptimizations testIn() seed: -3955258204959936141
+21:53:44 00:00.027 org.h2.test.synth.TestFuzzOptimizations testIn() seed: 7305367593794405798
+21:53:44 00:00.028 org.h2.test.synth.TestFuzzOptimizations testIn() seed: -3945515325875357028
+21:53:44 00:00.028 org.h2.test.synth.TestFuzzOptimizations testIn() seed: 5539467027973479317
+21:53:44 00:00.033 org.h2.test.synth.TestFuzzOptimizations testIn() seed: 4237718376915842208
+21:53:44 00:00.034 org.h2.test.synth.TestFuzzOptimizations testIn() seed: -6069738720280713210
+21:53:44 00:00.034 org.h2.test.synth.TestFuzzOptimizations testIn() seed: 5996250050855938605
+21:53:44 00:00.035 org.h2.test.synth.TestFuzzOptimizations testIn() seed: 2410102484219959423
+21:53:44 00:00.035 org.h2.test.synth.TestFuzzOptimizations testIn() seed: -3304845486660496305
+21:53:44 00:00.036 org.h2.test.synth.TestFuzzOptimizations testIn() seed: 1211167397344164063
+21:53:44 00:00.037 org.h2.test.synth.TestFuzzOptimizations testIn() seed: 4143623250557615087
+21:53:44 00:00.038 org.h2.test.synth.TestFuzzOptimizations testIn() seed: 7371328162224347773
+21:53:44 00:00.038 org.h2.test.synth.TestFuzzOptimizations testIn() seed: 3931445747150827420
+21:53:44 00:00.039 org.h2.test.synth.TestFuzzOptimizations testIn() seed: 3607712110539671952
+21:53:44 00:00.039 org.h2.test.synth.TestFuzzOptimizations testIn() seed: -8619209524389572211
+21:53:44 00:00.041 org.h2.test.synth.TestFuzzOptimizations testIn() seed: -1293458031957969712
+21:53:44 00:00.041 org.h2.test.synth.TestFuzzOptimizations testIn() seed: -602308145252597274
+21:53:44 00:00.042 org.h2.test.synth.TestFuzzOptimizations testIn() seed: -2429013389164090531
+21:53:44 00:00.042 org.h2.test.synth.TestFuzzOptimizations testIn() seed: 5956698867884812602
+21:53:44 00:00.043 org.h2.test.synth.TestFuzzOptimizations testIn() seed: 4072663316069979360
+21:53:44 00:00.044 org.h2.test.synth.TestFuzzOptimizations testIn() seed: -4194181288671402159
+21:53:44 00:00.045 org.h2.test.synth.TestFuzzOptimizations testIn() seed: 8508269975731800047
+21:53:44 00:00.047 org.h2.test.synth.TestFuzzOptimizations testIn() seed: -3233308462983189974
+21:53:44 00:00.047 org.h2.test.synth.TestFuzzOptimizations testIn() seed: -2008599857419246922
+21:53:44 00:00.049 org.h2.test.synth.TestFuzzOptimizations testIn() seed: -858145344694914749
+21:53:44 00:00.051 org.h2.test.synth.TestFuzzOptimizations testIn() seed: -6277852374726063662
+21:53:44 00:00.051 org.h2.test.synth.TestFuzzOptimizations testIn() seed: -336846286652587753
+21:53:44 00:00.052 org.h2.test.synth.TestFuzzOptimizations testIn() seed: -5439751926415249024
+21:53:44 00:00.055 org.h2.test.synth.TestFuzzOptimizations testIn() seed: 6635553082515098343
+21:53:44 00:00.056 org.h2.test.synth.TestFuzzOptimizations testIn() seed: -8004878410161122058
+21:53:44 00:00.059 org.h2.test.synth.TestFuzzOptimizations testIn() seed: -2424446159873651523
+21:53:44 00:00.059 org.h2.test.synth.TestFuzzOptimizations testIn() seed: -8103507232632733680
+21:53:44 00:00.059 org.h2.test.synth.TestFuzzOptimizations testIn() seed: 2441711420151229869
+21:53:44 00:00.060 org.h2.test.synth.TestFuzzOptimizations testIn() seed: 4016254759560744751
+21:53:44 00:00.064 org.h2.test.synth.TestFuzzOptimizations testIn() seed: -2344620492268479907
+21:53:44 00:00.064 org.h2.test.synth.TestFuzzOptimizations testIn() seed: 945965410253261150
+21:53:44 00:00.065 org.h2.test.synth.TestFuzzOptimizations testIn() seed: -6634665808846756408
+21:53:44 00:00.065 org.h2.test.synth.TestFuzzOptimizations testIn() seed: 4364944442246920373
+21:53:44 00:00.065 org.h2.test.synth.TestFuzzOptimizations testIn() seed: -1327902410687843778
+21:53:44 00:00.066 org.h2.test.synth.TestFuzzOptimizations testIn() seed: -7388352117473630974
+21:53:44 00:00.069 org.h2.test.synth.TestFuzzOptimizations testIn() seed: 1672646058139002542
+21:53:44 00:00.072 org.h2.test.synth.TestFuzzOptimizations testIn() seed: -6008144711712041819
+21:53:44 00:00.073 org.h2.test.synth.TestFuzzOptimizations testIn() seed: 6779832697256719399
+21:53:44 00:00.073 org.h2.test.synth.TestFuzzOptimizations testIn() seed: -5427130466280376390
+21:53:44 00:00.073 org.h2.test.synth.TestFuzzOptimizations testIn() seed: -1298750064978595940
+21:53:44 00:00.074 org.h2.test.synth.TestFuzzOptimizations testIn() seed: 2082998910171750781
+21:53:44 00:00.075 org.h2.test.synth.TestFuzzOptimizations testIn() seed: 3068877427489260519
+21:53:44 00:00.076 org.h2.test.synth.TestFuzzOptimizations testIn() seed: -8213649044369804310
+21:53:44 00:00.077 org.h2.test.synth.TestFuzzOptimizations testIn() seed: 3168700185108856848
+21:53:44 00:00.077 org.h2.test.synth.TestFuzzOptimizations testIn() seed: -4861932130489671260
+21:53:44 00:00.078 org.h2.test.synth.TestFuzzOptimizations testIn() seed: 7943275191911761358
+21:53:44 00:00.078 org.h2.test.synth.TestFuzzOptimizations testIn() seed: 1435252494685284887
+21:53:44 00:00.079 org.h2.test.synth.TestFuzzOptimizations testIn() seed: 4101987161867820109
+21:53:44 00:00.079 org.h2.test.synth.TestFuzzOptimizations testIn() seed: 7292833678332441568
+21:53:44 00:00.080 org.h2.test.synth.TestFuzzOptimizations testIn() seed: 74162832555633457
+21:53:44 00:00.081 org.h2.test.synth.TestFuzzOptimizations testIn() seed: -7649702538761262741
+21:53:44 00:00.081 org.h2.test.synth.TestFuzzOptimizations testIn() seed: -7580734581249252902
+21:53:44 00:00.081 org.h2.test.synth.TestFuzzOptimizations testIn() seed: -6371824846590067747
+21:53:44 00:00.081 org.h2.test.synth.TestFuzzOptimizations testIn() seed: -558427885821554967
+21:53:44 00:00.082 org.h2.test.synth.TestFuzzOptimizations testIn() seed: 4573061829910573109
+21:53:44 00:00.082 org.h2.test.synth.TestFuzzOptimizations testIn() seed: 2227060205765962755
+21:53:44 00:00.082 org.h2.test.synth.TestFuzzOptimizations testIn() seed: 8041375753296616109
+21:53:44 00:00.083 org.h2.test.synth.TestFuzzOptimizations testIn() seed: -6580601716837490220
+21:53:44 00:00.086 org.h2.test.synth.TestFuzzOptimizations testIn() seed: 626833495614483558
+21:53:44 00:00.088 org.h2.test.synth.TestFuzzOptimizations testIn() seed: 1016727886716389463
+21:53:44 00:00.089 org.h2.test.synth.TestFuzzOptimizations testIn() seed: 2670602722853238595
+21:53:44 00:00.089 org.h2.test.synth.TestFuzzOptimizations testIn() seed: 6949467438329440083
+21:53:44 00:00.091 org.h2.test.synth.TestFuzzOptimizations testIn() seed: 3512466742036286484
+21:53:44 00:00.091 org.h2.test.synth.TestFuzzOptimizations testIn() seed: 3854287131567045416
+21:53:44 00:00.091 org.h2.test.synth.TestFuzzOptimizations testIn() seed: 1949298162036348663
+21:53:44 00:00.092 org.h2.test.synth.TestFuzzOptimizations testIn() seed: 2280623190019670475
+21:53:44 00:00.092 org.h2.test.synth.TestFuzzOptimizations testIn() seed: -147840607232238086
+21:53:44 00:00.093 org.h2.test.synth.TestFuzzOptimizations testIn() seed: 1896495673517167630
+21:53:44 00:00.097 org.h2.test.synth.TestFuzzOptimizations testIn() seed: -5133370519411374587
+21:53:44 00:00.098 org.h2.test.synth.TestFuzzOptimizations testIn() seed: 4614932464326823716
+21:53:44 00:00.099 org.h2.test.synth.TestFuzzOptimizations testIn() seed: 5140245818528350710
+21:53:44 00:00.099 org.h2.test.synth.TestFuzzOptimizations testIn() seed: -5961679516370480540
+21:53:44 00:00.100 org.h2.test.synth.TestFuzzOptimizations testIn() seed: 372433900345282573
+21:53:44 00:00.101 org.h2.test.synth.TestFuzzOptimizations testIn() seed: -8833338429517097651
+21:53:44 00:00.103 org.h2.test.synth.TestFuzzOptimizations testGroupSorted() seed: -7880173704888727222
+21:53:44 00:00.182 org.h2.test.synth.TestFuzzOptimizations testInSelect() seed: 2140263032219906419
+21:53:44 00:00.185 org.h2.test.synth.TestFuzzOptimizations 
+21:53:44 00:00.210 org.h2.test.synth.TestLimit 
+21:53:44 00:00.042 org.h2.test.synth.TestRandomCompare 
+21:53:45 00:00.350 org.h2.test.synth.TestKillRestart 21:53:45 killing: 0
+21:53:45 00:00.641 org.h2.test.synth.TestKillRestart 21:53:45 killing: 1
+21:53:45 00:00.660 org.h2.test.synth.TestKillRestart 
+21:53:45 00:00.298 org.h2.test.synth.TestKillRestartMulti 21:53:45 killing: 0
+21:53:45 00:00.298 org.h2.test.synth.TestKillRestartMulti 21:53:45 killing, waiting for: 0
+21:53:45 00:00.314 org.h2.test.synth.TestKillRestartMulti 21:53:45 killing, dead: 0
+21:53:46 00:00.644 org.h2.test.synth.TestKillRestartMulti 21:53:46 killing: 1
+21:53:46 00:00.644 org.h2.test.synth.TestKillRestartMulti 21:53:46 killing, waiting for: 1
+21:53:46 00:00.663 org.h2.test.synth.TestKillRestartMulti 21:53:46 killing, dead: 1
+21:53:46 00:01.039 org.h2.test.synth.TestKillRestartMulti 21:53:46 killing: 2
+21:53:46 00:01.039 org.h2.test.synth.TestKillRestartMulti 21:53:46 killing, waiting for: 2
+21:53:46 00:01.049 org.h2.test.synth.TestKillRestartMulti 21:53:46 killing, dead: 2
+21:53:46 00:01.050 org.h2.test.synth.TestKillRestartMulti 
+21:53:48 00:02.209 org.h2.test.synth.TestMultiThreaded 
+21:53:48 00:00.013 org.h2.test.synth.TestOuterJoins 
+21:53:48 00:00.206 org.h2.test.synth.TestNestedJoins 
+21:53:49 00:00.139 org.h2.test.db.TestDateStorage 
+21:53:49 00:00.002 org.h2.test.jdbc.TestDriver 
+21:53:49 00:00.001 org.h2.test.jdbc.TestJavaObjectSerializer 
+21:53:49 00:00.000 org.h2.test.unit.TestLocale 
+21:53:49 00:00.000 org.h2.test.db.TestMemoryUsage 
+21:53:53 00:04.497 org.h2.test.db.TestMultiThread 
+21:53:53 00:00.000 org.h2.test.poweroff.TestReorderWrites testMVStore(): Disable partial write
+21:53:53 00:00.140 org.h2.test.poweroff.TestReorderWrites testMVStore(): Enable partial write
+21:53:53 00:00.217 org.h2.test.poweroff.TestReorderWrites testFileSystem(): Disable partial write
+21:53:53 00:00.224 org.h2.test.poweroff.TestReorderWrites testFileSystem(): Enable partial write
+21:53:53 00:00.231 org.h2.test.poweroff.TestReorderWrites 
+21:53:53 00:00.000 org.h2.test.synth.TestRandomSQL 21:53:53 seed: 570295573
+21:53:53 00:00.029 org.h2.test.synth.TestRandomSQL 21:53:53 seed: 223010113
+21:53:53 00:00.037 org.h2.test.synth.TestRandomSQL 21:53:53 total: 100 success: 20%
+21:53:53 00:00.039 org.h2.test.synth.TestRandomSQL 
+21:53:53 00:00.025 org.h2.test.db.TestQueryCache 
+21:53:53 00:00.001 org.h2.test.jdbc.TestUrlJavaObjectSerializer 
+21:53:56 00:02.243 org.h2.test.server.TestWeb 
+21:53:56 00:00.004 org.h2.test.server.TestJakartaWeb 
+21:53:57 00:01.025 org.h2.test.db.TestOptimizations SELECTk    "PUBLIC"."TEST"."ID"kFROM "PUBLIC"."TEST"k    /* PUBLIC.IDX_ID_DESC: ID > 10 */kWHERE "ID" > 10kORDER BY 1k/* index sorted */ does not contain: IDX_ID_ASC
+21:53:57 00:01.025 org.h2.test.db.TestOptimizations FAIL java.lang.AssertionError: SELECTk    "PUBLIC"."TEST"."ID"kFROM "PUBLIC"."TEST"k    /* PUBLIC.IDX_ID_DESC: ID > 10 */kWHERE "ID" > 10kORDER BY 1k/* index sorted */ does not contain: IDX_ID_ASC
+ERROR: FAIL (memory ) java.lang.AssertionError: SELECTk    "PUBLIC"."TEST"."ID"kFROM "PUBLIC"."TEST"k    /* PUBLIC.IDX_ID_DESC: ID > 10 */kWHERE "ID" > 10kORDER BY 1k/* index sorted */ does not contain: IDX_ID_ASC java.lang.AssertionError: SELECTk    "PUBLIC"."TEST"."ID"kFROM "PUBLIC"."TEST"k    /* PUBLIC.IDX_ID_DESC: ID > 10 */kWHERE "ID" > 10kORDER BY 1k/* index sorted */ does not contain: IDX_ID_ASC ------------------------------
+java.lang.AssertionError: SELECTk    "PUBLIC"."TEST"."ID"kFROM "PUBLIC"."TEST"k    /* PUBLIC.IDX_ID_DESC: ID > 10 */kWHERE "ID" > 10kORDER BY 1k/* index sorted */ does not contain: IDX_ID_ASC
+	at org.h2.test.TestBase.fail(TestBase.java:332)
+	at org.h2.test.TestBase.assertContains(TestBase.java:753)
+	at org.h2.test.db.TestOptimizations.testSortIndex(TestOptimizations.java:349)
+	at org.h2.test.db.TestOptimizations.test(TestOptimizations.java:55)
+	at org.h2.test.TestBase.runTest(TestBase.java:145)
+	at org.h2.test.TestAll.addTest(TestAll.java:994)
+	at org.h2.test.TestAll.test(TestAll.java:849)
+	at org.h2.test.TestAll.runTests(TestAll.java:607)
+	at org.h2.test.TestAll.testAll(TestAll.java:551)
+	at org.h2.test.TestAll.run(TestAll.java:535)
+	at org.h2.test.TestAll.main(TestAll.java:436)
+21:54:02 00:05.843 org.h2.test.db.TestOutOfMemory 
+21:54:02 00:00.006 org.h2.test.db.TestIgnoreCatalogs 
+21:54:02 00:00.004 org.h2.test.store.TestMVTableEngine 
+21:54:09 00:06.697 org.h2.test.unit.TestAutoReconnect 
+21:54:09 00:00.143 org.h2.test.unit.TestBnf 
+21:54:09 00:00.001 org.h2.test.unit.TestCache 
+21:54:09 00:00.003 org.h2.test.unit.TestCollation 
+21:54:12 00:02.750 org.h2.test.unit.TestCompress 
+21:54:12 00:00.010 org.h2.test.unit.TestConnectionInfo 
+21:54:13 00:00.638 org.h2.test.unit.TestExit 
+21:54:28 00:15.345 org.h2.test.unit.TestFileLock 
+21:54:28 00:00.066 org.h2.test.unit.TestJmx 
+21:54:31 00:03.025 org.h2.test.db.TestMultiThreadedKernel 
+21:54:33 00:01.993 org.h2.test.unit.TestPgServer 
+21:54:33 00:00.025 org.h2.test.unit.TestTimeStampWithTimeZone 
+21:54:33 00:00.004 org.h2.test.unit.TestValue 
+21:54:33 00:00.000 org.h2.test.unit.TestFileLockProcess socket
+21:54:33 00:00.106 org.h2.test.unit.TestFileLockProcess 0/4
+21:54:35 00:02.147 org.h2.test.unit.TestFileLockProcess fs
+21:54:35 00:02.254 org.h2.test.unit.TestFileLockProcess 0/4
+21:54:36 00:02.790 org.h2.test.unit.TestFileLockProcess default
+21:54:36 00:02.896 org.h2.test.unit.TestFileLockProcess 0/50
+21:54:37 00:03.956 org.h2.test.unit.TestFileLockProcess 10/50
+21:54:38 00:05.024 org.h2.test.unit.TestFileLockProcess 20/50
+21:54:39 00:06.074 org.h2.test.unit.TestFileLockProcess 30/50
+21:54:40 00:07.138 org.h2.test.unit.TestFileLockProcess 40/50
+21:54:42 00:08.376 org.h2.test.unit.TestFileLockProcess 
+21:54:46 00:03.951 org.h2.test.unit.TestTools FAIL org.h2.jdbc.JdbcSQLNonTransientConnectionException: Connection is broken: "javax.net.ssl.SSLHandshakeException: (certificate_unknown) PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException: unable to find valid certification path to requested target: localhost:9001" [90067-229]
+ERROR: FAIL (memory ) org.h2.jdbc.JdbcSQLNonTransientConnectionException: Connection is broken: "javax.net.ssl.SSLHandshakeException: (certificate_unknown) PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException: unable to find valid certification path to requested target: localhost:9001" [90067-229] org.h2.jdbc.JdbcSQLNonTransientConnectionException: Connection is broken: "javax.net.ssl.SSLHandshakeException: (certificate_unknown) PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException: unable to find valid certification path to requested target: localhost:9001" [90067-229] ------------------------------
+org.h2.jdbc.JdbcSQLNonTransientConnectionException: Connection is broken: "javax.net.ssl.SSLHandshakeException: (certificate_unknown) PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException: unable to find valid certification path to requested target: localhost:9001" [90067-229]
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:690)
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:489)
+	at org.h2.message.DbException.get(DbException.java:212)
+	at org.h2.engine.SessionRemote.connectServer(SessionRemote.java:443)
+	at org.h2.engine.SessionRemote.connectEmbeddedOrServer(SessionRemote.java:331)
+	at org.h2.jdbc.JdbcConnection.<init>(JdbcConnection.java:124)
+	at org.h2.Driver.connect(Driver.java:59)
+	at java.sql/java.sql.DriverManager.getConnection(DriverManager.java:682)
+	at java.sql/java.sql.DriverManager.getConnection(DriverManager.java:230)
+	at org.h2.test.TestDb.getConnectionInternal(TestDb.java:146)
+	at org.h2.test.TestDb.getConnection(TestDb.java:45)
+	at org.h2.test.unit.TestTools.testSSL(TestTools.java:655)
+	at org.h2.test.unit.TestTools.testServerMain(TestTools.java:612)
+	at org.h2.test.unit.TestTools.test(TestTools.java:102)
+	at org.h2.test.TestBase.runTest(TestBase.java:145)
+	at org.h2.test.TestAll.addTest(TestAll.java:994)
+	at org.h2.test.TestAll.testAdditional(TestAll.java:893)
+	at org.h2.test.TestAll.runTests(TestAll.java:611)
+	at org.h2.test.TestAll.testAll(TestAll.java:551)
+	at org.h2.test.TestAll.run(TestAll.java:535)
+	at org.h2.test.TestAll.main(TestAll.java:436)
+Caused by: javax.net.ssl.SSLHandshakeException: (certificate_unknown) PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException: unable to find valid certification path to requested target
+	at java.base/sun.security.ssl.Alert.createSSLException(Alert.java:130)
+	at java.base/sun.security.ssl.TransportContext.fatal(TransportContext.java:383)
+	at java.base/sun.security.ssl.TransportContext.fatal(TransportContext.java:326)
+	at java.base/sun.security.ssl.TransportContext.fatal(TransportContext.java:321)
+	at java.base/sun.security.ssl.CertificateMessage$T13CertificateConsumer.checkServerCerts(CertificateMessage.java:1326)
+	at java.base/sun.security.ssl.CertificateMessage$T13CertificateConsumer.onConsumeCertificate(CertificateMessage.java:1203)
+	at java.base/sun.security.ssl.CertificateMessage$T13CertificateConsumer.consume(CertificateMessage.java:1146)
+	at java.base/sun.security.ssl.SSLHandshake.consume(SSLHandshake.java:393)
+	at java.base/sun.security.ssl.HandshakeContext.dispatch(HandshakeContext.java:476)
+	at java.base/sun.security.ssl.HandshakeContext.dispatch(HandshakeContext.java:447)
+	at java.base/sun.security.ssl.TransportContext.dispatch(TransportContext.java:206)
+	at java.base/sun.security.ssl.SSLTransport.decode(SSLTransport.java:172)
+	at java.base/sun.security.ssl.SSLSocketImpl.decode(SSLSocketImpl.java:1507)
+	at java.base/sun.security.ssl.SSLSocketImpl.readHandshakeRecord(SSLSocketImpl.java:1422)
+	at java.base/sun.security.ssl.SSLSocketImpl.startHandshake(SSLSocketImpl.java:455)
+	at java.base/sun.security.ssl.SSLSocketImpl.ensureNegotiated(SSLSocketImpl.java:924)
+	at java.base/sun.security.ssl.SSLSocketImpl$AppOutputStream.write(SSLSocketImpl.java:1293)
+	at java.base/java.io.BufferedOutputStream.flushBuffer(BufferedOutputStream.java:125)
+	at java.base/java.io.BufferedOutputStream.implFlush(BufferedOutputStream.java:252)
+	at java.base/java.io.BufferedOutputStream.flush(BufferedOutputStream.java:240)
+	at java.base/java.io.DataOutputStream.flush(DataOutputStream.java:134)
+	at org.h2.value.Transfer.flush(Transfer.java:216)
+	at org.h2.engine.SessionRemote.done(SessionRemote.java:616)
+	at org.h2.engine.SessionRemote.initTransfer(SessionRemote.java:149)
+	at org.h2.engine.SessionRemote.connectServer(SessionRemote.java:439)
+	... 17 more
+Caused by: sun.security.validator.ValidatorException: PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException: unable to find valid certification path to requested target
+	at java.base/sun.security.validator.PKIXValidator.doBuild(PKIXValidator.java:388)
+	at java.base/sun.security.validator.PKIXValidator.engineValidate(PKIXValidator.java:271)
+	at java.base/sun.security.validator.Validator.validate(Validator.java:256)
+	at java.base/sun.security.ssl.X509TrustManagerImpl.checkTrusted(X509TrustManagerImpl.java:230)
+	at java.base/sun.security.ssl.X509TrustManagerImpl.checkServerTrusted(X509TrustManagerImpl.java:132)
+	at java.base/sun.security.ssl.CertificateMessage$T13CertificateConsumer.checkServerCerts(CertificateMessage.java:1310)
+	... 37 more
+Caused by: sun.security.provider.certpath.SunCertPathBuilderException: unable to find valid certification path to requested target
+	at java.base/sun.security.provider.certpath.SunCertPathBuilder.build(SunCertPathBuilder.java:148)
+	at java.base/sun.security.provider.certpath.SunCertPathBuilder.engineBuild(SunCertPathBuilder.java:129)
+	at java.base/java.security.cert.CertPathBuilder.build(CertPathBuilder.java:297)
+	at java.base/sun.security.validator.PKIXValidator.doBuild(PKIXValidator.java:383)
+	... 42 more
+21:54:46 00:00.045 org.h2.test.unit.TestSampleApps Expected:  (0) actual: ERROR: error java.sql.SQLException: Unexpected output for:k-- Display the query plan - 'index sorted' means the index is usedkEXPLAIN SELECT "VALUE" FROM TEST ORDER BY "VALUE" DESC LIMIT 10kGot:kk-->+SELECTk-->++++++++"VALUE"k-->++++FROM+"PUBLIC"."TEST"k-->++++++++/*+PUBLIC.IDX_TEST_VALUE+*/k-->++++ORDER+BY+1+DESCk-->++++FETCH+FIRST+10+ROWS+ONLYk-->++++/*+index+sorted+*/k;kExpected:kk-->+SELECTk-->++++++++"VALUE"k-->++++FROM+"PUBLIC"."TEST"k-->++++++++/*+PUBLIC.IDX_TEST_VALUE_D+*/k-->++++ORDER+BY+1+DESCk-->++++FETCH+FIRST+10+ROWS+ONLYk-->++++/*+index+sorted+*/k; ------------------------------kjava.sql.SQLException: Unexpected output for:k-- Display the query plan - 'index sorted' means the index is usedkEXPLAIN SELECT "VALUE" FROM TEST ORDER BY "VALUE" DESC LIMIT 10kGot:kk-->+SELECTk-->++++++++"VALUE"k-->++++FROM+"PUBLIC"."TEST"k-->++++++++/*+PUBLIC.IDX_TEST_VALUE+*/k-->++++ORDER+BY+1+DESCk-->++++FETCH+FIRST+10+ROWS+ONLYk-->++++/*+index+sorted+*/k;kExpected:kk-->+SELECTk-->++++++++"VALUE"k-->++++FROM+"PUBLIC"."TEST"k-->++++++++/*+PUBLIC.IDX_TEST_VALUE_D+*/k-->++++ORDER+BY+1+DESCk-->++++FETCH+FIRST+10+ROWS+ONLYk-->++++/*+index+sorted+*/k;kjat org.h2.tools.RunScript.process(RunScript.java:248)kjat org.h2.tools.RunScript.process(RunScript.java:186)kjat org.h2.tools.RunScript.process(RunScript.java:313)kjat org.h2.tools.RunScript.runTool(RunScript.java:139)kjat org.h2.tools.RunScript.main(RunScript.java:66)kjat java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)kjat java.base/java.lang.reflect.Method.invoke(Method.java:580)kjat org.h2.test.unit.TestSampleApps.testApp(TestSampleApps.java:131)kjat org.h2.test.unit.TestSampleApps.test(TestSampleApps.java:55)kjat org.h2.test.TestBase.runTest(TestBase.java:145)kjat org.h2.test.TestAll.addTest(TestAll.java:994)kjat org.h2.test.TestAll.testAdditional(TestAll.java:894)kjat org.h2.test.TestAll.runTests(TestAll.java:611)kjat org.h2.test.TestAll.testAll(TestAll.java:551)kjat org.h2.test.TestAll.run(TestAll.java:535)kjat org.h2.test.TestAll.main(TestAll.java:436) (2082) 
+21:54:46 00:00.045 org.h2.test.unit.TestSampleApps FAIL java.lang.AssertionError: Expected:  (0) actual: ERROR: error java.sql.SQLException: Unexpected output for:k-- Display the query plan - 'index sorted' means the index is usedkEXPLAIN SELECT "VALUE" FROM TEST ORDER BY "VALUE" DESC LIMIT 10kGot:kk-->+SELECTk-->++++++++"VALUE"k-->++++FROM+"PUBLIC"."TEST"k-->++++++++/*+PUBLIC.IDX_TEST_VALUE+*/k-->++++ORDER+BY+1+DESCk-->++++FETCH+FIRST+10+ROWS+ONLYk-->++++/*+index+sorted+*/k;kExpected:kk-->+SELECTk-->++++++++"VALUE"k-->++++FROM+"PUBLIC"."TEST"k-->++++++++/*+PUBLIC.IDX_TEST_VALUE_D+*/k-->++++ORDER+BY+1+DESCk-->++++FETCH+FIRST+10+ROWS+ONLYk-->++++/*+index+sorted+*/k; ------------------------------kjava.sql.SQLException: Unexpected output for:k-- Display the query plan - 'index sorted' means the index is usedkEXPLAIN SELECT "VALUE" FROM TEST ORDER BY "VALUE" DESC LIMIT 10kGot:kk-->+SELECTk-->++++++++"VALUE"k-->++++FROM+"PUBLIC"."TEST"k-->++++++++/*+PUBLIC.IDX_TEST_VALUE+*/k-->++++ORDER+BY+1+DESCk-->++++FETCH+FIRST+10+ROWS+ONLYk-->++++/*+index+sorted+*/k;kExpected:kk-->+SELECTk-->++++++++"VALUE"k-->++++FROM+"PUBLIC"."TEST"k-->++++++++/*+PUBLIC.IDX_TEST_VALUE_D+*/k-->++++ORDER+BY+1+DESCk-->++++FETCH+FIRST+10+ROWS+ONLYk-->++++/*+index+sorted+*/k;kjat org.h2.tools.RunScript.process(RunScript.java:248)kjat org.h2.tools.RunScript.process(RunScript.java:186)kjat org.h2.tools.RunScript.process(RunScript.java:313)kjat org.h2.tools.RunScript.runTool(RunScript.java:139)kjat org.h2.tools.RunScript.main(RunScript.java:66)kjat java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)kjat java.base/java.lang.reflect.Method.invoke(Method.java:580)kjat org.h2.test.unit.TestSampleApps.testApp(TestSampleApps.java:131)kjat org.h2.test.unit.TestSampleApps.test(TestSampleApps.java:55)kjat org.h2.test.TestBase.runTest(TestBase.java:145)kjat org.h2.test.TestAll.addTest(TestAll.java:994)kjat org.h2.test.TestAll.testAdditional(TestAll.java:894)kjat org.h2.test.TestAll.runTests(TestAll.java:611)kjat org.h2.test.TestAll.testAll(TestAll.java:551)kjat org.h2.test.TestAll.run(TestAll.java:535)kjat org.h2.test.TestAll.main(TestAll.java:436) (2082) 
+ERROR: FAIL (memory ) java.lang.AssertionError: Expected:  (0) actual: ERROR: error java.sql.SQLException: Unexpected output for:k-- Display the query plan - 'index sorted' means the index is usedkEXPLAIN SELECT "VALUE" FROM TEST ORDER BY "VALUE" DESC LIMIT 10kGot:kk-->+SELECTk-->++++++++"VALUE"k-->++++FROM+"PUBLIC"."TEST"k-->++++++++/*+PUBLIC.IDX_TEST_VALUE+*/k-->++++ORDER+BY+1+DESCk-->++++FETCH+FIRST+10+ROWS+ONLYk-->++++/*+index+sorted+*/k;kExpected:kk-->+SELECTk-->++++++++"VALUE"k-->++++FROM+"PUBLIC"."TEST"k-->++++++++/*+PUBLIC.IDX_TEST_VALUE_D+*/k-->++++ORDER+BY+1+DESCk-->++++FETCH+FIRST+10+ROWS+ONLYk-->++++/*+index+sorted+*/k; ------------------------------kjava.sql.SQLException: Unexpected output for:k-- Display the query plan - 'index sorted' means the index is usedkEXPLAIN SELECT "VALUE" FROM TEST ORDER BY "VALUE" DESC LIMIT 10kGot:kk-->+SELECTk-->++++++++"VALUE"k-->++++FROM+"PUBLIC"."TEST"k-->++++++++/*+PUBLIC.IDX_TEST_VALUE+*/k-->++++ORDER+BY+1+DESCk-->++++FETCH+FIRST+10+ROWS+ONLYk-->++++/*+index+sorted+*/k;kExpected:kk-->+SELECTk-->++++++++"VALUE"k-->++++FROM+"PUBLIC"."TEST"k-->++++++++/*+PUBLIC.IDX_TEST_VALUE_D+*/k-->++++ORDER+BY+1+DESCk-->++++FETCH+FIRST+10+ROWS+ONLYk-->++++/*+index+sorted+*/k;kjat org.h2.tools.RunScript.process(RunScript.java:248)kjat org.h2.tools.RunScript.process(RunScript.java:186)kjat org.h2.tools.RunScript.process(RunScript.java:313)kjat org.h2.tools.RunScript.runTool(RunScript.java:139)kjat org.h2.tools.RunScript.main(RunScript.java:66)kjat java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)kjat java.base/java.lang.reflect.Method.invoke(Method.java:580)kjat org.h2.test.unit.TestSampleApps.testApp(TestSampleApps.java:131)kjat org.h2.test.unit.TestSampleApps.test(TestSampleApps.java:55)kjat org.h2.test.TestBase.runTest(TestBase.java:145)kjat org.h2.test.TestAll.addTest(TestAll.java:994)kjat org.h2.test.TestAll.testAdditional(TestAll.java:894)kjat org.h2.test.TestAll.runTests(TestAll.java:611)kjat org.h2.test.TestAll.testAll(TestAll.java:551)kjat org.h2.test.TestAll.run(TestAll.java:535)kjat org.h2.test.TestAll.main(TestAll.java:436) (2082)  java.lang.AssertionError: Expected:  (0) actual: ERROR: error java.sql.SQLException: Unexpected output for:k-- Display the query plan - 'index sorted' means the index is usedkEXPLAIN SELECT "VALUE" FROM TEST ORDER BY "VALUE" DESC LIMIT 10kGot:kk-->+SELECTk-->++++++++"VALUE"k-->++++FROM+"PUBLIC"."TEST"k-->++++++++/*+PUBLIC.IDX_TEST_VALUE+*/k-->++++ORDER+BY+1+DESCk-->++++FETCH+FIRST+10+ROWS+ONLYk-->++++/*+index+sorted+*/k;kExpected:kk-->+SELECTk-->++++++++"VALUE"k-->++++FROM+"PUBLIC"."TEST"k-->++++++++/*+PUBLIC.IDX_TEST_VALUE_D+*/k-->++++ORDER+BY+1+DESCk-->++++FETCH+FIRST+10+ROWS+ONLYk-->++++/*+index+sorted+*/k; ------------------------------kjava.sql.SQLException: Unexpected output for:k-- Display the query plan - 'index sorted' means the index is usedkEXPLAIN SELECT "VALUE" FROM TEST ORDER BY "VALUE" DESC LIMIT 10kGot:kk-->+SELECTk-->++++++++"VALUE"k-->++++FROM+"PUBLIC"."TEST"k-->++++++++/*+PUBLIC.IDX_TEST_VALUE+*/k-->++++ORDER+BY+1+DESCk-->++++FETCH+FIRST+10+ROWS+ONLYk-->++++/*+index+sorted+*/k;kExpected:kk-->+SELECTk-->++++++++"VALUE"k-->++++FROM+"PUBLIC"."TEST"k-->++++++++/*+PUBLIC.IDX_TEST_VALUE_D+*/k-->++++ORDER+BY+1+DESCk-->++++FETCH+FIRST+10+ROWS+ONLYk-->++++/*+index+sorted+*/k;kjat org.h2.tools.RunScript.process(RunScript.java:248)kjat org.h2.tools.RunScript.process(RunScript.java:186)kjat org.h2.tools.RunScript.process(RunScript.java:313)kjat org.h2.tools.RunScript.runTool(RunScript.java:139)kjat org.h2.tools.RunScript.main(RunScript.java:66)kjat java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)kjat java.base/java.lang.reflect.Method.invoke(Method.java:580)kjat org.h2.test.unit.TestSampleApps.testApp(TestSampleApps.java:131)kjat org.h2.test.unit.TestSampleApps.test(TestSampleApps.java:55)kjat org.h2.test.TestBase.runTest(TestBase.java:145)kjat org.h2.test.TestAll.addTest(TestAll.java:994)kjat org.h2.test.TestAll.testAdditional(TestAll.java:894)kjat org.h2.test.TestAll.runTests(TestAll.java:611)kjat org.h2.test.TestAll.testAll(TestAll.java:551)kjat org.h2.test.TestAll.run(TestAll.java:535)kjat org.h2.test.TestAll.main(TestAll.java:436) (2082)  ------------------------------
+java.lang.AssertionError: Expected:  (0) actual: ERROR: error java.sql.SQLException: Unexpected output for:k-- Display the query plan - 'index sorted' means the index is usedkEXPLAIN SELECT "VALUE" FROM TEST ORDER BY "VALUE" DESC LIMIT 10kGot:kk-->+SELECTk-->++++++++"VALUE"k-->++++FROM+"PUBLIC"."TEST"k-->++++++++/*+PUBLIC.IDX_TEST_VALUE+*/k-->++++ORDER+BY+1+DESCk-->++++FETCH+FIRST+10+ROWS+ONLYk-->++++/*+index+sorted+*/k;kExpected:kk-->+SELECTk-->++++++++"VALUE"k-->++++FROM+"PUBLIC"."TEST"k-->++++++++/*+PUBLIC.IDX_TEST_VALUE_D+*/k-->++++ORDER+BY+1+DESCk-->++++FETCH+FIRST+10+ROWS+ONLYk-->++++/*+index+sorted+*/k; ------------------------------kjava.sql.SQLException: Unexpected output for:k-- Display the query plan - 'index sorted' means the index is usedkEXPLAIN SELECT "VALUE" FROM TEST ORDER BY "VALUE" DESC LIMIT 10kGot:kk-->+SELECTk-->++++++++"VALUE"k-->++++FROM+"PUBLIC"."TEST"k-->++++++++/*+PUBLIC.IDX_TEST_VALUE+*/k-->++++ORDER+BY+1+DESCk-->++++FETCH+FIRST+10+ROWS+ONLYk-->++++/*+index+sorted+*/k;kExpected:kk-->+SELECTk-->++++++++"VALUE"k-->++++FROM+"PUBLIC"."TEST"k-->++++++++/*+PUBLIC.IDX_TEST_VALUE_D+*/k-->++++ORDER+BY+1+DESCk-->++++FETCH+FIRST+10+ROWS+ONLYk-->++++/*+index+sorted+*/k;kjat org.h2.tools.RunScript.process(RunScript.java:248)kjat org.h2.tools.RunScript.process(RunScript.java:186)kjat org.h2.tools.RunScript.process(RunScript.java:313)kjat org.h2.tools.RunScript.runTool(RunScript.java:139)kjat org.h2.tools.RunScript.main(RunScript.java:66)kjat java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)kjat java.base/java.lang.reflect.Method.invoke(Method.java:580)kjat org.h2.test.unit.TestSampleApps.testApp(TestSampleApps.java:131)kjat org.h2.test.unit.TestSampleApps.test(TestSampleApps.java:55)kjat org.h2.test.TestBase.runTest(TestBase.java:145)kjat org.h2.test.TestAll.addTest(TestAll.java:994)kjat org.h2.test.TestAll.testAdditional(TestAll.java:894)kjat org.h2.test.TestAll.runTests(TestAll.java:611)kjat org.h2.test.TestAll.testAll(TestAll.java:551)kjat org.h2.test.TestAll.run(TestAll.java:535)kjat org.h2.test.TestAll.main(TestAll.java:436) (2082) 
+	at org.h2.test.TestBase.fail(TestBase.java:332)
+	at org.h2.test.TestBase.assertEquals(TestBase.java:678)
+	at org.h2.test.TestBase.assertEquals(TestBase.java:691)
+	at org.h2.test.unit.TestSampleApps.testApp(TestSampleApps.java:150)
+	at org.h2.test.unit.TestSampleApps.test(TestSampleApps.java:55)
+	at org.h2.test.TestBase.runTest(TestBase.java:145)
+	at org.h2.test.TestAll.addTest(TestAll.java:994)
+	at org.h2.test.TestAll.testAdditional(TestAll.java:894)
+	at org.h2.test.TestAll.runTests(TestAll.java:611)
+	at org.h2.test.TestAll.testAll(TestAll.java:551)
+	at org.h2.test.TestAll.run(TestAll.java:535)
+	at org.h2.test.TestAll.main(TestAll.java:436)
+21:54:50 00:04.451 org.h2.test.db.TestSubqueryPerformanceOnLazyExecutionMode Lazy execution too slow. Avg lazy time: 876, avg not lazy time: 10
+21:54:50 00:04.452 org.h2.test.db.TestSubqueryPerformanceOnLazyExecutionMode FAIL java.lang.AssertionError: Lazy execution too slow. Avg lazy time: 876, avg not lazy time: 10
+ERROR: FAIL (memory ) java.lang.AssertionError: Lazy execution too slow. Avg lazy time: 876, avg not lazy time: 10 java.lang.AssertionError: Lazy execution too slow. Avg lazy time: 876, avg not lazy time: 10 ------------------------------
+java.lang.AssertionError: Lazy execution too slow. Avg lazy time: 876, avg not lazy time: 10
+	at org.h2.test.TestBase.fail(TestBase.java:332)
+	at org.h2.test.db.TestSubqueryPerformanceOnLazyExecutionMode.checkExecutionTime(TestSubqueryPerformanceOnLazyExecutionMode.java:143)
+	at org.h2.test.db.TestSubqueryPerformanceOnLazyExecutionMode.checkExecutionTime(TestSubqueryPerformanceOnLazyExecutionMode.java:111)
+	at org.h2.test.db.TestSubqueryPerformanceOnLazyExecutionMode.testSubqueryInJoin(TestSubqueryPerformanceOnLazyExecutionMode.java:78)
+	at org.h2.test.db.TestSubqueryPerformanceOnLazyExecutionMode.test(TestSubqueryPerformanceOnLazyExecutionMode.java:56)
+	at org.h2.test.TestBase.runTest(TestBase.java:145)
+	at org.h2.test.TestAll.addTest(TestAll.java:994)
+	at org.h2.test.TestAll.testAdditional(TestAll.java:895)
+	at org.h2.test.TestAll.runTests(TestAll.java:611)
+	at org.h2.test.TestAll.testAll(TestAll.java:551)
+	at org.h2.test.TestAll.run(TestAll.java:535)
+	at org.h2.test.TestAll.main(TestAll.java:436)
+
+Test utilities (22088 KB used)
+21:54:52 00:02.002 org.h2.test.store.TestCacheConcurrentLIRS 
+21:54:52 00:00.097 org.h2.test.store.TestCacheLIRS 
+21:54:52 00:00.228 org.h2.test.store.TestCacheLongKeyLIRS 
+21:54:53 00:00.182 org.h2.test.store.TestDataUtils 
+21:54:54 00:01.135 org.h2.test.store.TestFreeSpace 
+21:54:56 00:02.279 org.h2.test.store.TestKillProcessWhileWriting 
+21:54:56 00:00.145 org.h2.test.store.TestMVRTree 
+21:55:10 00:13.649 org.h2.test.store.TestMVStore 
+21:56:36 01:26.682 org.h2.test.store.TestMVStoreBenchmark 
+21:56:41 00:04.191 org.h2.test.store.TestMVStoreStopCompact 
+21:56:45 00:04.123 org.h2.test.store.TestMVStoreTool 
+21:56:45 00:00.043 org.h2.test.store.TestObjectDataType 
+21:56:50 00:05.030 org.h2.test.store.TestRandomMapOps 
+21:56:50 00:00.009 org.h2.test.store.TestSpinLock 
+21:56:50 00:00.106 org.h2.test.store.TestStreamStore 
+21:56:51 00:01.086 org.h2.test.store.TestTransactionStore 
+21:56:55 00:03.461 org.h2.test.unit.TestMVTempResult 
+21:56:55 00:00.053 org.h2.test.unit.TestConcurrentJdbc 
+21:56:55 00:00.112 org.h2.test.unit.TestAnsCompression 
+21:56:55 00:00.045 org.h2.test.unit.TestBinaryArithmeticStream 
+21:56:55 00:00.000 org.h2.test.unit.TestBinaryOperation 
+21:56:55 00:00.191 org.h2.test.unit.TestBitStream 
+21:56:55 00:00.001 org.h2.test.unit.TestCharsetCollator 
+21:56:55 00:00.001 org.h2.test.unit.TestDateIso8601 
+21:56:55 00:00.002 org.h2.test.unit.TestDateTimeTemplate 
+21:56:55 00:00.002 org.h2.test.unit.TestDbException 
+21:56:55 00:00.544 org.h2.test.unit.TestFile 
+21:57:10 00:14.145 org.h2.test.unit.TestFileSystem 
+21:57:10 00:00.043 org.h2.test.unit.TestFtp 
+21:57:10 00:00.015 org.h2.test.unit.TestGeometryUtils 
+21:57:10 00:00.001 org.h2.test.unit.TestInterval 
+21:57:10 00:00.006 org.h2.test.unit.TestIntArray 
+21:57:10 00:00.247 org.h2.test.unit.TestIntPerfectHash 
+21:57:10 00:00.387 org.h2.test.unit.TestJsonUtils 
+Exception in thread "main" java.lang.ExceptionInInitializerError
+	at org.h2.test.TestAll.testUtils(TestAll.java:944)
+	at org.h2.test.TestAll.runTests(TestAll.java:615)
+	at org.h2.test.TestAll.testAll(TestAll.java:551)
+	at org.h2.test.TestAll.run(TestAll.java:535)
+	at org.h2.test.TestAll.main(TestAll.java:436)
+Caused by: java.lang.IllegalArgumentException: Unsupported class file major version 67
+	at org.objectweb.asm.ClassReader.<init>(ClassReader.java:199)
+	at org.objectweb.asm.ClassReader.<init>(ClassReader.java:180)
+	at org.objectweb.asm.ClassReader.<init>(ClassReader.java:166)
+	at org.objectweb.asm.ClassReader.<init>(ClassReader.java:287)
+	at org.h2.test.unit.TestKeywords.processClass(TestKeywords.java:488)
+	at org.h2.test.unit.TestKeywords.<clinit>(TestKeywords.java:478)
+	... 5 more

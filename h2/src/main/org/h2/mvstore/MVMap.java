@@ -91,7 +91,7 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
     }
 
     private MVMap(MVStore store, DataType<K> keyType, DataType<V> valueType, int id, long createVersion,
-            AtomicReference<RootReference<K,V>> root, int keysPerPage, boolean singleWriter) {
+                  AtomicReference<RootReference<K,V>> root, int keysPerPage, boolean singleWriter) {
         this.store = store;
         this.id = id;
         this.createVersion = createVersion;
@@ -213,7 +213,7 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
      * @return the key list
      */
     public final List<K> keyList() {
-        return new AbstractList<K>() {
+        return new AbstractList<>() {
 
             @Override
             public K get(int index) {
@@ -556,7 +556,7 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
      */
     static <X> boolean areValuesEqual(DataType<X> datatype, X a, X b) {
         return a == b
-            || a != null && b != null && datatype.compare(a, b) == 0;
+                || a != null && b != null && datatype.compare(a, b) == 0;
     }
 
     /**
@@ -733,12 +733,12 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
     @Override
     public final Set<Map.Entry<K, V>> entrySet() {
         final RootReference<K,V> rootReference = flushAndGetRoot();
-        return new AbstractSet<Entry<K, V>>() {
+        return new AbstractSet<>() {
 
             @Override
             public Iterator<Entry<K, V>> iterator() {
                 final Cursor<K, V> cursor = cursor(rootReference, null, null, false);
-                return new Iterator<Entry<K, V>>() {
+                return new Iterator<>() {
 
                     @Override
                     public boolean hasNext() {
@@ -771,7 +771,7 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
     @Override
     public Set<K> keySet() {
         final RootReference<K,V> rootReference = flushAndGetRoot();
-        return new AbstractSet<K>() {
+        return new AbstractSet<>() {
 
             @Override
             public Iterator<K> iterator() {
@@ -909,7 +909,7 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
      * @return new RootReference or null if update failed
      */
     protected static <K,V> boolean updateRoot(RootReference<K,V> expectedRootReference, Page<K,V> newRootPage,
-            int attemptUpdateCounter) {
+                                              int attemptUpdateCounter) {
         return expectedRootReference.updateRootPage(newRootPage, attemptUpdateCounter) != null;
     }
 
@@ -1022,7 +1022,7 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
         if (readOnly) {
             throw DataUtils.newUnsupportedOperationException(
                     "This map is read-only; need to call " +
-                    "the method on the writable map");
+                            "the method on the writable map");
         }
         DataUtils.checkArgument(version >= createVersion,
                 "Unknown version {0}; this map was created in version is {1}",
@@ -1348,7 +1348,7 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
     }
 
     private static <K,V> Page<K,V> replacePage(CursorPos<K,V> path, Page<K,V> replacement,
-            IntValueHolder unsavedMemoryHolder) {
+                                               IntValueHolder unsavedMemoryHolder) {
         int unsavedMemory = replacement.isSaved() ? 0 : replacement.getMemory();
         while (path != null) {
             Page<K,V> parent = path.page;
@@ -1617,7 +1617,7 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
         /**
          * Decision maker for transaction rollback.
          */
-        public static final DecisionMaker<Object> DEFAULT = new DecisionMaker<Object>() {
+        public static final DecisionMaker<Object> DEFAULT = new DecisionMaker<>() {
             @Override
             public Decision decide(Object existingValue, Object providedValue) {
                 return providedValue == null ? Decision.REMOVE : Decision.PUT;
@@ -1632,7 +1632,7 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
         /**
          * Decision maker for put().
          */
-        public static final DecisionMaker<Object> PUT = new DecisionMaker<Object>() {
+        public static final DecisionMaker<Object> PUT = new DecisionMaker<>() {
             @Override
             public Decision decide(Object existingValue, Object providedValue) {
                 return Decision.PUT;
@@ -1647,7 +1647,7 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
         /**
          * Decision maker for remove().
          */
-        public static final DecisionMaker<Object> REMOVE = new DecisionMaker<Object>() {
+        public static final DecisionMaker<Object> REMOVE = new DecisionMaker<>() {
             @Override
             public Decision decide(Object existingValue, Object providedValue) {
                 return Decision.REMOVE;
@@ -1662,7 +1662,7 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
         /**
          * Decision maker for putIfAbsent() key/value.
          */
-        static final DecisionMaker<Object> IF_ABSENT = new DecisionMaker<Object>() {
+        static final DecisionMaker<Object> IF_ABSENT = new DecisionMaker<>() {
             @Override
             public Decision decide(Object existingValue, Object providedValue) {
                 return existingValue == null ? Decision.PUT : Decision.ABORT;
@@ -1677,7 +1677,7 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
         /**
          * Decision maker for replace().
          */
-        static final DecisionMaker<Object> IF_PRESENT= new DecisionMaker<Object>() {
+        static final DecisionMaker<Object> IF_PRESENT= new DecisionMaker<>() {
             @Override
             public Decision decide(Object existingValue, Object providedValue) {
                 return existingValue != null ? Decision.PUT : Decision.ABORT;
@@ -1907,7 +1907,7 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
         int contention = 1;
         if (oldRootReference != null) {
             long updateAttemptCounter = rootReference.updateAttemptCounter -
-                                        oldRootReference.updateAttemptCounter;
+                    oldRootReference.updateAttemptCounter;
             assert updateAttemptCounter >= 0 : updateAttemptCounter;
             long updateCounter = rootReference.updateCounter - oldRootReference.updateCounter;
             assert updateCounter >= 0 : updateCounter;
@@ -1966,9 +1966,9 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
             RootReference<K,V> rootReference = getRoot();
             assert rootReference.isLockedByCurrentThread();
             updatedRootReference = rootReference.updatePageAndLockedStatus(
-                                        newRootPage == null ? rootReference.root : newRootPage,
-                                        false,
-                                        appendCounter == -1 ? rootReference.getAppendCounter() : appendCounter
+                    newRootPage == null ? rootReference.root : newRootPage,
+                    false,
+                    appendCounter == -1 ? rootReference.getAppendCounter() : appendCounter
             );
         } while(updatedRootReference == null);
 
@@ -2043,7 +2043,7 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
         public Decision decide(V existingValue, V providedValue) {
             assert decision == null;
             decision = !areValuesEqual(dataType, expectedValue, existingValue) ? Decision.ABORT :
-                                            providedValue == null ? Decision.REMOVE : Decision.PUT;
+                    providedValue == null ? Decision.REMOVE : Decision.PUT;
             return decision;
         }
 

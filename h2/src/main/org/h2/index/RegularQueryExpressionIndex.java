@@ -158,12 +158,13 @@ public final class RegularQueryExpressionIndex extends QueryExpressionIndex impl
     }
 
     @Override
-    public Cursor find(SessionLocal session, SearchRow first, SearchRow last) {
+    public Cursor find(SessionLocal session, SearchRow first, SearchRow last, boolean reverse) {
         return find(session, first, last, null);
     }
 
     @Override
-    public Cursor findByGeometry(SessionLocal session, SearchRow first, SearchRow last, SearchRow intersection) {
+    public Cursor findByGeometry(SessionLocal session, SearchRow first, SearchRow last, boolean reverse,  SearchRow intersection) {
+        assert !reverse;
         return find(session, first, last, intersection);
     }
 

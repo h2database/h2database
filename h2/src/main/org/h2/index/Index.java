@@ -246,7 +246,7 @@ public abstract class Index extends SchemaObject {
      * @param last the last row, or null for no limit
      * @return the cursor to iterate over the results
      */
-    public abstract Cursor find(SessionLocal session, SearchRow first, SearchRow last);
+    public abstract Cursor find(SessionLocal session, SearchRow first, SearchRow last, boolean reverse);
 
     /**
      * Estimate the cost to search for rows given the search mask.

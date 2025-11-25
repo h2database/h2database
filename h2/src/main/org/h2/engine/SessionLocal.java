@@ -262,6 +262,14 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
      */
     private boolean quirksMode;
 
+    /**
+     * Session-local CompareMode cache.
+     *
+     * Needed for CHECK (IN ...) evaluation in prepared statements across sessions;
+     * prevents comparison from dereferencing a closed Database.
+     */
+    private CompareMode compareMode;
+
     public SessionLocal(Database database, User user, int id) {
         this.database = database;
         this.queryTimeout = database.getSettings().maxQueryTimeout;
@@ -274,6 +282,7 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
                 : database.sysIdentifier(Constants.SCHEMA_MAIN);
         timeZone = DateTimeUtils.getTimeZone();
         sessionStart = DateTimeUtils.currentTimestamp(timeZone, commandStartOrEnd = Instant.now());
+        this.compareMode = database.getCompareMode();
     }
 
     public void setLazyQueryExecution(boolean lazyQueryExecution) {
@@ -1492,24 +1501,24 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
          * duplicates due to concurrent remove().
          */
         switch (array.length) {
-        case 1: {
-            Object table = array[0];
-            if (table != null) {
-                return Collections.singleton((Table) table);
-            }
-        }
-        //$FALL-THROUGH$
-        case 0:
-            return Collections.emptySet();
-        default: {
-            HashSet<Table> set = new HashSet<>();
-            for (Object table : array) {
+            case 1: {
+                Object table = array[0];
                 if (table != null) {
-                    set.add((Table) table);
+                    return Collections.singleton((Table) table);
                 }
             }
-            return set;
-        }
+            //$FALL-THROUGH$
+            case 0:
+                return Collections.emptySet();
+            default: {
+                HashSet<Table> set = new HashSet<>();
+                for (Object table : array) {
+                    if (table != null) {
+                        set.add((Table) table);
+                    }
+                }
+                return set;
+            }
         }
     }
 
@@ -1661,35 +1670,35 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
             if (command != null) {
                 Set<DbObject> dependencies = command.getDependencies();
                 switch (transaction.getIsolationLevel()) {
-                case SNAPSHOT:
-                case SERIALIZABLE:
-                    if (!transaction.hasStatementDependencies()) {
-                        for (Schema schema : getDatabase().getAllSchemasNoMeta()) {
-                            for (Table table : schema.getAllTablesAndViews(null)) {
-                                if (table instanceof MVTable) {
-                                    addTableToDependencies((MVTable)table, maps);
+                    case SNAPSHOT:
+                    case SERIALIZABLE:
+                        if (!transaction.hasStatementDependencies()) {
+                            for (Schema schema : getDatabase().getAllSchemasNoMeta()) {
+                                for (Table table : schema.getAllTablesAndViews(null)) {
+                                    if (table instanceof MVTable) {
+                                        addTableToDependencies((MVTable)table, maps);
+                                    }
                                 }
+                            }
+                            break;
+                        }
+                        //$FALL-THROUGH$
+                    case READ_COMMITTED:
+                    case READ_UNCOMMITTED:
+                        for (DbObject dependency : dependencies) {
+                            if (dependency instanceof MVTable) {
+                                addTableToDependencies((MVTable)dependency, maps);
                             }
                         }
                         break;
-                    }
-                    //$FALL-THROUGH$
-                case READ_COMMITTED:
-                case READ_UNCOMMITTED:
-                    for (DbObject dependency : dependencies) {
-                        if (dependency instanceof MVTable) {
-                            addTableToDependencies((MVTable)dependency, maps);
+                    case REPEATABLE_READ:
+                        HashSet<MVTable> processed = new HashSet<>();
+                        for (DbObject dependency : dependencies) {
+                            if (dependency instanceof MVTable) {
+                                addTableToDependencies((MVTable)dependency, maps, processed);
+                            }
                         }
-                    }
-                    break;
-                case REPEATABLE_READ:
-                    HashSet<MVTable> processed = new HashSet<>();
-                    for (DbObject dependency : dependencies) {
-                        if (dependency instanceof MVTable) {
-                            addTableToDependencies((MVTable)dependency, maps, processed);
-                        }
-                    }
-                    break;
+                        break;
                 }
             }
             statementModificationDataId = database.getModificationDataId();
@@ -1711,7 +1720,7 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
     }
 
     private static void addTableToDependencies(MVTable table, HashSet<MVMap<Object,VersionedValue<Object>>> maps,
-            HashSet<MVTable> processed) {
+                                               HashSet<MVTable> processed) {
         if (processed.add(table)) {
             addTableToDependencies(table, maps);
             for (Constraint constraint : table.getConstraints()) {
@@ -1801,8 +1810,8 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
 
     @Override
     public void onRollback(MVMap<Object, VersionedValue<Object>> map, Object key,
-                            VersionedValue<Object> existingValue,
-                            VersionedValue<Object> restoredValue) {
+                           VersionedValue<Object> existingValue,
+                           VersionedValue<Object> restoredValue) {
         // Here we are relying on the fact that map which backs table's primary index
         // has the same name as the table itself
         Store store = getDatabase().getStore();
@@ -2133,8 +2142,19 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
         }
     }
 
+
     private CompareMode getCompareMode() {
-        return getDatabase().getCompareMode();
+        CompareMode cm = this.compareMode;
+
+        Database db = this.database;
+        if (db != null) {
+            CompareMode dbMode = db.getCompareMode();
+            if (cm != dbMode) {
+                cm = dbMode;
+                this.compareMode = cm;
+            }
+        }
+        return cm;
     }
 
     private <T> HashMap<String,T> newStringsMap() {

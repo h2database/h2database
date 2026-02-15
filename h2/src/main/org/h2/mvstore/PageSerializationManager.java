@@ -71,12 +71,45 @@ public final class PageSerializationManager {
         void countNewPage(boolean isLeaf);
     }
 
+    /**
+     * Record of a page that has been serialized into the buffer.
+     * <p>
+     * Captures the buffer-level layout information and the {@link Page}
+     * reference. This data is sufficient for {@code rebasePositions()}
+     * (Step 5b) to adjust all positions when a local buffer is merged
+     * into a global buffer at a different base offset.
+     */
+    public static final class SerializedPageRecord {
+        /** The serialized page. Set by {@link #onPageSerialized}. */
+        Page<?,?> page;
+        /** Byte offset of the page image within the buffer. */
+        final int bufferOffset;
+        /** Serialized page length in bytes. */
+        final int pageLength;
+        /** Page type ({@code PAGE_TYPE_LEAF} or {@code PAGE_TYPE_NODE}). */
+        final int type;
+        /** Composed page position (chunkId + tocElement). */
+        final long pagePos;
+        /** The ToC element encoding (mapId, offset, pageLength, type). */
+        final long tocElement;
+
+        SerializedPageRecord(int bufferOffset, int pageLength, int type,
+                             long pagePos, long tocElement) {
+            this.bufferOffset = bufferOffset;
+            this.pageLength = pageLength;
+            this.type = type;
+            this.pagePos = pagePos;
+            this.tocElement = tocElement;
+        }
+    }
+
 
     private final int chunkId;
     private final long chunkVersion;
     private final WriteBuffer buff;
     private final List<Long> toc = new ArrayList<>();
     private final Callback callback;
+    private final List<SerializedPageRecord> serializedPages = new ArrayList<>();
 
     /**
      * Create a new serialization manager.
@@ -132,10 +165,12 @@ public final class PageSerializationManager {
         toc.add(tocElement);
         long pagePos = DataUtils.composePagePos(chunkId, tocElement);
         int check = DataUtils.getCheckValue(chunkId)
-                ^ DataUtils.getCheckValue(offset)
-                ^ DataUtils.getCheckValue(pageLength);
+                    ^ DataUtils.getCheckValue(offset)
+                    ^ DataUtils.getCheckValue(pageLength);
         buff.putInt(offset, pageLength)
             .putShort(offset + 4, (short) check);
+        serializedPages.add(new SerializedPageRecord(
+                offset, pageLength, type, pagePos, tocElement));
         return pagePos;
     }
 
@@ -150,6 +185,11 @@ public final class PageSerializationManager {
      */
     public void onPageSerialized(Page<?,?> page, boolean isDeleted,
                                  int diskSpaceUsed, boolean isPinned) {
+        // Associate the Page reference with the record created in getPagePosition().
+        // getPagePosition() is always called immediately before onPageSerialized()
+        // for the same page, so the last record is the correct one.
+        serializedPages.get(serializedPages.size() - 1).page = page;
+
         callback.cachePage(page);
         if (!page.isLeaf()) {
             // cache again — keeps nodes in cache longer
@@ -182,5 +222,12 @@ public final class PageSerializationManager {
      */
     public List<Long> getToc() {
         return List.copyOf(toc);
+    }
+
+    /**
+     * @return the list of serialized page records, in serialization order
+     */
+    public List<SerializedPageRecord> getSerializedPages() {
+        return serializedPages;
     }
 }

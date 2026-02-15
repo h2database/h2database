@@ -367,6 +367,20 @@ public abstract class Page<K,V> implements Cloneable {
         }
     }
 
+    /**
+     * Synchronize in-memory child {@link PageReference#pos} values
+     * with their corresponding {@link Page#pos} after a rebase
+     * operation has updated the latter.
+     * <p>
+     * No-op for leaf pages.  Overridden in {@link NonLeaf} to call
+     * {@link PageReference#resetPos()} on every child reference,
+     * ensuring that if the child page is later evicted from memory
+     * the correct (rebased) position is used for disk reads.
+     */
+    void syncChildRefsAfterRebase() {
+        // leaf pages have no child references — nothing to do
+    }
+
     @Override
     public String toString() {
         StringBuilder buff = new StringBuilder();
@@ -1406,6 +1420,14 @@ public abstract class Page<K,V> implements Cloneable {
             int len = getRawChildPageCount();
             for (int i = 0; i < len; i++) {
                 children[i].clearPageReference();
+            }
+        }
+
+        @Override
+        void syncChildRefsAfterRebase() {
+            int len = getRawChildPageCount();
+            for (int i = 0; i < len; i++) {
+                children[i].resetPos();
             }
         }
 

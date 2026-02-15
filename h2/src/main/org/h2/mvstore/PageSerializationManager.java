@@ -258,11 +258,10 @@ public final class PageSerializationManager {
      * @param baseOffset the byte offset to add to every page position;
      *                   passing 0 is a no-op
      */
-    public void rebasePositions(int baseOffset) {
+    public void rebasePositions(int baseOffset, ByteBuffer targetBuf) {
         if (baseOffset == 0) {
             return;
         }
-        ByteBuffer buf = buff.getBuffer();
         int pageCount = serializedPages.size();
 
         // Map old pagePos → new pagePos for child-pointer fixup
@@ -278,14 +277,15 @@ public final class PageSerializationManager {
                     rec.mapId, newOffset, rec.pageLength, rec.type);
             long newPagePos = DataUtils.composePagePos(chunkId, newTocElement);
 
-            // Update ToC list (used later by serializeToC)
+            // Update ToC list (used later by writeMergedToC)
             toc.set(i, newTocElement);
 
-            // Patch check value in buffer — offset is part of the check
+            // Patch check value in the TARGET buffer at the rebased location.
+            // The check depends on the offset, so it changes when we rebase.
             int newCheck = DataUtils.getCheckValue(chunkId)
                            ^ DataUtils.getCheckValue(newOffset)
                            ^ DataUtils.getCheckValue(rec.pageLength);
-            buf.putShort(rec.bufferOffset + 4, (short) newCheck);
+            targetBuf.putShort(newOffset + 4, (short) newCheck);
 
             // CAS-update Page.pos from local to rebased position
             rec.page.rebasePos(rec.pagePos, newPagePos);
@@ -296,30 +296,59 @@ public final class PageSerializationManager {
         // ---- Pass 2: Rebase child pointers in NonLeaf pages ----
         for (SerializedPageRecord rec : serializedPages) {
             if (rec.type != DataUtils.PAGE_TYPE_LEAF) {
-                rebaseChildPointers(buf, rec, positionMap);
+                rebaseChildPointers(targetBuf, rec, baseOffset, positionMap);
             }
+        }
+
+        // ---- Pass 3: Sync in-memory PageReference.pos values ----
+        // Pass 1 updated each Page.pos via CAS, but the parent NonLeaf's
+        // PageReference.pos fields still hold the old local positions.
+        // If a child page is later evicted from the in-memory cache,
+        // getChildPage() would use the stale PageReference.pos for a
+        // disk read, hitting a wrong file offset.  syncChildRefsAfterRebase()
+        // calls PageReference.resetPos() which copies the already-rebased
+        // Page.pos into the reference.
+        for (SerializedPageRecord rec : serializedPages) {
+            rec.page.syncChildRefsAfterRebase();
         }
     }
 
     /**
-     * Rewrite child-pointer longs in a NonLeaf page's buffer region
-     * that reference pages within this buffer (i.e. pages whose old
-     * position appears in the {@code positionMap}).
-     * <p>
-     * Child pointers referencing pages from previous chunks are left
-     * untouched — they already have correct absolute positions.
+     * Backward-compatible overload that patches the PSM's own buffer.
+     *
+     * @param baseOffset the byte offset to add to every page position
      */
-    private void rebaseChildPointers(ByteBuffer buf,
+    public void rebasePositions(int baseOffset) {
+        rebasePositions(baseOffset, buff.getBuffer());
+    }
+
+    /**
+     * Rewrite child-pointer longs in a NonLeaf page's region of the
+     * target buffer. Only pointers that reference pages within this
+     * PSM's set (i.e. whose old position appears in {@code positionMap})
+     * are updated. Pointers to pages from previous chunks are left
+     * untouched.
+     *
+     * @param targetBuf   the buffer containing the page data (may be the
+     *                    global buffer after a copy)
+     * @param rec         the NonLeaf page record (with local offsets)
+     * @param baseOffset  offset added to local positions to get target
+     *                    buffer positions
+     * @param positionMap old pagePos → new pagePos mapping
+     */
+    private void rebaseChildPointers(ByteBuffer targetBuf,
                                      SerializedPageRecord rec,
+                                     int baseOffset,
                                      Map<Long, Long> positionMap) {
         // Parse the page header to locate the child-pointer region.
         // Layout: [int pageLength][short check][varInt pageNo]
         //         [varInt mapId][varInt keyCount][byte type]
         //         [long childPos * (keyCount+1)] ...
-        ByteBuffer dup = buf.duplicate();
-        dup.order(buf.order());
+        int pageStart = rec.bufferOffset + baseOffset;
+        ByteBuffer dup = targetBuf.duplicate();
+        dup.order(targetBuf.order());
         // Skip pageLength (4) + check (2) = 6 bytes from page start
-        dup.position(rec.bufferOffset + 6);
+        dup.position(pageStart + 6);
         DataUtils.readVarInt(dup);              // pageNo — skip
         DataUtils.readVarInt(dup);              // mapId — skip
         int keyCount = DataUtils.readVarInt(dup); // keyCount
@@ -329,10 +358,10 @@ public final class PageSerializationManager {
 
         for (int i = 0; i < childCount; i++) {
             int ptrOffset = childrenPos + i * 8;
-            long childPagePos = buf.getLong(ptrOffset);
+            long childPagePos = targetBuf.getLong(ptrOffset);
             Long rebased = positionMap.get(childPagePos);
             if (rebased != null) {
-                buf.putLong(ptrOffset, rebased);
+                targetBuf.putLong(ptrOffset, rebased);
             }
         }
     }

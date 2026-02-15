@@ -1466,18 +1466,20 @@ public abstract class FileStore<C extends Chunk<C>>
     }
 
     /**
-     * Result holder for one map's serialization with its own PSM.
+     * Result holder for one map's serialization into a local buffer.
      */
     private static final class MapSerializationResult {
+        final Page<?,?> rootPage;
         final PageSerializationManager psm;
+        final WriteBuffer localBuff;
         final String layoutKey;
-        final long rootPos;
 
-        MapSerializationResult(PageSerializationManager psm,
-                               String layoutKey, long rootPos) {
+        MapSerializationResult(Page<?,?> rootPage, PageSerializationManager psm,
+                               WriteBuffer localBuff, String layoutKey) {
+            this.rootPage = rootPage;
             this.psm = psm;
+            this.localBuff = localBuff;
             this.layoutKey = layoutKey;
-            this.rootPos = rootPos;
         }
     }
 
@@ -1489,10 +1491,9 @@ public abstract class FileStore<C extends Chunk<C>>
 
         long version = c.version;
 
-        // ---- Phase 1: Serialize each map tree with its own PSM ----
-        // All PSMs write into the shared global buffer; positions are
-        // correct from the start (no rebase needed). Each PSM gets a
-        // pageNoBase so page numbers don't overlap across maps.
+        // ---- Phase 1: Serialize each map tree into a local buffer ----
+        // Each map gets its own WriteBuffer + PSM, serializing at local
+        // offset 0. Page numbers are partitioned via pageNoBase.
         int pageNoBase = 0;
         List<MapSerializationResult> results = new ArrayList<>();
         for (Page<?,?> p : changed) {
@@ -1500,17 +1501,34 @@ public abstract class FileStore<C extends Chunk<C>>
             if (p.getTotalCount() == 0) {
                 layout.remove(key);
             } else {
-                PageSerializationManager mapPSM =
-                        createPageSerializationManager(c, buff, pageNoBase);
-                p.writeUnsavedRecursive(mapPSM);
-                long root = p.getPos();
-                layout.put(key, Long.toHexString(root));
-                results.add(new MapSerializationResult(mapPSM, key, root));
-                pageNoBase += mapPSM.getPageCount();
+                WriteBuffer localBuff = new WriteBuffer();
+                PageSerializationManager localPSM =
+                        createPageSerializationManager(c, localBuff, pageNoBase);
+                p.writeUnsavedRecursive(localPSM);
+                results.add(new MapSerializationResult(p, localPSM, localBuff, key));
+                pageNoBase += localPSM.getPageCount();
             }
         }
 
-        // ---- Phase 2: Layout map serialization (on global buffer) ----
+        // ---- Phase 2: Copy local buffers into global buffer, then rebase ----
+        // We copy first, then patch the GLOBAL buffer at the rebased
+        // offsets. This avoids any issues with WriteBuffer.getBuffer()
+        // returning different ByteBuffer instances.
+        for (MapSerializationResult result : results) {
+            int baseOffset = buff.position();
+            // Copy local data to global buffer
+            ByteBuffer src = result.localBuff.getBuffer();
+            src.flip();
+            buff.put(src);
+            // Rebase the global buffer: fix checksums, child pointers,
+            // Page.pos, and ToC entries
+            result.psm.rebasePositions(baseOffset, buff.getBuffer());
+            // Root position is now correct after rebase
+            layout.put(result.layoutKey,
+                       Long.toHexString(result.rootPage.getPos()));
+        }
+
+        // ---- Phase 3: Layout map serialization (on global buffer) ----
         acceptChunkOccupancyChanges(c.time, version);
 
         if (previousChunk != null) {
@@ -1536,7 +1554,7 @@ public abstract class FileStore<C extends Chunk<C>>
 
         c.mapId = mvStore.getLastMapId();
 
-        // ---- Phase 3: Write merged ToC ----
+        // ---- Phase 4: Write merged ToC ----
         c.tocPos = buff.position();
         writeMergedToC(c, results, layoutPSM);
         int chunkLength = buff.position();
@@ -1563,7 +1581,7 @@ public abstract class FileStore<C extends Chunk<C>>
         long[] tocArray = new long[totalPages];
         int index = 0;
 
-        // Map pages first
+        // Map pages first (already rebased)
         for (MapSerializationResult r : mapResults) {
             for (long tocElement : r.psm.getToc()) {
                 tocArray[index++] = tocElement;

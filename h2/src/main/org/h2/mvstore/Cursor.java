@@ -76,7 +76,7 @@ public final class Cursor<K,V> implements Iterator<K> {
                         }
                     }
                     if (descended) {
-                        prefetchNextSibling(cursorPos.parent, reverse);
+                        prefetchAhead(cursorPos.parent, reverse);
                     }
                     if (reverse ? index >= 0 : index < page.getKeyCount()) {
                         K key = page.getKey(index);
@@ -188,24 +188,40 @@ public final class Cursor<K,V> implements Iterator<K> {
     }
 
     /**
-     * Submit a best-effort prefetch for the next sibling child page.
-     * Called after descending to a new leaf to overlap the I/O for the
-     * next leaf with processing of the current one.
+     * Number of upcoming sibling child pages to prefetch when the cursor
+     * crosses a leaf boundary. Prefetching is directional — only siblings
+     * ahead in the scan direction are submitted.
+     */
+    private static final int PREFETCH_WINDOW = 4;
+
+    /**
+     * Submit best-effort prefetch for the next {@link #PREFETCH_WINDOW}
+     * sibling child pages in the scan direction. Called after descending
+     * to a new leaf to overlap I/O for upcoming leaves with processing
+     * of the current one.
+     * <p>
+     * Only prefetches siblings from the immediate parent. Already-cached
+     * pages and unsaved pages are skipped cheaply inside
+     * {@link MVMap#prefetchPage(long)}.
      *
      * @param parentPos cursor position at the direct parent of the
      *                  current leaf, where {@code index} is the child
      *                  slot we just descended through
      * @param reverse   true if scanning in reverse (descending) order
      */
-    private static <K,V> void prefetchNextSibling(CursorPos<K,V> parentPos, boolean reverse) {
+    private static <K,V> void prefetchAhead(CursorPos<K,V> parentPos, boolean reverse) {
         if (parentPos == null) {
             return;
         }
         Page<K,V> parent = parentPos.page;
-        int nextIndex = parentPos.index + (reverse ? -1 : 1);
         int childCount = parent.map.getChildPageCount(parent);
-        if (nextIndex >= 0 && nextIndex < childCount) {
-            parent.map.prefetchPage(parent.getChildPagePos(nextIndex));
+        int increment = reverse ? -1 : 1;
+        int prefetched = 0;
+        for (int i = parentPos.index + increment;
+             i >= 0 && i < childCount && prefetched < PREFETCH_WINDOW;
+             i += increment) {
+            parent.map.prefetchPage(parent.getChildPagePos(i));
+            prefetched++;
         }
     }
 }

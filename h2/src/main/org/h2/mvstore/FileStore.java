@@ -32,6 +32,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
@@ -2035,6 +2036,30 @@ public abstract class FileStore<C extends Chunk<C>>
             }
             throw e;
         }
+    }
+
+    /**
+     * Submit a best-effort background read for the page at the given
+     * position. If the page is already in the cache, this is a no-op.
+     * If the background read fails, the failure is silently ignored —
+     * the page will be demand-loaded when actually needed.
+     * <p>
+     * Used by cursor readahead to overlap I/O with processing.
+     *
+     * @param map the map
+     * @param pos the page position
+     */
+    <K,V> void prefetchPage(MVMap<K,V> map, long pos) {
+        if (!DataUtils.isPageSaved(pos) || readPageFromCache(pos) != null) {
+            return;
+        }
+        ForkJoinPool.commonPool().execute(() -> {
+            try {
+                readPage(map, pos);
+            } catch (Exception ignored) {
+                // prefetch failure is not fatal
+            }
+        });
     }
 
     /**

@@ -427,7 +427,7 @@ public final class MVStore implements AutoCloseable {
             }
             assert builder.getKeyType() == null || map.getKeyType().getClass().equals(builder.getKeyType().getClass());
             assert builder.getValueType() == null
-                    || map.getValueType().getClass().equals(builder.getValueType().getClass());
+                   || map.getValueType().getClass().equals(builder.getValueType().getClass());
             return map;
         } else {
             HashMap<String, Object> c = new HashMap<>();
@@ -689,7 +689,7 @@ public final class MVStore implements AutoCloseable {
                                 setRetentionTime(0);
                                 commit();
                                 assert oldestVersionToKeep.get() == currentVersion : oldestVersionToKeep.get() + " != "
-                                        + currentVersion;
+                                                                                     + currentVersion;
                                 fileStore.stop(allowedCompactionTime);
                             }
 
@@ -850,7 +850,7 @@ public final class MVStore implements AutoCloseable {
             panic(e);
         } catch (Throwable e) {
             panic(DataUtils.newMVStoreException(DataUtils.ERROR_INTERNAL, "{0}", e.toString(),
-                    e));
+                                                e));
         }
     }
 
@@ -863,8 +863,8 @@ public final class MVStore implements AutoCloseable {
             if (rootReference == null) {
                 iter.remove();
             } else if (map.getCreateVersion() < version && // if map was created after storing started, skip it
-                    !map.isVolatile() &&
-                    map.hasChangesSince(lastStoredVersion)) {
+                       !map.isVolatile() &&
+                       map.hasChangesSince(lastStoredVersion)) {
                 assert rootReference.version <= version : rootReference.version + " > " + version;
                 // simply checking rootPage.isSaved() won't work here because
                 // after deletion previously saved page
@@ -1019,6 +1019,18 @@ public final class MVStore implements AutoCloseable {
     <K,V> Page<K,V> readPage(MVMap<K,V> map, long pos) {
         checkNotClosed();
         return fileStore.readPage(map, pos);
+    }
+
+    /**
+     * Submit a best-effort background prefetch for a page.
+     *
+     * @param map the map
+     * @param pos the page position
+     */
+    <K,V> void prefetchPage(MVMap<K,V> map, long pos) {
+        if (fileStore != null) {
+            fileStore.prefetchPage(map, pos);
+        }
     }
 
     /**
@@ -1192,7 +1204,7 @@ public final class MVStore implements AutoCloseable {
             long current = oldestVersionToKeep.get();
             // Oldest version may only advance, never goes back
             success = version <= current ||
-                        oldestVersionToKeep.compareAndSet(current, version);
+                      oldestVersionToKeep.compareAndSet(current, version);
         } while (!success);
         assert version <= currentVersion : version + " <= " + currentVersion;
 
@@ -1257,12 +1269,12 @@ public final class MVStore implements AutoCloseable {
      */
     void beforeWrite(MVMap<?, ?> map) {
         if (saveNeeded && isOpenOrStopping() &&
-                // condition below is to prevent potential deadlock,
-                // because we should never seek storeLock while holding
-                // map root lock
-                (storeLock.isHeldByCurrentThread() || !map.getRoot().isLockedByCurrentThread()) &&
-                // to avoid infinite recursion via store() -> dropUnusedChunks() -> layout.remove()
-                fileStore.isRegularMap(map)) {
+            // condition below is to prevent potential deadlock,
+            // because we should never seek storeLock while holding
+            // map root lock
+            (storeLock.isHeldByCurrentThread() || !map.getRoot().isLockedByCurrentThread()) &&
+            // to avoid infinite recursion via store() -> dropUnusedChunks() -> layout.remove()
+            fileStore.isRegularMap(map)) {
             saveNeeded = false;
             // check again, because it could have been written by now
             if (needStore()) {
@@ -1414,14 +1426,14 @@ public final class MVStore implements AutoCloseable {
     private void checkOpen() {
         if (!isOpen()) {
             throw DataUtils.newMVStoreException(DataUtils.ERROR_CLOSED,
-                    "This store is closed", panicException);
+                                                "This store is closed", panicException);
         }
     }
 
     private void checkNotClosed() {
         if (!isOpenOrStopping()) {
             throw DataUtils.newMVStoreException(DataUtils.ERROR_CLOSED,
-                    "This store is closed", panicException);
+                                                "This store is closed", panicException);
         }
     }
 
@@ -1532,7 +1544,7 @@ public final class MVStore implements AutoCloseable {
 
     public void populateInfo(BiConsumer<String, String> consumer) {
         consumer.accept("info.UPDATE_FAILURE_PERCENT",
-            String.format(Locale.ENGLISH, "%.2f%%", 100 * getUpdateFailureRatio()));
+                        String.format(Locale.ENGLISH, "%.2f%%", 100 * getUpdateFailureRatio()));
         consumer.accept("info.LEAF_RATIO", Integer.toString(getLeafRatio()));
 
         if (isVersioningRequired()) {
@@ -1731,7 +1743,7 @@ public final class MVStore implements AutoCloseable {
     private void dropUnusedVersions() {
         TxCounter txCounter;
         while ((txCounter = versions.peek()) != null
-                && txCounter.get() < 0) {
+               && txCounter.get() < 0) {
             versions.poll();
         }
         long oldestVersionToKeep = (txCounter != null ? txCounter : currentTxCounter).version;
@@ -1764,7 +1776,7 @@ public final class MVStore implements AutoCloseable {
         private volatile int counter;
 
         private static final AtomicIntegerFieldUpdater<TxCounter> counterUpdater =
-                                        AtomicIntegerFieldUpdater.newUpdater(TxCounter.class, "counter");
+                AtomicIntegerFieldUpdater.newUpdater(TxCounter.class, "counter");
 
 
         TxCounter(long version) {

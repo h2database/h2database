@@ -60,6 +60,7 @@ public final class Cursor<K,V> implements Iterator<K> {
                     keeper = tmp;
                 } else {
                     // traverse down to the leaf taking the leftmost path
+                    boolean descended = !page.isLeaf();
                     while (!page.isLeaf()) {
                         page = page.getChildPage(index);
                         index = reverse ? upperBound(page) - 1 : 0;
@@ -73,6 +74,9 @@ public final class Cursor<K,V> implements Iterator<K> {
                             tmp.index = index;
                             cursorPos = tmp;
                         }
+                    }
+                    if (descended) {
+                        prefetchNextSibling(cursorPos.parent, reverse);
                     }
                     if (reverse ? index >= 0 : index < page.getKeyCount()) {
                         K key = page.getKey(index);
@@ -167,7 +171,7 @@ public final class Cursor<K,V> implements Iterator<K> {
      */
     static <K,V> CursorPos<K,V> traverseDown(Page<K,V> page, K key, boolean reverse) {
         CursorPos<K,V> cursorPos = key != null ? CursorPos.traverseDown(page, key) :
-                reverse ? page.getAppendCursorPos(null) : page.getPrependCursorPos(null);
+                                   reverse ? page.getAppendCursorPos(null) : page.getPrependCursorPos(null);
         int index = cursorPos.index;
         if (index < 0) {
             index = ~index;
@@ -181,5 +185,27 @@ public final class Cursor<K,V> implements Iterator<K> {
 
     private static <K,V> int upperBound(Page<K,V> page) {
         return page.isLeaf() ? page.getKeyCount() : page.map.getChildPageCount(page);
+    }
+
+    /**
+     * Submit a best-effort prefetch for the next sibling child page.
+     * Called after descending to a new leaf to overlap the I/O for the
+     * next leaf with processing of the current one.
+     *
+     * @param parentPos cursor position at the direct parent of the
+     *                  current leaf, where {@code index} is the child
+     *                  slot we just descended through
+     * @param reverse   true if scanning in reverse (descending) order
+     */
+    private static <K,V> void prefetchNextSibling(CursorPos<K,V> parentPos, boolean reverse) {
+        if (parentPos == null) {
+            return;
+        }
+        Page<K,V> parent = parentPos.page;
+        int nextIndex = parentPos.index + (reverse ? -1 : 1);
+        int childCount = parent.map.getChildPageCount(parent);
+        if (nextIndex >= 0 && nextIndex < childCount) {
+            parent.map.prefetchPage(parent.getChildPagePos(nextIndex));
+        }
     }
 }

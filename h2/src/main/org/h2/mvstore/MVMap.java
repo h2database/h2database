@@ -68,11 +68,11 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
 
     protected MVMap(Map<String, Object> config, DataType<K> keyType, DataType<V> valueType) {
         this((MVStore) config.get("store"), keyType, valueType,
-                DataUtils.readHexInt(config, "id", 0),
-                DataUtils.readHexLong(config, "createVersion", 0),
-                new AtomicReference<>(),
-                ((MVStore) config.get("store")).getKeysPerPage(),
-                config.containsKey("singleWriter") && (Boolean) config.get("singleWriter")
+             DataUtils.readHexInt(config, "id", 0),
+             DataUtils.readHexLong(config, "createVersion", 0),
+             new AtomicReference<>(),
+             ((MVStore) config.get("store")).getKeysPerPage(),
+             config.containsKey("singleWriter") && (Boolean) config.get("singleWriter")
         );
         setInitialRoot(createEmptyLeaf(), store.getCurrentVersion());
     }
@@ -81,7 +81,7 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
     @SuppressWarnings("CopyConstructorMissesField")
     protected MVMap(MVMap<K, V> source) {
         this(source.store, source.keyType, source.valueType, source.id, source.createVersion,
-                new AtomicReference<>(source.root.get()), source.keysPerPage, source.singleWriter);
+             new AtomicReference<>(source.root.get()), source.keysPerPage, source.singleWriter);
     }
 
     // meta map constructor
@@ -91,7 +91,7 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
     }
 
     private MVMap(MVStore store, DataType<K> keyType, DataType<V> valueType, int id, long createVersion,
-            AtomicReference<RootReference<K,V>> root, int keysPerPage, boolean singleWriter) {
+                  AtomicReference<RootReference<K,V>> root, int keysPerPage, boolean singleWriter) {
         this.store = store;
         this.id = id;
         this.createVersion = createVersion;
@@ -556,7 +556,7 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
      */
     static <X> boolean areValuesEqual(DataType<X> datatype, X a, X b) {
         return a == b
-            || a != null && b != null && datatype.compare(a, b) == 0;
+               || a != null && b != null && datatype.compare(a, b) == 0;
     }
 
     /**
@@ -630,6 +630,16 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
      */
     final Page<K,V> readPage(long pos) {
         return store.readPage(this, pos);
+    }
+
+    /**
+     * Submit a best-effort background prefetch for a page.
+     * Used by cursor readahead.
+     *
+     * @param pos the page position
+     */
+    final void prefetchPage(long pos) {
+        store.prefetchPage(this, pos);
     }
 
     /**
@@ -897,7 +907,7 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
      * @return new RootReference or null if update failed
      */
     protected static <K,V> boolean updateRoot(RootReference<K,V> expectedRootReference, Page<K,V> newRootPage,
-            int attemptUpdateCounter) {
+                                              int attemptUpdateCounter) {
         return expectedRootReference.updateRootPage(newRootPage, attemptUpdateCounter) != null;
     }
 
@@ -1013,8 +1023,8 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
                     "the method on the writable map");
         }
         DataUtils.checkArgument(version >= createVersion,
-                "Unknown version {0}; this map was created in version is {1}",
-                version, createVersion);
+                                "Unknown version {0}; this map was created in version is {1}",
+                                version, createVersion);
         RootReference<K,V> rootReference = flushAndGetRoot();
         removeUnusedOldVersions(rootReference);
         RootReference<K,V> previous;
@@ -1269,9 +1279,9 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
                 } else {
                     tip = tip.parent;
                     page = Page.createLeaf(this,
-                            Arrays.copyOf(keysBuffer, keyCount),
-                            valuesBuffer == null ? null : Arrays.copyOf(valuesBuffer, keyCount),
-                            0);
+                                           Arrays.copyOf(keysBuffer, keyCount),
+                                           valuesBuffer == null ? null : Arrays.copyOf(valuesBuffer, keyCount),
+                                           0);
                 }
 
                 unsavedMemoryHolder.value = 0;
@@ -1305,7 +1315,7 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
                         keyCount = p.getKeyCount();
                         int at = keyCount - (p.isLeaf() ? 1 : 2);
                         if (keyCount <= keysPerPage &&
-                                (p.getMemory() < store.getMaxPageSize() || at <= 0)) {
+                            (p.getMemory() < store.getMaxPageSize() || at <= 0)) {
                             break;
                         }
                         key = p.getKey(at);
@@ -1315,7 +1325,7 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
                 }
                 p = replacePage(pos, p, unsavedMemoryHolder);
                 rootReference = rootReference.updatePageAndLockedStatus(p, preLocked || isPersistent(),
-                        remainingBuffer);
+                                                                        remainingBuffer);
                 if (rootReference != null) {
                     // should always be the case, except for spurious failure?
                     locked = preLocked || isPersistent();
@@ -1336,7 +1346,7 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
     }
 
     private static <K,V> Page<K,V> replacePage(CursorPos<K,V> path, Page<K,V> replacement,
-            IntValueHolder unsavedMemoryHolder) {
+                                               IntValueHolder unsavedMemoryHolder) {
         int unsavedMemory = replacement.isSaved() ? 0 : replacement.getMemory();
         while (path != null) {
             Page<K,V> parent = path.page;
@@ -1818,8 +1828,8 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
                             p.insertLeaf(-index - 1, key, value);
                             int keyCount;
                             while ((keyCount = p.getKeyCount()) > store.getKeysPerPage()
-                                    || p.getMemory() > store.getMaxPageSize()
-                                    && keyCount > (p.isLeaf() ? 1 : 2)) {
+                                   || p.getMemory() > store.getMaxPageSize()
+                                      && keyCount > (p.isLeaf() ? 1 : 2)) {
                                 long totalCount = p.getTotalCount();
                                 int at = keyCount >> 1;
                                 K k = p.getKey(at);
@@ -1953,9 +1963,9 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
             RootReference<K,V> rootReference = getRoot();
             assert rootReference.isLockedByCurrentThread();
             updatedRootReference = rootReference.updatePageAndLockedStatus(
-                                        newRootPage == null ? rootReference.root : newRootPage,
-                                        false,
-                                        appendCounter == -1 ? rootReference.getAppendCounter() : appendCounter
+                    newRootPage == null ? rootReference.root : newRootPage,
+                    false,
+                    appendCounter == -1 ? rootReference.getAppendCounter() : appendCounter
             );
         } while(updatedRootReference == null);
 
@@ -2030,7 +2040,7 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
         public Decision decide(V existingValue, V providedValue) {
             assert decision == null;
             decision = !areValuesEqual(dataType, expectedValue, existingValue) ? Decision.ABORT :
-                                            providedValue == null ? Decision.REMOVE : Decision.PUT;
+                       providedValue == null ? Decision.REMOVE : Decision.PUT;
             return decision;
         }
 

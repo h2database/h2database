@@ -35,6 +35,9 @@ More information: https://h2database.com
 * [Data types](https://h2database.com/html/datatypes.html)
 
 ### For Developers
+
+**New to H2 development? Start here:** [Quick Start Guide](QUICKSTART.md) ⚡
+
 * [Contributing Guide](CONTRIBUTING.md) - How to contribute to H2
 * [Development Setup](DEVELOPMENT.md) - Setting up your development environment
 * [Architecture Overview](ARCHITECTURE.md) - Understanding the H2 codebase

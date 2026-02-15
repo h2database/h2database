@@ -1455,7 +1455,7 @@ public abstract class FileStore<C extends Chunk<C>>
         c.next = headerLength;
 
         long version = c.version;
-        PageSerializationManager pageSerializationManager = new PageSerializationManager(c, buff);
+        PageSerializationManager pageSerializationManager = createPageSerializationManager(c, buff);
         for (Page<?,?> p : changed) {
             String key = MVMap.getMapRootKey(p.getMapId());
             if (p.getTotalCount() == 0) {
@@ -2097,65 +2097,44 @@ public abstract class FileStore<C extends Chunk<C>>
 
 
 
-    public final class PageSerializationManager
-    {
-        private final C chunk;
-        private final WriteBuffer buff;
-        private final List<Long> toc = new ArrayList<>();
+    /**
+     * Create a {@link PageSerializationManager} wired to this store's
+     * caches and accounting for the given chunk.
+     *
+     * @param chunk the chunk being built
+     * @param buff  the target write buffer
+     * @return a new manager ready for page serialization
+     */
+    PageSerializationManager createPageSerializationManager(C chunk, WriteBuffer buff) {
+        return new PageSerializationManager(
+                chunk.id, chunk.version, buff,
+                new PageSerializationManager.Callback() {
+                    @Override
+                    public void cachePage(Page<?,?> page) {
+                        FileStore.this.cachePage(page);
+                    }
 
-        PageSerializationManager(C chunk, WriteBuffer buff) {
-            this.chunk = chunk;
-            this.buff = buff;
-        }
+                    @Override
+                    public void accountForRemovedPage(long pos, long version,
+                                                      boolean pinned, int pageNo) {
+                        FileStore.this.accountForRemovedPage(pos, version, pinned, pageNo);
+                    }
 
-        public WriteBuffer getBuffer() {
-            return buff;
-        }
+                    @Override
+                    public void accountForWrittenPage(int diskSpaceUsed, boolean isPinned) {
+                        chunk.accountForWrittenPage(diskSpaceUsed, isPinned);
+                    }
 
-        private int getChunkId() {
-            return chunk.id;
-        }
+                    @Override
+                    public void cacheToC(int chunkId, long[] tocArray) {
+                        FileStore.this.cacheToC(chunk, tocArray);
+                    }
 
-        public int getPageNo() {
-            return toc.size();
-        }
-
-        public long getPagePosition(int mapId, int offset, int pageLength, int type) {
-            long tocElement = DataUtils.composeTocElement(mapId, offset, pageLength, type);
-            toc.add(tocElement);
-            long pagePos = DataUtils.composePagePos(chunk.id, tocElement);
-            int chunkId = getChunkId();
-            int check = DataUtils.getCheckValue(chunkId)
-                    ^ DataUtils.getCheckValue(offset)
-                    ^ DataUtils.getCheckValue(pageLength);
-            buff.putInt(offset, pageLength).
-                putShort(offset + 4, (short) check);
-            return pagePos;
-        }
-
-        public void onPageSerialized(Page<?,?> page, boolean isDeleted, int diskSpaceUsed, boolean isPinned) {
-            cachePage(page);
-            if (!page.isLeaf()) {
-                // cache again - this will make sure nodes stays in the cache
-                // for a longer time
-                cachePage(page);
-            }
-            chunk.accountForWrittenPage(diskSpaceUsed, isPinned);
-            if (isDeleted) {
-                accountForRemovedPage(page.getPos(), chunk.version + 1, isPinned, page.pageNo);
-            }
-        }
-
-        public void serializeToC() {
-            long[] tocArray = new long[toc.size()];
-            int index = 0;
-            for (long tocElement : toc) {
-                tocArray[index++] = tocElement;
-                buff.putLong(tocElement);
-                mvStore.countNewPage(DataUtils.isLeafPosition(tocElement));
-            }
-            cacheToC(chunk, tocArray);
-        }
+                    @Override
+                    public void countNewPage(boolean isLeaf) {
+                        mvStore.countNewPage(isLeaf);
+                    }
+                });
     }
 
 

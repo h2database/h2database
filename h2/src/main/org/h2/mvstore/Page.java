@@ -13,7 +13,7 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 import org.h2.compress.Compressor;
-import org.h2.mvstore.FileStore.PageSerializationManager;
+import org.h2.mvstore.PageSerializationManager;
 import org.h2.util.Utils;
 
 /**
@@ -708,7 +708,7 @@ public abstract class Page<K,V> implements Cloneable {
      *                                related to serialization
      * @return the position of the buffer, where serialized child page references (if any) begin
      */
-    protected final int write(FileStore<?>.PageSerializationManager pageSerializationManager) {
+    protected final int write(PageSerializationManager pageSerializationManager) {
         pageNo = pageSerializationManager.getPageNo();
         int keyCount = getKeyCount();
         WriteBuffer buff = pageSerializationManager.getBuffer();

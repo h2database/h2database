@@ -123,6 +123,17 @@ public abstract class FileStore<C extends Chunk<C>>
     private final int maxPageSize;
 
     /**
+     * Maximum size in bytes of a chunk that will be fully buffered into
+     * memory on first read access. Chunks at or below this threshold are
+     * read in one I/O operation and cached on the {@link Chunk#readBuffer}
+     * field, turning subsequent per-page reads into in-memory slicing.
+     * <p>
+     * Set to 0 to disable chunk read buffering.
+     * Default: 4 MB.
+     */
+    private int chunkReadCacheMaxBytes = 4 * 1024 * 1024;
+
+    /**
      * The file size (cached).
      */
     private long size;
@@ -239,7 +250,7 @@ public abstract class FileStore<C extends Chunk<C>>
         chunksToC = new CacheLongKeyLIRS<>(cc2);
 
         int maxPageSize = DataUtils.getConfigParam(config, "pageSplitSize",
-                                                    cache == null ? Integer.MAX_VALUE : Constants.DEFAULT_PAGE_SIZE);
+                                                   cache == null ? Integer.MAX_VALUE : Constants.DEFAULT_PAGE_SIZE);
         // Make sure pages will fit into cache
         if (cache != null) {
             int maxCacheableSize = (int) (cache.getMaxItemSize() >> 4);
@@ -386,6 +397,33 @@ public abstract class FileStore<C extends Chunk<C>>
      */
     public final void setRetentionTime(int ms) {
         retentionTime = ms;
+    }
+
+    /**
+     * Get the maximum chunk size (in bytes) that will be fully read into
+     * memory on first page access. Chunks at or below this threshold are
+     * cached in {@link Chunk#readBuffer}, converting subsequent per-page
+     * reads into zero-I/O buffer slicing.
+     *
+     * @return the threshold in bytes, or 0 if chunk read caching is disabled
+     */
+    public final int getChunkReadCacheMaxBytes() {
+        return chunkReadCacheMaxBytes;
+    }
+
+    /**
+     * Set the maximum chunk size (in bytes) eligible for read caching.
+     * <p>
+     * A chunk whose on-disk size ({@code len * BLOCK_SIZE}) is at or below
+     * this value will be read in full on first page access and kept in
+     * memory for subsequent reads. Larger chunks fall back to per-page I/O.
+     * <p>
+     * Setting this to 0 disables chunk read caching entirely.
+     *
+     * @param bytes the threshold in bytes (default: 4 MB)
+     */
+    public final void setChunkReadCacheMaxBytes(int bytes) {
+        this.chunkReadCacheMaxBytes = Math.max(0, bytes);
     }
 
     /**
@@ -542,10 +580,10 @@ public abstract class FileStore<C extends Chunk<C>>
         if (!isReadOnly()) {
             if (format > FORMAT_WRITE_MAX) {
                 throw getUnsupportedWriteFormatException(format, FORMAT_WRITE_MAX,
-                        "The write format {0} is larger than the supported format {1}");
+                                                         "The write format {0} is larger than the supported format {1}");
             } else if (format < FORMAT_WRITE_MIN) {
                 throw getUnsupportedWriteFormatException(format, FORMAT_WRITE_MIN,
-                        "The write format {0} is smaller than the supported format {1}");
+                                                         "The write format {0} is smaller than the supported format {1}");
             }
         }
         format = DataUtils.readHexLong(storeHeader, HDR_FORMAT_READ, format);
@@ -649,10 +687,10 @@ public abstract class FileStore<C extends Chunk<C>>
             List<C> toBeFreed = new ArrayList<>();
             C chunk;
             while ((chunk = deadChunks.poll()) != null &&
-                    (isSeasonedChunk(chunk, time) && canOverwriteChunk(chunk, oldestVersionToKeep) ||
-                            // if chunk is not ready yet, put it back and exit
-                            // since this deque is unbounded, offerFirst() always return true
-                            !deadChunks.offerFirst(chunk))) {
+                   (isSeasonedChunk(chunk, time) && canOverwriteChunk(chunk, oldestVersionToKeep) ||
+                    // if chunk is not ready yet, put it back and exit
+                    // since this deque is unbounded, offerFirst() always return true
+                    !deadChunks.offerFirst(chunk))) {
 
                 if (chunks.remove(chunk.id) != null) {
                     // purge dead pages from cache
@@ -694,8 +732,8 @@ public abstract class FileStore<C extends Chunk<C>>
 
     private boolean isRewritable(C chunk, long time) {
         return chunk.isRewritable() && isSeasonedChunk(chunk, time)
-                // to prevent last saved chunk from being re-written as it may cause "endless" re-write loop
-                && chunk.version < getMvStore().getCurrentVersion() - 1;
+               // to prevent last saved chunk from being re-written as it may cause "endless" re-write loop
+               && chunk.version < getMvStore().getCurrentVersion() - 1;
     }
 
     /**
@@ -902,7 +940,7 @@ public abstract class FileStore<C extends Chunk<C>>
      * @param mvStore that owns this FileStore
      */
     protected abstract void compactStore(int thresholdFillRate, long maxCompactTime, int maxWriteSize, //
-            MVStore mvStore);
+                                         MVStore mvStore);
 
     protected abstract void doHousekeeping(MVStore mvStore) throws InterruptedException;
 
@@ -986,7 +1024,7 @@ public abstract class FileStore<C extends Chunk<C>>
     }
 
     protected final boolean findLastChunkWithCompleteValidChunkSet(Comparator<C> chunkComparator,
-            Map<Long, C> validChunksByLocation, boolean afterFullScan) {
+                                                                   Map<Long, C> validChunksByLocation, boolean afterFullScan) {
         // this collection will hold potential candidates for lastChunk to fall back to,
         // in order from the most to the least likely
         C[] array = createChunksArray(validChunksByLocation.size());
@@ -1025,7 +1063,7 @@ public abstract class FileStore<C extends Chunk<C>>
                         }
                     }
                     if (!c.isLive() && validChunksById.get(c.id) == null &&
-                            (afterFullScan || readChunkHeaderAndFooter(c.block, c.id) == null)) {
+                        (afterFullScan || readChunkHeaderAndFooter(c.block, c.id) == null)) {
                         // chunk reference is invalid but chunk is not live anymore:
                         // we can just remove entry from meta, referencing to this chunk,
                         // but store maybe R/O, and it's not properly started yet,
@@ -1377,12 +1415,12 @@ public abstract class FileStore<C extends Chunk<C>>
     final void storeIt(ArrayList<Page<?,?>> changed, long version, boolean syncWrite) throws ExecutionException {
         lastCommitTime = getTimeSinceCreation();
         serializationExecutorHWM = submitOrRun(serializationExecutor,
-                () -> serializeAndStore(syncWrite, changed, lastCommitTime, version),
-                syncWrite, PIPE_LENGTH, serializationExecutorHWM);
+                                               () -> serializeAndStore(syncWrite, changed, lastCommitTime, version),
+                                               syncWrite, PIPE_LENGTH, serializationExecutorHWM);
     }
 
     private static int submitOrRun(ThreadPoolExecutor executor, Runnable action,
-                                    boolean syncRun, int threshold, int hwm) throws ExecutionException {
+                                   boolean syncRun, int threshold, int hwm) throws ExecutionException {
         if (executor != null) {
             try {
                 Future<?> future = executor.submit(action);
@@ -1434,7 +1472,7 @@ public abstract class FileStore<C extends Chunk<C>>
             }
 
             bufferSaveExecutorHWM = submitOrRun(bufferSaveExecutor, () -> storeBuffer(c, buff),
-                    syncRun, 5, bufferSaveExecutorHWM);
+                                                syncRun, 5, bufferSaveExecutorHWM);
 
             for (Page<?, ?> p : changed) {
                 p.releaseSavedPages();
@@ -1560,7 +1598,7 @@ public abstract class FileStore<C extends Chunk<C>>
                     if (chunk != null) {
                         modifiedChunks.add(chunk);
                         if (chunk.accountForRemovedPage(rpi.getPageNo(), rpi.getPageLength(),
-                                rpi.isPinned(), time, rpi.version)) {
+                                                        rpi.isPinned(), time, rpi.version)) {
                             registerDeadChunk(chunk);
                         }
                     }
@@ -1786,13 +1824,13 @@ public abstract class FileStore<C extends Chunk<C>>
         // queue will be ordered in descending order of collectionPriority values,
         // so most desirable chunks will stay at the tail
         PriorityQueue<C> queue = new PriorityQueue<>(this.chunks.size() / 4 + 1,
-                (o1, o2) -> {
-                    int comp = Integer.compare(o2.collectPriority, o1.collectPriority);
-                    if (comp == 0) {
-                        comp = Long.compare(o2.maxLenLive, o1.maxLenLive);
-                    }
-                    return comp;
-                });
+                                                     (o1, o2) -> {
+                                                         int comp = Integer.compare(o2.collectPriority, o1.collectPriority);
+                                                         if (comp == 0) {
+                                                             comp = Long.compare(o2.maxLenLive, o1.maxLenLive);
+                                                         }
+                                                         return comp;
+                                                     });
 
         long totalSize = 0;
         long latestVersion = lastChunkVersion() + 1;
@@ -1917,7 +1955,7 @@ public abstract class FileStore<C extends Chunk<C>>
                         int mapId = DataUtils.getPageMapId(tocElement);
                         MVMap<String, String> metaMap = mvStore.getMetaMap();
                         MVMap<?, ?> map = mapId == layout.getId() ? layout
-                                : mapId == metaMap.getId() ? metaMap : mvStore.getMap(mapId);
+                                                                  : mapId == metaMap.getId() ? metaMap : mvStore.getMap(mapId);
                         if (map != null && !map.isClosed()) {
                             assert !map.isSingleWriter();
                             if (secondPass || DataUtils.isLeafPosition(tocElement)) {
@@ -1978,8 +2016,8 @@ public abstract class FileStore<C extends Chunk<C>>
                         exception = e;
                     } catch (Exception e) {
                         exception = DataUtils.newMVStoreException(DataUtils.ERROR_FILE_CORRUPT,
-                                "Unable to read the page at position 0x{0}, chunk {1}, offset 0x{3}",
-                                Long.toHexString(pos), chunk, Long.toHexString(pageOffset), e);
+                                                                  "Unable to read the page at position 0x{0}, chunk {1}, offset 0x{3}",
+                                                                  Long.toHexString(pos), chunk, Long.toHexString(pageOffset), e);
                     }
                     if (alreadySaved) {
                         if (exception == null) {
@@ -2195,12 +2233,12 @@ public abstract class FileStore<C extends Chunk<C>>
         @Override
         public String toString() {
             return "RemovedPageInfo{" +
-                    "version=" + version +
-                    ", chunk=" + getPageChunkId() +
-                    ", pageNo=" + getPageNo() +
-                    ", len=" + getPageLength() +
-                    (isPinned() ? ", pinned" : "") +
-                    '}';
+                   "version=" + version +
+                   ", chunk=" + getPageChunkId() +
+                   ", pageNo=" + getPageNo() +
+                   ", len=" + getPageLength() +
+                   (isPinned() ? ", pinned" : "") +
+                   '}';
         }
     }
 

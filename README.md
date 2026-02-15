@@ -28,10 +28,17 @@ More information: https://h2database.com
 
 ## Documentation
 
+### For Users
 * [Tutorial](https://h2database.com/html/tutorial.html)
 * [SQL commands](https://h2database.com/html/commands.html)
 * [Functions](https://h2database.com/html/functions.html), [aggregate functions](https://h2database.com/html/functions-aggregate.html), [window functions](https://h2database.com/html/functions-window.html)
 * [Data types](https://h2database.com/html/datatypes.html)
+
+### For Developers
+* [Contributing Guide](CONTRIBUTING.md) - How to contribute to H2
+* [Development Setup](DEVELOPMENT.md) - Setting up your development environment
+* [Architecture Overview](ARCHITECTURE.md) - Understanding the H2 codebase
+* [Testing Guide](TESTING.md) - Writing and running tests
 
 ## Support
 

@@ -696,11 +696,17 @@ cd h2
 
 ### Test Matrices
 
-CI tests against multiple Java versions (see `.github/workflows/ci.yml`):
+CI automatically tests against multiple Java versions. To see which versions are currently tested, check the CI configuration:
+
+```bash
+cat .github/workflows/ci.yml
+```
+
+Currently tested versions:
 - Java 11 (minimum supported version)
 - Java 17 (recommended version for development)
 
-Note: While H2 supports Java 11+, the CI may only test specific versions. See DEVELOPMENT.md for details on supported versions.
+Note: H2 supports Java 11 and later. The CI matrix tests key versions to ensure compatibility.
 
 ## Code Coverage
 

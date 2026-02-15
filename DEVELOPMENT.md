@@ -166,7 +166,7 @@ Or with Maven installed:
 mvn clean package -Dmaven.test.skip=true
 ```
 
-**Note**: The Maven-generated JAR is larger than the official build and lacks some features (OSGi attributes, complete native-image configuration).
+**Note**: The Maven-generated JAR is larger than the official build (due to different packaging) and lacks some features (OSGi attributes, complete native-image configuration). Use the custom build system for production builds.
 
 **When to use each build system:**
 - **Custom build system (recommended)**: For production builds, official releases, or when you need full feature parity with official H2 builds

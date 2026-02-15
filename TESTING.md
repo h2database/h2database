@@ -700,7 +700,7 @@ CI tests against multiple Java versions (see `.github/workflows/ci.yml`):
 - Java 11 (minimum supported version)
 - Java 17 (recommended version for development)
 
-The CI may not test all versions - consult DEVELOPMENT.md for the complete list of supported Java versions.
+Note: While H2 supports Java 11+, the CI may only test specific versions. See DEVELOPMENT.md for details on supported versions.
 
 ## Code Coverage
 

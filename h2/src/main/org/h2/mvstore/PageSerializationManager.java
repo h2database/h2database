@@ -5,8 +5,11 @@
  */
 package org.h2.mvstore;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Manages serialization of pages into a chunk's write buffer.
@@ -82,6 +85,8 @@ public final class PageSerializationManager {
     public static final class SerializedPageRecord {
         /** The serialized page. Set by {@link #onPageSerialized}. */
         Page<?,?> page;
+        /** The owning map's id. */
+        final int mapId;
         /** Byte offset of the page image within the buffer. */
         final int bufferOffset;
         /** Serialized page length in bytes. */
@@ -93,8 +98,9 @@ public final class PageSerializationManager {
         /** The ToC element encoding (mapId, offset, pageLength, type). */
         final long tocElement;
 
-        SerializedPageRecord(int bufferOffset, int pageLength, int type,
-                             long pagePos, long tocElement) {
+        SerializedPageRecord(int mapId, int bufferOffset, int pageLength,
+                             int type, long pagePos, long tocElement) {
+            this.mapId = mapId;
             this.bufferOffset = bufferOffset;
             this.pageLength = pageLength;
             this.type = type;
@@ -170,7 +176,7 @@ public final class PageSerializationManager {
         buff.putInt(offset, pageLength)
             .putShort(offset + 4, (short) check);
         serializedPages.add(new SerializedPageRecord(
-                offset, pageLength, type, pagePos, tocElement));
+                mapId, offset, pageLength, type, pagePos, tocElement));
         return pagePos;
     }
 
@@ -199,6 +205,108 @@ public final class PageSerializationManager {
         if (isDeleted) {
             callback.accountForRemovedPage(
                     page.getPos(), chunkVersion + 1, isPinned, page.pageNo);
+        }
+    }
+
+    /**
+     * Adjust all page positions, ToC entries, buffer checksums, and
+     * NonLeaf child pointers by the given base offset. Called when a
+     * local serialization buffer is merged into a global chunk buffer
+     * at a position other than offset 0.
+     * <p>
+     * After this call:
+     * <ul>
+     *   <li>Every serialized page's {@code Page.pos} encodes the
+     *       rebased offset</li>
+     *   <li>The {@link #toc} list entries encode the rebased offset</li>
+     *   <li>The check values in the buffer reflect the rebased offset</li>
+     *   <li>NonLeaf child pointer longs in the buffer that reference
+     *       pages within this buffer are updated to their rebased
+     *       positions</li>
+     * </ul>
+     * <p>
+     * Note: {@link SerializedPageRecord} fields are <em>not</em>
+     * updated — they retain the original local values.
+     *
+     * @param baseOffset the byte offset to add to every page position;
+     *                   passing 0 is a no-op
+     */
+    public void rebasePositions(int baseOffset) {
+        if (baseOffset == 0) {
+            return;
+        }
+        ByteBuffer buf = buff.getBuffer();
+        int pageCount = serializedPages.size();
+
+        // Map old pagePos → new pagePos for child-pointer fixup
+        Map<Long, Long> positionMap = new HashMap<>(pageCount * 2);
+
+        // ---- Pass 1: Rebase page positions, checksums, and ToC ----
+        for (int i = 0; i < pageCount; i++) {
+            SerializedPageRecord rec = serializedPages.get(i);
+            int newOffset = rec.bufferOffset + baseOffset;
+
+            // Recompose ToC element and page position with rebased offset
+            long newTocElement = DataUtils.composeTocElement(
+                    rec.mapId, newOffset, rec.pageLength, rec.type);
+            long newPagePos = DataUtils.composePagePos(chunkId, newTocElement);
+
+            // Update ToC list (used later by serializeToC)
+            toc.set(i, newTocElement);
+
+            // Patch check value in buffer — offset is part of the check
+            int newCheck = DataUtils.getCheckValue(chunkId)
+                           ^ DataUtils.getCheckValue(newOffset)
+                           ^ DataUtils.getCheckValue(rec.pageLength);
+            buf.putShort(rec.bufferOffset + 4, (short) newCheck);
+
+            // CAS-update Page.pos from local to rebased position
+            rec.page.rebasePos(rec.pagePos, newPagePos);
+
+            positionMap.put(rec.pagePos, newPagePos);
+        }
+
+        // ---- Pass 2: Rebase child pointers in NonLeaf pages ----
+        for (SerializedPageRecord rec : serializedPages) {
+            if (rec.type != DataUtils.PAGE_TYPE_LEAF) {
+                rebaseChildPointers(buf, rec, positionMap);
+            }
+        }
+    }
+
+    /**
+     * Rewrite child-pointer longs in a NonLeaf page's buffer region
+     * that reference pages within this buffer (i.e. pages whose old
+     * position appears in the {@code positionMap}).
+     * <p>
+     * Child pointers referencing pages from previous chunks are left
+     * untouched — they already have correct absolute positions.
+     */
+    private void rebaseChildPointers(ByteBuffer buf,
+                                     SerializedPageRecord rec,
+                                     Map<Long, Long> positionMap) {
+        // Parse the page header to locate the child-pointer region.
+        // Layout: [int pageLength][short check][varInt pageNo]
+        //         [varInt mapId][varInt keyCount][byte type]
+        //         [long childPos * (keyCount+1)] ...
+        ByteBuffer dup = buf.duplicate();
+        dup.order(buf.order());
+        // Skip pageLength (4) + check (2) = 6 bytes from page start
+        dup.position(rec.bufferOffset + 6);
+        DataUtils.readVarInt(dup);              // pageNo — skip
+        DataUtils.readVarInt(dup);              // mapId — skip
+        int keyCount = DataUtils.readVarInt(dup); // keyCount
+        dup.get();                              // type byte — skip
+        int childrenPos = dup.position();
+        int childCount = keyCount + 1;
+
+        for (int i = 0; i < childCount; i++) {
+            int ptrOffset = childrenPos + i * 8;
+            long childPagePos = buf.getLong(ptrOffset);
+            Long rebased = positionMap.get(childPagePos);
+            if (rebased != null) {
+                buf.putLong(ptrOffset, rebased);
+            }
         }
     }
 

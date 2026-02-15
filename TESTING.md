@@ -696,9 +696,11 @@ cd h2
 
 ### Test Matrices
 
-CI tests against multiple Java versions:
-- Java 11 (minimum supported)
-- Java 17 (recommended)
+CI tests against multiple Java versions (see `.github/workflows/ci.yml`):
+- Java 11 (minimum supported version)
+- Java 17 (recommended version for development)
+
+The CI may not test all versions - consult DEVELOPMENT.md for the complete list of supported Java versions.
 
 ## Code Coverage
 

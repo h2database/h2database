@@ -116,9 +116,10 @@ public final class PageSerializationManager {
     private final List<Long> toc = new ArrayList<>();
     private final Callback callback;
     private final List<SerializedPageRecord> serializedPages = new ArrayList<>();
+    private final int pageNoBase;
 
     /**
-     * Create a new serialization manager.
+     * Create a new serialization manager with page numbering starting at 0.
      *
      * @param chunkId      id of the chunk being built
      * @param chunkVersion version stored in the chunk
@@ -127,10 +128,29 @@ public final class PageSerializationManager {
      */
     public PageSerializationManager(int chunkId, long chunkVersion,
                                     WriteBuffer buff, Callback callback) {
+        this(chunkId, chunkVersion, buff, callback, 0);
+    }
+
+    /**
+     * Create a new serialization manager with page numbering starting
+     * at the given base. Used when multiple PSMs serialize into separate
+     * buffers that will be merged into a single chunk — each PSM gets
+     * a page number range that doesn't overlap with the others.
+     *
+     * @param chunkId      id of the chunk being built
+     * @param chunkVersion version stored in the chunk
+     * @param buff         target write buffer
+     * @param callback     receiver for cache / accounting side-effects
+     * @param pageNoBase   starting page number for this PSM segment
+     */
+    public PageSerializationManager(int chunkId, long chunkVersion,
+                                    WriteBuffer buff, Callback callback,
+                                    int pageNoBase) {
         this.chunkId = chunkId;
         this.chunkVersion = chunkVersion;
         this.buff = buff;
         this.callback = callback;
+        this.pageNoBase = pageNoBase;
     }
 
     /**
@@ -148,9 +168,16 @@ public final class PageSerializationManager {
     }
 
     /**
-     * @return the next 0-based page number (equal to the number of pages already recorded)
+     * @return the next page number to assign (pageNoBase + pages already recorded)
      */
     public int getPageNo() {
+        return pageNoBase + toc.size();
+    }
+
+    /**
+     * @return the number of pages serialized by this manager
+     */
+    public int getPageCount() {
         return toc.size();
     }
 

@@ -125,10 +125,7 @@ public abstract class FileStore<C extends Chunk<C>>
 
     /**
      * Maximum size in bytes of a chunk that will be fully buffered into
-     * memory on first read access. Chunks at or below this threshold are
-     * read in one I/O operation and cached on the {@link Chunk#readBuffer}
-     * field, turning subsequent per-page reads into in-memory slicing.
-     * <p>
+     * memory on first read access.
      * Set to 0 to disable chunk read buffering.
      * Default: 4 MB.
      */
@@ -400,29 +397,10 @@ public abstract class FileStore<C extends Chunk<C>>
         retentionTime = ms;
     }
 
-    /**
-     * Get the maximum chunk size (in bytes) that will be fully read into
-     * memory on first page access. Chunks at or below this threshold are
-     * cached in {@link Chunk#readBuffer}, converting subsequent per-page
-     * reads into zero-I/O buffer slicing.
-     *
-     * @return the threshold in bytes, or 0 if chunk read caching is disabled
-     */
     public final int getChunkReadCacheMaxBytes() {
         return chunkReadCacheMaxBytes;
     }
 
-    /**
-     * Set the maximum chunk size (in bytes) eligible for read caching.
-     * <p>
-     * A chunk whose on-disk size ({@code len * BLOCK_SIZE}) is at or below
-     * this value will be read in full on first page access and kept in
-     * memory for subsequent reads. Larger chunks fall back to per-page I/O.
-     * <p>
-     * Setting this to 0 disables chunk read caching entirely.
-     *
-     * @param bytes the threshold in bytes (default: 4 MB)
-     */
     public final void setChunkReadCacheMaxBytes(int bytes) {
         this.chunkReadCacheMaxBytes = Math.max(0, bytes);
     }
@@ -1487,6 +1465,22 @@ public abstract class FileStore<C extends Chunk<C>>
         }
     }
 
+    /**
+     * Result holder for one map's serialization with its own PSM.
+     */
+    private static final class MapSerializationResult {
+        final PageSerializationManager psm;
+        final String layoutKey;
+        final long rootPos;
+
+        MapSerializationResult(PageSerializationManager psm,
+                               String layoutKey, long rootPos) {
+            this.psm = psm;
+            this.layoutKey = layoutKey;
+            this.rootPos = rootPos;
+        }
+    }
+
     private void serializeToBuffer(WriteBuffer buff, ArrayList<Page<?, ?>> changed, C c, C previousChunk) {
         // need to patch the header later
         int headerLength = c.estimateHeaderSize();
@@ -1494,25 +1488,32 @@ public abstract class FileStore<C extends Chunk<C>>
         c.next = headerLength;
 
         long version = c.version;
-        PageSerializationManager pageSerializationManager = createPageSerializationManager(c, buff);
+
+        // ---- Phase 1: Serialize each map tree with its own PSM ----
+        // All PSMs write into the shared global buffer; positions are
+        // correct from the start (no rebase needed). Each PSM gets a
+        // pageNoBase so page numbers don't overlap across maps.
+        int pageNoBase = 0;
+        List<MapSerializationResult> results = new ArrayList<>();
         for (Page<?,?> p : changed) {
             String key = MVMap.getMapRootKey(p.getMapId());
             if (p.getTotalCount() == 0) {
                 layout.remove(key);
             } else {
-                p.writeUnsavedRecursive(pageSerializationManager);
+                PageSerializationManager mapPSM =
+                        createPageSerializationManager(c, buff, pageNoBase);
+                p.writeUnsavedRecursive(mapPSM);
                 long root = p.getPos();
                 layout.put(key, Long.toHexString(root));
+                results.add(new MapSerializationResult(mapPSM, key, root));
+                pageNoBase += mapPSM.getPageCount();
             }
         }
 
+        // ---- Phase 2: Layout map serialization (on global buffer) ----
         acceptChunkOccupancyChanges(c.time, version);
 
         if (previousChunk != null) {
-            // the metadata of the last chunk was not stored in the layout map yet,
-            // just was embedded into the chunk itself, and this need to be done now
-            // (it's better not to update right after storing, because that
-            // would modify the meta map again)
             if (!layout.containsKey(Chunk.getMetaKey(previousChunk.id))) {
                 saveChunkMetadataChanges(previousChunk);
             }
@@ -1526,18 +1527,18 @@ public abstract class FileStore<C extends Chunk<C>>
 
         mvStore.onVersionChange(version);
 
+        PageSerializationManager layoutPSM =
+                createPageSerializationManager(c, buff, pageNoBase);
         Page<String,String> layoutRoot = layoutRootReference.root;
-        layoutRoot.writeUnsavedRecursive(pageSerializationManager);
+        layoutRoot.writeUnsavedRecursive(layoutPSM);
         c.layoutRootPos = layoutRoot.getPos();
         changed.add(layoutRoot);
 
-        // last allocated map id should be captured after the meta map was saved, because
-        // this will ensure that concurrently created map, which made it into meta before save,
-        // will have its id reflected in "map" header field of the currently written chunk
         c.mapId = mvStore.getLastMapId();
 
+        // ---- Phase 3: Write merged ToC ----
         c.tocPos = buff.position();
-        pageSerializationManager.serializeToC();
+        writeMergedToC(c, results, layoutPSM);
         int chunkLength = buff.position();
 
         // add the store header and round to the next block
@@ -1545,6 +1546,39 @@ public abstract class FileStore<C extends Chunk<C>>
         buff.limit(length);
         c.len = buff.limit() / FileStore.BLOCK_SIZE;
         c.buffer = buff.getBuffer();
+    }
+
+    /**
+     * Write the merged table of contents from all per-map PSMs and the
+     * layout PSM into the global buffer, then cache it.
+     */
+    private void writeMergedToC(C c, List<MapSerializationResult> mapResults,
+                                PageSerializationManager layoutPSM) {
+        int totalPages = 0;
+        for (MapSerializationResult r : mapResults) {
+            totalPages += r.psm.getPageCount();
+        }
+        totalPages += layoutPSM.getPageCount();
+
+        long[] tocArray = new long[totalPages];
+        int index = 0;
+
+        // Map pages first
+        for (MapSerializationResult r : mapResults) {
+            for (long tocElement : r.psm.getToc()) {
+                tocArray[index++] = tocElement;
+                layoutPSM.getBuffer().putLong(tocElement);
+                mvStore.countNewPage(DataUtils.isLeafPosition(tocElement));
+            }
+        }
+        // Layout pages
+        for (long tocElement : layoutPSM.getToc()) {
+            tocArray[index++] = tocElement;
+            layoutPSM.getBuffer().putLong(tocElement);
+            mvStore.countNewPage(DataUtils.isLeafPosition(tocElement));
+        }
+
+        cacheToC(c, tocArray);
     }
 
     private void storeBuffer(C c, WriteBuffer buff) {
@@ -2043,8 +2077,6 @@ public abstract class FileStore<C extends Chunk<C>>
      * position. If the page is already in the cache, this is a no-op.
      * If the background read fails, the failure is silently ignored —
      * the page will be demand-loaded when actually needed.
-     * <p>
-     * Used by cursor readahead to overlap I/O with processing.
      *
      * @param map the map
      * @param pos the page position
@@ -2169,6 +2201,19 @@ public abstract class FileStore<C extends Chunk<C>>
      * @return a new manager ready for page serialization
      */
     PageSerializationManager createPageSerializationManager(C chunk, WriteBuffer buff) {
+        return createPageSerializationManager(chunk, buff, 0);
+    }
+
+    /**
+     * Create a {@link PageSerializationManager} with a given page
+     * number base offset.
+     *
+     * @param chunk      the chunk being built
+     * @param buff       the target write buffer
+     * @param pageNoBase starting page number for this segment
+     * @return a new manager ready for page serialization
+     */
+    PageSerializationManager createPageSerializationManager(C chunk, WriteBuffer buff, int pageNoBase) {
         return new PageSerializationManager(
                 chunk.id, chunk.version, buff,
                 new PageSerializationManager.Callback() {
@@ -2197,7 +2242,8 @@ public abstract class FileStore<C extends Chunk<C>>
                     public void countNewPage(boolean isLeaf) {
                         mvStore.countNewPage(isLeaf);
                     }
-                });
+                },
+                pageNoBase);
     }
 
 

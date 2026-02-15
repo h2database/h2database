@@ -90,7 +90,7 @@ cd h2
 ./build.sh test
 ```
 
-This runs the complete test suite. It may take 30-60 minutes.
+This runs the complete test suite. It may take 30-60 minutes on typical development hardware.
 
 ### Run CI Tests (Faster)
 

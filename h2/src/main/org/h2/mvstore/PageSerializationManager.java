@@ -465,4 +465,9 @@ public final class PageSerializationManager {
     public List<SerializedPageRecord> getSerializedPages() {
         return serializedPages;
     }
+
+    //      /** Package-private: returns the live ToC list (no copy). */
+      List<Long> tocDirect() {
+          return toc;
+      }
 }

@@ -442,6 +442,10 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
         clearIt();
     }
 
+    void prefetchPages(long[] positions) {
+        store.prefetchPages(this, positions);
+    }
+
     /**
      * Remove all entries and return the root reference.
      *

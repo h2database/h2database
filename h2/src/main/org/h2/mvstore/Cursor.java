@@ -196,13 +196,13 @@ public final class Cursor<K,V> implements Iterator<K> {
 
     /**
      * Submit best-effort prefetch for the next {@link #PREFETCH_WINDOW}
-     * sibling child pages in the scan direction. Called after descending
-     * to a new leaf to overlap I/O for upcoming leaves with processing
-     * of the current one.
+     * sibling child pages in the scan direction. When the I/O channel
+     * supports batch operations (io_uring), all pages are submitted as
+     * a single batch read. Otherwise, individual prefetches are used.
      * <p>
      * Only prefetches siblings from the immediate parent. Already-cached
-     * pages and unsaved pages are skipped cheaply inside
-     * {@link MVMap#prefetchPage(long)}.
+     * pages and unsaved pages are skipped inside
+     * {@link FileStore#prefetchPages}.
      *
      * @param parentPos cursor position at the direct parent of the
      *                  current leaf, where {@code index} is the child
@@ -216,12 +216,26 @@ public final class Cursor<K,V> implements Iterator<K> {
         Page<K,V> parent = parentPos.page;
         int childCount = parent.map.getChildPageCount(parent);
         int increment = reverse ? -1 : 1;
-        int prefetched = 0;
+
+        // Collect positions to prefetch
+        long[] positions = new long[PREFETCH_WINDOW];
+        int count = 0;
         for (int i = parentPos.index + increment;
-             i >= 0 && i < childCount && prefetched < PREFETCH_WINDOW;
+             i >= 0 && i < childCount && count < PREFETCH_WINDOW;
              i += increment) {
-            parent.map.prefetchPage(parent.getChildPagePos(i));
-            prefetched++;
+            positions[count++] = parent.getChildPagePos(i);
         }
+
+        if (count == 0) return;
+
+        // Trim to actual count
+        if (count < positions.length) {
+            long[] trimmed = new long[count];
+            System.arraycopy(positions, 0, trimmed, 0, count);
+            positions = trimmed;
+        }
+
+        // Single call — FileStore decides whether to batch or fall back
+        parent.map.prefetchPages(positions);
     }
 }

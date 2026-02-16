@@ -1034,6 +1034,20 @@ public final class MVStore implements AutoCloseable {
     }
 
     /**
+     * Submit a best-effort batch prefetch for multiple pages.
+     *
+     * @param map       the map
+     * @param positions page positions to prefetch
+     * @param <K>       key type
+     * @param <V>       value type
+     */
+    <K,V> void prefetchPages(MVMap<K,V> map, long[] positions) {
+        if (fileStore != null) {
+            fileStore.prefetchPages(map, positions);
+        }
+    }
+
+    /**
      * Remove a page.
      *  @param pos the position of the page
      * @param version at which page was removed

@@ -14,6 +14,7 @@ import org.h2.util.Utils;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import org.h2.store.fs.BatchFileOperations.BatchReadOp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
@@ -740,6 +741,39 @@ public abstract class FileStore<C extends Chunk<C>>
         readCount.incrementAndGet();
         readBytes.addAndGet(len);
         return dst;
+    }
+
+    /**
+     * Whether the underlying I/O channel supports true batch reads
+     * (e.g. io_uring). When true, {@link #prefetchPages} submits all
+     * reads in a single kernel round-trip via {@link #readBatch}.
+     * When false, prefetchPages falls back to individual
+     * {@link #prefetchPage} calls.
+     *
+     * @return true if readBatch() actually batches at the kernel level
+     */
+    public boolean supportsBatchIO() {
+        return false;
+    }
+
+    /**
+     * Read multiple buffers from the store in a single (potentially batched)
+     * operation.  Only called when {@link #supportsBatchIO()} returns true.
+     * <p>
+     * Subclasses backed by batch-capable I/O (e.g. io_uring via
+     * {@code SingleFileStore}) override this to delegate to the file
+     * channel's native batch read.
+     *
+     * @param ops list of (position, buffer) read operations
+     */
+    @SuppressWarnings("unchecked")
+    protected void readBatch(List<BatchReadOp> ops) {
+        // Default: sequential fallback
+        for (BatchReadOp op : ops) {
+            ByteBuffer result = readFully((C) null, op.position(), op.dst().remaining());
+            op.dst().put(result);
+            op.dst().flip();
+        }
     }
 
 
@@ -1492,9 +1526,8 @@ public abstract class FileStore<C extends Chunk<C>>
 
         long version = c.version;
 
-        // ---- Phase 1: Serialize each map tree into a local buffer ----
-        // Phase 1a (sequential): Handle empty maps, count pages per map
-        // to assign non-overlapping page number ranges.
+        // ---- Phase 1: Serialize map trees ----
+        // Separate empty maps (remove from layout) from non-empty ones.
         List<Page<?,?>> nonEmptyPages = new ArrayList<>();
         List<String> nonEmptyKeys = new ArrayList<>();
         for (Page<?,?> p : changed) {
@@ -1508,54 +1541,63 @@ public abstract class FileStore<C extends Chunk<C>>
         }
 
         int mapCount = nonEmptyPages.size();
-        int[] pageNoBases = new int[mapCount];
         int pageNoBase = 0;
-        for (int i = 0; i < mapCount; i++) {
-            pageNoBases[i] = pageNoBase;
-            pageNoBase += nonEmptyPages.get(i).countUnsavedPages();
-        }
+        List<MapSerializationResult> results;
 
-        // Phase 1b: Serialize each map into its own local buffer.
-        // Each map gets a deferred-callback PSM so that cache inserts
-        // and chunk accounting happen after rebase (with correct global
-        // positions) rather than during serialization.
-        // When multiple maps are present, serialization runs in parallel
-        // via the common ForkJoinPool.
-        MapSerializationResult[] resultsArray = new MapSerializationResult[mapCount];
-        IntStream mapStream = IntStream.range(0, mapCount);
-        if (mapCount > 1) {
-            mapStream = mapStream.parallel();
-        }
-        mapStream.forEach(i -> {
-            Page<?,?> p = nonEmptyPages.get(i);
-            WriteBuffer localBuff = new WriteBuffer();
-            PageSerializationManager localPSM =
-                    createDeferredPageSerializationManager(c, localBuff, pageNoBases[i]);
-            p.writeUnsavedRecursive(localPSM);
-            resultsArray[i] = new MapSerializationResult(
-                    p, localPSM, localBuff, nonEmptyKeys.get(i));
-        });
-        List<MapSerializationResult> results = Arrays.asList(resultsArray);
+        if (mapCount <= 1) {
+            // ---- Fast path: single map → serialize directly into global buffer ----
+            // No local buffers, no rebase, no deferred callbacks, no countUnsavedPages().
+            // This is the original virgin-H2 code path, avoiding all parallel-serialization
+            // overhead for the common case of a single dirty map (e.g. bulkInsert).
+            results = new ArrayList<>(mapCount);
+            for (int i = 0; i < mapCount; i++) {
+                Page<?,?> p = nonEmptyPages.get(i);
+                PageSerializationManager psm =
+                        createPageSerializationManager(c, buff, 0);
+                p.writeUnsavedRecursive(psm);
+                layout.put(nonEmptyKeys.get(i), Long.toHexString(p.getPos()));
+                results.add(new MapSerializationResult(p, psm, null, nonEmptyKeys.get(i)));
+                pageNoBase += psm.getPageCount();
+            }
+        } else {
+            // ---- Parallel path: multiple maps → local buffers + rebase ----
+            // Phase 1a: Count pages per map to assign non-overlapping page number ranges.
+            int[] pageNoBases = new int[mapCount];
+            for (int i = 0; i < mapCount; i++) {
+                pageNoBases[i] = pageNoBase;
+                pageNoBase += nonEmptyPages.get(i).countUnsavedPages();
+            }
 
-        // ---- Phase 2: Copy local buffers into global buffer, rebase, replay callbacks ----
-        // Sequential: copy each map's data into the shared global buffer,
-        // rebase positions from local to global, then replay deferred
-        // callbacks (cache inserts, chunk accounting) with correct positions.
-        for (MapSerializationResult result : results) {
-            int baseOffset = buff.position();
-            // Copy local data to global buffer
-            ByteBuffer src = result.localBuff.getBuffer();
-            src.flip();
-            buff.put(src);
-            // Rebase the global buffer: fix checksums, child pointers,
-            // Page.pos, and ToC entries
-            result.psm.rebasePositions(baseOffset, buff.getBuffer());
-            // Replay deferred cache inserts and chunk accounting
-            // with correct global positions
-            result.psm.applyDeferredCallbacks();
-            // Root position is now correct after rebase
-            layout.put(result.layoutKey,
-                       Long.toHexString(result.rootPage.getPos()));
+            // Phase 1b: Serialize each map into its own local buffer.
+            // Each map gets a deferred-callback PSM so that cache inserts
+            // and chunk accounting happen after rebase (with correct global
+            // positions) rather than during serialization.
+            // Serialization runs in parallel via the common ForkJoinPool.
+            MapSerializationResult[] resultsArray = new MapSerializationResult[mapCount];
+            IntStream.range(0, mapCount).parallel().forEach(i -> {
+                Page<?,?> p = nonEmptyPages.get(i);
+                WriteBuffer localBuff = new WriteBuffer();
+                PageSerializationManager localPSM =
+                        createDeferredPageSerializationManager(c, localBuff, pageNoBases[i]);
+                p.writeUnsavedRecursive(localPSM);
+                resultsArray[i] = new MapSerializationResult(
+                        p, localPSM, localBuff, nonEmptyKeys.get(i));
+            });
+            results = Arrays.asList(resultsArray);
+
+            // Phase 2: Copy local buffers into global buffer, rebase, replay callbacks.
+            // Sequential: each map's data is copied, positions rebased from local to
+            // global, and deferred callbacks replayed with correct positions.
+            for (MapSerializationResult result : results) {
+                int baseOffset = buff.position();
+                ByteBuffer src = result.localBuff.getBuffer();
+                src.flip();
+                buff.put(src);
+                result.psm.rebasePositions(baseOffset, buff.getBuffer());
+                result.psm.applyDeferredCallbacks();
+                layout.put(result.layoutKey,
+                           Long.toHexString(result.rootPage.getPos()));
+            }
         }
 
         // ---- Phase 3: Layout map serialization (on global buffer) ----
@@ -2140,6 +2182,122 @@ public abstract class FileStore<C extends Chunk<C>>
                 // prefetch failure is not fatal
             }
         });
+    }
+
+    /**
+     * Submit a best-effort batch prefetch for multiple pages.
+     * <p>
+     * When the underlying I/O channel supports batch operations (io_uring),
+     * all pages are read in a single kernel round-trip. Otherwise, falls
+     * back to individual {@link #prefetchPage} calls.
+     * <p>
+     * Pages that are already cached, unsaved, or have PAGE_LARGE length
+     * are handled individually. The I/O and deserialization run on a
+     * background thread.
+     *
+     * @param map       the map that owns the pages
+     * @param positions array of page positions to prefetch
+     * @param <K>       key type
+     * @param <V>       value type
+     */
+    <K,V> void prefetchPages(MVMap<K,V> map, long[] positions) {
+        if (!supportsBatchIO()) {
+            // No batch I/O — fall back to individual prefetch
+            for (long pos : positions) {
+                prefetchPage(map, pos);
+            }
+            return;
+        }
+
+        // Filter: skip unsaved pages and pages already in cache
+        int count = 0;
+        for (long pos : positions) {
+            if (DataUtils.isPageSaved(pos) && readPageFromCache(pos) == null) {
+                count++;
+            }
+        }
+        if (count == 0) {
+            return;
+        }
+
+        // Capture positions that need reading
+        long[] uncached = new long[count];
+        int idx = 0;
+        for (long pos : positions) {
+            if (DataUtils.isPageSaved(pos) && readPageFromCache(pos) == null) {
+                uncached[idx++] = pos;
+            }
+        }
+
+        // Submit single background task for the entire batch
+        ForkJoinPool.commonPool().execute(() -> {
+            try {
+                batchPrefetchPages(map, uncached);
+            } catch (Exception ignored) {
+                // Entire batch failure is not fatal — pages will be demand-loaded
+            }
+        });
+    }
+
+    /**
+     * Worker method for batch prefetch.  Runs on a ForkJoinPool thread.
+     * Builds BatchReadOp list, executes batch I/O, deserializes and caches.
+     */
+    private <K,V> void batchPrefetchPages(MVMap<K,V> map, long[] positions) {
+        // Phase 1: Build read operations
+        List<BatchReadOp> ops = new ArrayList<>(positions.length);
+        long[] opPositions = new long[positions.length];
+        int opCount = 0;
+
+        for (long pos : positions) {
+            if (readPageFromCache(pos) != null) {
+                continue;
+            }
+            try {
+                C chunk = getChunk(pos);
+                int pageOffset = DataUtils.getPageOffset(pos);
+                long chunkStart = chunk.block * FileStore.BLOCK_SIZE;
+                long filePos = chunkStart + pageOffset;
+
+                int length = DataUtils.getPageMaxLength(pos);
+                if (length == DataUtils.PAGE_LARGE) {
+                    // Large page needs preliminary read — fall back to individual
+                    try { readPage(map, pos); } catch (Exception ignored) {}
+                    continue;
+                }
+
+                long maxPos = chunkStart + (long) chunk.len * FileStore.BLOCK_SIZE;
+                length = (int) Math.min(maxPos - filePos, length);
+                if (length <= 0) continue;
+
+                ByteBuffer dst = ByteBuffer.allocate(length);
+                ops.add(new BatchReadOp(filePos, dst));
+                opPositions[opCount++] = pos;
+            } catch (Exception e) {
+                // Skip — will be demand-loaded later
+            }
+        }
+
+        if (ops.isEmpty()) return;
+
+        // Phase 2: Execute batch I/O
+        try {
+            readBatch(ops);
+        } catch (Exception e) {
+            return; // pages will be demand-loaded individually
+        }
+
+        // Phase 3: Deserialize and cache
+        for (int i = 0; i < ops.size(); i++) {
+            try {
+                ByteBuffer buff = ops.get(i).dst();
+                buff.flip();
+                Page<K,V> page = Page.read(buff, opPositions[i], map);
+                cachePage(page);
+            } catch (Exception e) {
+                // Deserialization failure for one page is not fatal
+            }
+        }
     }
 
     /**

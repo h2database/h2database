@@ -21,8 +21,12 @@ import java.util.Map;
  * to a {@link Callback} supplied at construction time.
  * <p>
  * This class is not thread-safe. For parallel serialization of
- * independent map trees, create one instance per worker and merge
- * the results afterwards.
+ * independent map trees, create one instance per worker with
+ * {@code deferCallbacks = true} and merge the results afterwards.
+ * Call {@link #applyDeferredCallbacks()} on each PSM sequentially
+ * after {@link #rebasePositions(int, java.nio.ByteBuffer)} to
+ * replay cache inserts and chunk accounting with correct global
+ * positions.
  */
 public final class PageSerializationManager {
 
@@ -98,6 +102,11 @@ public final class PageSerializationManager {
         /** The ToC element encoding (mapId, offset, pageLength, type). */
         final long tocElement;
 
+        // Deferred callback data — set by onPageSerialized when deferCallbacks is true
+        boolean isDeleted;
+        int diskSpaceUsed;
+        boolean isPinned;
+
         SerializedPageRecord(int mapId, int bufferOffset, int pageLength,
                              int type, long pagePos, long tocElement) {
             this.mapId = mapId;
@@ -117,6 +126,7 @@ public final class PageSerializationManager {
     private final Callback callback;
     private final List<SerializedPageRecord> serializedPages = new ArrayList<>();
     private final int pageNoBase;
+    private final boolean deferCallbacks;
 
     /**
      * Create a new serialization manager with page numbering starting at 0.
@@ -128,12 +138,12 @@ public final class PageSerializationManager {
      */
     public PageSerializationManager(int chunkId, long chunkVersion,
                                     WriteBuffer buff, Callback callback) {
-        this(chunkId, chunkVersion, buff, callback, 0);
+        this(chunkId, chunkVersion, buff, callback, 0, false);
     }
 
     /**
-     * Create a new serialization manager with page numbering starting
-     * at the given base. Used when multiple PSMs serialize into separate
+     * Create a new serialization manager with a given page
+     * number base offset.  Used when multiple PSMs serialize into separate
      * buffers that will be merged into a single chunk — each PSM gets
      * a page number range that doesn't overlap with the others.
      *
@@ -146,11 +156,30 @@ public final class PageSerializationManager {
     public PageSerializationManager(int chunkId, long chunkVersion,
                                     WriteBuffer buff, Callback callback,
                                     int pageNoBase) {
+        this(chunkId, chunkVersion, buff, callback, pageNoBase, false);
+    }
+
+    /**
+     * Full constructor.
+     *
+     * @param chunkId        id of the chunk being built
+     * @param chunkVersion   version stored in the chunk
+     * @param buff           target write buffer
+     * @param callback       receiver for cache / accounting side-effects
+     * @param pageNoBase     starting page number for this PSM segment
+     * @param deferCallbacks if true, side-effect callbacks are recorded
+     *                       but not invoked during serialization; call
+     *                       {@link #applyDeferredCallbacks()} later to replay
+     */
+    public PageSerializationManager(int chunkId, long chunkVersion,
+                                    WriteBuffer buff, Callback callback,
+                                    int pageNoBase, boolean deferCallbacks) {
         this.chunkId = chunkId;
         this.chunkVersion = chunkVersion;
         this.buff = buff;
         this.callback = callback;
         this.pageNoBase = pageNoBase;
+        this.deferCallbacks = deferCallbacks;
     }
 
     /**
@@ -221,17 +250,59 @@ public final class PageSerializationManager {
         // Associate the Page reference with the record created in getPagePosition().
         // getPagePosition() is always called immediately before onPageSerialized()
         // for the same page, so the last record is the correct one.
-        serializedPages.get(serializedPages.size() - 1).page = page;
+        SerializedPageRecord rec = serializedPages.get(serializedPages.size() - 1);
+        rec.page = page;
 
-        callback.cachePage(page);
-        if (!page.isLeaf()) {
-            // cache again — keeps nodes in cache longer
+        if (deferCallbacks) {
+            // Store callback data for later replay via applyDeferredCallbacks().
+            // This is used during parallel serialization where callbacks are
+            // not thread-safe and where pages should be cached after rebase
+            // (with correct global positions) rather than before.
+            rec.isDeleted = isDeleted;
+            rec.diskSpaceUsed = diskSpaceUsed;
+            rec.isPinned = isPinned;
+        } else {
             callback.cachePage(page);
+            if (!page.isLeaf()) {
+                // cache again — keeps nodes in cache longer
+                callback.cachePage(page);
+            }
+            callback.accountForWrittenPage(diskSpaceUsed, isPinned);
+            if (isDeleted) {
+                callback.accountForRemovedPage(
+                        page.getPos(), chunkVersion + 1, isPinned, page.pageNo);
+            }
         }
-        callback.accountForWrittenPage(diskSpaceUsed, isPinned);
-        if (isDeleted) {
-            callback.accountForRemovedPage(
-                    page.getPos(), chunkVersion + 1, isPinned, page.pageNo);
+    }
+
+    /**
+     * Replay deferred callback side-effects. Must be called on the
+     * serialization thread (or any single thread) AFTER
+     * {@link #rebasePositions(int, ByteBuffer)} has updated
+     * {@code Page.pos} to global coordinates.
+     * <p>
+     * This ensures pages are cached with their correct global positions,
+     * and chunk accounting is performed without thread-safety issues.
+     *
+     * @throws IllegalStateException if this PSM was not created with
+     *         {@code deferCallbacks = true}
+     */
+    public void applyDeferredCallbacks() {
+        if (!deferCallbacks) {
+            throw new IllegalStateException(
+                    "applyDeferredCallbacks() called on non-deferred PSM");
+        }
+        for (SerializedPageRecord rec : serializedPages) {
+            Page<?,?> page = rec.page;
+            callback.cachePage(page);
+            if (!page.isLeaf()) {
+                callback.cachePage(page);
+            }
+            callback.accountForWrittenPage(rec.diskSpaceUsed, rec.isPinned);
+            if (rec.isDeleted) {
+                callback.accountForRemovedPage(
+                        page.getPos(), chunkVersion + 1, rec.isPinned, page.pageNo);
+            }
         }
     }
 

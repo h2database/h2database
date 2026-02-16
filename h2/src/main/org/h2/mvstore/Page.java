@@ -844,6 +844,16 @@ public abstract class Page<K,V> implements Cloneable {
      */
     abstract void releaseSavedPages();
 
+    /**
+     * Count the number of unsaved pages in this subtree.
+     * Used to pre-compute page number base offsets before parallel
+     * serialization.
+     *
+     * @return the number of pages that {@code writeUnsavedRecursive}
+     *         would serialize
+     */
+    abstract int countUnsavedPages();
+
     public abstract int getRawChildPageCount();
 
     protected final boolean isPersistent() {
@@ -1149,7 +1159,7 @@ public abstract class Page<K,V> implements Cloneable {
         /**
          * The child page references.
          */
-        private PageReference<K,V>[] children;
+        PageReference<K,V>[] children;
 
         /**
          * The total entry count of this page and all children.
@@ -1424,6 +1434,22 @@ public abstract class Page<K,V> implements Cloneable {
         }
 
         @Override
+        int countUnsavedPages() {
+            if (isSaved()) {
+                return 0;
+            }
+            int count = 1; // this page
+            int len = getRawChildPageCount();
+            for (int i = 0; i < len; i++) {
+                Page<K,V> p = children[i].getPage();
+                if (p != null) {
+                    count += p.countUnsavedPages();
+                }
+            }
+            return count;
+        }
+
+        @Override
         void syncChildRefsAfterRebase() {
             int len = getRawChildPageCount();
             for (int i = 0; i < len; i++) {
@@ -1481,6 +1507,26 @@ public abstract class Page<K,V> implements Cloneable {
             } else if (!isSaved()) {
                 writeChildrenRecursive(pageSerializationManager);
             }
+        }
+
+        @Override
+        int countUnsavedPages() {
+            if (complete) {
+                return super.countUnsavedPages();
+            }
+            if (isSaved()) {
+                return 0;
+            }
+            // Incomplete: only children are serialized, not this page
+            int count = 0;
+            int len = getRawChildPageCount();
+            for (int i = 0; i < len; i++) {
+                Page<K,V> p = children[i].getPage();
+                if (p != null) {
+                    count += p.countUnsavedPages();
+                }
+            }
+            return count;
         }
 
         @Override
@@ -1697,6 +1743,11 @@ public abstract class Page<K,V> implements Cloneable {
 
         @Override
         void releaseSavedPages() {}
+
+        @Override
+        int countUnsavedPages() {
+            return isSaved() ? 0 : 1;
+        }
 
         @Override
         public int getRawChildPageCount() {

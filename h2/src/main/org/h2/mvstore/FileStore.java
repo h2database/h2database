@@ -45,6 +45,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.BiConsumer;
 import java.util.function.IntSupplier;
+import java.util.stream.IntStream;
 import java.util.zip.ZipOutputStream;
 
 /**
@@ -1492,28 +1493,54 @@ public abstract class FileStore<C extends Chunk<C>>
         long version = c.version;
 
         // ---- Phase 1: Serialize each map tree into a local buffer ----
-        // Each map gets its own WriteBuffer + PSM, serializing at local
-        // offset 0. Page numbers are partitioned via pageNoBase.
-        int pageNoBase = 0;
-        List<MapSerializationResult> results = new ArrayList<>();
+        // Phase 1a (sequential): Handle empty maps, count pages per map
+        // to assign non-overlapping page number ranges.
+        List<Page<?,?>> nonEmptyPages = new ArrayList<>();
+        List<String> nonEmptyKeys = new ArrayList<>();
         for (Page<?,?> p : changed) {
             String key = MVMap.getMapRootKey(p.getMapId());
             if (p.getTotalCount() == 0) {
                 layout.remove(key);
             } else {
-                WriteBuffer localBuff = new WriteBuffer();
-                PageSerializationManager localPSM =
-                        createPageSerializationManager(c, localBuff, pageNoBase);
-                p.writeUnsavedRecursive(localPSM);
-                results.add(new MapSerializationResult(p, localPSM, localBuff, key));
-                pageNoBase += localPSM.getPageCount();
+                nonEmptyPages.add(p);
+                nonEmptyKeys.add(key);
             }
         }
 
-        // ---- Phase 2: Copy local buffers into global buffer, then rebase ----
-        // We copy first, then patch the GLOBAL buffer at the rebased
-        // offsets. This avoids any issues with WriteBuffer.getBuffer()
-        // returning different ByteBuffer instances.
+        int mapCount = nonEmptyPages.size();
+        int[] pageNoBases = new int[mapCount];
+        int pageNoBase = 0;
+        for (int i = 0; i < mapCount; i++) {
+            pageNoBases[i] = pageNoBase;
+            pageNoBase += nonEmptyPages.get(i).countUnsavedPages();
+        }
+
+        // Phase 1b: Serialize each map into its own local buffer.
+        // Each map gets a deferred-callback PSM so that cache inserts
+        // and chunk accounting happen after rebase (with correct global
+        // positions) rather than during serialization.
+        // When multiple maps are present, serialization runs in parallel
+        // via the common ForkJoinPool.
+        MapSerializationResult[] resultsArray = new MapSerializationResult[mapCount];
+        IntStream mapStream = IntStream.range(0, mapCount);
+        if (mapCount > 1) {
+            mapStream = mapStream.parallel();
+        }
+        mapStream.forEach(i -> {
+            Page<?,?> p = nonEmptyPages.get(i);
+            WriteBuffer localBuff = new WriteBuffer();
+            PageSerializationManager localPSM =
+                    createDeferredPageSerializationManager(c, localBuff, pageNoBases[i]);
+            p.writeUnsavedRecursive(localPSM);
+            resultsArray[i] = new MapSerializationResult(
+                    p, localPSM, localBuff, nonEmptyKeys.get(i));
+        });
+        List<MapSerializationResult> results = Arrays.asList(resultsArray);
+
+        // ---- Phase 2: Copy local buffers into global buffer, rebase, replay callbacks ----
+        // Sequential: copy each map's data into the shared global buffer,
+        // rebase positions from local to global, then replay deferred
+        // callbacks (cache inserts, chunk accounting) with correct positions.
         for (MapSerializationResult result : results) {
             int baseOffset = buff.position();
             // Copy local data to global buffer
@@ -1523,6 +1550,9 @@ public abstract class FileStore<C extends Chunk<C>>
             // Rebase the global buffer: fix checksums, child pointers,
             // Page.pos, and ToC entries
             result.psm.rebasePositions(baseOffset, buff.getBuffer());
+            // Replay deferred cache inserts and chunk accounting
+            // with correct global positions
+            result.psm.applyDeferredCallbacks();
             // Root position is now correct after rebase
             layout.put(result.layoutKey,
                        Long.toHexString(result.rootPage.getPos()));
@@ -2262,6 +2292,55 @@ public abstract class FileStore<C extends Chunk<C>>
                     }
                 },
                 pageNoBase);
+    }
+
+    /**
+     * Create a {@link PageSerializationManager} with deferred callbacks.
+     * Side-effects (cache inserts, chunk accounting) are recorded but not
+     * executed; call {@link PageSerializationManager#applyDeferredCallbacks()}
+     * after {@link PageSerializationManager#rebasePositions(int, java.nio.ByteBuffer)}
+     * to replay them with correct global positions.
+     * <p>
+     * Used during parallel Phase 1 serialization where callbacks are not
+     * thread-safe.
+     *
+     * @param chunk      the chunk being built
+     * @param buff       the target write buffer (per-map local buffer)
+     * @param pageNoBase starting page number for this segment
+     * @return a deferred-callback manager
+     */
+    PageSerializationManager createDeferredPageSerializationManager(
+            C chunk, WriteBuffer buff, int pageNoBase) {
+        return new PageSerializationManager(
+                chunk.id, chunk.version, buff,
+                new PageSerializationManager.Callback() {
+                    @Override
+                    public void cachePage(Page<?,?> page) {
+                        FileStore.this.cachePage(page);
+                    }
+
+                    @Override
+                    public void accountForRemovedPage(long pos, long version,
+                                                      boolean pinned, int pageNo) {
+                        FileStore.this.accountForRemovedPage(pos, version, pinned, pageNo);
+                    }
+
+                    @Override
+                    public void accountForWrittenPage(int diskSpaceUsed, boolean isPinned) {
+                        chunk.accountForWrittenPage(diskSpaceUsed, isPinned);
+                    }
+
+                    @Override
+                    public void cacheToC(int chunkId, long[] tocArray) {
+                        FileStore.this.cacheToC(chunk, tocArray);
+                    }
+
+                    @Override
+                    public void countNewPage(boolean isLeaf) {
+                        mvStore.countNewPage(isLeaf);
+                    }
+                },
+                pageNoBase, true);  // deferCallbacks=true
     }
 
 

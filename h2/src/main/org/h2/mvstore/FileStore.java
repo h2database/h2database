@@ -2209,30 +2209,31 @@ public abstract class FileStore<C extends Chunk<C>>
             return;
         }
 
-        // Filter: skip unsaved pages and pages already in cache
-        int count = 0;
-        for (long pos : positions) {
-            if (DataUtils.isPageSaved(pos) && readPageFromCache(pos) == null) {
-                count++;
-            }
-        }
-        if (count == 0) {
-            return;
-        }
-
-        // Capture positions that need reading
-        long[] uncached = new long[count];
+        // Single pass: filter unsaved / already-cached pages.
+        // Sized to positions.length to avoid a TOCTOU race — the cache
+        // can change between any two calls to readPageFromCache(), so a
+        // separate count-then-fill loop can overflow.
+        var ref = new Object() {
+            long[] uncached = new long[positions.length];
+        };
         int idx = 0;
         for (long pos : positions) {
             if (DataUtils.isPageSaved(pos) && readPageFromCache(pos) == null) {
-                uncached[idx++] = pos;
+                ref.uncached[idx++] = pos;
             }
+        }
+        if (idx == 0) {
+            return;
+        }
+        // Trim to actual size
+        if (idx < ref.uncached.length) {
+            ref.uncached = java.util.Arrays.copyOf(ref.uncached, idx);
         }
 
         // Submit single background task for the entire batch
         ForkJoinPool.commonPool().execute(() -> {
             try {
-                batchPrefetchPages(map, uncached);
+                batchPrefetchPages(map, ref.uncached);
             } catch (Exception ignored) {
                 // Entire batch failure is not fatal — pages will be demand-loaded
             }

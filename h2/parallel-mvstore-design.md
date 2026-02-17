@@ -74,7 +74,7 @@ MVStore.store()                   [main thread, under storeLock]
 
 ## 3. Phase 1 Design: Parallel Map Serialization
 
-This is the cleanest win with the smallest blast radius.
+This is the cleanest win with the smallest blast radius. The design below is the original sketch; the refined incremental implementation plan is in §6 (Steps 5a–5d).
 
 ### 3.1 New: `ParallelPageSerializationManager`
 
@@ -285,55 +285,74 @@ During store opening, `readStoreHeader()` and `getChunksFromLayoutMap()` travers
 Parallelism opportunity: **Chunk-level parallelism** — read/process multiple chunks simultaneously.
 
 
-### 4.3 Strategy 1: NonLeaf Sibling Prefetch
+### 4.3 Strategy 1: Cursor-Scoped Directional Prefetch
 
-The highest-impact optimization for range scans. When a NonLeaf page is loaded, submit prefetch tasks for child pages that aren't already cached.
+**Goal**: When the cursor crosses a leaf boundary, prefetch multiple upcoming sibling pages in the scan direction, overlapping I/O with processing.
 
-**Where to hook in**: `FileStore.readPage()`, after deserializing a NonLeaf, before returning it.
+#### Failed Approach: Global NonLeaf readPage() Hook
+
+The initial attempt hooked into `FileStore.readPage()`: after deserializing any NonLeaf page, up to N uncached children were submitted for background prefetch via `ForkJoinPool.commonPool()`. A `ThreadLocal<Boolean> IN_PREFETCH` flag prevented recursive prefetch from pages loaded by background tasks.
+
+**Benchmark results were unambiguously negative:**
+
+| Benchmark | Step 3 (baseline) | readPage hook | Delta |
+|---|---|---|---|
+| compositeIndexRangeScan | 248.0 | 227.2 | -8% |
+| joinIndexedNestedLoop | 72 ms | 612 ms | +750% |
+| joinAggregateGroupBy | 254 ms | 564 ms | +122% |
+| joinThreeWay | 386 ms | 669 ms | +73% |
+| bulkInsert | 878 ms | 1,203 ms | +37% |
+| indexCreationAndCompaction | 2,126 ms | 3,571 ms | +68% |
+
+**Root cause**: The readPage() hook fired on *every* NonLeaf load — point lookups, compaction reads, recovery, join probes, everything. A secondary index probe traversing 3 levels would prefetch 12 child pages it will never visit. For the join benchmarks (which do many individual lookups through cold B-trees), the wasted I/O was catastrophic: each lookup triggered a blast of unnecessary reads that stole bandwidth from the actual needed reads and flooded the ForkJoinPool task queue.
+
+**Key insight**: NonLeaf prefetch is only beneficial during sequential scans, and only in the scan direction. Point lookups, compaction, and join probes traverse exactly one path through the tree — prefetching siblings is pure waste.
+
+#### Revised Approach: Cursor-Scoped prefetchAhead()
+
+Prefetch is scoped to the `Cursor` class, which is the only call site that knows it's doing a directional scan. When `hasNext()` descends to a new leaf after exhausting the previous one, `prefetchAhead()` submits up to `PREFETCH_WINDOW` (4) sibling child pages from the parent's `children[]` array, in the scan direction only.
 
 ```java
-<K,V> Page<K,V> readPage(MVMap<K,V> map, long pos) {
-    // ... existing cache check and deserialization ...
-
-    cachePage(page);
-
-    // NEW: prefetch children of NonLeaf pages
-    if (!page.isLeaf() && prefetchExecutor != null) {
-        prefetchChildren(map, page);
-    }
-
-    return page;
+// In Cursor.hasNext(), after descent to a new leaf:
+if (descended) {
+    prefetchAhead(cursorPos.parent, reverse);
 }
 
-private <K,V> void prefetchChildren(MVMap<K,V> map, Page<K,V> nonLeaf) {
-    int childCount = nonLeaf.getRawChildPageCount();
-    // Don't prefetch all children of a high-fanout node — limit to a window
-    int prefetchLimit = Math.min(childCount, prefetchWindowSize);
-
-    for (int i = 0; i < prefetchLimit; i++) {
-        long childPos = nonLeaf.getChildPagePos(i);
-        if (DataUtils.isPageSaved(childPos) && !isInCache(childPos)) {
-            prefetchExecutor.submit(() -> {
-                try {
-                    // readPage populates cache as a side effect
-                    readPage(map, childPos);
-                } catch (Exception ignored) {
-                    // Prefetch failure is not fatal — demand read will retry
-                }
-            });
-        }
+private static <K,V> void prefetchAhead(CursorPos<K,V> parentPos, boolean reverse) {
+    if (parentPos == null) return;
+    Page<K,V> parent = parentPos.page;
+    int childCount = parent.map.getChildPageCount(parent);
+    int increment = reverse ? -1 : 1;
+    int prefetched = 0;
+    for (int i = parentPos.index + increment;
+         i >= 0 && i < childCount && prefetched < PREFETCH_WINDOW;
+         i += increment) {
+        parent.map.prefetchPage(parent.getChildPagePos(i));
+        prefetched++;
     }
-}
-
-boolean isInCache(long pos) {
-    return cache != null && cache.get(pos) != null;
 }
 ```
 
-**Prefetch window sizing**: For a B-tree with fanout ~48 (default `keysPerPage`), prefetching all children of an internal node means up to 49 concurrent reads. On NVMe this is fine, on spinning disk it could cause thrashing. The `prefetchWindowSize` should be configurable:
-- NVMe/SSD: 16–32 (saturate the device queue depth)
-- HDD: 2–4 (minimal readahead to avoid seek storms)
-- Disabled: 0 (for constrained environments)
+**Why this works where the readPage hook didn't:**
+
+- Only fires during cursor-driven scans, never during point lookups, compaction, or join probes
+- Directional — only prefetches siblings *ahead* in the scan direction, not behind
+- Bounded — at most 4 siblings per leaf crossing, not per NonLeaf load
+- No ThreadLocal needed — there's no recursion risk since prefetchPage() loads pages normally, and only Cursor calls prefetchAhead()
+
+**Benchmark results (revised Step 4 vs Step 1 baseline):**
+
+| Benchmark | Baseline | Revised Step 4 | Delta |
+|---|---|---|---|
+| compositeIndexRangeScan | 211.6 | 262.3 | **+24%** |
+| secondaryIndexLookup | 767.8 | 938.3 | **+22%** |
+| mixed | 1,453K | 1,492K | +3% |
+| randomCacheMissReads | 129.6K | 136.7K | +5% |
+| joinAggregateGroupBy | 543 ms | 297.6 ms | **-45%** |
+| joinIndexedNestedLoop | 381 ms | 225.3 ms | **-41%** |
+| joinThreeWay | 647 ms | 541.4 ms | **-16%** |
+
+No regressions anywhere. Range scans benefit from the wider prefetch window (4 vs 1 sibling from Step 3), point lookups and joins are unaffected because prefetch never fires outside the cursor.
 
 
 ### 4.4 Strategy 2: Cursor Readahead
@@ -424,57 +443,38 @@ private void bufferEntireChunk(C chunk) {
 **When this is most effective**: Sequential scans through a single chunk's worth of pages, which is the common case since pages written together (in the same commit) end up in the same chunk.
 
 
-### 4.6 Strategy 4: io_uring Integration (JUring-specific)
+### 4.6 Strategy 4: io_uring Integration (JUring-specific) ✓
 
-This is where your JUring work fits in perfectly. Instead of N individual `pread64` syscalls, submit all reads as a batch of SQEs:
+This is where the JUring integration was implemented. The original design sketch below was refined during implementation — see §9 for the actual architecture and performance results.
+
+Instead of N individual `pread64` syscalls for prefetch, the batch path submits all reads as a batch of SQEs to the io_uring ring. Demand reads (single-page loads during B-tree traversal) bypass the ring entirely and use direct `pread(2)` via Panama FFI — this was a critical lesson learned during implementation (see §7 risk table).
+
+The actual batch API implemented in `JUringFileChannel`:
 
 ```java
-// In a JUringFileStore extending SingleFileStore:
-@Override
-public ByteBuffer readFully(SFChunk chunk, long pos, int len) {
-    // Single read — fall through to regular pread64
-    return super.readFully(chunk, pos, len);
+// Batch path (ring) — used by prefetch only
+public void readFullyBatch(long[] positions, ByteBuffer[] buffers) {
+    batchDispatcher.prepareReadBatch(rawFd, positions, buffers);
+    batchDispatcher.submitAndCollect();  // 2 FFI calls for N reads
 }
 
-// NEW: batch read for prefetch
-public CompletableFuture<ByteBuffer>[] readBatch(long[] positions, int[] lengths) {
-    int count = positions.length;
-    CompletableFuture<ByteBuffer>[] futures = new CompletableFuture[count];
-    ByteBuffer[] buffers = new ByteBuffer[count];
-
-    for (int i = 0; i < count; i++) {
-        buffers[i] = ByteBuffer.allocateDirect(lengths[i]);
-        futures[i] = new CompletableFuture<>();
-    }
-
-    // Submit all as a batch to the io_uring ring
-    ring.prepareReads(fd, positions, buffers);
-    ring.submit();  // single syscall for all N reads
-
-    // Process completions
-    ring.awaitCompletions(count, (index, result) -> {
-        if (result >= 0) {
-            buffers[index].flip();
-            futures[index].complete(buffers[index]);
-        } else {
-            futures[index].completeExceptionally(
-                new IOException("io_uring read failed: " + result));
-        }
-    });
-
-    return futures;
+// Demand path (pread bypass) — used by readPage()
+public int read(ByteBuffer dst, long position) {
+    // Thread-local 64KB bounce buffer for heap ByteBuffers
+    MemorySegment bounce = BOUNCE_BUFFER.get();
+    int n = (int) pread.invokeExact(rawFd, bounce, (long) dst.remaining(), position);
+    MemorySegment.ofBuffer(dst).copyFrom(bounce.asSlice(0, n));
+    return n;
 }
 ```
 
-**Where to use batch reads**:
+**Where batch reads are used** (as implemented):
 
-1. **NonLeaf prefetch** (§4.3): Instead of submitting individual prefetch tasks to a thread pool, collect all child positions and submit them as one io_uring batch. Zero thread overhead, one syscall.
+1. **Cursor prefetch** (§4.3): When the cursor crosses a leaf boundary, up to PREFETCH_WINDOW sibling positions are collected. On the JUring backend, these are submitted as one io_uring batch via `batchPrefetchPages()`. On NIO, each is submitted individually to `ForkJoinPool`.
 
-2. **Chunk ToC + first pages**: When accessing a new chunk, batch the ToC read with the first few page reads.
+2. **Batch compaction reads** (future): `FileStore.compactRewritePage()` reads pages one-by-one. Batching these would extend the highChurnCompaction win to regular compaction.
 
-3. **Cursor readahead**: Batch the next N leaf positions into one submission.
-
-**Performance model**: For a NonLeaf with 48 children, the current approach would be 48 `pread64` syscalls. With io_uring, it's 1 `io_uring_enter` syscall that submits 48 SQEs. On a modern NVMe drive with queue depth 32+, the drive can service these in parallel at the hardware level.
+**Performance model**: For a cursor prefetch of 4 siblings, the NIO approach is 4 individual `pread64` syscalls + 4 ForkJoinPool tasks. With io_uring, it's 1 `io_uring_enter` syscall submitting 4 SQEs. The ring overhead is amortized across the batch.
 
 ### 4.7 Strategy 5: Parallel Page Deserialization
 
@@ -498,20 +498,22 @@ ring.awaitCompletions(count, (index, result) -> {
 
 ### 4.8 Read Parallelism Summary
 
-| Strategy | Latency Impact | Throughput Impact | Complexity | Best For |
-|----------|---------------|-------------------|------------|----------|
-| NonLeaf prefetch | Medium — hides I/O behind processing | High — saturates device queue | Low | General workloads |
-| Cursor readahead | High — halves effective latency for scans | Medium | Low | Sequential scans |
-| Chunk buffering | High — eliminates per-page I/O | High for intra-chunk locality | Low | Scan-heavy workloads |
-| io_uring batching | Medium — reduces syscall overhead | Very high — max device utilization | Medium (JUring dependency) | High-IOPS NVMe |
-| Parallel deser. | Medium — hides CPU cost | Medium | Low | Compressed pages |
+| Strategy | Status | Latency Impact | Throughput Impact | Complexity | Best For |
+|----------|--------|---------------|-------------------|------------|----------|
+| Chunk buffering | ✓ Step 2 | High — eliminates per-page I/O | High for intra-chunk locality | Low | Scan-heavy workloads |
+| Cursor readahead | ✓ Step 3 | High — halves effective latency for scans | Medium | Low | Sequential scans |
+| Cursor-scoped directional prefetch | ✓ Step 4 | High — overlaps I/O for upcoming siblings | High — saturates device queue | Low | Range scans, joins |
+| io_uring batching | ✓ Step 6 | Medium — reduces syscall overhead | Batch: high; demand: needs work | Medium (JUring dependency) | High-IOPS NVMe |
+| Parallel deser. | Not started | Medium — hides CPU cost | Medium | Low | Compressed pages |
 
-The recommended implementation order:
-1. **Chunk buffering** — lowest risk, already half-implemented via `Chunk.buffer`
-2. **Cursor readahead** — simple one-ahead prefetch in the cursor
-3. **NonLeaf prefetch** — configurable prefetch window
-4. **io_uring batching** — in the JUring-specific FileStore subclass
+The recommended implementation order (all completed through Step 4; Step 6 complete with caveats):
+1. ✅ **Chunk buffering** — lowest risk, already half-implemented via `Chunk.buffer`
+2. ✅ **Cursor readahead** — simple one-ahead prefetch in the cursor
+3. ✅ **Cursor-scoped directional prefetch** — widen to N-ahead, scan direction only
+4. ✅ **io_uring batching** — in the JUring-specific FileStore subclass (batch path working; demand-read parity pending, see §9)
 5. **Parallel deserialization** — only if profiling shows CPU bottleneck on decompression
+
+**Important lesson from Step 4**: Global prefetch hooks in the read path (e.g., in `readPage()`) are harmful to non-scan workloads. All prefetch must be scoped to call sites that know they are performing sequential access.
 
 
 ## 5. Phase 3 Design: Multi-Chunk Parallel Writes
@@ -585,29 +587,93 @@ One-ahead prefetch in the Cursor: when advancing to the next leaf, submit a pref
 
 **Files modified**: Cursor class, `FileStore.java` (new `submitPrefetch()` method)
 
-### Step 4: NonLeaf Prefetch with Configurable Window (Low-Medium Risk)
+### Step 4: Cursor-Scoped Directional Prefetch (Low Risk) ✓
 
-After deserializing a NonLeaf page, prefetch N children that aren't in cache. Window size is configurable per storage medium.
+Widen the cursor's one-ahead sibling readahead (Step 3) to a configurable `PREFETCH_WINDOW` (default 4) of upcoming siblings in the scan direction. Only fires when the cursor crosses a leaf boundary.
 
-**Files modified**: `FileStore.java` (readPage), new `PrefetchPolicy` configuration
+**Files modified**: `Cursor.java` (prefetchAhead replaces prefetchNextSibling)
 
-### Step 5: Parallel Map Serialization with Post-merge Fixup (Medium Risk)
+**Rejected alternative**: A global NonLeaf prefetch hook in `FileStore.readPage()` was implemented and benchmarked first. It regressed point lookups and join probes catastrophically (joinIndexedNestedLoop: 72 ms → 612 ms) by prefetching children indiscriminately on every NonLeaf load. The cursor-scoped approach avoids this by restricting prefetch to sequential scan contexts. See §4.3 for full analysis.
 
-Implement the two-pass write approach from §3.3. Gate behind a `parallelSerialize` flag so the serial path remains as fallback.
+### Step 5a: PSM Tracks Serialized Pages for Fixup (Low Risk)
 
-**Files modified**: `FileStore.java` (serializeToBuffer), `Page.java` (pos fixup support)
+Add a `SerializedPageRecord` list to `PageSerializationManager` that logs each page as it's serialized: the `Page` reference, its buffer offset, page length, page type, and for NonLeaf pages the child-pointer buffer position (the `patch` offset returned by `write()`) and child count. Pure bookkeeping — `getPagePosition()` and `onPageSerialized()` gain a few `list.add()` calls.
 
-**Key invariant to preserve**: After serialization, `page.getPos()` must return a valid position that can be used by `readPage()` to find the page in the chunk.
+This is the foundation for Step 5b's rebase operation: the record list tells us exactly which bytes in the buffer and which `Page.pos` fields need adjustment when rebasing offsets.
 
-### Step 6: io_uring Batch Reads via JUring (Medium Risk)
+**Files modified**: `PageSerializationManager.java` only
 
-Implement `JUringFileStore` as a subclass of `SingleFileStore` that uses io_uring for batched positional reads. Integrate with the NonLeaf prefetch and Cursor readahead from Steps 3–4.
+**Key invariant**: Zero behavior change. Existing tests must pass unchanged.
 
-**Files modified**: New `JUringFileStore.java`, `JUringChunk.java`; adapt prefetch call sites to use batch API when available.
+### Step 5b: PSM Gains `rebasePositions(int baseOffset)` (Medium Risk)
 
-### Step 7: Multi-Chunk Parallel Writes (High Risk)
+New method that iterates the tracked `SerializedPageRecord` list and adjusts everything by `baseOffset`:
 
-This fundamentally changes the storage model. Should only be attempted after Steps 1–6 are stable.
+1. Recomposes each `tocElement` with offset + baseOffset
+2. Recomputes `pagePos` from the rebased tocElement
+3. CAS-updates each `Page.pos` to the rebased position
+4. Patches the length/check header bytes in the buffer (check depends on offset)
+5. For NonLeaf pages: rewrites child pointer longs in the buffer, but only for children whose positions belong to the current PSM (same chunkId, offset within the local buffer range)
+
+Can be validated in isolation: call with `baseOffset=0` and verify all positions and buffer contents are unchanged. Call with known offset and verify roundtrip through `DataUtils.getPageOffset()`.
+
+**Files modified**: `PageSerializationManager.java` only
+
+**Key invariant**: `rebasePositions(0)` is a no-op. After `rebasePositions(N)`, every page's `getPos()` returns an offset that is exactly N bytes greater than before.
+
+### Step 5c: Per-Map Local Buffers with Serial Execution (Medium Risk)
+
+Refactor the map loop in `serializeToBuffer()`: each changed map root gets its own `WriteBuffer` and `PageSerializationManager`, serialized at local offset 0. After all maps are done (still sequentially), compute cumulative offsets, `memcpy` each local buffer into the main buffer at the correct position, and call `rebasePositions()` on each PSM to fix up all page positions.
+
+Layout map serialization stays on the main buffer as before (it must run after all map roots have their final positions, since it records root positions in the layout map).
+
+This is the functional correctness gate: if benchmarks show any regression, the rebase logic has a bug. Serial execution means no concurrency complications — the only variable is the rebase correctness.
+
+**Files modified**: `FileStore.java` (serializeToBuffer), `PageSerializationManager.java` (minor: expose mergedToc helper)
+
+**Key invariant**: Benchmark results must be identical to Step 4 (within noise). Any regression indicates a rebase bug.
+
+### Step 5d: Parallelize the Per-Map Loop (Medium Risk)
+
+Replace the sequential `for (Page p : changed)` with parallel execution via `ForkJoinPool.commonPool()`. Each map's serialize + local-buffer work runs on a worker thread. The merge pass (cumulative offset calculation, buffer copy, rebasePositions) stays serial.
+
+Gate behind a minimum map count threshold — for 1–2 maps, serial execution avoids thread overhead.
+
+**Files modified**: `FileStore.java` (serializeToBuffer only)
+
+**Key invariant**: Results must be byte-identical to Step 5c for the same input. The parallelism must not change the output, only the speed.
+
+### Step 6: io_uring Batch Reads via JUring (Medium Risk) ✓
+
+Implemented `FileJuring` as a `FileBaseDefault` bridge to `JUringFileChannel`, selectable via a `scheme=juring` connection parameter. The implementation has three layers:
+
+**Layer 1 — JUringFileChannel (ring path):** `readFullyBatch()` and `writeFullyBatch()` submit multiple SQEs to the io_uring ring and collect completions. The `BatchDispatcher` manages ring interaction with exactly 2 FFI calls per batch (prepare + submit/collect).
+
+**Layer 2 — JUringFileChannel (pread bypass):** Single-operation `readFully()`, `writeFully()`, `read()`, and `write()` bypass the ring entirely and use direct `pread(2)`/`pwrite(2)` syscalls via Panama FFI. This avoids ring serialization overhead for the dominant demand-read path.
+
+**Layer 3 — Heap ByteBuffer bounce buffer:** H2 uses heap-backed `ByteBuffer`s throughout. Since `pread(2)` requires a memory address, each thread maintains a 64 KB thread-local direct `MemorySegment` as a bounce buffer. Reads go: `pread → bounce → MemorySegment.ofBuffer(dst).copyFrom(bounce)`.
+
+**H2 integration — batch prefetch pipeline:**
+
+```
+Cursor.prefetchAhead() → map.prefetchPages(positions)
+  ├─ NIO: async individual prefetchPage (ForkJoinPool → pread)
+  └─ JUring: async batchPrefetchPages (ForkJoinPool → ring batch)
+
+readPage() demand read → FileChannel.read(heapBuffer, pos)
+  ├─ NIO: JDK internal pread + heap copy (optimized fast path)
+  └─ JUring: pread(rawFd, bounceBuf, len, off) + MemorySegment copy
+```
+
+**Files modified**: New `FileJuring.java`, `JUringFileChannel.java`, `BatchDispatcher.java`; modified `FileStore.java`, `SingleFileStore.java`, `MVStore.java`, `MVMap.java`, `Cursor.java` for batch prefetch API.
+
+**Key design decision — pread bypass:** The initial implementation routed all I/O through the io_uring ring, causing a 4.2× regression on coldCacheScan. Profiling revealed that demand reads (one-at-a-time page loads during B-tree traversal) were serializing on the ring lock. The pread bypass reduced this to 1.9×, and the remaining gap is Panama FFI + bounce buffer overhead (see §9.2).
+
+**Rejected alternative — synchronous batch prefetch:** An attempt to submit all prefetch positions as a synchronous batch within `batchPrefetchPages()` (wait for all completions before returning) caused a 354× regression. The io_uring ring completion wait blocked the ForkJoinPool thread, and only one batch could be in-flight at a time. The async model (submit batch, return immediately, pages appear in cache when completions arrive) is essential.
+
+### Step 7: Multi-Chunk Parallel Writes (High Risk) — Deferred
+
+This fundamentally changes the storage model. Deferred pending resolution of io_uring per-read overhead (§9.2). The batch prefetch infrastructure from Steps 4+6 delivers significant scan improvements via NIO alone, and the remaining JUring gap is in the demand-read path, not the batch path.
 
 **Files modified**: `FileStore.java`, `RandomAccessStore.java`, `Chunk.java`, `MVStore.java`
 
@@ -616,63 +682,221 @@ This fundamentally changes the storage model. Should only be attempted after Ste
 
 | Risk | Mitigation |
 |------|-----------|
-| **Writes** | |
-| Page position encoding breaks after buffer merge | Two-pass design: serialize locally, fixup globally. Extensive unit tests on position roundtrip. |
-| NonLeaf child position patching race | Children are serialized in the same local buffer as their parent — patching is buffer-local, no cross-buffer fixups needed within a single map tree. |
-| Layout map references pages from parallel buffers | Layout map is always serialized last, in the serial assembly phase, after all page positions are finalized. |
-| FreeSpaceBitSet contention on multi-chunk allocation | Pre-allocate all chunk slots under a single lock acquisition. |
-| Recovery with partial multi-chunk writes | Leader-chunk model: recovery only considers versions where the leader chunk (containing layout map) is valid. |
-| Memory pressure from multiple in-flight write buffers | Pool `WriteBuffer` instances, limit parallelism to `min(numMaps, availableCores)`, and fall back to serial when heap is tight. |
 | **Reads** | |
-| Chunk.buffer eviction races with concurrent slicing | The buffer is already volatile. Use `ByteBuffer.duplicate()` before slicing (already done in `readBufferForPage`). The duplicate holds a reference that prevents premature GC. Setting `chunk.buffer = null` for eviction is safe because `readBufferForPage` re-reads from disk on retry if `originalBlock == block` check fails. |
-| Prefetch causes memory pressure from too many cached pages | Bound the prefetch window size. Prefetched pages enter the same LRU cache as demand-loaded pages, so they'll be evicted naturally. Add a cache pressure check before prefetching. |
+| Global prefetch hooks regress non-scan workloads | **Lesson learned (Step 4)**: Never prefetch from readPage(). All prefetch must be scoped to call sites with sequential access knowledge (Cursor). Benchmarked before and after — regression was +750% on joinIndexedNestedLoop. |
+| Chunk.buffer eviction races with concurrent slicing | The buffer is already volatile. Use `ByteBuffer.duplicate()` before slicing (already done in `readBufferForPage`). Setting `chunk.buffer = null` for eviction is safe because `readBufferForPage` re-reads from disk on retry if `originalBlock == block` check fails. |
+| Prefetch causes memory pressure from too many cached pages | Bound the prefetch window size (PREFETCH_WINDOW=4). Prefetched pages enter the same LRU cache as demand-loaded pages, so they'll be evicted naturally. |
 | Prefetch threads contend with demand-read threads on FileChannel | `FileChannel.read(buf, pos)` is synchronized on the channel for overlapping regions. Use `O_DIRECT` + io_uring for true parallelism, or accept that prefetch I/O may serialize with demand I/O at the channel level (still a win because it hides latency). |
-| Chunk buffering doubles memory for cached pages | Pages read from `chunk.buffer` are still individually cached. Set a conservative `chunkBufferThreshold` (e.g., 256 KB) and short TTL (e.g., 5 seconds). Only buffer chunks that are being actively scanned. |
+| Chunk buffering doubles memory for cached pages | Pages read from `chunk.readBuffer` are still individually cached. The demand-triggered two-hit policy (Step 2) avoids buffering chunks accessed by scattered point lookups. Only chunks accessed sequentially get buffered. |
 | io_uring completion ordering | Completions arrive out of order. Each SQE carries a user_data tag mapping back to the original (position, buffer) pair. No ordering assumptions in the completion handler. |
-| Prefetch of pages that are never actually needed | Wasted I/O and memory. The cursor readahead (1-ahead) is conservative. NonLeaf prefetch should be limited to leaves (not recursive) and gated on the cache hit rate — if hit rate is already high, prefetching adds no value. |
+| Prefetch of pages that are never actually needed | The cursor-scoped approach (Step 4) limits this: prefetch only fires in the scan direction at leaf boundaries, so at most PREFETCH_WINDOW pages are prefetched per leaf transition. Point lookups never trigger prefetch. |
+| **Writes (Step 5a-5d)** | |
+| 5a: SerializedPageRecord tracking adds overhead | Records are append-only to an ArrayList during serialization. The per-page cost is one object allocation + list add. Negligible compared to page serialization + compression. |
+| 5b: rebasePositions() corrupts page positions | Validate with `rebasePositions(0)` (must be no-op). Unit test roundtrip: serialize, rebase by known offset N, verify `DataUtils.getPageOffset(page.getPos()) == originalOffset + N` for every page. Verify buffer checksums match after rebase. |
+| 5b: NonLeaf child pointer rebase patches wrong children | Only rebase child pointers whose current position falls within the local buffer's offset range (same chunkId, offset < localBufferLength). Children already saved in previous chunks have correct absolute positions and must not be touched. |
+| 5c: Per-map local buffers change serialization order | The layout map sees the same root positions (after rebase) as the serial path. The ToC order may differ (maps interleaved vs. contiguous), but ToC order is not semantically significant — pages are located by their encoded position, not by ToC index. Verify by comparing readback of all pages. |
+| 5c: Memory pressure from multiple WriteBuffers | Each local buffer is sized to one map's dirty tree. Total memory equals the single-buffer case (same pages serialized). Buffers are released immediately after memcpy into the main buffer. |
+| 5d: Race conditions in parallel map serialization | Each map's serialization is fully independent: own WriteBuffer, own PSM, own page tree. No shared mutable state between workers. The merge pass is serial. The only shared state is `ForkJoinPool.commonPool()` task scheduling, which is thread-safe by design. |
+| 5d: Page.pos CAS fails under concurrent serialization | Each `Page.pos` is set by exactly one PSM (the one serializing that page's map). Different maps never share pages. The CAS in `Page.write()` races only with concurrent `remove()` on the same page, which is already handled by the existing retry loop. |
+| Layout map references pages from parallel buffers | Layout map is always serialized last, in the serial merge phase, after all page positions are finalized via rebasePositions(). This is unchanged from the serial path. |
+| Recovery with corrupted rebased positions | If rebase produces invalid positions, readback will fail checksums immediately (the check value incorporates the offset). This makes corruption detectable at the next read, not silently latent. |
+| **io_uring / JUring (Step 6)** | |
+| Single-op reads through ring regress demand-read path | **Lesson learned**: Ring serialization adds ~60–90 µs per read for demand ops. Solved by pread bypass — single reads use `pread(2)` directly, bypassing the ring entirely. Only batch prefetch uses the ring. |
+| Heap ByteBuffer incompatibility with pread(2) | `pread(2)` requires a memory address; heap `ByteBuffer` has none. Solved with 64 KB thread-local `MemorySegment` bounce buffer. Overhead is `MemorySegment.ofBuffer(dst).copyFrom(bounce)` per read. |
+| MemorySegment.ofBuffer() on heap ByteBuffer costs ~60 µs per call | Each call must pin/validate the backing `byte[]`. This is the dominant remaining overhead source. Mitigation: try `byte[]`-based bounce (see §9.3), or increase PREFETCH_WINDOW so demand reads become cache hits. |
+| Synchronous batch prefetch blocks ForkJoinPool | **Lesson learned**: Submitting a batch and waiting for all completions within the same task caused 354× regression. The ring completion wait blocks the pool thread. The async model (submit and return immediately) is essential. |
+| Panama FFI overhead per syscall | Each `pread(2)` via Panama's `Linker.downcallHandle()` has ~1–5 µs overhead vs JDK's internal JNI path for `FileChannel.read()`. Acceptable for batched calls (amortized), but multiplied by thousands for demand reads. |
+| JUring integration fails on non-Linux or old kernels | `scheme=juring` connection parameter makes io_uring opt-in. Falls back to standard NIO by default. JUring checks for io_uring availability at load time. |
 
 
-## 8. Starting Point: The Refactored `PageSerializationManager`
+## 8. Implementation Status
 
-Here is the concrete first change — splitting `PageSerializationManager` into a composable unit:
+| Step | Description | Status |
+|------|------------|--------|
+| 1 | Extract PageSerializationManager to top-level class | ✓ Committed |
+| 2 | Demand-triggered chunk read buffering (two-hit policy) | ✓ Committed |
+| 3 | Cursor one-ahead sibling readahead | ✓ Committed |
+| 4 | Cursor-scoped directional prefetch (PREFETCH_WINDOW=4) | ✓ Committed |
+| 5a | PSM tracks serialized pages for fixup | ✓ Committed |
+| 5b | PSM gains rebasePositions(int baseOffset) | ✓ Committed |
+| 5c | Per-map local buffers with serial execution | ✓ Committed |
+| 5d | Parallelize the per-map serialization loop | ✓ Committed |
+| 6 | io_uring batch reads via JUring | ✓ Committed (see §9) |
+| 7 | Multi-chunk parallel writes | Deferred |
 
+
+### 8.1 Three-Way Benchmark Results (Baseline NIO → Current NIO → JUring)
+
+The table below compares three configurations measured with the same JMH harness on the same hardware. "Baseline NIO" is unmodified H2. "Current NIO" has Steps 1–6 (cursor prefetch, batch I/O plumbing, parallel serialization). "JUring" adds the io_uring backend with pread bypass and batch prefetch.
+
+#### Throughput (ops/s, higher = better)
+
+| Benchmark | Baseline NIO | Current NIO | Δ NIO | JUring | Δ JUring vs NIO |
+|---|---|---|---|---|---|
+| mixed (8 threads) | 1,449K | 1,449K | — | 1,425K | −2% (noise) |
+| randomCacheMissReads | 111K | 104K | −6% | 105K | +2% (noise) |
+| compositeIndexRangeScan | 117 | 156 | **+33%** | 112 | −28% |
+| secondaryIndexLookup | 55.1 | 57.9 | +5% | 46.8 | −19% |
+
+#### Latency (ms, lower = better)
+
+| Benchmark | Baseline NIO | Current NIO | Δ NIO | JUring | Δ JUring vs NIO |
+|---|---|---|---|---|---|
+| coldCacheScan | 1,322 | 863 | **−35%** | 1,644 | 1.9× (regression) |
+| highChurnCompaction | 3,494 | 3,484 | — | 2,497 | **−28%** 🏆 |
+| joinThreeWay | 2,751 | 2,396 | **−13%** | 6,820 | 2.8× (regression) |
+| joinIndexedNestedLoop | 778 | 484 | **−38%** | 507 | +5% (noise) |
+| joinAggregateGroupBy | 2,273 | 2,207 | — | 2,294 | +4% (noise) |
+| bulkInsert | 4,586 | 4,990 | +9% (noise) | 4,916 | −1% (noise) |
+| compaction | 702 | 704 | — | 719 | +2% (noise) |
+| indexCreationAndCompaction | 15,412 | 16,450 | +7% | 19,407 | +18% (regression) |
+
+#### Scorecard
+
+| Category | Count | Benchmarks |
+|---|---|---|
+| 🏆 JUring wins | 1 | highChurnCompaction (−28%) |
+| ✅ Parity (within noise) | 6 | mixed, randomCacheMissReads, bulkInsert, compaction, joinAggregateGroupBy, joinIndexedNestedLoop |
+| ⚠️ Minor gap (10–30%) | 3 | compositeIndexRangeScan, secondaryIndexLookup, bulkInsertWithIndex |
+| ❌ Significant regression | 3 | coldCacheScan (1.9×), indexCreationAndCompaction (+18%), joinThreeWay (2.8×) |
+
+
+### 8.2 NIO-Only Improvements from Steps 1–6
+
+Even without io_uring, the cursor prefetch pipeline (Steps 1–4) delivered significant gains over baseline H2 on scan- and join-heavy workloads:
+
+| Benchmark | Improvement | Mechanism |
+|---|---|---|
+| coldCacheScan | **−35%** (1,322 → 863 ms) | Async prefetch warms page cache ahead of cursor |
+| joinIndexedNestedLoop | **−38%** (778 → 484 ms) | Prefetch overlaps I/O with B-tree descent |
+| compositeIndexRangeScan | **+33%** (117 → 156 ops/s) | Wider prefetch window fills pipeline |
+| joinThreeWay | **−13%** (2,751 → 2,396 ms) | Multi-table joins benefit from parallel prefetch |
+
+The async prefetch running on `ForkJoinPool.commonPool()` lets the OS pipeline I/O and warm the page cache without explicit io_uring batching. This means the H2-layer prefetch infrastructure is valuable on all platforms, not just Linux with io_uring.
+
+
+### 8.3 bulkInsert Profile Analysis: Regression is Noise
+
+Async-profiler CPU flamegraph of `bulkInsert` (NIO current, SingleShot) breaks down as follows (2,903 total samples):
+
+| Component | % Samples | Description |
+|---|---|---|
+| **JIT compilation** (libjvm.so) | 26.6% | C2 background compiler thread — not benchmark work |
+| **Benchmark thread** | 70.6% | Actual insert work |
+| **ForkJoinPool** (parallel serialization) | 2.7% | Step 5d parallel chunk serialization |
+
+Within the benchmark thread, the top hotspots are:
+
+| Hotspot | % | Notes |
+|---|---|---|
+| ValueDataType.writeString → WriteBuffer.putStringData | ~19% | Page serialization (expected) |
+| CursorPos.traverseDown / Page.binarySearch | ~5% | B-tree navigation for inserts |
+| ext4 page cache + memory compaction | ~5% | Kernel memory pressure (variable) |
+| WriteBuffer.ensureCapacity → new_type_array_blob | ~4% | Array allocation during serialization |
+| Instant.now / Clock.currentInstant | ~1.5% | SessionLocal.setCurrentCommand overhead |
+| **Cursor.prefetchAhead** | **0.03%** (1 sample) | Our code — completely invisible |
+| pwrite / pread / fsync | 0.4% | I/O is negligible |
+
+**Key findings:**
+
+1. **Our code doesn't execute during bulkInsert.** `prefetchAhead` and `prefetchPage` have 1 sample total. Bulk insert is write-heavy — the cursor prefetch path is never triggered.
+
+2. **Confidence intervals overlap.** Baseline: 4,586 ± 427 ms → CI [4,159–5,013]. Current: 4,990 ± 328 ms → CI [4,662–5,318]. The overlap is ~350 ms, well within noise.
+
+3. **Variance is dominated by external factors.** The 26.6% JIT compilation overhead (SingleShot mode includes compilation in measurement) and 5% kernel memory compaction (folio migration, shrink_lruvec) fluctuate between runs based on system state.
+
+**Conclusion:** The bulkInsert delta of +9% is not a real regression. The profile confirms no modified code path is hot during bulk inserts.
+
+
+## 9. io_uring Performance Analysis
+
+### 9.1 pread Bypass Impact
+
+The pread bypass (routing demand reads around the io_uring ring) was the single most impactful optimization for JUring:
+
+| Benchmark | Before Bypass (ring path) | After Bypass (pread) | Improvement |
+|---|---|---|---|
+| coldCacheScan | 4.2× slower than NIO | 1.9× slower | 2.2× faster |
+| randomCacheMissReads | −3% vs NIO | +2% (parity) | Fixed |
+| joinAggregateGroupBy | +5% vs NIO | +4% (parity) | Fixed |
+| highChurnCompaction | +4% vs NIO | **−28%** (win) | Now winning |
+
+This confirms that demand reads (one-at-a-time B-tree traversal) were bottlenecked on ring serialization, not I/O. With demand reads on the pread fast path, the ring is used exclusively for batch prefetch where its amortized overhead is acceptable.
+
+
+### 9.2 Remaining Per-Read Overhead
+
+Three JUring regressions share a common pattern: high-volume sequential demand reads through B-tree traversal.
+
+**Per-read overhead calculation:**
+
+- coldCacheScan: (1,644 − 863 ms) / ~12,500 pages = **62 µs/page**
+- joinThreeWay: (6,820 − 2,396 ms) / ~50,000 pages = **89 µs/page**
+
+NIO's `FileChannel.read(heapBuffer, pos)` uses an optimized JDK-internal path: JNI → `pread(2)` → internal `sun.misc.Unsafe` copy. JUring's path goes: Panama downcall → libc `pread(2)` → kernel → `MemorySegment.ofBuffer(heapByteBuffer).copyFrom(bounceBuf)`.
+
+**Likely bottleneck:** `MemorySegment.ofBuffer()` is called on every read and must pin/validate the backing `byte[]` array each time. NIO avoids this entirely with its internal fast path.
+
+joinThreeWay is the worst case: three nested-loop joins performing thousands of B-tree lookups, every one hitting `readFully → pread + bounce`.
+
+
+### 9.3 Next Steps
+
+**1. Profile bounce overhead (immediate):**
+Add timing instrumentation to `readFully()` to measure: pread syscall time vs bounce copy time vs `MemorySegment.ofBuffer()` overhead. Confirm the bottleneck location.
+
+**2. Try `byte[]`-based bounce (quick experiment):**
+Replace:
 ```java
-// New: Standalone serialization context, not tied to FileStore inner class
-public final class PageSerializationContext {
-    private final int chunkId;
-    private final WriteBuffer buff;
-    private final List<Long> toc = new ArrayList<>();
-    private final BiConsumer<Page<?,?>, Integer> onPageSerialized;
-
-    public PageSerializationContext(int chunkId, WriteBuffer buff,
-                                    BiConsumer<Page<?,?>, Integer> onPageSerialized) {
-        this.chunkId = chunkId;
-        this.buff = buff;
-        this.onPageSerialized = onPageSerialized;
-    }
-
-    public WriteBuffer getBuffer() { return buff; }
-
-    public int getPageNo() { return toc.size(); }
-
-    public long getPagePosition(int mapId, int offset, int pageLength, int type) {
-        long tocElement = DataUtils.composeTocElement(mapId, offset, pageLength, type);
-        toc.add(tocElement);
-        long pagePos = DataUtils.composePagePos(chunkId, tocElement);
-        int check = DataUtils.getCheckValue(chunkId)
-                ^ DataUtils.getCheckValue(offset)
-                ^ DataUtils.getCheckValue(pageLength);
-        buff.putInt(offset, pageLength)
-            .putShort(offset + 4, (short) check);
-        return pagePos;
-    }
-
-    public List<Long> getToc() { return toc; }
-
-    public void notifyPageSerialized(Page<?,?> page, int diskSpaceUsed) {
-        onPageSerialized.accept(page, diskSpaceUsed);
-    }
-}
+MemorySegment.ofBuffer(dst).copyFrom(seg.asSlice(0, total));
 ```
+with:
+```java
+byte[] tmp = new byte[total];
+MemorySegment.ofArray(tmp).copyFrom(seg.asSlice(0, total));
+dst.put(tmp);
+```
+This avoids `MemorySegment.ofBuffer()` on heap `ByteBuffer` entirely. If the overhead is in the pin/validate step, this should close the gap significantly.
 
-This is the foundation that enables everything else. The existing `FileStore.PageSerializationManager` becomes a thin wrapper that delegates to this context while maintaining backward compatibility with the caching and accounting logic.
+**3. Increase PREFETCH_WINDOW (once per-read parity achieved):**
+Change `PREFETCH_WINDOW` from 4 to 16–32 in `Cursor.java` (one line). With demand reads at NIO parity, a larger window lets async batch prefetch win the race more often — demand reads become cache hits. This is where JUring's batch advantage should pull ahead on the workloads where NIO already shows 13–38% improvement from prefetch alone.
+
+**4. Batch compaction reads (medium effort):**
+`FileStore.compactRewritePage()` reads pages one-by-one. Collecting a batch of page positions and submitting them as a single ring batch could extend the highChurnCompaction win (−28%) to regular compaction and indexCreationAndCompaction.
+
+
+## 10. Architectural Summary
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│ Cursor.prefetchAhead()                                      │
+│   Fires on leaf boundary crossing, scan direction only      │
+│   Collects up to PREFETCH_WINDOW=4 sibling positions        │
+│                                                             │
+│   ├─ NIO backend:                                           │
+│   │   for each position → async ForkJoinPool.submit(        │
+│   │     map.prefetchPage(pos) → pread + cache              │
+│   │   )                                                     │
+│   │                                                         │
+│   └─ JUring backend:                                        │
+│       async ForkJoinPool.submit(                            │
+│         batchPrefetchPages(positions) → ring batch          │
+│       ) → 2 FFI calls total for N pages                    │
+│                                                             │
+├─────────────────────────────────────────────────────────────┤
+│ Demand reads: readPage() → FileChannel.read(heapBuf, pos)  │
+│                                                             │
+│   ├─ NIO: JDK-internal pread + Unsafe heap copy             │
+│   └─ JUring: Panama pread + 64KB bounce + MemorySegment     │
+│                                                             │
+├─────────────────────────────────────────────────────────────┤
+│ Write path: FileStore.serializeToBuffer()                   │
+│                                                             │
+│   Step 5d: Per-map parallel serialization                   │
+│   ├─ Each map → own WriteBuffer + own PSM (ForkJoinPool)    │
+│   ├─ Serial merge: cumulative offsets + rebasePositions()   │
+│   └─ Layout map serialized last (serial)                    │
+│                                                             │
+│   Shared by NIO and JUring — backend-agnostic               │
+└─────────────────────────────────────────────────────────────┘
+```

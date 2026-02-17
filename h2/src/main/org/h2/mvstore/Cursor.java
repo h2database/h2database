@@ -167,7 +167,7 @@ public final class Cursor<K,V> implements Iterator<K> {
      * @param reverse true if traversal is in reverse direction, false otherwise
      * @return CursorPos representing path from the entry found,
      *         or from insertion point if not,
-     *         all the way up to to the root page provided
+     *         all the way up to the root page provided
      */
     static <K,V> CursorPos<K,V> traverseDown(Page<K,V> page, K key, boolean reverse) {
         CursorPos<K,V> cursorPos = key != null ? CursorPos.traverseDown(page, key) :
@@ -192,7 +192,7 @@ public final class Cursor<K,V> implements Iterator<K> {
      * crosses a leaf boundary. Prefetching is directional — only siblings
      * ahead in the scan direction are submitted.
      */
-    private static final int PREFETCH_WINDOW = 4;
+    private static final int PREFETCH_WINDOW = 16;
 
     /**
      * Submit best-effort prefetch for the next {@link #PREFETCH_WINDOW}

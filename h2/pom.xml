@@ -37,7 +37,7 @@
   </developers>
 
   <properties>
-    <maven.compiler.release>16</maven.compiler.release>
+    <maven.compiler.release>11</maven.compiler.release>
     <asm.version>9.5</asm.version>
     <jts.version>1.19.0</jts.version>
     <junit.version>5.10.0</junit.version>

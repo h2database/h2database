@@ -6,6 +6,7 @@
 package org.h2.store.fs;
 
 import java.nio.ByteBuffer;
+import java.util.Objects;
 
 /**
  * Batch I/O operation descriptors for use with
@@ -25,19 +26,89 @@ public final class BatchFileOperations {
 
     /**
      * A single positional read request.
-     *
-     * @param position absolute byte offset in the file
-     * @param dst      destination buffer; on return the buffer's position will
-     *                 have advanced by the number of bytes read
      */
-    public record BatchReadOp(long position, ByteBuffer dst) {}
+    public static final class BatchReadOp {
+        /** Absolute byte offset in the file. */
+        public final long position;
+        /**
+         * Destination buffer; on return the buffer's position will have
+         * advanced by the number of bytes read.
+         */
+        public final ByteBuffer dst;
+
+        public BatchReadOp(long position, ByteBuffer dst) {
+            this.position = position;
+            this.dst = dst;
+        }
+
+        public long position() {
+            return position;
+        }
+
+        public ByteBuffer dst() {
+            return dst;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof BatchReadOp)) return false;
+            BatchReadOp other = (BatchReadOp) o;
+            return position == other.position && Objects.equals(dst, other.dst);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(position, dst);
+        }
+
+        @Override
+        public String toString() {
+            return "BatchReadOp[position=" + position + ", dst=" + dst + ']';
+        }
+    }
 
     /**
      * A single positional write request.
-     *
-     * @param position absolute byte offset in the file
-     * @param src      source buffer; the bytes between {@code position()} and
-     *                 {@code limit()} are written
      */
-    public record BatchWriteOp(long position, ByteBuffer src) {}
+    public static final class BatchWriteOp {
+        /** Absolute byte offset in the file. */
+        public final long position;
+        /**
+         * Source buffer; the bytes between {@code position()} and
+         * {@code limit()} are written.
+         */
+        public final ByteBuffer src;
+
+        public BatchWriteOp(long position, ByteBuffer src) {
+            this.position = position;
+            this.src = src;
+        }
+
+        public long position() {
+            return position;
+        }
+
+        public ByteBuffer src() {
+            return src;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof BatchWriteOp)) return false;
+            BatchWriteOp other = (BatchWriteOp) o;
+            return position == other.position && Objects.equals(src, other.src);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(position, src);
+        }
+
+        @Override
+        public String toString() {
+            return "BatchWriteOp[position=" + position + ", src=" + src + ']';
+        }
+    }
 }

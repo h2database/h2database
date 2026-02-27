@@ -81,8 +81,8 @@ public class SingleFileStore extends RandomAccessStore {
      */
     @Override
     public boolean supportsBatchIO() {
-        return fileChannel instanceof FileBaseDefault fbd
-               && fbd.supportsBatchIO();
+        return fileChannel instanceof FileBaseDefault
+               && ((FileBaseDefault) fileChannel).supportsBatchIO();
     }
 
     /**
@@ -93,7 +93,8 @@ public class SingleFileStore extends RandomAccessStore {
      */
     @Override
     protected void readBatch(List<BatchReadOp> ops) {
-        if (fileChannel instanceof FileBaseDefault fbd) {
+        if (fileChannel instanceof FileBaseDefault) {
+            FileBaseDefault fbd = (FileBaseDefault) fileChannel;
             try {
                 fbd.readBatch(ops);
                 readCount.addAndGet(ops.size());

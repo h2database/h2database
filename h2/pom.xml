@@ -37,7 +37,7 @@
   </developers>
 
   <properties>
-    <maven.compiler.release>11</maven.compiler.release>
+    <maven.compiler.release>16</maven.compiler.release>
     <asm.version>9.5</asm.version>
     <jts.version>1.19.0</jts.version>
     <junit.version>5.10.0</junit.version>
@@ -160,15 +160,15 @@
           <exists>${java.home}/../lib/tools.jar</exists>
         </file>
       </activation>
-      <dependencies>
-        <dependency>
-          <groupId>com.sun</groupId>
-          <artifactId>tools</artifactId>
-          <scope>system</scope>
-          <version>1.8</version>
-          <systemPath>${java.home}/../lib/tools.jar</systemPath>
-        </dependency>
-      </dependencies>
+<!--      <dependencies>-->
+<!--        <dependency>-->
+<!--          <groupId>com.sun</groupId>-->
+<!--          <artifactId>tools</artifactId>-->
+<!--          <scope>system</scope>-->
+<!--          <version>1.8</version>-->
+<!--          <systemPath>${java.home}/../lib/tools.jar</systemPath>-->
+<!--        </dependency>-->
+<!--      </dependencies>-->
     </profile>
     <profile>
       <id>default-tools.jar-mac</id>
@@ -177,15 +177,15 @@
           <exists>${java.home}/../Classes/classes.jar</exists>
         </file>
       </activation>
-      <dependencies>
-        <dependency>
-          <groupId>com.sun</groupId>
-          <artifactId>tools</artifactId>
-          <scope>system</scope>
-          <version>1.8</version>
-          <systemPath>${java.home}/../Classes/classes.jar</systemPath>
-        </dependency>
-      </dependencies>
+<!--      <dependencies>-->
+<!--        <dependency>-->
+<!--          <groupId>com.sun</groupId>-->
+<!--          <artifactId>tools</artifactId>-->
+<!--          <scope>system</scope>-->
+<!--          <version>1.8</version>-->
+<!--          <systemPath>${java.home}/../Classes/classes.jar</systemPath>-->
+<!--        </dependency>-->
+<!--      </dependencies>-->
     </profile>
     <profile>
       <id>nashorn</id>
@@ -288,6 +288,14 @@
           </includes>
         </configuration>
       </plugin>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <configuration>
+                <source>16</source>
+                <target>16</target>
+            </configuration>
+        </plugin>
 
     </plugins>
   </build>

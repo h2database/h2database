@@ -10,11 +10,14 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.nio.channels.OverlappingFileLockException;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import org.h2.mvstore.cache.FilePathCache;
+import org.h2.store.fs.BatchFileOperations.BatchReadOp;
+import org.h2.store.fs.FileBaseDefault;
 import org.h2.store.fs.FilePath;
 import org.h2.store.fs.encrypt.FileEncrypt;
 import org.h2.store.fs.encrypt.FilePathEncrypt;
@@ -69,6 +72,47 @@ public class SingleFileStore extends RandomAccessStore {
         writeBytes.addAndGet(len);
     }
 
+    // ────────── Batch I/O (io_uring integration) ──────────
+
+    /**
+     * Whether the file channel supports true batch I/O.
+     * Returns true when the channel is a {@link FileBaseDefault} that
+     * reports batch support (e.g. {@code FileJuring} backed by io_uring).
+     */
+    @Override
+    public boolean supportsBatchIO() {
+        return fileChannel instanceof FileBaseDefault fbd
+               && fbd.supportsBatchIO();
+    }
+
+    /**
+     * Batch read via the file channel.  When the channel is a
+     * {@link FileBaseDefault} (NIO or JUring), delegates to its
+     * {@link FileBaseDefault#readBatch} which either loops sequentially
+     * (NIO) or submits all SQEs in one {@code io_uring_enter} (JUring).
+     */
+    @Override
+    protected void readBatch(List<BatchReadOp> ops) {
+        if (fileChannel instanceof FileBaseDefault fbd) {
+            try {
+                fbd.readBatch(ops);
+                readCount.addAndGet(ops.size());
+                long totalBytes = 0;
+                for (BatchReadOp op : ops) {
+                    totalBytes += op.dst().capacity();
+                }
+                readBytes.addAndGet(totalBytes);
+            } catch (IOException e) {
+                throw DataUtils.newMVStoreException(
+                        DataUtils.ERROR_READING_FAILED,
+                        "Batch read failed for {0}", getFileName(), e);
+            }
+        } else {
+            // Fallback for non-FileBaseDefault channels (e.g. encrypted)
+            super.readBatch(ops);
+        }
+    }
+
     /**
      * Try to open the file.
      *  @param fileName the file name
@@ -79,16 +123,16 @@ public class SingleFileStore extends RandomAccessStore {
     @Override
     public void open(String fileName, boolean readOnly, char[] encryptionKey) {
         open(fileName, readOnly,
-                encryptionKey == null ? null
-                        : fileChannel -> new FileEncrypt(fileName, FilePathEncrypt.getPasswordBytes(encryptionKey),
-                                fileChannel));
+             encryptionKey == null ? null
+                                   : fileChannel -> new FileEncrypt(fileName, FilePathEncrypt.getPasswordBytes(encryptionKey),
+                                                                    fileChannel));
     }
 
     @Override
     public SingleFileStore open(String fileName, boolean readOnly) {
         SingleFileStore result = new SingleFileStore(config);
         result.open(fileName, readOnly, originalFileChannel == null ? null :
-                fileChannel -> new FileEncrypt(fileName, (FileEncrypt)this.fileChannel, fileChannel));
+                                        fileChannel -> new FileEncrypt(fileName, (FileEncrypt)this.fileChannel, fileChannel));
         return result;
     }
 

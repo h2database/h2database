@@ -14,6 +14,7 @@ import org.h2.util.Utils;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import org.h2.store.fs.BatchFileOperations.BatchReadOp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
@@ -32,11 +33,11 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -45,6 +46,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.BiConsumer;
 import java.util.function.IntSupplier;
+import java.util.stream.IntStream;
 import java.util.zip.ZipOutputStream;
 
 /**
@@ -124,6 +126,14 @@ public abstract class FileStore<C extends Chunk<C>>
     private final int maxPageSize;
 
     /**
+     * Maximum size in bytes of a chunk that will be fully buffered into
+     * memory on first read access.
+     * Set to 0 to disable chunk read buffering.
+     * Default: 4 MB.
+     */
+    private int chunkReadCacheMaxBytes = 4 * 1024 * 1024;
+
+    /**
      * The file size (cached).
      */
     private long size;
@@ -170,21 +180,6 @@ public abstract class FileStore<C extends Chunk<C>>
      */
     protected volatile C lastChunk;
 
-    /**
-     * Chunks that was recently allocated and saved, but their metadata is not
-     * present in layout map yet. This can't happen before chunk is allocated,
-     * but preferably should be done right before next chunk is created.
-     * It has to be thread-safe, because producer and consumer are using different
-     * locks ({@link #saveChunkLock} and {@link #serializationLock} respectively).
-     */
-    private final Queue<C> recentlySaved = new LinkedBlockingQueue<>();
-
-    /**
-     * Identifier of the last created chunk.
-     * It is different from {@link #lastChunk.id}, because process is pipelined -
-     * chunk creation / serialization and space allocation / save are handled
-     * by two dedicated threads, therefore more than one chunk might be in that pipeline.
-     */
     private int lastChunkId;   // protected by serializationLock
 
     protected final ReentrantLock saveChunkLock = new ReentrantLock(true);
@@ -192,7 +187,7 @@ public abstract class FileStore<C extends Chunk<C>>
     /**
      * The map of chunks.
      */
-    private final ConcurrentHashMap<Integer, C> chunks = new ConcurrentHashMap<>();
+    final ConcurrentHashMap<Integer, C> chunks = new ConcurrentHashMap<>();
 
     protected final HashMap<String, Object> storeHeader = new HashMap<>();
 
@@ -205,7 +200,7 @@ public abstract class FileStore<C extends Chunk<C>>
     private final Queue<WriteBuffer> writeBufferPool = new ArrayBlockingQueue<>(PIPE_LENGTH + 1);
 
     /**
-     * The layout map. Contains metadata for all chunks and root locations for all maps.
+     * The layout map. Contains chunk's metadata and root locations for all maps.
      * This is relatively fast changing part of metadata
      */
     private MVMap<String, String> layout;
@@ -255,7 +250,7 @@ public abstract class FileStore<C extends Chunk<C>>
         chunksToC = new CacheLongKeyLIRS<>(cc2);
 
         int maxPageSize = DataUtils.getConfigParam(config, "pageSplitSize",
-                                                    cache == null ? Integer.MAX_VALUE : Constants.DEFAULT_PAGE_SIZE);
+                                                   cache == null ? Integer.MAX_VALUE : Constants.DEFAULT_PAGE_SIZE);
         // Make sure pages will fit into cache
         if (cache != null) {
             int maxCacheableSize = (int) (cache.getMaxItemSize() >> 4);
@@ -290,28 +285,12 @@ public abstract class FileStore<C extends Chunk<C>>
         if (allowedCompactionTime > 0) {
             compactStore(allowedCompactionTime);
         }
-
-        serializationLock.lock();
-        try {
-            // if there are no outstanding changes in data maps,
-            // but some recently saved chunk(s), apart from the latest one,
-            // are not reflected in layout map yet,
-            // we need to force new chunk creation by modifying layout map here
-            saveRecentChunksInLayout(mvStore.getCurrentVersion());
-        } finally {
-            serializationLock.unlock();
-        }
-
-
-        mvStore.commit();
         writeCleanShutdown();
         clearCaches();
     }
 
     public void close() {
-        if (layout != null) {
-            layout.close();
-        }
+        layout.close();
         closed = true;
         chunks.clear();
     }
@@ -420,6 +399,14 @@ public abstract class FileStore<C extends Chunk<C>>
         retentionTime = ms;
     }
 
+    public final int getChunkReadCacheMaxBytes() {
+        return chunkReadCacheMaxBytes;
+    }
+
+    public final void setChunkReadCacheMaxBytes(int bytes) {
+        this.chunkReadCacheMaxBytes = Math.max(0, bytes);
+    }
+
     /**
      * Decision about autocommit is delegated to store
      * @param unsavedMemory amount of unsaved memory, so far
@@ -491,7 +478,7 @@ public abstract class FileStore<C extends Chunk<C>>
             MVMap<String, String> oldLayoutMap = getLayoutMap(version);
             for (C chunk : getChunksFromLayoutMap(oldLayoutMap)) {
                 String chunkKey = Chunk.getMetaKey(chunk.id);
-                // if current layout map does not have it - verify its existence
+                // if current layout map does not have it - verify it's existence
                 if (!layout.containsKey(chunkKey) && !isValidChunk(chunk)) {
                     return false;
                 }
@@ -522,7 +509,6 @@ public abstract class FileStore<C extends Chunk<C>>
                 saveChunkLock.lock();
                 try {
                     deadChunks.clear();
-                    recentlySaved.clear();
                     setLastChunk(keep);
                     adjustStoreToLastChunk();
                 } finally {
@@ -575,10 +561,10 @@ public abstract class FileStore<C extends Chunk<C>>
         if (!isReadOnly()) {
             if (format > FORMAT_WRITE_MAX) {
                 throw getUnsupportedWriteFormatException(format, FORMAT_WRITE_MAX,
-                        "The write format {0} is larger than the supported format {1}");
+                                                         "The write format {0} is larger than the supported format {1}");
             } else if (format < FORMAT_WRITE_MIN) {
                 throw getUnsupportedWriteFormatException(format, FORMAT_WRITE_MIN,
-                        "The write format {0} is smaller than the supported format {1}");
+                                                         "The write format {0} is smaller than the supported format {1}");
             }
         }
         format = DataUtils.readHexLong(storeHeader, HDR_FORMAT_READ, format);
@@ -659,7 +645,6 @@ public abstract class FileStore<C extends Chunk<C>>
     }
 
     protected final void setLastChunk(C last) {
-        assert serializationLock.isHeldByCurrentThread();
         lastChunk = last;
         chunks.clear();
         lastChunkId = 0;
@@ -683,10 +668,10 @@ public abstract class FileStore<C extends Chunk<C>>
             List<C> toBeFreed = new ArrayList<>();
             C chunk;
             while ((chunk = deadChunks.poll()) != null &&
-                    (isSeasonedChunk(chunk, time) && canOverwriteChunk(chunk, oldestVersionToKeep) ||
-                            // if chunk is not ready yet, put it back and exit
-                            // since this deque is unbounded, offerFirst() always return true
-                            !deadChunks.offerFirst(chunk))) {
+                   (isSeasonedChunk(chunk, time) && canOverwriteChunk(chunk, oldestVersionToKeep) ||
+                    // if chunk is not ready yet, put it back and exit
+                    // since this deque is unbounded, offerFirst() always return true
+                    !deadChunks.offerFirst(chunk))) {
 
                 if (chunks.remove(chunk.id) != null) {
                     // purge dead pages from cache
@@ -728,8 +713,8 @@ public abstract class FileStore<C extends Chunk<C>>
 
     private boolean isRewritable(C chunk, long time) {
         return chunk.isRewritable() && isSeasonedChunk(chunk, time)
-                // to prevent last saved chunk from being re-written as it may cause "endless" re-write loop
-                && chunk.version < getMvStore().getCurrentVersion() - 1;
+               // to prevent last saved chunk from being re-written as it may cause "endless" re-write loop
+               && chunk.version < getMvStore().getCurrentVersion() - 1;
     }
 
     /**
@@ -756,6 +741,39 @@ public abstract class FileStore<C extends Chunk<C>>
         readCount.incrementAndGet();
         readBytes.addAndGet(len);
         return dst;
+    }
+
+    /**
+     * Whether the underlying I/O channel supports true batch reads
+     * (e.g. io_uring). When true, {@link #prefetchPages} submits all
+     * reads in a single kernel round-trip via {@link #readBatch}.
+     * When false, prefetchPages falls back to individual
+     * {@link #prefetchPage} calls.
+     *
+     * @return true if readBatch() actually batches at the kernel level
+     */
+    public boolean supportsBatchIO() {
+        return false;
+    }
+
+    /**
+     * Read multiple buffers from the store in a single (potentially batched)
+     * operation.  Only called when {@link #supportsBatchIO()} returns true.
+     * <p>
+     * Subclasses backed by batch-capable I/O (e.g. io_uring via
+     * {@code SingleFileStore}) override this to delegate to the file
+     * channel's native batch read.
+     *
+     * @param ops list of (position, buffer) read operations
+     */
+    @SuppressWarnings("unchecked")
+    protected void readBatch(List<BatchReadOp> ops) {
+        // Default: sequential fallback
+        for (BatchReadOp op : ops) {
+            ByteBuffer result = readFully((C) null, op.position(), op.dst().remaining());
+            op.dst().put(result);
+            op.dst().flip();
+        }
     }
 
 
@@ -860,7 +878,18 @@ public abstract class FileStore<C extends Chunk<C>>
         assert serializationLock.isHeldByCurrentThread();
         // chunk's location has to be determined before
         // it's metadata can be is serialized
-        assert chunk.isAllocated();
+        while (!chunk.isAllocated()) {
+            saveChunkLock.lock();
+            try {
+                if (chunk.isAllocated()) {
+                    break;
+                }
+            } finally {
+                saveChunkLock.unlock();
+            }
+            // just let chunks saving thread to deal with it
+            Thread.yield();
+        }
         layout.put(Chunk.getMetaKey(chunk.id), chunk.asString());
     }
 
@@ -925,36 +954,30 @@ public abstract class FileStore<C extends Chunk<C>>
      * @param mvStore that owns this FileStore
      */
     protected abstract void compactStore(int thresholdFillRate, long maxCompactTime, int maxWriteSize, //
-            MVStore mvStore);
+                                         MVStore mvStore);
 
     protected abstract void doHousekeeping(MVStore mvStore) throws InterruptedException;
 
 
 
     public MVMap<String, String> start() {
-        // locking is not strictly neccessary here in startup flow, just to make assertions happy
-        serializationLock.lock();
-        try {
-            if (size() == 0) {
-                initializeCommonHeaderAttributes(mvStore.getTimeAbsolute());
-                initializeStoreHeader(mvStore.getTimeAbsolute());
-            } else {
-                saveChunkLock.lock();
-                try {
-                    readStoreHeader(recoveryMode);
-                } finally {
-                    saveChunkLock.unlock();
-                }
+        if (size() == 0) {
+            initializeCommonHeaderAttributes(mvStore.getTimeAbsolute());
+            initializeStoreHeader(mvStore.getTimeAbsolute());
+        } else {
+            saveChunkLock.lock();
+            try {
+                readStoreHeader(recoveryMode);
+            } finally {
+                saveChunkLock.unlock();
             }
-            lastCommitTime = getTimeSinceCreation();
-            mvStore.resetLastMapId(lastMapId());
-            mvStore.setCurrentVersion(lastChunkVersion());
-            MVMap<String, String> metaMap = mvStore.openMetaMap();
-            scrubLayoutMap(metaMap);
-            return metaMap;
-        } finally {
-            serializationLock.unlock();
         }
+        lastCommitTime = getTimeSinceCreation();
+        mvStore.resetLastMapId(lastMapId());
+        mvStore.setCurrentVersion(lastChunkVersion());
+        MVMap<String, String> metaMap = mvStore.openMetaMap();
+        scrubLayoutMap(metaMap);
+        return metaMap;
     }
 
     protected abstract void initializeStoreHeader(long time);
@@ -1015,7 +1038,7 @@ public abstract class FileStore<C extends Chunk<C>>
     }
 
     protected final boolean findLastChunkWithCompleteValidChunkSet(Comparator<C> chunkComparator,
-            Map<Long, C> validChunksByLocation, boolean afterFullScan) {
+                                                                   Map<Long, C> validChunksByLocation, boolean afterFullScan) {
         // this collection will hold potential candidates for lastChunk to fall back to,
         // in order from the most to the least likely
         C[] array = createChunksArray(validChunksByLocation.size());
@@ -1054,7 +1077,7 @@ public abstract class FileStore<C extends Chunk<C>>
                         }
                     }
                     if (!c.isLive() && validChunksById.get(c.id) == null &&
-                            (afterFullScan || readChunkHeaderAndFooter(c.block, c.id) == null)) {
+                        (afterFullScan || readChunkHeaderAndFooter(c.block, c.id) == null)) {
                         // chunk reference is invalid but chunk is not live anymore:
                         // we can just remove entry from meta, referencing to this chunk,
                         // but store maybe R/O, and it's not properly started yet,
@@ -1400,39 +1423,52 @@ public abstract class FileStore<C extends Chunk<C>>
         }
     }
 
+    private int serializationExecutorHWM;
+
+
     final void storeIt(ArrayList<Page<?,?>> changed, long version, boolean syncWrite) throws ExecutionException {
         lastCommitTime = getTimeSinceCreation();
-        submitOrRun(serializationExecutor,
-                () -> serializeAndStore(syncWrite, changed, lastCommitTime, version),
-                syncWrite, PIPE_LENGTH);
+        serializationExecutorHWM = submitOrRun(serializationExecutor,
+                                               () -> serializeAndStore(syncWrite, changed, lastCommitTime, version),
+                                               syncWrite, PIPE_LENGTH, serializationExecutorHWM);
     }
 
-    public static void submitOrRun(ThreadPoolExecutor executor, Runnable action,
-                                    boolean syncRun, int threshold) throws ExecutionException {
+    private static int submitOrRun(ThreadPoolExecutor executor, Runnable action,
+                                   boolean syncRun, int threshold, int hwm) throws ExecutionException {
         if (executor != null) {
             try {
                 Future<?> future = executor.submit(action);
-                if (syncRun || executor.getQueue().size() > threshold) {
+                int size = executor.getQueue().size();
+                if (size > hwm) {
+                    hwm = size;
+//                    System.err.println(executor + " HWM: " + hwm);
+                }
+                if (syncRun || size > threshold) {
                     try {
                         future.get();
                     } catch (InterruptedException ignore) {/**/}
                 }
-                return;
+                return hwm;
             } catch (RejectedExecutionException ex) {
+                assert executor.isShutdown();
                 Utils.shutdownExecutor(executor);
             }
         }
         action.run();
+        return hwm;
     }
 
+
+    private int bufferSaveExecutorHWM;
 
     private void serializeAndStore(boolean syncRun, ArrayList<Page<?,?>> changed, long time, long version) {
         serializationLock.lock();
         try {
+            C lastChunk = null;
             int chunkId = lastChunkId;
             if (chunkId != 0) {
                 chunkId &= Chunk.MAX_ID;
-                C lastChunk = chunks.get(chunkId);
+                lastChunk = chunks.get(chunkId);
                 assert lastChunk != null : lastChunkId + " ("+chunkId+") " + chunks;
                 // never go backward in time
                 time = Math.max(lastChunk.time, time);
@@ -1443,13 +1479,14 @@ public abstract class FileStore<C extends Chunk<C>>
                 c = createChunk(time, version);
                 chunks.put(c.id, c);
                 buff = getWriteBuffer();
-                serializeToBuffer(buff, changed, c);
+                serializeToBuffer(buff, changed, c, lastChunk);
             } catch (Throwable t) {
                 lastChunkId = chunkId;
                 throw t;
             }
 
-            submitOrRun(bufferSaveExecutor, () -> storeBuffer(c, buff), syncRun, 5);
+            bufferSaveExecutorHWM = submitOrRun(bufferSaveExecutor, () -> storeBuffer(c, buff),
+                                                syncRun, 5, bufferSaveExecutorHWM);
 
             for (Page<?, ?> p : changed) {
                 p.releaseSavedPages();
@@ -1457,38 +1494,120 @@ public abstract class FileStore<C extends Chunk<C>>
         } catch (MVStoreException e) {
             mvStore.panic(e);
         } catch (Throwable e) {
-            mvStore.panic(e);
+            mvStore.panic(DataUtils.newMVStoreException(DataUtils.ERROR_INTERNAL, "{0}", e.toString(), e));
         } finally {
             serializationLock.unlock();
         }
     }
 
-    private void serializeToBuffer(WriteBuffer buff, ArrayList<Page<?, ?>> changed, C c) {
+    /**
+     * Result holder for one map's serialization into a local buffer.
+     */
+    private static final class MapSerializationResult {
+        final Page<?,?> rootPage;
+        final PageSerializationManager psm;
+        final WriteBuffer localBuff;
+        final String layoutKey;
+
+        MapSerializationResult(Page<?,?> rootPage, PageSerializationManager psm,
+                               WriteBuffer localBuff, String layoutKey) {
+            this.rootPage = rootPage;
+            this.psm = psm;
+            this.localBuff = localBuff;
+            this.layoutKey = layoutKey;
+        }
+    }
+
+    private void serializeToBuffer(WriteBuffer buff, ArrayList<Page<?, ?>> changed, C c, C previousChunk) {
         // need to patch the header later
         int headerLength = c.estimateHeaderSize();
         buff.position(headerLength);
         c.next = headerLength;
 
         long version = c.version;
-        PageSerializationManager pageSerializationManager = new PageSerializationManager(c, buff);
+
+        // ---- Phase 1: Serialize map trees ----
+        // Separate empty maps (remove from layout) from non-empty ones.
+        List<Page<?,?>> nonEmptyPages = new ArrayList<>();
+        List<String> nonEmptyKeys = new ArrayList<>();
         for (Page<?,?> p : changed) {
             String key = MVMap.getMapRootKey(p.getMapId());
             if (p.getTotalCount() == 0) {
                 layout.remove(key);
             } else {
-                p.writeUnsavedRecursive(pageSerializationManager);
-                long root = p.getPos();
-                layout.put(key, Long.toHexString(root));
+                nonEmptyPages.add(p);
+                nonEmptyKeys.add(key);
             }
         }
 
+        int mapCount = nonEmptyPages.size();
+        int pageNoBase = 0;
+        List<MapSerializationResult> results;
+
+        if (mapCount <= 1) {
+            // ---- Fast path: single map → serialize directly into global buffer ----
+            // No local buffers, no rebase, no deferred callbacks, no countUnsavedPages().
+            // This is the original virgin-H2 code path, avoiding all parallel-serialization
+            // overhead for the common case of a single dirty map (e.g. bulkInsert).
+            results = new ArrayList<>(mapCount);
+            for (int i = 0; i < mapCount; i++) {
+                Page<?,?> p = nonEmptyPages.get(i);
+                PageSerializationManager psm =
+                        createPageSerializationManager(c, buff, 0);
+                p.writeUnsavedRecursive(psm);
+                layout.put(nonEmptyKeys.get(i), Long.toHexString(p.getPos()));
+                results.add(new MapSerializationResult(p, psm, null, nonEmptyKeys.get(i)));
+                pageNoBase += psm.getPageCount();
+            }
+        } else {
+            // ---- Parallel path: multiple maps → local buffers + rebase ----
+            // Phase 1a: Count pages per map to assign non-overlapping page number ranges.
+            int[] pageNoBases = new int[mapCount];
+            for (int i = 0; i < mapCount; i++) {
+                pageNoBases[i] = pageNoBase;
+                pageNoBase += nonEmptyPages.get(i).countUnsavedPages();
+            }
+
+            // Phase 1b: Serialize each map into its own local buffer.
+            // Each map gets a deferred-callback PSM so that cache inserts
+            // and chunk accounting happen after rebase (with correct global
+            // positions) rather than during serialization.
+            // Serialization runs in parallel via the common ForkJoinPool.
+            MapSerializationResult[] resultsArray = new MapSerializationResult[mapCount];
+            IntStream.range(0, mapCount).parallel().forEach(i -> {
+                Page<?,?> p = nonEmptyPages.get(i);
+                WriteBuffer localBuff = new WriteBuffer();
+                PageSerializationManager localPSM =
+                        createDeferredPageSerializationManager(c, localBuff, pageNoBases[i]);
+                p.writeUnsavedRecursive(localPSM);
+                resultsArray[i] = new MapSerializationResult(
+                        p, localPSM, localBuff, nonEmptyKeys.get(i));
+            });
+            results = Arrays.asList(resultsArray);
+
+            // Phase 2: Copy local buffers into global buffer, rebase, replay callbacks.
+            // Sequential: each map's data is copied, positions rebased from local to
+            // global, and deferred callbacks replayed with correct positions.
+            for (MapSerializationResult result : results) {
+                int baseOffset = buff.position();
+                ByteBuffer src = result.localBuff.getBuffer();
+                src.flip();
+                buff.put(src);
+                result.psm.rebasePositions(baseOffset, buff.getBuffer());
+                result.psm.applyDeferredCallbacks();
+                layout.put(result.layoutKey,
+                           Long.toHexString(result.rootPage.getPos()));
+            }
+        }
+
+        // ---- Phase 3: Layout map serialization (on global buffer) ----
         acceptChunkOccupancyChanges(c.time, version);
 
-        // metadata of some recent chunks has not been saved in the layout map yet,
-        // just was embedded into the chunk itself, and this need to be done now
-        // (it's better not to update right after storing,
-        // because that would modify the layout map again)
-        saveRecentChunksInLayout(version);
+        if (previousChunk != null) {
+            if (!layout.containsKey(Chunk.getMetaKey(previousChunk.id))) {
+                saveChunkMetadataChanges(previousChunk);
+            }
+        }
 
         RootReference<String,String> layoutRootReference = layout.setWriteVersion(version);
         assert layoutRootReference != null;
@@ -1498,18 +1617,18 @@ public abstract class FileStore<C extends Chunk<C>>
 
         mvStore.onVersionChange(version);
 
+        PageSerializationManager layoutPSM =
+                createPageSerializationManager(c, buff, pageNoBase);
         Page<String,String> layoutRoot = layoutRootReference.root;
-        layoutRoot.writeUnsavedRecursive(pageSerializationManager);
+        layoutRoot.writeUnsavedRecursive(layoutPSM);
         c.layoutRootPos = layoutRoot.getPos();
         changed.add(layoutRoot);
 
-        // last allocated map id should be captured after the meta map was saved, because
-        // this will ensure that concurrently created map, which made it into meta before save,
-        // will have its id reflected in "map" header field of the currently written chunk
         c.mapId = mvStore.getLastMapId();
 
+        // ---- Phase 4: Write merged ToC ----
         c.tocPos = buff.position();
-        pageSerializationManager.serializeToC();
+        writeMergedToC(c, results, layoutPSM);
         int chunkLength = buff.position();
 
         // add the store header and round to the next block
@@ -1519,17 +1638,37 @@ public abstract class FileStore<C extends Chunk<C>>
         c.buffer = buff.getBuffer();
     }
 
-    private void saveRecentChunksInLayout(long currentVersion) {
-        C recentlySavedChunk;
-        while((recentlySavedChunk = recentlySaved.peek()) != null
-                    // if it's a leftover after store rollback
-                    && recentlySavedChunk.version < currentVersion) {
-            recentlySavedChunk = recentlySaved.poll();
-            recentlySavedChunk = chunks.get(recentlySavedChunk.id);
-            if (recentlySavedChunk != null) {
-                saveChunkMetadataChanges(recentlySavedChunk);
+    /**
+     * Write the merged table of contents from all per-map PSMs and the
+     * layout PSM into the global buffer, then cache it.
+     */
+    private void writeMergedToC(C c, List<MapSerializationResult> mapResults,
+                                PageSerializationManager layoutPSM) {
+        int totalPages = 0;
+        for (MapSerializationResult r : mapResults) {
+            totalPages += r.psm.getPageCount();
+        }
+        totalPages += layoutPSM.getPageCount();
+
+        long[] tocArray = new long[totalPages];
+        int index = 0;
+
+        // Map pages first (already rebased)
+        for (MapSerializationResult r : mapResults) {
+            for (long tocElement : r.psm.getToc()) {
+                tocArray[index++] = tocElement;
+                layoutPSM.getBuffer().putLong(tocElement);
+                mvStore.countNewPage(DataUtils.isLeafPosition(tocElement));
             }
         }
+        // Layout pages
+        for (long tocElement : layoutPSM.getToc()) {
+            tocArray[index++] = tocElement;
+            layoutPSM.getBuffer().putLong(tocElement);
+            mvStore.countNewPage(DataUtils.isLeafPosition(tocElement));
+        }
+
+        cacheToC(c, tocArray);
     }
 
     private void storeBuffer(C c, WriteBuffer buff) {
@@ -1542,7 +1681,6 @@ public abstract class FileStore<C extends Chunk<C>>
             int headerLength = (int)c.next;
 
             allocateChunkSpace(c, buff);
-            recentlySaved.offer(c);
 
             buff.position(0);
             c.writeChunkHeader(buff, headerLength);
@@ -1555,7 +1693,7 @@ public abstract class FileStore<C extends Chunk<C>>
         } catch (MVStoreException e) {
             mvStore.panic(e);
         } catch (Throwable e) {
-            mvStore.panic(e);
+            mvStore.panic(DataUtils.newMVStoreException(DataUtils.ERROR_INTERNAL, "{0}", e.toString(), e));
         } finally {
             saveChunkLock.unlock();
             c.buffer = null;
@@ -1817,13 +1955,13 @@ public abstract class FileStore<C extends Chunk<C>>
         // queue will be ordered in descending order of collectionPriority values,
         // so most desirable chunks will stay at the tail
         PriorityQueue<C> queue = new PriorityQueue<>(this.chunks.size() / 4 + 1,
-                (o1, o2) -> {
-                    int comp = Integer.compare(o2.collectPriority, o1.collectPriority);
-                    if (comp == 0) {
-                        comp = Long.compare(o2.maxLenLive, o1.maxLenLive);
-                    }
-                    return comp;
-                });
+                                                     (o1, o2) -> {
+                                                         int comp = Integer.compare(o2.collectPriority, o1.collectPriority);
+                                                         if (comp == 0) {
+                                                             comp = Long.compare(o2.maxLenLive, o1.maxLenLive);
+                                                         }
+                                                         return comp;
+                                                     });
 
         long totalSize = 0;
         long latestVersion = lastChunkVersion() + 1;
@@ -1874,10 +2012,10 @@ public abstract class FileStore<C extends Chunk<C>>
                 autoCompactLastFileOpCount = getWriteCount() + getReadCount() + 10;
             }
         } catch (InterruptedException ignore) {
-        } catch (MVStoreException e) {
-            mvStore.panic(e);
         } catch (Throwable e) {
-            mvStore.panic(e);
+            if (!mvStore.handleException(e)) {
+                throw e;
+            }
         }
     }
 
@@ -1948,7 +2086,7 @@ public abstract class FileStore<C extends Chunk<C>>
                         int mapId = DataUtils.getPageMapId(tocElement);
                         MVMap<String, String> metaMap = mvStore.getMetaMap();
                         MVMap<?, ?> map = mapId == layout.getId() ? layout
-                                : mapId == metaMap.getId() ? metaMap : mvStore.getMap(mapId);
+                                                                  : mapId == metaMap.getId() ? metaMap : mvStore.getMap(mapId);
                         if (map != null && !map.isClosed()) {
                             assert !map.isSingleWriter();
                             if (secondPass || DataUtils.isLeafPosition(tocElement)) {
@@ -2009,8 +2147,8 @@ public abstract class FileStore<C extends Chunk<C>>
                         exception = e;
                     } catch (Exception e) {
                         exception = DataUtils.newMVStoreException(DataUtils.ERROR_FILE_CORRUPT,
-                                "Unable to read the page at position 0x{0}, chunk {1}, offset 0x{3}",
-                                Long.toHexString(pos), chunk, Long.toHexString(pageOffset), e);
+                                                                  "Unable to read the page at position 0x{0}, chunk {1}, offset 0x{3}",
+                                                                  Long.toHexString(pos), chunk, Long.toHexString(pageOffset), e);
                     }
                     if (alreadySaved) {
                         if (exception == null) {
@@ -2027,6 +2165,145 @@ public abstract class FileStore<C extends Chunk<C>>
                 return map.createEmptyLeaf();
             }
             throw e;
+        }
+    }
+
+    /**
+     * Submit a best-effort background read for the page at the given
+     * position. If the page is already in the cache, this is a no-op.
+     * If the background read fails, the failure is silently ignored —
+     * the page will be demand-loaded when actually needed.
+     *
+     * @param map the map
+     * @param pos the page position
+     */
+    <K,V> void prefetchPage(MVMap<K,V> map, long pos) {
+        if (!DataUtils.isPageSaved(pos) || readPageFromCache(pos) != null) {
+            return;
+        }
+        ForkJoinPool.commonPool().execute(() -> {
+            try {
+                readPage(map, pos);
+            } catch (Exception ignored) {
+                // prefetch failure is not fatal
+            }
+        });
+    }
+
+    /**
+     * Submit a best-effort batch prefetch for multiple pages.
+     * <p>
+     * When the underlying I/O channel supports batch operations (io_uring),
+     * all pages are read in a single kernel round-trip. Otherwise, falls
+     * back to individual {@link #prefetchPage} calls.
+     * <p>
+     * Pages that are already cached, unsaved, or have PAGE_LARGE length
+     * are handled individually. The I/O and deserialization run on a
+     * background thread.
+     *
+     * @param map       the map that owns the pages
+     * @param positions array of page positions to prefetch
+     * @param <K>       key type
+     * @param <V>       value type
+     */
+    <K,V> void prefetchPages(MVMap<K,V> map, long[] positions) {
+        if (!supportsBatchIO()) {
+            // No batch I/O — fall back to individual prefetch
+            for (long pos : positions) {
+                prefetchPage(map, pos);
+            }
+            return;
+        }
+
+        // Single pass: filter unsaved / already-cached pages.
+        // Sized to positions.length to avoid a TOCTOU race — the cache
+        // can change between any two calls to readPageFromCache(), so a
+        // separate count-then-fill loop can overflow.
+        var ref = new Object() {
+            long[] uncached = new long[positions.length];
+        };
+        int idx = 0;
+        for (long pos : positions) {
+            if (DataUtils.isPageSaved(pos) && readPageFromCache(pos) == null) {
+                ref.uncached[idx++] = pos;
+            }
+        }
+        if (idx == 0) {
+            return;
+        }
+        // Trim to actual size
+        if (idx < ref.uncached.length) {
+            ref.uncached = java.util.Arrays.copyOf(ref.uncached, idx);
+        }
+
+        // Submit single background task for the entire batch
+        ForkJoinPool.commonPool().execute(() -> {
+            try {
+                batchPrefetchPages(map, ref.uncached);
+            } catch (Exception ignored) {
+                // Entire batch failure is not fatal — pages will be demand-loaded
+            }
+        });
+    }
+
+    /**
+     * Worker method for batch prefetch.  Runs on a ForkJoinPool thread.
+     * Builds BatchReadOp list, executes batch I/O, deserializes and caches.
+     */
+    private <K,V> void batchPrefetchPages(MVMap<K,V> map, long[] positions) {
+        // Phase 1: Build read operations
+        List<BatchReadOp> ops = new ArrayList<>(positions.length);
+        long[] opPositions = new long[positions.length];
+        int opCount = 0;
+
+        for (long pos : positions) {
+            if (readPageFromCache(pos) != null) {
+                continue;
+            }
+            try {
+                C chunk = getChunk(pos);
+                int pageOffset = DataUtils.getPageOffset(pos);
+                long chunkStart = chunk.block * FileStore.BLOCK_SIZE;
+                long filePos = chunkStart + pageOffset;
+
+                int length = DataUtils.getPageMaxLength(pos);
+                if (length == DataUtils.PAGE_LARGE) {
+                    // Large page needs preliminary read — fall back to individual
+                    try { readPage(map, pos); } catch (Exception ignored) {}
+                    continue;
+                }
+
+                long maxPos = chunkStart + (long) chunk.len * FileStore.BLOCK_SIZE;
+                length = (int) Math.min(maxPos - filePos, length);
+                if (length <= 0) continue;
+
+                ByteBuffer dst = ByteBuffer.allocate(length);
+                ops.add(new BatchReadOp(filePos, dst));
+                opPositions[opCount++] = pos;
+            } catch (Exception e) {
+                // Skip — will be demand-loaded later
+            }
+        }
+
+        if (ops.isEmpty()) return;
+
+        // Phase 2: Execute batch I/O
+        try {
+            readBatch(ops);
+        } catch (Exception e) {
+            return; // pages will be demand-loaded individually
+        }
+
+        // Phase 3: Deserialize and cache
+        for (int i = 0; i < ops.size(); i++) {
+            try {
+                ByteBuffer buff = ops.get(i).dst();
+                buff.flip();
+                Page<K,V> page = Page.read(buff, opPositions[i], map);
+                cachePage(page);
+            } catch (Exception e) {
+                // Deserialization failure for one page is not fatal
+            }
         }
     }
 
@@ -2128,65 +2405,107 @@ public abstract class FileStore<C extends Chunk<C>>
 
 
 
-    public final class PageSerializationManager
-    {
-        private final C chunk;
-        private final WriteBuffer buff;
-        private final List<Long> toc = new ArrayList<>();
+    /**
+     * Create a {@link PageSerializationManager} wired to this store's
+     * caches and accounting for the given chunk.
+     *
+     * @param chunk the chunk being built
+     * @param buff  the target write buffer
+     * @return a new manager ready for page serialization
+     */
+    PageSerializationManager createPageSerializationManager(C chunk, WriteBuffer buff) {
+        return createPageSerializationManager(chunk, buff, 0);
+    }
 
-        PageSerializationManager(C chunk, WriteBuffer buff) {
-            this.chunk = chunk;
-            this.buff = buff;
-        }
+    /**
+     * Create a {@link PageSerializationManager} with a given page
+     * number base offset.
+     *
+     * @param chunk      the chunk being built
+     * @param buff       the target write buffer
+     * @param pageNoBase starting page number for this segment
+     * @return a new manager ready for page serialization
+     */
+    PageSerializationManager createPageSerializationManager(C chunk, WriteBuffer buff, int pageNoBase) {
+        return new PageSerializationManager(
+                chunk.id, chunk.version, buff,
+                new PageSerializationManager.Callback() {
+                    @Override
+                    public void cachePage(Page<?,?> page) {
+                        FileStore.this.cachePage(page);
+                    }
 
-        public WriteBuffer getBuffer() {
-            return buff;
-        }
+                    @Override
+                    public void accountForRemovedPage(long pos, long version,
+                                                      boolean pinned, int pageNo) {
+                        FileStore.this.accountForRemovedPage(pos, version, pinned, pageNo);
+                    }
 
-        private int getChunkId() {
-            return chunk.id;
-        }
+                    @Override
+                    public void accountForWrittenPage(int diskSpaceUsed, boolean isPinned) {
+                        chunk.accountForWrittenPage(diskSpaceUsed, isPinned);
+                    }
 
-        public int getPageNo() {
-            return toc.size();
-        }
+                    @Override
+                    public void cacheToC(int chunkId, long[] tocArray) {
+                        FileStore.this.cacheToC(chunk, tocArray);
+                    }
 
-        public long getPagePosition(int mapId, int offset, int pageLength, int type) {
-            long tocElement = DataUtils.composeTocElement(mapId, offset, pageLength, type);
-            toc.add(tocElement);
-            long pagePos = DataUtils.composePagePos(chunk.id, tocElement);
-            int chunkId = getChunkId();
-            int check = DataUtils.getCheckValue(chunkId)
-                    ^ DataUtils.getCheckValue(offset)
-                    ^ DataUtils.getCheckValue(pageLength);
-            buff.putInt(offset, pageLength).
-                putShort(offset + 4, (short) check);
-            return pagePos;
-        }
+                    @Override
+                    public void countNewPage(boolean isLeaf) {
+                        mvStore.countNewPage(isLeaf);
+                    }
+                },
+                pageNoBase);
+    }
 
-        public void onPageSerialized(Page<?,?> page, boolean isDeleted, int diskSpaceUsed, boolean isPinned) {
-            cachePage(page);
-            if (!page.isLeaf()) {
-                // cache again - this will make sure nodes stays in the cache
-                // for a longer time
-                cachePage(page);
-            }
-            chunk.accountForWrittenPage(diskSpaceUsed, isPinned);
-            if (isDeleted) {
-                accountForRemovedPage(page.getPos(), chunk.version + 1, isPinned, page.pageNo);
-            }
-        }
+    /**
+     * Create a {@link PageSerializationManager} with deferred callbacks.
+     * Side-effects (cache inserts, chunk accounting) are recorded but not
+     * executed; call {@link PageSerializationManager#applyDeferredCallbacks()}
+     * after {@link PageSerializationManager#rebasePositions(int, java.nio.ByteBuffer)}
+     * to replay them with correct global positions.
+     * <p>
+     * Used during parallel Phase 1 serialization where callbacks are not
+     * thread-safe.
+     *
+     * @param chunk      the chunk being built
+     * @param buff       the target write buffer (per-map local buffer)
+     * @param pageNoBase starting page number for this segment
+     * @return a deferred-callback manager
+     */
+    PageSerializationManager createDeferredPageSerializationManager(
+            C chunk, WriteBuffer buff, int pageNoBase) {
+        return new PageSerializationManager(
+                chunk.id, chunk.version, buff,
+                new PageSerializationManager.Callback() {
+                    @Override
+                    public void cachePage(Page<?,?> page) {
+                        FileStore.this.cachePage(page);
+                    }
 
-        public void serializeToC() {
-            long[] tocArray = new long[toc.size()];
-            int index = 0;
-            for (long tocElement : toc) {
-                tocArray[index++] = tocElement;
-                buff.putLong(tocElement);
-                mvStore.countNewPage(DataUtils.isLeafPosition(tocElement));
-            }
-            cacheToC(chunk, tocArray);
-        }
+                    @Override
+                    public void accountForRemovedPage(long pos, long version,
+                                                      boolean pinned, int pageNo) {
+                        FileStore.this.accountForRemovedPage(pos, version, pinned, pageNo);
+                    }
+
+                    @Override
+                    public void accountForWrittenPage(int diskSpaceUsed, boolean isPinned) {
+                        chunk.accountForWrittenPage(diskSpaceUsed, isPinned);
+                    }
+
+                    @Override
+                    public void cacheToC(int chunkId, long[] tocArray) {
+                        FileStore.this.cacheToC(chunk, tocArray);
+                    }
+
+                    @Override
+                    public void countNewPage(boolean isLeaf) {
+                        mvStore.countNewPage(isLeaf);
+                    }
+                },
+                pageNoBase, true);  // deferCallbacks=true
     }
 
 
@@ -2247,12 +2566,12 @@ public abstract class FileStore<C extends Chunk<C>>
         @Override
         public String toString() {
             return "RemovedPageInfo{" +
-                    "version=" + version +
-                    ", chunk=" + getPageChunkId() +
-                    ", pageNo=" + getPageNo() +
-                    ", len=" + getPageLength() +
-                    (isPinned() ? ", pinned" : "") +
-                    '}';
+                   "version=" + version +
+                   ", chunk=" + getPageChunkId() +
+                   ", pageNo=" + getPageNo() +
+                   ", len=" + getPageLength() +
+                   (isPinned() ? ", pinned" : "") +
+                   '}';
         }
     }
 
@@ -2267,7 +2586,7 @@ public abstract class FileStore<C extends Chunk<C>>
         private final int sleep;
 
         BackgroundWriterThread(FileStore<?> store, int sleep, String fileStoreName) {
-            super(Utils.H2_THREAD_GROUP, "MVStore background writer " + fileStoreName);
+            super("MVStore background writer " + fileStoreName);
             this.store = store;
             this.sleep = sleep;
             setDaemon(true);

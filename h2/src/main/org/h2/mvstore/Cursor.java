@@ -20,10 +20,27 @@ public final class Cursor<K,V> implements Iterator<K> {
     /**
      * Minimum number of not-yet-visited sibling children that must exist at an
      * internal node before we bother submitting a prefetch.  Below this
-     * threshold the range is so short that the I/O scheduling overhead is not
-     * worth it.
+     * threshold the range is too short for async I/O scheduling to pay off:
+     * the ForkJoin submission overhead alone exceeds the latency hidden.
+     * <p>
+     * Value of 8 was chosen empirically — it suppresses prefetch at the tail
+     * of nearly-exhausted subtrees while still firing on all nodes above the
+     * lowest level of a typical wide B-tree.
      */
-    private static final int PREFETCH_MIN_SIBLINGS = 2;
+    private static final int PREFETCH_MIN_SIBLINGS = 8;
+
+    /**
+     * Maximum descent depth at which prefetch is triggered.  Depth 0 is the
+     * node the cursor is currently sitting at; depth 1 is its children, etc.
+     * <p>
+     * Prefetch at depth 0 covers an entire subtree worth of future reads —
+     * exactly what is useful.  Prefetch at deeper levels re-submits work
+     * already queued by a shallower call, flooding the I/O queue and causing
+     * the demand-read thread to race its own background tasks (the root cause
+     * of the {@code coldCacheScan} regression).  Limiting to depth 1 gives
+     * two levels of look-ahead: enough for wide trees, harmless for narrow ones.
+     */
+    private static final int MAX_PREFETCH_DEPTH = 1;
 
     private final boolean reverse;
     private final K to;
@@ -70,8 +87,11 @@ public final class Cursor<K,V> implements Iterator<K> {
                     keeper = tmp;
                 } else {
                     // traverse down to the leaf taking the leftmost path
+                    int descentDepth = 0;
                     while (!page.isLeaf()) {
-                        maybePrefetchSiblings(page, index);
+                        if (descentDepth < MAX_PREFETCH_DEPTH) {
+                            maybePrefetchSiblings(page, index);
+                        }
                         page = page.getChildPage(index);
                         index = reverse ? upperBound(page) - 1 : 0;
                         if (keeper == null) {
@@ -84,6 +104,7 @@ public final class Cursor<K,V> implements Iterator<K> {
                             tmp.index = index;
                             cursorPos = tmp;
                         }
+                        ++descentDepth;
                     }
                     if (reverse ? index >= 0 : index < page.getKeyCount()) {
                         K key = page.getKey(index);
@@ -193,6 +214,11 @@ public final class Cursor<K,V> implements Iterator<K> {
      * @param currentIndex index of the child we are about to follow
      */
     private void maybePrefetchSiblings(Page<K,V> page, int currentIndex) {
+        // Prefetch only makes sense for bounded range scans.  Unbounded
+        // full-table scans (to == null) already saturate I/O on their own;
+        // adding background reads doubles I/O traffic and hurts throughput.
+        if (to == null) return;
+
         MVMap<K,V> map = page.map;
 
         // In-memory store: all pages are already in RAM, nothing to prefetch.

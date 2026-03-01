@@ -131,16 +131,6 @@ public abstract class FileStore<C extends Chunk<C>>
      * Set to 0 to disable chunk read buffering.
      * Default: 4 MB.
      */
-    /**
-     * Maximum bytes to buffer a whole chunk in memory when multiple pages are
-     * read from it sequentially.
-     * <p>
-     * Defaults to {@code 0} (disabled).  Chunks are 1–4 MB collections of
-     * <em>random</em> pages; the probability of a second cache hit on the
-     * same chunk buffer is low, so that memory is better spent on the page
-     * cache ({@code cacheSize}).  Set to a positive value only if profiling
-     * shows a benefit for your specific workload.
-     */
     private int chunkReadCacheMaxBytes = 0;
 
     /**
@@ -755,10 +745,10 @@ public abstract class FileStore<C extends Chunk<C>>
 
     /**
      * Whether the underlying I/O channel supports true batch reads
-     * (e.g. io_uring). When true, {@link #prefetchPages} submits all
-     * reads in a single kernel round-trip via {@link #readBatch}.
-     * When false, prefetchPages falls back to individual
-     * {@link #prefetchPage} calls.
+     * (e.g. io_uring). When true, {@link #prefetchPages} submits reads
+     * in windowed batches via {@link #readBatch}.
+     * When false, prefetchPages submits a single background task that
+     * reads all pages sequentially via individual {@link #readPage} calls.
      *
      * @return true if readBatch() actually batches at the kernel level
      */
@@ -2201,15 +2191,27 @@ public abstract class FileStore<C extends Chunk<C>>
     }
 
     /**
+     * Maximum number of pages submitted as a single io_uring batch.
+     * Capping the submission queue depth lets demand reads interleave
+     * between prefetch windows and prevents ring saturation under
+     * concurrent read workloads such as cold-cache full-table scans.
+     */
+    static final int MAX_PREFETCH_BATCH = 32;
+
+    /**
      * Submit a best-effort batch prefetch for multiple pages.
      * <p>
      * When the underlying I/O channel supports batch operations (io_uring),
-     * all pages are read in a single kernel round-trip. Otherwise, falls
-     * back to individual {@link #prefetchPage} calls.
+     * pages are read in windows of {@link #MAX_PREFETCH_BATCH} via a single
+     * background task, allowing demand reads to interleave between windows.
+     * For plain NIO, a <em>single</em> background task reads the pages
+     * sequentially — this avoids the N-task ForkJoin submission overhead
+     * that dominates when individual page reads are fast.
      * <p>
      * Pages that are already cached, unsaved, or have PAGE_LARGE length
-     * are handled individually. The I/O and deserialization run on a
-     * background thread.
+     * are skipped. The I/O and deserialization run entirely on a background
+     * thread; failures are silently ignored and the page will be
+     * demand-loaded when actually needed.
      *
      * @param map       the map that owns the pages
      * @param positions array of page positions to prefetch
@@ -2217,51 +2219,56 @@ public abstract class FileStore<C extends Chunk<C>>
      * @param <V>       value type
      */
     <K,V> void prefetchPages(MVMap<K,V> map, long[] positions) {
-        if (!supportsBatchIO()) {
-            // No batch I/O — fall back to individual prefetch
-            for (long pos : positions) {
-                prefetchPage(map, pos);
-            }
-            return;
-        }
-
         // Single pass: filter unsaved / already-cached pages.
-        // Sized to positions.length to avoid a TOCTOU race — the cache
-        // can change between any two calls to readPageFromCache(), so a
-        // separate count-then-fill loop can overflow.
-        var ref = new Object() {
-            long[] uncached = new long[positions.length];
-        };
+        // Over-sized to positions.length to avoid a TOCTOU race — the cache
+        // can change between any two readPageFromCache() calls.
+        long[] uncached = new long[positions.length];
         int idx = 0;
         for (long pos : positions) {
             if (DataUtils.isPageSaved(pos) && readPageFromCache(pos) == null) {
-                ref.uncached[idx++] = pos;
+                uncached[idx++] = pos;
             }
         }
-        if (idx == 0) {
-            return;
-        }
-        // Trim to actual size
-        if (idx < ref.uncached.length) {
-            ref.uncached = java.util.Arrays.copyOf(ref.uncached, idx);
-        }
+        if (idx == 0) return;
+        final long[] work = idx < uncached.length ? java.util.Arrays.copyOf(uncached, idx) : uncached;
 
-        // Submit single background task for the entire batch
-        ForkJoinPool.commonPool().execute(() -> {
-            try {
-                batchPrefetchPages(map, ref.uncached);
-            } catch (Exception ignored) {
-                // Entire batch failure is not fatal — pages will be demand-loaded
-            }
-        });
+        if (!supportsBatchIO()) {
+            // NIO: submit ONE ForkJoin task that reads all pages sequentially.
+            // Submitting N individual tasks costs N thread-scheduling round-trips,
+            // which dominates the benefit for short prefetch lists.
+            ForkJoinPool.commonPool().execute(() -> {
+                for (long pos : work) {
+                    if (readPageFromCache(pos) != null) continue; // re-check; may be warm now
+                    try {
+                        readPage(map, pos);
+                    } catch (Exception ignored) {
+                        // not fatal — will be demand-loaded
+                    }
+                }
+            });
+        } else {
+            // io_uring: submit a single background task that processes the
+            // work array in windows of MAX_PREFETCH_BATCH, so the ring is
+            // never fully saturated and demand reads can interleave.
+            ForkJoinPool.commonPool().execute(() -> {
+                try {
+                    batchPrefetchPages(map, work);
+                } catch (Exception ignored) {
+                    // batch failure is not fatal — pages will be demand-loaded
+                }
+            });
+        }
     }
 
     /**
-     * Worker method for batch prefetch.  Runs on a ForkJoinPool thread.
-     * Builds BatchReadOp list, executes batch I/O, deserializes and caches.
+     * Worker method for windowed batch prefetch. Runs on a ForkJoinPool thread.
+     * Builds the full list of read operations, then submits them in windows of
+     * {@link #MAX_PREFETCH_BATCH} SQEs. Windowing prevents io_uring ring
+     * saturation: demand reads can land on the ring between windows rather
+     * than waiting for the entire prefetch batch to drain.
      */
     private <K,V> void batchPrefetchPages(MVMap<K,V> map, long[] positions) {
-        // Phase 1: Build read operations
+        // Phase 1: Build the complete read-operation list.
         List<BatchReadOp> ops = new ArrayList<>(positions.length);
         long[] opPositions = new long[positions.length];
         int opCount = 0;
@@ -2297,22 +2304,28 @@ public abstract class FileStore<C extends Chunk<C>>
 
         if (ops.isEmpty()) return;
 
-        // Phase 2: Execute batch I/O
-        try {
-            readBatch(ops);
-        } catch (Exception e) {
-            return; // pages will be demand-loaded individually
-        }
+        // Phase 2 + 3: Execute I/O and deserialize in MAX_PREFETCH_BATCH windows.
+        // Each window is one io_uring_enter call; demand reads can interleave
+        // between windows, preventing ring-full stalls under concurrent load.
+        for (int winStart = 0; winStart < opCount; winStart += MAX_PREFETCH_BATCH) {
+            int winEnd = Math.min(winStart + MAX_PREFETCH_BATCH, opCount);
+            List<BatchReadOp> window = ops.subList(winStart, winEnd);
 
-        // Phase 3: Deserialize and cache
-        for (int i = 0; i < ops.size(); i++) {
             try {
-                ByteBuffer buff = ops.get(i).dst();
-                buff.flip();
-                Page<K,V> page = Page.read(buff, opPositions[i], map);
-                cachePage(page);
+                readBatch(window);
             } catch (Exception e) {
-                // Deserialization failure for one page is not fatal
+                continue; // window I/O failed — pages demand-loaded individually
+            }
+
+            for (int i = winStart; i < winEnd; i++) {
+                try {
+                    ByteBuffer buff = ops.get(i).dst();
+                    buff.flip();
+                    Page<K,V> page = Page.read(buff, opPositions[i], map);
+                    cachePage(page);
+                } catch (Exception e) {
+                    // One-page deserialization failure is not fatal
+                }
             }
         }
     }
@@ -2399,14 +2412,8 @@ public abstract class FileStore<C extends Chunk<C>>
 
     /**
      * Returns {@code true} if the page at the given position is currently
-     * held in the page cache.
-     * <p>
-     * Used by {@link Cursor} to short-circuit prefetch submission when
-     * iterating over already-warm data: if the very next sibling is cached,
-     * it is very likely the whole working set is hot and no I/O is needed.
-     *
-     * @param pos the encoded page position
-     * @return {@code true} if the page is in the cache
+     * held in the page cache.  Used by {@link Cursor} to short-circuit
+     * prefetch submission when the working set is already warm.
      */
     boolean isPageCached(long pos) {
         return cache != null && cache.get(pos) != null;

@@ -5,6 +5,7 @@
  */
 package org.h2.mvstore;
 
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
@@ -15,6 +16,15 @@ import java.util.NoSuchElementException;
  * @param <V> the value type
  */
 public final class Cursor<K,V> implements Iterator<K> {
+
+    /**
+     * Minimum number of not-yet-visited sibling children that must exist at an
+     * internal node before we bother submitting a prefetch.  Below this
+     * threshold the range is so short that the I/O scheduling overhead is not
+     * worth it.
+     */
+    private static final int PREFETCH_MIN_SIBLINGS = 2;
+
     private final boolean reverse;
     private final K to;
     private CursorPos<K,V> cursorPos;
@@ -61,6 +71,7 @@ public final class Cursor<K,V> implements Iterator<K> {
                 } else {
                     // traverse down to the leaf taking the leftmost path
                     while (!page.isLeaf()) {
+                        maybePrefetchSiblings(page, index);
                         page = page.getChildPage(index);
                         index = reverse ? upperBound(page) - 1 : 0;
                         if (keeper == null) {
@@ -152,6 +163,102 @@ public final class Cursor<K,V> implements Iterator<K> {
     }
 
     /**
+     * Submits a best-effort background prefetch for the sibling children of
+     * {@code page} that the cursor will visit <em>after</em> it finishes with
+     * the subtree rooted at child {@code currentIndex}.
+     *
+     * <h3>Upper-bound analysis</h3>
+     * Instead of a fixed-size sliding window, the method uses the B-tree's own
+     * separator keys to determine which siblings are actually within the
+     * cursor's {@link #to} bound.  For a forward cursor, child {@code i}
+     * (i &gt; 0) has a minimum key of {@code page.getKey(i-1)}; as soon as that
+     * separator exceeds {@code to} we stop collecting siblings.  Reverse
+     * iteration applies the symmetric check on the maximum key.  This avoids
+     * issuing any I/O for siblings that lie entirely outside the requested
+     * range.
+     *
+     * <h3>In-memory / warm-cache short-circuit</h3>
+     * <ul>
+     *   <li>If the store has no backing file, return immediately — all pages
+     *       are already in RAM.</li>
+     *   <li>If the first candidate sibling is already in the page cache,
+     *       assume the working set is warm and skip prefetch entirely,
+     *       eliminating the ForkJoin task-submission overhead for hot
+     *       iterators.</li>
+     *   <li>Unsaved child positions (pos&nbsp;==&nbsp;0) are skipped
+     *       individually — they are already in the write buffer.</li>
+     * </ul>
+     *
+     * @param page         the internal node being descended
+     * @param currentIndex index of the child we are about to follow
+     */
+    private void maybePrefetchSiblings(Page<K,V> page, int currentIndex) {
+        MVMap<K,V> map = page.map;
+
+        // In-memory store: all pages are already in RAM, nothing to prefetch.
+        if (!map.store.isPersistent()) return;
+
+        FileStore<?> fs = map.store.getFileStore();
+        if (fs == null) return;
+
+        int childCount = map.getChildPageCount(page);
+
+        // Identify the sibling range that will be visited after currentIndex.
+        int sibStart, sibEnd;
+        if (reverse) {
+            sibStart = 0;
+            sibEnd   = currentIndex;          // indices 0 .. currentIndex-1
+        } else {
+            sibStart = currentIndex + 1;
+            sibEnd   = childCount;            // indices currentIndex+1 .. childCount-1
+        }
+        if (sibEnd - sibStart < PREFETCH_MIN_SIBLINGS) return;
+
+        // ── Warm-cache short-circuit ────────────────────────────────────────
+        // If the first candidate sibling is already in the page cache the
+        // working set is hot; skip ForkJoin overhead entirely.
+        long firstPos = page.getChildPagePos(sibStart);
+        if (DataUtils.isPageSaved(firstPos) && fs.isPageCached(firstPos)) return;
+
+        // ── Upper-bound analysis using separator keys ───────────────────────
+        // NonLeaf page layout: keys[0..childCount-2] separate children.
+        //   child[i] minimum key ≈ keys[i-1]   (for i > 0)
+        //   child[i] maximum key ≈ keys[i]      (for i < childCount-1)
+        //
+        // Forward: stop before sibling i when keys[i-1] > to  (min of child > to)
+        // Reverse: stop before sibling i when keys[i]   < to  (max of child < to)
+        long[] positions = new long[sibEnd - sibStart];
+        int idx = 0;
+        for (int i = sibStart; i < sibEnd; i++) {
+            if (to != null) {
+                if (reverse) {
+                    // child[i]'s maximum key ≈ keys[i] (exists when i < childCount-1)
+                    if (i < childCount - 1) {
+                        K maxKey = page.getKey(i);
+                        if (page.map.getKeyType().compare(maxKey, to) < 0) break; // max < to → out of range
+                    }
+                } else {
+                    // child[i]'s minimum key ≈ keys[i-1] (exists when i > 0)
+                    if (i > 0) {
+                        K minKey = page.getKey(i - 1);
+                        if (page.map.getKeyType().compare(minKey, to) > 0) break; // min > to → out of range
+                    }
+                }
+            }
+            long pos = page.getChildPagePos(i);
+            if (DataUtils.isPageSaved(pos)) {
+                positions[idx++] = pos;
+            }
+        }
+        if (idx == 0) return;
+        if (idx < positions.length) {
+            positions = Arrays.copyOf(positions, idx);
+        }
+
+        fs.prefetchPages(map, positions);
+    }
+
+    /**
      * Fetch the next entry that is equal or larger than the given key, starting
      * from the given page. This method returns the path.
      *
@@ -167,7 +274,7 @@ public final class Cursor<K,V> implements Iterator<K> {
      */
     static <K,V> CursorPos<K,V> traverseDown(Page<K,V> page, K key, boolean reverse) {
         CursorPos<K,V> cursorPos = key != null ? CursorPos.traverseDown(page, key, null) :
-                reverse ? page.getAppendCursorPos(null) : page.getPrependCursorPos(null);
+                                   reverse ? page.getAppendCursorPos(null) : page.getPrependCursorPos(null);
         int index = cursorPos.index;
         if (index < 0) {
             index = ~index;

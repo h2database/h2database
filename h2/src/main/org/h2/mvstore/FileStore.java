@@ -131,7 +131,17 @@ public abstract class FileStore<C extends Chunk<C>>
      * Set to 0 to disable chunk read buffering.
      * Default: 4 MB.
      */
-    private int chunkReadCacheMaxBytes = 4 * 1024 * 1024;
+    /**
+     * Maximum bytes to buffer a whole chunk in memory when multiple pages are
+     * read from it sequentially.
+     * <p>
+     * Defaults to {@code 0} (disabled).  Chunks are 1–4 MB collections of
+     * <em>random</em> pages; the probability of a second cache hit on the
+     * same chunk buffer is low, so that memory is better spent on the page
+     * cache ({@code cacheSize}).  Set to a positive value only if profiling
+     * shows a benefit for your specific workload.
+     */
+    private int chunkReadCacheMaxBytes = 0;
 
     /**
      * The file size (cached).
@@ -1725,7 +1735,7 @@ public abstract class FileStore<C extends Chunk<C>>
                         if (chunk.isAllocated()) {
                             modifiedChunks.add(chunk);
                             if (chunk.accountForRemovedPage(rpi.getPageNo(), rpi.getPageLength(),
-                                    rpi.isPinned(), time, rpi.version)) {
+                                                            rpi.isPinned(), time, rpi.version)) {
                                 registerDeadChunk(chunk);
                             }
                         } else {
@@ -2385,6 +2395,21 @@ public abstract class FileStore<C extends Chunk<C>>
     @SuppressWarnings("unchecked")
     private <K, V> Page<K, V> readPageFromCache(long pos) {
         return cache == null ? null : (Page<K,V>)cache.get(pos);
+    }
+
+    /**
+     * Returns {@code true} if the page at the given position is currently
+     * held in the page cache.
+     * <p>
+     * Used by {@link Cursor} to short-circuit prefetch submission when
+     * iterating over already-warm data: if the very next sibling is cached,
+     * it is very likely the whole working set is hot and no I/O is needed.
+     *
+     * @param pos the encoded page position
+     * @return {@code true} if the page is in the cache
+     */
+    boolean isPageCached(long pos) {
+        return cache != null && cache.get(pos) != null;
     }
 
     /**

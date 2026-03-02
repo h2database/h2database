@@ -32,6 +32,7 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ConcurrentLinkedDeque;
@@ -227,6 +228,47 @@ public abstract class FileStore<C extends Chunk<C>>
 
     public static final int PIPE_LENGTH = 3;
 
+    /**
+     * Maximum number of pending prefetch tasks allowed in the prefetch
+     * executor queue.  When the queue is full, {@link ThreadPoolExecutor.DiscardOldestPolicy}
+     * drops the oldest (stalest) request to make room for the new one.
+     * Keeping this small (4) limits stale read work that competes with writes.
+     */
+    private static final int PREFETCH_QUEUE_CAPACITY = 4;
+
+    /**
+     * Dedicated single-thread executor for background prefetch I/O.
+     * <p>
+     * <strong>Why a separate executor, not {@code ForkJoinPool.commonPool()}?</strong>
+     * The write-path parallel serialization ({@code serializeToBuffer} Phase 1)
+     * submits tasks to {@code ForkJoinPool.commonPool()} via
+     * {@code IntStream.parallel()}.  If prefetch I/O tasks occupy all common-pool
+     * threads while a write is waiting to serialize, write latency inflates
+     * dramatically (observed: {@code bulkInsert} +18%, {@code highChurnCompaction}
+     * +31%, {@code benchmarkDBCreation} +39% in JMH benchmarks).
+     * <p>
+     * By routing all prefetch work to this dedicated executor the common pool
+     * is always available for write serialization.  The executor is:
+     * <ul>
+     *   <li>Single-threaded — prefetch is best-effort, not latency-critical.</li>
+     *   <li>MIN_PRIORITY — OS scheduler favours write threads over this one.</li>
+     *   <li>Bounded queue + DiscardOldestPolicy — stale prefetch requests are
+     *       silently dropped rather than piling up behind an active write burst.</li>
+     *   <li>Daemon thread — does not prevent JVM shutdown.</li>
+     * </ul>
+     */
+    private final ThreadPoolExecutor prefetchExecutor = new ThreadPoolExecutor(
+            1, 1,
+            60L, TimeUnit.SECONDS,
+            new ArrayBlockingQueue<>(PREFETCH_QUEUE_CAPACITY),
+            r -> {
+                Thread t = new Thread(r, "H2-prefetch");
+                t.setDaemon(true);
+                t.setPriority(Thread.MIN_PRIORITY);
+                return t;
+            },
+            new ThreadPoolExecutor.DiscardOldestPolicy());
+
 
 
 
@@ -290,6 +332,7 @@ public abstract class FileStore<C extends Chunk<C>>
     }
 
     public void close() {
+        Utils.shutdownExecutor(prefetchExecutor);
         layout.close();
         closed = true;
         chunks.clear();
@@ -2169,6 +2212,37 @@ public abstract class FileStore<C extends Chunk<C>>
     }
 
     /**
+     * Returns {@code true} when the write pipeline is backlogged — i.e. either
+     * the serialization executor or the buffer-save executor has pending work.
+     * <p>
+     * Used as a fast gate inside {@link #prefetchPages}: if writes are queued
+     * we skip prefetch entirely so that I/O bandwidth and CPU are reserved for
+     * the write path.  A single volatile read per queue is sufficient; we do not
+     * need atomicity across both queues.
+     */
+    private boolean isWritePipelineBusy() {
+        ThreadPoolExecutor se = serializationExecutor;
+        ThreadPoolExecutor be = bufferSaveExecutor;
+        return (se != null && !se.getQueue().isEmpty())
+               || (be != null && !be.getQueue().isEmpty());
+    }
+
+    /**
+     * Submit a prefetch {@link Runnable} to the dedicated prefetch executor.
+     * Silently swallows {@link RejectedExecutionException} — prefetch is
+     * best-effort; the page will be demand-loaded if not prefetched in time.
+     *
+     * @param task the prefetch work to submit
+     */
+    private void submitPrefetch(Runnable task) {
+        try {
+            prefetchExecutor.execute(task);
+        } catch (RejectedExecutionException ignored) {
+            // Executor shut down — best-effort; demand load will handle it.
+        }
+    }
+
+    /**
      * Submit a best-effort background read for the page at the given
      * position. If the page is already in the cache, this is a no-op.
      * If the background read fails, the failure is silently ignored —
@@ -2181,7 +2255,7 @@ public abstract class FileStore<C extends Chunk<C>>
         if (!DataUtils.isPageSaved(pos) || readPageFromCache(pos) != null) {
             return;
         }
-        ForkJoinPool.commonPool().execute(() -> {
+        submitPrefetch(() -> {
             try {
                 readPage(map, pos);
             } catch (Exception ignored) {
@@ -2201,17 +2275,22 @@ public abstract class FileStore<C extends Chunk<C>>
     /**
      * Submit a best-effort batch prefetch for multiple pages.
      * <p>
+     * <strong>Write priority:</strong> if the write pipeline
+     * ({@code serializationExecutor} or {@code bufferSaveExecutor}) has pending
+     * work, prefetch is skipped entirely.  Writes get full I/O bandwidth.
+     * <p>
+     * Work is submitted to the dedicated {@link #prefetchExecutor}
+     * (single MIN_PRIORITY daemon thread) rather than
+     * {@code ForkJoinPool.commonPool()}, so write-path parallel serialization
+     * is never starved by prefetch I/O tasks.
+     * <p>
      * When the underlying I/O channel supports batch operations (io_uring),
      * pages are read in windows of {@link #MAX_PREFETCH_BATCH} via a single
-     * background task, allowing demand reads to interleave between windows.
-     * For plain NIO, a <em>single</em> background task reads the pages
-     * sequentially — this avoids the N-task ForkJoin submission overhead
-     * that dominates when individual page reads are fast.
+     * background task. For plain NIO, a single background task reads the pages
+     * sequentially.
      * <p>
      * Pages that are already cached, unsaved, or have PAGE_LARGE length
-     * are skipped. The I/O and deserialization run entirely on a background
-     * thread; failures are silently ignored and the page will be
-     * demand-loaded when actually needed.
+     * are skipped. Failures are silently ignored — pages will be demand-loaded.
      *
      * @param map       the map that owns the pages
      * @param positions array of page positions to prefetch
@@ -2219,9 +2298,12 @@ public abstract class FileStore<C extends Chunk<C>>
      * @param <V>       value type
      */
     <K,V> void prefetchPages(MVMap<K,V> map, long[] positions) {
+        // ── Write-priority gate ──────────────────────────────────────────────
+        // If the write pipeline has queued work, skip prefetch entirely.
+        // Writes must not be starved of I/O bandwidth or CPU by read-ahead.
+        if (isWritePipelineBusy()) return;
+
         // Single pass: filter unsaved / already-cached pages.
-        // Over-sized to positions.length to avoid a TOCTOU race — the cache
-        // can change between any two readPageFromCache() calls.
         long[] uncached = new long[positions.length];
         int idx = 0;
         for (long pos : positions) {
@@ -2233,12 +2315,13 @@ public abstract class FileStore<C extends Chunk<C>>
         final long[] work = idx < uncached.length ? java.util.Arrays.copyOf(uncached, idx) : uncached;
 
         if (!supportsBatchIO()) {
-            // NIO: submit ONE ForkJoin task that reads all pages sequentially.
-            // Submitting N individual tasks costs N thread-scheduling round-trips,
-            // which dominates the benefit for short prefetch lists.
-            ForkJoinPool.commonPool().execute(() -> {
+            // NIO: submit ONE task to the dedicated prefetch executor.
+            // The task reads all pages sequentially inside the single
+            // MIN_PRIORITY background thread — never on commonPool.
+            submitPrefetch(() -> {
                 for (long pos : work) {
-                    if (readPageFromCache(pos) != null) continue; // re-check; may be warm now
+                    if (isWritePipelineBusy()) return; // abort if writes queued mid-run
+                    if (readPageFromCache(pos) != null) continue;
                     try {
                         readPage(map, pos);
                     } catch (Exception ignored) {
@@ -2247,14 +2330,12 @@ public abstract class FileStore<C extends Chunk<C>>
                 }
             });
         } else {
-            // io_uring: submit a single background task that processes the
-            // work array in windows of MAX_PREFETCH_BATCH, so the ring is
-            // never fully saturated and demand reads can interleave.
-            ForkJoinPool.commonPool().execute(() -> {
+            // io_uring: windowed batch prefetch on the dedicated executor.
+            submitPrefetch(() -> {
                 try {
                     batchPrefetchPages(map, work);
                 } catch (Exception ignored) {
-                    // batch failure is not fatal — pages will be demand-loaded
+                    // batch failure is not fatal
                 }
             });
         }
@@ -2308,6 +2389,10 @@ public abstract class FileStore<C extends Chunk<C>>
         // Each window is one io_uring_enter call; demand reads can interleave
         // between windows, preventing ring-full stalls under concurrent load.
         for (int winStart = 0; winStart < opCount; winStart += MAX_PREFETCH_BATCH) {
+            // ── Write-priority mid-batch check ───────────────────────────────
+            // Abort remaining windows if the write pipeline woke up.
+            // The pages not yet prefetched will be demand-loaded if needed.
+            if (isWritePipelineBusy()) return;
             int winEnd = Math.min(winStart + MAX_PREFETCH_BATCH, opCount);
             List<BatchReadOp> window = ops.subList(winStart, winEnd);
 

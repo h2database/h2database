@@ -354,7 +354,7 @@ public final class MVStore implements AutoCloseable {
      *                  This fileStore will be closed here.
      */
     public static void compact(String sourceFileName, String targetFileName, boolean compress,
-                                FileStore<?> fileStore) {
+                               FileStore<?> fileStore) {
         try {
             FileUtils.delete(targetFileName);
             Builder targetBuilder = new Builder();
@@ -372,7 +372,7 @@ public final class MVStore implements AutoCloseable {
                     fileStore = null;
                 }
                 Builder sourceBuilder = new Builder().readOnly()
-                        .adoptFileStore(target.getFileStore().open(sourceFileName, true));
+                                                     .adoptFileStore(target.getFileStore().open(sourceFileName, true));
                 try (MVStore source = sourceBuilder.open()) {
                     compact(source, target);
                 }
@@ -412,25 +412,25 @@ public final class MVStore implements AutoCloseable {
             }
 
             int poolSize = Integer.getInteger("h2.compactThreads",
-                    Math.max(1, Runtime.getRuntime().availableProcessors() / 4));
+                                              Math.max(1, Runtime.getRuntime().availableProcessors() / 4));
             ExecutorService pool = Executors.newFixedThreadPool(poolSize);
             CompletableFuture.allOf(
-                // We are going to cheat a little bit in the copyFrom() by employing "incomplete" pages,
-                // which would be spared of saving, but save completed pages underneath,
-                // and those may appear as dead (non-reachable).
-                // That's why it is important to preserve all chunks
-                // created in the process, especially if retention time
-                // is set to a lower value, or even 0.
-                source.getMapNames().stream().map(mapName ->
-                    CompletableFuture.runAsync(() -> {
-                        MVMap.Builder<Object, Object> mp = createGenericMapBuilder(mapName);
-                        MVMap<Object, Object> sourceMap = source.openMap(mapName, mp);
-                        MVMap<Object, Object> targetMap = target.openMap(mapName, mp);
-                        targetMap.copyFrom(sourceMap);
-                        targetMeta.put(MVMap.getMapKey(targetMap.getId()),
-                                        sourceMeta.get(MVMap.getMapKey(sourceMap.getId())));
-                    }, pool)
-                ).toArray(CompletableFuture[]::new)
+                    // We are going to cheat a little bit in the copyFrom() by employing "incomplete" pages,
+                    // which would be spared of saving, but save completed pages underneath,
+                    // and those may appear as dead (non-reachable).
+                    // That's why it is important to preserve all chunks
+                    // created in the process, especially if retention time
+                    // is set to a lower value, or even 0.
+                    source.getMapNames().stream().map(mapName ->
+                                                              CompletableFuture.runAsync(() -> {
+                                                                  MVMap.Builder<Object, Object> mp = createGenericMapBuilder(mapName);
+                                                                  MVMap<Object, Object> sourceMap = source.openMap(mapName, mp);
+                                                                  MVMap<Object, Object> targetMap = target.openMap(mapName, mp);
+                                                                  targetMap.copyFrom(sourceMap);
+                                                                  targetMeta.put(MVMap.getMapKey(targetMap.getId()),
+                                                                                 sourceMeta.get(MVMap.getMapKey(sourceMap.getId())));
+                                                              }, pool)
+                    ).toArray(CompletableFuture[]::new)
             ).join();
             pool.shutdownNow();
             // this will end hacky mode of operation with incomplete pages
@@ -579,7 +579,7 @@ public final class MVStore implements AutoCloseable {
             }
             assert builder.getKeyType() == null || map.getKeyType().getClass().equals(builder.getKeyType().getClass());
             assert builder.getValueType() == null
-                    || map.getValueType().getClass().equals(builder.getValueType().getClass());
+                   || map.getValueType().getClass().equals(builder.getValueType().getClass());
             return map;
         } else {
             HashMap<String, Object> c = new HashMap<>();
@@ -821,7 +821,7 @@ public final class MVStore implements AutoCloseable {
                             setRetentionTime(0);
                             fileStore.stop(compactFully ? 0 : allowedCompactionTime);
                             assert oldestVersionToKeep.get() == currentVersion : oldestVersionToKeep.get() + " != "
-                                    + currentVersion;
+                                                                                 + currentVersion;
                         }
 
                         if (meta != null) {
@@ -1001,8 +1001,8 @@ public final class MVStore implements AutoCloseable {
             if (rootReference == null) {
                 iter.remove();
             } else if (map.getCreateVersion() < version && // if map was created after storing started, skip it
-                    !map.isVolatile() &&
-                    map.hasChangesSince(lastStoredVersion)) {
+                       !map.isVolatile() &&
+                       map.hasChangesSince(lastStoredVersion)) {
                 assert rootReference.version <= version : rootReference.version + " > " + version;
                 // simply checking rootPage.isSaved() won't work here because
                 // after deletion previously saved page
@@ -1328,7 +1328,7 @@ public final class MVStore implements AutoCloseable {
             long current = oldestVersionToKeep.get();
             // Oldest version may only advance, never goes back
             success = version <= current ||
-                        oldestVersionToKeep.compareAndSet(current, version);
+                      oldestVersionToKeep.compareAndSet(current, version);
         } while (!success);
         assert version <= currentVersion : version + " <= " + currentVersion;
 
@@ -1394,12 +1394,12 @@ public final class MVStore implements AutoCloseable {
      */
     void beforeWrite(MVMap<?, ?> map) {
         if (saveNeeded && isOpenOrStopping() &&
-                // condition below is to prevent potential deadlock,
-                // because we should never seek storeLock while holding
-                // map root lock
-                (isLockedByCurrentThread() || !map.getRoot().isLockedByCurrentThread()) &&
-                // to avoid infinite recursion via store() -> dropUnusedChunks() -> layout.remove()
-                fileStore.isRegularMap(map)) {
+            // condition below is to prevent potential deadlock,
+            // because we should never seek storeLock while holding
+            // map root lock
+            (isLockedByCurrentThread() || !map.getRoot().isLockedByCurrentThread()) &&
+            // to avoid infinite recursion via store() -> dropUnusedChunks() -> layout.remove()
+            fileStore.isRegularMap(map)) {
             saveNeeded = false;
             // check again, because it could have been written by now
             if (needStore()) {
@@ -1551,14 +1551,14 @@ public final class MVStore implements AutoCloseable {
     private void checkOpen() {
         if (!isOpen()) {
             throw DataUtils.newMVStoreException(DataUtils.ERROR_CLOSED,
-                    "This store is closed", panicException);
+                                                "This store is closed", panicException);
         }
     }
 
     private void checkNotClosed() {
         if (!isOpenOrStopping()) {
             throw DataUtils.newMVStoreException(DataUtils.ERROR_CLOSED,
-                    "This store is closed", panicException);
+                                                "This store is closed", panicException);
         }
     }
 
@@ -1672,7 +1672,7 @@ public final class MVStore implements AutoCloseable {
 
     public void populateInfo(BiConsumer<String, String> consumer) {
         consumer.accept("info.UPDATE_FAILURE_PERCENT",
-            String.format(Locale.ENGLISH, "%.2f%%", 100 * getUpdateFailureRatio()));
+                        String.format(Locale.ENGLISH, "%.2f%%", 100 * getUpdateFailureRatio()));
         consumer.accept("info.LEAF_RATIO", Integer.toString(getLeafRatio()));
 
         if (isVersioningRequired()) {
@@ -1881,7 +1881,7 @@ public final class MVStore implements AutoCloseable {
     private void dropUnusedVersions() {
         TxCounter txCounter;
         while ((txCounter = versions.peek()) != null
-                && txCounter.get() < 0) {
+               && txCounter.get() < 0) {
             versions.poll();
         }
         long oldestVersionToKeep = (txCounter != null ? txCounter : currentTxCounter).version;
@@ -1914,7 +1914,7 @@ public final class MVStore implements AutoCloseable {
         private volatile int counter;
 
         private static final AtomicIntegerFieldUpdater<TxCounter> counterUpdater =
-                                        AtomicIntegerFieldUpdater.newUpdater(TxCounter.class, "counter");
+                AtomicIntegerFieldUpdater.newUpdater(TxCounter.class, "counter");
 
 
         TxCounter(long version) {
@@ -2085,6 +2085,19 @@ public final class MVStore implements AutoCloseable {
 
         /**
          * Set the read cache size in MB. The default is 16 MB.
+         * <p>
+         * The page cache stores individual decoded {@link Page} objects keyed
+         * by their on-disk position.  It is the primary knob for trading RAM
+         * against I/O: a larger cache dramatically reduces random reads when
+         * iterating over the same data more than once.
+         * <p>
+         * Note: the older "chunk read cache" (which buffered entire 1–4 MB
+         * raw chunk byte-buffers) is disabled by default because chunks are
+         * large, randomly-organised collections of pages — the probability of
+         * a second useful hit from the same chunk buffer is low.  The memory
+         * saved by disabling it is better spent here.  See
+         * {@link FileStore#setChunkReadCacheMaxBytes} if you want to
+         * re-enable it for a specific workload.
          *
          * @param mb the cache size in megabytes
          * @return this

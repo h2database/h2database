@@ -167,6 +167,29 @@ public abstract class Chunk<C extends Chunk<C>> {
      */
     public volatile ByteBuffer buffer;
 
+    /**
+     * Cached ByteBuffer holding this chunk's on-disk content, populated on
+     * the second read access when the chunk is small enough. Unlike
+     * {@link #buffer} (which is the write-staging buffer for unsaved
+     * chunks), this field caches a saved chunk's data to avoid repeated
+     * per-page I/O.
+     * <p>
+     * Not populated on the first page read from this chunk — only when a
+     * second page is requested, indicating a sequential/range access
+     * pattern that benefits from buffering. This avoids wasting I/O and
+     * memory on scattered single-page lookups.
+     * <p>
+     * Cleared when the chunk's block position changes (compaction/relocation).
+     */
+    volatile ByteBuffer readBuffer;
+
+    /**
+     * Set to {@code true} after the first page read from this saved chunk.
+     * When a second read arrives and this is already {@code true}, the
+     * entire chunk is read into {@link #readBuffer}.
+     */
+    volatile boolean readBufferHint;
+
     Chunk(String s) {
         this(DataUtils.parseMap(s), true);
     }
@@ -357,7 +380,7 @@ public abstract class Chunk<C extends Chunk<C>> {
         }
         if (occupancy != null && !occupancy.isEmpty()) {
             DataUtils.appendMap(buff, ATTR_OCCUPANCY,
-                    StringUtils.convertBytesToHex(occupancy.toByteArray()));
+                                StringUtils.convertBytesToHex(occupancy.toByteArray()));
         }
     }
 
@@ -416,9 +439,9 @@ public abstract class Chunk<C extends Chunk<C>> {
 
     boolean isRewritable() {
         return isSaved()
-                && isLive()
-                && pageCountLive < pageCount    // not fully occupied
-                && isEvacuatable();
+               && isLive()
+               && pageCountLive < pageCount    // not fully occupied
+               && isEvacuatable();
     }
 
     private boolean isEvacuatable() {
@@ -438,19 +461,28 @@ public abstract class Chunk<C extends Chunk<C>> {
         while (true) {
             long originalBlock = block;
             try {
-                long filePos = originalBlock * FileStore.BLOCK_SIZE;
-                long maxPos = filePos + (long) len * FileStore.BLOCK_SIZE;
-                filePos += offset;
+                long chunkStart = originalBlock * FileStore.BLOCK_SIZE;
+                long maxPos = chunkStart + (long) len * FileStore.BLOCK_SIZE;
+                long filePos = chunkStart + offset;
                 if (filePos < 0) {
                     throw DataUtils.newMVStoreException(
                             DataUtils.ERROR_FILE_CORRUPT,
                             "Negative position {0}; p={1}, c={2}", filePos, pos, toString());
                 }
 
+                ByteBuffer chunkBuff = resolveChunkBuffer(fileStore, chunkStart);
+
                 int length = DataUtils.getPageMaxLength(pos);
                 if (length == DataUtils.PAGE_LARGE) {
-                    // read the first bytes to figure out actual length
-                    length = readFully(fileStore, filePos, 128).getInt();
+                    if (chunkBuff != null) {
+                        // read page length from the cached chunk buffer
+                        ByteBuffer tmp = chunkBuff.duplicate();
+                        tmp.position(offset);
+                        length = tmp.getInt();
+                    } else {
+                        // read the first bytes to figure out actual length
+                        length = readFully(fileStore, filePos, 128).getInt();
+                    }
                     // pageNo is deliberately not included into length to preserve compatibility
                     // TODO: remove this adjustment when page on disk format is re-organized
                     length += 4;
@@ -458,28 +490,78 @@ public abstract class Chunk<C extends Chunk<C>> {
                 length = (int) Math.min(maxPos - filePos, length);
                 if (length < 0) {
                     throw DataUtils.newMVStoreException(DataUtils.ERROR_FILE_CORRUPT,
-                            "Illegal page length {0} reading at {1}; max pos {2} ", length, filePos, maxPos);
+                                                        "Illegal page length {0} reading at {1}; max pos {2} ", length, filePos, maxPos);
                 }
 
-                ByteBuffer buff = buffer;
-                if (buff == null) {
-                    buff = readFully(fileStore, filePos, length);
-                } else {
-                    buff = buff.duplicate();
+                ByteBuffer buff;
+                if (chunkBuff != null) {
+                    buff = chunkBuff.duplicate();
                     buff.position(offset);
                     buff = buff.slice();
                     buff.limit(length);
+                } else {
+                    buff = readFully(fileStore, filePos, length);
                 }
 
                 if (originalBlock == block) {
                     return buff;
                 }
+                invalidateReadBuffer();
             } catch (MVStoreException ex) {
                 if (originalBlock == block) {
                     throw ex;
                 }
+                invalidateReadBuffer();
             }
         }
+    }
+
+    /**
+     * Clear the read buffer and hint, called when the chunk's block
+     * position has changed (compaction/relocation).
+     */
+    private void invalidateReadBuffer() {
+        readBuffer = null;
+        readBufferHint = false;
+    }
+
+    /**
+     * Resolve a ByteBuffer covering this chunk's entire on-disk content.
+     * Checks (in order): the read cache, the write-staging buffer, and
+     * optionally reads the whole chunk from disk if it is small enough
+     * <em>and</em> this is at least the second page read from this chunk.
+     * <p>
+     * The first page read from a chunk only sets the {@link #readBufferHint}
+     * flag and falls through to per-page I/O. This avoids buffering chunks
+     * that are only accessed for a single scattered lookup.
+     *
+     * @param fileStore  the file store for I/O
+     * @param chunkStart absolute file position of this chunk's first byte
+     * @return a ByteBuffer covering the chunk, or {@code null} if the chunk
+     *         is too large to buffer, or this is the first page read
+     */
+    private ByteBuffer resolveChunkBuffer(FileStore<C> fileStore, long chunkStart) {
+        ByteBuffer b = readBuffer;
+        if (b != null) {
+            return b;
+        }
+        b = buffer;
+        if (b != null) {
+            return b;
+        }
+        int chunkBytes = len * FileStore.BLOCK_SIZE;
+        if (chunkBytes > 0 && chunkBytes <= fileStore.getChunkReadCacheMaxBytes()) {
+            if (!readBufferHint) {
+                // first page read from this chunk — just set the hint
+                readBufferHint = true;
+                return null;
+            }
+            // second+ page read — buffer the entire chunk
+            b = readFully(fileStore, chunkStart, chunkBytes);
+            readBuffer = b;
+            return b;
+        }
+        return null;
     }
 
     long[] readToC(FileStore<C> fileStore) {
@@ -489,7 +571,10 @@ public abstract class Chunk<C extends Chunk<C>> {
         while (true) {
             long originalBlock = block;
             try {
-                ByteBuffer buff = buffer;
+                ByteBuffer buff = readBuffer;
+                if (buff == null) {
+                    buff = buffer;
+                }
                 if (buff == null) {
                     int length = pageCount * 8;
                     long filePos = originalBlock * FileStore.BLOCK_SIZE + tocPos;
@@ -503,10 +588,12 @@ public abstract class Chunk<C extends Chunk<C>> {
                 if (originalBlock == block) {
                     return toc;
                 }
+                invalidateReadBuffer();
             } catch (MVStoreException ex) {
                 if (originalBlock == block) {
                     throw ex;
                 }
+                invalidateReadBuffer();
             }
         }
     }
@@ -607,4 +694,3 @@ public abstract class Chunk<C extends Chunk<C>> {
         }
     }
 }
-

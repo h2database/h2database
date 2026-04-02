@@ -1429,6 +1429,13 @@ public abstract class FileStore<C extends Chunk<C>>
     private void serializeAndStore(boolean syncRun, ArrayList<Page<?,?>> changed, long time, long version) {
         serializationLock.lock();
         try {
+            // Bail out if the store panicked (e.g. failed storeBuffer on the
+            // bufferSaveExecutor).  Without this check, queued serialization
+            // work would proceed, creating chunks that reference page positions
+            // from the failed chunk — corrupting the file.
+            if (mvStore.getPanicException() != null) {
+                return;
+            }
             int chunkId = lastChunkId;
             if (chunkId != 0) {
                 chunkId &= Chunk.MAX_ID;
@@ -1535,7 +1542,7 @@ public abstract class FileStore<C extends Chunk<C>>
     private void storeBuffer(C c, WriteBuffer buff) {
         saveChunkLock.lock();
         try {
-            if (closed) {
+            if (closed || mvStore.getPanicException() != null) {
                 throw DataUtils.newMVStoreException(DataUtils.ERROR_WRITING_FAILED, "This fileStore is closed");
             }
 
@@ -1862,7 +1869,7 @@ public abstract class FileStore<C extends Chunk<C>>
      */
     void writeInBackground() {
         try {
-            if (mvStore.isOpen() && !isReadOnly()) {
+            if (mvStore.isOpen() && mvStore.getPanicException() == null && !isReadOnly()) {
                 // could also commit when there are many unsaved pages,
                 // but according to a test it doesn't really help
                 long time = getTimeSinceCreation();

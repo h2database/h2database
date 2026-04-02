@@ -12,7 +12,7 @@ import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedList;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -216,7 +216,17 @@ public final class MVStore implements AutoCloseable {
      * Ordered collection of all version usage counters for all versions starting
      * from oldestVersionToKeep and up to current.
      */
-    private final Deque<TxCounter> versions = new LinkedList<>();
+    private final Deque<TxCounter> versions = new ConcurrentLinkedDeque<>();
+
+    /**
+     * Lock protecting compound operations on the versions deque.
+     * Individual ConcurrentLinkedDeque operations are thread-safe, but the
+     * peek-then-poll pattern in dropUnusedVersions() requires atomicity.
+     * This lock also serializes onVersionChange() calls that may originate
+     * from the serialization executor thread (without storeLock) against
+     * dropUnusedVersions() calls from user threads (via deregisterVersionUsage).
+     */
+    private final ReentrantLock versionsLock = new ReentrantLock();
 
     /**
      * Counter of open transactions for the latest (current) store version
@@ -1476,10 +1486,15 @@ public final class MVStore implements AutoCloseable {
             DataUtils.checkArgument(isKnownVersion(version), "Unknown version {0}", version);
 
             TxCounter txCounter;
-            while ((txCounter = versions.peekLast()) != null && txCounter.version >= version) {
-                versions.removeLast();
+            versionsLock.lock();
+            try {
+                while ((txCounter = versions.peekLast()) != null && txCounter.version >= version) {
+                    versions.removeLast();
+                }
+                currentTxCounter = new TxCounter(version);
+            } finally {
+                versionsLock.unlock();
             }
-            currentTxCounter = new TxCounter(version);
             if (oldestVersionToKeep.get() > version) {
                 oldestVersionToKeep.set(version);
             }
@@ -1727,7 +1742,7 @@ public final class MVStore implements AutoCloseable {
     }
 
     private boolean isOpenOrStopping() {
-        return state <= STATE_STOPPING;
+        return state <= STATE_STOPPING && panicException.get() == null;
     }
 
     /**
@@ -1869,23 +1884,33 @@ public final class MVStore implements AutoCloseable {
     }
 
     void onVersionChange(long version) {
-        metaChanged = false;
-        TxCounter txCounter = currentTxCounter;
-        assert txCounter.get() >= 0;
-        versions.add(txCounter);
-        currentTxCounter = new TxCounter(version);
-        txCounter.decrementAndGet();
-        dropUnusedVersions();
+        versionsLock.lock();
+        try {
+            metaChanged = false;
+            TxCounter txCounter = currentTxCounter;
+            assert txCounter.get() >= 0;
+            versions.add(txCounter);
+            currentTxCounter = new TxCounter(version);
+            txCounter.decrementAndGet();
+            dropUnusedVersions();
+        } finally {
+            versionsLock.unlock();
+        }
     }
 
     private void dropUnusedVersions() {
-        TxCounter txCounter;
-        while ((txCounter = versions.peek()) != null
-                && txCounter.get() < 0) {
-            versions.poll();
+        versionsLock.lock();
+        try {
+            TxCounter txCounter;
+            while ((txCounter = versions.peek()) != null
+                    && txCounter.get() < 0) {
+                versions.poll();
+            }
+            long oldestVersionToKeep = (txCounter != null ? txCounter : currentTxCounter).version;
+            setOldestVersionToKeep(oldestVersionToKeep);
+        } finally {
+            versionsLock.unlock();
         }
-        long oldestVersionToKeep = (txCounter != null ? txCounter : currentTxCounter).version;
-        setOldestVersionToKeep(oldestVersionToKeep);
     }
 
     public void countNewPage(boolean leaf) {

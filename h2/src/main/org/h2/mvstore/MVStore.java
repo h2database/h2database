@@ -278,44 +278,45 @@ public final class MVStore implements AutoCloseable {
         keysPerPage = DataUtils.getConfigParam(config, "keysPerPage", 48);
         backgroundExceptionHandler =
                 (UncaughtExceptionHandler)config.get("backgroundExceptionHandler");
-        if (fileStore != null) {
-            // 19 KB memory is about 1 KB storage
-            int kb = Math.max(1, Math.min(19, Utils.scaleForAvailableMemory(64))) * 1024;
-            kb = DataUtils.getConfigParam(config, "autoCommitBufferSize", kb);
-            autoCommitMemory = kb * 1024;
-            char[] encryptionKey = (char[]) config.remove("encryptionKey");
-            MVMap<String, String> metaMap = null;
-            // there is no need to lock store here, since it is not opened (or even created) yet,
-            // just to make some assertions happy, when they ensure single-threaded access
-            storeLock.lock();
-            try {
-                if (fileStoreShallBeOpen) {
-                    boolean readOnly = config.containsKey("readOnly");
-                    fileStore.open(fileName, readOnly, encryptionKey);
+        storeLock.lock();
+        try {
+            if (fileStore != null) {
+                // 19 KB memory is about 1 KB storage
+                int kb = Math.max(1, Math.min(19, Utils.scaleForAvailableMemory(64))) * 1024;
+                kb = DataUtils.getConfigParam(config, "autoCommitBufferSize", kb);
+                autoCommitMemory = kb * 1024;
+                char[] encryptionKey = (char[]) config.remove("encryptionKey");
+                MVMap<String, String> metaMap = null;
+                try {
+                    if (fileStoreShallBeOpen) {
+                        boolean readOnly = config.containsKey("readOnly");
+                        fileStore.open(fileName, readOnly, encryptionKey);
+                    }
+                    fileStore.bind(this);
+                    metaMap = fileStore.start();
+                } catch (MVStoreException e) {
+                    panic(e);
+                } finally {
+                    if (encryptionKey != null) {
+                        Arrays.fill(encryptionKey, (char) 0);
+                    }
                 }
-                fileStore.bind(this);
-                metaMap = fileStore.start();
-            } catch (MVStoreException e) {
-                panic(e);
-            } finally {
-                if (encryptionKey != null) {
-                    Arrays.fill(encryptionKey, (char) 0);
-                }
-                unlockAndCheckPanicCondition();
+
+                meta = metaMap;
+                scrubMetaMap();
+
+                // setAutoCommitDelay starts the thread, but only if
+                // the parameter is different from the old value
+                int delay = DataUtils.getConfigParam(config, "autoCommitDelay", 1000);
+                setAutoCommitDelay(delay);
+            } else {
+                autoCommitMemory = 0;
+                meta = openMetaMap();
             }
-
-            meta = metaMap;
-            scrubMetaMap();
-
-            // setAutoCommitDelay starts the thread, but only if
-            // the parameter is different from the old value
-            int delay = DataUtils.getConfigParam(config, "autoCommitDelay", 1000);
-            setAutoCommitDelay(delay);
-        } else {
-            autoCommitMemory = 0;
-            meta = openMetaMap();
+            onVersionChange(currentVersion);
+        } finally {
+            unlockAndCheckPanicCondition();
         }
-        onVersionChange(currentVersion);
     }
 
     public MVMap<String,String> openMetaMap() {
@@ -1869,6 +1870,7 @@ public final class MVStore implements AutoCloseable {
     }
 
     void onVersionChange(long version) {
+        assert isLockedByCurrentThread();
         metaChanged = false;
         TxCounter txCounter = currentTxCounter;
         assert txCounter.get() >= 0;

@@ -1402,6 +1402,7 @@ public abstract class FileStore<C extends Chunk<C>>
 
     final void storeIt(ArrayList<Page<?,?>> changed, long version, boolean syncWrite) throws ExecutionException {
         lastCommitTime = getTimeSinceCreation();
+        mvStore.onVersionChange(version);
         submitOrRun(serializationExecutor,
                 () -> serializeAndStore(syncWrite, changed, lastCommitTime, version),
                 syncWrite, PIPE_LENGTH);
@@ -1494,9 +1495,9 @@ public abstract class FileStore<C extends Chunk<C>>
         assert layoutRootReference != null;
         assert layoutRootReference.version == version : layoutRootReference.version + " != " + version;
 
-        acceptChunkOccupancyChanges(c.time, version);
+//        acceptChunkOccupancyChanges(c.time, version);
 
-        mvStore.onVersionChange(version);
+//        mvStore.onVersionChange(version);
 
         Page<String,String> layoutRoot = layoutRootReference.root;
         layoutRoot.writeUnsavedRecursive(pageSerializationManager);

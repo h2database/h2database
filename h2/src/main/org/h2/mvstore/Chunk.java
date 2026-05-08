@@ -407,6 +407,10 @@ public abstract class Chunk<C extends Chunk<C>> {
     }
 
     boolean isSaved() {
+        // buffer could be null after chunk was saved
+        // or upon chunk creation, but before content serialization is completed,
+        // and to eliminate later case we check if storage space was allocated
+        // which happens only after serialization
         return isAllocated() && buffer == null;
     }
 
@@ -434,7 +438,7 @@ public abstract class Chunk<C extends Chunk<C>> {
      * @return ByteBuffer containing page data.
      */
     ByteBuffer readBufferForPage(FileStore<C> fileStore, int offset, long pos) {
-        assert isSaved() : this;
+        assert isAllocated() || buffer != null : this;  // chunk has been at least serialized
         while (true) {
             long originalBlock = block;
             try {
@@ -483,7 +487,7 @@ public abstract class Chunk<C extends Chunk<C>> {
     }
 
     long[] readToC(FileStore<C> fileStore) {
-        assert buffer != null || isAllocated() : this;
+        assert isAllocated() || buffer != null : this;  // chunk has been at least serialized
         assert tocPos > 0;
         long[] toc = new long[pageCount];
         while (true) {

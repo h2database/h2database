@@ -1495,10 +1495,6 @@ public abstract class FileStore<C extends Chunk<C>>
         assert layoutRootReference != null;
         assert layoutRootReference.version == version : layoutRootReference.version + " != " + version;
 
-//        acceptChunkOccupancyChanges(c.time, version);
-
-//        mvStore.onVersionChange(version);
-
         Page<String,String> layoutRoot = layoutRootReference.root;
         layoutRoot.writeUnsavedRecursive(pageSerializationManager);
         c.layoutRootPos = layoutRoot.getPos();
@@ -1536,7 +1532,7 @@ public abstract class FileStore<C extends Chunk<C>>
     private void storeBuffer(C c, WriteBuffer buff) {
         saveChunkLock.lock();
         try {
-            if (closed) {
+            if (closed || mvStore.getPanicException() != null) {
                 throw DataUtils.newMVStoreException(DataUtils.ERROR_WRITING_FAILED, "This fileStore is closed");
             }
 
@@ -1863,7 +1859,7 @@ public abstract class FileStore<C extends Chunk<C>>
      */
     void writeInBackground() {
         try {
-            if (mvStore.isOpen() && !isReadOnly()) {
+            if (mvStore.isOpen() && mvStore.getPanicException() == null && !isReadOnly()) {
                 // could also commit when there are many unsaved pages,
                 // but according to a test it doesn't really help
                 long time = getTimeSinceCreation();
@@ -1992,33 +1988,15 @@ public abstract class FileStore<C extends Chunk<C>>
             if (page == null) {
                 C chunk = getChunk(pos);
                 int pageOffset = DataUtils.getPageOffset(pos);
-                while(true) {
-                    MVStoreException exception = null;
-                    ByteBuffer buff = chunk.buffer;
-                    boolean alreadySaved = buff == null;
-                    if (alreadySaved) {
-                        buff = chunk.readBufferForPage(this, pageOffset, pos);
-                    } else {
-//                        System.err.println("Using unsaved buffer " + chunk.id + "/" + pageOffset);
-                        buff = buff.duplicate();
-                        buff.position(pageOffset);
-                        buff = buff.slice();
-                    }
-                    try {
-                        page = Page.read(buff, pos, map);
-                    } catch (MVStoreException e) {
-                        exception = e;
-                    } catch (Exception e) {
-                        exception = DataUtils.newMVStoreException(DataUtils.ERROR_FILE_CORRUPT,
-                                "Unable to read the page at position 0x{0}, chunk {1}, offset 0x{3}",
-                                Long.toHexString(pos), chunk, Long.toHexString(pageOffset), e);
-                    }
-                    if (alreadySaved) {
-                        if (exception == null) {
-                            break;
-                        }
-                        throw exception;
-                    }
+                ByteBuffer buff = chunk.readBufferForPage(this, pageOffset, pos);
+                try {
+                    page = Page.read(buff, pos, map);
+                } catch (MVStoreException e) {
+                    throw e;
+                } catch (Exception e) {
+                    throw DataUtils.newMVStoreException(DataUtils.ERROR_FILE_CORRUPT,
+                            "Unable to read the page at position 0x{0}, chunk {1}, offset 0x{3}",
+                            Long.toHexString(pos), chunk, Long.toHexString(pageOffset), e);
                 }
                 cachePage(page);
             }

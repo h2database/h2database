@@ -1536,7 +1536,7 @@ public abstract class FileStore<C extends Chunk<C>>
     private void storeBuffer(C c, WriteBuffer buff) {
         saveChunkLock.lock();
         try {
-            if (closed) {
+            if (closed || mvStore.getPanicException() != null) {
                 throw DataUtils.newMVStoreException(DataUtils.ERROR_WRITING_FAILED, "This fileStore is closed");
             }
 
@@ -1863,7 +1863,7 @@ public abstract class FileStore<C extends Chunk<C>>
      */
     void writeInBackground() {
         try {
-            if (mvStore.isOpen() && !isReadOnly()) {
+            if (mvStore.isOpen() && mvStore.getPanicException() == null && !isReadOnly()) {
                 // could also commit when there are many unsaved pages,
                 // but according to a test it doesn't really help
                 long time = getTimeSinceCreation();

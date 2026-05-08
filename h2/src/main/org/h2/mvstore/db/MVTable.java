@@ -429,20 +429,12 @@ public class MVTable extends TableBase {
             buffer.add(row);
             database.setProgress(DatabaseEventListener.STATE_CREATE_INDEX, n, i++, total);
             if (buffer.size() >= bufferSize) {
-                sortRows(buffer, index);
-                String mapName = store.nextTemporaryMapName();
-                index.addRowsToBuffer(buffer, mapName);
-                bufferNames.add(mapName);
-                buffer.clear();
+                dumpBufferIntoTempMap(index, buffer, store, bufferNames);
             }
             remaining--;
         }
-        sortRows(buffer, index);
         if (!bufferNames.isEmpty()) {
-            String mapName = store.nextTemporaryMapName();
-            index.addRowsToBuffer(buffer, mapName);
-            bufferNames.add(mapName);
-            buffer.clear();
+            dumpBufferIntoTempMap(index, buffer, store, bufferNames);
             index.addBufferedRows(bufferNames);
         } else {
             addRowsToIndex(session, buffer, index);
@@ -450,6 +442,14 @@ public class MVTable extends TableBase {
         if (remaining != 0) {
             throw DbException.getInternalError("rowcount remaining=" + remaining + ' ' + getName());
         }
+    }
+
+    private static void dumpBufferIntoTempMap(MVIndex<?, ?> index, ArrayList<Row> buffer, Store store, ArrayList<String> bufferNames) {
+        sortRows(buffer, index);
+        String mapName = store.nextTemporaryMapName();
+        index.addRowsToBuffer(buffer, mapName);
+        bufferNames.add(mapName);
+        buffer.clear();
     }
 
     private void rebuildIndexBuffered(SessionLocal session, Index index) {

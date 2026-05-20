@@ -58,6 +58,7 @@ import org.h2.tools.Script;
 import org.h2.tools.Server;
 import org.h2.tools.SimpleResultSet;
 import org.h2.tools.SimpleResultSet.SimpleArray;
+import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.Task;
 import org.h2.value.ValueUuid;
@@ -991,6 +992,21 @@ public class TestTools extends TestDb {
         Script.main("-url", url, "-user", user, "-password", password,
                 "-script", fileName, "-options", "simple", "blocksize",
                 "8192");
+
+        // test parsing of COLUMNS option before TO
+        DeleteDbFiles.main("-dir", getBaseDir(), "-db", "testScriptRunscript",
+                "-quiet");
+        conn = getConnection(url, user, password);
+        conn.createStatement().execute(
+                "CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR)");
+        conn.createStatement().execute("INSERT INTO TEST VALUES(1, 'Hello')");
+        conn.close();
+        Script.main("-url", url, "-user", user, "-password", password,
+                "-script", fileName, "-options", "simple", "columns");
+        String script = IOUtils.readStringAndClose(
+                IOUtils.getReader(FileUtils.newInputStream(fileName)), -1);
+        assertContains(script,
+                "INSERT INTO \"PUBLIC\".\"TEST\"(\"ID\", \"NAME\")");
     }
 
     private void testBackupRestore() throws SQLException {

@@ -74,7 +74,8 @@ public class Script extends Tool {
                 for (; i < args.length; i++) {
                     String a = args[i];
                     String upper = StringUtils.toUpperEnglish(a);
-                    if ("SIMPLE".equals(upper) || upper.startsWith("NO") || "DROP".equals(upper)) {
+                    if ("SIMPLE".equals(upper) || "COLUMNS".equals(upper) || upper.startsWith("NO")
+                            || "DROP".equals(upper)) {
                         buff1.append(' ');
                         buff1.append(args[i]);
                     } else if ("BLOCKSIZE".equals(upper)) {

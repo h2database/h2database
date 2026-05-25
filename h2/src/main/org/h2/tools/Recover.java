@@ -101,6 +101,7 @@ public class Recover extends Tool implements DataHandler {
      * @throws SQLException on failure
      */
     public static void main(String... args) throws SQLException {
+        System.setProperty("h2.maxOpenTransactions", "65535");
         new Recover().runTool(args);
     }
 

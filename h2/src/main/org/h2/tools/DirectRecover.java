@@ -204,6 +204,7 @@ public class DirectRecover extends Recover {
      * @throws SQLException on failure
      */
     public static void main(String... args) throws SQLException {
+        System.setProperty("h2.maxOpenTransactions", "65535");
         new DirectRecover().runTool(args);
     }
 

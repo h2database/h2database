@@ -214,7 +214,7 @@ public class TransactionStore implements AutoCloseable
                         if (store.hasData(mapName)) {
                             int transactionId = StringUtils.parseUInt31(mapName, UNDO_LOG_NAME_PREFIX.length() + 1,
                                     mapName.length());
-                            if (isTransactionClosed(transactionId)) {
+                            if (transactionId <= maxTransactionId) {
                                 Object[] data = preparedTransactions.get(transactionId);
                                 int status;
                                 String name;

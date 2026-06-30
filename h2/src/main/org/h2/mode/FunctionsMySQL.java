@@ -9,6 +9,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
+import java.util.TimeZone;
 
 import org.h2.api.ErrorCode;
 import org.h2.engine.SessionLocal;
@@ -118,10 +119,19 @@ public final class FunctionsMySQL extends ModeFunction {
      * @return a formatted date/time String in the format "yyyy-MM-dd HH:mm:ss".
      */
     public static String fromUnixTime(int seconds) {
-        SimpleDateFormat formatter = new SimpleDateFormat(DATE_TIME_FORMAT,
-                Locale.ENGLISH);
+        SimpleDateFormat formatter = DATE_TIME_FORMATTER.get();
+        // Re-apply the current default time zone each call, matching the behavior of a freshly
+        // constructed SimpleDateFormat while avoiding its (per-call) construction cost.
+        formatter.setTimeZone(TimeZone.getDefault());
         return formatter.format(new Date(seconds * 1_000L));
     }
+
+    /**
+     * The fixed-format formatter used by {@link #fromUnixTime(int)}, cached per thread because
+     * SimpleDateFormat is not thread-safe and is expensive to construct.
+     */
+    private static final ThreadLocal<SimpleDateFormat> DATE_TIME_FORMATTER =
+            ThreadLocal.withInitial(() -> new SimpleDateFormat(DATE_TIME_FORMAT, Locale.ENGLISH));
 
     /**
      * See

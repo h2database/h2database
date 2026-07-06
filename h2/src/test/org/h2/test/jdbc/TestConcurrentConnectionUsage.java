@@ -9,6 +9,7 @@ import java.io.ByteArrayInputStream;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.sql.Statement;
 
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
@@ -31,6 +32,8 @@ public class TestConcurrentConnectionUsage extends TestDb {
     @Override
     public void test() throws SQLException {
         testAutoCommit();
+        testSessionUsage(false);
+        testSessionUsage(true);
     }
 
     private void testAutoCommit() throws SQLException {
@@ -56,4 +59,36 @@ public class TestConcurrentConnectionUsage extends TestDb {
         conn.close();
     }
 
+    
+    private void testSessionUsage(boolean useLegacy) throws SQLException {
+        deleteDb(getTestName());
+        try (Connection infoConn = getConnection(getTestName() + ";OLD_INFORMATION_SCHEMA=" + useLegacy)) {
+            Statement stmt = infoConn.createStatement();
+            stmt.execute("CREATE TABLE t(id INT PRIMARY KEY)");
+
+            int threadCount = 8;
+            Task[] tasks = new Task[threadCount];
+            for (int i = 0; i < threadCount; i++) {
+                tasks[i] = new Task() {
+                    @Override
+                    public void call() throws Exception {
+                        try (Connection txConn = getConnection(getTestName())) {
+                            Statement st = txConn.createStatement();
+                            while (!stop) {
+                                st.executeUpdate("MERGE INTO t(id) KEY (id) VALUES (0)");
+                            }
+                        }
+                    }
+                }.execute();
+            }
+
+            for (int i = 0; i < 1_000; i++) {
+                stmt.executeQuery("SELECT ISOLATION_LEVEL FROM INFORMATION_SCHEMA.SESSIONS").close();
+            }
+
+            for (Task task : tasks) {
+                task.get();
+            }
+        }
+    }
 }

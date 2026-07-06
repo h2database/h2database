@@ -1775,12 +1775,17 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                     NetworkConnectionInfo networkConnectionInfo = s.getNetworkConnectionInfo();
                     Command command = s.getCurrentCommand();
                     int blockingSessionId = s.getBlockingSessionId();
+                    User user = s.getUser();
+                    if (user == null) {
+                        // Session was closed concurrently
+                        continue;
+                    }
                     add(session,
                             rows,
                             // ID
                             ValueInteger.get(s.getId()),
                             // USER_NAME
-                            s.getUser().getName(),
+                            user.getName(),
                             // SERVER
                             networkConnectionInfo == null ? null : networkConnectionInfo.getServer(),
                             // CLIENT_ADDR

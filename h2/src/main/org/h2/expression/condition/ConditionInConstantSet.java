@@ -166,7 +166,8 @@ public final class ConditionInConstantSet extends ConditionIn {
     private static void createIndexConditions(TableFilter filter, ExpressionColumn l, ArrayList<Expression> valueList,
             TypeInfo type) {
         TypeInfo colType = l.getType();
-        if (TypeInfo.haveSameOrdering(colType, TypeInfo.getHigherType(colType, type))) {
+        TypeInfo higherType = TypeInfo.getHigherType(colType, type);
+        if (Comparison.isSafeIndexCondition(colType, higherType)) {
             filter.addIndexCondition(IndexCondition.getInList(l, valueList));
         }
     }

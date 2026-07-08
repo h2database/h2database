@@ -233,7 +233,8 @@ public final class ConditionInQuery extends PredicateWithSubquery {
         }
         TypeInfo colType = left.getType();
         TypeInfo queryType = query.getExpressions().get(0).getType();
-        if (!TypeInfo.haveSameOrdering(colType, TypeInfo.getHigherType(colType, queryType))) {
+        TypeInfo higherType = TypeInfo.getHigherType(colType, queryType);
+        if (!Comparison.isSafeIndexCondition(colType, higherType)) {
             return;
         }
         int leftType = colType.getValueType();

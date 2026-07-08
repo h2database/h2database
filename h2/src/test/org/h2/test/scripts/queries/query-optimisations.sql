@@ -334,3 +334,20 @@ EXPLAIN SELECT * FROM T1 JOIN T2 USING(ID) WHERE (C1, C2) IN ((1, 1), (1, 3));
 DROP TABLE T1, T2;
 > ok
 
+CREATE TABLE T1(C0 INT) AS VALUES 1, 2, 3;
+> ok
+
+SELECT COUNT(*) FROM T1 WHERE C0 = 0.5;
+> COUNT(*)
+> --------
+> 0
+> rows: 1
+
+SELECT COUNT(*) FROM T1 WHERE C0 > 2.5;
+> COUNT(*)
+> --------
+> 1
+> rows: 1
+
+DROP TABLE T1;
+> ok

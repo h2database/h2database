@@ -42,6 +42,7 @@ public class TestDuplicateKeyUpdate extends TestDb {
         testPrimaryKeyAndUniqueKey(conn);
         testUpdateCountAndQualifiedNames(conn);
         testEnum(conn);
+        testAliasSyntax(conn);
         conn.close();
         deleteDb("duplicateKeyUpdate");
     }
@@ -309,6 +310,67 @@ public class TestDuplicateKeyUpdate extends TestDb {
         assertEquals(1, ps.executeUpdate());
         assertEquals(0, ps.executeUpdate());
         stat.execute("drop table test");
+    }
+
+    private void testAliasSyntax(Connection conn) throws SQLException {
+        Statement stat = conn.createStatement();
+        ResultSet rs;
+
+        // basic alias
+        stat.execute("CREATE TABLE users (id INT PRIMARY KEY, name VARCHAR(255), email VARCHAR(255))");
+        stat.execute("INSERT INTO users (id, name, email) VALUES (1, 'John', 'john@example.com') AS new_user " +
+                "ON DUPLICATE KEY UPDATE name = new_user.name, email = new_user.email");
+        rs = stat.executeQuery("SELECT name, email FROM users WHERE id=1");
+        rs.next();
+        assertEquals("John", rs.getString(1));
+        assertEquals("john@example.com", rs.getString(2));
+
+        // update using alias
+        stat.execute("INSERT INTO users (id, name, email) VALUES (1, 'Johnny', 'johnny@example.com') AS u " +
+                "ON DUPLICATE KEY UPDATE name = u.name");
+        rs = stat.executeQuery("SELECT name FROM users WHERE id=1");
+        rs.next();
+        assertEquals("Johnny", rs.getString(1));
+
+        // mixed alias and VALUES()
+        stat.execute("INSERT INTO users (id, name, email) VALUES (1, 'J', 'j@ex.com') AS t " +
+                "ON DUPLICATE KEY UPDATE name = t.name, email = VALUES(email)");
+        rs = stat.executeQuery("SELECT name, email FROM users WHERE id=1");
+        rs.next();
+        assertEquals("J", rs.getString(1));
+        assertEquals("j@ex.com", rs.getString(2));
+
+        // multi-row
+        stat.execute("INSERT INTO users (id, name, email) VALUES (2, 'A', 'a@ex'), (3, 'B', 'b@ex') AS r " +
+                "ON DUPLICATE KEY UPDATE name = r.name");
+        rs = stat.executeQuery("SELECT name FROM users WHERE id=2");
+        rs.next();
+        assertEquals("A", rs.getString(1));
+        rs = stat.executeQuery("SELECT name FROM users WHERE id=3");
+        rs.next();
+        assertEquals("B", rs.getString(1));
+
+        // column aliases
+        stat.execute("INSERT INTO users (id, name, email) VALUES (1, 'NewName', 'new@ex.com') AS x(id2, nm, em) " +
+                "ON DUPLICATE KEY UPDATE name = nm, email = em");
+        rs = stat.executeQuery("SELECT name, email FROM users WHERE id=1");
+        rs.next();
+        assertEquals("NewName", rs.getString(1));
+        assertEquals("new@ex.com", rs.getString(2));
+
+        // using SET form
+        stat.execute("INSERT INTO users SET id=4, name='SetName', email='set@' AS s " +
+                "ON DUPLICATE KEY UPDATE name = s.name");
+        rs = stat.executeQuery("SELECT name FROM users WHERE id=4");
+        rs.next();
+        assertEquals("SetName", rs.getString(1));
+
+        // alias different from table name is required (should have errored if same, but test by using different)
+        // error case for alias == table (use assertThrows if supported)
+        assertThrows(ErrorCode.SYNTAX_ERROR_2, stat)
+                .execute("INSERT INTO users (id, name) VALUES (99, 'xx') AS users ON DUPLICATE KEY UPDATE name=users.name");
+
+        stat.execute("DROP TABLE users");
     }
 
 }

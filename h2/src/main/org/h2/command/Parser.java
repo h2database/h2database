@@ -1551,10 +1551,12 @@ public final class Parser extends ParserBase {
                 }
                 if (readIf(VALUES)) {
                     parseValuesForCommand(command);
+                    readAliasForInsert(command, table, mode);
                     break readValues;
                 }
                 if (readIf(SET)) {
                     parseInsertSet(command, table, columns);
+                    readAliasForInsert(command, table, mode);
                     break readValues;
                 }
             }
@@ -1627,6 +1629,30 @@ public final class Parser extends ParserBase {
         if (mode.isolationLevelInSelectOrInsertStatement) {
             parseIsolationClause();
         }
+    }
+
+    private void readAliasForInsert(Insert command, Table table, Mode mode) {
+        if (!mode.onDuplicateKeyUpdate || !readIfCompat("AS")) {
+            return;
+        }
+        String aliasName = readIdentifier();
+        if (equalsToken(table.getName(), aliasName)) {
+            throw DbException.getSyntaxError(sqlCommand, tokenIndex, "alias must be different from table name");
+        }
+        String[] columnAliases = null;
+        if (readIf(OPEN_PAREN)) {
+            if (readIf(CLOSE_PAREN)) {
+                columnAliases = new String[0];
+            } else {
+                ArrayList<String> list = Utils.newSmallArrayList();
+                do {
+                    list.add(readIdentifier());
+                } while (readIf(COMMA));
+                read(CLOSE_PAREN);
+                columnAliases = list.toArray(new String[0]);
+            }
+        }
+        command.setAlias(aliasName, columnAliases);
     }
 
     /**
@@ -4801,6 +4827,20 @@ public final class Parser extends ParserBase {
     }
 
     private Expression readTermObjectDot(String objectName) {
+        if (currentPrepared instanceof Insert) {
+            Insert insert = (Insert) currentPrepared;
+            String alias = insert.getAlias();
+            if (alias != null && equalsToken(alias, objectName)) {
+                int backup = tokenIndex;
+                String ref = readIdentifier();
+                if (readIf(OPEN_PAREN)) {
+                    // unlikely for alias column ref, restore and fall through (will fail later anyway)
+                    setTokenIndex(backup);
+                } else {
+                    return getOnDuplicateKeyValueForAliasReference(insert, ref);
+                }
+            }
+        }
         Expression expr = readIfWildcardRowidOrSequencePseudoColumn(null, objectName);
         if (expr != null) {
             return expr;
@@ -5220,6 +5260,46 @@ public final class Parser extends ParserBase {
         return new OnDuplicateKeyValues(c, update);
     }
 
+    private Expression getOnDuplicateKeyValueForAliasReference(Insert insert, String referencedName) {
+        Table table = insert.getTable();
+        String[] aliasCols = insert.getAliasColumns();
+        Column targetCol;
+        if (aliasCols != null) {
+            int idx = -1;
+            for (int i = 0; i < aliasCols.length; i++) {
+                if (equalsToken(aliasCols[i], referencedName)) {
+                    idx = i;
+                    break;
+                }
+            }
+            if (idx >= 0) {
+                targetCol = getColumnFromInsertColumns(insert, idx);
+                if (targetCol == null) {
+                    targetCol = table.getColumn(referencedName);
+                }
+            } else {
+                targetCol = table.getColumn(referencedName);
+            }
+        } else {
+            targetCol = table.getColumn(referencedName);
+        }
+        return new OnDuplicateKeyValues(targetCol, null);
+    }
+
+    private Column getColumnFromInsertColumns(Insert insert, int index) {
+        Column[] cols = insert.getColumns();
+        if (cols == null) {
+            Table table = insert.getTable();
+            if (table != null) {
+                cols = table.getVisibleColumns();
+            }
+        }
+        if (cols != null && index < cols.length) {
+            return cols[index];
+        }
+        return null;
+    }
+
     private Expression readTermWithIdentifier(String name, boolean quoted) {
         /*
          * Convert a-z to A-Z. This method is safe, because only A-Z
@@ -5227,6 +5307,31 @@ public final class Parser extends ParserBase {
          *
          * Unquoted identifier is never empty.
          */
+        if (currentPrepared instanceof Insert) {
+            Insert insert = (Insert) currentPrepared;
+            String alias = insert.getAlias();
+            if (alias != null) {
+                if (equalsToken(alias, name)) {
+                    if (readIf(DOT)) {
+                        String ref = readIdentifier();
+                        return getOnDuplicateKeyValueForAliasReference(insert, ref);
+                    }
+                    // bare alias not a column ref, fall through
+                } else {
+                    String[] ac = insert.getAliasColumns();
+                    if (ac != null) {
+                        for (int i = 0; i < ac.length; i++) {
+                            if (equalsToken(ac[i], name)) {
+                                Column c = getColumnFromInsertColumns(insert, i);
+                                if (c != null) {
+                                    return new OnDuplicateKeyValues(c, null);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
         switch (name.charAt(0) & 0xffdf) {
         case 'C':
             if (equalsToken("CURRENT", name)) {

@@ -52,6 +52,14 @@ public final class Insert extends CommandWithValues implements ResultTarget {
     private Boolean overridingSystem;
 
     /**
+     * MySQL-style row alias for INSERT ... VALUES ... AS alias [(col_alias, ...)]
+     * used in ON DUPLICATE KEY UPDATE.
+     */
+    private String alias;
+
+    private String[] aliasColumns;
+
+    /**
      * For MySQL-style INSERT ... ON DUPLICATE KEY UPDATE ....
      */
     private HashMap<Column, Expression> duplicateKeyAssignmentMap;
@@ -109,6 +117,31 @@ public final class Insert extends CommandWithValues implements ResultTarget {
 
     public void setOverridingSystem(Boolean overridingSystem) {
         this.overridingSystem = overridingSystem;
+    }
+
+    /**
+     * Sets MySQL-style row and optional column aliases for the inserted row
+     * values, to be used in ON DUPLICATE KEY UPDATE clause with the alias
+     * syntax (since MySQL 8.0.19).
+     *
+     * @param alias the row alias name
+     * @param aliasColumns optional column alias names (may be null)
+     */
+    public void setAlias(String alias, String[] aliasColumns) {
+        this.alias = alias;
+        this.aliasColumns = aliasColumns;
+    }
+
+    public String getAlias() {
+        return alias;
+    }
+
+    public String[] getAliasColumns() {
+        return aliasColumns;
+    }
+
+    public Column[] getColumns() {
+        return columns;
     }
 
     /**
@@ -275,6 +308,21 @@ public final class Insert extends CommandWithValues implements ResultTarget {
         } else {
             query.getPlanSQL(builder, sqlFlags);
         }
+        if (alias != null) {
+            builder.append(" AS ");
+            // Simple output; identifiers may need quoting in full impl but sufficient for plan
+            builder.append(alias);
+            if (aliasColumns != null) {
+                builder.append('(');
+                for (int i = 0; i < aliasColumns.length; i++) {
+                    if (i > 0) {
+                        builder.append(',');
+                    }
+                    builder.append(aliasColumns[i]);
+                }
+                builder.append(')');
+            }
+        }
         return builder;
     }
 
@@ -286,6 +334,17 @@ public final class Insert extends CommandWithValues implements ResultTarget {
                 columns = new Column[0];
             } else {
                 columns = table.getVisibleColumns();
+            }
+        }
+        if (aliasColumns != null) {
+            if (aliasColumns.length != columns.length) {
+                throw DbException.get(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
+            }
+            java.util.HashSet<String> unique = new java.util.HashSet<>();
+            for (String ac : aliasColumns) {
+                if (!unique.add(ac)) {
+                    throw DbException.get(ErrorCode.DUPLICATE_COLUMN_NAME_1, ac);
+                }
             }
         }
         if (!valuesExpressionList.isEmpty()) {

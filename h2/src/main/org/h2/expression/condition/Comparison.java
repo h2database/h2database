@@ -413,8 +413,10 @@ public final class Comparison extends Condition {
         }
         
         if (DataType.isNumericType(cType) && DataType.isNumericType(hType)) {
-            boolean cIsInt = cType == Value.TINYINT || cType == Value.SMALLINT || cType == Value.INTEGER || cType == Value.BIGINT;
-            boolean hIsInt = hType == Value.TINYINT || hType == Value.SMALLINT || hType == Value.INTEGER || hType == Value.BIGINT;
+            boolean cIsInt = cType == Value.TINYINT || cType == Value.SMALLINT 
+                    || cType == Value.INTEGER || cType == Value.BIGINT;
+            boolean hIsInt = hType == Value.TINYINT || hType == Value.SMALLINT 
+                    || hType == Value.INTEGER || hType == Value.BIGINT;
             
             if (cIsInt && !hIsInt) {
                 return false;

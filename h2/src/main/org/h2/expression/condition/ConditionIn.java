@@ -122,8 +122,8 @@ abstract class ConditionIn extends Condition {
         TypeInfo colType = left.getType();
         ExpressionVisitor visitor = ExpressionVisitor.getNotFromResolverVisitor(filter);
         for (Expression e : valueList) {
-            if (!e.isEverything(visitor)
-                    || !TypeInfo.haveSameOrdering(colType, TypeInfo.getHigherType(colType, e.getType()))) {
+            TypeInfo higherType = TypeInfo.getHigherType(colType, e.getType());
+            if (!e.isEverything(visitor) || !Comparison.isSafeIndexCondition(colType, higherType)) {
                 return;
             }
         }

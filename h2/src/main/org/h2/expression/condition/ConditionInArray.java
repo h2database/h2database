@@ -186,7 +186,7 @@ public class ConditionInArray extends Condition {
                     for (int i = 0; i < count; i++) {
                         type = TypeInfo.getHigherType(type, values[i].getType());
                     }
-                    if (TypeInfo.haveSameOrdering(colType, type)) {
+                    if (Comparison.isSafeIndexCondition(colType, type)) {
                         Expression[] valueList = new Expression[count];
                         for (int i = 0; i < count; i++) {
                             valueList[i] = ValueExpression.get(values[i]);
@@ -201,8 +201,8 @@ public class ConditionInArray extends Condition {
                 TypeInfo arrayType = right.getType();
                 if (arrayType.getValueType() == Value.ARRAY) {
                     TypeInfo colType = l.getType();
-                    if (TypeInfo.haveSameOrdering(colType,
-                            TypeInfo.getHigherType(colType, (TypeInfo) arrayType.getExtTypeInfo()))) {
+                    TypeInfo higherType = TypeInfo.getHigherType(colType, (TypeInfo) arrayType.getExtTypeInfo());
+                    if (Comparison.isSafeIndexCondition(colType, higherType)) {
                         filter.addIndexCondition(IndexCondition.getInArray(l, right));
                     }
                 }

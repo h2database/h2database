@@ -401,6 +401,30 @@ public final class Comparison extends Condition {
         }
     }
 
+    public static boolean isSafeIndexCondition(TypeInfo colType, TypeInfo higherType) {
+        if (!TypeInfo.haveSameOrdering(colType, higherType)) {
+            return false;
+        }
+        int cType = colType.getValueType();
+        int hType = higherType.getValueType();
+        
+        if (cType == hType) {
+            return true;
+        }
+        
+        if (DataType.isNumericType(cType) && DataType.isNumericType(hType)) {
+            boolean cIsInt = cType == Value.TINYINT || cType == Value.SMALLINT 
+                    || cType == Value.INTEGER || cType == Value.BIGINT;
+            boolean hIsInt = hType == Value.TINYINT || hType == Value.SMALLINT 
+                    || hType == Value.INTEGER || hType == Value.BIGINT;
+            
+            if (cIsInt && !hIsInt) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     static void createIndexConditions(TableFilter filter, Expression left, Expression right, int compareType) {
         if (compareType == NOT_EQUAL || compareType == NOT_EQUAL_NULL_SAFE) {
             return;
@@ -459,13 +483,15 @@ public final class Comparison extends Condition {
         case SPATIAL_INTERSECTS:
             if (l != null) {
                 TypeInfo colType = l.getType();
-                if (TypeInfo.haveSameOrdering(colType, TypeInfo.getHigherType(colType, right.getType()))) {
+                TypeInfo higherType = TypeInfo.getHigherType(colType, right.getType());
+                if (isSafeIndexCondition(colType, higherType)) {
                     filter.addIndexCondition(IndexCondition.get(compareType, l, right));
                 }
             } else {
                 @SuppressWarnings("null")
                 TypeInfo colType = r.getType();
-                if (TypeInfo.haveSameOrdering(colType, TypeInfo.getHigherType(colType, left.getType()))) {
+                TypeInfo higherType = TypeInfo.getHigherType(colType, left.getType());
+                if (isSafeIndexCondition(colType, higherType)) {
                     filter.addIndexCondition(IndexCondition.get(getReversedCompareType(compareType), r, left));
                 }
             }

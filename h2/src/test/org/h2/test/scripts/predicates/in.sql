@@ -509,3 +509,36 @@ EXPLAIN SELECT * FROM D WHERE (A, C) IN ((1, 1), (1, 2), (1, 3), (2, 1), (2, 2),
 
 DROP TABLE D;
 > ok
+
+CREATE TABLE T1(C0 INT, C1 INT) AS VALUES (1, 1), (2, 2), (3, 3);
+> ok
+
+CREATE TABLE T2(C0 DOUBLE) AS VALUES 1.0, 0.5, 2.5;
+> ok
+
+SELECT COUNT(*) FROM T1 WHERE C0 IN (SELECT C0 FROM T2);
+> COUNT(*)
+> --------
+> 1
+> rows: 1
+
+SELECT COUNT(*) FROM T1 WHERE C0 IN (1.0, 0.5, 2.5);
+> COUNT(*)
+> --------
+> 1
+> rows: 1
+
+SELECT COUNT(*) FROM T1 WHERE C0 IN (1.0, 0.5, 2.5 + (RAND() * 0));
+> COUNT(*)
+> --------
+> 1
+> rows: 1
+
+SELECT COUNT(*) FROM T1 WHERE (C0, C1) IN ((1.0, 1.0), (0.5, 0.5), (2.5, 2.5));
+> COUNT(*)
+> --------
+> 1
+> rows: 1
+
+DROP TABLE T1, T2;
+> ok

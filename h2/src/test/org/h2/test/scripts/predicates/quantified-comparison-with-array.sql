@@ -299,3 +299,15 @@ SELECT V, A, CASE V WHEN = ANY(A) THEN 1 WHEN > ANY(A) THEN 2 WHEN < ANY(A) THEN
 > null [null]       4
 > null null         4
 > rows: 35
+
+CREATE TABLE T3(C0 INT) AS VALUES 1, 2, 3;
+> ok
+
+SELECT COUNT(*) FROM T3 WHERE C0 = ANY(ARRAY[1.0, 0.5, 2.5]);
+> COUNT(*)
+> --------
+> 1
+> rows: 1
+
+DROP TABLE T3;
+> ok

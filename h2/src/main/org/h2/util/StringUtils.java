@@ -1405,10 +1405,19 @@ public class StringUtils {
     public static boolean startsWithIgnoringCase(String text, String prefix) {
         if (text.length() < prefix.length()) {
             return false;
-        } else {
-            Collator collator = Collator.getInstance();
-            collator.setStrength(Collator.PRIMARY);
-            return collator.equals(text.substring(0, prefix.length()), prefix);
         }
+        return PRIMARY_COLLATOR.get().equals(text.substring(0, prefix.length()), prefix);
     }
+
+    /**
+     * Primary-strength collator for {@link #startsWithIgnoringCase(String, String)}, held per thread.
+     * Collator is not thread-safe and {@link Collator#getInstance()} is expensive (it allocated a fresh
+     * collator, on the order of a kilobyte, on every call); reusing one per thread avoids that allocation
+     * while preserving the previous default-locale, PRIMARY-strength comparison.
+     */
+    private static final ThreadLocal<Collator> PRIMARY_COLLATOR = ThreadLocal.withInitial(() -> {
+        Collator collator = Collator.getInstance();
+        collator.setStrength(Collator.PRIMARY);
+        return collator;
+    });
 }

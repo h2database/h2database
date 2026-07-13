@@ -78,3 +78,56 @@ INSERT INTO TEST VALUES (1, NULL, NULL);
 
 DROP TABLE TEST;
 > ok
+
+-- SQL Server compatibility: NONCLUSTERED/CLUSTERED keywords and WHERE col IS NOT NULL
+
+SET MODE MSSQLServer;
+> ok
+
+CREATE TABLE TEST(ID INT, NAME VARCHAR(100));
+> ok
+
+-- NONCLUSTERED keyword should be parsed and ignored
+CREATE UNIQUE NONCLUSTERED INDEX IDX1 ON TEST(ID);
+> ok
+
+-- CLUSTERED keyword should be parsed and ignored
+CREATE UNIQUE CLUSTERED INDEX IDX2 ON TEST(NAME);
+> ok
+
+-- WHERE col IS NOT NULL on single-column unique index converts to NULLS DISTINCT
+CREATE UNIQUE NONCLUSTERED INDEX IDX3 ON TEST(ID) WHERE ID IS NOT NULL;
+> ok
+
+SELECT INDEX_NAME, NULLS_DISTINCT FROM INFORMATION_SCHEMA.INDEXES WHERE TABLE_NAME = 'TEST' ORDER BY INDEX_NAME;
+> INDEX_NAME NULLS_DISTINCT
+> ---------- --------------
+> IDX1       NO
+> IDX2       NO
+> IDX3       YES
+> rows (ordered): 3
+
+DROP INDEX IDX1;
+> ok
+
+-- Test that NULLS DISTINCT behavior works: multiple NULLs allowed
+INSERT INTO TEST VALUES (1, 'a'), (2, 'b'), (NULL, 'c'), (NULL, 'd');
+> update count: 4
+
+-- Duplicate non-null value should fail
+INSERT INTO TEST VALUES (1, 'e');
+> exception DUPLICATE_KEY_1
+
+-- WHERE column must match index column
+CREATE UNIQUE INDEX IDX_BAD ON TEST(ID) WHERE NAME IS NOT NULL;
+> exception SYNTAX_ERROR_2
+
+-- WHERE col IS NULL is not supported
+CREATE UNIQUE INDEX IDX_BAD2 ON TEST(ID) WHERE ID IS NULL;
+> exception SYNTAX_ERROR_2
+
+DROP TABLE TEST;
+> ok
+
+SET MODE Regular;
+> ok

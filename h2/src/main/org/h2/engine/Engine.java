@@ -13,6 +13,7 @@ import org.h2.command.CommandInterface;
 import org.h2.command.dml.SetTypes;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
+import org.h2.schema.Constant;
 import org.h2.security.auth.AuthenticationException;
 import org.h2.security.auth.AuthenticationInfo;
 import org.h2.security.auth.Authenticator;
@@ -304,15 +305,18 @@ public final class Engine {
         if (!Constants.CLUSTERING_DISABLED.equals(clusterDb)) {
             if (!Constants.CLUSTERING_ENABLED.equals(clusterSession)) {
                 if (!Objects.equals(clusterSession, clusterDb)) {
-                    if (clusterDb.equals(Constants.CLUSTERING_DISABLED)) {
-                        throw DbException.get(
-                                ErrorCode.CLUSTER_ERROR_DATABASE_RUNS_ALONE);
-                    }
                     throw DbException.get(
                             ErrorCode.CLUSTER_ERROR_DATABASE_RUNS_CLUSTERED_1,
                             clusterDb);
                 }
             }
+        }
+        //Issue #2360 - Odd Condition: If cluster db is disabled but cluster session is enabled, throw an exception
+       else {
+           if(Constants.CLUSTERING_ENABLED.equals(clusterSession)){
+               throw DbException.get(
+                       ErrorCode.CLUSTER_ERROR_DATABASE_RUNS_ALONE);
+           }
         }
     }
 

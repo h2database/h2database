@@ -859,6 +859,9 @@ public abstract class Table extends SchemaObject {
                 if (index == scanIndex || isIndexExcludedByHints(indexHints, index)) {
                     continue;
                 }
+                if (index.getIndexType().isInvisible() && !session.isUseInvisibleIndexes()) {
+                    continue;
+                }
 
                 double cost = index.getCost(session, masks, filters, filter,
                         sortOrder, allColumnsSet, isSelectCommand);

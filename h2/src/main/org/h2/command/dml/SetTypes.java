@@ -242,7 +242,12 @@ public class SetTypes {
      */
     public static final int TRUNCATE_LARGE_LENGTH = DEFAULT_NULL_ORDERING + 1;
 
-    private static final int COUNT = TRUNCATE_LARGE_LENGTH + 1;
+    /**
+     * The type of a SET USE_INVISIBLE_INDEXES statement.
+     */
+    public static final int USE_INVISIBLE_INDEXES = TRUNCATE_LARGE_LENGTH + 1;
+
+    private static final int COUNT = USE_INVISIBLE_INDEXES + 1;
 
     private static final List<String> TYPES;
 
@@ -297,7 +302,8 @@ public class SetTypes {
                 "TIME ZONE", //
                 "VARIABLE_BINARY", //
                 "DEFAULT_NULL_ORDERING", //
-                "TRUNCATE_LARGE_LENGTH");
+                "TRUNCATE_LARGE_LENGTH", //
+                "USE_INVISIBLE_INDEXES");
         assert TYPES.size() == COUNT;
     }
 

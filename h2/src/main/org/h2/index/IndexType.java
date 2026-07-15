@@ -16,6 +16,7 @@ public class IndexType {
 
     private boolean primaryKey, persistent, hash, scan, spatial;
     private boolean belongsToConstraint;
+    private boolean invisible;
     private NullsDistinct nullsDistinct;
 
     /**
@@ -137,6 +138,24 @@ public class IndexType {
      */
     public boolean isPersistent() {
         return persistent;
+    }
+
+    /**
+     * Sets if this index is invisible.
+     *
+     * @param invisible if the index is invisible
+     */
+    public void setInvisible(boolean invisible) {
+        this.invisible = invisible;
+    }
+
+    /**
+     * Is this index invisible?
+     *
+     * @return true if it is invisible
+     */
+    public boolean isInvisible() {
+        return invisible;
     }
 
     /**

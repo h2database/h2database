@@ -74,7 +74,6 @@ public class Set extends Prepared {
         case SetTypes.TIME_ZONE:
         case SetTypes.VARIABLE_BINARY:
         case SetTypes.TRUNCATE_LARGE_LENGTH:
-        case SetTypes.USE_INVISIBLE_INDEXES:
         case SetTypes.WRITE_DELAY:
             return true;
         default:
@@ -555,9 +554,6 @@ public class Set extends Prepared {
         }
         case SetTypes.TRUNCATE_LARGE_LENGTH:
             session.setTruncateLargeLength(expression.getBooleanValue(session));
-            break;
-        case SetTypes.USE_INVISIBLE_INDEXES:
-            session.setUseInvisibleIndexes(expression.getBooleanValue(session));
             break;
         default:
             throw DbException.getInternalError("type="+type);

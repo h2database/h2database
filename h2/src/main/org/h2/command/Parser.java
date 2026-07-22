@@ -1951,9 +1951,6 @@ public final class Parser extends ParserBase {
             do {
                 String indexName = readIdentifierWithSchema();
                 Index index = table.getIndex(indexName);
-                if (index.getIndexType().isInvisible() && !session.isUseInvisibleIndexes()) {
-                    throw DbException.get(ErrorCode.INDEX_NOT_FOUND_1, indexName);
-                }
                 indexNames.add(index.getName());
             } while (readIfMore());
         }
@@ -7208,19 +7205,22 @@ public final class Parser extends ParserBase {
             command.setIfExists(ifExists);
             command.setNewName(newName);
             return command;
-        } else {
+        } else if (readIf("INVISIBLE")) {
             AlterIndexVisibility command = new AlterIndexVisibility(session);
             command.setSchema(old);
             command.setIndexName(indexName);
             command.setIfExists(ifExists);
-            if (readIf("INVISIBLE")) {
-                command.setInvisible(true);
-            } else {
-                read("VISIBLE");
-                command.setInvisible(false);
-            }
+            command.setInvisible(true);
+            return command;
+        } else if (readIf("VISIBLE")) {
+            AlterIndexVisibility command = new AlterIndexVisibility(session);
+            command.setSchema(old);
+            command.setIndexName(indexName);
+            command.setIfExists(ifExists);
+            command.setInvisible(false);
             return command;
         }
+        throw getSyntaxError();
     }
 
     private DefineCommand parseAlterDomain() {

@@ -32,6 +32,7 @@ public class CreateIndex extends SchemaCommand {
     private boolean primaryKey, hash, spatial;
     private boolean ifTableExists;
     private boolean ifNotExists;
+    private boolean invisible;
     private String comment;
 
     public CreateIndex(SessionLocal session, Schema schema) {
@@ -95,12 +96,16 @@ public class CreateIndex extends SchemaCommand {
             if (table.findPrimaryKey() != null) {
                 throw DbException.get(ErrorCode.SECOND_PRIMARY_KEY);
             }
+            if (invisible) {
+                throw DbException.getUnsupportedException("INVISIBLE on PRIMARY KEY");
+            }
             indexType = IndexType.createPrimaryKey(persistent, hash);
         } else if (uniqueColumnCount > 0) {
             indexType = IndexType.createUnique(persistent, hash, uniqueColumnCount, nullsDistinct);
         } else {
             indexType = IndexType.createNonUnique(persistent, hash, spatial);
         }
+        indexType.setInvisible(invisible);
         IndexColumn.mapColumns(indexColumns, table);
         table.addIndex(session, indexName, id, indexColumns, uniqueColumnCount, indexType, create, comment);
         return 0;
@@ -121,6 +126,10 @@ public class CreateIndex extends SchemaCommand {
 
     public void setSpatial(boolean b) {
         this.spatial = b;
+    }
+
+    public void setInvisible(boolean b) {
+        this.invisible = b;
     }
 
     public void setComment(String comment) {

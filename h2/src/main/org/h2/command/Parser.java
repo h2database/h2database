@@ -156,6 +156,7 @@ import org.h2.command.ddl.AlterDomainExpressions;
 import org.h2.command.ddl.AlterDomainRename;
 import org.h2.command.ddl.AlterDomainRenameConstraint;
 import org.h2.command.ddl.AlterIndexRename;
+import org.h2.command.ddl.AlterIndexVisibility;
 import org.h2.command.ddl.AlterSchemaRename;
 import org.h2.command.ddl.AlterSequence;
 import org.h2.command.ddl.AlterTableAddConstraint;
@@ -6569,6 +6570,11 @@ public final class Parser extends ParserBase {
             }
             command.setIndexColumns(columns);
             command.setUnique(nullsDistinct, uniqueColumnCount);
+            if (readIf("INVISIBLE")) {
+                command.setInvisible(true);
+            } else {
+                readIf("VISIBLE");
+            }
             return command;
         }
     }
@@ -7185,20 +7191,36 @@ public final class Parser extends ParserBase {
         }
     }
 
-    private AlterIndexRename parseAlterIndex() {
+    private DefineCommand parseAlterIndex() {
         boolean ifExists = readIfExists(false);
         String indexName = readIdentifierWithSchema();
         Schema old = getSchema();
-        AlterIndexRename command = new AlterIndexRename(session);
-        command.setOldSchema(old);
-        command.setOldName(indexName);
-        command.setIfExists(ifExists);
-        read("RENAME");
-        read(TO);
-        String newName = readIdentifierWithSchema(old.getName());
-        checkSchema(old);
-        command.setNewName(newName);
-        return command;
+        if (readIf("RENAME")) {
+            read(TO);
+            String newName = readIdentifierWithSchema(old.getName());
+            checkSchema(old);
+            AlterIndexRename command = new AlterIndexRename(session);
+            command.setOldSchema(old);
+            command.setOldName(indexName);
+            command.setIfExists(ifExists);
+            command.setNewName(newName);
+            return command;
+        } else if (readIf("INVISIBLE")) {
+            AlterIndexVisibility command = new AlterIndexVisibility(session);
+            command.setSchema(old);
+            command.setIndexName(indexName);
+            command.setIfExists(ifExists);
+            command.setInvisible(true);
+            return command;
+        } else if (readIf("VISIBLE")) {
+            AlterIndexVisibility command = new AlterIndexVisibility(session);
+            command.setSchema(old);
+            command.setIndexName(indexName);
+            command.setIfExists(ifExists);
+            command.setInvisible(false);
+            return command;
+        }
+        throw getSyntaxError();
     }
 
     private DefineCommand parseAlterDomain() {

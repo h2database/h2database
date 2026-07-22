@@ -859,7 +859,8 @@ public abstract class Table extends SchemaObject {
                 if (index == scanIndex || isIndexExcludedByHints(indexHints, index)) {
                     continue;
                 }
-                if (index.getIndexType().isInvisible() && !session.isUseInvisibleIndexes()) {
+                if (index.getIndexType().isInvisible()
+                        && (indexHints == null || !indexHints.allowIndex(index))) {
                     continue;
                 }
 

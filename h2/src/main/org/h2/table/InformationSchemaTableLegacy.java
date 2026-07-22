@@ -222,7 +222,6 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                     column("SORT_TYPE", TypeInfo.TYPE_INTEGER), //
                     column("CONSTRAINT_NAME"), //
                     column("INDEX_CLASS"), //
-                    column("IS_VISIBLE", TypeInfo.TYPE_BOOLEAN), //
             };
             indexColumnName = "TABLE_NAME";
             break;
@@ -956,9 +955,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                                 // CONSTRAINT_NAME
                                 constraintName,
                                 // INDEX_CLASS
-                                indexClass,
-                                // IS_VISIBLE
-                                ValueBoolean.get(!index.getIndexType().isInvisible())
+                                indexClass
                             );
                     }
                 }

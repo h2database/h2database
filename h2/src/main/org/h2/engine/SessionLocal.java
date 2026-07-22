@@ -248,11 +248,6 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
     private boolean truncateLargeLength;
 
     /**
-     * Whether InvisibleIndexes will be processed in the query planner.
-     */
-    private boolean useInvisibleIndexes;
-
-    /**
      * Whether BINARY is parsed as VARBINARY.
      */
     private boolean variableBinary;
@@ -2056,14 +2051,6 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
      */
     public boolean isTruncateLargeLength() {
         return truncateLargeLength;
-    }
-
-    public void setUseInvisibleIndexes(boolean useInvisibleIndexes) {
-        this.useInvisibleIndexes = useInvisibleIndexes;
-    }
-
-    public boolean isUseInvisibleIndexes() {
-        return useInvisibleIndexes;
     }
 
     /**

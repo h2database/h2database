@@ -56,8 +56,12 @@ public class AlterIndexVisibility extends DefineCommand {
             return 0;
         }
 
-        if (invisible && index.getIndexType().isPrimaryKey()) {
-            throw DbException.getUnsupportedException("INVISIBLE on PRIMARY KEY");
+        if (invisible) {
+            for (org.h2.constraint.Constraint c : index.getTable().getConstraints()) {
+                if (c.usesIndex(index)) {
+                    throw DbException.getUnsupportedException("INVISIBLE on CONSTRAINED INDEX");
+                }
+            }
         }
 
         session.getUser().checkTableRight(index.getTable(), Right.SCHEMA_OWNER);

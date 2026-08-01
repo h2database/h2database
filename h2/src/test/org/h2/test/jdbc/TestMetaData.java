@@ -922,6 +922,33 @@ public class TestMetaData extends TestDb {
                 "PRIMARY_KEY_2", "" + DatabaseMetaData.tableIndexOther, "1",
                 "ID", "A", "0", "0" } },
                 new int[] { 11 });
+        trace("getIndexInfo: invisible indexes should not be reported");
+        stat.executeUpdate("CREATE TABLE TEST_INV(ID INT, NAME VARCHAR)");
+        stat.executeUpdate("CREATE INDEX IDX_VIS ON TEST_INV(ID)");
+        stat.executeUpdate("CREATE INDEX IDX_INV ON TEST_INV(NAME) INVISIBLE");
+        rs = meta.getIndexInfo(null, null, "TEST_INV", false, false);
+        boolean foundVisible = false;
+        while (rs.next()) {
+            String indexName = rs.getString("INDEX_NAME");
+            assertFalse("Invisible index must not be reported by getIndexInfo",
+                    "IDX_INV".equals(indexName));
+            if ("IDX_VIS".equals(indexName)) {
+                foundVisible = true;
+            }
+        }
+        assertTrue("Visible index must be reported by getIndexInfo", foundVisible);
+        // once the index becomes visible, it must reappear
+        stat.executeUpdate("ALTER INDEX IDX_INV VISIBLE");
+        rs = meta.getIndexInfo(null, null, "TEST_INV", false, false);
+        boolean foundFormerlyInvisible = false;
+        while (rs.next()) {
+            String indexName = rs.getString("INDEX_NAME");
+            if ("IDX_INV".equals(indexName)) {
+                foundFormerlyInvisible = true;
+            }
+        }
+        assertTrue("Index must be reported after becoming visible", foundFormerlyInvisible);
+        stat.executeUpdate("DROP TABLE TEST_INV");
         trace("getPrimaryKeys");
         rs = meta.getPrimaryKeys(null, null, "TEST");
         assertResultSetMeta(rs, 6, new String[] { "TABLE_CAT", "TABLE_SCHEM",

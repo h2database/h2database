@@ -1648,6 +1648,13 @@ public class Select extends Query {
         }
         comp = comp.optimize(session);
         if (isWindowQuery) {
+            // After prepareExpressions(), QUALIFY was moved into expressions and
+            // the qualify field was cleared. Restore it before attaching a
+            // global condition so outer WHERE pushdown into derived tables /
+            // views / CTEs does not drop the original QUALIFY (issue #4366).
+            if (qualify == null && qualifyIndex >= 0) {
+                qualify = expressions.get(qualifyIndex);
+            }
             qualify = addGlobalCondition(qualify, comp);
         } else if (isGroupQuery) {
             for (int i = 0; groupIndex != null && i < groupIndex.length; i++) {

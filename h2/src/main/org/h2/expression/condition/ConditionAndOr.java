@@ -6,6 +6,7 @@
 package org.h2.expression.condition;
 
 import org.h2.engine.SessionLocal;
+import org.h2.expression.ArrayElementReference;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.TypedValueExpression;
@@ -137,6 +138,13 @@ public class ConditionAndOr extends Condition {
         right = right.optimize(session);
         int lc = left.getCost(), rc = right.getCost();
         if (rc < lc) {
+            Expression t = left;
+            left = right;
+            right = t;
+        }
+        // For AND, evaluate sides that may raise ARRAY_ELEMENT_ERROR after safer
+        // short-circuit guards (e.g. cardinality check before a[i]). See #4364.
+        if (andOrType == AND && mayRaiseArrayElementError(left) && !mayRaiseArrayElementError(right)) {
             Expression t = left;
             left = right;
             right = t;
@@ -327,6 +335,28 @@ public class ConditionAndOr extends Condition {
         default:
             throw new IndexOutOfBoundsException();
         }
+    }
+
+    /**
+     * Whether evaluating this expression may raise {@code ARRAY_ELEMENT_ERROR}
+     * for an out-of-range SQL array index (JSON accessors return null instead).
+     *
+     * @param expression the expression
+     * @return true if array element access may raise
+     */
+    static boolean mayRaiseArrayElementError(Expression expression) {
+        if (expression instanceof ArrayElementReference) {
+            Expression array = expression.getSubexpression(0);
+            int type = array.getType().getValueType();
+            return type == Value.ARRAY || type == Value.NULL || type == Value.UNKNOWN;
+        }
+        int count = expression.getSubexpressionCount();
+        for (int i = 0; i < count; i++) {
+            if (mayRaiseArrayElementError(expression.getSubexpression(i))) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

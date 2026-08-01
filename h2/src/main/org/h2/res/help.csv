@@ -6059,12 +6059,16 @@ DATEADD(MONTH, 1, DATE '2001-01-31')
 
 "Functions (Time and Date)","DATEDIFF","
 @h2@ { DATEDIFF | TIMESTAMPDIFF } @h2@ (datetimeField, aDateAndTime, bDateAndTime)
+| @c@ { DATEDIFF(aDateAndTime, bDateAndTime) }
 ","
 Returns the number of crossed unit boundaries between two date/time values.
 This method returns a long.
 The datetimeField indicates the unit.
 Only TIMEZONE_HOUR, TIMEZONE_MINUTE, and TIMEZONE_SECOND fields use the time zone offset component.
 With all other fields if date/time values have time zone offset component it is ignored.
+The two-argument form is accepted only in MySQL and MariaDB compatibility modes and returns the
+number of days of aDateAndTime - bDateAndTime (MySQL semantics), equivalent to
+DATEDIFF(DAY, bDateAndTime, aDateAndTime).
 ","
 DATEDIFF(YEAR, T1.CREATED, T2.CREATED)
 "

@@ -3240,7 +3240,20 @@ public final class Parser extends ParserBase {
 
     private Expression readLikePredicate(Expression left, LikeType likeType, boolean not, boolean whenOperand) {
         Expression right = readConcat();
-        Expression esc = readIf("ESCAPE") ? readConcat() : null;
+        Expression esc = null;
+        if (readIf("ESCAPE")) {
+            // Detect ESCAPE '' before it is converted to NULL by
+            // treatEmptyStringsAsNull (e.g. MODE=Oracle), so that it can be
+            // restored below and treated as "no escape character" instead of
+            // making the predicate UNKNOWN (Hibernate compatibility).
+            boolean emptyStringEscape = database.getMode().treatEmptyStringsAsNull
+                    && token instanceof Token.CharacterStringToken
+                    && ((Token.CharacterStringToken) token).string.isEmpty();
+            esc = readConcat();
+            if (emptyStringEscape && esc == ValueExpression.NULL) {
+                esc = ValueExpression.get(ValueVarchar.EMPTY);
+            }
+        }
         recompileAlways = true;
         return new CompareLike(database, left, not, whenOperand, right, esc, likeType);
     }

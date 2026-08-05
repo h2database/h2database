@@ -174,7 +174,7 @@ public final class CompareLike extends Condition {
                 return TypedValueExpression.UNKNOWN;
             }
             Value e = escape == null ? null : escape.getValue(session);
-            if (isUnknownEscape(session, e)) {
+            if (e == ValueNull.INSTANCE) {
                 return TypedValueExpression.UNKNOWN;
             }
             String p = r.getString();
@@ -199,23 +199,9 @@ public final class CompareLike extends Condition {
         return this;
     }
 
-    /**
-     * Returns whether ESCAPE makes the LIKE predicate UNKNOWN.
-     * Standard: ESCAPE NULL → UNKNOWN. H2 allows ESCAPE '' as "no escape
-     * character"; under treatEmptyStringsAsNull (Oracle) that becomes NULL,
-     * so NULL is treated as no escape there (Hibernate compatibility).
-     */
-    private static boolean isUnknownEscape(SessionLocal session, Value e) {
-        return e == ValueNull.INSTANCE && !session.getMode().treatEmptyStringsAsNull;
-    }
-
     private Character getEscapeChar(Value e) {
         if (e == null) {
             return getEscapeChar(defaultEscape);
-        }
-        if (e == ValueNull.INSTANCE) {
-            // Empty ESCAPE under treatEmptyStringsAsNull (see isUnknownEscape)
-            return null;
         }
         String es = e.getString();
         Character esc;
@@ -255,7 +241,7 @@ public final class CompareLike extends Condition {
         String p = right.getValue(session).getString();
         if (!isInit) {
             Value e = escape == null ? null : escape.getValue(session);
-            if (isUnknownEscape(session, e)) {
+            if (e == ValueNull.INSTANCE) {
                 // should already be optimized
                 throw DbException.getInternalError();
             }
@@ -331,7 +317,7 @@ public final class CompareLike extends Condition {
             }
             String p = r.getString();
             Value e = escape == null ? null : escape.getValue(session);
-            if (isUnknownEscape(session, e)) {
+            if (e == ValueNull.INSTANCE) {
                 return ValueNull.INSTANCE;
             }
             initPattern(p, getEscapeChar(e));

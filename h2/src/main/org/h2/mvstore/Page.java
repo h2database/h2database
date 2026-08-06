@@ -1045,13 +1045,20 @@ public abstract class Page<K,V> implements Cloneable {
 
         /**
          * The position, if known, or 0.
+         *
+         * Written before {@link #page} is cleared; both fields are volatile because chunk
+         * rewriting (FileStore.rewriteChunks) traverses pages without holding the
+         * serialization lock, and the volatile write that clears {@code page} is the
+         * release/acquire edge that makes {@code pos} visible to such readers. Without it,
+         * a reader may observe {@code page == null} together with a stale {@code pos == 0}
+         * and fail with "Position 0" although the tree is consistent.
          */
-        private long pos;
+        private volatile long pos;
 
         /**
          * The page, if in memory, or null.
          */
-        private Page<K,V> page;
+        private volatile Page<K,V> page;
 
         /**
          * The descendant count for this child page.
@@ -1100,6 +1107,9 @@ public abstract class Page<K,V> implements Cloneable {
                 if (page.isSaved()) {
                     assert pos == page.getPos();
                     assert count == page.getTotalCount() : count + " != " + page.getTotalCount();
+                    // (re)stamp pos before the volatile write to 'page' publishes it: readers
+                    // that observe page == null must never observe an unsaved pos
+                    pos = page.getPos();
                     page = null;
                 }
             }

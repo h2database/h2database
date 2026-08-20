@@ -351,3 +351,26 @@ SELECT COUNT(*) FROM T1 WHERE C0 > 2.5;
 
 DROP TABLE T1;
 > ok
+
+-- Issue #4353: don't give an index that only covers the leading column(s) of
+-- the ORDER BY nearly the same sort discount as an index that covers all of
+-- them, since rows still need a real sort within each group sharing the
+-- leading column's value
+--
+CREATE TABLE TEST(A INT, B INT, C INT, D INT);
+> ok
+
+CREATE INDEX TEST_IDX_1 ON TEST(A, B);
+> ok
+
+CREATE UNIQUE INDEX TEST_IDX_2 ON TEST(A, C, D);
+> ok
+
+INSERT INTO TEST VALUES (1, 1, 1, 1), (1, 2, 2, 2);
+> update count: 2
+
+EXPLAIN SELECT * FROM TEST WHERE A = 1 ORDER BY A, C, D FETCH FIRST 10 ROWS ONLY;
+>> SELECT "PUBLIC"."TEST"."A", "PUBLIC"."TEST"."B", "PUBLIC"."TEST"."C", "PUBLIC"."TEST"."D" FROM "PUBLIC"."TEST" /* PUBLIC.TEST_IDX_2: A = 1 */ WHERE "A" = 1 ORDER BY 1, 3, 4 FETCH FIRST 10 ROWS ONLY /* index sorted */
+
+DROP TABLE TEST;
+> ok

@@ -9,6 +9,8 @@ import static org.h2.engine.Constants.MEMORY_ARRAY;
 import static org.h2.engine.Constants.MEMORY_OBJECT;
 import static org.h2.engine.Constants.MEMORY_POINTER;
 import static org.h2.mvstore.DataUtils.PAGE_TYPE_LEAF;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.VarHandle;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
@@ -1043,22 +1045,34 @@ public abstract class Page<K,V> implements Cloneable {
         @SuppressWarnings("rawtypes")
         static final PageReference EMPTY = new PageReference<>(null, 0, 0);
 
+        private static final VarHandle PAGE;
+        static {
+            try {
+                PAGE = MethodHandles.lookup().findVarHandle(PageReference.class, "page", Page.class);
+            } catch (ReflectiveOperationException e) {
+                throw new ExceptionInInitializerError(e);
+            }
+        }
+
         /**
          * The position, if known, or 0.
-         *
-         * Written before {@link #page} is cleared; both fields are volatile because chunk
-         * rewriting (FileStore.rewriteChunks) traverses pages without holding the
-         * serialization lock, and the volatile write that clears {@code page} is the
-         * release/acquire edge that makes {@code pos} visible to such readers. Without it,
-         * a reader may observe {@code page == null} together with a stale {@code pos == 0}
-         * and fail with "Position 0" although the tree is consistent.
+         * <p>
+         * Always stamped with the saved position (by {@link #resetPos()}) before
+         * {@link #page} is cleared, and never reset to 0 afterwards.
          */
-        private volatile long pos;
+        private long pos;
 
         /**
          * The page, if in memory, or null.
+         * <p>
+         * Cleared with a release write and read with an acquire read, because a tree
+         * traversal reads {@link #pos} only when this field is null, and such traversals
+         * run concurrently with the serialization thread clearing it. The release/acquire
+         * pair is what publishes {@link #pos}: without it a reader may observe
+         * {@code page == null} together with a stale {@code pos == 0} and fail with
+         * "Position 0" although the tree is consistent.
          */
-        private volatile Page<K,V> page;
+        private Page<K,V> page;
 
         /**
          * The descendant count for this child page.
@@ -1092,8 +1106,9 @@ public abstract class Page<K,V> implements Cloneable {
             this.count = count;
         }
 
+        @SuppressWarnings("unchecked")
         public Page<K,V> getPage() {
-            return page;
+            return (Page<K,V>) PAGE.getAcquire(this);
         }
 
         /**
@@ -1102,15 +1117,15 @@ public abstract class Page<K,V> implements Cloneable {
          * Reference is cleared only if corresponding page was already saved on a disk.
          */
         void clearPageReference() {
-            if (page != null) {
-                page.releaseSavedPages();
-                if (page.isSaved()) {
-                    assert pos == page.getPos();
-                    assert count == page.getTotalCount() : count + " != " + page.getTotalCount();
-                    // (re)stamp pos before the volatile write to 'page' publishes it: readers
-                    // that observe page == null must never observe an unsaved pos
-                    pos = page.getPos();
-                    page = null;
+            Page<K,V> p = page;
+            if (p != null) {
+                p.releaseSavedPages();
+                if (p.isSaved()) {
+                    assert pos == p.getPos();
+                    assert count == p.getTotalCount() : count + " != " + p.getTotalCount();
+                    // 'pos' was stamped by resetPos() earlier on this thread; the release
+                    // write below publishes it to any reader that observes the cleared page
+                    PAGE.setRelease(this, (Page<K,V>) null);
                 }
             }
         }

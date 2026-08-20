@@ -34,12 +34,23 @@ public class MaterializedView extends Table {
         this.table = table;
         this.query = query;
         this.querySQL = querySQL;
+        copyColumnsFromUnderlyingTable();
     }
 
     public void replace(Table table, Query query, String querySQL) {
         this.table = table;
         this.query = query;
         this.querySQL = querySQL;
+        copyColumnsFromUnderlyingTable();
+    }
+
+    private void copyColumnsFromUnderlyingTable() {
+        Column[] source = table.getColumns();
+        Column[] cols = new Column[source.length];
+        for (int i = 0; i < source.length; i++) {
+            cols[i] = source[i].getClone();
+        }
+        setColumns(cols);
     }
 
     public Table getUnderlyingTable() {

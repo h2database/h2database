@@ -4090,6 +4090,7 @@ public final class Parser extends ParserBase {
             return new DateTimeFunction(DateTimeFunction.DATEADD, readDateTimeField(), readNextArgument(),
                     readLastArgument());
         case "DATEDIFF":
+            return readDateDiffFunction();
         case "TIMESTAMPDIFF":
             return new DateTimeFunction(DateTimeFunction.DATEDIFF, readDateTimeField(), readNextArgument(),
                     readLastArgument());
@@ -4564,6 +4565,43 @@ public final class Parser extends ParserBase {
         return f;
     }
 
+    /**
+     * Parses {@code DATEDIFF}. In MySQL and MariaDB modes the two-argument form
+     * {@code DATEDIFF(expr1, expr2)} is accepted and returns the number of days of
+     * {@code expr1 - expr2} (MySQL semantics), equivalent to
+     * {@code DATEDIFF(DAY, expr2, expr1)}. The H2 three-argument form remains supported.
+     *
+     * @return the function
+     */
+    private DateTimeFunction readDateDiffFunction() {
+        ModeEnum modeEnum = database.getMode().getEnum();
+        if (modeEnum == ModeEnum.MySQL || modeEnum == ModeEnum.MariaDB) {
+            int backup = tokenIndex;
+            int field = tryReadDateTimeField();
+            if (field >= 0) {
+                Expression start = readNextArgument();
+                if (readIf(COMMA)) {
+                    Expression end = readExpression();
+                    read(CLOSE_PAREN);
+                    return new DateTimeFunction(DateTimeFunction.DATEDIFF, field, start, end);
+                }
+                if (readIf(CLOSE_PAREN)) {
+                    // Two arguments only; first token looked like a date-time field name
+                    // (e.g. a column named DAY). Reparse as MySQL two-arg form.
+                    setTokenIndex(backup);
+                } else {
+                    throw getSyntaxError();
+                }
+            }
+            Expression expr1 = readExpression();
+            Expression expr2 = readLastArgument();
+            // MySQL: DATEDIFF(expr1, expr2) = days(expr1) - days(expr2)
+            return new DateTimeFunction(DateTimeFunction.DATEDIFF, DateTimeFunction.DAY, expr2, expr1);
+        }
+        return new DateTimeFunction(DateTimeFunction.DATEDIFF, readDateTimeField(), readNextArgument(),
+                readLastArgument());
+    }
+
     private int readDateTimeField() {
         int field = -1;
         switch (currentTokenType) {
@@ -4601,6 +4639,64 @@ public final class Parser extends ParserBase {
         }
         read();
         return field;
+    }
+
+    /**
+     * Tries to read a date-time field token without throwing if the current token is not one.
+     * Used to distinguish MySQL two-argument {@code DATEDIFF} from the H2 three-argument form.
+     *
+     * @return the field, or {@code -1} if the current token is not a date-time field
+     */
+    private int tryReadDateTimeField() {
+        int field = -1;
+        switch (currentTokenType) {
+        case IDENTIFIER:
+            if (!token.isQuoted()) {
+                field = dateTimeFieldOrNegative(currentToken);
+            }
+            break;
+        case LITERAL:
+            if (token.value(session).getValueType() == Value.VARCHAR) {
+                field = dateTimeFieldOrNegative(token.value(session).getString());
+            }
+            break;
+        case YEAR:
+            field = DateTimeFunction.YEAR;
+            break;
+        case MONTH:
+            field = DateTimeFunction.MONTH;
+            break;
+        case DAY:
+            field = DateTimeFunction.DAY;
+            break;
+        case HOUR:
+            field = DateTimeFunction.HOUR;
+            break;
+        case MINUTE:
+            field = DateTimeFunction.MINUTE;
+            break;
+        case SECOND:
+            field = DateTimeFunction.SECOND;
+            break;
+        default:
+            return -1;
+        }
+        if (field < 0) {
+            return -1;
+        }
+        read();
+        return field;
+    }
+
+    private static int dateTimeFieldOrNegative(String name) {
+        try {
+            return DateTimeFunction.getField(name);
+        } catch (DbException e) {
+            if (e.getErrorCode() == ErrorCode.INVALID_VALUE_2) {
+                return -1;
+            }
+            throw e;
+        }
     }
 
     private WindowFunction readWindowFunction(String name) {

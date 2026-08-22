@@ -139,7 +139,8 @@ public class TestScript extends TestDb {
         testScript("altertable-fk.sql");
         testScript("default-and-on_update.sql");
 
-        for (String s : new String[] { "add_months", "compatibility", "group_by", "strict_and_legacy"}) {
+        for (String s : new String[] { "add_months", "compatibility", "group_by", "mysql_datediff",
+                "strict_and_legacy"}) {
             testScript("compatibility/" + s + ".sql");
         }
         for (String s : new String[] { "array", "bigint", "binary", "blob",

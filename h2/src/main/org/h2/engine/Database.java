@@ -392,13 +392,12 @@ public final class Database implements DataHandler, CastDataProvider {
                     e.fillInStackTrace();
                 }
                 if (e instanceof DbException) {
-                    if (((DbException) e).getErrorCode() == ErrorCode.DATABASE_ALREADY_OPEN_1) {
-                        stopServer();
-                    } else {
+                    if (((DbException) e).getErrorCode() != ErrorCode.DATABASE_ALREADY_OPEN_1) {
                         // only write if the database is not already in use
                         trace.error(e, "opening {0}", databaseName);
                     }
                 }
+                stopServer();
                 traceSystem.close();
                 closeOpenFilesAndUnlock();
             } catch (Throwable ex) {

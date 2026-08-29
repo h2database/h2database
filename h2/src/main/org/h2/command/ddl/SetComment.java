@@ -122,6 +122,9 @@ public class SetComment extends DefineCommand {
         }
         if (column) {
             Table table = (Table) object;
+            // Column comments are persisted only as part of a table definition, a view or
+            // linked table has no place for them and would silently drop the comment
+            table.checkSupportAlter();
             table.getColumn(columnName).setComment(text);
         } else {
             object.setComment(text);

@@ -370,7 +370,7 @@ public abstract class Index extends SchemaObject {
      *
      * @param rowOne first row to compare
      * @param rowTwo second row to compare
-     * @return true if rows are equvalent from this index point of view
+     * @return true if rows are equivalent from this index point of view
      */
     public boolean areRowsEquivalent(Row rowOne, Row rowTwo) {
         if (rowOne == rowTwo) {

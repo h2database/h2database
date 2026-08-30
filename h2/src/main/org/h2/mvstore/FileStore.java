@@ -932,7 +932,7 @@ public abstract class FileStore<C extends Chunk<C>>
 
 
     public MVMap<String, String> start() {
-        // locking is not strictly neccessary here in startup flow, just to make assertions happy
+        // locking is not strictly necessary here in startup flow, just to make assertions happy
         serializationLock.lock();
         try {
             if (size() == 0) {

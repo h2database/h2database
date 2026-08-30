@@ -444,7 +444,8 @@ public class MVTable extends TableBase {
         }
     }
 
-    private static void dumpBufferIntoTempMap(MVIndex<?, ?> index, ArrayList<Row> buffer, Store store, ArrayList<String> bufferNames) {
+    private static void dumpBufferIntoTempMap(MVIndex<?,?> index, ArrayList<Row> buffer, Store store,
+                                                ArrayList<String> bufferNames) {
         sortRows(buffer, index);
         String mapName = store.nextTemporaryMapName();
         index.addRowsToBuffer(buffer, mapName);

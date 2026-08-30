@@ -21,17 +21,32 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul>
+<li>nothing here yet</li>
+</ul>
+
+<h2>Version 2.5.250 (2026-08-29)</h2>
+<ul>
 <li>Issue #4345: Comment on View Column is not persisted and not exported to database dump (with SCRIPT TO)
 </li>
-<li>PR #4363: Fixed: Server should be stopped everytime db init fails
+<li>PR #4363: Fixed: Server should be stopped every time db init fails
 </li>
-<li>PR #4359: Fixed casting issue: skipped Index Condition Pushdown optm for lossy conversions
+<li>PR #4374: Fixed: Data race causing spurious "Position 0" during chunk rewriting
+</li>
+<li>Issue #4353: Wrong composite index being chosen
+</li>
+<li>PR #4359: Fixed casting issue: skipped Index Condition Pushdown optimization for lossy conversions
+</li>
+<li>Issue #4352: Fix race between metatable generation and transaction closure
+</li>
+<li>Issue #4321: Fix SCRIPT tool COLUMNS option placement
+</li>
+<li>PR #4343: Stop on panic exception to prevent store corruption
+</li>
+<li>PR #4340: Eliminate concurrent access to MVStore.versions
 </li>
 <li>PR #4317: Fix case for ChunkNotFound. MVStore performance improvements.
 </li>
 <li>Issue #4302: org.h2.jdbc.JdbcSQLIntegrityConstraintViolationException: Check constraint invalid
-</li>
-<li>Issue #4286: [2.4.240] SHUTDOWN COMPACT failure
 </li>
 <li>Issue #4293: Data Race in org.h2.mvstore.tx.TransactionStore.registerTransaction
 </li>
@@ -40,6 +55,10 @@ Change Log
 <li>Issue #4048: Assertion error in shrinkStoreIfPossible
 </li>
 <li>Issue #4304: DROP SCHEMA &amp; DROP ALL OBJECTS is broken if a materialized view is present in the schema
+</li>
+<li>Issue #4297: fix race in VersionedBitSet
+</li>
+<li>Issue #4286: faulty assertion caused failure in SHUTDOWN COMPACT
 </li>
 </ul>
 

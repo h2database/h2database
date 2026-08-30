@@ -1066,7 +1066,7 @@ public abstract class Page<K,V> implements Cloneable {
          * The page, if in memory, or null.
          * <p>
          * Cleared with a release write and read with an acquire read, because a tree
-         * traversal reads {@link #pos} only when this field is null, and such traversals
+         * traversal reads {@link #pos} only when this field is null, and such traversal
          * run concurrently with the serialization thread clearing it. The release/acquire
          * pair is what publishes {@link #pos}: without it a reader may observe
          * {@code page == null} together with a stale {@code pos == 0} and fail with
@@ -1219,7 +1219,7 @@ public abstract class Page<K,V> implements Cloneable {
 
         @Override
         int calculateTraversalIndex(K key) {
-           int index = binarySearch(key);
+            int index = binarySearch(key);
             if (++index < 0) {
                 index = -index;
             }

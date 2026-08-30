@@ -122,7 +122,8 @@ final class CommitDecisionMaker<V> extends MVMap.DecisionMaker<VersionedValue<V>
             for (int i = 0; i < p.getKeyCount(); i++) {
                 VersionedValue<V> value = p.getValue(i);
                 long operationId = value.getOperationId();
-                if (operationId != NO_OPERATION_ID && TransactionStore.getTransactionId(operationId) == transactionId) {
+                if (operationId != NO_OPERATION_ID &&
+                        TransactionStore.getTransactionId(operationId) == transactionId) {
                     V currentValue = value.getCurrentValue();
                     assert currentValue != null;
                     p.setValue(i, VersionedValueCommitted.getInstance(currentValue));

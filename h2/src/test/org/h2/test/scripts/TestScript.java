@@ -232,8 +232,8 @@ public class TestScript extends TestDb {
                 "type", "unique" }) {
             testScript("predicates/" + s + ".sql");
         }
-        for (String s : new String[] { "derived-column-names", "distinct", "joins", "query-cache", "query-optimisations", "select",
-                "table", "values", "window" }) {
+        for (String s : new String[] { "derived-column-names", "distinct", "joins", "query-cache",
+                "query-optimisations", "select", "table", "values", "window" }) {
             testScript("queries/" + s + ".sql");
         }
         testScript("other/two_phase_commit.sql");

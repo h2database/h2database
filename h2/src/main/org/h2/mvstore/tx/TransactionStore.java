@@ -256,9 +256,9 @@ public class TransactionStore implements AutoCloseable
                                     leftoverTransactions.add(transaction);
                                     continue;
                                 } catch (Throwable ignore) {
-                                    /* Exception like NPE or Assertion are possible here after some chunk loss
-                                     after unclean shutdown, i.e. when undo log may have references to already
-                                     removed map */
+                                    // Exception like NPE or Assertion are possible here after some chunk loss
+                                    // after unclean shutdown, i.e. when undo log may have references to already
+                                    // removed map
                                 }
                             }
                         }
@@ -280,9 +280,9 @@ public class TransactionStore implements AutoCloseable
 
     /**
      * Checks if transaction is completely closed - status set to CLOSED,
-     * corresponding bit in open & commiting bit sets cleared,
+     * corresponding bit in open and committing bit sets cleared,
      * transaction slot emptied.
-     * That also means that all uncommitted entries from this transaction, has been re-written as commited.
+     * That also means that all uncommitted entries from this transaction, has been re-written as committed.
      * @param transactionId to check
      * @return true if transaction is completely closed, false otherwise
      */
@@ -582,7 +582,7 @@ public class TransactionStore implements AutoCloseable
 
             // this is an atomic action that causes all changes
             // made by this transaction, to be considered as "committed"
-            VersionedBitSet commitingTx = flipCommittingTransactionsBit(transactionId, true);
+            VersionedBitSet committingTx = flipCommittingTransactionsBit(transactionId, true);
 
             t.notifyAllWaitingTransactions();
 
@@ -593,7 +593,7 @@ public class TransactionStore implements AutoCloseable
             // but preserves fact of commit in case of abrupt termination.
             MVMap<Long,Record<?,?>> undoLog = undoLogs[transactionId];
             if (!recovery) {
-                markUndoLogAsCommitted(transactionId, commitingTx.getVersion());
+                markUndoLogAsCommitted(transactionId, committingTx.getVersion());
             }
 
             Cursor<Long,Record<?,?>> cursor = undoLog.cursor(null);

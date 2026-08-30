@@ -59,7 +59,7 @@ public class TestConcurrentConnectionUsage extends TestDb {
         conn.close();
     }
 
-    
+
     private void testSessionUsage(boolean useLegacy) throws SQLException {
         deleteDb(getTestName());
         try (Connection infoConn = getConnection(getTestName() + ";OLD_INFORMATION_SCHEMA=" + useLegacy)) {

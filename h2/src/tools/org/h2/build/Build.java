@@ -417,7 +417,7 @@ public class Build extends BuildBase {
         downloadUsingMaven("ext/asm-" + ASM_VERSION + ".jar",
                 "org.ow2.asm", "asm", ASM_VERSION,
                 "dc6ea1875f4d64fbc85e1691c95b96a3d8569c90");
-        downloadUsingMaven("ext/apiguardian-" + APIGUARDIAN_VERSION + ".jar",
+        downloadUsingMaven("ext/apiguardian-api-" + APIGUARDIAN_VERSION + ".jar",
                 "org.apiguardian", "apiguardian-api", APIGUARDIAN_VERSION,
                 "a231e0d844d2721b0fa1b238006d15c6ded6842a");
     }

@@ -1616,6 +1616,8 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
 
         /**
          * Decision maker for transaction rollback.
+         * @param <V> value type of the map
+         * @return decision maker
          */
         @SuppressWarnings("unchecked")
         public static <V> DecisionMaker<V> defaultDecision() {
@@ -1636,6 +1638,8 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
 
         /**
          * Decision maker for put().
+         * @param <V> value type of the map
+         * @return decision maker
          */
         @SuppressWarnings("unchecked")
         public static <V> DecisionMaker<V> putDecision() {
@@ -1656,6 +1660,8 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
 
         /**
          * Decision maker for remove().
+         * @param <V> value type of the map
+         * @return decision maker
          */
         @SuppressWarnings("unchecked")
         public static <V> DecisionMaker<V> removeDecision() {
@@ -1676,6 +1682,8 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
 
         /**
          * Decision maker for putIfAbsent() key/value.
+         * @param <V> value type of the map
+         * @return decision maker
          */
         @SuppressWarnings("unchecked")
         public static <V> DecisionMaker<V> ifAbsentDecision() {
@@ -1696,6 +1704,8 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
 
         /**
          * Decision maker for replace().
+         * @param <V> value type of the map
+         * @return decision maker
          */
         @SuppressWarnings("unchecked")
         public static <V> DecisionMaker<V> ifPresentDecision() {
@@ -1715,7 +1725,7 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
          *         Possible values are:
          *         <UL>
          *          <LI>null, if operation should be re-tried;</LI>
-         *          <LI>original tip, if operation should be aborted withou any changes;</LI>
+         *          <LI>original tip, if operation should be aborted without any changes;</LI>
          *          <LI>path from an updated page to tree root, where index attribute (irrelevant in this context)
          *              is reused as memory size adjustment for an updated page;</LI>
          *         </UL>
@@ -1858,7 +1868,7 @@ public class MVMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V
 
         /**
          * DecisionMaker gets notified when proposed updated page was successfully injected into the B-tree
-         * to provide opportunity for internal state maintance.
+         * to provide opportunity for internal state maintenance.
          */
         public void onPageReplaced() {}
     }

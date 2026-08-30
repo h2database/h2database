@@ -169,7 +169,9 @@ public final class SetClauseList implements HasSQL {
         }
 
         int mainIndexColumn = table.getMainIndexColumn();
-        newRow.setKey(mainIndexColumn == SearchRow.ROWID_INDEX ? oldRow.getKey() : newRow.getValue(mainIndexColumn).getLong());
+        newRow.setKey(mainIndexColumn == SearchRow.ROWID_INDEX ?
+                        oldRow.getKey() :
+                        newRow.getValue(mainIndexColumn).getLong());
 
         if (deltaChangeCollectionMode == ResultOption.OLD) {
             deltaChangeCollector.addRow(oldRow.getValueList());

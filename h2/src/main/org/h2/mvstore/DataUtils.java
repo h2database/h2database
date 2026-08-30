@@ -395,6 +395,7 @@ public final class DataUtils {
      * @param dst the target array
      * @param oldSize the size of the old array
      * @param gapIndex the index of the gap
+     * @param <T> the element type
      */
     public static <T> void copyWithGap(T[] src, T[] dst, int oldSize,
             int gapIndex) {
@@ -414,6 +415,7 @@ public final class DataUtils {
      * @param dst the target array
      * @param oldSize the size of the old array
      * @param removeIndex the index of the entry to remove
+     * @param <T> the element type
      */
     public static <T> void copyExcept(T[] src, T[] dst, int oldSize,
             int removeIndex) {

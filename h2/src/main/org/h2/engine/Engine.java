@@ -252,6 +252,9 @@ public final class Engine {
                     }
                     StringUtils.quoteStringSQL(builder, value);
                 } else {
+                    if (value.indexOf(';') >= 0) {
+                        throw DbException.get(ErrorCode.INVALID_VALUE_2, value, setting);
+                    }
                     builder.append(value);
                 }
                 try {

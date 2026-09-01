@@ -170,8 +170,19 @@ public class TestMVStoreFuzz extends TestBase {
             Files.deleteIfExists(traceFile);
         } catch (FuzzScript.ReplayFailure ex) {
             // truncate to just the failing op so checked-in files stay minimal
-            script.truncateTo(ex.opIndex).save(traceFile);
-            println("failed seed=" + seed + " op=" + ex.opIndex + " trace=" + traceFile);
+            FuzzScript truncated = script.truncateTo(ex.opIndex);
+            truncated.save(traceFile);
+            // replay the truncated script once more to confirm the failure is reproducible
+            try {
+                truncated.replay(fileName);
+                // second run passed — intermittent failure, discard the file
+                Files.deleteIfExists(traceFile);
+                println("intermittent failure seed=" + seed + " op=" + ex.opIndex
+                        + " (not reproducible, file deleted)");
+            } catch (FuzzScript.ReplayFailure confirmed) {
+                println("confirmed failure seed=" + seed + " op=" + ex.opIndex
+                        + " trace=" + traceFile);
+            }
             throw ex;
         }
     }

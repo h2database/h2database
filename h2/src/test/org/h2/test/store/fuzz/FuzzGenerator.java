@@ -39,9 +39,19 @@ public final class FuzzGenerator {
     private static final int OP_COMPACT_FILE = 6;
     private static final int OP_REOPEN = 7;
     private static final int OP_AUX_CHURN = 8;
-    private static final int OP_OPEN_CURSOR = 9; // disabled
-    private static final int OP_ADVANCE_CURSOR = 10; // disabled
-    static final int OP_COUNT = OP_AUX_CHURN + 1;
+    private static final int OP_OPEN_CURSOR = 9;
+    private static final int OP_ADVANCE_CURSOR = 10;
+    static final int OP_COUNT = 11;
+
+    static final List<Integer> DISABLED_OPS = List.of(
+        OP_COMMIT,
+        OP_ROLLBACK,
+        OP_COMPACT,
+        OP_COMPACT_FILE,
+        OP_REOPEN,
+        OP_OPEN_CURSOR,
+        OP_ADVANCE_CURSOR
+    );
 
     private final Random r;
     private final FuzzConfig config;
@@ -131,7 +141,8 @@ public final class FuzzGenerator {
         do {
             picked = r.nextInt(OP_COUNT);
         } while ((config.autoCommit && (picked == OP_ROLLBACK || picked == OP_COMMIT))
-                || (!committed && picked == OP_ROLLBACK));
+                || (!committed && picked == OP_ROLLBACK)
+                || DISABLED_OPS.contains(picked));
         return picked;
     }
 

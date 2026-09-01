@@ -102,17 +102,6 @@ public final class FuzzGenerator {
             case OP_REOPEN:
                 ops.add(new Reopen());
                 break;
-            case OP_OPEN_CURSOR: {
-                Integer from = r.nextBoolean() ? null : k;
-                ops.add(new OpenCursor(from, i));
-                break;
-            }
-            case OP_ADVANCE_CURSOR: {
-                String which = r.nextBoolean() ? "first" : "last";
-                int steps = 1 + r.nextInt(100);
-                ops.add(new AdvanceCursor(which, steps));
-                break;
-            }
             case OP_AUX_CHURN: {
                 int writes = r.nextInt(100);
                 int deletes = r.nextInt(100);
@@ -121,6 +110,15 @@ public final class FuzzGenerator {
                 ops.add(new AuxChurn(writes, deletes, len, remove));
                 break;
             }
+            case OP_OPEN_CURSOR:
+                Integer from = r.nextBoolean() ? null : k;
+                ops.add(new OpenCursor(from, i));
+                break;
+            case OP_ADVANCE_CURSOR:
+                String which = r.nextBoolean() ? "first" : "last";
+                int steps = 1 + r.nextInt(100);
+                ops.add(new AdvanceCursor(which, steps));
+                break;
             default:
                 throw new IllegalStateException("unknown op: " + picked);
             }

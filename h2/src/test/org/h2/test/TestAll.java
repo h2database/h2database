@@ -141,7 +141,7 @@ import org.h2.test.store.TestMVRTree;
 import org.h2.test.store.TestMVStore;
 import org.h2.test.store.TestMVStoreBenchmark;
 import org.h2.test.store.TestMVStoreConcurrent;
-import org.h2.test.store.TestMVStoreFuzz;
+import org.h2.test.store.fuzz.TestMVStoreFuzz;
 import org.h2.test.store.TestMVStoreStopCompact;
 import org.h2.test.store.TestMVStoreTool;
 import org.h2.test.store.TestMVTableEngine;

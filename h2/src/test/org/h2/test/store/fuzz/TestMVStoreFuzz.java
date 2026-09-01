@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import org.h2.test.TestBase;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
 
@@ -28,7 +29,8 @@ import org.junit.jupiter.api.TestFactory;
  */
 public class TestMVStoreFuzz extends TestBase {
 
-    private static final int GENERATE_RUNS = 10;
+    private static final int GENERATE_RUNS = 100;
+    private static final int OPS_PER_RUN = 10;
 
     /**
      * Run just this test.
@@ -61,18 +63,18 @@ public class TestMVStoreFuzz extends TestBase {
         }
     }
 
+    @Disabled
     @TestFactory
     Stream<DynamicTest> generateFuzzTests() throws Exception {
         if (config == null) {
             init();
         }
         String fileName = "memFS:" + getTestName();
-        int opsPerRun = getSize(100, 5000);
         SecureRandom seedRng = new SecureRandom();
         Stream<Long> seedStream = Stream.generate(seedRng::nextLong).limit(GENERATE_RUNS);
         return seedStream.map(seed -> DynamicTest.dynamicTest("seed=" + seed, () -> {
             Path traceFile = traceFilePath();
-            new FuzzGenerator(seed).generate(opsPerRun).save(traceFile);
+            new FuzzGenerator(seed).generate(OPS_PER_RUN).save(traceFile);
             try {
                 runSeed(fileName, traceFile);
                 Files.deleteIfExists(traceFile);

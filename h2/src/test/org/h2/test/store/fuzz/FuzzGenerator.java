@@ -44,11 +44,15 @@ public final class FuzzGenerator {
     static final int OP_COUNT = 11;
 
     static final List<Integer> DISABLED_OPS = List.of(
-        OP_COMMIT,
-        OP_ROLLBACK,
-        OP_COMPACT,
-        OP_COMPACT_FILE,
-        OP_REOPEN,
+//        OP_PUT,
+//        OP_REMOVE,
+//        OP_CLEAR,
+//        OP_COMMIT,
+//        OP_ROLLBACK,
+//        OP_COMPACT,
+//        OP_COMPACT_FILE,
+//        OP_REOPEN,
+//        OP_AUX_CHURN,
         OP_OPEN_CURSOR,
         OP_ADVANCE_CURSOR
     );

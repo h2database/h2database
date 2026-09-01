@@ -1,0 +1,10 @@
+config autoCommit=true keysPerPage=29 autoCommitBufferKb=1024 versionsToKeep=0 retentionTime=45000
+clear
+clear
+reopen
+remove k=926
+remove k=2052
+remove k=2980
+put k=548 len=11
+clear
+reopen

@@ -13,12 +13,15 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
 import java.util.TreeMap;
+import java.util.stream.Stream;
 
 import org.h2.mvstore.Cursor;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
+import org.junit.jupiter.api.DynamicTest;
+import org.junit.jupiter.api.TestFactory;
 
 /**
  * Seed-driven fuzz test for the MVStore.
@@ -42,16 +45,6 @@ public class TestMVStoreFuzz extends TestBase {
      * set of runs.
      */
     private static final long MASTER_SEED = 0;
-
-    /**
-     * Set to a non-null value to reproduce a single failing run.
-     */
-    private static final Long PINNED_SEED = null;
-
-    /**
-     * Print every operation; useful when reproducing a failure.
-     */
-    private static final boolean LOG = false;
 
     private static final int RUNS = 10;
 
@@ -119,23 +112,39 @@ public class TestMVStoreFuzz extends TestBase {
 
     @Override
     public void test() throws Exception {
+        for (DynamicTest dt : (Iterable<DynamicTest>) fuzzTests()::iterator) {
+            try {
+                dt.getExecutable().execute();
+            } catch (Exception | Error e) {
+                throw e;
+            } catch (Throwable t) {
+                throw new RuntimeException(t);
+            }
+        }
+    }
+
+    @TestFactory
+    Stream<DynamicTest> fuzzTests() throws Exception {
+        if (config == null) {
+            init();
+        }
         String fileName = "memFS:" + getTestName();
         int opsPerRun = getSize(1000, 5000);
-        Random seeds = new Random(MASTER_SEED);
-        for (int run = 0; run < RUNS; run++) {
-            long seed = PINNED_SEED != null ? PINNED_SEED : seeds.nextLong();
-            try {
-                fuzz(fileName, opsPerRun, seed);
-            } catch (Throwable ex) {
-                println("failed with seed:" + seed + " op:" + op + " ("
-                        + OP_NAMES[pickedOp] + ") config:" + configString());
-                throw ex;
-            } finally {
-                FileUtils.delete(fileName);
-            }
-            if (PINNED_SEED != null) {
-                break;
-            }
+        Random rng = new Random(MASTER_SEED);
+        Stream<Long> seedStream = Stream.generate(rng::nextLong).limit(RUNS);
+        return seedStream.map(seed -> DynamicTest.dynamicTest("seed=" + seed,
+                () -> testSeed(fileName, opsPerRun, seed)));
+    }
+
+    private void testSeed(String fileName, int opsPerRun, long seed) throws Exception {
+        try {
+            fuzz(fileName, opsPerRun, seed);
+        } catch (Throwable ex) {
+            println("failed with seed:" + seed + " op:" + op + " ("
+                    + OP_NAMES[pickedOp] + ") config:" + configString());
+            throw ex;
+        } finally {
+            FileUtils.delete(fileName);
         }
     }
 
@@ -152,9 +161,7 @@ public class TestMVStoreFuzz extends TestBase {
         for (op = 0; op < opsPerRun; op++) {
             pickedOp = pickOp();
             int k = r.nextInt(KEY_RANGE);
-            if (LOG) {
-                println("op " + op + ": " + OP_NAMES[pickedOp] + " k=" + k);
-            }
+            println("op " + op + ": " + OP_NAMES[pickedOp] + " k=" + k);
             switch (pickedOp) {
             case OP_PUT: {
                 String v = value(k, 10 + r.nextInt(40));

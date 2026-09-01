@@ -75,9 +75,10 @@ public final class FuzzGenerator {
     public FuzzScript generate(int opsPerRun) {
         List<FuzzOperation> ops = new ArrayList<>(opsPerRun);
         int keysPerPage = config.keysPerPage;
+        boolean committed = false;
 
         for (int i = 0; i < opsPerRun; i++) {
-            int picked = pickOp();
+            int picked = pickOp(committed);
             int k = r.nextInt(KEY_RANGE);
 
             switch (picked) {
@@ -94,6 +95,7 @@ public final class FuzzGenerator {
                 break;
             case OP_COMMIT:
                 ops.add(new Commit());
+                committed = true;
                 break;
             case OP_ROLLBACK:
                 ops.add(new Rollback());
@@ -147,11 +149,12 @@ public final class FuzzGenerator {
         return OP_NAMES[opId];
     }
 
-    private int pickOp() {
+    private int pickOp(boolean committed) {
         int picked;
         do {
             picked = r.nextInt(OP_COUNT);
-        } while (config.autoCommit && picked == OP_ROLLBACK);
+        } while ((config.autoCommit && (picked == OP_ROLLBACK || picked == OP_COMMIT))
+                || (!committed && picked == OP_ROLLBACK));
         return picked;
     }
 

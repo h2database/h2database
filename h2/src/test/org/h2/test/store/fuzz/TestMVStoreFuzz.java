@@ -305,7 +305,7 @@ public class TestMVStoreFuzz extends TestBase {
     }
 
     private static Path traceFilePath(long seed) throws IOException {
-        Path dir = Paths.get("target", "fuzz-traces");
+        Path dir = Paths.get("src", "test", "resources", "org", "h2", "test", "store", "fuzz");
         Files.createDirectories(dir);
         return dir.resolve("seed-" + seed + ".txt");
     }

@@ -10,9 +10,9 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 import java.util.stream.Stream;
 
 import org.h2.test.TestBase;
@@ -29,13 +29,7 @@ import org.junit.jupiter.api.TestFactory;
  */
 public class TestMVStoreFuzz extends TestBase {
 
-    /**
-     * Master seed for deriving per-run seeds. Change to explore a different
-     * set of runs.
-     */
-    private static final long MASTER_SEED = 0;
-
-    private static final int RUNS = 10;
+    private static final int GENERATE_RUNS = 10;
 
     /**
      * Run just this test.
@@ -48,7 +42,7 @@ public class TestMVStoreFuzz extends TestBase {
 
     @Override
     public void test() throws Exception {
-        for (DynamicTest dt : (Iterable<DynamicTest>) fuzzTests()::iterator) {
+        for (DynamicTest dt : (Iterable<DynamicTest>) generateFuzzTests()::iterator) {
             try {
                 dt.getExecutable().execute();
             } catch (Exception | Error e) {
@@ -69,16 +63,35 @@ public class TestMVStoreFuzz extends TestBase {
     }
 
     @TestFactory
-    Stream<DynamicTest> fuzzTests() throws Exception {
+    Stream<DynamicTest> generateFuzzTests() throws Exception {
         if (config == null) {
             init();
         }
         String fileName = "memFS:" + getTestName();
-        int opsPerRun = getSize(1000, 5000);
-        Random seedRng = new Random(MASTER_SEED);
-        Stream<Long> seedStream = Stream.generate(seedRng::nextLong).limit(RUNS);
-        return seedStream.map(seed -> DynamicTest.dynamicTest("seed=" + seed,
-                () -> runSeed(fileName, opsPerRun, seed)));
+        int opsPerRun = getSize(100, 5000);
+        SecureRandom seedRng = new SecureRandom();
+        Stream<Long> seedStream = Stream.generate(seedRng::nextLong).limit(GENERATE_RUNS);
+        return seedStream.map(seed -> DynamicTest.dynamicTest("seed=" + seed, () -> {
+            Path traceFile = traceFilePath();
+            new FuzzGenerator(seed).generate(opsPerRun).save(traceFile);
+            try {
+                runSeed(fileName, traceFile);
+                Files.deleteIfExists(traceFile);
+            } catch (FuzzScript.ReplayFailure ex) {
+                FuzzScript truncated = FuzzScript.load(traceFile).truncateTo(ex.opIndex);
+                truncated.save(traceFile);
+                try {
+                    runSeed(fileName, traceFile);
+                    Files.deleteIfExists(traceFile);
+                    println("intermittent failure seed=" + seed + " op=" + ex.opIndex
+                            + " (not reproducible, file deleted)");
+                } catch (FuzzScript.ReplayFailure confirmed) {
+                    println("confirmed failure seed=" + seed + " op=" + ex.opIndex
+                            + " trace=" + traceFile);
+                }
+                throw ex;
+            }
+        }));
     }
 
     /**
@@ -101,36 +114,15 @@ public class TestMVStoreFuzz extends TestBase {
                         .sorted()
                         .forEach(p -> tests.add(DynamicTest.dynamicTest(
                                 "replay:" + p.getFileName(),
-                                () -> {
-                                    FuzzScript script = FuzzScript.load(p);
-                                    script.replay(fileName);
-                                })));
+                                () -> runSeed(fileName, p))));
             }
         }
         return tests.stream();
     }
 
-    private void runSeed(String fileName, int opsPerRun, long seed) throws Exception {
-        Path traceFile = traceFilePath();
-        FuzzScript script = new FuzzGenerator(seed).generate(opsPerRun);
-        script.save(traceFile);
-        try {
-            script.replay(fileName);
-            Files.deleteIfExists(traceFile);
-        } catch (FuzzScript.ReplayFailure ex) {
-            FuzzScript truncated = script.truncateTo(ex.opIndex);
-            truncated.save(traceFile);
-            try {
-                truncated.replay(fileName);
-                Files.deleteIfExists(traceFile);
-                println("intermittent failure seed=" + seed + " op=" + ex.opIndex
-                        + " (not reproducible, file deleted)");
-            } catch (FuzzScript.ReplayFailure confirmed) {
-                println("confirmed failure seed=" + seed + " op=" + ex.opIndex
-                        + " trace=" + traceFile);
-            }
-            throw ex;
-        }
+    /** Load {@code traceFile} and replay it. */
+    private static void runSeed(String fileName, Path traceFile) throws FuzzScript.ReplayFailure, IOException {
+        FuzzScript.load(traceFile).replay(fileName);
     }
 
     private static Path traceFilePath() throws IOException {

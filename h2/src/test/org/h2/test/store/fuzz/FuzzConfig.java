@@ -5,7 +5,6 @@
  */
 package org.h2.test.store.fuzz;
 
-import java.util.Random;
 import org.h2.mvstore.MVStore;
 
 /**
@@ -27,16 +26,6 @@ public final class FuzzConfig {
         this.autoCommitBufferKb = autoCommitBufferKb;
         this.versionsToKeep = versionsToKeep;
         this.retentionTime = retentionTime;
-    }
-
-    public static FuzzConfig fromRandom(Random r) {
-        boolean autoCommit = r.nextBoolean();
-        int keysPerPage = 4 + r.nextInt(28);
-        int autoCommitBufferKb = r.nextBoolean() ? 4 : 1024;
-        int versionsToKeep = new int[]{0, 0, 5, 20}[r.nextInt(4)];
-        int retentionTime = new int[]{0, 0, 1000, 45000}[r.nextInt(4)];
-        return new FuzzConfig(autoCommit, keysPerPage, autoCommitBufferKb,
-                versionsToKeep, retentionTime);
     }
 
     public MVStore openStore(String fileName) {

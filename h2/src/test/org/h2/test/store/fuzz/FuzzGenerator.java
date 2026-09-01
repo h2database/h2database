@@ -5,6 +5,7 @@
  */
 package org.h2.test.store.fuzz;
 
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -62,7 +63,17 @@ public final class FuzzGenerator {
 
     public FuzzGenerator(long seed) {
         this.r = new Random(seed);
-        this.config = FuzzConfig.fromRandom(r);
+        this.config = rollConfig();
+    }
+
+    private FuzzConfig rollConfig() {
+        boolean autoCommit = r.nextBoolean();
+        int keysPerPage = 4 + r.nextInt(28);
+        int autoCommitBufferKb = r.nextBoolean() ? 4 : 1024;
+        int versionsToKeep = new int[]{0, 0, 5, 20}[r.nextInt(4)];
+        int retentionTime = new int[]{0, 0, 1000, 45000}[r.nextInt(4)];
+        return new FuzzConfig(autoCommit, keysPerPage, autoCommitBufferKb,
+                versionsToKeep, retentionTime);
     }
 
     public FuzzConfig getConfig() {

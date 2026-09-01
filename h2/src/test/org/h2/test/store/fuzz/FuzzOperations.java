@@ -34,7 +34,6 @@ public final class FuzzOperations {
         String rest = parts.length > 1 ? parts[1] : "";
         switch (opName) {
         case "put":        return Put.parse(rest);
-        case "putBig":     return PutBig.parse(rest);
         case "remove":     return Remove.parse(rest);
         case "rangePut":   return RangePut.parse(rest);
         case "rangeRemove":return RangeRemove.parse(rest);
@@ -124,39 +123,6 @@ public final class FuzzOperations {
             int key = Integer.parseInt(rest.substring(2, vIdx));
             String value = rest.substring(vIdx + 3);
             return new Put(key, value);
-        }
-    }
-
-    // -------------------------------------------------------------------------
-    // putBig
-    // -------------------------------------------------------------------------
-
-    public static final class PutBig implements FuzzOperation {
-        public final int key;
-        public final String value;
-
-        public PutBig(int key, String value) {
-            this.key = key;
-            this.value = value;
-        }
-
-        @Override
-        public void execute(FuzzRunContext ctx) {
-            ctx.map.put(key, value);
-            ctx.shadow.put(key, value);
-            ctx.spotCheck(key);
-        }
-
-        @Override
-        public String toLine() {
-            return "putBig k=" + key + " v=" + value;
-        }
-
-        static PutBig parse(String rest) {
-            int vIdx = rest.indexOf(" v=");
-            int key = Integer.parseInt(rest.substring(2, vIdx));
-            String value = rest.substring(vIdx + 3);
-            return new PutBig(key, value);
         }
     }
 

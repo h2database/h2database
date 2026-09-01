@@ -5,11 +5,8 @@
  */
 package org.h2.test.store.fuzz;
 
-import java.security.SecureRandom;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 
 import org.h2.test.store.fuzz.FuzzOperations.AdvanceCursor;
@@ -20,9 +17,6 @@ import org.h2.test.store.fuzz.FuzzOperations.Compact;
 import org.h2.test.store.fuzz.FuzzOperations.CompactFile;
 import org.h2.test.store.fuzz.FuzzOperations.OpenCursorOp;
 import org.h2.test.store.fuzz.FuzzOperations.Put;
-import org.h2.test.store.fuzz.FuzzOperations.PutBig;
-import org.h2.test.store.fuzz.FuzzOperations.RangePut;
-import org.h2.test.store.fuzz.FuzzOperations.RangeRemove;
 import org.h2.test.store.fuzz.FuzzOperations.Remove;
 import org.h2.test.store.fuzz.FuzzOperations.Reopen;
 import org.h2.test.store.fuzz.FuzzOperations.Rollback;
@@ -37,24 +31,21 @@ public final class FuzzGenerator {
     static final int KEY_RANGE = 3000;
 
     private static final int OP_PUT = 0;
-    private static final int OP_PUT_BIG = 1;
-    private static final int OP_REMOVE = 2;
-    private static final int OP_RANGE_PUT = 3;
-    private static final int OP_RANGE_REMOVE = 4;
-    private static final int OP_CLEAR = 5;
-    private static final int OP_COMMIT = 6;
-    private static final int OP_ROLLBACK = 7;
-    private static final int OP_COMPACT = 8;
-    private static final int OP_COMPACT_FILE = 9;
-    private static final int OP_REOPEN = 10;
-    private static final int OP_OPEN_CURSOR = 11;
-    private static final int OP_ADVANCE_CURSOR = 12;
-    private static final int OP_AUX_CHURN = 13;
-    static final int OP_COUNT = 14;
+    private static final int OP_REMOVE = 1;
+    private static final int OP_CLEAR = 2;
+    private static final int OP_COMMIT = 3;
+    private static final int OP_ROLLBACK = 4;
+    private static final int OP_COMPACT = 5;
+    private static final int OP_COMPACT_FILE = 6;
+    private static final int OP_REOPEN = 7;
+    private static final int OP_OPEN_CURSOR = 8;
+    private static final int OP_ADVANCE_CURSOR = 9;
+    private static final int OP_AUX_CHURN = 10;
+    static final int OP_COUNT = 11;
 
     static final String[] OP_NAMES = {
-            "put", "putBig", "remove", "rangePut", "rangeRemove", "clear",
-            "commit", "rollback", "compact", "compactFile", "reopen",
+            "put", "remove", "clear", "commit", "rollback",
+            "compact", "compactFile", "reopen",
             "openCursor", "advanceCursor", "auxChurn"
     };
 
@@ -90,37 +81,14 @@ public final class FuzzGenerator {
             int k = r.nextInt(KEY_RANGE);
 
             switch (picked) {
-            case OP_PUT:
-                ops.add(new Put(k, value(k, i, 10 + r.nextInt(40))));
+            case OP_PUT: {
+                int len = r.nextBoolean() ? 10 + r.nextInt(40) : 1024 + r.nextInt(8192);
+                ops.add(new Put(k, value(k, i, len)));
                 break;
-            case OP_PUT_BIG:
-                ops.add(new PutBig(k, value(k, i, 1024 + r.nextInt(8192))));
-                break;
+            }
             case OP_REMOVE:
                 ops.add(new Remove(k));
                 break;
-            case OP_RANGE_PUT: {
-                int n = 1 + r.nextInt(2 * keysPerPage);
-                int step = r.nextBoolean() ? 1 : -1;
-                Map<Integer, String> entries = new LinkedHashMap<>();
-                int ki = k;
-                for (int j = 0; j < n; j++, ki += step) {
-                    entries.put(ki, value(ki, i, 10 + r.nextInt(40)));
-                }
-                ops.add(new RangePut(step, entries));
-                break;
-            }
-            case OP_RANGE_REMOVE: {
-                int n = 1 + r.nextInt(2 * keysPerPage);
-                int step = r.nextBoolean() ? 1 : -1;
-                List<Integer> keys = new ArrayList<>();
-                int ki = k;
-                for (int j = 0; j < n; j++, ki += step) {
-                    keys.add(ki);
-                }
-                ops.add(new RangeRemove(step, keys));
-                break;
-            }
             case OP_CLEAR:
                 ops.add(new Clear());
                 break;

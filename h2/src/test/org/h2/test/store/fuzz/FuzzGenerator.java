@@ -41,7 +41,7 @@ public final class FuzzGenerator {
     private static final int OP_OPEN_CURSOR = 8;
     private static final int OP_ADVANCE_CURSOR = 9;
     private static final int OP_AUX_CHURN = 10;
-    static final int OP_COUNT = 11;
+    static final int OP_COUNT = OP_REOPEN+1;
 
     static final String[] OP_NAMES = {
             "put", "remove", "clear", "commit", "rollback",
@@ -101,7 +101,7 @@ public final class FuzzGenerator {
                 ops.add(new Rollback());
                 break;
             case OP_COMPACT:
-                ops.add(new Compact(50 + r.nextInt(50), 1024 << r.nextInt(12)));
+                ops.add(new Compact(r.nextInt(100), 1 << r.nextInt(20)));
                 break;
             case OP_COMPACT_FILE:
                 ops.add(new CompactFile());

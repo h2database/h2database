@@ -12,8 +12,6 @@ import java.util.Map;
 
 import org.h2.mvstore.Cursor;
 import org.h2.mvstore.MVMap;
-import org.h2.mvstore.MVStore;
-import org.h2.store.fs.FileUtils;
 import org.h2.test.store.fuzz.FuzzRunContext.OpenCursor;
 
 /**
@@ -317,28 +315,28 @@ public final class FuzzOperations {
     // -------------------------------------------------------------------------
 
     public static final class Compact implements FuzzOperation {
-        public final int fillPercent;
-        public final int maxMoveSize;
+        public final int targetFillRate;
+        public final int write;
 
-        public Compact(int fillPercent, int maxMoveSize) {
-            this.fillPercent = fillPercent;
-            this.maxMoveSize = maxMoveSize;
+        public Compact(int targetFillRate, int write) {
+            this.targetFillRate = targetFillRate;
+            this.write = write;
         }
 
         @Override
         public void execute(FuzzRunContext ctx) {
-            ctx.store.compact(fillPercent, maxMoveSize);
+            ctx.store.compact(targetFillRate, write);
         }
 
         @Override
         public String toLine() {
-            return "compact fillPercent=" + fillPercent + " maxMoveSize=" + maxMoveSize;
+            return "compact targetFillRate=" + targetFillRate + " write=" + write;
         }
 
         static Compact parse(String rest) {
             return new Compact(
-                    Integer.parseInt(kv(rest, "fillPercent")),
-                    Integer.parseInt(kv(rest, "maxMoveSize")));
+                    Integer.parseInt(kv(rest, "targetFillRate")),
+                    Integer.parseInt(kv(rest, "write")));
         }
     }
 
@@ -351,7 +349,7 @@ public final class FuzzOperations {
         public void execute(FuzzRunContext ctx) {
             ctx.store.commit();
             ctx.committedShadow = new java.util.TreeMap<>(ctx.shadow);
-            ctx.store.compactFile(200);
+            ctx.store.compactFile(1000);
         }
 
         @Override

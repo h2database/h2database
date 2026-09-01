@@ -15,7 +15,7 @@ import org.h2.test.store.fuzz.FuzzOperations.Clear;
 import org.h2.test.store.fuzz.FuzzOperations.Commit;
 import org.h2.test.store.fuzz.FuzzOperations.Compact;
 import org.h2.test.store.fuzz.FuzzOperations.CompactFile;
-import org.h2.test.store.fuzz.FuzzOperations.OpenCursorOp;
+import org.h2.test.store.fuzz.FuzzOperations.OpenCursor;
 import org.h2.test.store.fuzz.FuzzOperations.Put;
 import org.h2.test.store.fuzz.FuzzOperations.Remove;
 import org.h2.test.store.fuzz.FuzzOperations.Reopen;
@@ -38,16 +38,10 @@ public final class FuzzGenerator {
     private static final int OP_COMPACT = 5;
     private static final int OP_COMPACT_FILE = 6;
     private static final int OP_REOPEN = 7;
-    private static final int OP_OPEN_CURSOR = 8;
-    private static final int OP_ADVANCE_CURSOR = 9;
-    private static final int OP_AUX_CHURN = 10;
-    static final int OP_COUNT = OP_REOPEN+1;
-
-    static final String[] OP_NAMES = {
-            "put", "remove", "clear", "commit", "rollback",
-            "compact", "compactFile", "reopen",
-            "openCursor", "advanceCursor", "auxChurn"
-    };
+    private static final int OP_AUX_CHURN = 8;
+    private static final int OP_OPEN_CURSOR = 9;
+    private static final int OP_ADVANCE_CURSOR = 10;
+    static final int OP_COUNT = OP_AUX_CHURN+1;
 
     private final Random r;
     private final FuzzConfig config;
@@ -74,7 +68,6 @@ public final class FuzzGenerator {
     /** Generate a script with {@code opsPerRun} operations. */
     public FuzzScript generate(int opsPerRun) {
         List<FuzzOperation> ops = new ArrayList<>(opsPerRun);
-        int keysPerPage = config.keysPerPage;
         boolean committed = false;
 
         for (int i = 0; i < opsPerRun; i++) {
@@ -111,7 +104,7 @@ public final class FuzzGenerator {
                 break;
             case OP_OPEN_CURSOR: {
                 Integer from = r.nextBoolean() ? null : k;
-                ops.add(new OpenCursorOp(from, i));
+                ops.add(new OpenCursor(from, i));
                 break;
             }
             case OP_ADVANCE_CURSOR: {
@@ -121,20 +114,11 @@ public final class FuzzGenerator {
                 break;
             }
             case OP_AUX_CHURN: {
-                int n = 1 + r.nextInt(50);
-                List<AuxChurn.Entry> entries = new ArrayList<>();
-                for (int j = 0; j < n; j++) {
-                    int ak = r.nextInt(KEY_RANGE);
-                    if (r.nextBoolean()) {
-                        byte[] junk = new byte[r.nextInt(512)];
-                        r.nextBytes(junk);
-                        entries.add(new AuxChurn.Entry(ak, junk));
-                    } else {
-                        entries.add(new AuxChurn.Entry(ak));
-                    }
-                }
-                boolean removeMap = r.nextInt(20) == 0;
-                ops.add(new AuxChurn(entries, removeMap));
+                int writes = r.nextInt(50);
+                int deletes = r.nextInt(50);
+                int len = r.nextInt(512);
+                boolean remove = r.nextInt(20) == 0;
+                ops.add(new AuxChurn(writes, deletes, len, remove));
                 break;
             }
             default:
@@ -142,11 +126,6 @@ public final class FuzzGenerator {
             }
         }
         return new FuzzScript(config, ops);
-    }
-
-    /** Human-readable op name for the most recently picked op index. */
-    public static String opName(int opId) {
-        return OP_NAMES[opId];
     }
 
     private int pickOp(boolean committed) {

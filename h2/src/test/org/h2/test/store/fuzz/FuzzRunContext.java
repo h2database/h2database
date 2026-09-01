@@ -44,6 +44,8 @@ public final class FuzzRunContext {
     public FuzzConfig config;
     /** Current operation index, used in error messages. */
     public int opIndex;
+    /** Counter for unique aux map names across AuxChurn operations. */
+    public int auxMapCounter;
 
     public FuzzRunContext(MVStore store, MVMap<Integer, String> map,
             String fileName, FuzzConfig config) {

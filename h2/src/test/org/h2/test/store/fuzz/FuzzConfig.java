@@ -54,24 +54,13 @@ public final class FuzzConfig {
 
     public static FuzzConfig fromLine(String line) {
         // "config autoCommit=true keysPerPage=10 ..."
-        String[] parts = line.split(" ");
-        boolean autoCommit = Boolean.parseBoolean(value(parts, "autoCommit"));
-        int keysPerPage = Integer.parseInt(value(parts, "keysPerPage"));
-        int autoCommitBufferKb = Integer.parseInt(value(parts, "autoCommitBufferKb"));
-        int versionsToKeep = Integer.parseInt(value(parts, "versionsToKeep"));
-        int retentionTime = Integer.parseInt(value(parts, "retentionTime"));
+        boolean autoCommit = Boolean.parseBoolean(FuzzParseUtil.kv(line, "autoCommit"));
+        int keysPerPage = Integer.parseInt(FuzzParseUtil.kv(line, "keysPerPage"));
+        int autoCommitBufferKb = Integer.parseInt(FuzzParseUtil.kv(line, "autoCommitBufferKb"));
+        int versionsToKeep = Integer.parseInt(FuzzParseUtil.kv(line, "versionsToKeep"));
+        int retentionTime = Integer.parseInt(FuzzParseUtil.kv(line, "retentionTime"));
         return new FuzzConfig(autoCommit, keysPerPage, autoCommitBufferKb,
                 versionsToKeep, retentionTime);
-    }
-
-    private static String value(String[] parts, String key) {
-        String prefix = key + "=";
-        for (String p : parts) {
-            if (p.startsWith(prefix)) {
-                return p.substring(prefix.length());
-            }
-        }
-        throw new IllegalArgumentException("Missing key: " + key);
     }
 
     @Override

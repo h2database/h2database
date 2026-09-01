@@ -48,6 +48,11 @@ public class TestMVStoreFuzz extends TestBase {
      */
     private static final Long PINNED_SEED = null;
 
+    /**
+     * Print every operation; useful when reproducing a failure.
+     */
+    private static final boolean LOG = false;
+
     private static final int RUNS = 10;
 
     private static final int KEY_RANGE = 3000;
@@ -147,6 +152,9 @@ public class TestMVStoreFuzz extends TestBase {
         for (op = 0; op < opsPerRun; op++) {
             pickedOp = pickOp();
             int k = r.nextInt(KEY_RANGE);
+            if (LOG) {
+                println("op " + op + ": " + OP_NAMES[pickedOp] + " k=" + k);
+            }
             switch (pickedOp) {
             case OP_PUT: {
                 String v = value(k, 10 + r.nextInt(40));
@@ -372,10 +380,14 @@ public class TestMVStoreFuzz extends TestBase {
         MVStore.Builder builder = new MVStore.Builder()
                 .fileName(fileName)
                 .keysPerPage(keysPerPage)
-                .cacheSize(1)
-                .autoCommitBufferSize(autoCommitBufferKb);
-        if (!autoCommit) {
-            builder.autoCommitDisabled();
+                .cacheSize(1);
+        if (autoCommit) {
+            builder.autoCommitBufferSize(autoCommitBufferKb);
+        } else {
+            // note: autoCommitDisabled() alone only disables the background
+            // thread; a non-zero buffer size still triggers implicit commits
+            // from beforeWrite(), which would invalidate the rollback oracle
+            builder.autoCommitDisabled().autoCommitBufferSize(0);
         }
         MVStore s = builder.open();
         s.setVersionsToKeep(versionsToKeep);

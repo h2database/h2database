@@ -337,6 +337,9 @@ public final class FuzzOperations {
         @Override
         public void execute(FuzzRunContext ctx) {
             ctx.store.rollback();
+            // rollback may invalidate the map reference if the map was never committed;
+            // re-open to get a valid handle regardless
+            ctx.map = ctx.store.openMap("data");
             ctx.shadow = new java.util.TreeMap<>(ctx.committedShadow);
             ctx.cursors.clear();
         }

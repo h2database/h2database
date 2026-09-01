@@ -6,7 +6,6 @@
 package org.h2.test.store.fuzz;
 
 import java.io.IOException;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -105,17 +104,14 @@ public class TestMVStoreFuzz extends TestBase {
         }
         String fileName = "memFS:" + getTestName() + "_replay";
         List<DynamicTest> tests = new ArrayList<>();
-        URL resourceDir = getClass().getResource("/org/h2/test/store/fuzz/");
-        if (resourceDir != null) {
-            Path dir = Paths.get(resourceDir.toURI());
-            if (Files.isDirectory(dir)) {
-                Files.list(dir)
-                        .filter(p -> p.toString().endsWith(".txt"))
-                        .sorted()
-                        .forEach(p -> tests.add(DynamicTest.dynamicTest(
-                                "replay:" + p.getFileName(),
-                                () -> runSeed(fileName, p))));
-            }
+        Path dir = Paths.get("src", "test", "resources", "org", "h2", "test", "store", "fuzz");
+        if (Files.isDirectory(dir)) {
+            Files.list(dir)
+                    .filter(p -> p.toString().endsWith(".txt"))
+                    .sorted()
+                    .forEach(p -> tests.add(DynamicTest.dynamicTest(
+                            "replay:" + p.getFileName(),
+                            () -> runSeed(fileName, p))));
         }
         return tests.stream();
     }

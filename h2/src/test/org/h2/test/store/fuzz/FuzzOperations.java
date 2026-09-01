@@ -97,15 +97,16 @@ public final class FuzzOperations {
 
     public static final class Put implements FuzzOperation {
         public final int key;
-        public final String value;
+        public final int length;
 
-        public Put(int key, String value) {
+        public Put(int key, int length) {
             this.key = key;
-            this.value = value;
+            this.length = length;
         }
 
         @Override
         public void execute(FuzzRunContext ctx) {
+            String value = "x".repeat(length);
             ctx.map.put(key, value);
             ctx.shadow.put(key, value);
             ctx.spotCheck(key);
@@ -113,16 +114,14 @@ public final class FuzzOperations {
 
         @Override
         public String toLine() {
-            return "put k=" + key + " v=" + value;
+            return "put k=" + key + " len=" + length;
         }
 
         static Put parse(String rest) {
-            // "k=42 v=42_0_vvvv" — value may contain spaces only if quoted,
-            // but our values never contain spaces, so split on first " v=" is safe
-            int vIdx = rest.indexOf(" v=");
-            int key = Integer.parseInt(rest.substring(2, vIdx));
-            String value = rest.substring(vIdx + 3);
-            return new Put(key, value);
+            int lenIdx = rest.indexOf(" len=");
+            int key = Integer.parseInt(rest.substring(2, lenIdx));
+            int length = Integer.parseInt(rest.substring(lenIdx + 5));
+            return new Put(key, length);
         }
     }
 

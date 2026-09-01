@@ -83,7 +83,7 @@ public final class FuzzGenerator {
             switch (picked) {
             case OP_PUT: {
                 int len = r.nextBoolean() ? 10 + r.nextInt(40) : 1024 + r.nextInt(8192);
-                ops.add(new Put(k, value(k, i, len)));
+                ops.add(new Put(k, len));
                 break;
             }
             case OP_REMOVE:
@@ -155,12 +155,4 @@ public final class FuzzGenerator {
         return picked;
     }
 
-    static String value(int k, int opIndex, int length) {
-        StringBuilder b = new StringBuilder(length + 20);
-        b.append(k).append('_').append(opIndex).append('_');
-        while (b.length() < length) {
-            b.append('v');
-        }
-        return b.toString();
-    }
 }

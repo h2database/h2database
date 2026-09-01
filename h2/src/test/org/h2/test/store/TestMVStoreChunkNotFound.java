@@ -85,10 +85,6 @@ public class TestMVStoreChunkNotFound extends TestBase {
     private static MVStore openStore(String fileName) {
         MVStore store = new MVStore.Builder()
                 .fileName(fileName)
-                .compress()
-                .cacheSize(1)
-                .autoCompactFillRate(50)
-                .autoCommitDisabled()
                 .open();
         store.setVersionsToKeep(0);
         store.setRetentionTime(0);

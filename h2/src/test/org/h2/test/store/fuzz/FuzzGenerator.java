@@ -59,18 +59,10 @@ public final class FuzzGenerator {
 
     private final Random r;
     private final FuzzConfig config;
-    private final int[] weights;
-    private final int weightSum;
 
     public FuzzGenerator(long seed) {
         this.r = new Random(seed);
         this.config = FuzzConfig.fromRandom(r);
-        this.weights = rollWeights(r, config.autoCommit);
-        int sum = 0;
-        for (int w : weights) {
-            sum += w;
-        }
-        this.weightSum = sum;
     }
 
     public FuzzConfig getConfig() {
@@ -177,28 +169,11 @@ public final class FuzzGenerator {
     }
 
     private int pickOp() {
-        int x = r.nextInt(weightSum);
-        for (int i = 0;; i++) {
-            x -= weights[i];
-            if (x < 0) {
-                return i;
-            }
-        }
-    }
-
-    private static int[] rollWeights(Random r, boolean autoCommit) {
-        int[] weights = new int[OP_COUNT];
-        for (int i = 0; i < OP_COUNT; i++) {
-            weights[i] = r.nextInt(3) == 0 ? 0 : 1 + r.nextInt(8);
-        }
-        weights[OP_PUT] = Math.max(weights[OP_PUT], 4);
-        weights[OP_CLEAR] = Math.min(weights[OP_CLEAR], 1);
-        weights[OP_REOPEN] = Math.min(weights[OP_REOPEN], 1);
-        weights[OP_COMPACT_FILE] = Math.min(weights[OP_COMPACT_FILE], 1);
-        if (autoCommit) {
-            weights[OP_ROLLBACK] = 0;
-        }
-        return weights;
+        int picked;
+        do {
+            picked = r.nextInt(OP_COUNT);
+        } while (config.autoCommit && picked == OP_ROLLBACK);
+        return picked;
     }
 
     static String value(int k, int opIndex, int length) {

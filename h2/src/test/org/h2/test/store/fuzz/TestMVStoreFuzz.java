@@ -154,7 +154,7 @@ public class TestMVStoreFuzz extends TestBase {
     }
 
     private void runSeed(String fileName, int opsPerRun, long seed) throws Exception {
-        Path traceFile = traceFilePath(seed);
+        Path traceFile = traceFilePath();
         Random r = new Random(seed);
         FuzzConfig config = FuzzConfig.fromRandom(r);
         int[] weights = rollWeights(r, config.autoCommit);
@@ -317,9 +317,25 @@ public class TestMVStoreFuzz extends TestBase {
         return b.toString();
     }
 
-    private static Path traceFilePath(long seed) throws IOException {
+    private static Path traceFilePath() throws IOException {
         Path dir = Paths.get("src", "test", "resources", "org", "h2", "test", "store", "fuzz");
         Files.createDirectories(dir);
-        return dir.resolve("seed-" + seed + ".txt");
+        int next = 0;
+        if (Files.isDirectory(dir)) {
+            try (java.util.stream.Stream<Path> ls = Files.list(dir)) {
+                next = ls.map(p -> p.getFileName().toString())
+                        .filter(n -> n.startsWith("fuzz-") && n.endsWith(".txt"))
+                        .mapToInt(n -> {
+                            try {
+                                return Integer.parseInt(n.substring(5, n.length() - 4));
+                            } catch (NumberFormatException e) {
+                                return -1;
+                            }
+                        })
+                        .max()
+                        .orElse(-1) + 1;
+            }
+        }
+        return dir.resolve("fuzz-" + next + ".txt");
     }
 }

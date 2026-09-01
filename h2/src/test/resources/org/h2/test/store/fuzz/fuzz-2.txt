@@ -1,0 +1,7 @@
+config autoCommit=false keysPerPage=5 autoCommitBufferKb=1024 versionsToKeep=0 retentionTime=0
+commit
+rollback
+put k=1399 len=48
+remove k=1399
+commit
+rollback

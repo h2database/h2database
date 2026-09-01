@@ -15,6 +15,7 @@ import org.h2.test.store.fuzz.FuzzOperations.Clear;
 import org.h2.test.store.fuzz.FuzzOperations.Commit;
 import org.h2.test.store.fuzz.FuzzOperations.Compact;
 import org.h2.test.store.fuzz.FuzzOperations.CompactFile;
+import org.h2.test.store.fuzz.FuzzOperations.FullScan;
 import org.h2.test.store.fuzz.FuzzOperations.OpenCursor;
 import org.h2.test.store.fuzz.FuzzOperations.Put;
 import org.h2.test.store.fuzz.FuzzOperations.Remove;
@@ -41,20 +42,22 @@ public final class FuzzGenerator {
     private static final int OP_AUX_CHURN = 8;
     private static final int OP_OPEN_CURSOR = 9;
     private static final int OP_ADVANCE_CURSOR = 10;
-    static final int OP_COUNT = 11;
+    private static final int OP_FULL_SCAN = 11;
+    static final int OP_COUNT = 12;
 
-    static final List<Integer> DISABLED_OPS = List.of(
-//        OP_PUT,
-//        OP_REMOVE,
+    static final List<Integer> ENABLED_OPS = List.of(
+        OP_PUT,
+        OP_REMOVE,
 //        OP_CLEAR,
-//        OP_COMMIT,
-//        OP_ROLLBACK,
-//        OP_COMPACT,
+        OP_COMMIT,
+        OP_ROLLBACK,
+        OP_COMPACT,
 //        OP_COMPACT_FILE,
-//        OP_REOPEN,
+//        OP_REOPEN
 //        OP_AUX_CHURN,
-        OP_OPEN_CURSOR,
-        OP_ADVANCE_CURSOR
+//        OP_OPEN_CURSOR,
+//        OP_ADVANCE_CURSOR,
+        OP_FULL_SCAN
     );
 
     private final Random r;
@@ -106,6 +109,7 @@ public final class FuzzGenerator {
                 break;
             case OP_ROLLBACK:
                 ops.add(new Rollback());
+                committed = false;
                 break;
             case OP_COMPACT:
                 ops.add(new Compact(r.nextInt(100), 1 << r.nextInt(20)));
@@ -133,6 +137,9 @@ public final class FuzzGenerator {
                 int steps = 1 + r.nextInt(100);
                 ops.add(new AdvanceCursor(which, steps));
                 break;
+            case OP_FULL_SCAN:
+                ops.add(new FullScan());
+                break;
             default:
                 throw new IllegalStateException("unknown op: " + picked);
             }
@@ -144,10 +151,23 @@ public final class FuzzGenerator {
         int picked;
         do {
             picked = r.nextInt(OP_COUNT);
-        } while ((config.autoCommit && (picked == OP_ROLLBACK || picked == OP_COMMIT))
-                || (!committed && picked == OP_ROLLBACK)
-                || DISABLED_OPS.contains(picked));
+        } while (!validOp(committed, picked));
         return picked;
     }
 
+    private boolean validOp(boolean committed, int picked) {
+        if (!ENABLED_OPS.contains(picked)){
+            return false;
+        }
+		if (config.autoCommit && (picked == OP_ROLLBACK || picked == OP_COMMIT)) {
+            return false;
+        }
+        if (committed && picked == OP_COMMIT) {
+            return false;
+        }
+        if (!committed && picked == OP_ROLLBACK) {
+            return false;
+        }
+		return true;
+    }
 }

@@ -12,6 +12,7 @@ import java.util.Map;
 
 import org.h2.mvstore.Cursor;
 import org.h2.mvstore.MVMap;
+import org.h2.mvstore.MVStore;
 
 /**
  * All concrete {@link FuzzOperation} implementations as static inner classes.
@@ -37,6 +38,7 @@ public final class FuzzOperations {
         case "auxChurn":   return AuxChurn.parse(rest);
         case "openCursor": return OpenCursor.parse(rest);
         case "advanceCursor": return AdvanceCursor.parse(rest);
+        case "fullScan":   return new FullScan();
         default:
             throw new IllegalArgumentException("Unknown op: " + opName);
         }
@@ -303,6 +305,30 @@ public final class FuzzOperations {
 
         static AdvanceCursor parse(String rest) {
             return new AdvanceCursor(FuzzParseUtil.kv(rest, "which"), Integer.parseInt(FuzzParseUtil.kv(rest, "steps")));
+        }
+    }
+
+    public static final class FullScan implements FuzzOperation {
+        @Override
+        public void execute(FuzzRunContext ctx) {
+            ctx.assertEquals("fullScan size", ctx.shadow.size(), ctx.map.size());
+            List<Integer> expectedKeys = new ArrayList<>(ctx.shadow.keySet());
+            Map<Integer, String> seen = new LinkedHashMap<>();
+            MVStore.TxCounter tx = ctx.store.registerVersionUsage();
+            for (Map.Entry<Integer, String> entry : ctx.map.entrySet()) {
+                seen.put(entry.getKey(), entry.getValue());
+            }
+            ctx.store.deregisterVersionUsage(tx);
+            ctx.assertEquals("fullScan entrySet size", ctx.shadow.size(), seen.size());
+            for (Integer key : expectedKeys) {
+                ctx.assertTrue("fullScan missing key " + key, seen.containsKey(key));
+                ctx.assertEquals("fullScan value for key " + key, ctx.shadow.get(key), seen.get(key));
+            }
+        }
+
+        @Override
+        public String toLine() {
+            return "fullScan";
         }
     }
 }

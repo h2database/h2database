@@ -39,9 +39,9 @@ public final class FuzzGenerator {
     private static final int OP_COMPACT_FILE = 6;
     private static final int OP_REOPEN = 7;
     private static final int OP_AUX_CHURN = 8;
-    private static final int OP_OPEN_CURSOR = 9;
-    private static final int OP_ADVANCE_CURSOR = 10;
-    static final int OP_COUNT = OP_AUX_CHURN+1;
+    private static final int OP_OPEN_CURSOR = 9; // disabled
+    private static final int OP_ADVANCE_CURSOR = 10; // disabled
+    static final int OP_COUNT = OP_AUX_CHURN + 1;
 
     private final Random r;
     private final FuzzConfig config;
@@ -114,10 +114,10 @@ public final class FuzzGenerator {
                 break;
             }
             case OP_AUX_CHURN: {
-                int writes = r.nextInt(50);
-                int deletes = r.nextInt(50);
-                int len = r.nextInt(512);
-                boolean remove = r.nextInt(20) == 0;
+                int writes = r.nextInt(100);
+                int deletes = r.nextInt(100);
+                int len = r.nextInt(1024);
+                boolean remove = r.nextBoolean();
                 ops.add(new AuxChurn(writes, deletes, len, remove));
                 break;
             }

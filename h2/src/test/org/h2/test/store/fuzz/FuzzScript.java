@@ -72,30 +72,51 @@ public final class FuzzScript {
         }
     }
 
+    /** Thrown when replay fails; carries the index of the failing operation. */
+    public static final class ReplayFailure extends Exception {
+        public final int opIndex;
+
+        ReplayFailure(int opIndex, Throwable cause) {
+            super("op " + opIndex + ": " + cause.getMessage(), cause);
+            this.opIndex = opIndex;
+        }
+    }
+
     /**
      * Execute all operations against a fresh store at {@code fileName},
      * then drain all open cursors and do a final full verify.
+     *
+     * @throws ReplayFailure wrapping the real cause with the failing op index
      */
-    public void replay(String fileName) throws Exception {
+    public void replay(String fileName) throws ReplayFailure {
         FileUtils.delete(fileName);
         MVStore store = config.openStore(fileName);
         MVMap<Integer, String> map = store.openMap("data");
         FuzzRunContext ctx = new FuzzRunContext(store, map, fileName, config);
+        int i = 0;
         try {
-            for (int i = 0; i < operations.size(); i++) {
+            for (; i < operations.size(); i++) {
                 ctx.opIndex = i;
                 operations.get(i).execute(ctx);
                 if (i % 200 == 199) {
                     ctx.fullVerify();
                 }
             }
+            i = operations.size(); // mark: failure during drain/verify counts as last op
             while (!ctx.cursors.isEmpty()) {
                 ctx.drainCursor(ctx.cursors.removeFirst());
             }
             ctx.fullVerify();
+        } catch (Throwable t) {
+            throw new ReplayFailure(Math.min(i, operations.size() - 1), t);
         } finally {
             ctx.store.close();
             FileUtils.delete(fileName);
         }
+    }
+
+    /** Return a new script containing only operations [0, toIndex] (inclusive). */
+    public FuzzScript truncateTo(int toIndex) {
+        return new FuzzScript(config, operations.subList(0, toIndex + 1));
     }
 }

@@ -168,8 +168,10 @@ public class TestMVStoreFuzz extends TestBase {
         try {
             script.replay(fileName);
             Files.deleteIfExists(traceFile);
-        } catch (Throwable ex) {
-            println("failed seed=" + seed + " trace=" + traceFile);
+        } catch (FuzzScript.ReplayFailure ex) {
+            // truncate to just the failing op so checked-in files stay minimal
+            script.truncateTo(ex.opIndex).save(traceFile);
+            println("failed seed=" + seed + " op=" + ex.opIndex + " trace=" + traceFile);
             throw ex;
         }
     }

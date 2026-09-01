@@ -59,7 +59,6 @@ public class TestMVStoreChunkNotFound extends TestBase {
             println("reopening store and iterating");
             try (MVStore store = openStore(fileName)) {
                 MVMap<String, String> map = store.openMap("data");
-                MVMap<String, String> side = store.openMap("side");
                 int iterated = 0;
                 Iterator<Map.Entry<String, String>> it = map.entrySet().iterator();
                 while (it.hasNext()) {
@@ -68,7 +67,6 @@ public class TestMVStoreChunkNotFound extends TestBase {
                     if (iterated % 1000 == 0) {
                         // advance the store version and compact
                         // while the cursor is open
-                        side.put("tick", Integer.toString(iterated));
                         store.commit();
                         boolean compacted = store.compact(95, 16 * 1024 * 1024);
                         println("iterated=" + iterated + " compacted=" + compacted + " fill=" + store.getFileStore().getChunksFillRate() + "%");

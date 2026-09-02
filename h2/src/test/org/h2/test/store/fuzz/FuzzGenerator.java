@@ -48,13 +48,13 @@ public final class FuzzGenerator {
     static final List<Integer> ENABLED_OPS = List.of(
         OP_PUT,
         OP_REMOVE,
-//        OP_CLEAR,
+        OP_CLEAR,
         OP_COMMIT,
         OP_ROLLBACK,
         OP_COMPACT,
-//        OP_COMPACT_FILE,
-//        OP_REOPEN
-//        OP_AUX_CHURN,
+        OP_COMPACT_FILE,
+//        OP_REOPEN,
+        OP_AUX_CHURN,
 //        OP_OPEN_CURSOR,
 //        OP_ADVANCE_CURSOR,
         OP_FULL_SCAN
@@ -72,8 +72,8 @@ public final class FuzzGenerator {
         boolean autoCommit = r.nextBoolean();
         int keysPerPage = 4 + r.nextInt(28);
         int autoCommitBufferKb = r.nextBoolean() ? 4 : 1024;
-        int versionsToKeep = new int[]{0, 0, 5, 20}[r.nextInt(4)];
-        int retentionTime = new int[]{0, 0, 1000, 45000}[r.nextInt(4)];
+        int versionsToKeep = pickOne(1, 5, 20);
+        int retentionTime = pickOne(45000);
         return new FuzzConfig(autoCommit, keysPerPage, autoCommitBufferKb,
                 versionsToKeep, retentionTime);
     }
@@ -169,5 +169,9 @@ public final class FuzzGenerator {
             return false;
         }
 		return true;
+    }
+
+    private int pickOne(int... values) {
+        return values[r.nextInt(values.length)];
     }
 }

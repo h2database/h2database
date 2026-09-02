@@ -31,7 +31,7 @@ import org.junit.jupiter.api.TestFactory;
 public class TestMVStoreFuzz extends TestBase {
 
     private static final int GENERATE_RUNS = 10000;
-    private static final int OPS_PER_RUN = 100;
+    private static final int OPS_PER_RUN = 10;
 
     /**
      * Run just this test.

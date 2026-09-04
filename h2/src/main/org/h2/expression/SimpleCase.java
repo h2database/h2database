@@ -138,7 +138,17 @@ public final class SimpleCase extends Expression {
                 if (i > 0) {
                     builder.append(',');
                 }
-                operands[i].getWhenSQL(builder, sqlFlags);
+                Expression e = operands[i];
+                // When-condition operands (WHEN IS NULL, WHEN = x, ...) print only the
+                // right-hand side. Full predicate expressions used as when values must
+                // include their left side; otherwise getPlanSQL() recompilation of
+                // views/derived tables rewrites e.g. WHEN (C2 IS NULL) into WHEN IS NULL
+                // (testing the case operand) and changes semantics (#4349).
+                if (e.isWhenConditionOperand()) {
+                    e.getWhenSQL(builder, sqlFlags);
+                } else {
+                    e.getUnenclosedSQL(builder.append(' '), sqlFlags);
+                }
             }
             when.result.getUnenclosedSQL(builder.append(" THEN "), sqlFlags);
         }

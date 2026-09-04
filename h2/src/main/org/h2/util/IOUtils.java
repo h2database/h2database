@@ -198,9 +198,9 @@ public class IOUtils {
      * @return the number of bytes copied
      * @throws IOException on failure
      */
-    public static long copy(FileChannel in, OutputStream out)
+    public static long copy(FileChannel in, long startAt, OutputStream out)
             throws IOException {
-        return copy(in, out, Long.MAX_VALUE);
+        return copy(in, out, startAt, Long.MAX_VALUE);
     }
 
     /**
@@ -213,10 +213,10 @@ public class IOUtils {
      * @return the number of bytes copied
      * @throws IOException on failure
      */
-    public static long copy(FileChannel in, OutputStream out, long length)
+    public static long copy(FileChannel in, OutputStream out, long startAt, long length)
             throws IOException {
         try {
-            long copied = 0;
+            long copied = startAt;
             byte[] buffer = new byte[(int) Math.min(length, Constants.IO_BUFFER_SIZE)];
             ByteBuffer wrap = ByteBuffer.wrap(buffer);
             while (length > 0) {
@@ -234,7 +234,7 @@ public class IOUtils {
                     wrap.limit((int)length);
                 }
             }
-            return copied;
+            return copied - startAt;
         } catch (Exception e) {
             throw DataUtils.convertToIOException(e);
         }

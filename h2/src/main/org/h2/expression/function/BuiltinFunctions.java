@@ -23,7 +23,7 @@ public final class BuiltinFunctions {
                 "ABS", "MOD", "FLOOR", "CEIL", "ROUND", "ROUNDMAGIC", "SIGN", "TRUNC", "TRUNCATE",
                 // MathFunction1
                 "SIN", "COS", "TAN", "COT", "SINH", "COSH", "TANH", "ASIN", "ACOS", "ATAN", //
-                "LOG10", "LN", "EXP", "SQRT", "DEGREES", "RADIANS",
+                "LOG10", "LN", "EXP", "SQRT", "DEGREES", "RADIANS", 
                 // MathFunction2
                 "ATAN2", "LOG", "POWER",
                 // BitFunction
@@ -42,7 +42,7 @@ public final class BuiltinFunctions {
                 "LOCATE", "INSERT", "REPLACE", "LPAD", "RPAD", "TRANSLATE",
                 // StringFunction1
                 "UPPER", "LOWER", "ASCII", "CHAR", "CHR", "STRINGENCODE", "STRINGDECODE", "STRINGTOUTF8",
-                "UTF8TOSTRING", "HEXTORAW", "RAWTOHEX", "SPACE", "QUOTE_IDENT",
+                "UTF8TOSTRING", "HEXTORAW", "RAWTOHEX", "HEX", "SPACE", "QUOTE_IDENT",
                 // StringFunction2
                 /* LEFT and RIGHT are keywords */ "REPEAT",
                 // SubstringFunction

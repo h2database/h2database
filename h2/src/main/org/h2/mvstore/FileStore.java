@@ -1450,10 +1450,20 @@ public abstract class FileStore<C extends Chunk<C>>
                 throw t;
             }
 
-            submitOrRun(bufferSaveExecutor, () -> storeBuffer(c, buff), syncRun, 5);
+            if (c.isLive()) {
+                submitOrRun(bufferSaveExecutor, () -> storeBuffer(c, buff), syncRun, 5);
 
-            for (Page<?, ?> p : changed) {
-                p.releaseSavedPages();
+                for (Page<?, ?> p : changed) {
+                    p.releaseSavedPages();
+                }
+            } else {
+                // If there were no updates, chunk is empty, and we don't need to store it.
+                // Even more, it would refer to the layout map root page within the previous chunk,
+                // and this will cause ChunkNotFoundException on reopen,
+                // if store was closed right after that operation. We just skip it instead.
+                chunks.remove(c.id);
+                lastChunkId = chunkId;
+                releaseWriteBuffer(buff);
             }
         } catch (MVStoreException e) {
             mvStore.panic(e);

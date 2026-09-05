@@ -50,7 +50,7 @@ public enum CompressionType
     /**
      * Find instance of CompressionType by its name.
      * @param type name of CompressionType
-     * @return instance of CompressionType or {@link #NONE} if provyded type is empty
+     * @return instance of CompressionType or {@link #NONE} if provided type is empty
      */
     public static CompressionType from(String type) {
         return type==null || type.isEmpty()

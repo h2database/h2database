@@ -147,7 +147,7 @@ public final class ValueRow extends ValueCollectionBase {
 
     /**
      * Creates a copy of this row but the new instance will contain the {@link #values} according to
-     * {@code newOrder}.<br />
+     * {@code newOrder}.<br>
      * E.g.: ROW('a', 'b').cloneWithOrder([1, 0]) returns ROW('b', 'a')
      * @param newOrder array of indexes to create the new values array
      */

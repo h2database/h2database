@@ -391,7 +391,9 @@ public final class Transaction {
     /**
      * Add a log entry.
      *
-     * @param logRecord to append
+     * @param mapId the map ID this change belongs to
+     * @param key the key of the changed entry
+     * @param oldValue the old value of the changed entry
      *
      * @return key for the newly added undo log entry
      */

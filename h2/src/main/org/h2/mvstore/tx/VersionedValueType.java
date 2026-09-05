@@ -122,10 +122,10 @@ public class VersionedValueType<T,D> extends BasicDataType<VersionedValue<T>> im
         long entryId = v.getEntryId();
         T currentValue = v.getCurrentValue();
         T committedValue = operationId == NO_OPERATION_ID ? null : v.getCommittedValue();
-        int flags = (operationId == NO_OPERATION_ID ? 0 : 1)
-                  | (entryId == NO_ENTRY_ID         ? 0 : 2)
-                  | (currentValue == null           ? 0 : 4)
-                  | (committedValue == null         ? 0 : 8);
+        int flags =   (operationId == NO_OPERATION_ID ? 0 : 1)
+                    | (entryId == NO_ENTRY_ID         ? 0 : 2)
+                    | (currentValue == null           ? 0 : 4)
+                    | (committedValue == null         ? 0 : 8);
 
         buff.put((byte) flags);
 

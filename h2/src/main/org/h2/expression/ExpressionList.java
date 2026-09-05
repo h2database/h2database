@@ -155,7 +155,7 @@ public final class ExpressionList extends Expression {
 
     /**
      * Creates a copy of this expression list but the new instance will contain the subexpressions according to
-     * {@code newOrder}.<br />
+     * {@code newOrder}.<br>
      * E.g.: ROW (?1, ?2).cloneWithOrder([1, 0]) returns ROW (?2, ?1)
      * @param newOrder array of indexes to create the new subexpression array
      */

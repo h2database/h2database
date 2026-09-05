@@ -15,13 +15,13 @@ public class Constants {
     /**
      * The build date is updated for each public release.
      */
-    public static final String BUILD_DATE = "2025-09-22";
+    public static final String BUILD_DATE = "2026-08-29";
 
     /**
      * Sequential version number. Even numbers are used for official releases,
      * odd numbers are used for development builds.
      */
-    public static final int BUILD_ID = 249;
+    public static final int BUILD_ID = 259;
 
     /**
      * Whether this is a snapshot version.
@@ -84,7 +84,7 @@ public class Constants {
     /**
      * The minor version of this database.
      */
-    public static final int VERSION_MINOR = 4;
+    public static final int VERSION_MINOR = 5;
 
     /**
      * The lock mode that means no locking is used at all.

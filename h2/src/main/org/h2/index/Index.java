@@ -374,7 +374,7 @@ public abstract class Index extends SchemaObject {
      *
      * @param rowOne first row to compare
      * @param rowTwo second row to compare
-     * @return true if rows are equvalent from this index point of view
+     * @return true if rows are equivalent from this index point of view
      */
     public boolean areRowsEquivalent(Row rowOne, Row rowTwo) {
         if (rowOne == rowTwo) {
@@ -671,6 +671,12 @@ public abstract class Index extends SchemaObject {
         }
         if (sortOrder != null && !isScanIndex && filters != null && filter == 0) {
             int coveringCount = 0;
+            // Unlike running out of index columns, or a direction/null-ordering mismatch on
+            // an otherwise-matching column (still usable via a reverse index scan), landing
+            // on a sort column the index doesn't have at that position at all means the rows
+            // still need a real sort from that point on, so it must disqualify the discount
+            // below rather than just cap coveringCount at whatever matched so far.
+            boolean mismatched = false;
             int[] sortTypes = sortOrder.getSortTypesWithNullOrdering();
             int sortOrderLength = sortTypes.length;
             TableFilter tableFilter = filters[0];
@@ -686,10 +692,12 @@ public abstract class Index extends SchemaObject {
                 }
                 Column col = sortOrder.getColumn(i, tableFilter);
                 if (col == null) {
+                    mismatched = true;
                     break;
                 }
                 IndexColumn idxCol = indexColumns[i];
                 if (!col.equals(idxCol.column)) {
+                    mismatched = true;
                     break;
                 }
                 boolean mismatch = false;
@@ -723,7 +731,7 @@ public abstract class Index extends SchemaObject {
                 }
                 coveringCount++;
             }
-            if (coveringCount > 0) {
+            if (!mismatched && coveringCount > 0) {
                 // "coveringCount" makes sure that when we have two
                 // or more covering indexes, we choose the one
                 // that covers more.

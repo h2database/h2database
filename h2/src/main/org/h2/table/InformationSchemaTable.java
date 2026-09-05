@@ -716,6 +716,7 @@ public final class InformationSchemaTable extends MetaTable {
                     column("IS_GENERATED", TypeInfo.TYPE_BOOLEAN), //
                     column("REMARKS"), //
                     column("INDEX_CLASS"), //
+                    column("IS_VISIBLE", TypeInfo.TYPE_BOOLEAN), //
             };
             indexColumnName = "TABLE_NAME";
             break;
@@ -2483,7 +2484,9 @@ public final class InformationSchemaTable extends MetaTable {
                 // REMARKS
                 index.getComment(),
                 // INDEX_CLASS
-                index.getClass().getName()
+                index.getClass().getName(),
+                // IS_VISIBLE
+                ValueBoolean.get(!indexType.isInvisible())
             );
     }
 

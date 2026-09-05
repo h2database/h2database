@@ -292,6 +292,10 @@ public class AlterTableAddConstraint extends AlterTable {
         }
         // parent relationship is already set with addConstraint
         constraint.setComment(comment);
+        if (constraint.getIndex() != null && constraint.getIndex().getIndexType().isInvisible()) {
+            constraint.getIndex().getIndexType().setInvisible(false);
+            getDatabase().updateMeta(session, constraint.getIndex());
+        }
         addConstraintToTable(db, table, constraint);
         return 0;
     }

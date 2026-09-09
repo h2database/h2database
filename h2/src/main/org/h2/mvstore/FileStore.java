@@ -871,6 +871,23 @@ public abstract class FileStore<C extends Chunk<C>>
     }
 
     /**
+     * Discard the metadata of a chunk which holds no live data and whose space is
+     * already occupied by some other chunk. Such an entry can only be a leftover of
+     * an incompletely persisted chunk removal. It references no reachable page, so
+     * dropping it loses no data.
+     *
+     * @param chunk the chunk to forget about
+     */
+    protected final void dropOrphanedChunk(C chunk) {
+        assert !chunk.isLive() : chunk;
+        chunks.remove(chunk.id);
+        cleanToCCache(chunk);
+        if (!isReadOnly() && layout.remove(Chunk.getMetaKey(chunk.id)) != null) {
+            mvStore.markMetaChanged();
+        }
+    }
+
+    /**
      * Mark the space occupied by specified chunks as free.
      *
      * @param chunks chunks to be processed

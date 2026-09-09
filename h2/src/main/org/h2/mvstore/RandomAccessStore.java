@@ -77,6 +77,17 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
     }
 
     /**
+     * Check whether the specified area is completely unused.
+     *
+     * @param pos the position in bytes
+     * @param length the number of bytes
+     * @return true if none of the blocks is in use
+     */
+    private boolean isFree(long pos, int length) {
+        return freeSpace.isFree(pos, length);
+    }
+
+    /**
      * Allocate a number of blocks and mark them as used.
      *
      * @param length the number of bytes to allocate
@@ -328,16 +339,35 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
         }
 
         clear();
-        // build the free space list
+        // Build the free space list. Chunks which still hold live data are marked
+        // first, so that a stale metadata entry of a chunk without any live data can
+        // never claim space which is actually occupied by real data.
+        ArrayList<SFChunk> deadOnes = new ArrayList<>();
         for (SFChunk c : getChunks().values()) {
+            if (c.isLive()) {
+                if (c.isAllocated()) {
+                    markUsed(c.block * FileStore.BLOCK_SIZE, c.len * FileStore.BLOCK_SIZE);
+                }
+            } else {
+                deadOnes.add(c);
+            }
+        }
+        for (SFChunk c : deadOnes) {
             if (c.isAllocated()) {
                 long start = c.block * FileStore.BLOCK_SIZE;
                 int length = c.len * FileStore.BLOCK_SIZE;
+                if (!isFree(start, length)) {
+                    // This chunk holds no live data any more and the space it claims
+                    // has already been re-used, i.e. its metadata entry was orphaned
+                    // in the layout map. Such an entry references no reachable page,
+                    // so discarding it loses nothing, while keeping it would render
+                    // the whole file unreadable.
+                    dropOrphanedChunk(c);
+                    continue;
+                }
                 markUsed(start, length);
             }
-            if (!c.isLive()) {
-                registerDeadChunk(c);
-            }
+            registerDeadChunk(c);
         }
         assert validateFileLength("on open");
     }

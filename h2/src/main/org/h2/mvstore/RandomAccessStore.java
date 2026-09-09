@@ -130,11 +130,10 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
     }
 
     private void freeChunkSpace(SFChunk chunk) {
-        if (chunk.isAllocated()) {
-            long start = chunk.block * BLOCK_SIZE;
-            int length = chunk.len * BLOCK_SIZE;
-            free(start, length);
-        }
+        assert chunk != null && chunk.isAllocated() : chunk;
+        long start = chunk.block * BLOCK_SIZE;
+        int length = chunk.len * BLOCK_SIZE;
+        free(start, length);
     }
 
     /**

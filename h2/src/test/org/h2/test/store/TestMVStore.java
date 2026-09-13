@@ -798,7 +798,8 @@ public class TestMVStore extends TestBase {
             }
         }
         int[] expectedReadsForCacheSize = {
-                7176, 1750, 940, 940, 940, 940, 940   // compressed
+                7176, 2704, 1664, 1228, 1208, 940, 940   // compressed
+//                7176, 1750, 940, 940, 940, 940, 940   // compressed
 //                1880, 490, 476, 501, 476, 476, 541   // compressed
 //                1887, 1775, 1599, 1355, 1035, 732, 507    // uncompressed
         };

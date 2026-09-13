@@ -7,6 +7,9 @@ package org.h2.mvstore;
 
 import org.h2.engine.Constants;
 import static org.h2.mvstore.MVStore.INITIAL_VERSION;
+
+import org.h2.mvstore.MVMap.Decision;
+import org.h2.mvstore.MVMap.DecisionMaker;
 import org.h2.mvstore.cache.CacheLongKeyLIRS;
 import org.h2.mvstore.type.StringDataType;
 import org.h2.util.MathUtils;
@@ -302,8 +305,8 @@ public abstract class FileStore<C extends Chunk<C>>
             serializationLock.unlock();
         }
 
-
         mvStore.commit();
+        assert verifyOrphanedChunksAbsence();
         writeCleanShutdown();
         clearCaches();
     }
@@ -677,13 +680,16 @@ public abstract class FileStore<C extends Chunk<C>>
     }
 
     public final void dropUnusedChunks() {
+        assert mvStore.isLockedByCurrentThread();
         if (!deadChunks.isEmpty()) {
             long oldestVersionToKeep = mvStore.getOldestVersionToKeep();
             long time = getTimeSinceCreation();
             List<C> toBeFreed = new ArrayList<>();
             C chunk;
             while ((chunk = deadChunks.poll()) != null &&
-                    (isSeasonedChunk(chunk, time) && canOverwriteChunk(chunk, oldestVersionToKeep) ||
+                    (chunk.isAllocated() &&
+                     isSeasonedChunk(chunk, time) &&
+                     canOverwriteChunk(chunk, oldestVersionToKeep) ||
                             // if chunk is not ready yet, put it back and exit
                             // since this deque is unbounded, offerFirst() always return true
                             !deadChunks.offerFirst(chunk))) {
@@ -701,9 +707,7 @@ public abstract class FileStore<C extends Chunk<C>>
                     if (layout.remove(Chunk.getMetaKey(chunk.id)) != null) {
                         mvStore.markMetaChanged();
                     }
-                    if (chunk.isAllocated()) {
-                        toBeFreed.add(chunk);
-                    }
+                    toBeFreed.add(chunk);
                 }
             }
             if (!toBeFreed.isEmpty()) {
@@ -851,17 +855,36 @@ public abstract class FileStore<C extends Chunk<C>>
     }
 
     /**
-     * Store chunk's serialized metadata as an entry in a layout map.
+     * Updates chunk's serialized metadata within corresponding entry in a layout map.
      * Key for this entry would be "chunk.&lt;id&gt;"
      *
      * @param chunk to save
      */
-    public void saveChunkMetadataChanges(C chunk) {
+    protected final void saveChunkMetadataChanges(C chunk) {
         assert serializationLock.isHeldByCurrentThread();
-        // chunk's location has to be determined before
-        // it's metadata can be is serialized
-        assert chunk.isAllocated();
-        layout.put(Chunk.getMetaKey(chunk.id), chunk.asString());
+
+        // chunk's location need to be determined before it's metadata can be is serialized
+        if (chunk.isAllocated()) {
+            int chunkId = chunk.id;
+            layout.operate(Chunk.getMetaKey(chunkId), chunk.asString(), new LayoutDecisionMaker(chunkId));
+        }
+    }
+
+    /**
+     * Discard the metadata of a chunk which holds no live data and whose space is
+     * already occupied by some other chunk. Such an entry can only be a leftover of
+     * an incompletely persisted chunk removal. It references no reachable page, so
+     * dropping it loses no data.
+     *
+     * @param chunk the chunk to forget about
+     */
+    protected final void dropOrphanedChunk(C chunk) {
+        assert !chunk.isLive() : chunk;
+        chunks.remove(chunk.id);
+        cleanToCCache(chunk);
+        if (!isReadOnly() && layout.remove(Chunk.getMetaKey(chunk.id)) != null) {
+            mvStore.markMetaChanged();
+        }
     }
 
     /**
@@ -1113,8 +1136,14 @@ public abstract class FileStore<C extends Chunk<C>>
     }
 
     private Iterable<C> getChunksFromLayoutMap(MVMap<String, String> layoutMap) {
+        // It is "chicken and egg" problem on store opening - in order to figure out existing chunks
+        // we need to read layout map and for that we need metadata about chunks map's pages resides in,
+        // so StackOveflowException is always looming here, and good solution is due.
+        // For now, we just reverse iterator so latest chunks will come first (mostly).
         return () -> new Iterator<>() {
-            private final Cursor<String, String> cursor = layoutMap.cursor(DataUtils.LAYOUT_CHUNK);
+            private final Cursor<String, String> cursor =
+                    layoutMap.cursor(DataUtils.LAYOUT_CHUNK + Character.MAX_VALUE, // upper boundary of chunks metadata
+                                                    null, true);
             private C nextChunk;
 
             @Override
@@ -1527,13 +1556,11 @@ public abstract class FileStore<C extends Chunk<C>>
     }
 
     private void saveRecentChunksInLayout(long currentVersion) {
+        assert serializationLock.isHeldByCurrentThread();
         C recentlySavedChunk;
-        while((recentlySavedChunk = recentlySaved.peek()) != null
-                    // if it's a leftover after store rollback
-                    && recentlySavedChunk.version < currentVersion) {
-            recentlySavedChunk = recentlySaved.poll();
-            recentlySavedChunk = chunks.get(recentlySavedChunk.id);
-            if (recentlySavedChunk != null) {
+        while((recentlySavedChunk = recentlySaved.poll()) != null) {
+            // if it's not a leftover after store rollback
+            if (recentlySavedChunk.version < currentVersion) {
                 saveChunkMetadataChanges(recentlySavedChunk);
             }
         }
@@ -2116,6 +2143,21 @@ public abstract class FileStore<C extends Chunk<C>>
     }
 
 
+    private boolean verifyOrphanedChunksAbsence() {
+        for (C chunk : chunks.values()) {
+            assert chunk == lastChunk || layout.containsKey(Chunk.getMetaKey(chunk.id)) : chunk;
+        }
+
+        for (String key : layout.keySet()) {
+            if (key.startsWith(DataUtils.LAYOUT_CHUNK)) {
+                int chunkId = DataUtils.parseHexInt(key.substring(DataUtils.LAYOUT_CHUNK.length()));
+                C chunk = chunks.get(chunkId);
+                assert chunk != null : "Layout map contains metadata for non-existent chunk " + chunkId +
+                        ": " + layout.get(key) + " " + layout;
+            }
+        }
+        return true;
+    }
 
     public final class PageSerializationManager
     {
@@ -2275,6 +2317,27 @@ public abstract class FileStore<C extends Chunk<C>>
                 }
                 store.writeInBackground();
             }
+        }
+    }
+
+
+    private final class LayoutDecisionMaker extends DecisionMaker<String>
+    {
+        private final int chunkId;
+
+        public LayoutDecisionMaker(int chunkId) {
+            this.chunkId = chunkId;
+        }
+
+        @Override
+        public Decision decide(String existingValue, String providedValue) {
+            // New chunk metadata will be saved if it's an update (entry already there)
+            // or chunk is still registered in <code>chunks</code> table.
+            // Removal from chunks table happens before layout entry removal,
+            // so absence of <code>layout</code> entry but existence of <code>chunks</code> entry tells us
+            // that it's a new chunk (and should be inserted), as opposed to already dropped one.
+
+            return existingValue != null || chunks.containsKey(chunkId) ? Decision.PUT : Decision.ABORT;
         }
     }
 }

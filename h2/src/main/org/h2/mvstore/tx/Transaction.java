@@ -541,7 +541,6 @@ public final class Transaction {
         try {
             store.rollbackTo(this, logId, savepointId);
         } finally {
-            notifyAllWaitingTransactions();
             long expectedState = composeState(STATUS_ROLLING_BACK, logId, hasRollback(lastState));
             long newState = composeState(STATUS_OPEN, savepointId, true);
             do {
@@ -665,7 +664,7 @@ public final class Transaction {
      * @param mapName name of the map containing blocking entry
      * @param key of the blocking entry
      * @param timeoutMillis timeout in milliseconds, {@code -1} for default
-     * @return true if other transaction was closed and this one can proceed, false if timed out
+     * @return true if other transaction was committed or rolled back, and this one can proceed, false if timed out
      */
     public boolean waitFor(Transaction toWaitFor, String mapName, Object key, int timeoutMillis) {
         blockingTransaction = toWaitFor;
@@ -732,9 +731,7 @@ public final class Transaction {
         long time = System.nanoTime();
         notificationRequested = true;
         long state;
-        int status;
-        while ((status = getStatus(state = statusAndLogId.get())) != STATUS_CLOSED
-                && status != STATUS_COMMITTED && status != STATUS_ROLLED_BACK && !hasRollback(state)) {
+        while (isActive(getStatus(state = statusAndLogId.get())) && !hasRollback(state)) {
             if (waiter.getStatus() != STATUS_OPEN) {
                 waiter.tryThrowDeadLockException(true);
             }

@@ -830,6 +830,7 @@ public class TransactionStore implements AutoCloseable
             undoLog.operate(undoKey, null, decisionMaker);
             decisionMaker.reset();
         }
+        t.notifyAllWaitingTransactions();
     }
 
     /**
@@ -951,6 +952,7 @@ public class TransactionStore implements AutoCloseable
     private static final class TxMapBuilder<K,V> extends MVMap.Builder<K,V> {
 
         private final MVMap<String, DataType<?>> typeRegistry;
+        @SuppressWarnings("rawtypes")
         private final DataType defaultDataType;
 
         TxMapBuilder(MVMap<String, DataType<?>> typeRegistry, DataType<?> defaultDataType) {

@@ -32,6 +32,7 @@ public class TestMaterializedView extends TestDb {
     public void test() throws SQLException {
         deleteDb("materializedview");
         test1();
+        testInformationSchemaColumns();
         deleteDb("materializedview");
     }
 
@@ -62,6 +63,37 @@ public class TestMaterializedView extends TestDb {
         });
         stat.execute("drop materialized view test_view");
         stat.execute("drop table test");
+        conn.close();
+    }
+
+    private void testInformationSchemaColumns() throws SQLException {
+        Connection conn = getConnection("materializedview");
+        Statement stat = conn.createStatement();
+        stat.execute("create table t(id int)");
+        stat.execute("create materialized view m as select id from t");
+        ResultSet rs = stat.executeQuery("select count(*) from information_schema.columns");
+        assertTrue(rs.next());
+        assertTrue(rs.getInt(1) > 0);
+        rs.close();
+        rs = stat.executeQuery("select column_name from information_schema.columns "
+                + "where table_name = 'M' order by ordinal_position");
+        assertTrue(rs.next());
+        assertEquals("ID", rs.getString(1));
+        assertFalse(rs.next());
+        rs.close();
+        rs = stat.executeQuery("select column_name from information_schema.columns "
+                + "where table_name = 'T'");
+        assertTrue(rs.next());
+        assertEquals("ID", rs.getString(1));
+        assertFalse(rs.next());
+        rs.close();
+        rs = conn.getMetaData().getColumns(null, "PUBLIC", "M", null);
+        assertTrue(rs.next());
+        assertEquals("ID", rs.getString("COLUMN_NAME"));
+        assertFalse(rs.next());
+        rs.close();
+        stat.execute("drop materialized view m");
+        stat.execute("drop table t");
         conn.close();
     }
 

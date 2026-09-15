@@ -564,6 +564,11 @@ public interface CommandInterface extends AutoCloseable {
     int ALTER_TYPE = 105;
 
     /**
+     * The type of ALTER INDEX INVISIBLE/VISIBLE statement.
+     */
+    int ALTER_INDEX_VISIBILITY = 106;
+
+    /**
      * Get command type.
      *
      * @return one of the constants above

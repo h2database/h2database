@@ -158,7 +158,11 @@ public abstract class Index extends SchemaObject {
             builder.append(" COMMENT ");
             StringUtils.quoteStringSQL(builder, comment);
         }
-        return getColumnListSQL(builder, DEFAULT_SQL_FLAGS).toString();
+        getColumnListSQL(builder, DEFAULT_SQL_FLAGS);
+        if (indexType.isInvisible()) {
+            builder.append(" INVISIBLE");
+        }
+        return builder.toString();
     }
 
 

@@ -1227,7 +1227,7 @@ public final class DatabaseMetaLocal extends DatabaseMetaLocalBase {
     private void getIndexInfo(Value catalogValue, Value schemaValue, Table table, boolean unique, boolean approximate,
                                 SimpleResult result, Database db) {
         for (Index index : table.getIndexes()) {
-            if (index.getCreateSQL() == null) {
+            if (index.getCreateSQL() == null || index.getIndexType().isInvisible()) {
                 continue;
             }
             int uniqueColumnCount = index.getUniqueColumnCount();

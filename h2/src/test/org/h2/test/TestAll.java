@@ -24,6 +24,7 @@ import org.h2.test.bench.TestPerformance;
 import org.h2.test.db.TestAlter;
 import org.h2.test.db.TestAlterSchemaRename;
 import org.h2.test.db.TestAlterTableNotFound;
+import org.h2.test.db.TestAnalyze;
 import org.h2.test.db.TestAnalyzeTableTx;
 import org.h2.test.db.TestAutoRecompile;
 import org.h2.test.db.TestBackup;
@@ -848,6 +849,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
             addTest(new TestJakartaWeb());
 
             // other unsafe
+            addTest(new TestAnalyze());
             addTest(new TestOptimizations());
             addTest(new TestOutOfMemory());
             addTest(new TestIgnoreCatalogs());

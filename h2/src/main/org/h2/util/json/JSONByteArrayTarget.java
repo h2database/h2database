@@ -13,6 +13,8 @@ import java.io.ByteArrayOutputStream;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 
+import org.h2.api.ErrorCode;
+import org.h2.message.DbException;
 import org.h2.util.ByteStack;
 
 /**
@@ -36,6 +38,10 @@ public final class JSONByteArrayTarget extends JSONTarget<byte[]> {
      * @param s
      *            the string to encode
      * @return the specified output stream
+     * @throws DbException
+     *             if the string contains an unpaired surrogate character that
+     *             cannot be encoded in the internal UTF-8-based representation
+     *             of JSON
      */
     public static ByteArrayOutputStream encodeString(ByteArrayOutputStream baos, String s) {
         baos.write('"');
@@ -85,7 +91,8 @@ public final class JSONByteArrayTarget extends JSONTarget<byte[]> {
                         char c2;
                         if (!Character.isHighSurrogate(c) || ++i >= length
                                 || !Character.isLowSurrogate(c2 = s.charAt(i))) {
-                            throw new IllegalArgumentException();
+                            throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1,
+                                    s.length() > 80 ? s.substring(0, 80) + "..." : s);
                         }
                         int uc = Character.toCodePoint(c, c2);
                         baos.write(0xf0 | uc >> 18);

@@ -97,6 +97,9 @@ public class CloseWatcher extends PhantomReference<Object> {
      * @param w the reference
      */
     public static void unregister(CloseWatcher w) {
+        if (null == w) {
+            return;
+        }
         w.closeable = null;
         refs.remove(w);
     }

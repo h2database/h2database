@@ -232,7 +232,7 @@ public class TestScript extends TestDb {
                 "type", "unique" }) {
             testScript("predicates/" + s + ".sql");
         }
-        for (String s : new String[] { "derived-column-names", "distinct", "joins", "query-cache",
+        for (String s : new String[] { "derived-column-names", "distinct", "duplicate-order-by", "joins", "query-cache",
                 "query-optimisations", "select", "table", "values", "window" }) {
             testScript("queries/" + s + ".sql");
         }

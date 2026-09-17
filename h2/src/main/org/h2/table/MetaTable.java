@@ -67,9 +67,7 @@ public abstract class MetaTable extends Table {
         this.type = type;
     }
 
-    @Override
-    protected void setColumns(Column[] columns) {
-        super.setColumns(columns);
+    protected final void setIndexes() {
         scanIndex = new MetaIndex(this, IndexColumn.wrap(columns), true);
         indexes.clear();
         indexes.add(scanIndex);

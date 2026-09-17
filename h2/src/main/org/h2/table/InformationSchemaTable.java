@@ -866,6 +866,7 @@ public final class InformationSchemaTable extends MetaTable {
             IndexColumn[] indexCols = IndexColumn.wrap(new Column[] { cols[indexColumn] });
             metaIndex = new MetaIndex(this, indexCols, false);
         }
+        setIndexes();
         this.isView = isView;
     }
 

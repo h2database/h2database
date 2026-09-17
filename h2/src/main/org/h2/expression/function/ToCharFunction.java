@@ -185,21 +185,25 @@ public final class ToCharFunction extends FunctionN {
         boolean leadingSign = formatUp.startsWith("S");
         if (leadingSign) {
             format = format.substring(1);
+            formatUp = formatUp.substring(1);
         }
 
         boolean trailingSign = formatUp.endsWith("S");
         if (trailingSign) {
             format = format.substring(0, format.length() - 1);
+            formatUp = formatUp.substring(0, formatUp.length() - 1);
         }
 
         boolean trailingMinus = formatUp.endsWith("MI");
         if (trailingMinus) {
             format = format.substring(0, format.length() - 2);
+            formatUp = formatUp.substring(0, formatUp.length() - 2);
         }
 
         boolean angleBrackets = formatUp.endsWith("PR");
         if (angleBrackets) {
             format = format.substring(0, format.length() - 2);
+            formatUp = formatUp.substring(0, formatUp.length() - 2);
         }
 
         int v = formatUp.indexOf('V');

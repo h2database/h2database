@@ -10,6 +10,7 @@ import static org.h2.util.HasSQL.DEFAULT_SQL_FLAGS;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -824,26 +825,30 @@ public abstract class Query extends Prepared {
     void cleanupOrder() {
         int[] sourceIndexes = sort.getQueryColumnIndexes();
         int count = sourceIndexes.length;
-        int constants = 0;
-        for (int sourceIndex : sourceIndexes) {
-            if (expressions.get(sourceIndex).isConstant()) {
-                constants++;
+        BitSet dedup = new BitSet(expressions.size());
+        BitSet retain = new BitSet(count);
+        for (int i = 0; i < count; i++) {
+            int sourceIndex = sourceIndexes[i];
+            if (!expressions.get(sourceIndex).isConstant() &&
+                    !dedup.get(sourceIndex)) { // duplicate expression, remove it from the sort order
+                dedup.set(sourceIndex);
+                retain.set(i);
             }
         }
-        if (constants == 0) {
+        int size = retain.cardinality();
+        if (size == count) {
             return;
         }
-        if (constants == count) {
+        if (size == 0) {
             sort = null;
             return;
         }
-        int size = count - constants;
         int[] indexes = new int[size];
         int[] sortTypes = new int[size];
         int[] sourceSortTypes = sort.getSortTypes();
         ArrayList<QueryOrderBy> orderList = sort.getOrderList();
-        for (int i = 0, j = 0; j < size; i++) {
-            if (!expressions.get(sourceIndexes[i]).isConstant()) {
+        for (int i = 0, j = 0; i < count; i++) {
+            if (retain.get(i)) {
                 indexes[j] = sourceIndexes[i];
                 sortTypes[j] = sourceSortTypes[i];
                 j++;

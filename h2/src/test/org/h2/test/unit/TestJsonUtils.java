@@ -5,11 +5,13 @@
  */
 package org.h2.test.unit;
 
+import java.io.ByteArrayOutputStream;
 import java.math.BigDecimal;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.Callable;
 
+import org.h2.message.DbException;
 import org.h2.test.TestBase;
 import org.h2.util.json.JSONByteArrayTarget;
 import org.h2.util.json.JSONBytesSource;
@@ -330,6 +332,20 @@ public class TestJsonUtils extends TestBase {
         testEncodeString("abc \"\u0001\u007f\u0080\u1000\uabcd\n'\t",
                 "\"abc \\\"\\u0001\u007f\u0080\u1000\uabcd\\n'\\t\"",
                 "\"abc \\\"\\u0001\u007f\\u0080\\u1000\\uabcd\\n\\u0027\\t\"");
+        // A string with a surrogate pair can be encoded
+        assertEquals("\"\uD83D\uDE00\"", new String(JSONByteArrayTarget //
+                .encodeString(new ByteArrayOutputStream(), "\uD83D\uDE00").toByteArray(),
+                StandardCharsets.UTF_8));
+        // Strings with unpaired surrogates cannot be encoded
+        testEncodeStringError("x\uD800y");
+        testEncodeStringError("\uDC00");
+        testEncodeStringError("\uD800\uD800");
+        testEncodeStringError("\uDC00\uD800");
+    }
+
+    private void testEncodeStringError(String s) {
+        assertThrows(DbException.class,
+                () -> JSONByteArrayTarget.encodeString(new ByteArrayOutputStream(), s));
     }
 
     private void testEncodeString(String source, String expected, String expectedPrintable) {

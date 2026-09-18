@@ -11,11 +11,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import org.h2.api.DatabaseEventListener;
 import org.h2.api.ErrorCode;
-import org.h2.command.Prepared;
 import org.h2.command.ddl.CreateTableData;
 import org.h2.constraint.Constraint;
 import org.h2.constraint.ConstraintReferential;
@@ -123,7 +123,7 @@ public class MVTable extends TableBase {
     private Column rowIdColumn;
 
     private final MVPrimaryIndex primaryIndex;
-    private final ArrayList<Index> indexes = Utils.newSmallArrayList();
+    private final List<Index> indexes;
     private final AtomicLong lastModificationId = new AtomicLong();
 
     /**
@@ -156,7 +156,7 @@ public class MVTable extends TableBase {
 
         primaryIndex = new MVPrimaryIndex(database, this, getId(),
                 IndexColumn.wrap(getColumns()), IndexType.createScan(true));
-        indexes.add(primaryIndex);
+        indexes = new CopyOnWriteArrayList<>(new Index[]{ primaryIndex });
     }
 
     public String getMapName() {

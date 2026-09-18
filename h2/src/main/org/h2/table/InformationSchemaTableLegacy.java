@@ -714,6 +714,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                     new Column[] { cols[indexColumn] });
             metaIndex = new MetaIndex(this, indexCols, false);
         }
+        setIndexes();
     }
 
     private static String replaceNullWithEmpty(String s) {

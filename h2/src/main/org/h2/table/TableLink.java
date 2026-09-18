@@ -16,9 +16,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.h2.api.ErrorCode;
-import org.h2.command.Prepared;
 import org.h2.engine.NullsDistinct;
 import org.h2.engine.SessionLocal;
 import org.h2.index.Index;
@@ -55,7 +55,7 @@ public class TableLink extends Table {
     private String driver, url, user, password, originalTable, qualifiedTableName;
     private TableLinkConnection conn;
     private HashMap<String, PreparedStatement> preparedMap = new HashMap<>();
-    private final ArrayList<Index> indexes = Utils.newSmallArrayList();
+    private final List<Index> indexes = new CopyOnWriteArrayList<>();
     private final boolean emitUpdates;
     private LinkedIndex linkedIndex;
     private DbException connectException;

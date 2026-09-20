@@ -2,3 +2,9 @@
 -- and the EPL 1.0 (https://h2database.com/html/license.html).
 -- Initial Developer: H2 Group
 --
+
+SELECT BIT_LENGTH(X'C3A9');
+>> 16
+
+SELECT BIT_LENGTH('abc');
+>> 24

@@ -54,7 +54,17 @@ public final class LengthFunction extends Function1 {
         long l;
         switch (function) {
         case CHAR_LENGTH:
-            l = v.charLength();
+            switch (v.getValueType()) {
+            case Value.BINARY:
+            case Value.VARBINARY:
+            case Value.BLOB:
+                // Binary strings do not have characters, return their length
+                // in bytes instead, as PostgreSQL and MySQL do
+                l = v.octetLength();
+                break;
+            default:
+                l = v.charLength();
+            }
             break;
         case OCTET_LENGTH:
             l = v.octetLength();

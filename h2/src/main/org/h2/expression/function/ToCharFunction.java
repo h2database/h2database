@@ -1138,7 +1138,7 @@ public final class ToCharFunction extends FunctionN {
     public Expression optimize(SessionLocal session) {
         boolean allConst = optimizeArguments(session, true);
         type = TypeInfo.TYPE_VARCHAR;
-        if (allConst) {
+        if (allConst && !session.isParsingCreateView()) {
             return TypedValueExpression.getTypedIfNull(getValue(session), type);
         }
         return this;

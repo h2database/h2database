@@ -324,7 +324,7 @@ public final class DateTimeFormatFunction extends FunctionN {
         default:
             throw DbException.getInternalError("function=" + function);
         }
-        if (allConst) {
+        if (allConst && !session.isParsingCreateView()) {
             return TypedValueExpression.getTypedIfNull(getValue(session), type);
         }
         return this;

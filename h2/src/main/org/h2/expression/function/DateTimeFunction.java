@@ -1040,7 +1040,7 @@ public final class DateTimeFunction extends Function1_2 {
         default:
             throw DbException.getInternalError("function=" + function);
         }
-        if (left.isConstant() && (right == null || right.isConstant())) {
+        if (left.isConstant() && (right == null || right.isConstant()) && !session.isParsingCreateView()) {
             return TypedValueExpression.getTypedIfNull(getValue(session), type);
         }
         return this;

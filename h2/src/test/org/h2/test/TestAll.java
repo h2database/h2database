@@ -455,6 +455,74 @@ java org.h2.test.TestAll timer
         System.setProperty("h2.delayWrongPasswordMin", "0");
         System.setProperty("h2.delayWrongPasswordMax", "0");
         System.setProperty("h2.useThreadContextClassLoader", "true");
+        System.setProperty("h2.allowedClasses",
+                        "java.lang.*,java.math.*,java.io.*" +
+                        ",java.awt.Point" +
+                        ",javax.naming.InitialContext" +
+                        ",com.ibm.icu.text.Collator" +
+                        ",org.h2.Driver" +
+                        ",org.h2.command.dml.ScriptCommand" +
+                        ",org.h2.fulltext.*" +
+//                        ",org.h2.fulltext.FullText" +
+//                        ",org.h2.fulltext.FullText$FullTextTrigger" +
+//                        ",org.h2.fulltext.FullTextLucene" +
+//                        ",org.h2.fulltext.FullTextLucene$FullTextTrigger" +
+                        ",org.h2.mvstore.db.MVTableEngine" +
+                        ",org.h2.samples.*" +
+//                        ",org.h2.samples.Function" +
+//                        ",org.h2.samples.RowAccessRights" +
+//                        ",org.h2.samples.TriggerPassData" +
+//                        ",org.h2.samples.TriggerSample$MyTrigger" +
+//                        ",org.h2.samples.UpdatableView" +
+                        ",org.h2.server.TcpServer" +
+                        ",org.h2.test.db.*" +
+//                        ",org.h2.test.db.TestFunctions" +
+//                        ",org.h2.test.db.TestFunctionOverload" +
+//                        ",org.h2.test.db.TestIndex" +
+//                        ",org.h2.test.db.TestListener" +
+//                        ",org.h2.test.db.TestMergeUsing" +
+//                        ",org.h2.test.db.TestMultiDimension" +
+//                        ",org.h2.test.db.TestFunctions$MedianString" +
+//                        ",org.h2.test.db.TestFunctions$MedianStringType" +
+//                        ",org.h2.test.db.TestLob" +
+//                        ",org.h2.test.db.TestLobObject" +
+//                        ",org.h2.test.db.TestMultiConn$MyDatabaseEventListener" +
+//                        ",org.h2.test.db.TestOpenClose$MyDatabaseEventListener" +
+//                        ",org.h2.test.db.TestOptimizations" +
+//                        ",org.h2.test.db.TestRights$TestTrigger" +
+//                        ",org.h2.test.db.TestRunscript" +
+//                        ",org.h2.test.db.TestSequence$TriggerTest" +
+//                        ",org.h2.test.db.TestTableEngines$EndlessTableEngine" +
+//                        ",org.h2.test.db.TestTableEngines$OneRowTableEngine" +
+//                        ",org.h2.test.db.TestTableEngines$TreeSetIndexTableEngine" +
+//                        ",org.h2.test.db.TestTriggersConstraints" +
+//                        ",org.h2.test.db.TestTriggersConstraints$ConcurrentTrigger" +
+//                        ",org.h2.test.db.TestTriggersConstraints$DeleteTrigger" +
+//                        ",org.h2.test.db.TestTriggersConstraints$NullTrigger" +
+//                        ",org.h2.test.db.TestTriggersConstraints$NullTriggerAdapter" +
+//                        ",org.h2.test.db.TestTriggersConstraints$TestSelect" +
+//                        ",org.h2.test.db.TestTriggersConstraints$TestTriggerAdapter" +
+//                        ",org.h2.test.db.TestTriggersConstraints$TestTriggerAlterTable" +
+//                        ",org.h2.test.db.TestTriggersConstraints$TestView" +
+//                        ",org.h2.test.db.TestTriggersConstraints$TestViewGeneratedKeys" +
+//                        ",org.h2.test.db.TestTriggersConstraints$WrongTrigger" +
+//                        ",org.h2.test.db.TestTriggersConstraints$WrongTriggerAdapter" +
+//                        ",org.h2.test.db.TestView" +
+                        ",org.h2.test.jdbc.*" +
+//                        ",org.h2.test.jdbc.TestBatchUpdates" +
+//                        ",org.h2.test.jdbc.TestCallableStatement" +
+//                        ",org.h2.test.jdbc.TestCancel" +
+//                        ",org.h2.test.jdbc.TestDatabaseEventListener$*" +
+//                        ",org.h2.test.jdbc.TestJavaObjectSerializer$*" +
+//                        ",org.h2.test.jdbc.TestUrlJavaObjectSerializer$FakeJavaObjectSerializer" +
+                        ",org.h2.test.scripts.*" +
+//                        ",org.h2.test.scripts.Trigger1" +
+//                        ",org.h2.test.scripts.Trigger2" +
+//                        ",org.h2.test.scripts.Aggregate1" +
+                        ",org.h2.test.unit.TestAutoReconnect$MyDatabaseEventListener" +
+                        ",org.h2.tools.Recover" +
+                        ",TestClassFactory" +
+                        ",org.h2.test.unit.SampleObject, org.h2.test.unit.TestObjectDeserialization$GoodSampleObject");
 
         // System.setProperty("h2.modifyOnWrite", "true");
 

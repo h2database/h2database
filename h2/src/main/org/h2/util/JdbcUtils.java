@@ -10,6 +10,7 @@ import static org.h2.util.Bits.LONG_VH_BE;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputFilter;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.ObjectStreamClass;
@@ -412,27 +413,35 @@ public class JdbcUtils {
             if (serializer != null) {
                 return serializer.deserialize(data);
             }
-            ByteArrayInputStream in = new ByteArrayInputStream(data);
-            ObjectInputStream is;
-            if (SysProperties.USE_THREAD_CONTEXT_CLASS_LOADER) {
-                final ClassLoader loader = Thread.currentThread().getContextClassLoader();
-                is = new ObjectInputStream(in) {
-                    @Override
-                    protected Class<?> resolveClass(ObjectStreamClass desc)
-                            throws IOException, ClassNotFoundException {
-                        try {
-                            return Class.forName(desc.getName(), true, loader);
-                        } catch (ClassNotFoundException e) {
-                            return super.resolveClass(desc);
-                        }
-                    }
-                };
-            } else {
-                is = new ObjectInputStream(in);
+            try (ObjectInputStream is = createObjectInputStream(new ByteArrayInputStream(data))) {
+                // Creates a filter: Allow specific class, allow java.base classes, reject everything else
+                ObjectInputFilter filter = ObjectInputFilter.Config.createFilter(
+                        SysProperties.ALLOWED_CLASSES.trim().replaceAll("\\s*,\\s*", ";") + ";!*"
+                );
+                is.setObjectInputFilter(filter);
+                return is.readObject();
             }
-            return is.readObject();
         } catch (Throwable e) {
             throw DbException.get(ErrorCode.DESERIALIZATION_FAILED_1, e, e.toString());
+        }
+    }
+
+    private static ObjectInputStream createObjectInputStream(ByteArrayInputStream in) throws IOException {
+        if (SysProperties.USE_THREAD_CONTEXT_CLASS_LOADER) {
+            final ClassLoader loader = Thread.currentThread().getContextClassLoader();
+            return new ObjectInputStream(in) {
+                @Override
+                protected Class<?> resolveClass(ObjectStreamClass desc)
+                        throws IOException, ClassNotFoundException {
+                    try {
+                        return Class.forName(desc.getName(), true, loader);
+                    } catch (ClassNotFoundException e) {
+                        return super.resolveClass(desc);
+                    }
+                }
+            };
+        } else {
+            return new ObjectInputStream(in);
         }
     }
 

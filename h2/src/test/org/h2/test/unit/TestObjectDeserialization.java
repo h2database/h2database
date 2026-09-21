@@ -9,6 +9,7 @@ import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
 import org.h2.util.JdbcUtils;
 import org.h2.util.StringUtils;
+import java.io.Serializable;
 
 /**
  * Tests the ability to deserialize objects that are not part of the system
@@ -20,6 +21,14 @@ public class TestObjectDeserialization extends TestBase {
     private static final String OBJECT =
         "aced00057372001d6f72672e68322e746573742e756" +
         "e69742e53616d706c654f626a65637400000000000000010200007870";
+
+    private static final String GOOD_OBJECT =
+        "aced00057372003b6f72672e68322e746573742e756e69742e546573744f626a6563744465736572" +
+        "69616c697a6174696f6e24476f6f6453616d706c654f626a65637400000000000000010200007870";
+
+    private static final String BAD_OBJECT =
+        "aced00057372003a6f72672e68322e746573742e756e69742e546573744f626a6563744465736572" +
+        "69616c697a6174696f6e2442616453616d706c654f626a65637400000000000000010200007870";
 
     /**
      * The thread context class loader was used.
@@ -33,6 +42,8 @@ public class TestObjectDeserialization extends TestBase {
      */
     public static void main(String... a) throws Exception {
         System.setProperty("h2.useThreadContextClassLoader", "true");
+        System.setProperty("h2.allowedClasses",
+                "org.h2.test.unit.SampleObject, org.h2.test.unit.TestObjectDeserialization$GoodSampleObject");
         TestBase.createCaller().init().testFromMain();
     }
 
@@ -46,6 +57,11 @@ public class TestObjectDeserialization extends TestBase {
         Thread.currentThread().setContextClassLoader(new TestClassLoader());
         assertThrows(ErrorCode.DESERIALIZATION_FAILED_1,
                 () -> JdbcUtils.deserialize(StringUtils.convertHexToBytes(OBJECT), null));
+
+        assertThrows(ErrorCode.DESERIALIZATION_FAILED_1,
+                () -> JdbcUtils.deserialize(StringUtils.convertHexToBytes(BAD_OBJECT), null));
+
+        assertNotNull(JdbcUtils.deserialize(StringUtils.convertHexToBytes(GOOD_OBJECT), null));
         assertTrue(usesThreadContextClassLoader);
     }
 
@@ -69,4 +85,11 @@ public class TestObjectDeserialization extends TestBase {
 
     }
 
+    public static final class GoodSampleObject implements Serializable {
+        private static final long serialVersionUID = 1L;
+    }
+
+    public static final class BadSampleObject implements Serializable {
+        private static final long serialVersionUID = 1L;
+    }
 }

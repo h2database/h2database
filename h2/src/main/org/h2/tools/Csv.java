@@ -279,7 +279,7 @@ public class Csv implements SimpleRowSource {
             } else if (nullString != null) {
                 if (quotedNulls && fieldDelimiter != 0) {
                     output.write(fieldDelimiter);
-                    output.write(nullString);
+                    output.write(escape(nullString));
                     output.write(fieldDelimiter);
                 } else {
                     output.write(nullString);

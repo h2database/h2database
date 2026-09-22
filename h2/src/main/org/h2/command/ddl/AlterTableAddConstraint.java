@@ -6,6 +6,7 @@
 package org.h2.command.ddl;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
@@ -16,10 +17,12 @@ import org.h2.constraint.ConstraintReferential;
 import org.h2.constraint.ConstraintUnique;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
+import org.h2.engine.DbObject;
 import org.h2.engine.Right;
 import org.h2.engine.SessionLocal;
 import org.h2.engine.NullsDistinct;
 import org.h2.expression.Expression;
+import org.h2.expression.ExpressionVisitor;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
 import org.h2.message.DbException;
@@ -101,9 +104,9 @@ public class AlterTableAddConstraint extends AlterTable {
             if (ifNotExists) {
                 return 0;
             }
-            /**
+            /*
              * 1.4.200 and older databases don't always have a unique constraint
-             * for each referential constraint, so these constraints are created
+             * for each referential constraint, so these constraints are created,
              * and they may use the same generated name as some other not yet
              * initialized constraint that may lead to a name conflict.
              */
@@ -178,6 +181,14 @@ public class AlterTableAddConstraint extends AlterTable {
             constraint = createUniqueConstraint(table, index, indexColumns, false);
             break;
         case CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_CHECK: {
+            HashSet<DbObject> dependencies = new HashSet<>();
+            checkExpression.isEverything(ExpressionVisitor.getDependenciesVisitor(dependencies));
+            for (DbObject dependency : dependencies) {
+                if (table.isTemporary() != dependency.isTemporary()) {
+                    throw DbException.getUnsupportedException("check constraint uses temporary object "
+                                                                + dependency.getName());
+                }
+            }
             int id = getObjectId();
             String name = generateConstraintName(table);
             ConstraintCheck check = new ConstraintCheck(getSchema(), id, name, table);
@@ -199,6 +210,9 @@ public class AlterTableAddConstraint extends AlterTable {
             }
             if (refTable != table) {
                 session.getUser().checkTableRight(refTable, Right.SCHEMA_OWNER);
+            }
+            if (table.isTemporary() != refTable.isTemporary()) {
+                throw DbException.getUnsupportedException("referential constraint uses temporary table " + tableName);
             }
             if (!refTable.canReference()) {
                 StringBuilder builder = new StringBuilder("Reference ");

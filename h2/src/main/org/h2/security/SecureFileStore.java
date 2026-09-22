@@ -80,7 +80,7 @@ public class SecureFileStore extends FileStore {
     @Override
     public void readFully(byte[] b, int off, int len) {
         super.readFully(b, off, len);
-        for (int i = 0; i < len; i++) {
+        for (int i = off, limit = off + len; i < limit; i++) {
             if (b[i] != 0) {
                 cipher.decrypt(b, off, len);
                 xorInitVector(b, off, len, pos);

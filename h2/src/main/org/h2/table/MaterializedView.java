@@ -31,15 +31,26 @@ public class MaterializedView extends Table {
 
     public MaterializedView(Schema schema, int id, String name, Table table, Query query, String querySQL) {
         super(schema, id, name, false, true);
-        this.table = table;
+        setTable(table);
         this.query = query;
         this.querySQL = querySQL;
     }
 
     public void replace(Table table, Query query, String querySQL) {
-        this.table = table;
+        setTable(table);
         this.query = query;
         this.querySQL = querySQL;
+    }
+
+    private void setTable(Table table) {
+        this.table = table;
+        Column[] source = table.getColumns();
+        Column[] cols = new Column[source.length];
+        int i = 0;
+        for (Column column : source) {
+            cols[i++] = column.getClone();
+        }
+        setColumns(cols);
     }
 
     public Table getUnderlyingTable() {

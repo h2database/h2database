@@ -8,6 +8,7 @@ package org.h2.engine;
 import java.sql.SQLException;
 import java.util.Comparator;
 import org.h2.api.DatabaseEventListener;
+import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.command.Prepared;
 import org.h2.message.DbException;
@@ -67,48 +68,49 @@ public class MetaRecord implements Comparable<MetaRecord> {
      * @param systemSession the system session
      * @param listener the database event listener
      */
-    void prepareAndExecute(Database db, SessionLocal systemSession, DatabaseEventListener listener) {
-        try {
-            Prepared command = systemSession.prepare(sql);
-            command.setPersistedObjectId(id);
-            command.update();
-        } catch (DbException e) {
-            throwException(db, listener, e, sql);
+    void prepareAndExecute(Database db, SessionLocal systemSession, DatabaseEventListener listener, boolean throwIt) {
+        Prepared command = prepare(db, systemSession, listener, throwIt);
+        if (command != null) {
+            execute(db, command, listener, sql, throwIt);
         }
     }
 
     /**
-     * Prepares the meta data statement.
+     * Prepares the metadata statement.
      *
      * @param db the database
      * @param systemSession the system session
      * @param listener the database event listener
      * @return the prepared command
      */
-    Prepared prepare(Database db, SessionLocal systemSession, DatabaseEventListener listener) {
+    Prepared prepare(Database db, SessionLocal systemSession, DatabaseEventListener listener, boolean throwIt) {
         try {
             Prepared command = systemSession.prepare(sql);
             command.setPersistedObjectId(id);
             return command;
         } catch (DbException e) {
-            throwException(db, listener, e, sql);
-            return null;
+            processException(db, listener, e, sql, throwIt);
+        } catch (Throwable e) {
+            processException(db, listener, DbException.get(ErrorCode.GENERAL_ERROR_1, e), sql, throwIt);
         }
+        return null;
     }
 
     /**
-     * Execute the meta data statement.
+     * Execute the metadata statement.
      *
      * @param db the database
      * @param command the prepared command
      * @param listener the database event listener
      * @param sql SQL
      */
-    static void execute(Database db, Prepared command, DatabaseEventListener listener, String sql) {
+    static void execute(Database db, Prepared command, DatabaseEventListener listener, String sql, boolean throwIt) {
         try {
             command.update();
         } catch (DbException e) {
-            throwException(db, listener, e, sql);
+            processException(db, listener, e, sql, throwIt);
+        } catch (Throwable e) {
+            processException(db, listener, DbException.get(ErrorCode.GENERAL_ERROR_1, e), sql, throwIt);
         }
     }
 
@@ -118,14 +120,14 @@ public class MetaRecord implements Comparable<MetaRecord> {
             || type == CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_UNIQUE;
     }
 
-    private static void throwException(Database db, DatabaseEventListener listener, DbException e, String sql) {
+    private static void processException(Database db, DatabaseEventListener listener, DbException e, String sql, boolean throwIt) {
         e = e.addSQL(sql);
         SQLException s = e.getSQLException();
         db.getTrace(Trace.DATABASE).error(s, sql);
         if (listener != null) {
             listener.exceptionThrown(s, sql);
             // continue startup in this case
-        } else {
+        } else if (throwIt) {
             throw e;
         }
     }

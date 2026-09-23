@@ -238,6 +238,9 @@ public class TestScript extends TestDb {
         }
         testScript("other/two_phase_commit.sql");
         testScript("other/unique_include.sql");
+        if (!config.memory) {
+            testScript("persistent-only.sql");
+        }
 
         deleteDb("script");
         System.out.flush();

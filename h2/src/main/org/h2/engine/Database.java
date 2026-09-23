@@ -632,7 +632,7 @@ public final class Database implements DataHandler, CastDataProvider {
                     for (int i = 0; i < count; i++) {
                         MetaRecord rec = domainRecords.get(i);
                         try {
-                            rec.prepareAndExecute(this, systemSession, eventListener);
+                            rec.prepareAndExecute(this, systemSession, eventListener, true);
                         } catch (DbException ex) {
                             if (exception == null) {
                                 exception = ex;
@@ -654,7 +654,7 @@ public final class Database implements DataHandler, CastDataProvider {
             if (count > 0) {
                 ArrayList<Prepared> constraints = new ArrayList<>(count);
                 for (int i = 0; i < count; i++) {
-                    Prepared prepared = constraintRecords.get(i).prepare(this, systemSession, eventListener);
+                    Prepared prepared = constraintRecords.get(i).prepare(this, systemSession, eventListener, false);
                     if (prepared != null) {
                         constraints.add(prepared);
                     }
@@ -663,7 +663,7 @@ public final class Database implements DataHandler, CastDataProvider {
                 // Create constraints in order (unique and primary key before
                 // all others)
                 for (Prepared constraint : constraints) {
-                    MetaRecord.execute(this, constraint, eventListener, constraint.getSQL());
+                    MetaRecord.execute(this, constraint, eventListener, constraint.getSQL(), false);
                 }
             }
             executeMeta(lastRecords);
@@ -676,7 +676,7 @@ public final class Database implements DataHandler, CastDataProvider {
         if (!records.isEmpty()) {
             records.sort(null);
             for (MetaRecord rec : records) {
-                rec.prepareAndExecute(this, systemSession, eventListener);
+                rec.prepareAndExecute(this, systemSession, eventListener, false);
             }
         }
     }

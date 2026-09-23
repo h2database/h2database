@@ -89,7 +89,7 @@ changing channel channels char character characteristics characters charge
 charindex chars charset chartered chartrand chartreuse chatellier cheaper cheat
 cheating check checkbox checkcast checked checker checking checklist checklists
 checkout checkpoint checks checkstyle checksum checksums chef chemical chen
-cherries chf chi child children chile china chinese chmod chocolate choice
+cherries chf chi chicken child children chile china chinese chmod chocolate choice
 choices choose chowder chr chris christian christos chrome chromium chunk chunked
 chunks chur cid cipher ciphers circle circles circuit circumstances cite citizen
 city claim claims clam claros clash clashes class classes classification
@@ -186,14 +186,13 @@ dialect dialog diamonds diams dick dictionary did didn died dieguez diehard dies
 diff differ difference differences different differential differentiate differently
 differs dig digest digit digital digits diligence dim dimension dimensional
 dimensions dimitrijs dinamica dining dip dips dir direct direction directly
-directories directory directs dirname dirs dirty disable disabled
-disablelastaccess disables disabling disadvantage disadvantages disallow
-disallowed disappear disappearance disappeared disc disclaimed disclaimer disclaimers
-disclaims disclosed disconnect disconnected disconnecting disconnections disconnects
-discontinue discount discriminator discussion disjunctive disk disks dispatch
-dispatcher display displayed displaying displays dispose disposed disposition
-disputes disqualify dist distance distinct distinguish distinguishable distinguished
-distinguishing distribute distributed distributes distributing distribution
+directories directory directs dirname dirs dirty disable disabled disablelastaccess disables
+disabling disadvantage disadvantages disallow disallowed disappear disappearance disappeared
+disc discarding disclaimed disclaimer disclaimers disclaims disclosed disconnect disconnected
+disconnecting disconnections disconnects discontinue discount discriminator discussion
+disjunctive disk disks dispatch dispatcher display displayed displaying displays dispose
+disposed disposition disputes disqualify dist distance distinct distinguish distinguishable
+distinguished distinguishing distribute distributed distributes distributing distribution
 distributions distributor distributors district districts div divide divided
 dividend divider divides dividing division divisor divisors dll dload dlucene dml
 dmoebius dmsys dmul dname dneg doap doc doclet docletpath doclets docs docsrc
@@ -209,7 +208,7 @@ each eacute earlier earliest early ease eases easier easiest easily east easy ea
 eater ebean ecb eccn ecdh echo ecirc eckenfelder eckenfels ecl eclipse eclipsecs
 eclipselink ecm ecole eder edge edh edit editable edited editing edition editor
 editors edugility effect effective effectively effects efficient efficiently
-effort egrave eid eing eins einstellung either elapsed eldest elect electronic
+effort egg egrave eid eing eins einstellung either elapsed eldest elect electronic
 element elements elephant elig eligible eliminate elisabetta ell ellipsis elm else
 elsewhere elton email emails embedded embedding embeds emergency emf emit emitted
 emma empire employee empty emsp emulate emulated emulates emulation enable
@@ -309,7 +308,7 @@ implies import important imported importing imports impose imposes impossible
 improperly improve improved improvement improvements improves improving imul
 inability inaccessible inaccuracies inactive inactivity inc incidental include
 included includes including inclusive incoming incompatibility incompatible
-incomplete incompressible inconsistency inconsistent incorporated incorrect
+incomplete incompletely incompressible inconsistency inconsistent incorporated incorrect
 incorrectly increase increased increases increasing increment incremental
 incrementally incremented incrementing increments incubator incurred incurring
 indemnified indemnify indemnity indent indentation indentations indented indents
@@ -376,7 +375,7 @@ locality localization localized localname locals locate located locates location
 locations locators lock locked locker locking locks log logback logged logger
 logging logic logical logically login logins logo logos logout logs logsize long
 longblob longer longest longitude longnvarchar longs longtext longvarbinary longvarchar
-look lookahead looking looks lookup lookups lookupswitch loop loopback looping
+look lookahead looking looks lookup lookups lookupswitch looming loop loopback looping
 loops loose lor lore lose losing loss losses lossless losslessly lossy lost lot lots
 low lowast lower lowercase lowercased lowest loz lpad lrem lreturn lrm lru lsaquo
 lshift lshl lshr lsm lsquo lstore lsub lte ltrim lucene lucerne lugano lukas lumber
@@ -682,9 +681,9 @@ union unique uniquely uniqueness uniques unit united units universal universally
 unix unixtime unknown unless unlike unlikely unlimited unlink unlinked unload unloaded
 unloading unloads unlock unlocked unlocking unlocks unmaintained unmappable
 unmapped unmodified unmounted unnamed unnecessarily unnecessary unneeded uno unoccupied
-unofficial unordered unpredictable unquoted unrecognized unrecoverable
-unreferenced unregister unregisters unrelated unreleased unsafe unsaved unscaled
-unset unsigned unsorted unspecified unstable unsuccessful unsupported
+unofficial unopenable unordered unpaired unpredictable unquoted unreadable unrecognized
+unrecoverable unreferenced unregister unregisters unrelated unreleased unsafe unsaved
+unscaled unset unsigned unsorted unspecified unstable unsuccessful unsupported
 unsynchronized untested until untranslated unusable unused unusual unvisited
 unwrap unwrapped unwritten unzip upc upd updatable update updated updates
 updating upgrade upgraded upgrader upgrades upgrading upload uploaded upon upper

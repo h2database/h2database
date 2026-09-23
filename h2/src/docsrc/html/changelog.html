@@ -21,11 +21,16 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul>
+    <li>nothing here yet</li>
+</ul>
+
+<h2>Version 2.5.252 (2026-09-23)</h2>
+<ul>
     <li>Issue #4376: Reading INFORMATION_SCHEMA.COLUMNS fails with a NPE while any materialized view exists</li>
     <li>Issue #4380: creating a MATERIALIZED VIEW makes a persistent database permanently unopenable</li>
     <li>Issue #4395: disallow constraints between temporary and permanent tables</li>
     <li>Issue #4405: SecureFileStore.readFully() may skip decryption</li>
-    <li>Issue #4414: TestScript fails in functions/numeric/log.sql on aarch64</li>
+    <li>Issue #4414: TestScript fails in functions/numeric/log.sql on AArch64</li>
     <li>Issue #4407: Csv - properly write NULL marker (escape)</li>
     <li>PR #4412: Security - Lack of deserialization filter</li>
     <li>Issue #4409: Prohibit use of session variables in FETCH and OFFSET for view definition</li>
@@ -514,65 +519,6 @@ Then error occurred.
 <li>PR #3382: Use secure parser in H2AuthConfigXml to avoid future reports
 </li>
 </ul>
-
-<h2>Version 2.1.210 (2022-01-17)</h2>
-<ul>
-<li>PR #3381: Add IDENTITY() and SCOPE_IDENTITY() to LEGACY mode
-</li>
-<li>Issue #3376: Data cannot be read after insert of clob data > MAX_LENGTH_INPLACE_LOB with data change delta table
-</li>
-<li>PR #3377: Add -webExternalNames setting and fix WebServer.getConnection()
-</li>
-<li>PR #3367: Use faster checks of dimension systems of geometries
-</li>
-<li>PR #3369: Added v2 changes in migration docs
-</li>
-<li>Issue #3361: MemoryEstimator.estimateMemory() can return negative size
-</li>
-<li>PR #3362: Use BufferedReader instead of BufferedInputStream to avoid Illegal seek exception
-</li>
-<li>Issue #3353: Wrong rownum() scope for DML with change delta table
-</li>
-<li>PR #3352: make Javadoc happier
-</li>
-<li>Issue #3344: Changelog could link to github issue
-</li>
-<li>Issue #3340: JDBC index type seems wrong
-</li>
-<li>Issue #3336: FT_INIT error when mode=MySQL
-</li>
-<li>Issue #3334: Regression with CREATE ALIAS - Parameter "#2" is not set
-</li>
-<li>Issue #3321: Insert Primary Key after import CSV Data does not work
-</li>
-<li>PR #3323: Tokenize SQL before parsing and preserve tokens for recompilation
-</li>
-<li>PR #3320: Add Servlet 5-compatible servlet for H2 Console
-</li>
-<li>Issue #918: Parser fails recognising set operations in correlated subqueries
-</li>
-<li>Issue #2050: PostgreSQL with recursive fail with union in the final query
-</li>
-<li>PR #3316: Update copyright years
-</li>
-<li>PR #3315: Never put read locks into lockSharedSessions and other minor changes
-</li>
-<li>Issue #492: H2 does not correctly parse &lt;parenthesized joined table&gt;
-</li>
-<li>Issue #3311: Parser creates wrong join graph in some cases and uses wrong tables for column mapping
-</li>
-<li>FORCE_JOIN_ORDER setting is removed
-</li>
-<li>Issue #1983: Official build script is not compatible with Java 13
-</li>
-<li>PR #3305: Add UNIQUE(VALUE) and remove some non-standard keywords
-</li>
-<li>PR #3299: Remove useless StringBuilder.toString() call
-</li>
-<li>PR #3298: Delete unused sqlTypes array
-</li>
-</ul>
-
 
 
 <!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>

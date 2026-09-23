@@ -688,8 +688,8 @@ public abstract class FileStore<C extends Chunk<C>>
             C chunk;
             while ((chunk = deadChunks.poll()) != null &&
                     (chunk.isAllocated() &&
-                     isSeasonedChunk(chunk, time) &&
-                     canOverwriteChunk(chunk, oldestVersionToKeep) ||
+                    isSeasonedChunk(chunk, time) &&
+                    canOverwriteChunk(chunk, oldestVersionToKeep) ||
                             // if chunk is not ready yet, put it back and exit
                             // since this deque is unbounded, offerFirst() always return true
                             !deadChunks.offerFirst(chunk))) {
@@ -1138,7 +1138,7 @@ public abstract class FileStore<C extends Chunk<C>>
     private Iterable<C> getChunksFromLayoutMap(MVMap<String, String> layoutMap) {
         // It is "chicken and egg" problem on store opening - in order to figure out existing chunks
         // we need to read layout map and for that we need metadata about chunks map's pages resides in,
-        // so StackOveflowException is always looming here, and good solution is due.
+        // so StackOverflowException is always looming here, and good solution is due.
         // For now, we just reverse iterator so latest chunks will come first (mostly).
         return () -> new Iterator<>() {
             private final Cursor<String, String> cursor =
@@ -2332,9 +2332,9 @@ public abstract class FileStore<C extends Chunk<C>>
         @Override
         public Decision decide(String existingValue, String providedValue) {
             // New chunk metadata will be saved if it's an update (entry already there)
-            // or chunk is still registered in <code>chunks</code> table.
+            // or chunk is still registered in chunks table.
             // Removal from chunks table happens before layout entry removal,
-            // so absence of <code>layout</code> entry but existence of <code>chunks</code> entry tells us
+            // so absence of layout entry but existence of chunks entry tells us
             // that it's a new chunk (and should be inserted), as opposed to already dropped one.
 
             return existingValue != null || chunks.containsKey(chunkId) ? Decision.PUT : Decision.ABORT;

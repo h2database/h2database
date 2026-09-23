@@ -120,7 +120,8 @@ public class MetaRecord implements Comparable<MetaRecord> {
             || type == CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_UNIQUE;
     }
 
-    private static void processException(Database db, DatabaseEventListener listener, DbException e, String sql, boolean throwIt) {
+    private static void processException(Database db, DatabaseEventListener listener, DbException e, String sql,
+                                            boolean throwIt) {
         e = e.addSQL(sql);
         SQLException s = e.getSQLException();
         db.getTrace(Trace.DATABASE).error(s, sql);

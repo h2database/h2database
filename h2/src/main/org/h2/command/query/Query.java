@@ -825,13 +825,13 @@ public abstract class Query extends Prepared {
     void cleanupOrder() {
         int[] sourceIndexes = sort.getQueryColumnIndexes();
         int count = sourceIndexes.length;
-        BitSet dedup = new BitSet(expressions.size());
+        BitSet deduplication = new BitSet(expressions.size());
         BitSet retain = new BitSet(count);
         for (int i = 0; i < count; i++) {
             int sourceIndex = sourceIndexes[i];
             if (!expressions.get(sourceIndex).isConstant() &&
-                    !dedup.get(sourceIndex)) { // duplicate expression, remove it from the sort order
-                dedup.set(sourceIndex);
+                    !deduplication.get(sourceIndex)) { // duplicate expression, remove it from the sort order
+                deduplication.set(sourceIndex);
                 retain.set(i);
             }
         }

@@ -15,18 +15,18 @@ public class Constants {
     /**
      * The build date is updated for each public release.
      */
-    public static final String BUILD_DATE = "2026-08-29";
+    public static final String BUILD_DATE = "2026-09-23";
 
     /**
      * Sequential version number. Even numbers are used for official releases,
      * odd numbers are used for development builds.
      */
-    public static final int BUILD_ID = 259;
+    public static final int BUILD_ID = 252;
 
     /**
      * Whether this is a snapshot version.
      */
-    public static final boolean BUILD_SNAPSHOT = true;
+    public static final boolean BUILD_SNAPSHOT = false;
 
     /**
      * If H2 is compiled to be included in a product, this should be set to

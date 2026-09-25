@@ -1054,11 +1054,12 @@ public final class MVStore implements AutoCloseable {
         return fileStore != null && fileStore.hasChangesSince(lastStoredVersion);
     }
 
-    public void executeFilestoreOperation(Runnable operation) {
+    public <T> T executeFilestoreOperation(Callable<T> operation) {
+        T result = null;
         storeLock.lock();
         try {
             checkNotClosed();
-            fileStore.executeFileStoreOperation(operation);
+            result = fileStore.executeFileStoreOperation(operation);
         } catch (MVStoreException e) {
             panic(e);
         } catch (Throwable e) {
@@ -1066,6 +1067,7 @@ public final class MVStore implements AutoCloseable {
         } finally {
             unlockAndCheckPanicCondition();
         }
+        return result;
     }
 
     <R> R tryExecuteUnderStoreLock(Callable<R> operation) throws InterruptedException {
@@ -1244,9 +1246,10 @@ public final class MVStore implements AutoCloseable {
      * than the write operations).
      *
      * @param reuseSpace the new value
+     * @return previous state of the flag
      */
-    public void setReuseSpace(boolean reuseSpace) {
-        fileStore.setReuseSpace(reuseSpace);
+    public boolean setReuseSpace(boolean reuseSpace) {
+        return executeFilestoreOperation(() -> fileStore.setReuseSpace(reuseSpace));
     }
 
     public int getRetentionTime() {

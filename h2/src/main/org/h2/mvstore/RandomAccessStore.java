@@ -128,8 +128,10 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
     }
 
     @Override
-    public void setReuseSpace(boolean reuseSpace) {
+    public boolean setReuseSpace(boolean reuseSpace) {
+        boolean current = this.reuseSpace;
         this.reuseSpace = reuseSpace;
+        return current;
     }
 
     @Override
@@ -202,7 +204,7 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
         boolean validStoreHeader = false;
         // find out which chunk and version are the newest
         // read the first two blocks
-        ByteBuffer fileHeaderBlocks = readFully((SFChunk)null, 0, 2 * FileStore.BLOCK_SIZE);
+        ByteBuffer fileHeaderBlocks = readFully((SFChunk)null, 0, FileStore.HEADER_SIZE);
         byte[] buff = new byte[FileStore.BLOCK_SIZE];
         for (int i = 0; i <= FileStore.BLOCK_SIZE; i += FileStore.BLOCK_SIZE) {
             fileHeaderBlocks.get(buff);
@@ -435,23 +437,31 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
             }
         }
 
-        if (storeHeader.remove(HDR_CLEAN) != null) {
+        if (clearCleanShutdownMark()) {
             writeStoreHeader = true;
         }
         return writeStoreHeader;
     }
 
+    private boolean clearCleanShutdownMark() {
+        return storeHeader.remove(HDR_CLEAN) != null;
+    }
+
+    protected final void removeCleanShutdownMark() {
+        if (clearCleanShutdownMark()) {
+            writeStoreHeader();
+        }
+    }
+
     @Override
     protected final void writeCleanShutdownMark() {
-        shrinkStoreIfPossible(0);
         storeHeader.put(HDR_CLEAN, 1);
         writeStoreHeader();
     }
 
     @Override
     protected final void adjustStoreToLastChunk() {
-        storeHeader.put(HDR_CLEAN, 1);
-        writeStoreHeader();
+        writeCleanShutdownMark();
         readStoreHeader(false);
     }
 
@@ -501,15 +511,18 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
                 } finally {
                     saveChunkLock.unlock();
                 }
+                return null;
             });
         }
     }
 
     private void compactMoveChunks(long moveSize) {
-        long start = getFirstFree() / FileStore.BLOCK_SIZE;
-        Iterable<SFChunk> chunksToMove = findChunksToMove(start, moveSize);
-        if (chunksToMove != null) {
-            compactMoveChunks(chunksToMove);
+        if (isSpaceReused()) {
+            long start = getFirstFree() / FileStore.BLOCK_SIZE;
+            Iterable<SFChunk> chunksToMove = findChunksToMove(start, moveSize);
+            if (chunksToMove != null) {
+                compactMoveChunks(chunksToMove);
+            }
         }
     }
 
@@ -620,7 +633,10 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
         }
     }
 
-    private void writeStoreHeader() {
+    /**
+     * Writes both copies of store header according to current state of a FileStore
+     */
+    protected final void writeStoreHeader() {
         StringBuilder buff = new StringBuilder(112);
         if (hasPersistentData()) {
             storeHeader.put(HDR_BLOCK, lastChunk.block);
@@ -633,9 +649,9 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
         DataUtils.appendMap(buff, HDR_FLETCHER, checksum);
         buff.append('\n');
         bytes = buff.toString().getBytes(StandardCharsets.ISO_8859_1);
-        ByteBuffer header = ByteBuffer.allocate(2 * BLOCK_SIZE);
+        ByteBuffer header = ByteBuffer.allocate(HEADER_SIZE);
         header.put(bytes);
-        header.position(BLOCK_SIZE);
+        header.position(HEADER_SIZE >> 1);
         header.put(bytes);
         header.rewind();
         writeFully(null, 0, header);

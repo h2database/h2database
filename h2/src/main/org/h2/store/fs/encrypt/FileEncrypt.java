@@ -37,7 +37,7 @@ public class FileEncrypt extends FileBaseDefault {
      * The length of the file header. Using a smaller header is possible,
      * but would mean reads and writes are not aligned to the block size.
      */
-    static final int HEADER_LENGTH = BLOCK_SIZE;
+    public static final int HEADER_LENGTH = BLOCK_SIZE;
 
     private static final byte[] HEADER = "H2encrypt\n".getBytes(StandardCharsets.ISO_8859_1);
     private static final int SALT_POS = HEADER.length;

@@ -74,7 +74,7 @@ public class SingleFileStore extends RandomAccessStore {
      *  @param fileName the file name
      * @param readOnly whether the file should only be opened in read-only mode,
      *            even if the file is writable
-     * @param encryptionKey the encryption key, or null if encryption is not
+     * @param encryptionKey the encryption key, or null if encryption is not used
      */
     @Override
     public void open(String fileName, boolean readOnly, char[] encryptionKey) {
@@ -217,26 +217,41 @@ public class SingleFileStore extends RandomAccessStore {
     public void backup(ZipOutputStream out) throws IOException {
         String f = correctFileName(FilePath.get(getFileName()).toRealPath().getName());
         out.putNextEntry(new ZipEntry(f));
-        FileChannel in = originalFileChannel != null ? originalFileChannel : fileChannel;
-        MVStore mvStore = getMvStore();
-        boolean before = mvStore.setReuseSpace(false);
+        boolean encrypted = originalFileChannel != null;
+        FileChannel in = encrypted ? originalFileChannel : fileChannel;
+        long headerSize = HEADER_SIZE + (encrypted ? FileEncrypt.HEADER_LENGTH : 0);
+        boolean spaceReused = isSpaceReused();
         try {
-
-            long copied = IOUtils.copy(in, 0, out);
-
-            mvStore.executeFilestoreOperation(() -> {
+            // this will pause and flush chunks pipeline and stop space reuse,
+            // to ensure no writes will happen in the middle of the file,
+            // only appends and header overwrites, but header will be copied by then
+            // with "clean shutdown" mark inserted
+            long bytesToCopy = mvStore.executeFilestoreOperation(() -> {
+                boolean wasSpaceReused = setReuseSpace(false);
                 try {
-                    IOUtils.copy(in, copied, out);
+                    // header can not be just written to output stream, with appropriate mark,
+                    // but has to be copied from the data file, in case when file is encrypted
                     writeCleanShutdownMark();
-                    IOUtils.copy(in, out, 0, 2 * BLOCK_SIZE);
+                    long copied = IOUtils.copy(in, out, 0, headerSize);
+                    if (copied != headerSize) {
+                        throw new IOException("Can't copy store header, copied only : " + copied + " bytes");
+                    }
                     removeCleanShutdownMark();
+                    return ((size() - HEADER_SIZE) << 1) | (wasSpaceReused ? 1 : 0);
                 } catch (IOException ex) {
                     throw new RuntimeException(ex);
                 }
-                return null;
             });
+            spaceReused = (bytesToCopy & 1) != 0;
+            bytesToCopy >>>= 1;
+
+            // files main body is copied without any locks held
+            long copied = IOUtils.copy(in, out, headerSize, bytesToCopy);
+            if (copied != bytesToCopy) {
+                throw new IOException("Unexpected size of backup data: " + copied + ", expected: " + bytesToCopy);
+            }
         } finally {
-            mvStore.setReuseSpace(before);
+            mvStore.setReuseSpace(spaceReused);
         }
         out.closeEntry();
     }

@@ -190,25 +190,11 @@ public class IOUtils {
     }
 
     /**
-     * Copy all data from the input FileChannel to the output stream. Both source and destination
-     * are kept open.
+     * Copy data from the input FileChannel to the output stream. Both source and destination are kept open.
      *
      * @param in the input FileChannel
-     * @param out the output stream (null if writing is not required)
-     * @return the number of bytes copied
-     * @throws IOException on failure
-     */
-    public static long copy(FileChannel in, long startAt, OutputStream out)
-            throws IOException {
-        return copy(in, out, startAt, Long.MAX_VALUE);
-    }
-
-    /**
-     * Copy all data from the input FileChannel to the output stream. Both source and destination
-     * are kept open.
-     *
-     * @param in the input FileChannel
-     * @param out the output stream (null if writing is not required)
+     * @param out the output stream
+     * @param startAt initial position where to copy from, but no relevance to output, which is always just appended
      * @param length the maximum number of bytes to copy
      * @return the number of bytes copied
      * @throws IOException on failure
@@ -216,25 +202,25 @@ public class IOUtils {
     public static long copy(FileChannel in, OutputStream out, long startAt, long length)
             throws IOException {
         try {
-            long copied = startAt;
+            long sourcePosition = startAt;
             byte[] buffer = new byte[(int) Math.min(length, Constants.IO_BUFFER_SIZE)];
             ByteBuffer wrap = ByteBuffer.wrap(buffer);
             while (length > 0) {
-                int len = in.read(wrap, copied);
+                int len = in.read(wrap, sourcePosition);
                 if (len < 0) {
                     break;
                 }
                 if (out != null) {
                     out.write(buffer, 0, len);
                 }
-                copied += len;
+                sourcePosition += len;
                 length -= len;
                 wrap.rewind();
                 if (length < wrap.limit()) {
                     wrap.limit((int)length);
                 }
             }
-            return copied - startAt;
+            return sourcePosition - startAt;
         } catch (Exception e) {
             throw DataUtils.convertToIOException(e);
         }

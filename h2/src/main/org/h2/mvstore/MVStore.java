@@ -1060,7 +1060,6 @@ public final class MVStore implements AutoCloseable {
         try {
             checkNotClosed();
             result = fileStore.executeFileStoreOperation(operation);
-            return result;
         } catch (MVStoreException e) {
             panic(e);
         } catch (Throwable e) {

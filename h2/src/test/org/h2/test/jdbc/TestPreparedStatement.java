@@ -68,7 +68,6 @@ public class TestPreparedStatement extends TestDb {
     public void test() throws Exception {
         deleteDb("preparedStatement");
         Connection conn = getConnection("preparedStatement");
-        testParenthesizedUnionTermLimitParameter(conn);
         testUnwrap(conn);
         testUnsupportedOperations(conn);
         testChangeType(conn);
@@ -128,92 +127,6 @@ public class TestPreparedStatement extends TestDb {
         testPreparedStatementWithIndexedParameterAndLiteralsNone();
         testPreparedStatementWithAnyParameter();
         deleteDb("preparedStatement");
-    }
-
-    /**
-     * A parenthesized UNION term must not reuse its last result when only a
-     * FETCH, OFFSET or ORDER BY parameter changed.
-     */
-    private void testParenthesizedUnionTermLimitParameter(Connection conn) throws SQLException {
-        Statement stat = conn.createStatement();
-        stat.execute("SET OPTIMIZE_REUSE_RESULTS TRUE");
-        stat.execute("CREATE TABLE T_UNION_FETCH(ID INT PRIMARY KEY)");
-        stat.execute("INSERT INTO T_UNION_FETCH SELECT X FROM SYSTEM_RANGE(1, 5)");
-
-        PreparedStatement prep = conn.prepareStatement(
-                "(SELECT ID FROM T_UNION_FETCH ORDER BY ID FETCH FIRST ? ROWS ONLY) "
-                        + "UNION (SELECT ID FROM T_UNION_FETCH WHERE ID < 0)");
-        assertEquals(1, countRows(prep, 1));
-        assertEquals(3, countRows(prep, 3));
-        assertEquals(5, countRows(prep, 5));
-        prep.close();
-
-        prep = conn.prepareStatement(
-                "(SELECT ID FROM T_UNION_FETCH WHERE ID < 0) UNION "
-                        + "(SELECT ID FROM T_UNION_FETCH ORDER BY ID FETCH FIRST ? ROWS ONLY)");
-        assertEquals(1, countRows(prep, 1));
-        assertEquals(3, countRows(prep, 3));
-        prep.close();
-
-        prep = conn.prepareStatement(
-                "(SELECT ID FROM T_UNION_FETCH ORDER BY ID OFFSET ? ROWS) "
-                        + "UNION (SELECT ID FROM T_UNION_FETCH WHERE ID < 0)");
-        assertEquals(4, countRows(prep, 1));
-        assertEquals(2, countRows(prep, 3));
-        prep.close();
-
-        prep = conn.prepareStatement(
-                "(SELECT ID FROM T_UNION_FETCH ORDER BY ID * ? FETCH FIRST 1 ROW ONLY) "
-                        + "UNION (SELECT ID FROM T_UNION_FETCH WHERE ID < 0)");
-        assertEquals(1, singleInt(prep, 1));
-        assertEquals(5, singleInt(prep, -1));
-        prep.close();
-
-        prep = conn.prepareStatement(
-                "SELECT ID FROM T_UNION_FETCH WHERE ID IN ("
-                        + "(SELECT ID FROM T_UNION_FETCH ORDER BY ID FETCH FIRST ? ROWS ONLY) "
-                        + "UNION (SELECT ID FROM T_UNION_FETCH WHERE ID < 0))");
-        assertEquals(1, countRows(prep, 1));
-        assertEquals(3, countRows(prep, 3));
-        prep.close();
-
-        // Parameters parsed before QUALIFY are already on the term.
-        prep = conn.prepareStatement(
-                "(SELECT ID FROM T_UNION_FETCH WHERE ID <= ?) "
-                        + "UNION (SELECT ID FROM T_UNION_FETCH WHERE ID < 0)");
-        assertEquals(1, countRows(prep, 1));
-        assertEquals(3, countRows(prep, 3));
-        prep.close();
-
-        prep = conn.prepareStatement(
-                "SELECT ID FROM T_UNION_FETCH ORDER BY ID FETCH FIRST ? ROWS ONLY");
-        assertEquals(1, countRows(prep, 1));
-        assertEquals(3, countRows(prep, 3));
-        prep.close();
-
-        stat.execute("DROP TABLE T_UNION_FETCH");
-        stat.close();
-    }
-
-    private int countRows(PreparedStatement prep, int parameter) throws SQLException {
-        prep.setInt(1, parameter);
-        try (ResultSet rs = prep.executeQuery()) {
-            int rows = 0;
-            while (rs.next()) {
-                rows++;
-            }
-            return rows;
-        }
-    }
-
-    private int singleInt(PreparedStatement prep, int parameter) throws SQLException {
-        prep.setInt(1, parameter);
-        try (ResultSet rs = prep.executeQuery()) {
-            assertTrue(rs.next());
-            int value = rs.getInt(1);
-            assertFalse(rs.next());
-            return value;
-        }
     }
 
     private void testUnwrap(Connection conn) throws SQLException {

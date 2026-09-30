@@ -6504,6 +6504,9 @@ public final class Parser extends ParserBase {
                 if (readIf(UNIQUE)) {
                     nullsDistinct = readNullsDistinct(database.getMode().nullsDistinct);
                 }
+                // SQL Server compatibility: parse and ignore NONCLUSTERED/CLUSTERED
+                readIfCompat("NONCLUSTERED");
+                readIfCompat("CLUSTERED");
                 if (readIfCompat("HASH")) {
                     hash = true;
                 } else if (nullsDistinct == null && readIf("SPATIAL")) {
@@ -6568,6 +6571,25 @@ public final class Parser extends ParserBase {
                 }
             }
             command.setIndexColumns(columns);
+            // SQL Server compatibility: WHERE col IS NOT NULL on single-column unique index
+            // converts to NULLS DISTINCT (allows multiple NULLs, unique only on non-null values)
+            if (nullsDistinct != null && columns.length == 1 && readIf(WHERE)) {
+                String filterCol = readIdentifier();
+                read("IS");
+                if (readIf(NOT)) {
+                    read(NULL);
+                    // Verify the WHERE column matches the index column
+                    if (filterCol.equalsIgnoreCase(columns[0].columnName)) {
+                        nullsDistinct = NullsDistinct.DISTINCT;
+                    } else {
+                        throw DbException.getSyntaxError(sqlCommand, token.start(),
+                                "WHERE column must match index column");
+                    }
+                } else {
+                    throw DbException.getSyntaxError(sqlCommand, token.start(),
+                            "only WHERE column IS NOT NULL is supported");
+                }
+            }
             command.setUnique(nullsDistinct, uniqueColumnCount);
             return command;
         }

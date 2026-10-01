@@ -71,6 +71,20 @@ public class VersionedValueType<T,D> extends BasicDataType<VersionedValue<T>> im
     @Override
     public VersionedValue<T> read(ByteBuffer buff) {
         byte flags = buff.get();
+        if (flags == 0) {
+            // Before 2.5, a committed value started with operation id zero.
+            return VersionedValueCommitted.getInstance(valueType.read(buff));
+        } else if (flags < 0) {
+            // A legacy uncommitted operation id includes a nonzero transaction
+            // id in its high bits, so its first varlong byte has the continuation
+            // bit set. Current flags only use the low four bits.
+            buff.position(buff.position() - 1);
+            long operationId = DataUtils.readVarLong(buff);
+            flags = buff.get();
+            T value = (flags & 1) != 0 ? valueType.read(buff) : null;
+            T committedValue = (flags & 2) != 0 ? valueType.read(buff) : null;
+            return VersionedValueUncommitted.getInstance(operationId, value, committedValue, NO_ENTRY_ID);
+        }
 
         long operationId = (flags & 1) != 0 ? DataUtils.readVarLong(buff) : NO_OPERATION_ID;
         long entryId     = (flags & 2) != 0 ? DataUtils.readVarLong(buff) : NO_ENTRY_ID;

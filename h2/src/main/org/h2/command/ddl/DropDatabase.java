@@ -77,7 +77,10 @@ public class DropDatabase extends DefineCommand {
             }
         } while (runLoopAgain);
 
-        // TODO session-local temp tables are not removed
+        // Local temporary tables are not in the schemas, they belong to the session
+        for (Table t : session.getLocalTempTables()) {
+            session.removeLocalTempTable(t);
+        }
         Collection<Schema> schemas = db.getAllSchemasNoMeta();
         for (Schema schema : schemas) {
             if (schema.canDrop()) {

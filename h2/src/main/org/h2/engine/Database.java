@@ -46,6 +46,7 @@ import org.h2.mvstore.db.Store;
 import org.h2.result.Row;
 import org.h2.result.RowFactory;
 import org.h2.result.SearchRow;
+import org.h2.schema.Domain;
 import org.h2.schema.InformationSchema;
 import org.h2.schema.Schema;
 import org.h2.schema.SchemaObject;
@@ -1629,6 +1630,33 @@ public final class Database implements DataHandler, CastDataProvider {
     }
 
     /**
+     * Get the first domain that depends on this object.
+     *
+     * @param obj the object to find
+     * @return the first dependent domain, or null
+     */
+    public Domain getDependentDomain(SchemaObject obj) {
+        switch (obj.getType()) {
+        case DbObject.SEQUENCE:
+        case DbObject.FUNCTION_ALIAS:
+            break;
+        default:
+            return null;
+        }
+        HashSet<DbObject> set = new HashSet<>();
+        for (Schema schema : schemas.values()) {
+            for (Domain domain : schema.getAllDomains()) {
+                set.clear();
+                domain.addDependencies(set);
+                if (set.contains(obj)) {
+                    return domain;
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
      * Get the first table that depends on this object.
      *
      * @param obj the object to find
@@ -1708,6 +1736,11 @@ public final class Database implements DataHandler, CastDataProvider {
                 if (t != null) {
                     obj.getSchema().add(obj);
                     throw DbException.get(ErrorCode.CANNOT_DROP_2, obj.getTraceSQL(), t.getTraceSQL());
+                }
+                Domain d = getDependentDomain(obj);
+                if (d != null) {
+                    obj.getSchema().add(obj);
+                    throw DbException.get(ErrorCode.CANNOT_DROP_2, obj.getTraceSQL(), d.getTraceSQL());
                 }
                 obj.removeChildrenAndResources(session);
             }

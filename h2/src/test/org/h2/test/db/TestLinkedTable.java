@@ -188,7 +188,7 @@ public class TestLinkedTable extends TestDb {
         Statement sb = cb.createStatement();
         sb.execute("CREATE LINKED TABLE T1(NULL, '" +
                 url + "', '"+user+"', '"+password+"', 'TEST')");
-        sb.executeQuery("SELECT * FROM DUAL A " +
+        sb.executeQuery("SELECT * FROM DUAL C " +
                 "LEFT OUTER JOIN T1 A ON A.ID=1 LEFT OUTER JOIN T1 B ON B.ID=1");
         sb.execute("DROP ALL OBJECTS");
         cb.close();

@@ -459,6 +459,18 @@ public class ErrorCode {
     public static final int COLUMN_NOT_FOUND_1 = 42122;
 
     /**
+     * The error with code <code>42123</code> is thrown when the same table
+     * name or alias is used more than once in the same FROM clause.
+     * Example:
+     * <pre>
+     * CREATE TABLE A(ID1 INT);
+     * CREATE TABLE B(ID2 INT);
+     * SELECT * FROM A C JOIN B C;
+     * </pre>
+     */
+    public static final int DUPLICATE_TABLE_ALIAS_1 = 42123;
+
+    /**
      * The error with code <code>42131</code> is thrown when
      * identical expressions should be used, but different
      * expressions were found.
@@ -2333,6 +2345,7 @@ public class ErrorCode {
         case INDEX_NOT_FOUND_1: return "42S12";
         case DUPLICATE_COLUMN_NAME_1: return "42S21";
         case COLUMN_NOT_FOUND_1: return "42S22";
+        case DUPLICATE_TABLE_ALIAS_1: return "42S23";
         case IDENTICAL_EXPRESSIONS_SHOULD_BE_USED: return "42S31";
 
         // 0A: feature not supported

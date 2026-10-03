@@ -177,13 +177,14 @@ public class Select extends Query {
      * @param isTop if the table can be the first table in the query plan
      */
     public void addTableFilter(TableFilter filter, boolean isTop) {
-        // Oracle doesn't check on duplicate aliases
-        // String alias = filter.getAlias();
-        // if (filterNames.contains(alias)) {
-        //     throw Message.getSQLException(
-        //         ErrorCode.DUPLICATE_TABLE_ALIAS, alias);
-        // }
-        // filterNames.add(alias);
+        Database db = session.getDatabase();
+        String alias = filter.getTableAlias();
+        for (TableFilter f : filters) {
+            // Tables without aliases are not checked, they may have the same name in different schemas
+            if ((filter.hasAlias() || f.hasAlias()) && db.equalsIdentifiers(alias, f.getTableAlias())) {
+                throw DbException.get(ErrorCode.DUPLICATE_TABLE_ALIAS_1, alias);
+            }
+        }
         filters.add(filter);
         if (isTop) {
             topFilters.add(filter);

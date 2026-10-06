@@ -78,11 +78,24 @@ public abstract class CommandWithColumns extends SchemaCommand {
      */
     protected void createConstraints() {
         if (constraintCommands != null) {
+            // Self-referencing constraints may refer to unique constraints that are defined after them
             for (DefineCommand command : constraintCommands) {
-                command.setTransactional(transactional);
-                command.update();
+                if (!isSelfReferencing(command)) {
+                    command.setTransactional(transactional);
+                    command.update();
+                }
+            }
+            for (DefineCommand command : constraintCommands) {
+                if (isSelfReferencing(command)) {
+                    command.setTransactional(transactional);
+                    command.update();
+                }
             }
         }
+    }
+
+    private static boolean isSelfReferencing(DefineCommand command) {
+        return command instanceof AlterTableAddConstraint && ((AlterTableAddConstraint) command).isSelfReferencing();
     }
 
     /**

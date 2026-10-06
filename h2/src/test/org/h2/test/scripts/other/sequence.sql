@@ -503,3 +503,55 @@ DROP SEQUENCE SEQ;
 
 SET MODE Regular;
 > ok
+
+-- A sequence used by a domain cannot be dropped
+
+CREATE SEQUENCE SEQ;
+> ok
+
+CREATE DOMAIN D1 INT DEFAULT NEXT VALUE FOR SEQ;
+> ok
+
+DROP SEQUENCE SEQ;
+> exception CANNOT_DROP_2
+
+DROP DOMAIN D1;
+> ok
+
+CREATE DOMAIN D2 INT CHECK (VALUE < NEXT VALUE FOR SEQ);
+> ok
+
+DROP SEQUENCE SEQ;
+> exception CANNOT_DROP_2
+
+DROP DOMAIN D2;
+> ok
+
+CREATE DOMAIN D3 TIMESTAMP ON UPDATE (TIMESTAMP '2000-01-01 00:00:00' + NEXT VALUE FOR SEQ * INTERVAL '1' DAY);
+> ok
+
+DROP SEQUENCE SEQ;
+> exception CANNOT_DROP_2
+
+DROP DOMAIN D3;
+> ok
+
+DROP SEQUENCE SEQ;
+> ok
+
+-- A function used by a domain cannot be dropped
+
+CREATE ALIAS F1 FOR 'java.lang.Math.abs(int)';
+> ok
+
+CREATE DOMAIN D1 INT CHECK (F1(VALUE) < 1000);
+> ok
+
+DROP ALIAS F1;
+> exception CANNOT_DROP_2
+
+DROP DOMAIN D1;
+> ok
+
+DROP ALIAS F1;
+> ok

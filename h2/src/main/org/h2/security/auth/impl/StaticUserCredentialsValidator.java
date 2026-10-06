@@ -48,7 +48,9 @@ public class StaticUserCredentialsValidator implements CredentialsValidator {
             }
         }
         if (password!=null) {
-            return password.equals(authenticationInfo.getPassword());
+            String provided = authenticationInfo.getPassword();
+            return Utils.compareSecure(password.getBytes(StandardCharsets.UTF_8),
+                    provided == null ? null : provided.getBytes(StandardCharsets.UTF_8));
         }
         return Utils.compareSecure(hashWithSalt,
                 SHA256.getHashWithSalt(authenticationInfo.getPassword().getBytes(StandardCharsets.UTF_8), salt));

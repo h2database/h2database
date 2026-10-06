@@ -10,6 +10,8 @@ import java.awt.HeadlessException;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -38,8 +40,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.UUID;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 import org.h2.api.ErrorCode;
 import org.h2.engine.SysProperties;
+import org.h2.message.DbException;
 import org.h2.store.FileLister;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
@@ -111,6 +116,7 @@ public class TestTools extends TestDb {
         testServer();
         testScriptRunscript();
         testBackupRestore();
+        testRestoreZipSlip();
         testRecover();
         FileUtils.delete(getBaseDir() + "/b2.sql");
         FileUtils.delete(getBaseDir() + "/b2.sql.txt");
@@ -1039,6 +1045,24 @@ public class TestTools extends TestDb {
         conn.close();
         DeleteDbFiles.main("-dir", getBaseDir(), "-db", "testBackupRestore",
                 "-quiet");
+    }
+
+    private void testRestoreZipSlip() throws Exception {
+        String dir = getBaseDir();
+        FileUtils.createDirectories(dir + "/restoreTarget");
+        String zipFileName = dir + "/zipSlip.zip";
+        try (ZipOutputStream out = new ZipOutputStream(new FileOutputStream(zipFileName))) {
+            out.putNextEntry(new ZipEntry("../zipSlip.txt"));
+            out.write("owned".getBytes(StandardCharsets.UTF_8));
+            out.closeEntry();
+        }
+        String escaped = dir + "/zipSlip.txt";
+        FileUtils.delete(escaped);
+        assertThrows(DbException.class,
+                () -> Restore.execute(zipFileName, dir + "/restoreTarget", null));
+        assertFalse(FileUtils.exists(escaped));
+        FileUtils.delete(zipFileName);
+        FileUtils.deleteRecursive(dir + "/restoreTarget", false);
     }
 
     private void testChangeFileEncryption(boolean split) throws SQLException {

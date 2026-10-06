@@ -6,11 +6,13 @@
 package org.h2.schema;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import org.h2.constraint.Constraint;
 import org.h2.constraint.ConstraintDomain;
 import org.h2.engine.DbObject;
 import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
+import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.ValueExpression;
 import org.h2.message.Trace;
 import org.h2.table.ColumnTemplate;
@@ -168,6 +170,27 @@ public final class Domain extends SchemaObject implements ColumnTemplate {
 
     public ArrayList<ConstraintDomain> getConstraints() {
         return constraints;
+    }
+
+    /**
+     * Add all objects that expressions of this domain depend on to the hash
+     * set.
+     *
+     * @param dependencies the current set of dependencies
+     */
+    public void addDependencies(HashSet<DbObject> dependencies) {
+        ExpressionVisitor visitor = ExpressionVisitor.getDependenciesVisitor(dependencies);
+        if (defaultExpression != null) {
+            defaultExpression.isEverything(visitor);
+        }
+        if (onUpdateExpression != null) {
+            onUpdateExpression.isEverything(visitor);
+        }
+        if (constraints != null) {
+            for (ConstraintDomain constraint : constraints) {
+                constraint.isEverything(visitor);
+            }
+        }
     }
 
     /**

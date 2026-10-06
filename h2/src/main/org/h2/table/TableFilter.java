@@ -576,6 +576,15 @@ public class TableFilter implements ColumnResolver {
     }
 
     /**
+     * Returns whether an alias was specified explicitly.
+     *
+     * @return {@code true} if an alias was specified
+     */
+    public boolean hasAlias() {
+        return alias != null;
+    }
+
+    /**
      * Get the table alias name. If no alias is specified, the table name is
      * returned.
      *

@@ -39,6 +39,7 @@
 42S12=Index {0} nenájdený
 42S21=Duplicitné meno stĺpca {0}
 42S22=Stĺpec {0} nenájdený
+42S23=#Duplicate table alias {0}
 42S31=#Identical expressions should be used; expected {0}, found {1}
 54011=#Too many columns. The maximum count is {0}
 57014=Príkaz bol zrušený alebo vypršal časový limit sedenia

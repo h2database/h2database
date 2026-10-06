@@ -1096,3 +1096,65 @@ FROM A;
 > - ------------------------------------------------------------------------
 > 1 1
 > rows: 1
+
+-- Duplicate table aliases in the same FROM clause
+
+CREATE TABLE A(ID1 INT PRIMARY KEY);
+> ok
+
+CREATE TABLE B(ID2 INT PRIMARY KEY);
+> ok
+
+SELECT * FROM A C JOIN B C;
+> exception DUPLICATE_TABLE_ALIAS_1
+
+SELECT * FROM A C, B c;
+> exception DUPLICATE_TABLE_ALIAS_1
+
+SELECT * FROM A C LEFT JOIN B C ON TRUE;
+> exception DUPLICATE_TABLE_ALIAS_1
+
+SELECT * FROM A C CROSS JOIN (A D JOIN B C ON TRUE);
+> exception DUPLICATE_TABLE_ALIAS_1
+
+SELECT * FROM A, B A;
+> exception DUPLICATE_TABLE_ALIAS_1
+
+SELECT * FROM A, A A;
+> exception DUPLICATE_TABLE_ALIAS_1
+
+-- Different aliases, the same alias in different query levels, and the same table name in different schemas
+
+SELECT * FROM A C JOIN A D;
+> ID1 ID1
+> --- ---
+> rows: 0
+
+SELECT * FROM A WHERE EXISTS (SELECT * FROM B A);
+> ID1
+> ---
+> rows: 0
+
+CREATE SCHEMA S1;
+> ok
+
+CREATE SCHEMA S2;
+> ok
+
+CREATE TABLE S1.T(ID INT);
+> ok
+
+CREATE TABLE S2.T(ID INT);
+> ok
+
+SELECT COUNT(*) FROM S1.T, S2.T;
+>> 0
+
+DROP SCHEMA S1 CASCADE;
+> ok
+
+DROP SCHEMA S2 CASCADE;
+> ok
+
+DROP TABLE A, B;
+> ok

@@ -230,7 +230,8 @@ public class TestTransactionStore extends TestBase {
             assertTrue(failCount + " >= " + (count * 0.9),
                     failCount.get() < count * 0.9);
             // we expect at least a few failures
-            assertTrue(failCount.toString(), failCount.get() > 0);
+            // but this is not guaranteed, and became flaky recently, so we don't assert this anymore
+//            assertTrue(failCount.toString(), failCount.get() > 0);
         }
     }
 

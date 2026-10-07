@@ -1099,7 +1099,7 @@ public class Select extends Query {
                         break;
                     }
                 }
-                if (found < 0) {
+                if (found < 0 && !isColumnOfFilters(expr)) {
                     // special case: GROUP BY a column alias
                     for (int j = 0; j < expSize; j++) {
                         Expression e = expressions.get(j);
@@ -1143,6 +1143,29 @@ public class Select extends Query {
         mapCondition(havingIndex);
         mapCondition(qualifyIndex);
         checkInit = true;
+    }
+
+    /**
+     * Checks whether the specified GROUP BY expression is an unqualified name
+     * of a column of a table in the FROM clause. Such name refers to the
+     * column, even if a select list expression has the same alias.
+     *
+     * @param expr the GROUP BY expression
+     * @return whether the expression is a name of a column
+     */
+    private boolean isColumnOfFilters(Expression expr) {
+        if (expr instanceof ExpressionColumn) {
+            ExpressionColumn ec = (ExpressionColumn) expr;
+            if (ec.getOriginalTableAliasName() == null) {
+                String name = ec.getOriginalColumnName();
+                for (TableFilter f : filters) {
+                    if (f.findColumn(name) != null) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     private void mapCondition(int index) {

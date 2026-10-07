@@ -42,6 +42,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.jar.JarOutputStream;
+import java.util.spi.ToolProvider;
 import java.util.zip.CRC32;
 import java.util.zip.Deflater;
 import java.util.zip.ZipEntry;
@@ -185,6 +186,17 @@ public class BuildBase {
      */
     protected final String javaExecutable = System.getProperty("java.home") +
             File.separator + "bin" + File.separator + "java";
+
+    /**
+     * Get the full path to a tool of the current JDK, for example javac. The
+     * build may run with a JDK that is not the first one in the path.
+     *
+     * @param name the name of the tool
+     * @return the full path to the tool
+     */
+    protected static String getJdkTool(String name) {
+        return System.getProperty("java.home") + File.separator + "bin" + File.separator + name;
+    }
 
     /**
      * The full path to the tools jar of the current JDK.
@@ -522,16 +534,12 @@ public class BuildBase {
                         "Generating ",
                 }));
             }
-            Class<?> clazz;
-            try {
-                clazz = Class.forName("jdk.javadoc.internal.tool.Main");
-            } catch (Exception e) {
-                clazz = Class.forName("com.sun.tools.javadoc.Main");
+            ToolProvider tool = ToolProvider.findFirst("javadoc").orElse(null);
+            if (tool != null) {
+                result = tool.run(System.out, System.err, args);
+            } else {
+                result = exec(getJdkTool("javadoc"), args(args));
             }
-            Method execute = clazz.getMethod("execute", String[].class);
-            result = (Integer) invoke(execute, null, new Object[] { args });
-        } catch (Exception e) {
-            result = exec("javadoc", args(args));
         } finally {
             System.setOut(old);
         }
@@ -928,7 +936,7 @@ public class BuildBase {
             result = (Integer) invoke(compile, instance, new Object[] { array });
         } catch (Exception e) {
             e.printStackTrace();
-            result = exec("javac", new StringList(array));
+            result = exec(getJdkTool("javac"), new StringList(array));
         } finally {
             System.setErr(old);
         }

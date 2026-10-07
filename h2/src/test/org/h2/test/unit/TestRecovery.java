@@ -45,6 +45,7 @@ public class TestRecovery extends TestDb {
         testRecoverClob();
         testRecoverFulltext();
         testRecoverJson();
+        testRecoverArray();
         testRecoverGeneratedColumns();
         testCompressedAndUncompressed();
         testRunScript();
@@ -109,6 +110,28 @@ public class TestRecovery extends TestDb {
         conn.close();
     }
 
+    private void testRecoverArray() throws Exception {
+        DeleteDbFiles.execute(getBaseDir(), "recovery", true);
+        Connection conn = getConnection("recovery");
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(id int primary key, a int array, b numeric(10, 3) array array)");
+        stat.execute("insert into test values (1, null, array[array[1.5], array[]]), (2, array[], null), "
+                + "(3, array[1, 2, 3], array[array[12345.125]])");
+        try (ResultSet rs = stat.executeQuery("select a, cast(b as varchar) from test order by id")) {
+            assertTrue(rs.next());
+            assertNull(rs.getObject(1));
+            assertEquals("[[1.500], []]", rs.getString(2));
+            assertTrue(rs.next());
+            assertEquals(new Object[0], (Object[]) rs.getArray(1).getArray());
+            assertNull(rs.getObject(2));
+            assertTrue(rs.next());
+            assertEquals(new Object[] {1, 2, 3}, (Object[]) rs.getArray(1).getArray());
+            assertEquals("[[12345.125]]", rs.getString(2));
+            assertFalse(rs.next());
+        }
+        conn.close();
+    }
+    
     private void testRecoverGeneratedColumns() throws Exception {
         DeleteDbFiles.execute(getBaseDir(), "recovery", true);
         Connection conn = getConnection("recovery");

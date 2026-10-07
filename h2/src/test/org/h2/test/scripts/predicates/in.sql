@@ -201,8 +201,8 @@ create table test(v boolean) as (values unknown, true, false);
 > ok
 
 SELECT CASE WHEN NOT (false IN (null)) THEN false END;
-> NULL
-> ----
+> UNKNOWN
+> -------
 > null
 > rows: 1
 
@@ -238,8 +238,8 @@ drop table test;
 > ok
 
 SELECT CASE WHEN NOT (false IN (null)) THEN false END;
-> NULL
-> ----
+> UNKNOWN
+> -------
 > null
 > rows: 1
 

@@ -61,12 +61,12 @@ public final class SearchedCase extends OperationN {
         if ((len & 1) == 0) {
             Expression result = args[len].optimize(session);
             if (allConst) {
-                return result;
+                return SimpleCase.getTypedIfNull(result, SimpleCase.combineTypes(typeInfo, result));
             }
             args[len] = result;
             typeInfo = SimpleCase.combineTypes(typeInfo, result);
         } else if (allConst) {
-            return ValueExpression.NULL;
+            return SimpleCase.getTypedIfNull(ValueExpression.NULL, typeInfo);
         }
         if (typeInfo.getValueType() == Value.UNKNOWN) {
             typeInfo = TypeInfo.TYPE_VARCHAR;

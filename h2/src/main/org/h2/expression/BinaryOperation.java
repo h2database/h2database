@@ -165,7 +165,7 @@ public class BinaryOperation extends Operation2 {
             }
         }
         if (left.isConstant() && right.isConstant()) {
-            return ValueExpression.get(getValue(session));
+            return TypedValueExpression.getTypedIfNull(getValue(session), type);
         }
         return this;
     }

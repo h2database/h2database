@@ -330,6 +330,14 @@ public class PageParser {
             case '\\':
                 buff.append("\\\\");
                 break;
+            case '<':
+                // escape so the sequence </script> in a value can't close the
+                // enclosing inline <script> block
+                buff.append("\\u003c");
+                break;
+            case '>':
+                buff.append("\\u003e");
+                break;
             case '\n':
                 buff.append("\\n");
                 break;

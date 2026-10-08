@@ -336,7 +336,16 @@ public class TestWeb extends TestDb {
             result = client.get(url, "query.do?sql=create schema test_schema");
             result = client.get(url, "query.do?sql=" +
                     "create view test_view as select * from test");
+            // object names are written into the inline <script> tree, so an
+            // identifier with </script> must not break out of the block
+            result = client.get(url, "query.do?sql=" + StringUtils.urlEncode(
+                    "create table \"</script><h2xsstest>\"(id int)"));
             result = client.get(url, "tables.do");
+            assertContains(result, "h2xsstest");
+            assertTrue(result.indexOf("<h2xsstest>") < 0);
+            assertTrue(result.indexOf("</script><h2xsstest>") < 0);
+            client.get(url, "query.do?sql=" + StringUtils.urlEncode(
+                    "drop table \"</script><h2xsstest>\""));
             result = client.get(url, "query.jsp");
             result = client.get(url, "query.do?sql=select * from test");
             assertContains(result, "Hello");

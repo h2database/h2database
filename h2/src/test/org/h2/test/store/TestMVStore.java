@@ -86,6 +86,7 @@ public class TestMVStore extends TestBase {
         testConcurrentOpen();
         testFileHeader();
         testFileHeaderCorruption();
+        testStoreHeaderAfterUncleanOpen();
         testIndexSkip();
         testIndexSkipReverse();
         testMinMaxNextKey();
@@ -967,6 +968,57 @@ public class TestMVStore extends TestBase {
                 // both headers are corrupt
                 assertThrows(Exception.class, () -> openStore(fileName));
             }
+        }
+    }
+
+    // Regression test for https://github.com/h2database/h2database/issues/4446:
+    // committed data lost after unclean open once RETENTION_TIME elapses because
+    // writeStoreHeader() was called with a stale lastChunk (missing lastChunk = chunk
+    // assignment removed by commit 8492b8c2c).
+    private void testStoreHeaderAfterUncleanOpen() {
+        String fileName = getBaseDir() + "/" + getTestName();
+        FileUtils.delete(fileName);
+        MVStore.Builder builder = new MVStore.Builder()
+                .fileName(fileName).autoCommitDisabled();
+
+        // Session 1: write some data, then crash (no clean shutdown)
+        MVStore s = builder.open();
+        MVMap<Integer, byte[]> map = s.openMap("data");
+        for (int i = 0; i < 20; i++) {
+            map.put(i % 10, new byte[1000 + i]);
+            s.commit();
+        }
+        s.closeImmediately();
+
+        // Session 2: reopen after unclean close (simulates crash recovery), then
+        // force chunk reuse by setting retentionTime=0 so holes appear immediately.
+        // Assert the store header always references the chunk just written.
+        s = builder.open();
+        s.setRetentionTime(0);
+        map = s.openMap("data");
+        long headerVersion = DataUtils.readHexLong(s.getStoreHeader(), "version", 0);
+        for (int i = 0; i < 60; i++) {
+            map.put(i % 10, new byte[1000 + i]);
+            long committed = s.commit();
+            long v = DataUtils.readHexLong(s.getStoreHeader(), "version", 0);
+            if (v != headerVersion) {
+                // whenever the store header is rewritten it must reference
+                // the chunk just committed, not the previous one
+                assertTrue("store header version " + v + " != committed version " + committed +
+                        " at commit " + i, committed == v);
+                headerVersion = v;
+            }
+        }
+        map.put(999, new byte[10]);
+        long lastVersion = s.commit();
+        s.sync();
+        s.closeImmediately();   // second crash
+
+        // Session 3: verify nothing committed before the second crash was lost
+        try (MVStore s3 = builder.open()) {
+            MVMap<Integer, byte[]> map3 = s3.openMap("data");
+            assertEquals(lastVersion, s3.getCurrentVersion());
+            assertTrue("key 999 must survive second crash", map3.containsKey(999));
         }
     }
 

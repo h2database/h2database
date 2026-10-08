@@ -400,6 +400,9 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
         // end of the used space is not necessarily the end of the file
         boolean storeAtEndOfFile = filePos + buffer.limit() >= size();
         boolean shouldWriteStoreHeader = shouldWriteStoreHeader(chunk, storeAtEndOfFile);
+        // shouldWriteStoreHeader() must see the previous chunk, but writeStoreHeader()
+        // must reference the chunk just written; update lastChunk here, not after return
+        lastChunk = chunk;
         if (shouldWriteStoreHeader) {
             writeStoreHeader();
         }

@@ -28,6 +28,11 @@ abstract class PredicateWithSubquery extends Condition {
     }
 
     @Override
+    public boolean needParentheses() {
+        return true;
+    }
+
+    @Override
     public void mapColumns(ColumnResolver resolver, int level, int state) {
         query.mapColumns(resolver, level + 1, true);
     }

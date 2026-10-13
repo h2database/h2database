@@ -7,6 +7,7 @@ package org.h2.mvstore.type;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputFilter;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.lang.reflect.Array;
@@ -17,6 +18,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.UUID;
+import org.h2.engine.SysProperties;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.WriteBuffer;
 import org.h2.util.Utils;
@@ -374,6 +376,10 @@ public class ObjectDataType extends BasicDataType<Object> {
         try {
             ByteArrayInputStream in = new ByteArrayInputStream(data);
             ObjectInputStream is = new ObjectInputStream(in);
+            // honor the h2.allowedClasses allow-list, like JdbcUtils.deserialize
+            ObjectInputFilter filter = ObjectInputFilter.Config.createFilter(
+                    SysProperties.ALLOWED_CLASSES.trim().replaceAll("\\s*,\\s*", ";") + ";!*");
+            is.setObjectInputFilter(filter);
             return is.readObject();
         } catch (Throwable e) {
             throw DataUtils.newIllegalArgumentException(

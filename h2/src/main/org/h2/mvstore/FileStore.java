@@ -1585,7 +1585,6 @@ public abstract class FileStore<C extends Chunk<C>>
             buff.position(0);
 
             writeChunk(c, buff);
-            lastChunk = c;
         } catch (MVStoreException e) {
             mvStore.panic(e);
         } catch (Throwable e) {

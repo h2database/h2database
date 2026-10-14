@@ -24,11 +24,15 @@ import org.h2.engine.Role;
 import org.h2.engine.SessionLocal;
 import org.h2.engine.User;
 import org.h2.jdbcx.JdbcConnectionPool;
+import org.h2.security.auth.AuthenticationInfo;
+import org.h2.security.auth.ConfigProperties;
 import org.h2.security.auth.DefaultAuthenticator;
 import org.h2.security.auth.H2AuthConfig;
 import org.h2.security.auth.H2AuthConfigXml;
+import org.h2.security.auth.PropertyConfig;
 import org.h2.security.auth.impl.AssignRealmNameRole;
 import org.h2.security.auth.impl.JaasCredentialsValidator;
+import org.h2.security.auth.impl.LdapCredentialsValidator;
 import org.h2.security.auth.impl.StaticRolesMapper;
 import org.h2.security.auth.impl.StaticUserCredentialsValidator;
 import org.h2.test.TestBase;
@@ -150,6 +154,22 @@ public class TestAuthentication extends TestBase {
         testSet();
         testDatasource();
         testXmlConfig();
+        testLdapEmptyPassword();
+    }
+
+    private void testLdapEmptyPassword() throws Exception {
+        // an empty password with a non-empty bind DN is an LDAP unauthenticated
+        // bind, so it must be rejected before any bind is attempted
+        ConnectionInfo connectionInfo = new ConnectionInfo(getDatabaseURL() + ";AUTHREALM=LDAP", null,
+                getExternalUser(), "");
+        AuthenticationInfo authenticationInfo = new AuthenticationInfo(connectionInfo);
+        assertEquals("", authenticationInfo.getPassword());
+        LdapCredentialsValidator validator = new LdapCredentialsValidator();
+        validator.configure(new ConfigProperties(
+                new PropertyConfig("bindDnPattern", "uid=%u,ou=users,dc=example,dc=com"),
+                new PropertyConfig("host", "127.0.0.1"), new PropertyConfig("port", "1"),
+                new PropertyConfig("secure", "false")));
+        assertFalse(validator.validateCredentials(authenticationInfo));
     }
 
     private void testInvalidPassword() throws Exception {

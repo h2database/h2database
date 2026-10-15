@@ -704,12 +704,13 @@ public class Select extends Query {
         Index index = topTableFilter.getIndex();
         SearchRow first = null;
         int columnIndex = index.getColumns()[0].getColumnId();
+        boolean reverse = topTableFilter.isIndexReverse();
         if (!quickOffset) {
             offset = 0;
         }
         for (;;) {
             setCurrentRowNumber(++rowNumber);
-            Cursor cursor = index.findNext(session, first, null);
+            Cursor cursor = index.findNext(session, first, null, reverse);
             if (!cursor.next()) {
                 break;
             }

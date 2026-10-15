@@ -181,6 +181,8 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
     private ValueTimestampTimeZone currentTimestamp;
     private HashMap<String, Value> variables;
     private int queryTimeout;
+
+    private int maxRecursion;
     private boolean commitOrRollbackDisabled;
     private Table waitForLock;
     private Thread waitForLockThread;
@@ -1581,6 +1583,25 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
 
     public int getQueryTimeout() {
         return queryTimeout;
+    }
+
+    /**
+     * Set the maximum number of iterations for a recursive query (0 means
+     * unlimited).
+     *
+     * @param maxRecursion the new maximum, or 0 for no limit
+     */
+    public void setMaxRecursion(int maxRecursion) {
+        this.maxRecursion = maxRecursion;
+    }
+
+    /**
+     * Get the maximum number of iterations for a recursive query.
+     *
+     * @return the maximum, or 0 if there is no limit
+     */
+    public int getMaxRecursion() {
+        return maxRecursion;
     }
 
     /**

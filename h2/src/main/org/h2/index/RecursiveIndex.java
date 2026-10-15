@@ -100,7 +100,13 @@ public final class RecursiveIndex extends QueryExpressionIndex {
         cte.setRecursiveResult(resultInterface);
         // to ensure the last result is not closed
         right.disableCache();
+        int maxRecursion = session.getMaxRecursion();
+        int iteration = 0;
         while (true) {
+            if (maxRecursion > 0 && ++iteration > maxRecursion) {
+                throw DbException.get(ErrorCode.STATEMENT_WAS_CANCELED,
+                        "recursive query exceeded MAX_RECURSION (" + maxRecursion + ")");
+            }
             resultInterface = right.query(0);
             if (!resultInterface.hasNext()) {
                 break;

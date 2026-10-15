@@ -1092,7 +1092,7 @@ public final class MVStore implements AutoCloseable {
         checkOpen();
         FileStore<?> f = fileStore;
         if (f != null) {
-            f.sync();
+            executeFilestoreOperation(f::sync);
         }
     }
 

@@ -253,6 +253,7 @@ public final class AppendOnlyMultiFileStore extends FileStore<MFChunk>
     protected void writeChunk(MFChunk chunk, WriteBuffer buff) {
         long filePos = chunk.block * BLOCK_SIZE;
         writeFully(chunk, filePos, buff.getBuffer());
+        lastChunk = chunk;
     }
 
     @Override

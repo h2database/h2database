@@ -510,7 +510,7 @@ quotas quote quoted quotes quoting race rad radians radic radio radius radix
 rafel rail railo railroad railroads rainbow raise ram ramiere ran rand random
 randomize randomized randomly randomness rang range ranges ranging rank rapid
 rapidshare rapping raquo rarr raspberry rate rates rather rathsack ratio ravioli
-raw rawbyte rawtohex rawtypes razor razuna rceil rcon rdbms rdf rdfs rdonly rdquo
+raw rawbyte rawtohex hex rawtypes razor razuna rceil rcon rdbms rdf rdfs rdonly rdquo
 reach reachable reached reaches read readability readable reader readers reading
 readonly reads readwrite ready real reality really realm realtime reaper reason
 reasonable reasonably reasoning reasons rebind rebuild rebuilt rec recalculate

@@ -1897,6 +1897,9 @@ public final class InformationSchemaTableLegacy extends MetaTable {
             break;
         }
         case QUERY_STATISTICS: {
+            if (!session.getUser().isAdmin()) {
+                break;
+            }
             QueryStatisticsData control = database.getQueryStatisticsData();
             if (control != null) {
                 for (QueryStatisticsData.QueryEntry entry : control.getQueries()) {

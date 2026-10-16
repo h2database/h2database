@@ -20,6 +20,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -57,6 +60,7 @@ import org.h2.table.Column;
 import org.h2.table.PlanItem;
 import org.h2.table.Table;
 import org.h2.table.TableType;
+import org.h2.table.TableView;
 import org.h2.util.HasSQL;
 import org.h2.util.IOUtils;
 import org.h2.util.MathUtils;
@@ -231,13 +235,10 @@ public class ScriptCommand extends ScriptBase {
                 }
             }
 
-            final ArrayList<Table> tables = db.getAllTablesAndViews();
-            // sort by id, so that views are after tables and views on views
-            // after the base views
-            tables.sort(Comparator.comparingInt(Table::getId));
+            final ArrayList<Table> sortedTablesAndViews = getSortedTablesAndViews(db);
 
             // Generate the DROP XXX  ... IF EXISTS
-            for (Table table : tables) {
+            for (Table table : sortedTablesAndViews) {
                 if (excludeSchema(table.getSchema())) {
                     continue;
                 }
@@ -277,7 +278,7 @@ public class ScriptCommand extends ScriptBase {
 
             // Generate CREATE TABLE and INSERT...VALUES
             int count = 0;
-            for (Table table : tables) {
+            for (Table table : sortedTablesAndViews) {
                 if (excludeSchema(table.getSchema())) {
                     continue;
                 }
@@ -364,6 +365,59 @@ public class ScriptCommand extends ScriptBase {
         LocalResult r = result;
         reset();
         return r;
+    }
+
+    // First tables ordered by ID, then views in dependency order
+    private ArrayList<Table> getSortedTablesAndViews(Database db) {
+        final ArrayList<Table> allTablesAndViews = db.getAllTablesAndViews();
+        allTablesAndViews.sort(Comparator.comparingInt(Table::getId));
+        final ArrayList<TableView> allViews = new ArrayList<>();
+        final ArrayList<Table> sortedTablesAndViews = new ArrayList<>();
+        for (Table table : allTablesAndViews) {
+            if (table instanceof TableView) {
+                allViews.add((TableView) table);
+            } else {
+                sortedTablesAndViews.add(table);
+            }
+        }
+        final List<TableView> sortedViews = new TableViewSorter(allViews).sortByDependencies();
+        sortedTablesAndViews.addAll(sortedViews);
+        return sortedTablesAndViews;
+    }
+
+    // Topological sort of list of TableViews
+    public static class TableViewSorter {
+        private final List<TableView> views;
+        private final List<TableView> order;
+        private final Map<TableView, Boolean> visited;
+
+        public TableViewSorter(List<TableView> views) {
+            this.views = views;
+            this.order = new ArrayList<>(views.size());
+            this.visited = new HashMap<>(views.size());
+        }
+
+        public List<TableView> sortByDependencies() {
+            for (TableView view : views) {
+                visited.put(view, false);
+            }
+            for (TableView view : views) {
+                if (Boolean.FALSE.equals(visited.get(view))) {
+                    sortHelper(view);
+                }
+            }
+            return order;
+        }
+
+        private void sortHelper(TableView v) {
+            visited.replace(v, true);
+            for (Table table : v.getTables()) {
+                if (table instanceof TableView && Boolean.FALSE.equals(visited.get(table))) {
+                    sortHelper((TableView) table);
+                }
+            }
+            order.add(v);
+        }
     }
 
     private void dumpDomains(ArrayList<Schema> schemas) throws IOException {

@@ -12,6 +12,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Random;
@@ -74,6 +75,7 @@ public class TestOptimizations extends TestDb {
         testOptimizeInJoin();
         testMultiColumnRangeQuery();
         testDistinctOptimization();
+        testDistinctOptimizationDescending();
         testQueryCacheTimestamp();
         if (!config.lazy) {
             testQueryCacheSpeed();
@@ -812,6 +814,47 @@ public class TestOptimizations extends TestDb {
                     " sql:" + sql);
         }
     }
+
+    private void testDistinctOptimizationDescending() throws SQLException {
+        deleteDb("optimizations");
+        Connection conn = getConnection("optimizations");
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE TABLE T(X INT)");
+        stat.execute("CREATE INDEX I ON T(X)");
+        stat.execute("INSERT INTO T SELECT MOD(X, 5) FROM SYSTEM_RANGE(1, 5000)");
+        stat.execute("ANALYZE");
+        assertDistinct(stat, "ORDER BY X DESC LIMIT 1",
+                new int[] { 4 });
+        assertDistinct(stat, "ORDER BY X DESC LIMIT 3",
+                new int[] { 4, 3, 2 });
+        assertDistinct(stat, "ORDER BY X DESC LIMIT 2 OFFSET 1",
+                new int[] { 3, 2 });
+        assertDistinct(stat, "ORDER BY X DESC",
+                new int[] { 4, 3, 2, 1, 0 });
+        assertDistinct(stat, "ORDER BY X LIMIT 1",
+                new int[] { 0 });
+        assertDistinct(stat, "ORDER BY X LIMIT 3",
+                new int[] { 0, 1, 2 });
+        conn.close();
+    }
+
+    private void assertDistinct(Statement stat, String suffix, int[] expected) throws SQLException {
+        assertEquals(Arrays.toString(expected), Arrays.toString(distinctValues(stat, suffix)));
+    }
+
+    private int[] distinctValues(Statement stat, String suffix) throws SQLException {
+        ResultSet rs = stat.executeQuery("SELECT DISTINCT X FROM T " + suffix);
+        ArrayList<Integer> list = new ArrayList<>();
+        while (rs.next()) {
+            list.add(rs.getInt(1));
+        }
+        int[] result = new int[list.size()];
+        for (int i = 0; i < result.length; i++) {
+            result[i] = list.get(i);
+        }
+        return result;
+    }
+
 
     private static long measureQuerySpeed(Statement stat, String sql, boolean optimized) throws SQLException {
         stat.execute("set OPTIMIZE_REUSE_RESULTS " + (optimized ? "1" : "0"));

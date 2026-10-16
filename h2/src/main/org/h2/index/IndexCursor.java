@@ -53,6 +53,15 @@ public class IndexCursor implements Cursor {
     public IndexCursor() {
     }
 
+    /**
+     * Whether the index is traversed in reverse order.
+     *
+     * @return true if reverse
+     */
+    public boolean isReverse() {
+        return reverse;
+    }
+
     public void setIndex(Index index, boolean reverse) {
         this.index = index;
         this.reverse = reverse;

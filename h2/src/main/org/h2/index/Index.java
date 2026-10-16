@@ -308,11 +308,15 @@ public abstract class Index extends SchemaObject {
      * iterate over the result.
      *
      * @param session the session
-     * @param higherThan the lower limit (excluding)
-     * @param last the last row, or null for no limit
+     * @param higherThan the row to start after (excluding), the lower limit
+     *     when iterating in ascending order, the upper limit when
+     *     iterating in reverse order
+     * @param last the last row (limit in iteration direction), or null for no
+     *     limit
+     * @param reverse if true, iterate in reverse (descending) order
      * @return the cursor
      */
-    public Cursor findNext(SessionLocal session, SearchRow higherThan, SearchRow last) {
+    public Cursor findNext(SessionLocal session, SearchRow higherThan, SearchRow last, boolean reverse) {
         throw DbException.getInternalError(toString());
     }
 

@@ -82,6 +82,7 @@ Contains information about parameters of routines.
 
 "QUERY_STATISTICS",,"
 Contains statistics of queries when query statistics gathering is enabled.
+Only users with ADMIN privileges can see statistics.
 "
 
 "REFERENTIAL_CONSTRAINTS",,"

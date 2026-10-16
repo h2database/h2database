@@ -38,6 +38,7 @@ public class TestRights extends TestDb {
     public void test() throws SQLException {
         testNullPassword();
         testLinkedTableMeta();
+        testQueryStatisticsAdminOnly();
         testGrantMore();
         testGrantSchema();
         testRevokeSchema();
@@ -107,6 +108,30 @@ public class TestRights extends TestDb {
             conn2.close();
 
             stat.execute("drop table test");
+        }
+    }
+
+    private void testQueryStatisticsAdminOnly() throws SQLException {
+        deleteDb("rights");
+        try (Connection conn = getConnection("rights")) {
+            stat = conn.createStatement();
+            stat.execute("create user test password 'test'");
+            stat.execute("set query_statistics true");
+            stat.execute("create table secret(v varchar)");
+            stat.execute("insert into secret values ('secret value')");
+            // statements of other sessions are invisible to non-admin
+            for (String url : new String[] { "rights", "rights;OLD_INFORMATION_SCHEMA=TRUE" }) {
+                try (Connection conn2 = getConnection(url, "test", getPassword("test"))) {
+                    ResultSet rs = conn2.createStatement().executeQuery(
+                            "select sql_statement from information_schema.query_statistics");
+                    assertFalse(rs.next());
+                }
+            }
+            // and visible to admin
+            ResultSet rs = stat.executeQuery("select sql_statement from information_schema.query_statistics "
+                    + "where sql_statement like 'insert into secret%'");
+            assertTrue(rs.next());
+            stat.execute("set query_statistics false");
         }
     }
 

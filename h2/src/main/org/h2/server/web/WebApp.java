@@ -1173,7 +1173,7 @@ public class WebApp {
             }
         } catch (Throwable e) {
             result = "<br />" + getStackTrace(0, e, session.getContents().isH2());
-            error = formatAsError(e.getMessage());
+            error = formatAsError(PageParser.escapeHtml(e.getMessage()));
         }
         String sql = "@edit " + (String) session.get("resultSetSQL");
         Connection conn = session.getConnection();

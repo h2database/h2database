@@ -391,6 +391,17 @@ public class TestWeb extends TestDb {
                     "select * from test&op=2&row=1");
             result = client.get(url, "query.do?sql=select * from test");
             assertContains(result, "no rows");
+            // the message of a failed edit can contain object names,
+            // it must be escaped like the stack trace next to it
+            result = client.get(url, "query.do?sql=" + StringUtils.urlEncode(
+                    "alter table test add constraint \"<h2xsstest>\" check(id > 0)"));
+            result = client.get(url, "query.do?sql=@edit select * from test");
+            result = client.get(url, "editResult.do?sql=@edit " +
+                    "select * from test&op=1&row=-1&r-1c1=-1&r-1c2=Hello");
+            assertContains(result, "h2xsstest");
+            assertTrue(result.indexOf("<h2xsstest>") < 0);
+            client.get(url, "query.do?sql=" + StringUtils.urlEncode(
+                    "alter table test drop constraint \"<h2xsstest>\""));
 
             // autoComplete
             result = client.get(url, "autoCompleteList.do?query=select 'abc");

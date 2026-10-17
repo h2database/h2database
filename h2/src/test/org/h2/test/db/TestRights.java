@@ -42,6 +42,7 @@ public class TestRights extends TestDb {
         testGrantSchema();
         testRevokeSchema();
         testOpenNonAdminWithMode();
+        testLegacyMetaSourceHidden();
         testDisallowedTables();
         testDropOwnUser();
         testGetTables();
@@ -271,6 +272,36 @@ public class TestRights extends TestDb {
         conn2.close();
         stat = conn.createStatement();
         stat.execute("drop user test");
+        conn.close();
+    }
+
+    private void testLegacyMetaSourceHidden() throws SQLException {
+        deleteDb("rights");
+        Connection conn = getConnection("rights;OLD_INFORMATION_SCHEMA=TRUE");
+        stat = conn.createStatement();
+        stat.execute("create table test(id int)");
+        stat.execute("create alias secret_fn as 'String f() { return \"secret\"; }'");
+        stat.execute("create trigger secret_trigger before insert on test as 'org.h2.api.Trigger create() {"
+                + " return new org.h2.api.Trigger() {"
+                + " public void fire(Connection conn, Object[] oldRow, Object[] newRow) {} }; }'");
+        stat.execute("create user test password 'test'");
+        ResultSet rs = stat.executeQuery(
+                "select source from information_schema.function_aliases where alias_name = 'SECRET_FN'");
+        assertTrue(rs.next());
+        assertContains(rs.getString(1), "secret");
+        rs = stat.executeQuery("select sql from information_schema.triggers where trigger_name = 'SECRET_TRIGGER'");
+        assertTrue(rs.next());
+        assertContains(rs.getString(1), "org.h2.api.Trigger");
+        Connection conn2 = getConnection("rights;OLD_INFORMATION_SCHEMA=TRUE", "test", getPassword("test"));
+        Statement stat2 = conn2.createStatement();
+        rs = stat2.executeQuery(
+                "select source from information_schema.function_aliases where alias_name = 'SECRET_FN'");
+        assertTrue(rs.next());
+        assertNull(rs.getString(1));
+        rs = stat2.executeQuery("select sql from information_schema.triggers where trigger_name = 'SECRET_TRIGGER'");
+        assertTrue(rs.next());
+        assertNull(rs.getString(1));
+        conn2.close();
         conn.close();
     }
 

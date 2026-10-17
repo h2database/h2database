@@ -687,6 +687,8 @@ public abstract class FileStore<C extends Chunk<C>>
             List<C> toBeFreed = new ArrayList<>();
             C chunk;
             while ((chunk = deadChunks.poll()) != null &&
+                    // if chunk is not allocated yet, let's postpone the whole reclamation process,
+                    // until it is allocated and can be safely dropped
                     (chunk.isAllocated() &&
                     isSeasonedChunk(chunk, time) &&
                     canOverwriteChunk(chunk, oldestVersionToKeep) ||
@@ -878,7 +880,7 @@ public abstract class FileStore<C extends Chunk<C>>
      *
      * @param chunk the chunk to forget about
      */
-    protected final void dropOrphanedChunk(C chunk) {
+    protected final void dropDeadChunk(C chunk) {
         assert !chunk.isLive() : chunk;
         chunks.remove(chunk.id);
         cleanToCCache(chunk);

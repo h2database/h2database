@@ -27,6 +27,7 @@ import org.h2.mvstore.MVStoreException;
 import org.h2.mvstore.OffHeapStore;
 import org.h2.mvstore.RandomAccessStore;
 import org.h2.mvstore.type.DataType;
+import org.h2.mvstore.type.MetaType;
 import org.h2.mvstore.type.ObjectDataType;
 import org.h2.mvstore.type.StringDataType;
 import org.h2.store.fs.FilePath;
@@ -82,6 +83,7 @@ public class TestMVStore extends TestBase {
         testRecreateMap();
         testRenameMapRollback();
         testCustomMapType();
+        testTypeRegistryNonDataType();
         testCacheSize();
         testConcurrentOpen();
         testFileHeader();
@@ -779,6 +781,43 @@ public class TestMVStore extends TestBase {
             }
             assertEquals("1;2;3;4;5;6;7;8;9;10;", buff.toString());
         }
+    }
+
+    private void testTypeRegistryNonDataType() {
+        String fileName = getBaseDir() + "/" + getTestName();
+        FileUtils.delete(fileName);
+        // StringDataType writes a string the same way MetaType writes a class
+        // name, so this stores a type registry entry naming a class that is
+        // not a data type
+        try (MVStore s = openStore(fileName)) {
+            MVMap<String, String> types = s.openMap("_", new MVMap.Builder<String, String>()
+                    .keyType(StringDataType.INSTANCE).valueType(StringDataType.INSTANCE));
+            types.put("1", NotADataType.class.getName());
+            s.commit();
+        }
+        try (MVStore s = openStore(fileName)) {
+            MVMap.Builder<String, DataType<?>> builder = new MVMap.Builder<String, DataType<?>>()
+                    .keyType(StringDataType.INSTANCE).valueType(new MetaType<>(null, null));
+            assertThrows(RuntimeException.class, () -> s.openMap("_", builder).get("1"));
+            assertFalse(NotADataType.created);
+        }
+    }
+
+    /**
+     * A class that is not a data type; no instance of it may be created when
+     * a type registry entry names it.
+     */
+    public static class NotADataType {
+
+        /**
+         * Whether an instance was created.
+         */
+        static boolean created;
+
+        public NotADataType() {
+            created = true;
+        }
+
     }
 
     private void testCacheSize() {

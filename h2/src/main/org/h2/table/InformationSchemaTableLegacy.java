@@ -1297,7 +1297,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                                     // ID
                                     ValueInteger.get(alias.getId()),
                                     // SOURCE
-                                    alias.getSource()
+                                    admin ? alias.getSource() : null
                                     // when adding more columns, see also below
                             );
                         }
@@ -1763,7 +1763,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                         // REMARKS
                         replaceNullWithEmpty(trigger.getComment()),
                         // SQL
-                        trigger.getCreateSQL(),
+                        admin ? trigger.getCreateSQL() : null,
                         // ID
                         ValueInteger.get(trigger.getId())
                 );

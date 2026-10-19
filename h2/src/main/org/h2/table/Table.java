@@ -1286,7 +1286,7 @@ public abstract class Table extends SchemaObject {
      * @param needGetFirstOrLast if the returned index must be able
      *          to do {@link Index#canGetFirstOrLast()}
      * @param needFindNext if the returned index must be able to do
-     *          {@link Index#findNext(SessionLocal, SearchRow, SearchRow)}
+     *          {@link Index#findNext(SessionLocal, SearchRow, SearchRow, boolean)}
      * @return the index or null
      */
     public Index getIndexForColumn(Column column,

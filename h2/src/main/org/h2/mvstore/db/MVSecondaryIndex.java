@@ -351,8 +351,8 @@ public final class MVSecondaryIndex extends MVIndex<SearchRow, Value> {
     }
 
     @Override
-    public Cursor findNext(SessionLocal session, SearchRow higherThan, SearchRow last) {
-        return find(session, higherThan, true, last, false);
+    public Cursor findNext(SessionLocal session, SearchRow higherThan, SearchRow last, boolean reverse) {
+        return find(session, higherThan, true, last, reverse);
     }
 
     /**

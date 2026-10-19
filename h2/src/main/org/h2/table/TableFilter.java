@@ -891,6 +891,10 @@ public class TableFilter implements ColumnResolver {
         return index;
     }
 
+    public boolean isIndexReverse() {
+        return cursor.isReverse();
+    }
+
     public void setIndex(Index index, boolean reverse) {
         this.index = index;
         cursor.setIndex(index, reverse);

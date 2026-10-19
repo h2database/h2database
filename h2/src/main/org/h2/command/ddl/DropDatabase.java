@@ -77,7 +77,10 @@ public class DropDatabase extends DefineCommand {
             }
         } while (runLoopAgain);
 
-        // TODO session-local temp tables are not removed
+        // Local temporary tables are not in the schemas, they belong to the session
+        for (Table t : session.getLocalTempTables()) {
+            session.removeLocalTempTable(t);
+        }
         Collection<Schema> schemas = db.getAllSchemasNoMeta();
         for (Schema schema : schemas) {
             if (schema.canDrop()) {
@@ -85,6 +88,13 @@ public class DropDatabase extends DefineCommand {
             }
         }
         ArrayList<SchemaObject> list = new ArrayList<>();
+        // maybe constraints and triggers on system tables will be allowed in
+        // the future
+        addAll(schemas, DbObject.CONSTRAINT, list);
+        addAll(schemas, DbObject.TRIGGER, list);
+        // Domains may use sequences, constants and functions, so they must be
+        // removed before them
+        addAll(schemas, DbObject.DOMAIN, list);
         for (Schema schema : schemas) {
             for (Sequence sequence : schema.getAllSequences()) {
                 // ignore these. the ones we want to drop will get dropped when we
@@ -95,14 +105,9 @@ public class DropDatabase extends DefineCommand {
                 }
             }
         }
-        // maybe constraints and triggers on system tables will be allowed in
-        // the future
-        addAll(schemas, DbObject.CONSTRAINT, list);
-        addAll(schemas, DbObject.TRIGGER, list);
         addAll(schemas, DbObject.CONSTANT, list);
         // Function aliases and aggregates are stored together
         addAll(schemas, DbObject.FUNCTION_ALIAS, list);
-        addAll(schemas, DbObject.DOMAIN, list);
         for (SchemaObject obj : list) {
             if (!obj.getSchema().isValid()) {
                 continue;

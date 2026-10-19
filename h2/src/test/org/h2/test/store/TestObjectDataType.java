@@ -16,6 +16,7 @@ import java.util.UUID;
 import org.h2.mvstore.WriteBuffer;
 import org.h2.mvstore.type.ObjectDataType;
 import org.h2.test.TestBase;
+import org.h2.test.unit.TestObjectDeserialization;
 
 /**
  * Test the ObjectType class.
@@ -28,12 +29,37 @@ public class TestObjectDataType extends TestBase {
      * @param a ignored
      */
     public static void main(String... a) throws Exception {
+        System.setProperty("h2.allowedClasses",
+                "java.util.Date,java.sql.Timestamp,"
+                        + "org.h2.test.unit.TestObjectDeserialization$GoodSampleObject");
         TestBase.createCaller().init().testFromMain();
     }
 
     @Override
     public void test() {
         testCommonValues();
+        testSerializedObjectFilter();
+    }
+
+    private void testSerializedObjectFilter() {
+        ObjectDataType ot = new ObjectDataType();
+        // a class on the h2.allowedClasses list round-trips through the generic
+        // java-serialization fall-back
+        assertNotNull(writeThenRead(ot, new TestObjectDeserialization.GoodSampleObject()));
+        // a class that is not on the list is rejected on read instead of deserialized
+        WriteBuffer buff = new WriteBuffer();
+        ot.write(buff, new TestObjectDeserialization.BadSampleObject());
+        ByteBuffer bb = buff.getBuffer();
+        bb.flip();
+        assertThrows(IllegalArgumentException.class, () -> ot.read(bb));
+    }
+
+    private static Object writeThenRead(ObjectDataType ot, Object obj) {
+        WriteBuffer buff = new WriteBuffer();
+        ot.write(buff, obj);
+        ByteBuffer bb = buff.getBuffer();
+        bb.flip();
+        return ot.read(bb);
     }
 
     private void testCommonValues() {

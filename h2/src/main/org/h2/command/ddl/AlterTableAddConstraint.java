@@ -449,6 +449,17 @@ public class AlterTableAddConstraint extends AlterTable {
         return constraintName;
     }
 
+    /**
+     * Returns whether this is a referential constraint that references the
+     * table where it is created.
+     *
+     * @return {@code true} for self-referencing referential constraints
+     */
+    public boolean isSelfReferencing() {
+        return type == CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_REFERENTIAL && refSchema == getSchema()
+                && getDatabase().equalsIdentifiers(tableName, refTableName);
+    }
+
     @Override
     public int getType() {
         return type;

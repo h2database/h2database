@@ -47,7 +47,7 @@ public class UnaryOperation extends Operation1 {
             type = TypeInfo.TYPE_INTEGER;
         }
         if (arg.isConstant()) {
-            return ValueExpression.get(getValue(session));
+            return TypedValueExpression.getTypedIfNull(getValue(session), type);
         }
         return this;
     }

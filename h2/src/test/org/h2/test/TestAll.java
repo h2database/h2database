@@ -458,6 +458,7 @@ java org.h2.test.TestAll timer
         System.setProperty("h2.useThreadContextClassLoader", "true");
         System.setProperty("h2.allowedClasses",
                         "java.lang.*,java.math.*,java.io.*" +
+                        ",java.util.Date,java.sql.Timestamp" +
                         ",java.awt.Point" +
                         ",javax.naming.InitialContext" +
                         ",com.ibm.icu.text.Collator" +

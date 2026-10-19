@@ -104,17 +104,32 @@ public final class SimpleCase extends Expression {
         if (elseResult != null) {
             elseResult = elseResult.optimize(session);
             if (allConst) {
-                return elseResult;
+                return getTypedIfNull(elseResult, combineTypes(typeInfo, elseResult));
             }
             typeInfo = combineTypes(typeInfo, elseResult);
         } else if (allConst) {
-            return ValueExpression.NULL;
+            return getTypedIfNull(ValueExpression.NULL, typeInfo);
         }
         if (typeInfo.getValueType() == Value.UNKNOWN) {
             typeInfo = TypeInfo.TYPE_VARCHAR;
         }
         type = typeInfo;
         return this;
+    }
+
+    /**
+     * Returns a NULL of the specified type if the expression is an untyped
+     * NULL constant, or the expression itself otherwise.
+     *
+     * @param e the result of the constant CASE expression
+     * @param typeInfo the data type of the CASE expression
+     * @return the expression to use instead of the CASE expression
+     */
+    static Expression getTypedIfNull(Expression e, TypeInfo typeInfo) {
+        if (e.isNullConstant() && typeInfo.getValueType() != Value.UNKNOWN) {
+            return TypedValueExpression.getTypedIfNull(ValueNull.INSTANCE, typeInfo);
+        }
+        return e;
     }
 
     static TypeInfo combineTypes(TypeInfo typeInfo, Expression e) {

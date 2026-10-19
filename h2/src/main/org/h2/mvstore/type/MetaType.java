@@ -75,7 +75,10 @@ public final class MetaType<D> extends BasicDataType<DataType<?>> {
                 }
                 return (DataType<?>) o;
             }
-            Class<?> clazz = Class.forName(className);
+            Class<?> clazz = Class.forName(className, false, MetaType.class.getClassLoader());
+            if (!DataType.class.isAssignableFrom(clazz) && !StatefulDataType.Factory.class.isAssignableFrom(clazz)) {
+                throw new IllegalArgumentException("Class " + className + " is not a data type");
+            }
             boolean singleton = false;
             Object obj;
             try {

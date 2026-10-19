@@ -6,6 +6,7 @@
 package org.h2.expression.function;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.math.RoundingMode;
 import java.text.DateFormatSymbols;
 import java.text.DecimalFormat;
@@ -496,8 +497,10 @@ public final class ToCharFunction extends FunctionN {
             }
         }
 
-        int i = number.setScale(0, RoundingMode.HALF_UP).intValue();
-        String hex = Integer.toHexString(i);
+        BigInteger i = number.setScale(0, RoundingMode.HALF_UP).toBigInteger();
+        int bitLength = i.bitLength();
+        String hex = bitLength <= 32 ? Integer.toHexString(i.intValue())
+                : bitLength <= 64 ? Long.toHexString(i.longValue()) : i.toString(16);
         if (digits < hex.length()) {
             hex = StringUtils.pad("", digits + 1, "#", true);
         } else {

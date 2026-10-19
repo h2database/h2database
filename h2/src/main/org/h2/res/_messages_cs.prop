@@ -39,6 +39,7 @@
 42S12=Index {0} nenalezen
 42S21=Duplicitní název sloupce {0}
 42S22=Sloupec {0} nenalezen
+42S23=#Duplicate table alias {0}
 42S31=#Identical expressions should be used; expected {0}, found {1}
 54011=#Too many columns. The maximum count is {0}
 57014=Příkaz byl zrušen nebo připojení vypršelo

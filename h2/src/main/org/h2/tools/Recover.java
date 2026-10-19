@@ -55,10 +55,13 @@ import org.h2.util.StringUtils;
 import org.h2.util.TempFileDeleter;
 import org.h2.util.Tool;
 import org.h2.value.CompareMode;
+import org.h2.value.TypeInfo;
 import org.h2.value.Value;
+import org.h2.value.ValueArray;
 import org.h2.value.ValueCollectionBase;
 import org.h2.value.ValueLob;
 import org.h2.value.ValueJson;
+import org.h2.value.ValueNull;
 import org.h2.value.lob.LobData;
 import org.h2.value.lob.LobDataDatabase;
 
@@ -76,6 +79,7 @@ public class Recover extends Tool implements DataHandler {
     private ArrayList<MetaRecord> schema;
     private HashSet<Integer> objectIdSet;
     private HashMap<Integer, String> tableMap;
+    private HashMap<Integer, String> tableSqlMap;
     private HashMap<String, String> columnTypeMap;
     private boolean lobMaps;
 
@@ -387,6 +391,7 @@ public class Recover extends Tool implements DataHandler {
                             builder.setLength(0);
                             getSQL(builder, columnName, values[valueId]);
                         }
+                        setArrayColumnTypes(dataMap, values);
                         createTemporaryTable(writer);
                         init = true;
                     }
@@ -410,6 +415,50 @@ public class Recover extends Tool implements DataHandler {
             writer.println("DROP TABLE IF EXISTS INFORMATION_SCHEMA.LOB_BLOCKS;");
         } catch (Throwable e) {
             writeError(writer, e);
+        }
+    }
+
+    /**
+     * Sets the types of the columns with arrays. A type must cover the arrays
+     * of all rows, so rows are read until each column has a value that is not
+     * an array, or to the end if a column has arrays or only nulls.
+     *
+     * @param dataMap the map with the rows
+     * @param firstRow the values of the first row
+     */
+    private void setArrayColumnTypes(TransactionMap<?, ?> dataMap, Value[] firstRow) {
+        boolean[] done = new boolean[recordLength];
+        int remaining = recordLength;
+        for (int i = 0; i < recordLength; i++) {
+            Value v = firstRow[i];
+            if (v != ValueNull.INSTANCE && !(v instanceof ValueArray)) {
+                done[i] = true;
+                remaining--;
+            }
+        }
+        TypeInfo[] types = new TypeInfo[recordLength];
+        for (Iterator<?> it = dataMap.keyIterator(null); remaining > 0 && it.hasNext();) {
+            Object value = dataMap.get(it.next());
+            Value[] values = value instanceof Row ? ((Row) value).getValueList()
+                    : ((ValueCollectionBase) value).getList();
+            for (int i = 0; i < recordLength; i++) {
+                if (done[i]) {
+                    continue;
+                }
+                Value v = values[i];
+                if (v instanceof ValueArray) {
+                    types[i] = types[i] == null ? v.getType() : TypeInfo.getHigherType(types[i], v.getType());
+                } else if (v != ValueNull.INSTANCE && types[i] == null) {
+                    done[i] = true;
+                    remaining--;
+                }
+            }
+        }
+        for (int i = 0; i < recordLength; i++) {
+            if (types[i] != null) {
+                columnTypeMap.put(storageName + "." + i,
+                        types[i].getSQL(new StringBuilder(), HasSQL.DEFAULT_SQL_FLAGS).toString());
+            }
         }
     }
 
@@ -509,6 +558,7 @@ public class Recover extends Tool implements DataHandler {
         schema.add(meta);
         if (objectType == DbObject.TABLE_OR_VIEW) {
             tableMap.put(meta.getId(), extractTableOrViewName(meta.getSQL()));
+            tableSqlMap.put(meta.getId(), meta.getSQL());
         }
     }
 
@@ -516,6 +566,7 @@ public class Recover extends Tool implements DataHandler {
         schema = new ArrayList<>();
         objectIdSet = new HashSet<>();
         tableMap = new HashMap<>();
+        tableSqlMap = new HashMap<>();
         columnTypeMap = new HashMap<>();
     }
 
@@ -570,7 +621,7 @@ public class Recover extends Tool implements DataHandler {
                 if (isLobTable(name)) {
                     continue;
                 }
-                writer.println("INSERT INTO " + name + " SELECT * FROM " + storageName + ";");
+                writer.println(getInsertSQL(name, tableSqlMap.get(objectId), storageName) + ";");
             }
         }
         for (Integer objectId : objectIdSet) {
@@ -633,6 +684,80 @@ public class Recover extends Tool implements DataHandler {
             writer.println(");");
             writer.flush();
         }
+    }
+
+    /**
+     * Returns the statement that copies the rows of a temporary table into the
+     * recovered table. Generated columns are left out, identity columns keep
+     * their values.
+     *
+     * @param name the name of the table
+     * @param createSQL the CREATE TABLE statement of the table
+     * @param storageName the name of the temporary table
+     * @return the INSERT statement
+     */
+    static String getInsertSQL(String name, String createSQL, String storageName) {
+        String selectAll = " SELECT * FROM " + storageName;
+        int start = createSQL == null ? -1 : createSQL.indexOf("(\n    ");
+        int end = start < 0 ? -1 : createSQL.indexOf("\n)", start);
+        if (end < 0) {
+            return "INSERT INTO " + name + selectAll;
+        }
+        // column definitions are separated with ",\n    ", line feeds in
+        // identifiers and literals are escaped
+        String[] definitions = createSQL.substring(start + 6, end).split(",\n    ");
+        StringBuilder columns = new StringBuilder(), values = new StringBuilder();
+        boolean generated = false, identity = false;
+        for (int i = 0; i < definitions.length; i++) {
+            String definition = definitions[i];
+            StringBuilder unquoted = new StringBuilder();
+            int columnNameEnd = -1;
+            char quote = 0;
+            for (int j = 0, l = definition.length(); j < l; j++) {
+                char ch = definition.charAt(j);
+                if (quote != 0) {
+                    if (ch == quote) {
+                        quote = 0;
+                    }
+                } else if (ch == '"' || ch == '\'') {
+                    // a doubled quote is read as two quoted parts
+                    quote = ch;
+                } else {
+                    if (ch == ' ' && columnNameEnd < 0) {
+                        columnNameEnd = j;
+                    }
+                    unquoted.append(ch);
+                }
+            }
+            if (columnNameEnd < 0) {
+                return "INSERT INTO " + name + selectAll;
+            }
+            String text = unquoted.toString();
+            if (text.contains(" GENERATED ALWAYS AS (")) {
+                generated = true;
+                continue;
+            }
+            if (text.contains(" GENERATED ALWAYS AS IDENTITY")) {
+                identity = true;
+            }
+            if (columns.length() > 0) {
+                columns.append(", ");
+                values.append(", ");
+            }
+            columns.append(definition, 0, columnNameEnd);
+            values.append('C').append(i);
+        }
+        StringBuilder builder = new StringBuilder("INSERT INTO ").append(name);
+        if (generated) {
+            builder.append('(').append(columns).append(')');
+        }
+        if (identity) {
+            builder.append(" OVERRIDING SYSTEM VALUE");
+        }
+        if (generated) {
+            return builder.append(" SELECT ").append(values).append(" FROM ").append(storageName).toString();
+        }
+        return builder.append(selectAll).toString();
     }
 
     private static String extractTableOrViewName(String sql) {

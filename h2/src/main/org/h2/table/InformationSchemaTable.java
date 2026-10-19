@@ -2562,6 +2562,9 @@ public final class InformationSchemaTable extends MetaTable {
     }
 
     private void queryStatistics(SessionLocal session, ArrayList<Row> rows) {
+        if (!session.getUser().isAdmin()) {
+            return;
+        }
         QueryStatisticsData control = database.getQueryStatisticsData();
         if (control != null) {
             for (QueryStatisticsData.QueryEntry entry : control.getQueries()) {

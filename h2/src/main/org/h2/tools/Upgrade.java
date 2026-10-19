@@ -127,6 +127,23 @@ public final class Upgrade {
             /* 2.1.214 */ "d623cdc0f61d218cf549a8d09f1c391ff91096116b22e2475475fce4fbe72bd0",
             /* 2.1.216 */ null,
             /* 2.1.218 */ null,
+            /* 2.2.220 */ "978ab863018d3f965e38880571c36293ea8b10a8086194159c4d5d20b50f0a57",
+            /* 2.2.222 */ "25f22491fe353aef9d1ad9374181987d6118a3130b677f7dab5b2571fdce7a76",
+            /* 2.2.224 */ "b9d8f19358ada82a4f6eb5b174c6cfe320a375b5a9cb5a4fe456d623e6e55497",
+            /* 2.2.226 */ null,
+            /* 2.2.228 */ null,
+            /* 2.3.230 */ "d726be7fbb0e3e97adeba298b33932b5bccaf37e01bb3c323f6a5f4c4f86abbd",
+            /* 2.3.232 */ "8dae62d22db8982c3dcb3826edb9c727c5d302063a67eef7d63d82de401f07d3",
+            /* 2.3.234 */ null,
+            /* 2.3.236 */ null,
+            /* 2.3.238 */ null,
+            /* 2.4.240 */ "29b70e427cc1c40cdc376283adbb0cc62853073797bb5fe5761f81fe73d57ce0",
+            /* 2.4.242 */ null,
+            /* 2.4.244 */ null,
+            /* 2.4.246 */ null,
+            /* 2.4.248 */ null,
+            /* 2.5.250 */ "82a80a2ac06901b03cdb233c663d21c4f49c884bf6d0cf85022729e8db9ab86f",
+            /* 2.5.252 */ "90b11dc413da82070ef15fc943282c1408e6ffd34fa68998335fea8603b5ff20",
             //
     };
 
@@ -248,9 +265,12 @@ public final class Upgrade {
         } else {
             throw new IllegalArgumentException("version=" + version);
         }
+        int checksumIndex = version >= 202 ? (version >>> 1) - 20 : version - 120;
+        if (checksumIndex >= CHECKSUMS.length) {
+            throw new IllegalArgumentException("version=" + version);
+        }
         String fullVersion = prefix + version;
-        byte[] data = downloadUsingMaven("com.h2database", "h2", fullVersion,
-                CHECKSUMS[version >= 202 ? (version >>> 1) - 20 : version - 120]);
+        byte[] data = downloadUsingMaven("com.h2database", "h2", fullVersion, CHECKSUMS[checksumIndex]);
         ZipInputStream is = new ZipInputStream(new ByteArrayInputStream(data));
         HashMap<String, byte[]> map = new HashMap<>(version >= 198 ? 2048 : 1024);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();

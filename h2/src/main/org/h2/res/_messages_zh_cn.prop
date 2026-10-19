@@ -39,6 +39,7 @@
 42S12=找不到索引 {0}
 42S21=重复的字段： {0}
 42S22=找不到字段 {0}
+42S23=#Duplicate table alias {0}
 42S31=#Identical expressions should be used; expected {0}, found {1}
 54011=#Too many columns. The maximum count is {0}
 57014=语句已取消执行或会话已过期

@@ -45,6 +45,8 @@ public class TestRecovery extends TestDb {
         testRecoverClob();
         testRecoverFulltext();
         testRecoverJson();
+        testRecoverArray();
+        testRecoverGeneratedColumns();
         testCompressedAndUncompressed();
         testRunScript();
         testRunScript2();
@@ -108,6 +110,62 @@ public class TestRecovery extends TestDb {
         conn.close();
     }
 
+    private void testRecoverArray() throws Exception {
+        DeleteDbFiles.execute(getBaseDir(), "recovery", true);
+        Connection conn = getConnection("recovery");
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(id int primary key, a int array, b numeric(10, 3) array array)");
+        stat.execute("insert into test values (1, null, array[array[1.5], array[]]), (2, array[], null), "
+                + "(3, array[1, 2, 3], array[array[12345.125]])");
+        try (ResultSet rs = stat.executeQuery("select a, cast(b as varchar) from test order by id")) {
+            assertTrue(rs.next());
+            assertNull(rs.getObject(1));
+            assertEquals("[[1.500], []]", rs.getString(2));
+            assertTrue(rs.next());
+            assertEquals(new Object[0], (Object[]) rs.getArray(1).getArray());
+            assertNull(rs.getObject(2));
+            assertTrue(rs.next());
+            assertEquals(new Object[] {1, 2, 3}, (Object[]) rs.getArray(1).getArray());
+            assertEquals("[[12345.125]]", rs.getString(2));
+            assertFalse(rs.next());
+        }
+        conn.close();
+    }
+    
+    private void testRecoverGeneratedColumns() throws Exception {
+        DeleteDbFiles.execute(getBaseDir(), "recovery", true);
+        Connection conn = getConnection("recovery");
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(id int generated always as identity, \"a\"\"b\n\" int, "
+                + "g int generated always as (\"a\"\"b\n\" + 1), c varchar default 'x GENERATED ALWAYS AS (')");
+        stat.execute("insert into test(\"a\"\"b\n\") values 10, 20");
+        conn.close();
+        Recover.main("-dir", getBaseDir(), "-db", "recovery");
+        DeleteDbFiles.execute(getBaseDir(), "recovery", true);
+        conn = getConnection(
+                "recovery;init=runscript from '" +
+                        getBaseDir() + "/recovery.h2.sql'");
+        stat = conn.createStatement();
+        try (ResultSet rs = stat.executeQuery("select * from test order by id")) {
+            assertTrue(rs.next());
+            assertEquals(1, rs.getInt(1));
+            assertEquals(10, rs.getInt(2));
+            assertEquals(11, rs.getInt(3));
+            assertEquals("x GENERATED ALWAYS AS (", rs.getString(4));
+            assertTrue(rs.next());
+            assertEquals(2, rs.getInt(1));
+            assertEquals(20, rs.getInt(2));
+            assertEquals(21, rs.getInt(3));
+            assertFalse(rs.next());
+        }
+        stat.execute("insert into test(\"a\"\"b\n\") values 30");
+        try (ResultSet rs = stat.executeQuery("select id, g from test where \"a\"\"b\n\" = 30")) {
+            assertTrue(rs.next());
+            assertEquals(3, rs.getInt(1));
+            assertEquals(31, rs.getInt(2));
+        }
+        conn.close();
+    }
 
     private void testCompressedAndUncompressed() throws SQLException {
         DeleteDbFiles.execute(getBaseDir(), "recovery", true);

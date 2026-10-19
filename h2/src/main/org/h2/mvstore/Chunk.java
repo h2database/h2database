@@ -438,7 +438,7 @@ public abstract class Chunk<C extends Chunk<C>> {
      * @return ByteBuffer containing page data.
      */
     ByteBuffer readBufferForPage(FileStore<C> fileStore, int offset, long pos) {
-        assert isAllocated() || buffer != null : this;  // chunk has been at least serialized
+        assert buffer != null || isAllocated() : this;  // chunk has been at least serialized
         while (true) {
             long originalBlock = block;
             try {

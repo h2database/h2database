@@ -40,6 +40,8 @@ public class TestUpgrade extends TestBase {
         deleteDb();
         testUpgrade(1, 2, 120);
         testUpgrade(1, 4, 200);
+        testUpgrade(2, 2, 224);
+        testUpgrade(2, 5, 252);
     }
 
     private void testUpgrade(int major, int minor, int build) throws Exception {
@@ -58,7 +60,8 @@ public class TestUpgrade extends TestBase {
             assertEquals(minor, driver.getMinorVersion());
             try (Connection conn = driver.connect(url, p)) {
                 Statement stat = conn.createStatement();
-                stat.execute("CREATE TABLE TEST(ID BIGINT AUTO_INCREMENT PRIMARY KEY, B BINARY, L BLOB, C CLOB)");
+                stat.execute("CREATE TABLE TEST(ID BIGINT AUTO_INCREMENT PRIMARY KEY, B "
+                        + (major >= 2 ? "VARBINARY" : "BINARY") + ", L BLOB, C CLOB)");
                 PreparedStatement prep = conn.prepareStatement("INSERT INTO TEST(B, L, C) VALUES (?, ?, ?)");
                 prep.setBytes(1, bytes);
                 prep.setBytes(2, bytes);

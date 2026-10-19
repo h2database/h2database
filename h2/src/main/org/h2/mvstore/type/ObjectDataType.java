@@ -1478,7 +1478,7 @@ public class ObjectDataType extends BasicDataType<Object> {
             if (ct == -1) {
                 String componentType = StringDataType.INSTANCE.read(buff);
                 try {
-                    clazz = Class.forName(componentType);
+                    clazz = Class.forName(componentType, false, ObjectDataType.class.getClassLoader());
                 } catch (Exception e) {
                     throw DataUtils.newMVStoreException(
                             DataUtils.ERROR_SERIALIZATION,

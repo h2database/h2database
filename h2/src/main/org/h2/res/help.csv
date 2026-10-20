@@ -3373,6 +3373,8 @@ combined into a space separated key-value pairs, as follows:
 ""'lineComment=# lineSeparator=\n null= rowSeparator=')"".
 The following options are supported:
 
+""binaryColumns"" (a comma separated list of 1-based column numbers that contain binary values; these columns are read as hexadecimal and returned as byte arrays),
+
 ""caseSensitiveColumnNames"" (true or false; disabled by default),
 
 ""charset"" (for example 'UTF-8'),
@@ -6463,6 +6465,9 @@ The default charset is the default value for this system, and the default field 
 
 The values are converted to text using the default string representation;
 if another conversion is required you need to change the select statement accordingly.
+BINARY, VARBINARY, and BLOB values are written as hexadecimal strings, because
+their default string representation is a lossy UTF-8 decoding. To read such a
+file back, list the columns in the ""binaryColumns"" option of CSVREAD.
 The parameter nullString is used when writing NULL (by default nothing is written
 when NULL appears). The default line separator is the default value for this
 system (system property ""line.separator"").

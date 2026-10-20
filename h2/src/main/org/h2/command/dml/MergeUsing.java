@@ -64,6 +64,15 @@ public final class MergeUsing extends DataChangeStatement {
      */
     private final HashSet<Long> targetRowidsRemembered = new HashSet<>();
 
+    /**
+     * Target rows as they were before this statement changed them with a
+     * WHEN MATCHED DELETE or UPDATE. If the action removes the row or makes
+     * the ON condition false for it, the join no longer produces a match for
+     * the following source rows, although they still match the same target
+     * row and must be rejected as a duplicate match.
+     */
+    private final ArrayList<Row> affectedTargetRowsBefore = new ArrayList<>();
+
     public MergeUsing(SessionLocal session, TableFilter targetTableFilter) {
         super(session);
         this.targetTableFilter = targetTableFilter;
@@ -73,6 +82,7 @@ public final class MergeUsing extends DataChangeStatement {
     public long update(ResultTarget deltaChangeCollector, ResultOption deltaChangeCollectionMode) {
         long countUpdatedRows = 0;
         targetRowidsRemembered.clear();
+        affectedTargetRowsBefore.clear();
         checkRights();
         setCurrentRowNumber(0);
         sourceTableFilter.startQuery(session);
@@ -112,6 +122,7 @@ public final class MergeUsing extends DataChangeStatement {
                                             + targetRowId + ":in:"
                                             + targetTableFilter.getTable());
                         }
+                        affectedTargetRowsBefore.add(targetRow);
                     }
                 } else {
                     if (previousSource != source) {
@@ -130,11 +141,18 @@ public final class MergeUsing extends DataChangeStatement {
             countUpdatedRows += merge(true, deltaChangeCollector, deltaChangeCollectionMode);
         }
         targetRowidsRemembered.clear();
+        affectedTargetRowsBefore.clear();
         table.fire(session, evaluateTriggerMasks(), false);
         return countUpdatedRows;
     }
 
     private int merge(boolean nullRow, ResultTarget deltaChangeCollector, ResultOption deltaChangeCollectionMode) {
+        if (nullRow) {
+            // A source row without a match may still match a target row that
+            // this statement has already deleted or updated in a way that
+            // hides it from the join; that is a duplicate match.
+            checkNotMatchedAgainstAffected();
+        }
         for (When w : when) {
             if (w.getClass() == WhenNotMatched.class == nullRow) {
                 Expression condition = w.andCondition;
@@ -145,6 +163,27 @@ public final class MergeUsing extends DataChangeStatement {
             }
         }
         return 0;
+    }
+
+    private void checkNotMatchedAgainstAffected() {
+        if (affectedTargetRowsBefore.isEmpty()) {
+            return;
+        }
+        Row backup = targetTableFilter.get();
+        try {
+            for (Row affected : affectedTargetRowsBefore) {
+                targetTableFilter.set(affected);
+                if (onCondition.getBooleanValue(session)) {
+                    throw DbException.get(ErrorCode.DUPLICATE_KEY_1,
+                            "Merge using ON column expression, " +
+                            "duplicate _ROWID_ target record already processed:_ROWID_="
+                                    + affected.getKey() + ":in:"
+                                    + targetTableFilter.getTable());
+                }
+            }
+        } finally {
+            targetTableFilter.set(backup);
+        }
     }
 
     private int evaluateTriggerMasks() {

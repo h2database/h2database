@@ -2685,7 +2685,12 @@ public final class Parser extends ParserBase {
 
     private Query parseQueryPrimary() {
         if (readIf(OPEN_PAREN)) {
+            // ORDER BY / OFFSET / FETCH are parsed after the select closes its
+            // parameter scope. Record them on this term so result reuse sees
+            // a change to those parameters.
+            BitSet outerUsedParameters = openParametersScope();
             Query query = parseQueryExpressionBodyAndEndOfQuery(tokenIndex);
+            query.setParameterList(closeParametersScope(outerUsedParameters));
             query.setOuterQueryScope(queryScope);
             read(CLOSE_PAREN);
             return query;

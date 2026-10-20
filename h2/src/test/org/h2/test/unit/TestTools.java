@@ -1176,6 +1176,24 @@ public class TestTools extends TestDb {
 
             server.stop();
             deleteDb("testSplit");
+            // zip: prefix must not escape from baseDir
+            deleteDb("testZip");
+            String dir = FileUtils.toRealPath(getBaseDir());
+            conn = getConnection("jdbc:h2:" + dir + "/testZip", "sa", "");
+            conn.close();
+            Backup.execute(dir + "/testZip.zip", dir, "testZip", true);
+            FileUtils.createDirectories(dir + "/testZipBase");
+            server = Server.createTcpServer("-ifExists",
+                            "-baseDir", dir + "/testZipBase").start();
+            remainingServers.add(server);
+            final int pz = server.getPort();
+            assertThrows(ErrorCode.IO_EXCEPTION_1,
+                    () -> getConnection("jdbc:h2:tcp://localhost:" + pz + "/zip:" + dir
+                            + "/testZipBase/../testZip.zip!/testZip", "sa", ""));
+            server.stop();
+            FileUtils.delete(dir + "/testZip.zip");
+            FileUtils.delete(dir + "/testZipBase");
+            deleteDb("testZip");
         } finally {
             shutdownServers();
         }

@@ -212,7 +212,9 @@ public class FilePathZip extends FilePath {
 
     @Override
     public FilePath toRealPath() {
-        return this;
+        int idx = name.indexOf('!');
+        String entryName = idx >= 0 ? name.substring(idx) : "";
+        return getPath(getScheme() + ':' + FilePath.get(translateFileName(name)).toRealPath() + entryName);
     }
 
     private String getEntryName() {

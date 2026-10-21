@@ -44,6 +44,7 @@ public class TestRights extends TestDb {
         testRevokeSchema();
         testOpenNonAdminWithMode();
         testLegacyMetaSourceHidden();
+        testEstimatedEnvelopeRights();
         testDisallowedTables();
         testDropOwnUser();
         testGetTables();
@@ -326,6 +327,28 @@ public class TestRights extends TestDb {
         rs = stat2.executeQuery("select sql from information_schema.triggers where trigger_name = 'SECRET_TRIGGER'");
         assertTrue(rs.next());
         assertNull(rs.getString(1));
+        conn2.close();
+        conn.close();
+    }
+
+    private void testEstimatedEnvelopeRights() throws SQLException {
+        deleteDb("rights");
+        Connection conn = getConnection("rights");
+        stat = conn.createStatement();
+        stat.execute("create table test(id int, g geometry)");
+        stat.execute("create spatial index test_g on test(g)");
+        stat.execute("insert into test values (1, 'POINT (12.5 41.75)')");
+        stat.execute("create user test password 'test'");
+        ResultSet rs = stat.executeQuery("call estimated_envelope('TEST', 'G')");
+        assertTrue(rs.next());
+        assertEquals("POINT (12.5 41.75)", rs.getString(1));
+        Connection conn2 = getConnection("rights", "test", getPassword("test"));
+        Statement stat2 = conn2.createStatement();
+        assertThrows(ErrorCode.NOT_ENOUGH_RIGHTS_FOR_1, stat2, "call estimated_envelope('PUBLIC.TEST', 'G')");
+        stat.execute("grant select on test to test");
+        rs = stat2.executeQuery("call estimated_envelope('PUBLIC.TEST', 'G')");
+        assertTrue(rs.next());
+        assertEquals("POINT (12.5 41.75)", rs.getString(1));
         conn2.close();
         conn.close();
     }

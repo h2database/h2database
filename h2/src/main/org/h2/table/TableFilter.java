@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2026 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -576,6 +576,15 @@ public class TableFilter implements ColumnResolver {
     }
 
     /**
+     * Returns whether an alias was specified explicitly.
+     *
+     * @return {@code true} if an alias was specified
+     */
+    public boolean hasAlias() {
+        return alias != null;
+    }
+
+    /**
      * Get the table alias name. If no alias is specified, the table name is
      * returned.
      *
@@ -880,6 +889,10 @@ public class TableFilter implements ColumnResolver {
 
     public Index getIndex() {
         return index;
+    }
+
+    public boolean isIndexReverse() {
+        return cursor.isReverse();
     }
 
     public void setIndex(Index index, boolean reverse) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2026 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -177,13 +177,14 @@ public class Select extends Query {
      * @param isTop if the table can be the first table in the query plan
      */
     public void addTableFilter(TableFilter filter, boolean isTop) {
-        // Oracle doesn't check on duplicate aliases
-        // String alias = filter.getAlias();
-        // if (filterNames.contains(alias)) {
-        //     throw Message.getSQLException(
-        //         ErrorCode.DUPLICATE_TABLE_ALIAS, alias);
-        // }
-        // filterNames.add(alias);
+        Database db = session.getDatabase();
+        String alias = filter.getTableAlias();
+        for (TableFilter f : filters) {
+            // Tables without aliases are not checked, they may have the same name in different schemas
+            if ((filter.hasAlias() || f.hasAlias()) && db.equalsIdentifiers(alias, f.getTableAlias())) {
+                throw DbException.get(ErrorCode.DUPLICATE_TABLE_ALIAS_1, alias);
+            }
+        }
         filters.add(filter);
         if (isTop) {
             topFilters.add(filter);
@@ -703,12 +704,13 @@ public class Select extends Query {
         Index index = topTableFilter.getIndex();
         SearchRow first = null;
         int columnIndex = index.getColumns()[0].getColumnId();
+        boolean reverse = topTableFilter.isIndexReverse();
         if (!quickOffset) {
             offset = 0;
         }
         for (;;) {
             setCurrentRowNumber(++rowNumber);
-            Cursor cursor = index.findNext(session, first, null);
+            Cursor cursor = index.findNext(session, first, null, reverse);
             if (!cursor.next()) {
                 break;
             }
@@ -1098,7 +1100,7 @@ public class Select extends Query {
                         break;
                     }
                 }
-                if (found < 0) {
+                if (found < 0 && !isColumnOfFilters(expr)) {
                     // special case: GROUP BY a column alias
                     for (int j = 0; j < expSize; j++) {
                         Expression e = expressions.get(j);
@@ -1142,6 +1144,29 @@ public class Select extends Query {
         mapCondition(havingIndex);
         mapCondition(qualifyIndex);
         checkInit = true;
+    }
+
+    /**
+     * Checks whether the specified GROUP BY expression is an unqualified name
+     * of a column of a table in the FROM clause. Such name refers to the
+     * column, even if a select list expression has the same alias.
+     *
+     * @param expr the GROUP BY expression
+     * @return whether the expression is a name of a column
+     */
+    private boolean isColumnOfFilters(Expression expr) {
+        if (expr instanceof ExpressionColumn) {
+            ExpressionColumn ec = (ExpressionColumn) expr;
+            if (ec.getOriginalTableAliasName() == null) {
+                String name = ec.getOriginalColumnName();
+                for (TableFilter f : filters) {
+                    if (f.findColumn(name) != null) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     private void mapCondition(int index) {

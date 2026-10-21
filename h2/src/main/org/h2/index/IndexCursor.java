@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2026 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -51,6 +51,15 @@ public class IndexCursor implements Cursor {
     private ResultInterface inResult;
 
     public IndexCursor() {
+    }
+
+    /**
+     * Whether the index is traversed in reverse order.
+     *
+     * @return true if reverse
+     */
+    public boolean isReverse() {
+        return reverse;
     }
 
     public void setIndex(Index index, boolean reverse) {

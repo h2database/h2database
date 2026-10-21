@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2026 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -38,10 +38,12 @@ public class TestRights extends TestDb {
     public void test() throws SQLException {
         testNullPassword();
         testLinkedTableMeta();
+        testQueryStatisticsAdminOnly();
         testGrantMore();
         testGrantSchema();
         testRevokeSchema();
         testOpenNonAdminWithMode();
+        testLegacyMetaSourceHidden();
         testDisallowedTables();
         testDropOwnUser();
         testGetTables();
@@ -107,6 +109,30 @@ public class TestRights extends TestDb {
             conn2.close();
 
             stat.execute("drop table test");
+        }
+    }
+
+    private void testQueryStatisticsAdminOnly() throws SQLException {
+        deleteDb("rights");
+        try (Connection conn = getConnection("rights")) {
+            stat = conn.createStatement();
+            stat.execute("create user test password 'test'");
+            stat.execute("set query_statistics true");
+            stat.execute("create table secret(v varchar)");
+            stat.execute("insert into secret values ('secret value')");
+            // statements of other sessions are invisible to non-admin
+            for (String url : new String[] { "rights", "rights;OLD_INFORMATION_SCHEMA=TRUE" }) {
+                try (Connection conn2 = getConnection(url, "test", getPassword("test"))) {
+                    ResultSet rs = conn2.createStatement().executeQuery(
+                            "select sql_statement from information_schema.query_statistics");
+                    assertFalse(rs.next());
+                }
+            }
+            // and visible to admin
+            ResultSet rs = stat.executeQuery("select sql_statement from information_schema.query_statistics "
+                    + "where sql_statement like 'insert into secret%'");
+            assertTrue(rs.next());
+            stat.execute("set query_statistics false");
         }
     }
 
@@ -271,6 +297,36 @@ public class TestRights extends TestDb {
         conn2.close();
         stat = conn.createStatement();
         stat.execute("drop user test");
+        conn.close();
+    }
+
+    private void testLegacyMetaSourceHidden() throws SQLException {
+        deleteDb("rights");
+        Connection conn = getConnection("rights;OLD_INFORMATION_SCHEMA=TRUE");
+        stat = conn.createStatement();
+        stat.execute("create table test(id int)");
+        stat.execute("create alias secret_fn as 'String f() { return \"secret\"; }'");
+        stat.execute("create trigger secret_trigger before insert on test as 'org.h2.api.Trigger create() {"
+                + " return new org.h2.api.Trigger() {"
+                + " public void fire(Connection conn, Object[] oldRow, Object[] newRow) {} }; }'");
+        stat.execute("create user test password 'test'");
+        ResultSet rs = stat.executeQuery(
+                "select source from information_schema.function_aliases where alias_name = 'SECRET_FN'");
+        assertTrue(rs.next());
+        assertContains(rs.getString(1), "secret");
+        rs = stat.executeQuery("select sql from information_schema.triggers where trigger_name = 'SECRET_TRIGGER'");
+        assertTrue(rs.next());
+        assertContains(rs.getString(1), "org.h2.api.Trigger");
+        Connection conn2 = getConnection("rights;OLD_INFORMATION_SCHEMA=TRUE", "test", getPassword("test"));
+        Statement stat2 = conn2.createStatement();
+        rs = stat2.executeQuery(
+                "select source from information_schema.function_aliases where alias_name = 'SECRET_FN'");
+        assertTrue(rs.next());
+        assertNull(rs.getString(1));
+        rs = stat2.executeQuery("select sql from information_schema.triggers where trigger_name = 'SECRET_TRIGGER'");
+        assertTrue(rs.next());
+        assertNull(rs.getString(1));
+        conn2.close();
         conn.close();
     }
 

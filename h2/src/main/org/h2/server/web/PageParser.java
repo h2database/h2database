@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2026 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -329,6 +329,14 @@ public class PageParser {
                 break;
             case '\\':
                 buff.append("\\\\");
+                break;
+            case '<':
+                // escape so the sequence </script> in a value can't close the
+                // enclosing inline <script> block
+                buff.append("\\u003c");
+                break;
+            case '>':
+                buff.append("\\u003e");
                 break;
             case '\n':
                 buff.append("\\n");

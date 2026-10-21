@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2026 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -232,12 +232,15 @@ public class TestScript extends TestDb {
                 "type", "unique" }) {
             testScript("predicates/" + s + ".sql");
         }
-        for (String s : new String[] { "derived-column-names", "distinct", "joins", "query-cache",
-                "query-optimisations", "select", "table", "values", "window" }) {
+        for (String s : new String[] { "derived-column-names", "distinct", "duplicate-order-by", "joins",
+                "query-cache", "query-optimisations", "select", "table", "values", "window" }) {
             testScript("queries/" + s + ".sql");
         }
         testScript("other/two_phase_commit.sql");
         testScript("other/unique_include.sql");
+        if (!config.memory) {
+            testScript("persistent-only.sql");
+        }
 
         deleteDb("script");
         System.out.flush();

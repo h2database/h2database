@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2026 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  *
@@ -2685,7 +2685,12 @@ public final class Parser extends ParserBase {
 
     private Query parseQueryPrimary() {
         if (readIf(OPEN_PAREN)) {
+            // ORDER BY / OFFSET / FETCH are parsed after the select closes its
+            // parameter scope. Record them on this term so result reuse sees
+            // a change to those parameters.
+            BitSet outerUsedParameters = openParametersScope();
             Query query = parseQueryExpressionBodyAndEndOfQuery(tokenIndex);
+            query.setParameterList(closeParametersScope(outerUsedParameters));
             query.setOuterQueryScope(queryScope);
             read(CLOSE_PAREN);
             return query;

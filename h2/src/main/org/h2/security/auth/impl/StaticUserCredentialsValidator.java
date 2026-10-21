@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2026 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: Alessandro Ventura
  */
@@ -48,7 +48,9 @@ public class StaticUserCredentialsValidator implements CredentialsValidator {
             }
         }
         if (password!=null) {
-            return password.equals(authenticationInfo.getPassword());
+            String provided = authenticationInfo.getPassword();
+            return Utils.compareSecure(password.getBytes(StandardCharsets.UTF_8),
+                    provided == null ? null : provided.getBytes(StandardCharsets.UTF_8));
         }
         return Utils.compareSecure(hashWithSalt,
                 SHA256.getHashWithSalt(authenticationInfo.getPassword().getBytes(StandardCharsets.UTF_8), salt));

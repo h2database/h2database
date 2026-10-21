@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2026 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -46,6 +46,7 @@ import org.h2.mvstore.db.Store;
 import org.h2.result.Row;
 import org.h2.result.RowFactory;
 import org.h2.result.SearchRow;
+import org.h2.schema.Domain;
 import org.h2.schema.InformationSchema;
 import org.h2.schema.Schema;
 import org.h2.schema.SchemaObject;
@@ -632,7 +633,7 @@ public final class Database implements DataHandler, CastDataProvider {
                     for (int i = 0; i < count; i++) {
                         MetaRecord rec = domainRecords.get(i);
                         try {
-                            rec.prepareAndExecute(this, systemSession, eventListener);
+                            rec.prepareAndExecute(this, systemSession, eventListener, true);
                         } catch (DbException ex) {
                             if (exception == null) {
                                 exception = ex;
@@ -654,7 +655,7 @@ public final class Database implements DataHandler, CastDataProvider {
             if (count > 0) {
                 ArrayList<Prepared> constraints = new ArrayList<>(count);
                 for (int i = 0; i < count; i++) {
-                    Prepared prepared = constraintRecords.get(i).prepare(this, systemSession, eventListener);
+                    Prepared prepared = constraintRecords.get(i).prepare(this, systemSession, eventListener, false);
                     if (prepared != null) {
                         constraints.add(prepared);
                     }
@@ -663,7 +664,7 @@ public final class Database implements DataHandler, CastDataProvider {
                 // Create constraints in order (unique and primary key before
                 // all others)
                 for (Prepared constraint : constraints) {
-                    MetaRecord.execute(this, constraint, eventListener, constraint.getSQL());
+                    MetaRecord.execute(this, constraint, eventListener, constraint.getSQL(), false);
                 }
             }
             executeMeta(lastRecords);
@@ -676,7 +677,7 @@ public final class Database implements DataHandler, CastDataProvider {
         if (!records.isEmpty()) {
             records.sort(null);
             for (MetaRecord rec : records) {
-                rec.prepareAndExecute(this, systemSession, eventListener);
+                rec.prepareAndExecute(this, systemSession, eventListener, false);
             }
         }
     }
@@ -1629,6 +1630,33 @@ public final class Database implements DataHandler, CastDataProvider {
     }
 
     /**
+     * Get the first domain that depends on this object.
+     *
+     * @param obj the object to find
+     * @return the first dependent domain, or null
+     */
+    public Domain getDependentDomain(SchemaObject obj) {
+        switch (obj.getType()) {
+        case DbObject.SEQUENCE:
+        case DbObject.FUNCTION_ALIAS:
+            break;
+        default:
+            return null;
+        }
+        HashSet<DbObject> set = new HashSet<>();
+        for (Schema schema : schemas.values()) {
+            for (Domain domain : schema.getAllDomains()) {
+                set.clear();
+                domain.addDependencies(set);
+                if (set.contains(obj)) {
+                    return domain;
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
      * Get the first table that depends on this object.
      *
      * @param obj the object to find
@@ -1708,6 +1736,11 @@ public final class Database implements DataHandler, CastDataProvider {
                 if (t != null) {
                     obj.getSchema().add(obj);
                     throw DbException.get(ErrorCode.CANNOT_DROP_2, obj.getTraceSQL(), t.getTraceSQL());
+                }
+                Domain d = getDependentDomain(obj);
+                if (d != null) {
+                    obj.getSchema().add(obj);
+                    throw DbException.get(ErrorCode.CANNOT_DROP_2, obj.getTraceSQL(), d.getTraceSQL());
                 }
                 obj.removeChildrenAndResources(session);
             }

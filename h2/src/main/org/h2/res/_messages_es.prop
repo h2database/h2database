@@ -39,6 +39,7 @@
 42S12=Indice {0} no encontrado
 42S21=Nombre de columna Duplicada {0}
 42S22=Columna {0} no encontrada
+42S23=#Duplicate table alias {0}
 42S31=#Identical expressions should be used; expected {0}, found {1}
 54011=#Too many columns. The maximum count is {0}
 57014=Ls sentencia fue cancelado ó la sesión expiró por tiempo vencido

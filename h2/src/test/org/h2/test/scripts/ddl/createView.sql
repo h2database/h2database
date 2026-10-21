@@ -1,4 +1,4 @@
--- Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
+-- Copyright 2004-2026 H2 Group. Multiple-Licensed under the MPL 2.0,
 -- and the EPL 1.0 (https://h2database.com/html/license.html).
 -- Initial Developer: H2 Group
 --
@@ -63,4 +63,72 @@ TABLE V;
 > rows: 1
 
 DROP VIEW V;
+> ok
+
+
+-- test for timezone functions in views (issue #4406)
+SET TIME ZONE '+05:00';
+> ok
+
+CREATE VIEW V_TO_CHAR_TZ AS SELECT TO_CHAR(TIMESTAMP '2010-01-01 10:00:00', 'TZH:TZM') AS TO_CHAR_TIMESTAMP;
+> ok
+
+CREATE VIEW V_EXTRACT_TZ AS SELECT EXTRACT(TIMEZONE_HOUR FROM TIMESTAMP '2010-01-01 10:00:00') AS TZ_HOUR;
+> ok
+
+CREATE VIEW V_FORMAT_TZ AS SELECT FORMATDATETIME(TIMESTAMP '2010-01-01 10:00:00', 'XXX') AS FORMATTED_TIMESTAMP;
+> ok
+
+SET TIME ZONE '+08:00';
+> ok
+
+SELECT * FROM V_TO_CHAR_TZ;
+> TO_CHAR_TIMESTAMP
+> -----------------
+> +08:00
+> rows: 1
+
+SELECT * FROM V_EXTRACT_TZ;
+> TZ_HOUR
+> -------
+> 8
+> rows: 1
+
+SELECT * FROM V_FORMAT_TZ;
+> FORMATTED_TIMESTAMP
+> -------------------
+> +08:00
+> rows: 1
+
+DROP VIEW V_EXTRACT_TZ;
+> ok
+
+DROP VIEW V_FORMAT_TZ;
+> ok
+
+DROP VIEW V_TO_CHAR_TZ;
+> ok
+
+
+-- test for OFFSET/FETCH with variable in view (issue #4409)
+SET @VN = 1;
+> ok
+
+CREATE VIEW VF AS SELECT X FROM SYSTEM_RANGE(1,3) ORDER BY X OFFSET @VN;
+> exception FEATURE_NOT_SUPPORTED_1
+
+CREATE VIEW VF AS SELECT X FROM SYSTEM_RANGE(1,3) ORDER BY X FETCH FIRST @VN ROWS ONLY;
+> exception FEATURE_NOT_SUPPORTED_1
+
+-- #4376
+CREATE MATERIALIZED VIEW mv AS SELECT X FROM SYSTEM_RANGE(1,3);
+> ok
+
+SELECT column_name FROM information_schema.columns WHERE table_name = 'MV' ORDER BY ordinal_position;
+> COLUMN_NAME
+> -----------
+> X
+> rows (ordered): 1
+
+DROP MATERIALIZED VIEW mv;
 > ok

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2026 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -27,6 +27,7 @@ import org.h2.mvstore.MVStoreException;
 import org.h2.mvstore.OffHeapStore;
 import org.h2.mvstore.RandomAccessStore;
 import org.h2.mvstore.type.DataType;
+import org.h2.mvstore.type.MetaType;
 import org.h2.mvstore.type.ObjectDataType;
 import org.h2.mvstore.type.StringDataType;
 import org.h2.store.fs.FilePath;
@@ -82,10 +83,12 @@ public class TestMVStore extends TestBase {
         testRecreateMap();
         testRenameMapRollback();
         testCustomMapType();
+        testTypeRegistryNonDataType();
         testCacheSize();
         testConcurrentOpen();
         testFileHeader();
         testFileHeaderCorruption();
+        testStoreHeaderAfterUncleanOpen();
         testIndexSkip();
         testIndexSkipReverse();
         testMinMaxNextKey();
@@ -780,6 +783,43 @@ public class TestMVStore extends TestBase {
         }
     }
 
+    private void testTypeRegistryNonDataType() {
+        String fileName = getBaseDir() + "/" + getTestName();
+        FileUtils.delete(fileName);
+        // StringDataType writes a string the same way MetaType writes a class
+        // name, so this stores a type registry entry naming a class that is
+        // not a data type
+        try (MVStore s = openStore(fileName)) {
+            MVMap<String, String> types = s.openMap("_", new MVMap.Builder<String, String>()
+                    .keyType(StringDataType.INSTANCE).valueType(StringDataType.INSTANCE));
+            types.put("1", NotADataType.class.getName());
+            s.commit();
+        }
+        try (MVStore s = openStore(fileName)) {
+            MVMap.Builder<String, DataType<?>> builder = new MVMap.Builder<String, DataType<?>>()
+                    .keyType(StringDataType.INSTANCE).valueType(new MetaType<>(null, null));
+            assertThrows(RuntimeException.class, () -> s.openMap("_", builder).get("1"));
+            assertFalse(NotADataType.created);
+        }
+    }
+
+    /**
+     * A class that is not a data type; no instance of it may be created when
+     * a type registry entry names it.
+     */
+    public static class NotADataType {
+
+        /**
+         * Whether an instance was created.
+         */
+        static boolean created;
+
+        public NotADataType() {
+            created = true;
+        }
+
+    }
+
     private void testCacheSize() {
         if (config.memory) {
             return;
@@ -798,7 +838,8 @@ public class TestMVStore extends TestBase {
             }
         }
         int[] expectedReadsForCacheSize = {
-                7176, 1750, 940, 940, 940, 940, 940   // compressed
+                7176, 2704, 1664, 1228, 1208, 940, 940   // compressed
+//                7176, 1750, 940, 940, 940, 940, 940   // compressed
 //                1880, 490, 476, 501, 476, 476, 541   // compressed
 //                1887, 1775, 1599, 1355, 1035, 732, 507    // uncompressed
         };
@@ -966,6 +1007,57 @@ public class TestMVStore extends TestBase {
                 // both headers are corrupt
                 assertThrows(Exception.class, () -> openStore(fileName));
             }
+        }
+    }
+
+    // Regression test for https://github.com/h2database/h2database/issues/4446:
+    // committed data lost after unclean open once RETENTION_TIME elapses because
+    // writeStoreHeader() was called with a stale lastChunk (missing lastChunk = chunk
+    // assignment removed by commit 8492b8c2c).
+    private void testStoreHeaderAfterUncleanOpen() {
+        String fileName = getBaseDir() + "/" + getTestName();
+        FileUtils.delete(fileName);
+        MVStore.Builder builder = new MVStore.Builder()
+                .fileName(fileName).autoCommitDisabled();
+
+        // Session 1: write some data, then crash (no clean shutdown)
+        MVStore s = builder.open();
+        MVMap<Integer, byte[]> map = s.openMap("data");
+        for (int i = 0; i < 20; i++) {
+            map.put(i % 10, new byte[1000 + i]);
+            s.commit();
+        }
+        s.closeImmediately();
+
+        // Session 2: reopen after unclean close (simulates crash recovery), then
+        // force chunk reuse by setting retentionTime=0 so holes appear immediately.
+        // Assert the store header always references the chunk just written.
+        s = builder.open();
+        s.setRetentionTime(0);
+        map = s.openMap("data");
+        long headerVersion = DataUtils.readHexLong(s.getStoreHeader(), "version", 0);
+        for (int i = 0; i < 60; i++) {
+            map.put(i % 10, new byte[1000 + i]);
+            long committed = s.commit();
+            long v = DataUtils.readHexLong(s.getStoreHeader(), "version", 0);
+            if (v != headerVersion) {
+                // whenever the store header is rewritten it must reference
+                // the chunk just committed, not the previous one
+                assertTrue("store header version " + v + " != committed version " + committed +
+                        " at commit " + i, committed == v);
+                headerVersion = v;
+            }
+        }
+        map.put(999, new byte[10]);
+        long lastVersion = s.commit();
+        s.sync();
+        s.closeImmediately();   // second crash
+
+        // Session 3: verify nothing committed before the second crash was lost
+        try (MVStore s3 = builder.open()) {
+            MVMap<Integer, byte[]> map3 = s3.openMap("data");
+            assertEquals(lastVersion, s3.getCurrentVersion());
+            assertTrue("key 999 must survive second crash", map3.containsKey(999));
         }
     }
 

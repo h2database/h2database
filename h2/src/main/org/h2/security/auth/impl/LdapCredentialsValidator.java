@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2026 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: Alessandro Ventura
  */
@@ -47,6 +47,13 @@ public class LdapCredentialsValidator implements CredentialsValidator {
 
     @Override
     public boolean validateCredentials(AuthenticationInfo authenticationInfo) throws Exception {
+        String password = authenticationInfo.getPassword();
+        if (password == null || password.isEmpty()) {
+            // An empty password with a non-empty bind DN is an LDAP unauthenticated
+            // bind (RFC 4513, 5.1.2) that many servers accept, which would let a
+            // client authenticate without a valid password.
+            return false;
+        }
         DirContext dirContext = null;
         try {
             String dn=bindDnPattern.replace("%u", authenticationInfo.getUserName());
@@ -55,7 +62,7 @@ public class LdapCredentialsValidator implements CredentialsValidator {
             env.put(Context.PROVIDER_URL, url);
             env.put(Context.SECURITY_AUTHENTICATION, "simple");
             env.put(Context.SECURITY_PRINCIPAL, dn);
-            env.put(Context.SECURITY_CREDENTIALS, authenticationInfo.getPassword());
+            env.put(Context.SECURITY_CREDENTIALS, password);
             if (secure) {
                 env.put(Context.SECURITY_PROTOCOL,"ssl");
             }

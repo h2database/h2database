@@ -39,6 +39,7 @@
 42S12=インデックス {0} が見つかりません
 42S21=列名 {0} が重複しています
 42S22=列 {0} が見つかりません
+42S23=#Duplicate table alias {0}
 42S31=#Identical expressions should be used; expected {0}, found {1}
 54011=#Too many columns. The maximum count is {0}
 57014=ステートメントがキャンセルされたか、セッションがタイムアウトしました

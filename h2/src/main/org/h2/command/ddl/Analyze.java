@@ -149,11 +149,11 @@ public class Analyze extends DefineCommand {
         session.getUser().checkAdmin();
         Database db = getDatabase();
         if (table != null) {
-            analyzeTable(session, table, sampleRows, true);
+            analyzeTable(session, table, sampleRows, true, this);
         } else {
             for (Schema schema : db.getAllSchemasNoMeta()) {
                 for (Table table : schema.getAllTablesAndViews(null)) {
-                    analyzeTable(session, table, sampleRows, true);
+                    analyzeTable(session, table, sampleRows, true, this);
                 }
             }
         }
@@ -169,6 +169,10 @@ public class Analyze extends DefineCommand {
      * @param manual whether the command was called by the user
      */
     public static void analyzeTable(SessionLocal session, Table table, int sample, boolean manual) {
+        analyzeTable(session, table, sample, manual, null);
+    }
+
+    private static void analyzeTable(SessionLocal session, Table table, int sample, boolean manual, Analyze command) {
         if (!table.isValid()
                 || table.getTableType() != TableType.TABLE //
                 || session == null //
@@ -178,7 +182,7 @@ public class Analyze extends DefineCommand {
                 || table.isLockedExclusively() && !table.isLockedExclusivelyBy(session)
                 || !session.getUser().hasTableRight(table, Right.SELECT) //
                 // if the connection is closed and there is something to undo
-                || session.getCancel() != 0) {
+                || isCanceled(session, command)) {
             return;
         }
         table.lock(session, Table.READ_LOCK);
@@ -198,6 +202,9 @@ public class Analyze extends DefineCommand {
             }
             long rowNumber = 0;
             do {
+                if ((rowNumber & 127) == 0 && isCanceled(session, command)) {
+                    return;
+                }
                 Row row = cursor.get();
                 for (int i = 0; i < columnCount; i++) {
                     SelectivityData selectivity = array[i];
@@ -207,6 +214,9 @@ public class Analyze extends DefineCommand {
                 }
                 rowNumber++;
             } while ((sample <= 0 || rowNumber < sample) && cursor.next());
+            if (isCanceled(session, command)) {
+                return;
+            }
             for (int i = 0; i < columnCount; i++) {
                 SelectivityData selectivity = array[i];
                 if (selectivity != null) {
@@ -214,11 +224,25 @@ public class Analyze extends DefineCommand {
                 }
             }
         } else {
+            if (isCanceled(session, command)) {
+                return;
+            }
             for (int i = 0; i < columnCount; i++) {
                 columns[i].setSelectivity(0);
             }
         }
         session.getDatabase().updateMeta(session, table);
+    }
+
+    private static boolean isCanceled(SessionLocal session, Analyze command) {
+        if (command != null) {
+            command.checkCanceled();
+            return false;
+        }
+        // Automatic analysis runs after commit. Skip canceled work without
+        // reporting a failure for a transaction that has already committed.
+        long cancel = session.getCancel();
+        return cancel != 0L && System.nanoTime() - cancel >= 0L;
     }
 
     public void setTop(int top) {

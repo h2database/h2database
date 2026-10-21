@@ -6,6 +6,7 @@
 package org.h2.expression.function;
 
 import org.h2.command.Parser;
+import org.h2.engine.Right;
 import org.h2.engine.SessionLocal;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
@@ -53,6 +54,7 @@ public final class TableInfoFunction extends Function1_2 {
             v1 = ValueBigint.get(table.getDiskSpaceUsed(false, false));
             break;
         case ESTIMATED_ENVELOPE: {
+            session.getUser().checkTableRight(table, Right.SELECT);
             Column column = table.getColumn(v2.getString());
             for (Index index : table.getIndexes()) {
                 if (index instanceof MVSpatialIndex && index.isFirstColumn(column)) {

@@ -536,20 +536,30 @@ public class IndexCondition {
         }
 
         int[] newOrder = new int[length];
-        int found = 0;
+        boolean[] matched = new boolean[length];
         for (int i = 0; i < length; i++) {
             if (indexColumns[i] == null || indexColumns[i].column == null) {
                 return null;
             }
+            int match = -1;
             for (int j = 0; j < this.columns.length; j++) {
                 if (columns[j] == indexColumns[i].column) {
-                    newOrder[j] = i;
-                    found++;
+                    if (match >= 0) {
+                        // The condition references the same column more than once,
+                        // for example (B, B) = (1, 1) with an index on (A, B).
+                        // Counting the matches would map the index column twice and
+                        // leave another index column unmapped, so the condition
+                        // cannot be mapped onto this index.
+                        return null;
+                    }
+                    match = j;
                 }
             }
-        }
-        if (found != length) {
-            return null;
+            if (match < 0 || matched[match]) {
+                return null;
+            }
+            matched[match] = true;
+            newOrder[match] = i;
         }
 
         Column[] newColumns = new Column[length];

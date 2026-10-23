@@ -7,16 +7,24 @@ package org.h2.test.unit;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Map;
+import org.h2.mvstore.DataUtils;
+import org.h2.mvstore.MVStore;
+import org.h2.mvstore.db.ValueDataType;
+import org.h2.mvstore.tx.TransactionStore;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
 import org.h2.tools.DeleteDbFiles;
 import org.h2.tools.Recover;
+import org.h2.util.IOUtils;
 
 /**
  * Tests database recovery.
@@ -47,6 +55,7 @@ public class TestRecovery extends TestDb {
         testRecoverJson();
         testRecoverArray();
         testRecoverGeneratedColumns();
+        testRecoverUnreadablePage();
         testCompressedAndUncompressed();
         testRunScript();
         testRunScript2();
@@ -163,6 +172,62 @@ public class TestRecovery extends TestDb {
             assertTrue(rs.next());
             assertEquals(3, rs.getInt(1));
             assertEquals(31, rs.getInt(2));
+        }
+        conn.close();
+    }
+
+    private void testRecoverUnreadablePage() throws Exception {
+        if (config.cipher != null) {
+            return;
+        }
+        DeleteDbFiles.execute(getBaseDir(), "recovery", true);
+        Connection conn = getConnection("recovery");
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(id int primary key, name varchar)");
+        stat.execute("insert into test select x, 'name ' || x from system_range(1, 1000)");
+        conn.close();
+        // overwrite the header of the root page of the table
+        String fileName = getBaseDir() + "/recovery.mv.db";
+        long position;
+        try (MVStore mv = new MVStore.Builder().fileName(fileName).readOnly().open()) {
+            TransactionStore store = new TransactionStore(mv, new ValueDataType());
+            store.init();
+            String mapName = null;
+            for (String name : mv.getMapNames()) {
+                if (name.startsWith("table.") && !name.equals("table.0")) {
+                    mapName = name;
+                }
+            }
+            long pos = store.begin().openMap(mapName).map.getRootPage().getPos();
+            int chunkId = DataUtils.getPageChunkId(pos);
+            String chunk = mv.getLayoutMap().get("chunk." + Integer.toHexString(chunkId));
+            // the last chunk is described only in the store header
+            Map<String, ?> chunkData = chunk != null ? DataUtils.parseMap(chunk)
+                    : mv.getFileStore().getStoreHeader();
+            assertEquals(chunkId, DataUtils.readHexLong(chunkData, "chunk", -1));
+            // the block size is 4 KB
+            position = DataUtils.readHexLong(chunkData, "block", 0) * 4096 + DataUtils.getPageOffset(pos);
+        }
+        try (FileChannel fc = FileUtils.open(fileName, "rw")) {
+            fc.write(ByteBuffer.allocate(4), position);
+        }
+        Recover rec = new Recover();
+        ByteArrayOutputStream buff = new ByteArrayOutputStream();
+        rec.setOut(new PrintStream(buff, true, "UTF-8"));
+        rec.runTool("-dir", getBaseDir(), "-db", "recovery");
+        String error = "org.h2.mvstore.MVStoreException: File corrupted";
+        assertContains(buff.toString("UTF-8"), error);
+        String script = new String(IOUtils.readBytesAndClose(
+                FileUtils.newInputStream(getBaseDir() + "/recovery.h2.sql"), -1), StandardCharsets.UTF_8);
+        assertContains(script, "// error: " + error);
+        DeleteDbFiles.execute(getBaseDir(), "recovery", true);
+        conn = getConnection(
+                "recovery;init=runscript from '" +
+                        getBaseDir() + "/recovery.h2.sql'");
+        stat = conn.createStatement();
+        try (ResultSet rs = stat.executeQuery("select count(*) from test")) {
+            assertTrue(rs.next());
+            assertEquals(0, rs.getInt(1));
         }
         conn.close();
     }

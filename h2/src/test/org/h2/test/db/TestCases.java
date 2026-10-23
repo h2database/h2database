@@ -11,6 +11,7 @@ import java.io.StringReader;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.Date;
+import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -22,6 +23,8 @@ import java.util.List;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import org.h2.api.ErrorCode;
+import org.h2.engine.SessionLocal;
+import org.h2.jdbc.JdbcConnection;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
@@ -98,6 +101,7 @@ public class TestCases extends TestDb {
         testSchemaIdentityReconnect();
         testAlterTableReconnect();
         testPersistentSettings();
+        testWriteDelayPersistence();
         testInsertSelectUnion();
         testViewReconnect();
         testDefaultQueryReconnect();
@@ -1204,6 +1208,59 @@ public class TestCases extends TestDb {
         rs.next();
         assertEquals("Bucher", rs.getString(1));
         conn.close();
+    }
+
+    /**
+     * WRITE_DELAY set at runtime must survive a close and a plain reopen of a
+     * persistent database, and WRITE_DELAY in the database URL must override a
+     * persisted value (and then persist over it). Raw DriverManager is used on
+     * purpose so that no TestBase URL option can mask the stored value.
+     */
+    private void testWriteDelayPersistence() throws SQLException {
+        deleteDb("casesWriteDelay");
+        String url = "jdbc:h2:" + getBaseDir() + "/casesWriteDelay";
+        try {
+            // new database: Constants.DEFAULT_WRITE_DELAY
+            try (Connection conn = DriverManager.getConnection(
+                    url, getUser(), getPassword())) {
+                SessionLocal session = (SessionLocal) ((JdbcConnection) conn).getSession();
+                assertEquals(500, session.getDatabase().getWriteDelay());
+            }
+            // SET WRITE_DELAY 0 survives a plain reopen
+            try (Connection conn = DriverManager.getConnection(
+                    url, getUser(), getPassword())) {
+                conn.createStatement().execute("SET WRITE_DELAY 0");
+                SessionLocal session = (SessionLocal) ((JdbcConnection) conn).getSession();
+                assertEquals(0, session.getDatabase().getWriteDelay());
+            }
+            try (Connection conn = DriverManager.getConnection(
+                    url, getUser(), getPassword())) {
+                SessionLocal session = (SessionLocal) ((JdbcConnection) conn).getSession();
+                assertEquals(0, session.getDatabase().getWriteDelay());
+                // non-zero value set afterwards survives too
+                conn.createStatement().execute("SET WRITE_DELAY 137");
+                assertEquals(137, session.getDatabase().getWriteDelay());
+            }
+            try (Connection conn = DriverManager.getConnection(
+                    url, getUser(), getPassword())) {
+                SessionLocal session = (SessionLocal) ((JdbcConnection) conn).getSession();
+                assertEquals(137, session.getDatabase().getWriteDelay());
+            }
+            // WRITE_DELAY=23 in the URL overrides the persisted 137
+            try (Connection conn = DriverManager.getConnection(
+                    url + ";WRITE_DELAY=23", getUser(), getPassword())) {
+                SessionLocal session = (SessionLocal) ((JdbcConnection) conn).getSession();
+                assertEquals(23, session.getDatabase().getWriteDelay());
+            }
+            // ... and 23, not 137, is the persisted value afterwards
+            try (Connection conn = DriverManager.getConnection(
+                    url, getUser(), getPassword())) {
+                SessionLocal session = (SessionLocal) ((JdbcConnection) conn).getSession();
+                assertEquals(23, session.getDatabase().getWriteDelay());
+            }
+        } finally {
+            deleteDb("casesWriteDelay");
+        }
     }
 
     private void testInsertSelectUnion() throws SQLException {

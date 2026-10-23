@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
+import org.h2.engine.Engine;
 import org.h2.message.DbException;
 import org.h2.message.TraceSystem;
 import org.h2.store.fs.FilePath;
@@ -48,6 +49,14 @@ public class FileLister {
                             message);
                 }
             } else if (fileName.endsWith(Constants.SUFFIX_MV_FILE)) {
+                // closing another channel of the file would release the lock
+                // of a database that is open in this process
+                String name = FileUtils.toRealPath(fileName);
+                if (Engine.isOpen(name.substring(0, name.length() - Constants.SUFFIX_MV_FILE.length()))) {
+                    throw DbException.getJdbcSQLException(
+                            ErrorCode.CANNOT_CHANGE_SETTING_WHEN_OPEN_1,
+                            message);
+                }
                 try (FileChannel f = FilePath.get(fileName).open("r")) {
                     java.nio.channels.FileLock lock = f.tryLock(0, Long.MAX_VALUE, true);
                     lock.release();

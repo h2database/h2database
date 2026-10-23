@@ -23,6 +23,7 @@ Change Log
 <ul>
 <li>Fix ANALYZE being skipped when a query timeout is set, and handle cancellation of explicit ANALYZE statements.</li>
     <li>Fix reading pre-2.5 transaction values during MVStore compaction and recovery</li>
+    <li>Issue #4479: persisted WRITE_DELAY restored when database reopens</li>
     <li>Issue #4457: Invalid chunk after abrupt shutdown preclude subsequent file space reuse</li>
     <li>Issue #4446: Committed data lost after reopening a crashed database once RETENTION_TIME elapsed (stale store header)</li>
     <li>Issue #3958: org.h2.tools.Recover not dealing with Arrays correctly</li>

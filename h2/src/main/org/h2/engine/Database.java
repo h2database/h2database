@@ -381,7 +381,9 @@ public final class Database implements DataHandler, CastDataProvider {
             systemSession.commit(true);
             trace.info("opened {0}", databaseName);
             if (persistent) {
-                int writeDelay = ci.getProperty("WRITE_DELAY", Constants.DEFAULT_WRITE_DELAY);
+                Setting writeDelaySetting = findSetting(SetTypes.getTypeName(SetTypes.WRITE_DELAY));
+                int writeDelay = ci.getProperty("WRITE_DELAY", writeDelaySetting == null
+                        ? Constants.DEFAULT_WRITE_DELAY : writeDelaySetting.getIntValue());
                 setWriteDelay(writeDelay);
             }
             if (closeAtVmShutdown || persistent) {

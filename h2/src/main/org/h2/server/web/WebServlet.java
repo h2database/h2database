@@ -20,6 +20,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.h2.util.NetworkConnectionInfo;
+import org.h2.util.StringUtils;
 
 /**
  * This servlet lets the H2 Console be used in a standard servlet container
@@ -64,12 +65,23 @@ public class WebServlet extends HttpServlet {
         String addr = req.getRemoteAddr();
         try {
             InetAddress address = InetAddress.getByName(addr);
-            return address.isLoopbackAddress();
+            if (!address.isLoopbackAddress()) {
+                return false;
+            }
         } catch (UnknownHostException | NoClassDefFoundError e) {
             // Google App Engine does not allow java.net.InetAddress
             return false;
         }
-
+        // reject foreign Host headers (DNS rebinding), as WebThread does
+        String host = req.getServerName();
+        if (host == null || host.isEmpty()) {
+            return false;
+        }
+        host = StringUtils.toLowerEnglish(host);
+        if (host.indexOf(':') >= 0 && host.charAt(0) != '[') {
+            host = '[' + host + ']';
+        }
+        return server.isAllowedHost(host);
     }
 
     private String getAllowedFile(HttpServletRequest req, String requestedFile) {

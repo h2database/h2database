@@ -259,19 +259,8 @@ class WebThread extends WebApp implements Runnable {
             return false;
         }
         host = StringUtils.toLowerEnglish(host);
-        if (host.equals(server.getHost()) ||
-                host.equals("localhost") ||
-                host.equals("127.0.0.1") ||
-                host.equals("[::1]")) {
+        if (server.isAllowedHost(host)) {
             return true;
-        }
-        String externalNames = server.getExternalNames();
-        if (externalNames != null && !externalNames.isEmpty()) {
-            for (String s : externalNames.split(",")) {
-                if (host.equals(s.trim())) {
-                    return true;
-                }
-            }
         }
         writeSimple("HTTP/1.1 404 Not Found", "Host " + host + " not found");
         return false;

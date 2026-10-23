@@ -57,7 +57,6 @@ import org.h2.util.Tool;
 import org.h2.value.CompareMode;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
-import org.h2.value.ValueArray;
 import org.h2.value.ValueCollectionBase;
 import org.h2.value.ValueLob;
 import org.h2.value.ValueJson;
@@ -391,7 +390,7 @@ public class Recover extends Tool implements DataHandler {
                             builder.setLength(0);
                             getSQL(builder, columnName, values[valueId]);
                         }
-                        setArrayColumnTypes(dataMap, values);
+                        setColumnTypes(dataMap, values);
                         createTemporaryTable(writer);
                         init = true;
                     }
@@ -419,19 +418,20 @@ public class Recover extends Tool implements DataHandler {
     }
 
     /**
-     * Sets the types of the columns with arrays. A type must cover the arrays
-     * of all rows, so rows are read until each column has a value that is not
-     * an array, or to the end if a column has arrays or only nulls.
+     * Sets the types of the columns with arrays or rows. A type must cover the
+     * values of all rows, so rows are read until each column has a value that
+     * is not an array or row, or to the end if a column has arrays, rows or
+     * only nulls.
      *
      * @param dataMap the map with the rows
      * @param firstRow the values of the first row
      */
-    private void setArrayColumnTypes(TransactionMap<?, ?> dataMap, Value[] firstRow) {
+    private void setColumnTypes(TransactionMap<?, ?> dataMap, Value[] firstRow) {
         boolean[] done = new boolean[recordLength];
         int remaining = recordLength;
         for (int i = 0; i < recordLength; i++) {
             Value v = firstRow[i];
-            if (v != ValueNull.INSTANCE && !(v instanceof ValueArray)) {
+            if (v != ValueNull.INSTANCE && !(v instanceof ValueCollectionBase)) {
                 done[i] = true;
                 remaining--;
             }
@@ -446,7 +446,7 @@ public class Recover extends Tool implements DataHandler {
                     continue;
                 }
                 Value v = values[i];
-                if (v instanceof ValueArray) {
+                if (v instanceof ValueCollectionBase) {
                     types[i] = types[i] == null ? v.getType() : TypeInfo.getHigherType(types[i], v.getType());
                 } else if (v != ValueNull.INSTANCE && types[i] == null) {
                     done[i] = true;

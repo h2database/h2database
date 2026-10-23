@@ -97,6 +97,16 @@ public class TestJakartaWeb extends TestDb {
         response.setServletOutputStream(out);
         servlet.doGet(request, response);
         assertContains(out.toString(), "location.href = 'login.jsp");
+
+        // DNS rebinding: loopback client, but a foreign Host header
+        request = new TestHttpServletRequest();
+        request.setPathInfo("/");
+        request.setServerName("attacker.example");
+        response = new TestHttpServletResponse();
+        out = new TestServletOutputStream();
+        response.setServletOutputStream(out);
+        servlet.doGet(request, response);
+        assertContains(out.toString(), "('webAllowOthers') are disabled");
         servlet.destroy();
     }
 
@@ -107,8 +117,14 @@ public class TestJakartaWeb extends TestDb {
 
         private String pathInfo;
 
+        private String serverName = "localhost";
+
         void setPathInfo(String pathInfo) {
             this.pathInfo = pathInfo;
+        }
+
+        void setServerName(String serverName) {
+            this.serverName = serverName;
         }
 
         @Override
@@ -229,7 +245,7 @@ public class TestJakartaWeb extends TestDb {
 
         @Override
         public String getServerName() {
-            return null;
+            return serverName;
         }
 
         @Override

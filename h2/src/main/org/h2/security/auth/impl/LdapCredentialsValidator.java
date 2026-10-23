@@ -10,6 +10,7 @@ import java.util.Hashtable;
 import javax.naming.Context;
 import javax.naming.directory.DirContext;
 import javax.naming.directory.InitialDirContext;
+import javax.naming.ldap.Rdn;
 
 import org.h2.api.CredentialsValidator;
 import org.h2.security.auth.AuthenticationInfo;
@@ -56,7 +57,7 @@ public class LdapCredentialsValidator implements CredentialsValidator {
         }
         DirContext dirContext = null;
         try {
-            String dn=bindDnPattern.replace("%u", authenticationInfo.getUserName());
+            String dn = buildBindDn(bindDnPattern, authenticationInfo.getUserName());
             Hashtable<String, String> env = new Hashtable<>();
             env.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory");
             env.put(Context.PROVIDER_URL, url);
@@ -75,6 +76,21 @@ public class LdapCredentialsValidator implements CredentialsValidator {
             }
         }
 
+    }
+
+    /**
+     * Build the bind DN by substituting the user name into the configured
+     * pattern. The user name is supplied by the connecting client, so it is
+     * escaped with RFC 4514 DN escaping before substitution; otherwise a name
+     * containing DN metacharacters (such as a comma) would change the structure
+     * of the DN used for the bind.
+     *
+     * @param bindDnPattern the pattern with the {@code %u} placeholder
+     * @param userName the user name to escape and substitute
+     * @return the bind DN
+     */
+    public static String buildBindDn(String bindDnPattern, String userName) {
+        return bindDnPattern.replace("%u", Rdn.escapeValue(userName));
     }
 
 }

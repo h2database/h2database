@@ -43,6 +43,7 @@ import java.util.UUID;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import org.h2.api.ErrorCode;
+import org.h2.engine.Constants;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.store.FileLister;
@@ -117,6 +118,7 @@ public class TestTools extends TestDb {
         testScriptRunscript();
         testBackupRestore();
         testRestoreZipSlip();
+        testRestoreOpenDatabase();
         testRecover();
         FileUtils.delete(getBaseDir() + "/b2.sql");
         FileUtils.delete(getBaseDir() + "/b2.sql.txt");
@@ -1063,6 +1065,49 @@ public class TestTools extends TestDb {
         assertFalse(FileUtils.exists(escaped));
         FileUtils.delete(zipFileName);
         FileUtils.deleteRecursive(dir + "/restoreTarget", false);
+    }
+
+    private void testRestoreOpenDatabase() throws Exception {
+        org.h2.Driver.load();
+        String dir = getBaseDir();
+        String url = "jdbc:h2:" + dir + "/testRestoreOpen";
+        String fileName = dir + "/testRestoreOpen.zip";
+        DeleteDbFiles.main("-dir", dir, "-db", "testRestoreOpen", "-quiet");
+        try (Connection conn = getConnection(url, "sa", "")) {
+            Statement stat = conn.createStatement();
+            stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY) AS SELECT X FROM SYSTEM_RANGE(1, 10)");
+            stat.execute("BACKUP TO '" + fileName + "'");
+            stat.execute("INSERT INTO TEST SELECT X FROM SYSTEM_RANGE(11, 20)");
+            // must fail when the database is in use
+            assertThrows(ErrorCode.CANNOT_CHANGE_SETTING_WHEN_OPEN_1,
+                    () -> Restore.execute(fileName, dir, "testRestoreOpen"));
+            stat.execute("INSERT INTO TEST SELECT X FROM SYSTEM_RANGE(21, 30)");
+        }
+        assertEquals(30, getRestoreOpenRowCount(url));
+        // a failed restore must keep the database
+        String shortFileName = dir + "/testRestoreOpenShort.zip";
+        byte[] zip = IOUtils.readBytesAndClose(FileUtils.newInputStream(fileName), -1);
+        try (OutputStream out = FileUtils.newOutputStream(shortFileName, false)) {
+            out.write(zip, 0, zip.length / 2);
+        }
+        assertThrows(DbException.class, () -> Restore.execute(shortFileName, dir, "testRestoreOpen"));
+        assertEquals(30, getRestoreOpenRowCount(url));
+        for (String f : FileUtils.newDirectoryStream(dir)) {
+            assertFalse(f, f.endsWith(Constants.SUFFIX_TEMP_FILE));
+        }
+        Restore.execute(fileName, dir, "testRestoreOpen");
+        assertEquals(10, getRestoreOpenRowCount(url));
+        FileUtils.delete(fileName);
+        FileUtils.delete(shortFileName);
+        DeleteDbFiles.main("-dir", dir, "-db", "testRestoreOpen", "-quiet");
+    }
+
+    private int getRestoreOpenRowCount(String url) throws SQLException {
+        try (Connection conn = getConnection(url, "sa", "")) {
+            ResultSet rs = conn.createStatement().executeQuery("SELECT COUNT(*) FROM TEST");
+            rs.next();
+            return rs.getInt(1);
+        }
     }
 
     private void testChangeFileEncryption(boolean split) throws SQLException {

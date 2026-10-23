@@ -44,6 +44,21 @@ public final class Engine {
         }
     }
 
+    /**
+     * Checks whether a database is open in this process.
+     *
+     * @param name the normalized database name: the real path of the
+     *            database file without the file suffix
+     * @return true if the database is open
+     */
+    public static boolean isOpen(String name) {
+        DatabaseHolder databaseHolder;
+        synchronized (DATABASES) {
+            databaseHolder = DATABASES.get(name);
+        }
+        return databaseHolder != null && databaseHolder.database != null;
+    }
+
     private static SessionLocal openSession(ConnectionInfo ci, boolean ifExists, boolean forbidCreation,
             String cipher) {
         String name = ci.getName();

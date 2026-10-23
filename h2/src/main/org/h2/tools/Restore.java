@@ -10,10 +10,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.sql.SQLException;
+import java.util.Collections;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import org.h2.engine.Constants;
 import org.h2.message.DbException;
+import org.h2.store.FileLister;
 import org.h2.store.fs.FileUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.Tool;
@@ -135,7 +137,8 @@ public class Restore extends Tool {
      * @param zipFileName the name of the backup file
      * @param directory the directory name
      * @param db the database name (null for all databases)
-     * @throws DbException if there is an IOException
+     * @throws DbException if there is an IOException, or if a database file
+     *             to replace belongs to an open database
      */
     public static void execute(String zipFileName, String directory, String db) {
         InputStream in = null;
@@ -183,13 +186,20 @@ public class Restore extends Tool {
                                 && !targetPath.startsWith(targetDir + File.separatorChar)) {
                             throw new IOException("Zip entry outside of target directory: " + entry.getName());
                         }
-                        OutputStream o = null;
+                        // write to a temporary file, so that a failure does
+                        // not destroy the existing file
+                        FileUtils.createDirectories(FileUtils.getParent(targetPath));
+                        String tempFileName = FileUtils.createTempFile(targetPath, Constants.SUFFIX_TEMP_FILE, false);
                         try {
-                            o = FileUtils.newOutputStream(targetFileName, false);
-                            IOUtils.copy(zipIn, o);
-                            o.close();
+                            try (OutputStream o = FileUtils.newOutputStream(tempFileName, false)) {
+                                IOUtils.copy(zipIn, o);
+                            }
+                            if (targetPath.endsWith(Constants.SUFFIX_MV_FILE) && FileUtils.exists(targetPath)) {
+                                FileLister.tryUnlockDatabase(Collections.singletonList(targetPath), "restore");
+                            }
+                            FileUtils.moveAtomicReplace(tempFileName, targetPath);
                         } finally {
-                            IOUtils.closeSilently(o);
+                            FileUtils.tryDelete(tempFileName);
                         }
                     }
                     zipIn.closeEntry();
@@ -198,6 +208,8 @@ public class Restore extends Tool {
             }
         } catch (IOException e) {
             throw DbException.convertIOException(e, zipFileName);
+        } catch (SQLException e) {
+            throw DbException.convert(e);
         } finally {
             IOUtils.closeSilently(in);
         }

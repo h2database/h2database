@@ -2077,7 +2077,9 @@ public final class MVStore implements AutoCloseable {
         }
 
         /**
-         * Open the file in recovery mode, where some errors may be ignored.
+         * Open the file in recovery mode, where some errors may be ignored. A
+         * page that cannot be read is replaced by an empty page, and the
+         * exception is passed to the background exception handler.
          *
          * @return this
          */
@@ -2152,7 +2154,8 @@ public final class MVStore implements AutoCloseable {
 
         /**
          * Set the listener to be used for exceptions that occur when writing in
-         * the background thread.
+         * the background thread, and for pages that cannot be read in recovery
+         * mode.
          *
          * @param exceptionHandler the handler
          * @return this

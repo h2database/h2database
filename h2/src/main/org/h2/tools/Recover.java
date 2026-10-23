@@ -19,6 +19,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -391,6 +392,7 @@ public class Recover extends Tool implements DataHandler {
                             builder.setLength(0);
                             getSQL(builder, columnName, values[valueId]);
                         }
+                        setIntegerColumnTypes(dataMap);
                         setArrayColumnTypes(dataMap, values);
                         createTemporaryTable(writer);
                         init = true;
@@ -458,6 +460,40 @@ public class Recover extends Tool implements DataHandler {
             if (types[i] != null) {
                 columnTypeMap.put(storageName + "." + i,
                         types[i].getSQL(new StringBuilder(), HasSQL.DEFAULT_SQL_FLAGS).toString());
+            }
+        }
+    }
+
+    /**
+     * Sets the INTEGER type for columns whose non-null values are all integers.
+     * ENUM values are stored as integer values. Keeping their type prevents
+     * them from being interpreted as labels during recovery.
+     *
+     * @param dataMap the map with the rows
+     */
+    private void setIntegerColumnTypes(TransactionMap<?, ?> dataMap) {
+        boolean[] integer = new boolean[recordLength];
+        boolean[] seen = new boolean[recordLength];
+        Arrays.fill(integer, true);
+        for (Iterator<?> it = dataMap.keyIterator(null); it.hasNext();) {
+            Object value = dataMap.get(it.next());
+            Value[] values = value instanceof Row ? ((Row) value).getValueList()
+                    : ((ValueCollectionBase) value).getList();
+            for (int i = 0; i < recordLength && i < values.length; i++) {
+                Value v = values[i];
+                if (v == null || v == ValueNull.INSTANCE) {
+                    continue;
+                }
+                seen[i] = true;
+                if (v.getValueType() != Value.INTEGER) {
+                    integer[i] = false;
+                }
+            }
+        }
+        for (int i = 0; i < recordLength; i++) {
+            String columnName = storageName + "." + i;
+            if (seen[i] && integer[i] && !columnTypeMap.containsKey(columnName)) {
+                columnTypeMap.put(columnName, "INTEGER");
             }
         }
     }

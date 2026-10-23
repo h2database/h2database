@@ -118,6 +118,7 @@ public class TestTools extends TestDb {
         testBackupRestore();
         testRestoreZipSlip();
         testRecover();
+        testRecoverEnum();
         FileUtils.delete(getBaseDir() + "/b2.sql");
         FileUtils.delete(getBaseDir() + "/b2.sql.txt");
         FileUtils.delete(getBaseDir() + "/b2.zip");
@@ -871,6 +872,116 @@ public class TestTools extends TestDb {
         FileUtils.delete(getBaseDir() + "/toolsRecover.h2.sql");
         String dir = getBaseDir() + "/toolsRecover.lobs.db";
         FileUtils.deleteRecursive(dir, false);
+    }
+
+    private void testRecoverEnum() throws Exception {
+        // ENUM values are stored as ordinal values, the recovery script has to keep
+        // them as numbers; one-based and zero-based ordinal values must be restored,
+        // and a table whose first row has no value for the ENUM column must be
+        // recovered as well
+        for (boolean zeroBased : new boolean[] { false, true }) {
+            for (boolean firstRowNull : new boolean[] { false, true }) {
+                testRecoverEnumTextLabels(zeroBased, firstRowNull);
+                testRecoverEnumNumericLabels(zeroBased, firstRowNull);
+            }
+        }
+    }
+
+    private void testRecoverEnumTextLabels(boolean zeroBased, boolean firstRowNull)
+            throws Exception {
+        testRecoverEnumCase("toolsRecoverEnumText", "ENUM('x', 'y')",
+                "y", "x", zeroBased, firstRowNull);
+    }
+
+    private void testRecoverEnumNumericLabels(boolean zeroBased, boolean firstRowNull)
+            throws Exception {
+        // the ordinal values are valid labels too, so the restored values must not be
+        // resolved as labels
+        testRecoverEnumCase("toolsRecoverEnumNumeric",
+                "ENUM('2', '1')", "2", "1", zeroBased, firstRowNull);
+    }
+
+    private void testRecoverEnumCase(String dbName, String enumType,
+            String label1, String label2, boolean zeroBased, boolean firstRowNull)
+            throws Exception {
+        if (config.memory) {
+            return;
+        }
+        org.h2.Driver.load();
+        String dir = getBaseDir();
+        String url = getURL(dbName, true);
+        if (zeroBased) {
+            url += ";ZERO_BASED_ENUMS=TRUE";
+        }
+        String scriptFile = dir + "/" + dbName + ".h2.sql";
+        deleteDb(dbName);
+        try {
+            ArrayList<String[]> expected;
+            try (Connection conn = getConnection(url, "sa", "sa");
+                    Statement stat = conn.createStatement()) {
+                stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, E "
+                        + enumType + ", NAME VARCHAR(20), QTY INT)");
+                String first = firstRowNull ? "NULL" : "'" + label1 + "'";
+                String second = firstRowNull ? "'" + label1 + "'" : "NULL";
+                stat.execute("INSERT INTO TEST VALUES(1, " + first
+                        + ", 'plain', 42)");
+                stat.execute("INSERT INTO TEST VALUES(2, " + second
+                        + ", 'empty', -7)");
+                stat.execute("INSERT INTO TEST VALUES(3, '" + label2
+                        + "', 'third', NULL)");
+                expected = readRecoverEnumRows(stat);
+            }
+            assertEquals(3, expected.size());
+            if (firstRowNull) {
+                assertNull(expected.get(0)[1]);
+                assertEquals(label1, expected.get(1)[1]);
+            } else {
+                assertEquals(label1, expected.get(0)[1]);
+                assertNull(expected.get(1)[1]);
+            }
+            assertEquals(label2, expected.get(2)[1]);
+            assertEquals("plain", expected.get(0)[2]);
+            assertEquals("42", expected.get(0)[3]);
+            Recover.main("-dir", dir, "-db", dbName);
+            for (String f : FileLister.getDatabaseFiles(dir, dbName, true)) {
+                if (!FileUtils.isDirectory(f)) {
+                    FileUtils.delete(f);
+                }
+            }
+            try (Connection conn = getConnection(url, "sa", "sa");
+                    Statement stat = conn.createStatement()) {
+                stat.execute("RUNSCRIPT FROM '" + scriptFile + "'");
+                ArrayList<String[]> actual = readRecoverEnumRows(stat);
+                assertEquals(expected.size(), actual.size());
+                for (int i = 0; i < expected.size(); i++) {
+                    String[] e = expected.get(i), a = actual.get(i);
+                    for (int c = 0; c < e.length; c++) {
+                        if (e[c] == null) {
+                            assertNull(a[c]);
+                        } else {
+                            assertEquals(e[c], a[c]);
+                        }
+                    }
+                }
+            }
+        } finally {
+            deleteDb(dbName);
+            FileUtils.delete(scriptFile);
+            FileUtils.deleteRecursive(dir + "/" + dbName + ".lobs.db", false);
+        }
+    }
+
+    private static ArrayList<String[]> readRecoverEnumRows(Statement stat)
+            throws SQLException {
+        ArrayList<String[]> rows = new ArrayList<>();
+        try (ResultSet rs = stat.executeQuery(
+                "SELECT ID, E, NAME, QTY FROM TEST ORDER BY ID")) {
+            while (rs.next()) {
+                rows.add(new String[] { rs.getString(1), rs.getString(2),
+                        rs.getString(3), rs.getString(4) });
+            }
+        }
+        return rows;
     }
 
     private void testManagementDb() throws SQLException {

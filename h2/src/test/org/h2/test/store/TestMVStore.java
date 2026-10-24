@@ -837,8 +837,13 @@ public class TestMVStore extends TestBase {
                 map.put(i, new String(new char[10240]));
             }
         }
+        // reads when evicted pages are never found through the weak references
+        // of non-resident cache entries; pages that are not garbage collected
+        // yet need no read, so the number of reads depends on the garbage
+        // collector and can only be checked against an upper limit
         int[] expectedReadsForCacheSize = {
-                7176, 2704, 1664, 1228, 1208, 940, 940   // compressed
+                7176, 3477, 3290, 3308, 3309, 3231, 3108   // compressed
+//                7176, 2704, 1664, 1228, 1208, 940, 940   // compressed
 //                7176, 1750, 940, 940, 940, 940, 940   // compressed
 //                1880, 490, 476, 501, 476, 476, 541   // compressed
 //                1887, 1775, 1599, 1355, 1035, 732, 507    // uncompressed
@@ -860,13 +865,14 @@ public class TestMVStore extends TestBase {
                 FileStore fileStore = s.getFileStore();
                 long readCount = fileStore.getReadCount();
                 int expected = expectedReadsForCacheSize[cacheSizeMB];
-                assertTrue("Cache " + cacheSizeMB + "Mb, reads: " + readCount + " expected: " + expected +
+                assertTrue("Cache " + cacheSizeMB + "Mb, reads: " + readCount +
+                                " expected at most: " + expected + " + 20%" +
                                 " size: " + fileStore.getReadBytes() +
                                 " cache used: " + s.getCacheSizeUsed() +
                                 " cache hit ratio: " + s.getFileStore().getCacheHitRatio() +
                                 " cache ToC hit ratio: " + s.getFileStore().getTocCacheHitRatio() +
                                 "",
-                        Math.abs(100 - (100 * expected / readCount)) < 20);
+                        readCount * 100 < expected * 120L);
             }
         }
     }

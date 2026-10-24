@@ -596,9 +596,9 @@ public class TestWeb extends TestDb {
             String result = client.get(url);
             client.readSessionId(result);
             client.get(url, "login.do?driver=org.h2.Driver" +
-                    "&url=jdbc:h2:mem:" + getTestName() +
-                    "&user=sa&password=sa&name=_test_");
-            // the last query of every session is shown on the admin page
+                    "&url=jdbc:h2:mem:<h2xssurl>" +
+                    "&user=<h2xssuser>&password=sa&name=_test_");
+            // the URL, user and last query of every session are shown on the admin page
             client.get(url, "query.do?sql=select '<h2xsstest>'");
             WebClient admin = new WebClient();
             result = admin.get(url);
@@ -607,6 +607,10 @@ public class TestWeb extends TestDb {
             result = admin.get(url, "admin.do");
             assertContains(result, "h2xsstest");
             assertTrue(result.indexOf("<h2xsstest>") < 0);
+            assertContains(result, "h2xssurl");
+            assertTrue(result.indexOf("<h2xssurl>") < 0);
+            assertContains(result, "H2XSSUSER");
+            assertTrue(result.indexOf("<H2XSSUSER>") < 0);
             client.get(url, "logout.do");
         } finally {
             server.shutdown();

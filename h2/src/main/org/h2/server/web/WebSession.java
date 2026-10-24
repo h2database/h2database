@@ -201,6 +201,7 @@ class WebSession {
     HashMap<String, Object> getInfo() {
         HashMap<String, Object> m = new HashMap<>();
         m.putAll(map);
+        m.put("ip", PageParser.escapeHtml((String) map.get("ip")));
         m.put("lastAccess", new Timestamp(lastAccess).toString());
         try {
             m.put("url", conn == null ?

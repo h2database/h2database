@@ -807,6 +807,9 @@ public final class MVStore implements AutoCloseable {
                 assert state == STATE_OPEN : state;
                 state = STATE_STOPPING;
                 closingThreadId = Thread.currentThread().getId();
+                // deregisterVersionUsage() does not drop versions released
+                // while another thread holds the lock
+                dropUnusedVersions();
 
                 try {
                     boolean compactFully = false;

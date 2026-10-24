@@ -66,6 +66,7 @@ public class TestFullText extends TestDb {
             try {
                 Class.forName(LUCENE_FULLTEXT_CLASS_NAME);
                 testCreateDropLucene();
+                testLuceneSearchRights();
                 testUuidPrimaryKey(true);
                 testMultiThreaded(true);
                 testMultiThreaded(false);
@@ -397,6 +398,31 @@ public class TestFullText extends TestDb {
         conn.close();
         deleteDb("fullText");
         FileUtils.deleteRecursive(getBaseDir() + "/fullText", false);
+    }
+
+    private void testLuceneSearchRights() throws SQLException {
+        deleteDb("fullTextRights");
+        FileUtils.deleteRecursive(getBaseDir() + "/fullTextRights", false);
+        Connection conn = getConnection("fullTextRights");
+        Statement stat = conn.createStatement();
+        initFullText(stat, true);
+        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR)");
+        stat.execute("INSERT INTO TEST VALUES(1, 'Hello World')");
+        stat.execute("CALL FTL_CREATE_INDEX('PUBLIC', 'TEST', NULL)");
+        stat.execute("CREATE USER TEST_USER PASSWORD 'test'");
+        Connection conn2 = getConnection("fullTextRights", "TEST_USER", getPassword("test"));
+        Statement stat2 = conn2.createStatement();
+        assertFalse(stat2.executeQuery("SELECT * FROM FTL_SEARCH('Hello', 0, 0)").next());
+        assertFalse(stat2.executeQuery("SELECT * FROM FTL_SEARCH_DATA('NAME:Hel*', 0, 0)").next());
+        stat.execute("GRANT SELECT ON TEST TO TEST_USER");
+        ResultSet rs = stat2.executeQuery("SELECT * FROM FTL_SEARCH_DATA('NAME:Hel*', 0, 0)");
+        assertTrue(rs.next());
+        assertEquals("TEST", rs.getString("TABLE"));
+        assertFalse(rs.next());
+        conn2.close();
+        conn.close();
+        deleteDb("fullTextRights");
+        FileUtils.deleteRecursive(getBaseDir() + "/fullTextRights", false);
     }
 
     private void testReopen(boolean lucene) throws SQLException {

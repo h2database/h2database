@@ -201,14 +201,15 @@ class WebSession {
     HashMap<String, Object> getInfo() {
         HashMap<String, Object> m = new HashMap<>();
         m.putAll(map);
+        m.put("ip", PageParser.escapeHtml((String) map.get("ip")));
         m.put("lastAccess", new Timestamp(lastAccess).toString());
         try {
             m.put("url", conn == null ?
-                    "${text.admin.notConnected}" : conn.getMetaData().getURL());
+                    "${text.admin.notConnected}" : PageParser.escapeHtml(conn.getMetaData().getURL()));
             m.put("user", conn == null ?
-                    "-" : conn.getMetaData().getUserName());
+                    "-" : PageParser.escapeHtml(conn.getMetaData().getUserName()));
             m.put("lastQuery", commandHistory.isEmpty() ?
-                    "" : commandHistory.get(0));
+                    "" : PageParser.escapeHtml(commandHistory.get(0)));
             m.put("executing", executingStatement == null ?
                     "${text.admin.no}" : "${text.admin.yes}");
         } catch (SQLException e) {

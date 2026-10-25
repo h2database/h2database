@@ -2133,7 +2133,7 @@ public class TestMVStore extends TestBase {
         s.deregisterVersionUsage(counter);
         released.countDown();
         task.get();
-        // with assertions enabled, close() checks that no old version is in use
+        // must not fail with an AssertionError in closeStore()
         s.close();
     }
 

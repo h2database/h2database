@@ -14,6 +14,7 @@ import java.util.Map.Entry;
 import java.util.NoSuchElementException;
 import java.util.Random;
 import java.util.TreeMap;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -33,6 +34,7 @@ import org.h2.mvstore.type.StringDataType;
 import org.h2.store.fs.FilePath;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
+import org.h2.util.Task;
 import org.h2.util.Utils;
 
 /**
@@ -115,6 +117,7 @@ public class TestMVStore extends TestBase {
         testIterate();
         testIterateReverse();
         testCloseTwice();
+        testCloseAfterVersionReleasedUnderLock();
         testSimple();
         testInvalidSettings();
 
@@ -2096,6 +2099,41 @@ public class TestMVStore extends TestBase {
         }
         // closing twice should be fine
         s.close();
+        s.close();
+    }
+
+    private void testCloseAfterVersionReleasedUnderLock() throws Exception {
+        String fileName = getBaseDir() + "/" + getTestName();
+        FileUtils.delete(fileName);
+        MVStore s = new MVStore.Builder().fileName(fileName).autoCommitDisabled().open();
+        MVMap<Integer, String> m = s.openMap("data");
+        m.put(1, "a");
+        s.commit();
+        MVStore.TxCounter counter = s.registerVersionUsage();
+        m.put(2, "b");
+        s.commit();
+        CountDownLatch locked = new CountDownLatch(1);
+        CountDownLatch released = new CountDownLatch(1);
+        Task task = new Task() {
+            @Override
+            public void call() throws Exception {
+                s.executeFilestoreOperation(() -> {
+                    locked.countDown();
+                    try {
+                        released.await();
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                });
+            }
+        };
+        task.execute();
+        locked.await();
+        // the version is released while the other thread holds the store lock
+        s.deregisterVersionUsage(counter);
+        released.countDown();
+        task.get();
+        // must not fail with an AssertionError in closeStore()
         s.close();
     }
 

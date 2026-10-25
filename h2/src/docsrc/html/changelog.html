@@ -21,6 +21,7 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul>
+    <li>Issue #4504: 2.5.x: deleting rows leaks pages, so the database file grows without bound</li>
     <li>Issue #4501: LAZY_QUERY_EXECUTION evaluates a joined derived table again for every row</li>
 <li>Fix ANALYZE being skipped when a query timeout is set, and handle cancellation of explicit ANALYZE statements.</li>
     <li>Fix reading pre-2.5 transaction values during MVStore compaction and recovery</li>

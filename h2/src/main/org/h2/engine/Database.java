@@ -249,7 +249,11 @@ public final class Database implements DataHandler, CastDataProvider {
                             autoServerMode ? FileLockMethod.FILE : FileLockMethod.FS;
         this.databaseURL = ci.getURL();
         String s = ci.removeProperty("DATABASE_EVENT_LISTENER", null);
-        if (s != null) {
+        if (s != null && ci.getNetworkConnectionInfo() == null) {
+            // A remote client must not be able to have an arbitrary class
+            // instantiated on the server while the database is opened, before
+            // its user is authenticated. The listener is only honored for
+            // embedded connections; see also the non-admin reset in Engine.
             setEventListenerClass(StringUtils.trim(s, true, true, '\''));
         }
         s = ci.removeProperty("MODE", null);

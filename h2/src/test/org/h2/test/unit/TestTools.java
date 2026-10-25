@@ -42,6 +42,7 @@ import java.util.Random;
 import java.util.UUID;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+import org.h2.api.DatabaseEventListener;
 import org.h2.api.ErrorCode;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
@@ -1194,9 +1195,39 @@ public class TestTools extends TestDb {
             FileUtils.delete(dir + "/testZip.zip");
             FileUtils.delete(dir + "/testZipBase");
             deleteDb("testZip");
+            // a remote client must not get an arbitrary class instantiated on
+            // the server through DATABASE_EVENT_LISTENER before it is
+            // authenticated
+            deleteDb("testListener");
+            conn = getConnection("jdbc:h2:" + dir + "/testListener", "sa", "");
+            conn.close();
+            server = Server.createTcpServer("-ifExists", "-baseDir", dir).start();
+            remainingServers.add(server);
+            final int pl = server.getPort();
+            RemoteListener.created = false;
+            assertThrows(ErrorCode.WRONG_USER_OR_PASSWORD,
+                    () -> getConnection("jdbc:h2:tcp://localhost:" + pl + "/testListener"
+                            + ";DATABASE_EVENT_LISTENER='" + RemoteListener.class.getName() + "'",
+                            "sa", "wrong"));
+            assertFalse(RemoteListener.created);
+            server.stop();
+            deleteDb("testListener");
         } finally {
             shutdownServers();
         }
+    }
+
+    /**
+     * A database event listener that records whether it was instantiated.
+     */
+    public static class RemoteListener implements DatabaseEventListener {
+
+        static volatile boolean created;
+
+        public RemoteListener() {
+            created = true;
+        }
+
     }
 
     /**

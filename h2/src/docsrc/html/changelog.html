@@ -22,7 +22,9 @@ Change Log
 <h2>Next Version (unreleased)</h2>
 <ul>
     <li>Issue #4489: Recover silently skips pages it cannot read</li>
-<li>Fix ANALYZE being skipped when a query timeout is set, and handle cancellation of explicit ANALYZE statements.</li>
+    <li>Issue #3764: AssertionError in MVStore.closeStore(): oldestVersionToKeep.get() != currentVersion</li>
+    <li>Issue #4501: LAZY_QUERY_EXECUTION evaluates a joined derived table again for every row</li>
+    <li>Fix ANALYZE being skipped when a query timeout is set, and handle cancellation of explicit ANALYZE statements.</li>
     <li>Fix reading pre-2.5 transaction values during MVStore compaction and recovery</li>
     <li>Issue #4457: Invalid chunk after abrupt shutdown preclude subsequent file space reuse</li>
     <li>Issue #4446: Committed data lost after reopening a crashed database once RETENTION_TIME elapsed (stale store header)</li>

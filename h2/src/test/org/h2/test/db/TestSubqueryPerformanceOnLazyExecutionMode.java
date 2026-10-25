@@ -10,6 +10,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.h2.command.dml.SetTypes;
 import org.h2.test.TestBase;
@@ -23,6 +24,8 @@ public class TestSubqueryPerformanceOnLazyExecutionMode extends TestDb {
     private static final int ROWS = 5000;
     /** Test repeats when unexpected failure. */
     private static final int FAIL_REPEATS = 5;
+    /** Calls of {@link #countCalls(int)}. */
+    private static final AtomicInteger CALLS = new AtomicInteger();
 
     /**
      * Run just this test.
@@ -33,9 +36,15 @@ public class TestSubqueryPerformanceOnLazyExecutionMode extends TestDb {
         TestBase.createCaller().init().testFromMain();
     }
 
-    @Override
-    public boolean isEnabled() {
-        return !config.ci;
+    /**
+     * A deterministic function that counts its calls.
+     *
+     * @param value the value
+     * @return the value
+     */
+    public static int countCalls(int value) {
+        CALLS.incrementAndGet();
+        return value;
     }
 
     @Override
@@ -52,16 +61,51 @@ public class TestSubqueryPerformanceOnLazyExecutionMode extends TestDb {
                     }
                 }
 
-                testSubqueryInCondition(stmt);
-                testSubqueryInJoin(stmt);
-                testSubqueryInJoinFirst(stmt);
-                testJoinTwoSubqueries(stmt);
-                testSubqueryInNestedJoin(stmt);
+                testDerivedTableResultReuse(stmt);
+                if (!config.ci) {
+                    testSubqueryInCondition(stmt);
+                    testSubqueryInJoin(stmt);
+                    testSubqueryInJoinFirst(stmt);
+                    testJoinTwoSubqueries(stmt);
+                    testSubqueryInNestedJoin(stmt);
+                }
             }
         }
         finally {
             deleteDb("lazySubq");
         }
+    }
+
+    /**
+     * A joined derived table must be evaluated as often in lazy mode as
+     * without it, i.e. its result for the same outer row values is reused.
+     *
+     * @param stmt the statement
+     */
+    private void testDerivedTableResultReuse(Statement stmt) throws Exception {
+        stmt.execute("CREATE ALIAS COUNT_CALLS DETERMINISTIC FOR '" + getClass().getName() + ".countCalls'");
+        String[] queries = {
+                "SELECT COUNT (one.x) FROM one " +
+                "JOIN (SELECT COUNT_CALLS(y) AS val FROM one WHERE y < 50) AS subq ON subq.val=one.x",
+                "SELECT COUNT (one.x) FROM one " +
+                "LEFT JOIN (SELECT 1 AS val_1) AS subq0 " +
+                "JOIN (SELECT COUNT_CALLS(y) AS val FROM one WHERE y < 30) AS subq1 ON subq0.val_1 < subq1.val " +
+                    "ON one.x = subq1.val " +
+                "WHERE one.x < 30"
+        };
+        int[] expected = { ROWS, 3000 };
+        for (int i = 0; i < queries.length; i++) {
+            int lazyCalls = countCallsOfQuery(stmt, queries[i], true, expected[i]);
+            int notLazyCalls = countCallsOfQuery(stmt, queries[i], false, expected[i]);
+            assertEquals(notLazyCalls, lazyCalls);
+        }
+        stmt.execute("DROP ALIAS COUNT_CALLS");
+    }
+
+    private int countCallsOfQuery(Statement stmt, String sql, boolean lazy, int expected) throws SQLException {
+        CALLS.set(0);
+        executeAndCheckResult(stmt, sql, lazy, expected);
+        return CALLS.get();
     }
 
     private void testSubqueryInCondition(Statement stmt) throws Exception {

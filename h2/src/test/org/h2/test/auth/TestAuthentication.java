@@ -155,6 +155,16 @@ public class TestAuthentication extends TestBase {
         testDatasource();
         testXmlConfig();
         testLdapEmptyPassword();
+        testLdapBindDnEscaping();
+    }
+
+    private void testLdapBindDnEscaping() throws Exception {
+        // the user name is client-supplied, so DN metacharacters in it must be
+        // escaped before it is placed into the bind DN (CWE-90)
+        assertEquals("uid=alice,ou=users,dc=example,dc=com",
+                LdapCredentialsValidator.buildBindDn("uid=%u,ou=users,dc=example,dc=com", "alice"));
+        assertEquals("uid=evil\\,ou\\=admins,ou=users,dc=example,dc=com",
+                LdapCredentialsValidator.buildBindDn("uid=%u,ou=users,dc=example,dc=com", "evil,ou=admins"));
     }
 
     private void testLdapEmptyPassword() throws Exception {

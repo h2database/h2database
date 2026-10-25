@@ -14,6 +14,7 @@ import java.util.Map.Entry;
 import java.util.NoSuchElementException;
 import java.util.Random;
 import java.util.TreeMap;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -33,6 +34,7 @@ import org.h2.mvstore.type.StringDataType;
 import org.h2.store.fs.FilePath;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
+import org.h2.util.Task;
 import org.h2.util.Utils;
 
 /**
@@ -115,6 +117,7 @@ public class TestMVStore extends TestBase {
         testIterate();
         testIterateReverse();
         testCloseTwice();
+        testCloseAfterVersionReleasedUnderLock();
         testSimple();
         testInvalidSettings();
 
@@ -837,8 +840,13 @@ public class TestMVStore extends TestBase {
                 map.put(i, new String(new char[10240]));
             }
         }
+        // reads when evicted pages are never found through the weak references
+        // of non-resident cache entries; pages that are not garbage collected
+        // yet need no read, so the number of reads depends on the garbage
+        // collector and can only be checked against an upper limit
         int[] expectedReadsForCacheSize = {
-                7176, 2704, 1664, 1228, 1208, 940, 940   // compressed
+                7176, 3477, 3290, 3308, 3309, 3231, 3108   // compressed
+//                7176, 2704, 1664, 1228, 1208, 940, 940   // compressed
 //                7176, 1750, 940, 940, 940, 940, 940   // compressed
 //                1880, 490, 476, 501, 476, 476, 541   // compressed
 //                1887, 1775, 1599, 1355, 1035, 732, 507    // uncompressed
@@ -860,13 +868,14 @@ public class TestMVStore extends TestBase {
                 FileStore fileStore = s.getFileStore();
                 long readCount = fileStore.getReadCount();
                 int expected = expectedReadsForCacheSize[cacheSizeMB];
-                assertTrue("Cache " + cacheSizeMB + "Mb, reads: " + readCount + " expected: " + expected +
+                assertTrue("Cache " + cacheSizeMB + "Mb, reads: " + readCount +
+                                " expected at most: " + expected + " + 20%" +
                                 " size: " + fileStore.getReadBytes() +
                                 " cache used: " + s.getCacheSizeUsed() +
                                 " cache hit ratio: " + s.getFileStore().getCacheHitRatio() +
                                 " cache ToC hit ratio: " + s.getFileStore().getTocCacheHitRatio() +
                                 "",
-                        Math.abs(100 - (100 * expected / readCount)) < 20);
+                        readCount * 100 < expected * 120L);
             }
         }
     }
@@ -2090,6 +2099,41 @@ public class TestMVStore extends TestBase {
         }
         // closing twice should be fine
         s.close();
+        s.close();
+    }
+
+    private void testCloseAfterVersionReleasedUnderLock() throws Exception {
+        String fileName = getBaseDir() + "/" + getTestName();
+        FileUtils.delete(fileName);
+        MVStore s = new MVStore.Builder().fileName(fileName).autoCommitDisabled().open();
+        MVMap<Integer, String> m = s.openMap("data");
+        m.put(1, "a");
+        s.commit();
+        MVStore.TxCounter counter = s.registerVersionUsage();
+        m.put(2, "b");
+        s.commit();
+        CountDownLatch locked = new CountDownLatch(1);
+        CountDownLatch released = new CountDownLatch(1);
+        Task task = new Task() {
+            @Override
+            public void call() throws Exception {
+                s.executeFilestoreOperation(() -> {
+                    locked.countDown();
+                    try {
+                        released.await();
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                });
+            }
+        };
+        task.execute();
+        locked.await();
+        // the version is released while the other thread holds the store lock
+        s.deregisterVersionUsage(counter);
+        released.countDown();
+        task.get();
+        // must not fail with an AssertionError in closeStore()
         s.close();
     }
 

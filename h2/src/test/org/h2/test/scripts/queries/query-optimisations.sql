@@ -374,3 +374,52 @@ EXPLAIN SELECT * FROM TEST WHERE A = 1 ORDER BY A, C, D FETCH FIRST 10 ROWS ONLY
 
 DROP TABLE TEST;
 > ok
+
+-- An IN(..) condition on a later index column uses the index if all index columns before it are
+-- restricted by X=? conditions, each value is looked up like an X=? condition
+--
+CREATE TABLE TEST(A INT, B INT, C INT, D INT);
+> ok
+
+CREATE INDEX TEST_A_B_C_IDX ON TEST(A, B, C);
+> ok
+
+INSERT INTO TEST SELECT MOD(X, 2), X, MOD(X, 3), X FROM SYSTEM_RANGE(1, 100);
+> update count: 100
+
+EXPLAIN ANALYZE SELECT D FROM TEST WHERE A = 0 AND B IN (10, 20, 31);
+>> SELECT "D" FROM "PUBLIC"."TEST" /* PUBLIC.TEST_A_B_C_IDX: B IN(10, 20, 31) AND A = 0 */ /* scanCount: 3 */ WHERE ("B" IN(10, 20, 31)) AND ("A" = 0)
+
+EXPLAIN ANALYZE SELECT D FROM TEST WHERE A = 0 AND B IN (SELECT X FROM SYSTEM_RANGE(10, 12));
+>> SELECT "D" FROM "PUBLIC"."TEST" /* PUBLIC.TEST_A_B_C_IDX: A = 0 AND B IN(SELECT DISTINCT X FROM SYSTEM_RANGE(10, 12) /* range index */ /* scanCount: 4 */) */ /* scanCount: 3 */ WHERE ("A" = 0) AND ("B" IN( SELECT DISTINCT "X" FROM SYSTEM_RANGE(10, 12) /* range index */ /* scanCount: 4 */))
+
+EXPLAIN ANALYZE SELECT D FROM TEST WHERE A = 0 AND B = ANY(ARRAY[10, 20]);
+>> SELECT "D" FROM "PUBLIC"."TEST" /* PUBLIC.TEST_A_B_C_IDX: A = 0 AND B IN(10, 20) */ /* scanCount: 3 */ WHERE ("A" = 0) AND ("B" = ANY(ARRAY [10, 20]))
+
+EXPLAIN ANALYZE SELECT D FROM TEST WHERE A = 0 AND B = 10 AND C IN (0, 1);
+>> SELECT "D" FROM "PUBLIC"."TEST" /* PUBLIC.TEST_A_B_C_IDX: C IN(0, 1) AND A = 0 AND B = 10 */ /* scanCount: 2 */ WHERE ("C" IN(0, 1)) AND ("A" = 0) AND ("B" = 10)
+
+EXPLAIN ANALYZE SELECT D FROM TEST WHERE A = 0 AND B IN (10, 20, 30) AND C >= 1;
+>> SELECT "D" FROM "PUBLIC"."TEST" /* PUBLIC.TEST_A_B_C_IDX: C >= 1 AND B IN(10, 20, 30) AND A = 0 */ /* scanCount: 3 */ WHERE ("C" >= 1) AND ("B" IN(10, 20, 30)) AND ("A" = 0)
+
+-- There is no X=? condition on B before C, the IN(..) condition on C cannot be used
+EXPLAIN SELECT D FROM TEST WHERE A = 0 AND C IN (0, 1);
+>> SELECT "D" FROM "PUBLIC"."TEST" /* PUBLIC.TEST_A_B_C_IDX: A = 0 */ WHERE ("C" IN(0, 1)) AND ("A" = 0)
+
+SELECT D FROM TEST WHERE A = 0 AND B IN (30, 10, 20) AND C >= 1 ORDER BY A, B;
+> D
+> --
+> 10
+> 20
+> rows (ordered): 2
+
+SELECT D FROM TEST WHERE A = 0 AND B IN (30, 10, 20) ORDER BY A DESC, B DESC;
+> D
+> --
+> 30
+> 20
+> 10
+> rows (ordered): 3
+
+DROP TABLE TEST;
+> ok

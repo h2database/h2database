@@ -53,7 +53,7 @@ public final class JdbcSavepoint extends TraceObject implements Savepoint {
      */
     static String getName(String name, int id) {
         if (name != null) {
-            return StringUtils.quoteJavaString(name);
+            return StringUtils.quoteIdentifier(name);
         }
         return SYSTEM_SAVEPOINT_PREFIX + id;
     }

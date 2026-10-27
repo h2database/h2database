@@ -687,9 +687,9 @@ public abstract class FileStore<C extends Chunk<C>>
             List<C> toBeFreed = new ArrayList<>();
             C chunk;
             while ((chunk = deadChunks.poll()) != null &&
-                    // if chunk is not allocated yet, let's postpone the whole reclamation process,
-                    // until it is allocated and can be safely dropped
-                    (chunk.isAllocated() &&
+                    // if chunk is not written yet, let's postpone the whole reclamation process,
+                    // until it is written and can be safely dropped
+                    (chunk.isSaved() &&
                     isSeasonedChunk(chunk, time) &&
                     canOverwriteChunk(chunk, oldestVersionToKeep) ||
                             // if chunk is not ready yet, put it back and exit
@@ -1482,7 +1482,19 @@ public abstract class FileStore<C extends Chunk<C>>
             }
 
             if (c.isLive()) {
-                submitOrRun(bufferSaveExecutor, () -> storeBuffer(c, buff), syncRun, 5);
+                // Allocate the space here, not when the chunk is written, so that the next
+                // chunk has this one in its layout even if it is serialized before this
+                // one is written. Otherwise the file cannot be opened after a crash between
+                // the write of the next chunk and the one after it.
+                int headerLength = (int) c.next;
+                saveChunkLock.lock();
+                try {
+                    allocateChunkSpace(c, buff);
+                } finally {
+                    saveChunkLock.unlock();
+                }
+                recentlySaved.offer(c);
+                submitOrRun(bufferSaveExecutor, () -> storeBuffer(c, buff, headerLength), syncRun, 5);
 
                 for (Page<?, ?> p : changed) {
                     p.releaseSavedPages();
@@ -1568,17 +1580,12 @@ public abstract class FileStore<C extends Chunk<C>>
         }
     }
 
-    private void storeBuffer(C c, WriteBuffer buff) {
+    private void storeBuffer(C c, WriteBuffer buff, int headerLength) {
         saveChunkLock.lock();
         try {
             if (closed || mvStore.getPanicException() != null) {
                 throw DataUtils.newMVStoreException(DataUtils.ERROR_WRITING_FAILED, "This fileStore is closed");
             }
-
-            int headerLength = (int)c.next;
-
-            allocateChunkSpace(c, buff);
-            recentlySaved.offer(c);
 
             buff.position(0);
             c.writeChunkHeader(buff, headerLength);

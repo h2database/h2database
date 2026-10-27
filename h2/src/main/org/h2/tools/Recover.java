@@ -324,7 +324,8 @@ public class Recover extends Tool implements DataHandler {
         setDatabaseName(fileName.substring(0, fileName.length() -
                 Constants.SUFFIX_MV_FILE.length()));
         try (MVStore mv = new MVStore.Builder().
-                fileName(fileName).recoveryMode().readOnly().open()) {
+                fileName(fileName).recoveryMode().readOnly().
+                backgroundExceptionHandler((t, e) -> writeError(writer, e)).open()) {
             dumpLobMaps(writer, mv);
             writer.println("-- Layout");
             dumpLayout(writer, mv);

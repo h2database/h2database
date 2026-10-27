@@ -22,7 +22,12 @@ Change Log
 <h2>Next Version (unreleased)</h2>
 <ul>
     <li>Issue #4488: Recover script restores no rows for tables with ROW columns</li>
-<li>Fix ANALYZE being skipped when a query timeout is set, and handle cancellation of explicit ANALYZE statements.</li>
+    <li>Issue #4444: Recover script fails or restores wrong values for ENUM columns</li>
+    <li>Issue #4237: WHERE does not reject window functions, but returns zero records instead</li>
+    <li>Issue #4489: Recover silently skips pages it cannot read</li>
+    <li>Issue #3764: AssertionError in MVStore.closeStore(): oldestVersionToKeep.get() != currentVersion</li>
+    <li>Issue #4501: LAZY_QUERY_EXECUTION evaluates a joined derived table again for every row</li>
+    <li>Fix ANALYZE being skipped when a query timeout is set, and handle cancellation of explicit ANALYZE statements.</li>
     <li>Fix reading pre-2.5 transaction values during MVStore compaction and recovery</li>
     <li>Issue #4457: Invalid chunk after abrupt shutdown preclude subsequent file space reuse</li>
     <li>Issue #4446: Committed data lost after reopening a crashed database once RETENTION_TIME elapsed (stale store header)</li>

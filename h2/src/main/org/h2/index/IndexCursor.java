@@ -93,6 +93,9 @@ public class IndexCursor implements Cursor {
         inColumn = null;
         inResult = null;
         intersects = null;
+        IndexCondition compoundInCondition = null;
+        IndexCondition inCondition = null;
+        int inColumnPosition = -1;
         for (IndexCondition condition : indexConditions) {
             if (condition.isAlwaysFalse()) {
                 alwaysFalse = true;
@@ -104,14 +107,9 @@ public class IndexCursor implements Cursor {
                 continue;
             }
             if (condition.isCompoundColumns()) {
-                Column[] columns = condition.getColumns();
                 if (condition.getCompareType() == Comparison.IN_LIST) {
-                    if (start == null && end == null) {
-                        if (canUseIndexForIn(columns)) {
-                            this.inColumn = columns;
-                            inList = condition.getCurrentValueList(s, buildSortTypes(columns));
-                            inListIndex = 0;
-                        }
+                    if (compoundInCondition == null && canUseIndexForIn(index, condition.getColumns())) {
+                        compoundInCondition = condition;
                     }
                     continue;
                 } else {
@@ -122,22 +120,16 @@ public class IndexCursor implements Cursor {
             switch (condition.getCompareType()) {
             case Comparison.IN_LIST:
             case Comparison.IN_ARRAY:
-                if (start == null && end == null) {
-                    if (canUseIndexForIn(column)) {
-                        this.inColumn = column;
-                        inList = condition.getCurrentValueList(s, buildSortTypes(new Column[] { column }));
-                        inListIndex = 0;
-                    }
+            case Comparison.IN_QUERY: {
+                // Only one IN(..) condition can be used at the same time. Prefer the one on the
+                // index column with the highest position, its lookups use the longest prefix.
+                int position = getInColumnPosition(index, column, indexConditions);
+                if (position > inColumnPosition) {
+                    inCondition = condition;
+                    inColumnPosition = position;
                 }
                 break;
-            case Comparison.IN_QUERY:
-                if (start == null && end == null) {
-                    if (canUseIndexForIn(column)) {
-                        this.inColumn = column;
-                        inResult = condition.getCurrentResult(session, buildSortTypes(new Column[] { column }));
-                    }
-                }
-                break;
+            }
             default:
                 Value v = condition.getCurrentValue(s);
                 boolean isStart = condition.isStart();
@@ -164,19 +156,106 @@ public class IndexCursor implements Cursor {
                 if (isIntersects) {
                     intersects = getSpatialSearchRow(intersects, columnId, v);
                 }
-                // An X=? condition will produce less rows than
-                // an X IN(..) condition, unless the X IN condition can use the index.
-                if ((isStart || isEnd) && !canUseIndexFor((Column) inColumn)) {
-                    inColumn = null;
-                    inList = null;
-                    inResult = null;
-                }
                 break;
             }
         }
-        if (inColumn != null) {
+        if (alwaysFalse) {
+            return;
+        }
+        if (compoundInCondition != null) {
+            // A compound IN(..) condition covers all index columns, it is only used alone.
+            if (start == null && end == null) {
+                Column[] columns = compoundInCondition.getColumns();
+                inColumn = columns;
+                inList = compoundInCondition.getCurrentValueList(s, buildSortTypes(columns));
+                inListIndex = 0;
+                start = table.getTemplateRow();
+            }
+        } else if (inCondition != null) {
+            prepareIn(s, inCondition, inColumnPosition, indexConditions);
+        }
+    }
+
+    /**
+     * Prepare the lookups for an IN(..) condition on a single column. Each value of the
+     * condition is looked up like an X=? condition, together with the other conditions
+     * already collected in {@link #start} and {@link #end}.
+     */
+    private void prepareIn(SessionLocal s, IndexCondition condition, int position,
+            ArrayList<IndexCondition> indexConditions) {
+        Column column = condition.getColumn();
+        if (index.getIndexColumns() == null && (start != null || end != null)) {
+            // Multiple IN conditions with views are not supported, see IndexCondition.getMask.
+            return;
+        }
+        if (hasEqualityCondition(column, indexConditions)) {
+            // An X=? condition will produce less rows than an X IN(..) condition.
+            return;
+        }
+        inColumn = column;
+        int[] sortTypes = buildSortTypes(position);
+        if (condition.getCompareType() == Comparison.IN_QUERY) {
+            inResult = condition.getCurrentResult(s, sortTypes);
+        } else {
+            inList = condition.getCurrentValueList(s, sortTypes);
+            inListIndex = 0;
+        }
+        if (start == null) {
             start = table.getTemplateRow();
         }
+        if (end == null) {
+            end = table.getTemplateRow();
+        }
+    }
+
+    /**
+     * Get the position of the column of an IN(..) condition in the index, if the condition
+     * can be used for index lookups.
+     * <p>
+     * The IN(..) condition can be used if its column is the first column of the index, or if
+     * all index columns before it are restricted by X=? conditions. Each value of the
+     * IN(..) condition then forms one lookup together with these conditions.
+     * </p>
+     *
+     * @param index the index
+     * @param column the column of the IN(..) condition
+     * @param indexConditions all index conditions of the table filter
+     * @return the position of the column in the index, {@code 0} for a VIEW index (where the
+     *         columns are null), or {@code -1} if the condition cannot be used
+     */
+    public static int getInColumnPosition(Index index, Column column, ArrayList<IndexCondition> indexConditions) {
+        IndexColumn[] cols = index.getIndexColumns();
+        if (cols == null) {
+            return 0;
+        }
+        for (int i = 0; i < cols.length; i++) {
+            IndexColumn idxCol = cols[i];
+            if (idxCol == null || idxCol.column == column) {
+                return i;
+            }
+            if (!hasEqualityCondition(idxCol.column, indexConditions)) {
+                return -1;
+            }
+        }
+        return -1;
+    }
+
+    private static boolean hasEqualityCondition(Column column, ArrayList<IndexCondition> indexConditions) {
+        for (IndexCondition condition : indexConditions) {
+            if (!condition.isCompoundColumns() && condition.getColumn() == column) {
+                int compareType = condition.getCompareType();
+                if (compareType == Comparison.EQUAL || compareType == Comparison.EQUAL_NULL_SAFE) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private int[] buildSortTypes(int position) {
+        IndexColumn[] idxColumns = index.getIndexColumns();
+        boolean descending = idxColumns != null && (idxColumns[position].sortType & SortOrder.DESCENDING) != 0;
+        return new int[] { descending ^ reverse ? SortOrder.DESCENDING : SortOrder.ASCENDING };
     }
 
     private int[] buildSortTypes(Column[] columns) {
@@ -216,35 +295,6 @@ public class IndexCursor implements Cursor {
                 cursor = index.find(session, first, last, reverse);
             }
         }
-    }
-
-    private boolean canUseIndexForIn(Column column) {
-        if (inColumn != null) {
-            // only one IN(..) condition can be used at the same time
-            return false;
-        }
-        return canUseIndexFor(column);
-    }
-
-    private boolean canUseIndexFor(Column column) {
-        // The first column of the index must match this column,
-        // or it must be a VIEW index (where the column is null).
-        // Multiple IN conditions with views are not supported, see
-        // IndexCondition.getMask.
-        IndexColumn[] cols = index.getIndexColumns();
-        if (cols == null) {
-            return true;
-        }
-        IndexColumn idxCol = cols[0];
-        return idxCol == null || idxCol.column == column;
-    }
-
-    private boolean canUseIndexForIn(Column[] columns) {
-        if (inColumn != null) {
-            // only one IN(..) condition can be used at the same time
-            return false;
-        }
-        return canUseIndexForIn(index, columns);
     }
 
     /**
@@ -407,14 +457,20 @@ public class IndexCursor implements Cursor {
             for (int i = columns.length; --i >= 0; ) {
                 start.setValue(columns[i].getColumnId(), values[i]);
             }
+            cursor = index.find(session, start, start, reverse);
         }
         else {
             Column column = (Column) inColumn;
             v = column.convert(session, v);
             int id = column.getColumnId();
             start.setValue(id, v);
+            end.setValue(id, v);
+            if (reverse) {
+                cursor = index.find(session, end, start, reverse);
+            } else {
+                cursor = index.find(session, start, end, reverse);
+            }
         }
-        cursor = index.find(session, start, start, reverse);
     }
 
     @Override

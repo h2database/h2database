@@ -369,10 +369,11 @@ public class TableFilter implements ColumnResolver {
                             // The first column of the index always matches.
                             continue;
                         }
-                        if (columnIndex < 0 || condition.getCompareType() == Comparison.IN_LIST ) {
+                        if (columnIndex < 0 || condition.getCompareType() == Comparison.IN_LIST
+                                && IndexCursor.getInColumnPosition(index, col, indexConditions) < 0) {
                             // The index does not contain the column, or this is an IN() condition which can be used
-                            // only if the first index column is the searched one.
-                            // See: IndexCursor#canUseIndexFor(column)
+                            // only if all index columns before the searched one are restricted by X=? conditions.
+                            // See: IndexCursor#getInColumnPosition(Index, Column, ArrayList)
                             indexConditions.remove(i);
                             i--;
                         }

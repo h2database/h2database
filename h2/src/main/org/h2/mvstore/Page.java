@@ -1201,8 +1201,10 @@ public abstract class Page<K,V> implements Cloneable {
             Page<K,V> page = ref.getPage();
             if(page == null) {
                 page = map.readPage(ref.getPos());
-                assert ref.getPos() == page.getPos();
-                assert ref.count == page.getTotalCount();
+                // in recovery mode a page that cannot be read is replaced by
+                // an empty leaf that was never saved
+                assert !page.isSaved() || ref.getPos() == page.getPos();
+                assert !page.isSaved() || ref.count == page.getTotalCount();
             }
             return page;
         }

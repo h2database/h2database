@@ -59,6 +59,7 @@ import org.h2.value.TypeInfo;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueCollectionBase;
+import org.h2.value.ValueInteger;
 import org.h2.value.ValueLob;
 import org.h2.value.ValueJson;
 import org.h2.value.ValueNull;
@@ -303,6 +304,9 @@ public class Recover extends Tool implements DataHandler {
             }
         } else if (v instanceof ValueJson) {
             columnTypeMap.put(column, "JSON");
+        } else if (v instanceof ValueInteger) {
+            // ENUM values are stored as INTEGER ordinals
+            columnTypeMap.put(column, "INTEGER");
         }
         v.getSQL(builder, HasSQL.NO_CASTS);
     }
@@ -392,7 +396,7 @@ public class Recover extends Tool implements DataHandler {
                             builder.setLength(0);
                             getSQL(builder, columnName, values[valueId]);
                         }
-                        setArrayColumnTypes(dataMap, values);
+                        setColumnTypes(dataMap, values);
                         createTemporaryTable(writer);
                         init = true;
                     }
@@ -420,14 +424,16 @@ public class Recover extends Tool implements DataHandler {
     }
 
     /**
-     * Sets the types of the columns with arrays. A type must cover the arrays
-     * of all rows, so rows are read until each column has a value that is not
-     * an array, or to the end if a column has arrays or only nulls.
+     * Sets the types of the columns with arrays and of the columns that are
+     * null in the first row. An array type must cover the arrays of all rows,
+     * so rows are read until each column has a value that is not an array, or
+     * to the end if a column has arrays or only nulls. Other columns get the
+     * type of their first value that is not null.
      *
      * @param dataMap the map with the rows
      * @param firstRow the values of the first row
      */
-    private void setArrayColumnTypes(TransactionMap<?, ?> dataMap, Value[] firstRow) {
+    private void setColumnTypes(TransactionMap<?, ?> dataMap, Value[] firstRow) {
         boolean[] done = new boolean[recordLength];
         int remaining = recordLength;
         for (int i = 0; i < recordLength; i++) {
@@ -438,6 +444,7 @@ public class Recover extends Tool implements DataHandler {
             }
         }
         TypeInfo[] types = new TypeInfo[recordLength];
+        StringBuilder builder = new StringBuilder();
         for (Iterator<?> it = dataMap.keyIterator(null); remaining > 0 && it.hasNext();) {
             Object value = dataMap.get(it.next());
             Value[] values = value instanceof Row ? ((Row) value).getValueList()
@@ -450,6 +457,8 @@ public class Recover extends Tool implements DataHandler {
                 if (v instanceof ValueArray) {
                     types[i] = types[i] == null ? v.getType() : TypeInfo.getHigherType(types[i], v.getType());
                 } else if (v != ValueNull.INSTANCE && types[i] == null) {
+                    builder.setLength(0);
+                    getSQL(builder, storageName + "." + i, v);
                     done[i] = true;
                     remaining--;
                 }

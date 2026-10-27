@@ -159,6 +159,9 @@ public class TestStatement extends TestDb {
         assertFalse(rs.next());
         assertThrows(ErrorCode.SAVEPOINT_IS_INVALID_1, conn).
                 rollback(savepoint2);
+        Savepoint savepointQuote = conn.setSavepoint("x\"; DROP TABLE TEST; --");
+        conn.rollback(savepointQuote);
+        conn.releaseSavepoint(savepointQuote);
         stat.execute("DROP TABLE TEST");
         conn.setAutoCommit(true);
     }

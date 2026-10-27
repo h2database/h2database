@@ -21,6 +21,7 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul>
+    <li>Issue #4480: SCRIPT reads each table at a different moment (default READ COMMITTED), so a backup taken while transactions commit restores with duplicated and missing rows</li>
     <li>Issue #4507: Use an IN list on a later index column when the preceding index columns are fixed by equality</li>
     <li>Issue #4444: Recover script fails or restores wrong values for ENUM columns</li>
     <li>Issue #4237: WHERE does not reject window functions, but returns zero records instead</li>

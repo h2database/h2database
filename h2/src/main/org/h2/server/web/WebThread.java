@@ -24,7 +24,6 @@ import org.h2.util.IOUtils;
 import org.h2.util.NetUtils;
 import org.h2.util.NetworkConnectionInfo;
 import org.h2.util.StringUtils;
-import org.h2.util.Utils;
 import org.h2.util.Utils21;
 
 /**
@@ -297,10 +296,10 @@ class WebThread extends WebApp implements Runnable {
 
     private void parseBodyAttributes() throws IOException {
         if (dataLength > 0) {
-            byte[] bytes = Utils.newBytes(dataLength);
-            for (int pos = 0; pos < dataLength;) {
-                pos += input.read(bytes, pos, dataLength - pos);
-            }
+            // Grow the buffer with the bytes actually received instead of
+            // allocating the full declared Content-Length up front; this also
+            // stops the read loop from spinning if the client closes early.
+            byte[] bytes = input.readNBytes(dataLength);
             String s = new String(bytes, StandardCharsets.UTF_8);
             parseAttributes(s);
         }

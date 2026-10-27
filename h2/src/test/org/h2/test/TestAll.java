@@ -234,6 +234,7 @@ import org.h2.test.unit.TestStringUtils;
 import org.h2.test.unit.TestTimeStampWithTimeZone;
 import org.h2.test.unit.TestTools;
 import org.h2.test.unit.TestTraceSystem;
+import org.h2.test.unit.TestTransfer;
 import org.h2.test.unit.TestUpgrade;
 import org.h2.test.unit.TestUtils;
 import org.h2.test.unit.TestValue;
@@ -1052,6 +1053,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestNetUtils());
         addTest(new TestPattern());
         addTest(new TestStringCache());
+        addTest(new TestTransfer());
         addTest(new TestValueMemory());
         addTest(new TestAuthentication());
 

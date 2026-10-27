@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -112,6 +113,19 @@ public class ScriptCommand extends ScriptBase {
     @Override
     public boolean isQuery() {
         return true;
+    }
+
+    @Override
+    public void collectDependencies(HashSet<DbObject> dependencies) {
+        if (data) {
+            // read the data of all tables from the same snapshot
+            for (Table table : getDatabase().getAllTablesAndViews()) {
+                if (table.getTableType() == TableType.TABLE && !excludeSchema(table.getSchema())
+                        && !excludeTable(table)) {
+                    dependencies.add(table);
+                }
+            }
+        }
     }
 
     // TODO lock all tables for 'script' command

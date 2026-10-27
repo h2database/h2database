@@ -78,6 +78,7 @@ public class TestWeb extends TestDb {
         testStartWebServerWithConnection();
         testServer();
         testWebApp();
+        testAdminSessionsEscaped();
         testIfExists();
 
         testSpecialAutoComplete();
@@ -578,6 +579,39 @@ public class TestWeb extends TestDb {
             result = client.get(url, "settingRemove.do?name=_test_");
 
             client.get(url, "admin.do");
+        } finally {
+            server.shutdown();
+        }
+    }
+
+    private void testAdminSessionsEscaped() throws Exception {
+        String hash = WebServer.encodeAdminPassword("1234567890AB");
+        Server server = new Server();
+        server.setOut(new PrintStream(new ByteArrayOutputStream()));
+        server.runTool("-ifNotExists", "-web", "-webPort", "8182",
+                "-properties", "null", "-webAdminPassword", hash);
+        try {
+            String url = "http://localhost:8182";
+            WebClient client = new WebClient();
+            String result = client.get(url);
+            client.readSessionId(result);
+            client.get(url, "login.do?driver=org.h2.Driver" +
+                    "&url=jdbc:h2:mem:<h2xssurl>" +
+                    "&user=<h2xssuser>&password=sa&name=_test_");
+            // the URL, user and last query of every session are shown on the admin page
+            client.get(url, "query.do?sql=select '<h2xsstest>'");
+            WebClient admin = new WebClient();
+            result = admin.get(url);
+            admin.readSessionId(result);
+            admin.get(url, "adminLogin.do?password=1234567890AB");
+            result = admin.get(url, "admin.do");
+            assertContains(result, "h2xsstest");
+            assertTrue(result.indexOf("<h2xsstest>") < 0);
+            assertContains(result, "h2xssurl");
+            assertTrue(result.indexOf("<h2xssurl>") < 0);
+            assertContains(result, "H2XSSUSER");
+            assertTrue(result.indexOf("<H2XSSUSER>") < 0);
+            client.get(url, "logout.do");
         } finally {
             server.shutdown();
         }

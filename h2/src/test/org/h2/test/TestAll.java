@@ -6,6 +6,10 @@
 package org.h2.test;
 
 import java.lang.management.ManagementFactory;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.security.KeyStore;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -15,8 +19,13 @@ import java.util.Properties;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManagerFactory;
+
 import org.h2.Driver;
 import org.h2.engine.Constants;
+import org.h2.security.CipherFactory;
 import org.h2.store.fs.FileUtils;
 import org.h2.store.fs.rec.FilePathRec;
 import org.h2.test.auth.TestAuthentication;
@@ -249,6 +258,7 @@ public class TestAll {
 
     static {
         // Locale.setDefault(new Locale("ru", "ru"));
+        initSslContext();
     }
 
 /*
@@ -1143,6 +1153,40 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
                 System.out.println("FAIL: can not start server (may already be running)");
                 server = null;
             }
+        }
+    }
+
+    /**
+     * Sets the default SSL context so that SSL connections to the test
+     * servers trust the built-in H2 certificate they use, in addition to the
+     * default trusted certificates. The default SSL socket factories are
+     * created only once, so this has to happen before H2 uses SSL for the
+     * first time. Nothing is changed if a key store or trust store is set
+     * with system properties.
+     */
+    private static void initSslContext() {
+        if (System.getProperty("javax.net.ssl.keyStore") != null
+                || System.getProperty("javax.net.ssl.trustStore") != null) {
+            return;
+        }
+        try {
+            Path security = Paths.get(System.getProperty("java.home"), "lib", "security");
+            Path trusted = security.resolve("jssecacerts");
+            if (!Files.exists(trusted)) {
+                trusted = security.resolve("cacerts");
+            }
+            KeyStore trustStore = KeyStore.getInstance(trusted.toFile(), (char[]) null);
+            KeyStore keyStore = CipherFactory.getKeyStore(CipherFactory.KEYSTORE_PASSWORD);
+            trustStore.setCertificateEntry("h2-test", keyStore.getCertificate("h2"));
+            KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+            kmf.init(keyStore, CipherFactory.KEYSTORE_PASSWORD.toCharArray());
+            TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+            tmf.init(trustStore);
+            SSLContext context = SSLContext.getInstance("TLS");
+            context.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
+            SSLContext.setDefault(context);
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
         }
     }
 

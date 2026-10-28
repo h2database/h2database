@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2026 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -821,8 +821,6 @@ public final class MVStore implements AutoCloseable {
                             commit();
                             setRetentionTime(0);
                             fileStore.stop(compactFully ? 0 : allowedCompactionTime);
-                            assert oldestVersionToKeep.get() == currentVersion : oldestVersionToKeep.get() + " != "
-                                    + currentVersion;
                         }
 
                         if (meta != null) {
@@ -1092,7 +1090,7 @@ public final class MVStore implements AutoCloseable {
         checkOpen();
         FileStore<?> f = fileStore;
         if (f != null) {
-            f.sync();
+            executeFilestoreOperation(f::sync);
         }
     }
 
@@ -2077,7 +2075,9 @@ public final class MVStore implements AutoCloseable {
         }
 
         /**
-         * Open the file in recovery mode, where some errors may be ignored.
+         * Open the file in recovery mode, where some errors may be ignored. A
+         * page that cannot be read is replaced by an empty page, and the
+         * exception is passed to the background exception handler.
          *
          * @return this
          */
@@ -2152,7 +2152,8 @@ public final class MVStore implements AutoCloseable {
 
         /**
          * Set the listener to be used for exceptions that occur when writing in
-         * the background thread.
+         * the background thread, and for pages that cannot be read in recovery
+         * mode.
          *
          * @param exceptionHandler the handler
          * @return this

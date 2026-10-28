@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2026 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -363,7 +363,7 @@ public class TestCacheLongKeyLIRS extends TestBase {
     private void testScanResistance() {
         boolean log = false;
         int size = 20;
-        // cache size 11 (10 hot, 2 cold)
+        // room for 12 entries, at least one of them cold
         CacheLongKeyLIRS<Integer> test = createCache((size / 2 + 2) * 16, (size / 2) + 2);
         // init the cache with some dummy entries
         for (int i = 0; i < size; i++) {
@@ -401,15 +401,18 @@ public class TestCacheLongKeyLIRS extends TestBase {
             verify(test, 0, null);
         }
 
-        // ensure 0..9 are hot, 10..17 are not resident, 18..19 are cold
+        // ensure 0..9 are hot, 10..18 are not resident, 19 is cold;
+        // get() would also return the values of non-resident entries
+        // that are not garbage collected yet
         for (int i = 0; i < size; i++) {
-            Integer x = test.get(i);
-            if (i < size / 2 || i == size - 1 || i == size - 2) {
-                assertNotNull("i: " + i, x);
-                assertEquals(i * 10, x.intValue());
+            if (i < size / 2 || i == size - 1) {
+                assertTrue("i: " + i, test.containsKey(i));
+            } else {
+                assertFalse("i: " + i, test.containsKey(i));
             }
-            verify(test, 0, null);
         }
+        assertEquals("[19]", test.keys(true, false).toString());
+        verify(test, 0, null);
     }
 
     private void testRandomOperations() {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2026 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -8,6 +8,7 @@ package org.h2.test.db;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
@@ -15,6 +16,8 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -59,6 +62,7 @@ public class TestCsv extends TestDb {
         testWriteColumnHeader();
         testCaseSensitiveColumnNames();
         testWriteResultSetDataType();
+        testBinary();
         testPreserveWhitespace();
         testChangeData();
         testOptions();
@@ -118,6 +122,48 @@ public class TestCsv extends TestDb {
         csv.write(writer, rs);
         conn.close();
         assertEquals("TS,N;-0100-01-01 12:00:00,;", writer.toString());
+    }
+
+    private void testBinary() throws SQLException {
+        deleteDb("csv");
+        Connection conn = getConnection("csv");
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, B VARBINARY, L BLOB)");
+        stat.execute("INSERT INTO TEST VALUES"
+                + " (1, X'DEADBEEF', X'89504E470D0A1A0A'),"
+                + " (2, X'00FF', X'C0'),"
+                + " (3, X'616263', X'')");
+        String fileName = getBaseDir() + "/testBinary.csv";
+        stat.execute("CALL CSVWRITE('" + fileName + "', 'SELECT * FROM TEST ORDER BY ID')");
+        String content;
+        try {
+            content = new String(Files.readAllBytes(Paths.get(fileName)), StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            throw new AssertionError(e);
+        }
+        assertTrue(content.contains("\"deadbeef\""));
+        assertTrue(content.contains("\"89504e470d0a1a0a\""));
+        assertFalse(content.contains("\ufffd"));
+        stat.execute("CREATE TABLE TEST2(ID INT PRIMARY KEY, B VARBINARY, L BLOB)");
+        stat.execute("INSERT INTO TEST2 SELECT * FROM CSVREAD('" + fileName
+                + "', NULL, 'binaryColumns=2,3')");
+        ResultSet rs = stat.executeQuery("SELECT COUNT(*) FROM TEST T JOIN TEST2 R ON T.ID = R.ID"
+                + " WHERE T.B = R.B AND T.L = R.L");
+        rs.next();
+        assertEquals(3, rs.getInt(1));
+        rs.close();
+        String invalidFileName = getBaseDir() + "/testBinaryInvalid.csv";
+        try (OutputStream out = FileUtils.newOutputStream(invalidFileName, false)) {
+            out.write("ID,B\n1,zz\n".getBytes(StandardCharsets.UTF_8));
+        } catch (IOException e) {
+            throw new AssertionError(e);
+        }
+        stat.execute("CREATE TABLE TEST3(ID INT, B VARBINARY)");
+        assertThrows(ErrorCode.HEX_STRING_WRONG_1, () ->
+                stat.execute("INSERT INTO TEST3 SELECT * FROM CSVREAD('" + invalidFileName
+                        + "', NULL, 'binaryColumns=2')"));
+        conn.close();
+        deleteDb("csv");
     }
 
     private void testCaseSensitiveColumnNames() throws Exception {

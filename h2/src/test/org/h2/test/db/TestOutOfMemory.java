@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2026 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -128,9 +128,10 @@ public class TestOutOfMemory extends TestDb {
                         ErrorCode.GENERAL_ERROR_1 == e.getErrorCode());
             }
             recoverAfterOOM(memoryFree * 3 / 4);
+            // the database may already be closed after the error,
+            // then closing the connection succeeds
             try {
                 conn.close();
-                fail();
             } catch (SQLException e) {
                 assertTrue("Unexpected error code: " + e.getErrorCode(),
                         ErrorCode.OUT_OF_MEMORY == e.getErrorCode() ||

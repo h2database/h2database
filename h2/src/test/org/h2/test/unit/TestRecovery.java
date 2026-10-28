@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2026 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -7,16 +7,24 @@ package org.h2.test.unit;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Map;
+import org.h2.mvstore.DataUtils;
+import org.h2.mvstore.MVStore;
+import org.h2.mvstore.db.ValueDataType;
+import org.h2.mvstore.tx.TransactionStore;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
 import org.h2.tools.DeleteDbFiles;
 import org.h2.tools.Recover;
+import org.h2.util.IOUtils;
 
 /**
  * Tests database recovery.
@@ -44,7 +52,13 @@ public class TestRecovery extends TestDb {
     public void test() throws Exception {
         testRecoverClob();
         testRecoverFulltext();
+        testRecoverEnum();
+        testRecoverEnumDomainAndArray();
         testRecoverJson();
+        testRecoverArray();
+        testRecoverRow();
+        testRecoverGeneratedColumns();
+        testRecoverUnreadablePage();
         testCompressedAndUncompressed();
         testRunScript();
         testRunScript2();
@@ -85,6 +99,70 @@ public class TestRecovery extends TestDb {
         conn.close();
     }
 
+    private void testRecoverEnum() throws Exception {
+        DeleteDbFiles.execute(getBaseDir(), "recovery", true);
+        Connection conn = getConnection("recovery");
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(id int primary key, a enum('x', 'y'), b enum('2', '1'), "
+                + "c enum('a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q'))");
+        stat.execute("insert into test values (1, null, '2', 'q'), (2, 'y', '1', 'a'), (3, 'x', null, null)");
+        conn.close();
+        Recover.main("-dir", getBaseDir(), "-db", "recovery");
+        DeleteDbFiles.execute(getBaseDir(), "recovery", true);
+        conn = getConnection(
+                "recovery;init=runscript from '" +
+                        getBaseDir() + "/recovery.h2.sql'");
+        stat = conn.createStatement();
+        try (ResultSet rs = stat.executeQuery("select a, b, c from test order by id")) {
+            assertTrue(rs.next());
+            assertNull(rs.getString(1));
+            assertEquals("2", rs.getString(2));
+            assertEquals("q", rs.getString(3));
+            assertTrue(rs.next());
+            assertEquals("y", rs.getString(1));
+            assertEquals("1", rs.getString(2));
+            assertEquals("a", rs.getString(3));
+            assertTrue(rs.next());
+            assertEquals("x", rs.getString(1));
+            assertNull(rs.getString(2));
+            assertNull(rs.getString(3));
+            assertFalse(rs.next());
+        }
+        conn.close();
+    }
+
+    private void testRecoverEnumDomainAndArray() throws Exception {
+        DeleteDbFiles.execute(getBaseDir(), "recovery", true);
+        // the first 1000 rows have no ENUM values, so the column types are
+        // only found on a later page; column C is NULL in all rows
+        Connection conn = getConnection("recovery;ZERO_BASED_ENUMS=TRUE");
+        Statement stat = conn.createStatement();
+        stat.execute("create domain d as enum('2', '1')");
+        stat.execute("create table test(id int primary key, a d, b enum('x', 'y') array, c enum('x', 'y'))");
+        stat.execute("insert into test select x, "
+                + "case when x > 1000 then case mod(x, 2) when 0 then '1' else '2' end end, "
+                + "case when x > 1000 then array['y', 'x'] end, null from system_range(1, 1010)");
+        conn.close();
+        Recover.main("-dir", getBaseDir(), "-db", "recovery");
+        DeleteDbFiles.execute(getBaseDir(), "recovery", true);
+        conn = getConnection(
+                "recovery;ZERO_BASED_ENUMS=TRUE;init=runscript from '" +
+                        getBaseDir() + "/recovery.h2.sql'");
+        stat = conn.createStatement();
+        try (ResultSet rs = stat.executeQuery("select count(*), "
+                + "count(*) filter (where a is not distinct from "
+                + "case when id > 1000 then case mod(id, 2) when 0 then '1' else '2' end end), "
+                + "count(*) filter (where b is not distinct from case when id > 1000 then array['y', 'x'] end), "
+                + "count(c) from test")) {
+            assertTrue(rs.next());
+            assertEquals(1010, rs.getInt(1));
+            assertEquals(1010, rs.getInt(2));
+            assertEquals(1010, rs.getInt(3));
+            assertEquals(0, rs.getInt(4));
+        }
+        conn.close();
+    }
+
     private void testRecoverJson() throws Exception {
         DeleteDbFiles.execute(getBaseDir(), "recovery", true);
         Connection conn = getConnection("recovery");
@@ -108,6 +186,160 @@ public class TestRecovery extends TestDb {
         conn.close();
     }
 
+    private void testRecoverArray() throws Exception {
+        DeleteDbFiles.execute(getBaseDir(), "recovery", true);
+        Connection conn = getConnection("recovery");
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(id int primary key, a int array, b numeric(10, 3) array array)");
+        stat.execute("insert into test values (1, null, array[array[1.5], array[]]), (2, array[], null), "
+                + "(3, array[1, 2, 3], array[array[12345.125]])");
+        conn.close();
+        Recover.main("-dir", getBaseDir(), "-db", "recovery");
+        DeleteDbFiles.execute(getBaseDir(), "recovery", true);
+        conn = getConnection(
+                "recovery;init=runscript from '" +
+                        getBaseDir() + "/recovery.h2.sql'");
+        stat = conn.createStatement();
+        try (ResultSet rs = stat.executeQuery("select a, cast(b as varchar) from test order by id")) {
+            assertTrue(rs.next());
+            assertNull(rs.getObject(1));
+            assertEquals("[[1.500], []]", rs.getString(2));
+            assertTrue(rs.next());
+            assertEquals(new Object[0], (Object[]) rs.getArray(1).getArray());
+            assertNull(rs.getObject(2));
+            assertTrue(rs.next());
+            assertEquals(new Object[] {1, 2, 3}, (Object[]) rs.getArray(1).getArray());
+            assertEquals("[[12345.125]]", rs.getString(2));
+            assertFalse(rs.next());
+        }
+        conn.close();
+    }
+
+    private void testRecoverRow() throws Exception {
+        DeleteDbFiles.execute(getBaseDir(), "recovery", true);
+        Connection conn = getConnection("recovery");
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(id int primary key, a row(city varchar, zip varchar(10)), "
+                + "b row(n int, d numeric(10, 2)) array, c varchar)");
+        stat.execute("insert into test values (1, null, null, 'x'), "
+                + "(2, row('Berlin', null), array[row(1, 1.5), row(null, 22.25)], null), "
+                + "(3, row('Copenhagen', '1050'), array[], 'z')");
+        conn.close();
+        Recover.main("-dir", getBaseDir(), "-db", "recovery");
+        DeleteDbFiles.execute(getBaseDir(), "recovery", true);
+        conn = getConnection(
+                "recovery;init=runscript from '" +
+                        getBaseDir() + "/recovery.h2.sql'");
+        stat = conn.createStatement();
+        try (ResultSet rs = stat.executeQuery("select a, b, c, (a).city from test order by id")) {
+            assertTrue(rs.next());
+            assertNull(rs.getString(1));
+            assertNull(rs.getString(2));
+            assertEquals("x", rs.getString(3));
+            assertTrue(rs.next());
+            assertEquals("ROW (Berlin, null)", rs.getString(1));
+            assertEquals("[ROW (1, 1.50), ROW (null, 22.25)]", rs.getString(2));
+            assertNull(rs.getString(3));
+            assertEquals("Berlin", rs.getString(4));
+            assertTrue(rs.next());
+            assertEquals("ROW (Copenhagen, 1050)", rs.getString(1));
+            assertEquals("[]", rs.getString(2));
+            assertEquals("z", rs.getString(3));
+            assertFalse(rs.next());
+        }
+        conn.close();
+    }
+    
+    private void testRecoverGeneratedColumns() throws Exception {
+        DeleteDbFiles.execute(getBaseDir(), "recovery", true);
+        Connection conn = getConnection("recovery");
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(id int generated always as identity, \"a\"\"b\n\" int, "
+                + "g int generated always as (\"a\"\"b\n\" + 1), c varchar default 'x GENERATED ALWAYS AS (')");
+        stat.execute("insert into test(\"a\"\"b\n\") values 10, 20");
+        conn.close();
+        Recover.main("-dir", getBaseDir(), "-db", "recovery");
+        DeleteDbFiles.execute(getBaseDir(), "recovery", true);
+        conn = getConnection(
+                "recovery;init=runscript from '" +
+                        getBaseDir() + "/recovery.h2.sql'");
+        stat = conn.createStatement();
+        try (ResultSet rs = stat.executeQuery("select * from test order by id")) {
+            assertTrue(rs.next());
+            assertEquals(1, rs.getInt(1));
+            assertEquals(10, rs.getInt(2));
+            assertEquals(11, rs.getInt(3));
+            assertEquals("x GENERATED ALWAYS AS (", rs.getString(4));
+            assertTrue(rs.next());
+            assertEquals(2, rs.getInt(1));
+            assertEquals(20, rs.getInt(2));
+            assertEquals(21, rs.getInt(3));
+            assertFalse(rs.next());
+        }
+        stat.execute("insert into test(\"a\"\"b\n\") values 30");
+        try (ResultSet rs = stat.executeQuery("select id, g from test where \"a\"\"b\n\" = 30")) {
+            assertTrue(rs.next());
+            assertEquals(3, rs.getInt(1));
+            assertEquals(31, rs.getInt(2));
+        }
+        conn.close();
+    }
+
+    private void testRecoverUnreadablePage() throws Exception {
+        if (config.cipher != null) {
+            return;
+        }
+        DeleteDbFiles.execute(getBaseDir(), "recovery", true);
+        Connection conn = getConnection("recovery");
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(id int primary key, name varchar)");
+        stat.execute("insert into test select x, 'name ' || x from system_range(1, 1000)");
+        conn.close();
+        // overwrite the header of the root page of the table
+        String fileName = getBaseDir() + "/recovery.mv.db";
+        long position;
+        try (MVStore mv = new MVStore.Builder().fileName(fileName).readOnly().open()) {
+            TransactionStore store = new TransactionStore(mv, new ValueDataType());
+            store.init();
+            String mapName = null;
+            for (String name : mv.getMapNames()) {
+                if (name.startsWith("table.") && !name.equals("table.0")) {
+                    mapName = name;
+                }
+            }
+            long pos = store.begin().openMap(mapName).map.getRootPage().getPos();
+            int chunkId = DataUtils.getPageChunkId(pos);
+            String chunk = mv.getLayoutMap().get("chunk." + Integer.toHexString(chunkId));
+            // the last chunk is described only in the store header
+            Map<String, ?> chunkData = chunk != null ? DataUtils.parseMap(chunk)
+                    : mv.getFileStore().getStoreHeader();
+            assertEquals(chunkId, DataUtils.readHexLong(chunkData, "chunk", -1));
+            // the block size is 4 KB
+            position = DataUtils.readHexLong(chunkData, "block", 0) * 4096 + DataUtils.getPageOffset(pos);
+        }
+        try (FileChannel fc = FileUtils.open(fileName, "rw")) {
+            fc.write(ByteBuffer.allocate(4), position);
+        }
+        Recover rec = new Recover();
+        ByteArrayOutputStream buff = new ByteArrayOutputStream();
+        rec.setOut(new PrintStream(buff, true, "UTF-8"));
+        rec.runTool("-dir", getBaseDir(), "-db", "recovery");
+        String error = "org.h2.mvstore.MVStoreException: File corrupted";
+        assertContains(buff.toString("UTF-8"), error);
+        String script = new String(IOUtils.readBytesAndClose(
+                FileUtils.newInputStream(getBaseDir() + "/recovery.h2.sql"), -1), StandardCharsets.UTF_8);
+        assertContains(script, "// error: " + error);
+        DeleteDbFiles.execute(getBaseDir(), "recovery", true);
+        conn = getConnection(
+                "recovery;init=runscript from '" +
+                        getBaseDir() + "/recovery.h2.sql'");
+        stat = conn.createStatement();
+        try (ResultSet rs = stat.executeQuery("select count(*) from test")) {
+            assertTrue(rs.next());
+            assertEquals(0, rs.getInt(1));
+        }
+        conn.close();
+    }
 
     private void testCompressedAndUncompressed() throws SQLException {
         DeleteDbFiles.execute(getBaseDir(), "recovery", true);

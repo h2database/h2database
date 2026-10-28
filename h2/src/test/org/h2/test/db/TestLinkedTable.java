@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2026 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -188,7 +188,7 @@ public class TestLinkedTable extends TestDb {
         Statement sb = cb.createStatement();
         sb.execute("CREATE LINKED TABLE T1(NULL, '" +
                 url + "', '"+user+"', '"+password+"', 'TEST')");
-        sb.executeQuery("SELECT * FROM DUAL A " +
+        sb.executeQuery("SELECT * FROM DUAL C " +
                 "LEFT OUTER JOIN T1 A ON A.ID=1 LEFT OUTER JOIN T1 B ON B.ID=1");
         sb.execute("DROP ALL OBJECTS");
         cb.close();

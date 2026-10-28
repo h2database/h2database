@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2026 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -75,7 +75,10 @@ public final class MetaType<D> extends BasicDataType<DataType<?>> {
                 }
                 return (DataType<?>) o;
             }
-            Class<?> clazz = Class.forName(className);
+            Class<?> clazz = Class.forName(className, false, MetaType.class.getClassLoader());
+            if (!DataType.class.isAssignableFrom(clazz) && !StatefulDataType.Factory.class.isAssignableFrom(clazz)) {
+                throw new IllegalArgumentException("Class " + className + " is not a data type");
+            }
             boolean singleton = false;
             Object obj;
             try {

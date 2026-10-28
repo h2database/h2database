@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2026 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -36,4 +36,73 @@ SELECT ? FROM DUAL WHERE EXISTS(SELECT 1 FROM TEST WHERE PK = 1);
 @autocommit on
 
 DROP TABLE TEST;
+> ok
+
+-- #4421 / PR #4422
+CREATE TABLE T_UNION_FETCH(ID INT PRIMARY KEY) AS SELECT X FROM SYSTEM_RANGE(1, 5);
+> ok
+
+(SELECT ID FROM T_UNION_FETCH ORDER BY ID FETCH FIRST ? ROWS ONLY) UNION (SELECT ID FROM T_UNION_FETCH WHERE ID < 0);
+{
+1
+>> 1
+3
+>> <3 rows>
+5
+>> <5 rows>
+};
+> update count: 0
+
+(SELECT ID FROM T_UNION_FETCH WHERE ID < 0) UNION (SELECT ID FROM T_UNION_FETCH ORDER BY ID FETCH FIRST ? ROWS ONLY);
+{
+1
+>> 1
+3
+>> <3 rows>
+};
+> update count: 0
+
+(SELECT ID FROM T_UNION_FETCH ORDER BY ID * ? FETCH FIRST 1 ROW ONLY) UNION (SELECT ID FROM T_UNION_FETCH WHERE ID < 0);
+{
+1
+> ID
+> --
+> 1
+> rows: 1
+-1
+> ID
+> --
+> 5
+> rows: 1
+}
+> update count: 0
+
+SELECT ID FROM T_UNION_FETCH WHERE ID IN ((SELECT ID FROM T_UNION_FETCH ORDER BY ID FETCH FIRST ? ROWS ONLY) UNION (SELECT ID FROM T_UNION_FETCH WHERE ID < 0));
+{
+1
+>> 1
+3
+>> <3 rows>
+}
+> update count: 0
+
+(SELECT ID FROM T_UNION_FETCH WHERE ID <= ?) UNION (SELECT ID FROM T_UNION_FETCH WHERE ID < 0);
+{
+1
+>> 1
+3
+>> <3 rows>
+}
+> update count: 0
+
+SELECT ID FROM T_UNION_FETCH ORDER BY ID FETCH FIRST ? ROWS ONLY;
+{
+1
+>> 1
+3
+>> <3 rows>
+}
+> update count: 0
+
+DROP TABLE T_UNION_FETCH;
 > ok

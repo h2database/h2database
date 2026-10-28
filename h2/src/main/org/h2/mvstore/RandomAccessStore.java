@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2026 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -46,6 +46,12 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
     private long reservedHigh;
     private boolean stopIdleHousekeeping;
 
+    /**
+     * The number of versions after which the store header is written to the file.
+     */
+    private static final int HEADER_FLUSH_INTERVAL = 20;
+
+
     public RandomAccessStore(Map<String, Object> config) {
         super(config);
     }
@@ -74,6 +80,17 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
     @Override
     public void markUsed(long pos, int length) {
         freeSpace.markUsed(pos, length);
+    }
+
+    /**
+     * Check whether the specified area is completely unused.
+     *
+     * @param pos the position in bytes
+     * @param length the number of bytes
+     * @return true if none of the blocks is in use
+     */
+    private boolean isFree(long pos, int length) {
+        return freeSpace.isFree(pos, length);
     }
 
     /**
@@ -130,11 +147,10 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
     }
 
     private void freeChunkSpace(SFChunk chunk) {
-        if (chunk.isAllocated()) {
-            long start = chunk.block * BLOCK_SIZE;
-            int length = chunk.len * BLOCK_SIZE;
-            free(start, length);
-        }
+        assert chunk != null && chunk.isAllocated() : chunk;
+        long start = chunk.block * BLOCK_SIZE;
+        int length = chunk.len * BLOCK_SIZE;
+        free(start, length);
     }
 
     /**
@@ -234,7 +250,6 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
         if (assumeCleanShutdown) {
             assumeCleanShutdown = DataUtils.readHexInt(storeHeader, FileStore.HDR_CLEAN, 0) != 0;
         }
-//        assert getChunks().size() <= 1 : getChunks().size();
 
         long fileSize = size();
         long blocksInStore = fileSize / FileStore.BLOCK_SIZE;
@@ -252,16 +267,16 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
         Map<Long,SFChunk> validChunksByLocation = new HashMap<>();
         if (assumeCleanShutdown) {
             // quickly check latest 20 chunks referenced in meta table
-            Queue<SFChunk> chunksToVerify = new PriorityQueue<>(20, Collections.reverseOrder(chunkComparator));
+            Queue<SFChunk> chunksToVerify = new PriorityQueue<>(HEADER_FLUSH_INTERVAL, Collections.reverseOrder(chunkComparator));
             try {
                 setLastChunk(newest);
-                // load the chunk metadata: although meta's root page resides in the lastChunk,
-                // traversing meta map might recursively load another chunk(s)
+                // load the chunk metadata: although root page of layout map resides in the lastChunk,
+                // traversing layout map might recursively load another chunk(s)
                 for (SFChunk c : getChunksFromLayoutMap()) {
-                    // might be there already, due to meta traversal
+                    // might be there already, due to layout traversal
                     // see readPage() ... getChunkIfFound()
                     chunksToVerify.offer(c);
-                    if (chunksToVerify.size() == 20) {
+                    if (chunksToVerify.size() == HEADER_FLUSH_INTERVAL) {
                         chunksToVerify.poll();
                     }
                 }
@@ -329,15 +344,37 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
         }
 
         clear();
-        // build the free space list
-        for (SFChunk c : getChunks().values()) {
-            if (c.isAllocated()) {
-                long start = c.block * FileStore.BLOCK_SIZE;
-                int length = c.len * FileStore.BLOCK_SIZE;
+        // Build the free space list. Chunks which still hold live data are marked
+        // first, so that a stale metadata entry of a chunk without any live data can
+        // never claim space which is actually occupied by real data.
+        ArrayList<SFChunk> deadChunks = new ArrayList<>();
+        for (SFChunk chunk : getChunks().values()) {
+            long start = chunk.block * FileStore.BLOCK_SIZE;
+            int length = chunk.len * FileStore.BLOCK_SIZE;
+            if (chunk.isLive() && chunk.isAllocated() && isFree(start, length)) {
                 markUsed(start, length);
+            } else {
+                // This chunk holds no live data anymore and the space it claims
+                // has already been re-used, i.e. its metadata entry was orphaned
+                // in the layout map. Such an entry references no reachable page,
+                // so discarding it loses nothing, while keeping it would render
+                // the whole file unreadable.
+                deadChunks.add(chunk);
             }
-            if (!c.isLive()) {
-                registerDeadChunk(c);
+        }
+
+        for (SFChunk chunk : deadChunks) {
+            long start = chunk.block * FileStore.BLOCK_SIZE;
+            int length = chunk.len * FileStore.BLOCK_SIZE;
+            if (chunk.isAllocated() && isFree(start, length)) {
+                // if the chunk space does not overlap with live chunks, we postpone removal,
+                // which will be handled by regular reclamation process,
+                // because it may be not ready to be reclaimed yet (time-based or version count retention policy)
+                markUsed(start, length);
+                registerDeadChunk(chunk);
+            } else {
+                // but this chunk is simply invalid, so we remove it right away
+                dropDeadChunk(chunk);
             }
         }
         assert validateFileLength("on open");
@@ -371,6 +408,9 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
         // end of the used space is not necessarily the end of the file
         boolean storeAtEndOfFile = filePos + buffer.limit() >= size();
         boolean shouldWriteStoreHeader = shouldWriteStoreHeader(chunk, storeAtEndOfFile);
+        // shouldWriteStoreHeader() must see the previous chunk, but writeStoreHeader()
+        // must reference the chunk just written; update lastChunk here, not after return
+        lastChunk = chunk;
         if (shouldWriteStoreHeader) {
             writeStoreHeader();
         }
@@ -392,7 +432,7 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
                 writeStoreHeader = true;
             } else {
                 long headerVersion = DataUtils.readHexLong(storeHeader, HDR_VERSION, 0);
-                if (chunk.version - headerVersion > 20) {
+                if (chunk.version - headerVersion > HEADER_FLUSH_INTERVAL) {
                     // we write after at least every 20 versions
                     writeStoreHeader = true;
                 } else {

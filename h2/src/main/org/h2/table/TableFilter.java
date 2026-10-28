@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2026 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -369,10 +369,11 @@ public class TableFilter implements ColumnResolver {
                             // The first column of the index always matches.
                             continue;
                         }
-                        if (columnIndex < 0 || condition.getCompareType() == Comparison.IN_LIST ) {
+                        if (columnIndex < 0 || condition.getCompareType() == Comparison.IN_LIST
+                                && IndexCursor.getInColumnPosition(index, col, indexConditions) < 0) {
                             // The index does not contain the column, or this is an IN() condition which can be used
-                            // only if the first index column is the searched one.
-                            // See: IndexCursor#canUseIndexFor(column)
+                            // only if all index columns before the searched one are restricted by X=? conditions.
+                            // See: IndexCursor#getInColumnPosition(Index, Column, ArrayList)
                             indexConditions.remove(i);
                             i--;
                         }
@@ -573,6 +574,15 @@ public class TableFilter implements ColumnResolver {
     public void set(Row current) {
         this.current = current;
         this.currentSearchRow = current;
+    }
+
+    /**
+     * Returns whether an alias was specified explicitly.
+     *
+     * @return {@code true} if an alias was specified
+     */
+    public boolean hasAlias() {
+        return alias != null;
     }
 
     /**
@@ -880,6 +890,10 @@ public class TableFilter implements ColumnResolver {
 
     public Index getIndex() {
         return index;
+    }
+
+    public boolean isIndexReverse() {
+        return cursor.isReverse();
     }
 
     public void setIndex(Index index, boolean reverse) {

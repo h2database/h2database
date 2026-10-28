@@ -1,11 +1,12 @@
 /*
- * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2026 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: Daniel Gredler
  */
 package org.h2.expression.function;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.math.RoundingMode;
 import java.text.DateFormatSymbols;
 import java.text.DecimalFormat;
@@ -182,27 +183,39 @@ public final class ToCharFunction extends FunctionN {
         char localGrouping = symbols.getGroupingSeparator();
         char localDecimal = symbols.getDecimalSeparator();
 
+        // Strip the leading / trailing sign and the trailing MI / PR elements
+        // from both the format and its uppercased copy. Both strings have to
+        // stay aligned, because flags determined from the copy control the
+        // further processing of the format itself.
         boolean leadingSign = formatUp.startsWith("S");
         if (leadingSign) {
             format = format.substring(1);
+            formatUp = formatUp.substring(1);
         }
 
         boolean trailingSign = formatUp.endsWith("S");
         if (trailingSign) {
             format = format.substring(0, format.length() - 1);
+            formatUp = formatUp.substring(0, formatUp.length() - 1);
         }
 
         boolean trailingMinus = formatUp.endsWith("MI");
         if (trailingMinus) {
             format = format.substring(0, format.length() - 2);
+            formatUp = formatUp.substring(0, formatUp.length() - 2);
         }
 
         boolean angleBrackets = formatUp.endsWith("PR");
         if (angleBrackets) {
             format = format.substring(0, format.length() - 2);
+            formatUp = formatUp.substring(0, formatUp.length() - 2);
         }
 
-        int v = formatUp.indexOf('V');
+        // Locate the V element in the format itself, and not in its uppercased
+        // copy, because for some non-ASCII characters the copy has a different
+        // length, and using its index in the format can throw a
+        // StringIndexOutOfBoundsException.
+        int v = indexOfV(format);
         if (v >= 0) {
             int digits = 0;
             for (int i = v + 1; i < format.length(); i++) {
@@ -423,6 +436,16 @@ public final class ToCharFunction extends FunctionN {
         }
     }
 
+    private static int indexOfV(String format) {
+        for (int i = 0, length = format.length(); i < length; i++) {
+            char c = format.charAt(i);
+            if (c == 'V' || c == 'v') {
+                return i;
+            }
+        }
+        return -1;
+    }
+
     private static int findDecimalSeparator(String format) {
         int index = format.indexOf('.');
         if (index == -1) {
@@ -474,8 +497,10 @@ public final class ToCharFunction extends FunctionN {
             }
         }
 
-        int i = number.setScale(0, RoundingMode.HALF_UP).intValue();
-        String hex = Integer.toHexString(i);
+        BigInteger i = number.setScale(0, RoundingMode.HALF_UP).toBigInteger();
+        int bitLength = i.bitLength();
+        String hex = bitLength <= 32 ? Integer.toHexString(i.intValue())
+                : bitLength <= 64 ? Long.toHexString(i.longValue()) : i.toString(16);
         if (digits < hex.length()) {
             hex = StringUtils.pad("", digits + 1, "#", true);
         } else {
@@ -1116,7 +1141,7 @@ public final class ToCharFunction extends FunctionN {
     public Expression optimize(SessionLocal session) {
         boolean allConst = optimizeArguments(session, true);
         type = TypeInfo.TYPE_VARCHAR;
-        if (allConst) {
+        if (allConst && !session.isParsingCreateView()) {
             return TypedValueExpression.getTypedIfNull(getValue(session), type);
         }
         return this;

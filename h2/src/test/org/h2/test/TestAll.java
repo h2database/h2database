@@ -1,11 +1,15 @@
 /*
- * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2026 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.test;
 
 import java.lang.management.ManagementFactory;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.security.KeyStore;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -15,8 +19,13 @@ import java.util.Properties;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManagerFactory;
+
 import org.h2.Driver;
 import org.h2.engine.Constants;
+import org.h2.security.CipherFactory;
 import org.h2.store.fs.FileUtils;
 import org.h2.store.fs.rec.FilePathRec;
 import org.h2.test.auth.TestAuthentication;
@@ -24,6 +33,7 @@ import org.h2.test.bench.TestPerformance;
 import org.h2.test.db.TestAlter;
 import org.h2.test.db.TestAlterSchemaRename;
 import org.h2.test.db.TestAlterTableNotFound;
+import org.h2.test.db.TestAnalyze;
 import org.h2.test.db.TestAnalyzeTableTx;
 import org.h2.test.db.TestAutoRecompile;
 import org.h2.test.db.TestBackup;
@@ -149,6 +159,7 @@ import org.h2.test.store.TestRandomMapOps;
 import org.h2.test.store.TestSpinLock;
 import org.h2.test.store.TestStreamStore;
 import org.h2.test.store.TestTransactionStore;
+import org.h2.test.store.TestVersionedValueType;
 import org.h2.test.synth.TestBtreeIndex;
 import org.h2.test.synth.TestConcurrentUpdate;
 import org.h2.test.synth.TestCrashAPI;
@@ -247,6 +258,7 @@ public class TestAll {
 
     static {
         // Locale.setDefault(new Locale("ru", "ru"));
+        initSslContext();
     }
 
 /*
@@ -455,6 +467,75 @@ java org.h2.test.TestAll timer
         System.setProperty("h2.delayWrongPasswordMin", "0");
         System.setProperty("h2.delayWrongPasswordMax", "0");
         System.setProperty("h2.useThreadContextClassLoader", "true");
+        System.setProperty("h2.allowedClasses",
+                        "java.lang.*,java.math.*,java.io.*" +
+                        ",java.util.Date,java.sql.Timestamp" +
+                        ",java.awt.Point" +
+                        ",javax.naming.InitialContext" +
+                        ",com.ibm.icu.text.Collator" +
+                        ",org.h2.Driver" +
+                        ",org.h2.command.dml.ScriptCommand" +
+                        ",org.h2.fulltext.*" +
+//                        ",org.h2.fulltext.FullText" +
+//                        ",org.h2.fulltext.FullText$FullTextTrigger" +
+//                        ",org.h2.fulltext.FullTextLucene" +
+//                        ",org.h2.fulltext.FullTextLucene$FullTextTrigger" +
+                        ",org.h2.mvstore.db.MVTableEngine" +
+                        ",org.h2.samples.*" +
+//                        ",org.h2.samples.Function" +
+//                        ",org.h2.samples.RowAccessRights" +
+//                        ",org.h2.samples.TriggerPassData" +
+//                        ",org.h2.samples.TriggerSample$MyTrigger" +
+//                        ",org.h2.samples.UpdatableView" +
+                        ",org.h2.server.TcpServer" +
+                        ",org.h2.test.db.*" +
+//                        ",org.h2.test.db.TestFunctions" +
+//                        ",org.h2.test.db.TestFunctionOverload" +
+//                        ",org.h2.test.db.TestIndex" +
+//                        ",org.h2.test.db.TestListener" +
+//                        ",org.h2.test.db.TestMergeUsing" +
+//                        ",org.h2.test.db.TestMultiDimension" +
+//                        ",org.h2.test.db.TestFunctions$MedianString" +
+//                        ",org.h2.test.db.TestFunctions$MedianStringType" +
+//                        ",org.h2.test.db.TestLob" +
+//                        ",org.h2.test.db.TestLobObject" +
+//                        ",org.h2.test.db.TestMultiConn$MyDatabaseEventListener" +
+//                        ",org.h2.test.db.TestOpenClose$MyDatabaseEventListener" +
+//                        ",org.h2.test.db.TestOptimizations" +
+//                        ",org.h2.test.db.TestRights$TestTrigger" +
+//                        ",org.h2.test.db.TestRunscript" +
+//                        ",org.h2.test.db.TestSequence$TriggerTest" +
+//                        ",org.h2.test.db.TestTableEngines$EndlessTableEngine" +
+//                        ",org.h2.test.db.TestTableEngines$OneRowTableEngine" +
+//                        ",org.h2.test.db.TestTableEngines$TreeSetIndexTableEngine" +
+//                        ",org.h2.test.db.TestTriggersConstraints" +
+//                        ",org.h2.test.db.TestTriggersConstraints$ConcurrentTrigger" +
+//                        ",org.h2.test.db.TestTriggersConstraints$DeleteTrigger" +
+//                        ",org.h2.test.db.TestTriggersConstraints$NullTrigger" +
+//                        ",org.h2.test.db.TestTriggersConstraints$NullTriggerAdapter" +
+//                        ",org.h2.test.db.TestTriggersConstraints$TestSelect" +
+//                        ",org.h2.test.db.TestTriggersConstraints$TestTriggerAdapter" +
+//                        ",org.h2.test.db.TestTriggersConstraints$TestTriggerAlterTable" +
+//                        ",org.h2.test.db.TestTriggersConstraints$TestView" +
+//                        ",org.h2.test.db.TestTriggersConstraints$TestViewGeneratedKeys" +
+//                        ",org.h2.test.db.TestTriggersConstraints$WrongTrigger" +
+//                        ",org.h2.test.db.TestTriggersConstraints$WrongTriggerAdapter" +
+//                        ",org.h2.test.db.TestView" +
+                        ",org.h2.test.jdbc.*" +
+//                        ",org.h2.test.jdbc.TestBatchUpdates" +
+//                        ",org.h2.test.jdbc.TestCallableStatement" +
+//                        ",org.h2.test.jdbc.TestCancel" +
+//                        ",org.h2.test.jdbc.TestDatabaseEventListener$*" +
+//                        ",org.h2.test.jdbc.TestJavaObjectSerializer$*" +
+//                        ",org.h2.test.jdbc.TestUrlJavaObjectSerializer$FakeJavaObjectSerializer" +
+                        ",org.h2.test.scripts.*" +
+//                        ",org.h2.test.scripts.Trigger1" +
+//                        ",org.h2.test.scripts.Trigger2" +
+//                        ",org.h2.test.scripts.Aggregate1" +
+                        ",org.h2.test.unit.TestAutoReconnect$MyDatabaseEventListener" +
+                        ",org.h2.tools.Recover" +
+                        ",TestClassFactory" +
+                        ",org.h2.test.unit.SampleObject, org.h2.test.unit.TestObjectDeserialization$GoodSampleObject");
 
         // System.setProperty("h2.modifyOnWrite", "true");
 
@@ -848,6 +929,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
             addTest(new TestJakartaWeb());
 
             // other unsafe
+            addTest(new TestAnalyze());
             addTest(new TestOptimizations());
             addTest(new TestOutOfMemory());
             addTest(new TestIgnoreCatalogs());
@@ -923,6 +1005,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestSpinLock());
         addTest(new TestStreamStore());
         addTest(new TestTransactionStore());
+        addTest(new TestVersionedValueType());
         addTest(new TestMVTempResult());
 
         // unit
@@ -1070,6 +1153,40 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
                 System.out.println("FAIL: can not start server (may already be running)");
                 server = null;
             }
+        }
+    }
+
+    /**
+     * Sets the default SSL context so that SSL connections to the test
+     * servers trust the built-in H2 certificate they use, in addition to the
+     * default trusted certificates. The default SSL socket factories are
+     * created only once, so this has to happen before H2 uses SSL for the
+     * first time. Nothing is changed if a key store or trust store is set
+     * with system properties.
+     */
+    private static void initSslContext() {
+        if (System.getProperty("javax.net.ssl.keyStore") != null
+                || System.getProperty("javax.net.ssl.trustStore") != null) {
+            return;
+        }
+        try {
+            Path security = Paths.get(System.getProperty("java.home"), "lib", "security");
+            Path trusted = security.resolve("jssecacerts");
+            if (!Files.exists(trusted)) {
+                trusted = security.resolve("cacerts");
+            }
+            KeyStore trustStore = KeyStore.getInstance(trusted.toFile(), (char[]) null);
+            KeyStore keyStore = CipherFactory.getKeyStore(CipherFactory.KEYSTORE_PASSWORD);
+            trustStore.setCertificateEntry("h2-test", keyStore.getCertificate("h2"));
+            KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+            kmf.init(keyStore, CipherFactory.KEYSTORE_PASSWORD.toCharArray());
+            TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+            tmf.init(trustStore);
+            SSLContext context = SSLContext.getInstance("TLS");
+            context.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
+            SSLContext.setDefault(context);
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
         }
     }
 

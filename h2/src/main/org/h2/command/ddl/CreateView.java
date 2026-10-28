@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2026 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -12,6 +12,8 @@ import org.h2.command.CommandInterface;
 import org.h2.command.query.Query;
 import org.h2.engine.Database;
 import org.h2.engine.SessionLocal;
+import org.h2.expression.Expression;
+import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.Parameter;
 import org.h2.message.DbException;
 import org.h2.schema.Schema;
@@ -95,6 +97,14 @@ public class CreateView extends SchemaOwnerCommand {
             ArrayList<Parameter> params = query.getParameters();
             if (params != null && !params.isEmpty()) {
                 throw DbException.getUnsupportedException("parameters in views");
+            }
+            Expression offset = query.getOffset();
+            if (offset != null && !offset.isEverything(ExpressionVisitor.DETERMINISTIC_VISITOR)) {
+                throw DbException.getUnsupportedException("non-constant offset in views");
+            }
+            Expression fetch = query.getFetch();
+            if (fetch != null && !fetch.isEverything(ExpressionVisitor.DETERMINISTIC_VISITOR)) {
+                throw DbException.getUnsupportedException("non-constant fetch in views");
             }
             querySQL = query.getPlanSQL(HasSQL.DEFAULT_SQL_FLAGS);
         }

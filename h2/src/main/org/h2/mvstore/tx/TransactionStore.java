@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2026 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -830,6 +830,7 @@ public class TransactionStore implements AutoCloseable
             undoLog.operate(undoKey, null, decisionMaker);
             decisionMaker.reset();
         }
+        t.notifyAllWaitingTransactions();
     }
 
     /**
@@ -951,6 +952,7 @@ public class TransactionStore implements AutoCloseable
     private static final class TxMapBuilder<K,V> extends MVMap.Builder<K,V> {
 
         private final MVMap<String, DataType<?>> typeRegistry;
+        @SuppressWarnings("rawtypes")
         private final DataType defaultDataType;
 
         TxMapBuilder(MVMap<String, DataType<?>> typeRegistry, DataType<?> defaultDataType) {

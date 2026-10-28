@@ -1,4 +1,4 @@
--- Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
+-- Copyright 2004-2026 H2 Group. Multiple-Licensed under the MPL 2.0,
 -- and the EPL 1.0 (https://h2database.com/html/license.html).
 -- Initial Developer: H2 Group
 --
@@ -23,6 +23,15 @@ SELECT JSON_ARRAY(NULL ABSENT ON NULL);
 
 SELECT JSON_ARRAY(NULL NULL ON NULL);
 >> [null]
+
+SELECT JSON_ARRAY(STRINGDECODE('x\uD800y'));
+> exception DATA_CONVERSION_ERROR_1
+
+SELECT JSON_ARRAY(STRINGDECODE('\uDC00'));
+> exception DATA_CONVERSION_ERROR_1
+
+SELECT RAWTOHEX(CAST(JSON_ARRAY(STRINGDECODE('\uD83D\uDE00')) AS VARBINARY));
+>> 5b22f09f9880225d
 
 CREATE TABLE TEST(ID INT, V VARCHAR);
 > ok

@@ -1,4 +1,4 @@
--- Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
+-- Copyright 2004-2026 H2 Group. Multiple-Licensed under the MPL 2.0,
 -- and the EPL 1.0 (https://h2database.com/html/license.html).
 -- Initial Developer: H2 Group
 --
@@ -50,6 +50,24 @@ SELECT MAX(MAX(X) OVER ()) FROM VALUES (1);
 
 SELECT MAX(MAX(X)) FROM VALUES (1);
 > exception INVALID_USE_OF_AGGREGATE_FUNCTION_1
+
+SELECT X FROM VALUES (1) T(X) WHERE SUM(X) OVER () > 0;
+> exception INVALID_USE_OF_AGGREGATE_FUNCTION_1
+
+SELECT X FROM VALUES (1) T(X) WHERE ROW_NUMBER() OVER () = 1;
+> exception INVALID_USE_OF_AGGREGATE_FUNCTION_1
+
+SELECT SUM(X) FROM VALUES (1) T(X) HAVING SUM(SUM(X)) OVER () > 0;
+> exception INVALID_USE_OF_AGGREGATE_FUNCTION_1
+
+SELECT X FROM VALUES (1) T(X) WHERE X IN (SELECT Y FROM VALUES (1) T2(Y) WHERE Y > 0) AND SUM(X) OVER () > 0;
+> exception INVALID_USE_OF_AGGREGATE_FUNCTION_1
+
+SELECT X FROM VALUES (1), (2) T(X) WHERE X = (SELECT MAX(Y) OVER () FROM VALUES (2) T2(Y));
+> X
+> -
+> 2
+> rows: 1
 
 CREATE TABLE TEST(ID INT, CATEGORY INT);
 > ok

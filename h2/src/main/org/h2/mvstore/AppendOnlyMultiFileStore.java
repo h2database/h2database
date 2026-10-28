@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2026 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -253,6 +253,7 @@ public final class AppendOnlyMultiFileStore extends FileStore<MFChunk>
     protected void writeChunk(MFChunk chunk, WriteBuffer buff) {
         long filePos = chunk.block * BLOCK_SIZE;
         writeFully(chunk, filePos, buff.getBuffer());
+        lastChunk = chunk;
     }
 
     @Override

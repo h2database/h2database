@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2026 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -741,9 +741,10 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
                 }
                 return ValueRow.get(columnType, list);
             }
-            TypeInfo[] columnTypes = rowFactory.getColumnTypes();
+            // the column types are unknown when the data is read by Recover
+            TypeInfo[] columnTypes = rowFactory == null ? null : rowFactory.getColumnTypes();
             for (int i = 0; i < len; i++) {
-                list[i] = readValue(buff, columnTypes[i]);
+                list[i] = readValue(buff, columnTypes == null ? null : columnTypes[i]);
             }
             return ValueRow.get(list);
         }

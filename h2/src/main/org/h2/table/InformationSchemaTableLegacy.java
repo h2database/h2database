@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2026 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -714,6 +714,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                     new Column[] { cols[indexColumn] });
             metaIndex = new MetaIndex(this, indexCols, false);
         }
+        setIndexes();
     }
 
     private static String replaceNullWithEmpty(String s) {
@@ -1296,7 +1297,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                                     // ID
                                     ValueInteger.get(alias.getId()),
                                     // SOURCE
-                                    alias.getSource()
+                                    admin ? alias.getSource() : null
                                     // when adding more columns, see also below
                             );
                         }
@@ -1762,7 +1763,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                         // REMARKS
                         replaceNullWithEmpty(trigger.getComment()),
                         // SQL
-                        trigger.getCreateSQL(),
+                        admin ? trigger.getCreateSQL() : null,
                         // ID
                         ValueInteger.get(trigger.getId())
                 );
@@ -1896,6 +1897,9 @@ public final class InformationSchemaTableLegacy extends MetaTable {
             break;
         }
         case QUERY_STATISTICS: {
+            if (!session.getUser().isAdmin()) {
+                break;
+            }
             QueryStatisticsData control = database.getQueryStatisticsData();
             if (control != null) {
                 for (QueryStatisticsData.QueryEntry entry : control.getQueries()) {

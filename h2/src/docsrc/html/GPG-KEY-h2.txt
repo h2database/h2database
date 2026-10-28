@@ -1,0 +1,12 @@
+H2 and MVStore JARs released on Maven Central are signed with the following key.
+
+Key ID: Thomas Mueller Graf <thomas.tom.mueller@gmail.com>
+Fingerprint: D09C CACA 34B6 BCB1 A980  68DD 739D 53C0 A4CF 0287
+Key size: ED25519
+Date: 2026-09-04
+
+You can import this key using a public key server:
+$ gpg --keyserver keyserver.ubuntu.com --recv D09CCACA34B6BCB1A98068DD739D53C0A4CF0287
+
+You can also verify locally a manually downloaded key with:
+$ gpg --import --import-options show-only h2.gpg

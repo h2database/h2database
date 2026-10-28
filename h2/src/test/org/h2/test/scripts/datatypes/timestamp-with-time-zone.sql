@@ -1,4 +1,4 @@
--- Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
+-- Copyright 2004-2026 H2 Group. Multiple-Licensed under the MPL 2.0,
 -- and the EPL 1.0 (https://h2database.com/html/license.html).
 -- Initial Developer: H2 Group
 --
@@ -94,6 +94,9 @@ SELECT T0 FROM TEST;
 DROP TABLE TEST;
 > ok
 
+SET TIME ZONE '01:00';
+> ok
+
 SELECT (LOCALTIMESTAMP + 1) = (CURRENT_TIMESTAMP + 1);
 >> TRUE
 
@@ -106,6 +109,9 @@ SELECT (TIMESTAMP WITH TIME ZONE '2010-01-01 10:00:00+01' + 1) A,
 
 SELECT (LOCALTIMESTAMP - 1) = (CURRENT_TIMESTAMP - 1);
 >> TRUE
+
+SET TIME ZONE LOCAL;
+> ok
 
 SELECT (TIMESTAMP WITH TIME ZONE '2010-01-01 10:00:00+01' - 1) A;
 > A

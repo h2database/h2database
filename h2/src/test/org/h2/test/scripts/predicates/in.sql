@@ -1,4 +1,4 @@
--- Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
+-- Copyright 2004-2026 H2 Group. Multiple-Licensed under the MPL 2.0,
 -- and the EPL 1.0 (https://h2database.com/html/license.html).
 -- Initial Developer: H2 Group
 --
@@ -201,8 +201,8 @@ create table test(v boolean) as (values unknown, true, false);
 > ok
 
 SELECT CASE WHEN NOT (false IN (null)) THEN false END;
-> NULL
-> ----
+> UNKNOWN
+> -------
 > null
 > rows: 1
 
@@ -238,8 +238,8 @@ drop table test;
 > ok
 
 SELECT CASE WHEN NOT (false IN (null)) THEN false END;
-> NULL
-> ----
+> UNKNOWN
+> -------
 > null
 > rows: 1
 

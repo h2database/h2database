@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2026 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -112,6 +113,19 @@ public class ScriptCommand extends ScriptBase {
     @Override
     public boolean isQuery() {
         return true;
+    }
+
+    @Override
+    public void collectDependencies(HashSet<DbObject> dependencies) {
+        if (data) {
+            // read the data of all tables from the same snapshot
+            for (Table table : getDatabase().getAllTablesAndViews()) {
+                if (table.getTableType() == TableType.TABLE && !excludeSchema(table.getSchema())
+                        && !excludeTable(table)) {
+                    dependencies.add(table);
+                }
+            }
+        }
     }
 
     // TODO lock all tables for 'script' command

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2026 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -457,6 +457,18 @@ public class ErrorCode {
      * </pre>
      */
     public static final int COLUMN_NOT_FOUND_1 = 42122;
+
+    /**
+     * The error with code <code>42123</code> is thrown when the same table
+     * name or alias is used more than once in the same FROM clause.
+     * Example:
+     * <pre>
+     * CREATE TABLE A(ID1 INT);
+     * CREATE TABLE B(ID2 INT);
+     * SELECT * FROM A C JOIN B C;
+     * </pre>
+     */
+    public static final int DUPLICATE_TABLE_ALIAS_1 = 42123;
 
     /**
      * The error with code <code>42131</code> is thrown when
@@ -2333,6 +2345,7 @@ public class ErrorCode {
         case INDEX_NOT_FOUND_1: return "42S12";
         case DUPLICATE_COLUMN_NAME_1: return "42S21";
         case COLUMN_NOT_FOUND_1: return "42S22";
+        case DUPLICATE_TABLE_ALIAS_1: return "42S23";
         case IDENTICAL_EXPRESSIONS_SHOULD_BE_USED: return "42S31";
 
         // 0A: feature not supported

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2026 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -41,6 +41,7 @@ public class TestCompoundIndexSearch extends TestDb {
         compoundInAgainstSimpleIndex(conn);
         compoundEqAgainstCompoundIndex(conn);
         multipleEqAgainstCompoundIndex(conn);
+        duplicatedColumnInCompoundCondition(conn);
 
         conn.close();
         deleteDb(DB_NAME);
@@ -196,6 +197,21 @@ public class TestCompoundIndexSearch extends TestDb {
         assertEquals(rs.getString(1).replaceAll("[\\r\\n\\s]+", " "),
                 "SELECT \"B\", \"C\" FROM \"PUBLIC\".\"TEST\" /* PUBLIC.IDX_B_C: B = 1 AND C = '1' */ " +
                         "/* scanCount: 3 */ WHERE (\"B\" = 1) AND (\"C\" = '1')");
+        stat.close();
+    }
+
+    /**
+     * Executes queries with a condition that references the same column more
+     * than once against a compound index. Such a condition cannot be mapped
+     * onto the index and used to fail with "Unexpected code path".
+     */
+    private void duplicatedColumnInCompoundCondition(Connection conn) throws Exception {
+        Statement stat = conn.createStatement();
+        assertResult("3", stat, "SELECT COUNT(*) FROM test WHERE (b, b) = (1, 1)");
+        assertResult("5", stat, "SELECT SUM(d) FROM test WHERE (b, b) = (1, 1)");
+        assertResult("3", stat,
+                "SELECT COUNT(*) FROM test WHERE (b, b) = (1, 1) OR (b, b) = (2, 3)");
+        assertResult("4", stat, "SELECT COUNT(*) FROM test WHERE (c, c) = ('1', '1')");
         stat.close();
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2026 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -80,7 +80,7 @@ public class SecureFileStore extends FileStore {
     @Override
     public void readFully(byte[] b, int off, int len) {
         super.readFully(b, off, len);
-        for (int i = 0; i < len; i++) {
+        for (int i = off, limit = off + len; i < limit; i++) {
             if (b[i] != 0) {
                 cipher.decrypt(b, off, len);
                 xorInitVector(b, off, len, pos);

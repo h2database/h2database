@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2026 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -156,6 +156,7 @@ public class Restore extends Tool {
                 originalDbLen = originalDbName.length();
             }
             in = FileUtils.newInputStream(zipFileName);
+            String targetDir = FileUtils.toRealPath(directory);
             try (ZipInputStream zipIn = new ZipInputStream(in)) {
                 while (true) {
                     ZipEntry entry = zipIn.getNextEntry();
@@ -176,9 +177,15 @@ public class Restore extends Tool {
                         copy = true;
                     }
                     if (copy) {
+                        String targetFileName = directory + File.separatorChar + fileName;
+                        String targetPath = FileUtils.toRealPath(targetFileName);
+                        if (!targetPath.equals(targetDir)
+                                && !targetPath.startsWith(targetDir + File.separatorChar)) {
+                            throw new IOException("Zip entry outside of target directory: " + entry.getName());
+                        }
                         OutputStream o = null;
                         try {
-                            o = FileUtils.newOutputStream(directory + File.separatorChar + fileName, false);
+                            o = FileUtils.newOutputStream(targetFileName, false);
                             IOUtils.copy(zipIn, o);
                             o.close();
                         } finally {

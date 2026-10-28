@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2026 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -22,6 +22,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.Arrays;
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.message.DbException;
@@ -36,6 +37,12 @@ import org.h2.util.Utils;
  * A facility to read from and write to CSV (comma separated values) files. When
  * reading, the BOM (the byte-order-mark) character 0xfeff at the beginning of
  * the file is ignored.
+ * <p>
+ * BINARY, VARBINARY, and BLOB values are written as hexadecimal strings,
+ * because their default string representation is a lossy UTF-8 decoding of
+ * the bytes. To read such values back, the columns that contain them must be
+ * listed with {@link #setBinaryColumns(int...)}.
+ * </p>
  *
  * @author Thomas Mueller, Sylvain Cuaz
  */
@@ -55,6 +62,7 @@ public class Csv implements SimpleRowSource {
     private String lineSeparator = System.lineSeparator();
     private String nullString = "";
     private boolean quotedNulls = false;
+    private int[] binaryColumns = Utils.EMPTY_INT_ARRAY;
 
     private String fileName;
     private BufferedReader input;
@@ -76,15 +84,26 @@ public class Csv implements SimpleRowSource {
             ResultSetMetaData meta = rs.getMetaData();
             int columnCount = meta.getColumnCount();
             String[] row = new String[columnCount];
+            boolean[] binary = new boolean[columnCount];
             for (int i = 0; i < columnCount; i++) {
                 row[i] = meta.getColumnLabel(i + 1);
+                binary[i] = isBinaryType(meta.getColumnType(i + 1));
             }
             if (writeColumnHeader) {
                 writeRow(row);
             }
             while (rs.next()) {
                 for (int i = 0; i < columnCount; i++) {
-                    row[i] = rs.getString(i + 1);
+                    if (binary[i]) {
+                        // The string representation of binary values is a
+                        // lossy UTF-8 decoding, so bytes are written as hex
+                        // instead (the format used by H2 1.4.200 and by the
+                        // H2 Console).
+                        byte[] b = rs.getBytes(i + 1);
+                        row[i] = b == null ? null : StringUtils.convertBytesToHex(b);
+                    } else {
+                        row[i] = rs.getString(i + 1);
+                    }
                 }
                 writeRow(row);
                 rows++;
@@ -96,6 +115,18 @@ public class Csv implements SimpleRowSource {
         } finally {
             close();
             JdbcUtils.closeSilently(rs);
+        }
+    }
+
+    private static boolean isBinaryType(int sqlType) {
+        switch (sqlType) {
+        case Types.BINARY:
+        case Types.VARBINARY:
+        case Types.LONGVARBINARY:
+        case Types.BLOB:
+            return true;
+        default:
+            return false;
         }
     }
 
@@ -211,10 +242,15 @@ public class Csv implements SimpleRowSource {
         initRead();
         SimpleResultSet result = new SimpleResultSet(this);
         makeColumnNamesUnique();
-        for (String columnName : columnNames) {
-            result.addColumn(columnName, Types.VARCHAR, Integer.MAX_VALUE, 0);
+        for (int i = 0; i < columnNames.length; i++) {
+            result.addColumn(columnNames[i], isBinaryColumn(i) ? Types.VARBINARY : Types.VARCHAR,
+                    Integer.MAX_VALUE, 0);
         }
         return result;
+    }
+
+    private boolean isBinaryColumn(int columnIndex) {
+        return Arrays.binarySearch(binaryColumns, columnIndex) >= 0;
     }
 
     private void makeColumnNamesUnique() {
@@ -279,7 +315,7 @@ public class Csv implements SimpleRowSource {
             } else if (nullString != null) {
                 if (quotedNulls && fieldDelimiter != 0) {
                     output.write(fieldDelimiter);
-                    output.write(nullString);
+                    output.write(escape(nullString));
                     output.write(fieldDelimiter);
                 } else {
                     output.write(nullString);
@@ -550,7 +586,7 @@ public class Csv implements SimpleRowSource {
             return null;
         }
 
-        String[] row = new String[columnNames.length];
+        Object[] row = new Object[columnNames.length];
         try {
             int i = 0;
             while (true) {
@@ -571,13 +607,16 @@ public class Csv implements SimpleRowSource {
                     // Empty Strings should be NULL
                     // in order to prevent conversion of zero-length String
                     // to Number
+                    Object value;
                     if (quotedNulls) {
-                        row[i++] = v != null && !v.equals(nullString)
-                                ? v
-                                : null;
+                        value = v != null && !v.equals(nullString) ? v : null;
                     } else {
-                        row[i++] = v;
+                        value = v;
                     }
+                    if (value != null && isBinaryColumn(i)) {
+                        value = StringUtils.convertHexToBytes((String) value);
+                    }
+                    row[i++] = value;
                 }
                 if (endOfLine) {
                     break;
@@ -840,6 +879,42 @@ public class Csv implements SimpleRowSource {
     }
 
     /**
+     * Set the columns that contain binary values. Data of these columns is
+     * read as hexadecimal and returned as byte arrays. Column numbers are
+     * 1-based. This setting only affects reading: when a result set is
+     * written, the column types reported by the result set are used instead,
+     * so BINARY, VARBINARY, and BLOB columns are always written as
+     * hexadecimal.
+     *
+     * @param columnIndexes the 1-based column numbers
+     */
+    public void setBinaryColumns(int... columnIndexes) {
+        int[] columns = new int[columnIndexes.length];
+        for (int i = 0; i < columnIndexes.length; i++) {
+            int index = columnIndexes[i];
+            if (index < 1) {
+                throw DbException.getInvalidValueException("binaryColumns", index);
+            }
+            columns[i] = index - 1;
+        }
+        Arrays.sort(columns);
+        binaryColumns = columns;
+    }
+
+    /**
+     * Get the columns that contain binary values.
+     *
+     * @return the sorted 1-based column numbers
+     */
+    public int[] getBinaryColumns() {
+        int[] columns = new int[binaryColumns.length];
+        for (int i = 0; i < columns.length; i++) {
+            columns[i] = binaryColumns[i] + 1;
+        }
+        return columns;
+    }
+
+    /**
      * INTERNAL.
      * Parse and set the CSV options.
      *
@@ -880,6 +955,17 @@ public class Csv implements SimpleRowSource {
                 setWriteColumnHeader(Utils.parseBoolean(value, true, false));
             } else if (isParam(key, "caseSensitiveColumnNames")) {
                 setCaseSensitiveColumnNames(Utils.parseBoolean(value, false, false));
+            } else if (isParam(key, "binaryColumns")) {
+                String[] columns = StringUtils.arraySplit(value, ',', true);
+                int[] columnIndexes = new int[columns.length];
+                for (int i = 0; i < columns.length; i++) {
+                    try {
+                        columnIndexes[i] = Integer.parseInt(columns[i].trim());
+                    } catch (NumberFormatException e) {
+                        throw DbException.getInvalidValueException("binaryColumns", value);
+                    }
+                }
+                setBinaryColumns(columnIndexes);
             } else {
                 throw DbException.getUnsupportedException(key);
             }

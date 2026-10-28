@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2026 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -45,11 +45,14 @@ import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.h2.api.Trigger;
 import org.h2.command.Parser;
+import org.h2.engine.Right;
 import org.h2.engine.SessionLocal;
 import org.h2.expression.ExpressionColumn;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
+import org.h2.schema.Schema;
 import org.h2.store.fs.FileUtils;
+import org.h2.table.Table;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
@@ -470,23 +473,29 @@ public class FullTextLucene extends FullText {
                     // in this context it's safe to cast
                     limit = (int) totalHits;
                 }
-                for (int i = 0, len = docs.scoreDocs.length; i < limit
-                        && i + offset < totalHits
-                        && i + offset < len; i++) {
-                    ScoreDoc sd = docs.scoreDocs[i + offset];
+                JdbcConnection c = (JdbcConnection) conn;
+                SessionLocal session = (SessionLocal) c.getSession();
+                Parser p = new Parser(session);
+                for (int i = 0, len = docs.scoreDocs.length; limit > 0 && i < len; i++) {
+                    ScoreDoc sd = docs.scoreDocs[i];
                     Document doc = searcher.getIndexReader().storedFields().document(sd.doc);
                     float score = sd.score;
                     String q = doc.get(LUCENE_FIELD_QUERY);
+                    int idx = q.indexOf(" WHERE ");
+                    String tab = q.substring(0, idx);
+                    ExpressionColumn expr = (ExpressionColumn) p
+                            .parseExpression(tab);
+                    String schemaName = expr.getOriginalTableAliasName();
+                    String tableName = expr.getColumnName(session, -1);
+                    if (!hasSelectRight(session, schemaName, tableName)) {
+                        continue;
+                    }
+                    if (offset > 0) {
+                        offset--;
+                        continue;
+                    }
+                    limit--;
                     if (data) {
-                        int idx = q.indexOf(" WHERE ");
-                        JdbcConnection c = (JdbcConnection) conn;
-                        SessionLocal session = (SessionLocal) c.getSession();
-                        Parser p = new Parser(session);
-                        String tab = q.substring(0, idx);
-                        ExpressionColumn expr = (ExpressionColumn) p
-                                .parseExpression(tab);
-                        String schemaName = expr.getOriginalTableAliasName();
-                        String tableName = expr.getColumnName(session, -1);
                         q = q.substring(idx + " WHERE ".length());
                         String[][] columnData = parseKey(conn, q);
                         result.addRow(schemaName, tableName, columnData[0],
@@ -502,6 +511,12 @@ public class FullTextLucene extends FullText {
             throw convertException(e);
         }
         return result;
+    }
+
+    private static boolean hasSelectRight(SessionLocal session, String schemaName, String tableName) {
+        Schema schema = session.getDatabase().findSchema(schemaName);
+        Table table = schema == null ? null : schema.findTableOrView(session, tableName);
+        return table != null && session.getUser().hasTableRight(table, Right.SELECT);
     }
 
     /**

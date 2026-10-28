@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2025 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2026 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (https://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -171,6 +171,63 @@ public class TestMergeUsing extends TestDb implements Trigger {
                 "SELECT 2 AS ID, 'Marcy22-updated2' AS NAME UNION ALL " +
                 "SELECT X AS ID, 'Marcy'||X||'-inserted'||X AS NAME FROM SYSTEM_RANGE(3,4)",
                 4);
+        // Duplicate match: the first source row deletes the target row,
+        // the second one must fail instead of running WHEN NOT MATCHED
+        testMergeUsingException(
+                "CREATE TABLE PARENT(ID INT PRIMARY KEY, OWNER INT, BALANCE INT);" +
+                "CREATE TABLE SOURCE(FID INT PRIMARY KEY, OWNER INT, AMOUNT INT);" +
+                "INSERT INTO PARENT VALUES (1, 7, 100);" +
+                "INSERT INTO SOURCE VALUES (1, 7, 10), (2, 7, 20);",
+                "MERGE INTO PARENT T USING SOURCE S ON T.OWNER = S.OWNER " +
+                "WHEN MATCHED THEN DELETE " +
+                "WHEN NOT MATCHED THEN INSERT (ID, OWNER, BALANCE) " +
+                "VALUES (S.FID + 100, S.OWNER, S.AMOUNT)",
+                "SELECT ID, OWNER, BALANCE FROM PARENT ORDER BY ID",
+                "SELECT 1 AS ID, 7 AS OWNER, 100 AS BALANCE WHERE 1=0", 2,
+                "duplicate _ROWID_ target record already processed");
+        // Duplicate match: the first source row updates a column used in ON,
+        // the second one must fail instead of running WHEN NOT MATCHED
+        testMergeUsingException(
+                "CREATE TABLE PARENT(ID INT PRIMARY KEY, OWNER INT, BALANCE INT);" +
+                "CREATE TABLE SOURCE(FID INT PRIMARY KEY, OWNER INT, AMOUNT INT);" +
+                "INSERT INTO PARENT VALUES (1, 7, 100);" +
+                "INSERT INTO SOURCE VALUES (1, 7, 10), (2, 7, 20);",
+                "MERGE INTO PARENT T USING SOURCE S " +
+                "ON T.OWNER = S.OWNER AND T.BALANCE <= 100 " +
+                "WHEN MATCHED THEN UPDATE SET BALANCE = T.BALANCE + S.AMOUNT " +
+                "WHEN NOT MATCHED THEN INSERT (ID, OWNER, BALANCE) " +
+                "VALUES (S.FID + 100, S.OWNER, S.AMOUNT)",
+                "SELECT ID, OWNER, BALANCE FROM PARENT ORDER BY ID",
+                "SELECT 1 AS ID, 7 AS OWNER, 110 AS BALANCE WHERE 1=0", 2,
+                "duplicate _ROWID_ target record already processed");
+        // Duplicate match with the ON condition still true (unchanged behavior)
+        testMergeUsingException(
+                "CREATE TABLE PARENT(ID INT PRIMARY KEY, OWNER INT, BALANCE INT);" +
+                "CREATE TABLE SOURCE(FID INT PRIMARY KEY, OWNER INT, AMOUNT INT);" +
+                "INSERT INTO PARENT VALUES (1, 7, 100);" +
+                "INSERT INTO SOURCE VALUES (1, 7, 10), (2, 7, 20);",
+                "MERGE INTO PARENT T USING SOURCE S ON T.OWNER = S.OWNER " +
+                "WHEN MATCHED THEN UPDATE SET BALANCE = T.BALANCE + S.AMOUNT " +
+                "WHEN NOT MATCHED THEN INSERT (ID, OWNER, BALANCE) " +
+                "VALUES (S.FID + 100, S.OWNER, S.AMOUNT)",
+                "SELECT ID, OWNER, BALANCE FROM PARENT ORDER BY ID",
+                "SELECT 1 AS ID, 7 AS OWNER, 110 AS BALANCE WHERE 1=0", 2,
+                "duplicate _ROWID_ target record already processed");
+        // No duplicate match: every source row matches a different target row
+        testMergeUsing(
+                "CREATE TABLE PARENT(ID INT PRIMARY KEY, OWNER INT, BALANCE INT);" +
+                "CREATE TABLE SOURCE(FID INT PRIMARY KEY, OWNER INT, AMOUNT INT);" +
+                "INSERT INTO PARENT VALUES (1, 7, 100);" +
+                "INSERT INTO SOURCE VALUES (1, 7, 10), (2, 8, 20), (3, 9, 30);",
+                "MERGE INTO PARENT T USING SOURCE S ON T.OWNER = S.OWNER " +
+                "WHEN MATCHED THEN UPDATE SET BALANCE = T.BALANCE + S.AMOUNT " +
+                "WHEN NOT MATCHED THEN INSERT (ID, OWNER, BALANCE) " +
+                "VALUES (S.FID, S.OWNER, S.AMOUNT)",
+                "SELECT ID, OWNER, BALANCE FROM PARENT ORDER BY ID",
+                "SELECT 1 AS ID, 7 AS OWNER, 110 AS BALANCE UNION ALL " +
+                "SELECT 2 AS ID, 8 AS OWNER, 20 AS BALANCE UNION ALL " +
+                "SELECT 3 AS ID, 9 AS OWNER, 30 AS BALANCE",
+                3);
         testDataChangeDeltaTable();
     }
 

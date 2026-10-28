@@ -9,6 +9,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
+import java.util.TimeZone;
 
 import org.h2.api.ErrorCode;
 import org.h2.engine.SessionLocal;
@@ -117,10 +118,8 @@ public final class FunctionsMySQL extends ModeFunction {
      * @param seconds The current timestamp in seconds.
      * @return a formatted date/time String in the format "yyyy-MM-dd HH:mm:ss".
      */
-    public static String fromUnixTime(int seconds) {
-        SimpleDateFormat formatter = new SimpleDateFormat(DATE_TIME_FORMAT,
-                Locale.ENGLISH);
-        return formatter.format(new Date(seconds * 1_000L));
+    public static String fromUnixTime(SessionLocal session, int seconds) {
+        return fromUnixTime(session, seconds, DATE_TIME_FORMAT);
     }
 
     /**
@@ -131,9 +130,13 @@ public final class FunctionsMySQL extends ModeFunction {
      * @param format The format of the date/time String to return.
      * @return a formatted date/time String in the given format.
      */
-    public static String fromUnixTime(int seconds, String format) {
+    public static String fromUnixTime(SessionLocal session, int seconds, String format) {
         format = convertToSimpleDateFormat(format);
         SimpleDateFormat formatter = new SimpleDateFormat(format, Locale.ENGLISH);
+        String timeZoneId = session.currentTimeZone().getId();
+        if(timeZoneId != null) {
+            formatter.setTimeZone(TimeZone.getTimeZone(timeZoneId));
+        }
         return formatter.format(new Date(seconds * 1_000L));
     }
 
@@ -214,7 +217,7 @@ public final class FunctionsMySQL extends ModeFunction {
             break;
         case FROM_UNIXTIME:
             result = ValueVarchar.get(
-                    v1 == null ? fromUnixTime(v0.getInt()) : fromUnixTime(v0.getInt(), v1.getString()));
+                    v1 == null ? fromUnixTime(session, v0.getInt()) : fromUnixTime(session, v0.getInt(), v1.getString()));
             break;
         case DATE:
             switch (v0.getValueType()) {

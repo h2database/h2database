@@ -1089,6 +1089,9 @@ public final class Parser extends ParserBase {
             read(FROM);
         }
         command.setTableFilter(readSimpleTableFilter());
+        if (database.getMode().discardWithTableHints) {
+            discardWithTableHints();
+        }
         if (readIf(WHERE)) {
             command.setCondition(readExpression());
         }
@@ -1419,7 +1422,12 @@ public final class Parser extends ParserBase {
 
     private Prepared parseMerge(int start) {
         read("INTO");
-        TableFilter targetTableFilter = readSimpleTableFilter();
+        Table table = readTableOrView();
+        if (database.getMode().discardWithTableHints) {
+            discardWithTableHints();
+        }
+        TableFilter targetTableFilter =
+                new TableFilter(session, table, readFromAlias(null), rightsChecked, currentSelect, 0, null);
         if (readIf(USING)) {
             return parseMergeUsing(targetTableFilter, start);
         }

@@ -15,6 +15,7 @@ import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
+import org.h2.engine.DriverPropertyInfoProvider;
 
 /**
  * The database driver. An application should not use this class directly. The
@@ -117,7 +118,7 @@ public class Driver implements java.sql.Driver {
      */
     @Override
     public DriverPropertyInfo[] getPropertyInfo(String url, Properties info) {
-        return new DriverPropertyInfo[0];
+        return DriverPropertyInfoProvider.get();
     }
 
     /**

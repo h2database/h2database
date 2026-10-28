@@ -17,6 +17,7 @@ import java.sql.Statement;
 import java.util.Map;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVStore;
+import org.h2.mvstore.Page;
 import org.h2.mvstore.db.ValueDataType;
 import org.h2.mvstore.tx.TransactionStore;
 import org.h2.store.fs.FileUtils;
@@ -56,8 +57,10 @@ public class TestRecovery extends TestDb {
         testRecoverEnumDomainAndArray();
         testRecoverJson();
         testRecoverArray();
+        testRecoverRow();
         testRecoverGeneratedColumns();
-        testRecoverUnreadablePage();
+        testRecoverUnreadablePage(true);
+        testRecoverUnreadablePage(false);
         testCompressedAndUncompressed();
         testRunScript();
         testRunScript2();
@@ -192,6 +195,13 @@ public class TestRecovery extends TestDb {
         stat.execute("create table test(id int primary key, a int array, b numeric(10, 3) array array)");
         stat.execute("insert into test values (1, null, array[array[1.5], array[]]), (2, array[], null), "
                 + "(3, array[1, 2, 3], array[array[12345.125]])");
+        conn.close();
+        Recover.main("-dir", getBaseDir(), "-db", "recovery");
+        DeleteDbFiles.execute(getBaseDir(), "recovery", true);
+        conn = getConnection(
+                "recovery;init=runscript from '" +
+                        getBaseDir() + "/recovery.h2.sql'");
+        stat = conn.createStatement();
         try (ResultSet rs = stat.executeQuery("select a, cast(b as varchar) from test order by id")) {
             assertTrue(rs.next());
             assertNull(rs.getObject(1));
@@ -202,6 +212,41 @@ public class TestRecovery extends TestDb {
             assertTrue(rs.next());
             assertEquals(new Object[] {1, 2, 3}, (Object[]) rs.getArray(1).getArray());
             assertEquals("[[12345.125]]", rs.getString(2));
+            assertFalse(rs.next());
+        }
+        conn.close();
+    }
+
+    private void testRecoverRow() throws Exception {
+        DeleteDbFiles.execute(getBaseDir(), "recovery", true);
+        Connection conn = getConnection("recovery");
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(id int primary key, a row(city varchar, zip varchar(10)), "
+                + "b row(n int, d numeric(10, 2)) array, c varchar)");
+        stat.execute("insert into test values (1, null, null, 'x'), "
+                + "(2, row('Berlin', null), array[row(1, 1.5), row(null, 22.25)], null), "
+                + "(3, row('Copenhagen', '1050'), array[], 'z')");
+        conn.close();
+        Recover.main("-dir", getBaseDir(), "-db", "recovery");
+        DeleteDbFiles.execute(getBaseDir(), "recovery", true);
+        conn = getConnection(
+                "recovery;init=runscript from '" +
+                        getBaseDir() + "/recovery.h2.sql'");
+        stat = conn.createStatement();
+        try (ResultSet rs = stat.executeQuery("select a, b, c, (a).city from test order by id")) {
+            assertTrue(rs.next());
+            assertNull(rs.getString(1));
+            assertNull(rs.getString(2));
+            assertEquals("x", rs.getString(3));
+            assertTrue(rs.next());
+            assertEquals("ROW (Berlin, null)", rs.getString(1));
+            assertEquals("[ROW (1, 1.50), ROW (null, 22.25)]", rs.getString(2));
+            assertNull(rs.getString(3));
+            assertEquals("Berlin", rs.getString(4));
+            assertTrue(rs.next());
+            assertEquals("ROW (Copenhagen, 1050)", rs.getString(1));
+            assertEquals("[]", rs.getString(2));
+            assertEquals("z", rs.getString(3));
             assertFalse(rs.next());
         }
         conn.close();
@@ -242,7 +287,7 @@ public class TestRecovery extends TestDb {
         conn.close();
     }
 
-    private void testRecoverUnreadablePage() throws Exception {
+    private void testRecoverUnreadablePage(boolean rootPage) throws Exception {
         if (config.cipher != null) {
             return;
         }
@@ -252,9 +297,10 @@ public class TestRecovery extends TestDb {
         stat.execute("create table test(id int primary key, name varchar)");
         stat.execute("insert into test select x, 'name ' || x from system_range(1, 1000)");
         conn.close();
-        // overwrite the header of the root page of the table
+        // overwrite the header of the root page of the table or of a leaf page
         String fileName = getBaseDir() + "/recovery.mv.db";
         long position;
+        int lostRows;
         try (MVStore mv = new MVStore.Builder().fileName(fileName).readOnly().open()) {
             TransactionStore store = new TransactionStore(mv, new ValueDataType());
             store.init();
@@ -264,7 +310,16 @@ public class TestRecovery extends TestDb {
                     mapName = name;
                 }
             }
-            long pos = store.begin().openMap(mapName).map.getRootPage().getPos();
+            Page<?, ?> page = store.begin().openMap(mapName).map.getRootPage();
+            if (rootPage) {
+                lostRows = 1000;
+            } else {
+                assertFalse(page.isLeaf());
+                page = page.getChildPage(1);
+                assertTrue(page.isLeaf());
+                lostRows = page.getKeyCount();
+            }
+            long pos = page.getPos();
             int chunkId = DataUtils.getPageChunkId(pos);
             String chunk = mv.getLayoutMap().get("chunk." + Integer.toHexString(chunkId));
             // the last chunk is described only in the store header
@@ -293,7 +348,7 @@ public class TestRecovery extends TestDb {
         stat = conn.createStatement();
         try (ResultSet rs = stat.executeQuery("select count(*) from test")) {
             assertTrue(rs.next());
-            assertEquals(0, rs.getInt(1));
+            assertEquals(1000 - lostRows, rs.getInt(1));
         }
         conn.close();
     }

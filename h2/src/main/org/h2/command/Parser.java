@@ -8022,10 +8022,36 @@ public final class Parser extends ParserBase {
         for (QueryScope queryScope = this.queryScope; queryScope != null; queryScope = queryScope.parent) {
             Table tableSubquery = queryScope.tableSubqueries.get(name);
             if (tableSubquery != null) {
+                if (tableSubquery instanceof CTE) {
+                    // a query that reads the CTE depends on its parameters
+                    for (Parameter p : ((CTE) tableSubquery).getParameters()) {
+                        useCteParameter(p);
+                    }
+                }
                 return tableSubquery;
             }
         }
         return null;
+    }
+
+    /**
+     * Marks a parameter of a CTE as used. When a query that reads the CTE is
+     * prepared again from its SQL, the parameter does not appear in this SQL,
+     * so it is added to the parameters of this parser.
+     *
+     * @param p the parameter of the CTE
+     */
+    private void useCteParameter(Parameter p) {
+        int index = p.getIndex();
+        if (index >= parameters.size() || parameters.get(index) == null) {
+            ArrayList<Parameter> list = new ArrayList<>(parameters);
+            while (list.size() <= index) {
+                list.add(null);
+            }
+            list.set(index, p);
+            parameters = list;
+        }
+        usedParameters.set(index);
     }
 
     private DbException getTableOrViewNotFoundDbException(String tableName) {

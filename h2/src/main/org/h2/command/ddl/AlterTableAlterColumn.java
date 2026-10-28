@@ -75,7 +75,10 @@ public class AlterTableAlterColumn extends CommandWithColumns {
     private ArrayList<Column> columnsToAdd;
     private ArrayList<Column> columnsToRemove;
     private boolean booleanFlag;
-
+    /**
+     * The prefix for comments on temporary tables during mid-execution of ALTER TABLE.
+     */
+    public static final String ALTER_IN_PROGRESS_PREFIX = "__H2_ALTER_IN_PROGRESS__:";
     public AlterTableAlterColumn(SessionLocal session, Schema schema) {
         super(session, schema);
     }
@@ -361,9 +364,9 @@ public class AlterTableAlterColumn extends CommandWithColumns {
         for (TableView view : dependentViews) {
             table.removeDependentView(view);
         }
-        StringBuilder builder = new StringBuilder("DROP TABLE ");
-        table.getSQL(builder, HasSQL.DEFAULT_SQL_FLAGS).append(" IGNORE");
-        execute(builder.toString());
+        db.lockMeta(session);
+        newTable.setComment(table.getComment());
+        db.removeSchemaObject(session, table);
         db.renameSchemaObject(session, newTable, tableName);
         for (DbObject child : newTable.getChildren()) {
             if (child instanceof Sequence) {
@@ -455,7 +458,7 @@ public class AlterTableAlterColumn extends CommandWithColumns {
         data.persistIndexes = table.isPersistIndexes();
         data.session = session;
         Table newTable = getSchema().createTable(data);
-        newTable.setComment(table.getComment());
+        newTable.setComment(ALTER_IN_PROGRESS_PREFIX + table.getName());
         String newTableSQL = newTable.getCreateSQLForMeta();
         StringBuilder columnNames = new StringBuilder();
         StringBuilder columnValues = new StringBuilder();

@@ -27,6 +27,7 @@ import org.h2.api.JavaObjectSerializer;
 import org.h2.api.TableEngine;
 import org.h2.command.CommandInterface;
 import org.h2.command.Prepared;
+import org.h2.command.ddl.AlterTableAlterColumn;
 import org.h2.command.ddl.CreateTableData;
 import org.h2.command.dml.SetTypes;
 import org.h2.constraint.Constraint;
@@ -366,6 +367,7 @@ public final class Database implements DataHandler, CastDataProvider {
             recompileInvalidViews();
             starting = false;
             if (!readOnly) {
+                cleanUpIncompleteAlterTables();
                 // set CREATE_BUILD in a new database
                 String settingName = SetTypes.getTypeName(SetTypes.CREATE_BUILD);
                 Setting setting = settings.get(settingName);
@@ -733,6 +735,23 @@ public final class Database implements DataHandler, CastDataProvider {
         TableView.clearIndexCaches(this);
     }
 
+    private void cleanUpIncompleteAlterTables(){
+        ArrayList<Table> toRemove = new ArrayList<>();
+        for(Schema schema : schemas.values()){
+            for(Table table : schema.getAllTablesAndViews(null)){
+                String comment = table.getComment();
+                if (comment != null && comment.startsWith(AlterTableAlterColumn.ALTER_IN_PROGRESS_PREFIX)) {
+                    toRemove.add(table);
+                }
+            }
+        }
+        if (!toRemove.isEmpty()) {
+            lockMeta(systemSession);
+            for (Table table : toRemove) {
+                removeSchemaObject(systemSession, table);
+            }
+        }
+    }
     private void addMeta(SessionLocal session, DbObject obj) {
         assert Thread.holdsLock(this);
         int id = obj.getId();

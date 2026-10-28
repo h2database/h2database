@@ -7,6 +7,7 @@ package org.h2.test.db;
 
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
+import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -19,6 +20,7 @@ import org.h2.jdbc.JdbcConnection;
 import org.h2.schema.Sequence;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
+import org.h2.test.utils.FilePathUnstable;
 
 /**
  * Test ALTER statements.
@@ -53,6 +55,7 @@ public class TestAlter extends TestDb {
         testAlterTableAddColumnAfter();
         testAlterTableAddMultipleColumnsBefore();
         testAlterTableAddMultipleColumnsAfter();
+        testAlterTableCrash();
         conn.close();
         deleteDb(getTestName());
     }
@@ -241,4 +244,57 @@ public class TestAlter extends TestDb {
         stat.execute("drop table T");
     }
 
+    private void testAlterTableCrash() throws Exception {
+        if (config.memory || config.networked) {
+            return;
+        }
+        FilePathUnstable fs = FilePathUnstable.register();
+        String[] sqls = {
+            "ALTER TABLE T2 ADD COLUMN C INT DEFAULT 7",
+            "ALTER TABLE T2 DROP COLUMN V",
+            "ALTER TABLE T2 ALTER COLUMN V INT"
+        };
+        int testId = 0;
+        for (String sql : sqls) {
+            for (int k = 1; k <= 7; k++) {
+                String dbDir = getBaseDir() + "/alterCrash_" + (testId++);
+                deleteDb(dbDir, "db");
+                String url = "jdbc:h2:unstable:" + dbDir + "/db;FILE_LOCK=NO;WRITE_DELAY=0";
+                fs.setDiskFullCount(0, 0);
+                Connection c = DriverManager.getConnection(url, "sa", "");
+                Statement s = c.createStatement();
+                s.execute("DROP TABLE IF EXISTS T2");
+                s.execute("CREATE TABLE T2(ID INT PRIMARY KEY, V VARCHAR)");
+                s.execute("COMMENT ON TABLE T2 IS 'test'");
+                s.execute("INSERT INTO T2 SELECT X, 'val' || X FROM SYSTEM_RANGE(1, 100)");
+                s.execute("CHECKPOINT SYNC");
+
+                fs.setDiskFullCount(k, 0);
+                try {
+                    s.execute(sql);
+                } catch (SQLException ignored) {
+                }
+                try {
+                    c.close();
+                } catch (Exception ignored) {
+                }
+                fs.setDiskFullCount(0, 0);
+
+                try (Connection reopen = DriverManager.getConnection("jdbc:h2:" + dbDir + "/db", "sa", "");
+                     Statement s2 = reopen.createStatement()) {
+                    ResultSet rs = s2.executeQuery("SELECT COUNT(*) FROM T2");
+                    assertTrue(rs.next());
+                    assertEquals(100, rs.getInt(1));
+
+                    rs = s2.executeQuery(
+                            "SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME LIKE '%_COPY_%'");
+                    assertTrue(rs.next());
+                    assertEquals(0, rs.getInt(1));
+                }
+                deleteDb(dbDir, "db");
+            }
+        }
+    }
+
 }
+

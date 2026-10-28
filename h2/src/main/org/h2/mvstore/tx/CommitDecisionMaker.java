@@ -99,7 +99,7 @@ final class CommitDecisionMaker<V> extends MVMap.DecisionMaker<VersionedValue<V>
                     if (keyCount <= 1) {
                         if (keyCount == 1) {
                             assert index <= 1;
-                            p = p.getChildPage(1 - index).copy();
+                            p = p.getChildPage(1 - index);
                         } else {
                             // if root happens to be such single-childed
                             // (with no keys) internal node, then just

@@ -57,6 +57,7 @@ public class TestRecovery extends TestDb {
         testRecoverEnumDomainAndArray();
         testRecoverJson();
         testRecoverArray();
+        testRecoverRow();
         testRecoverGeneratedColumns();
         testRecoverUnreadablePage(true);
         testRecoverUnreadablePage(false);
@@ -194,6 +195,13 @@ public class TestRecovery extends TestDb {
         stat.execute("create table test(id int primary key, a int array, b numeric(10, 3) array array)");
         stat.execute("insert into test values (1, null, array[array[1.5], array[]]), (2, array[], null), "
                 + "(3, array[1, 2, 3], array[array[12345.125]])");
+        conn.close();
+        Recover.main("-dir", getBaseDir(), "-db", "recovery");
+        DeleteDbFiles.execute(getBaseDir(), "recovery", true);
+        conn = getConnection(
+                "recovery;init=runscript from '" +
+                        getBaseDir() + "/recovery.h2.sql'");
+        stat = conn.createStatement();
         try (ResultSet rs = stat.executeQuery("select a, cast(b as varchar) from test order by id")) {
             assertTrue(rs.next());
             assertNull(rs.getObject(1));
@@ -204,6 +212,41 @@ public class TestRecovery extends TestDb {
             assertTrue(rs.next());
             assertEquals(new Object[] {1, 2, 3}, (Object[]) rs.getArray(1).getArray());
             assertEquals("[[12345.125]]", rs.getString(2));
+            assertFalse(rs.next());
+        }
+        conn.close();
+    }
+
+    private void testRecoverRow() throws Exception {
+        DeleteDbFiles.execute(getBaseDir(), "recovery", true);
+        Connection conn = getConnection("recovery");
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(id int primary key, a row(city varchar, zip varchar(10)), "
+                + "b row(n int, d numeric(10, 2)) array, c varchar)");
+        stat.execute("insert into test values (1, null, null, 'x'), "
+                + "(2, row('Berlin', null), array[row(1, 1.5), row(null, 22.25)], null), "
+                + "(3, row('Copenhagen', '1050'), array[], 'z')");
+        conn.close();
+        Recover.main("-dir", getBaseDir(), "-db", "recovery");
+        DeleteDbFiles.execute(getBaseDir(), "recovery", true);
+        conn = getConnection(
+                "recovery;init=runscript from '" +
+                        getBaseDir() + "/recovery.h2.sql'");
+        stat = conn.createStatement();
+        try (ResultSet rs = stat.executeQuery("select a, b, c, (a).city from test order by id")) {
+            assertTrue(rs.next());
+            assertNull(rs.getString(1));
+            assertNull(rs.getString(2));
+            assertEquals("x", rs.getString(3));
+            assertTrue(rs.next());
+            assertEquals("ROW (Berlin, null)", rs.getString(1));
+            assertEquals("[ROW (1, 1.50), ROW (null, 22.25)]", rs.getString(2));
+            assertNull(rs.getString(3));
+            assertEquals("Berlin", rs.getString(4));
+            assertTrue(rs.next());
+            assertEquals("ROW (Copenhagen, 1050)", rs.getString(1));
+            assertEquals("[]", rs.getString(2));
+            assertEquals("z", rs.getString(3));
             assertFalse(rs.next());
         }
         conn.close();

@@ -5,6 +5,9 @@
  */
 package org.h2.test.db;
 
+import java.io.FilterOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
@@ -19,6 +22,8 @@ import java.util.Collections;
 import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
 import org.h2.engine.Constants;
+import org.h2.store.fs.FilePath;
+import org.h2.store.fs.FilePathWrapper;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
@@ -62,6 +67,7 @@ public class TestRunscript extends TestDb implements Trigger {
         testScriptExcludeRight();
         testRunscriptFromClasspath();
         testCancelScript();
+        testScriptWithConcurrentCommit();
         testEncoding();
         testClobPrimaryKey();
         testTruncateLargeLength();
@@ -389,6 +395,90 @@ public class TestRunscript extends TestDb implements Trigger {
         conn.close();
         FileUtils.delete(getBaseDir() + "/backup.sql");
         FileUtils.delete(getBaseDir() + "/backup2.sql");
+    }
+
+    private void testScriptWithConcurrentCommit() throws Exception {
+        deleteDb("runscript");
+        String file = getBaseDir() + "/backup.sql";
+        FilePathScriptHook hook = new FilePathScriptHook();
+        FilePath.register(hook);
+        try (Connection conn = getConnection("runscript"); Connection conn2 = getConnection("runscript")) {
+            Statement stat = conn.createStatement();
+            stat.execute("CREATE TABLE A(ID INT PRIMARY KEY) AS SELECT X FROM SYSTEM_RANGE(1, 10000)");
+            stat.execute("CREATE TABLE B(ID INT PRIMARY KEY)");
+            conn2.setAutoCommit(false);
+            Statement stat2 = conn2.createStatement();
+            // move a row from A to B while SCRIPT writes the data of A
+            FilePathScriptHook.onFirstWrite = () -> {
+                try {
+                    stat2.execute("DELETE FROM A WHERE ID = 1");
+                    stat2.execute("INSERT INTO B VALUES 1");
+                    conn2.commit();
+                } catch (SQLException e) {
+                    throw new IllegalStateException(e);
+                }
+            };
+            stat.execute("SCRIPT TO '" + hook.getScheme() + ':' + file + "'");
+            assertNull(FilePathScriptHook.onFirstWrite);
+            stat.execute("DROP ALL OBJECTS");
+            stat.execute("RUNSCRIPT FROM '" + file + "'");
+            // the state at the start of SCRIPT: row 1 in A only
+            ResultSet rs = stat.executeQuery(
+                    "SELECT (SELECT COUNT(*) FROM A), (SELECT COUNT(*) FROM B), EXISTS(SELECT * FROM A WHERE ID = 1)");
+            rs.next();
+            assertEquals(10000, rs.getInt(1));
+            assertEquals(0, rs.getInt(2));
+            assertTrue(rs.getBoolean(3));
+        } finally {
+            FilePathScriptHook.onFirstWrite = null;
+            FilePath.unregister(hook);
+            FileUtils.delete(file);
+        }
+    }
+
+    /**
+     * A file system that runs an action before the first write to an output
+     * stream.
+     */
+    public static final class FilePathScriptHook extends FilePathWrapper {
+
+        /**
+         * The action to run before the next write, or null.
+         */
+        static volatile Runnable onFirstWrite;
+
+        @Override
+        public String getScheme() {
+            return "scriptHook";
+        }
+
+        @Override
+        public OutputStream newOutputStream(boolean append) throws IOException {
+            return new FilterOutputStream(getBase().newOutputStream(append)) {
+
+                @Override
+                public void write(int b) throws IOException {
+                    beforeWrite();
+                    out.write(b);
+                }
+
+                @Override
+                public void write(byte[] b, int off, int len) throws IOException {
+                    beforeWrite();
+                    out.write(b, off, len);
+                }
+
+            };
+        }
+
+        static void beforeWrite() {
+            Runnable action = onFirstWrite;
+            if (action != null) {
+                onFirstWrite = null;
+                action.run();
+            }
+        }
+
     }
 
     private void testEncoding() throws SQLException {

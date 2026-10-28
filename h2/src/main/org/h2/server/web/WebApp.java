@@ -551,13 +551,13 @@ public class WebApp {
             String level = mainSchema ? ", 1, 1" : ", 2, 2";
             builder.append("setNode(").append(treeIndex).append(level)
                     .append(", 'column', '")
-                    .append(PageParser.escapeJavaScript(column.getName()))
+                    .append(escapeTreeText(column.getName()))
                     .append("', 'javascript:ins(\\'").append(col).append("\\')');\n");
             treeIndex++;
             if (mainSchema && showColumnTypes) {
                 builder.append("setNode(").append(treeIndex)
                         .append(", 2, 2, 'type', '")
-                        .append(PageParser.escapeJavaScript(column.getDataType()))
+                        .append(escapeTreeText(column.getDataType()))
                         .append("', null);\n");
                 treeIndex++;
             }
@@ -568,6 +568,18 @@ public class WebApp {
     private static String escapeIdentifier(String name) {
         return StringUtils.urlEncode(
                 PageParser.escapeJavaScript(name)).replace('+', ' ');
+    }
+
+    /**
+     * Escape the text of a tree node. The text is written into the page as
+     * HTML by tree.js, so it needs to be HTML-escaped before it is placed into
+     * the JavaScript string.
+     *
+     * @param text the text
+     * @return the escaped text
+     */
+    private static String escapeTreeText(String text) {
+        return PageParser.escapeJavaScript(PageParser.escapeHtml(text));
     }
 
     /**
@@ -641,7 +653,7 @@ public class WebApp {
             for (IndexInfo info : indexMap.values()) {
                 buff.append("setNode(").append(treeIndex).append(levelIndex)
                         .append(", 'index', '")
-                        .append(PageParser.escapeJavaScript(info.name))
+                        .append(escapeTreeText(info.name))
                         .append("', null);\n");
                 treeIndex++;
                 buff.append("setNode(").append(treeIndex).append(levelColumnType)
@@ -649,7 +661,7 @@ public class WebApp {
                 treeIndex++;
                 buff.append("setNode(").append(treeIndex).append(levelColumnType)
                         .append(", 'type', '")
-                        .append(PageParser.escapeJavaScript(info.columns))
+                        .append(escapeTreeText(info.columns))
                         .append("', null);\n");
                 treeIndex++;
             }
@@ -730,7 +742,7 @@ public class WebApp {
         tab = escapeIdentifier(tab);
         builder.append("setNode(").append(treeIndex).append(indentation)
                 .append(" '").append(isView ? "view" : "table").append("', '")
-                .append(PageParser.escapeJavaScript(table.getName()))
+                .append(escapeTreeText(table.getName()))
                 .append("', 'javascript:ins(\\'").append(tab).append("\\',true)');\n");
         treeIndex++;
         if (showColumns) {
@@ -745,7 +757,7 @@ public class WebApp {
                             String sql = rs.getString(1);
                             if (sql != null) {
                                 builder.append("setNode(").append(treeIndex).append(indentNode).append(" 'type', '")
-                                        .append(PageParser.escapeJavaScript(sql)).append("', null);\n");
+                                        .append(escapeTreeText(sql)).append("', null);\n");
                                 treeIndex++;
                             }
                         }
@@ -776,7 +788,7 @@ public class WebApp {
 
             StringBuilder buff = new StringBuilder()
                     .append("setNode(0, 0, 0, 'database', '")
-                    .append(PageParser.escapeJavaScript(url))
+                    .append(escapeTreeText(url))
                     .append("', null);\n");
             int treeIndex = 1;
 
@@ -788,7 +800,7 @@ public class WebApp {
                     continue;
                 }
                 buff.append("setNode(").append(treeIndex).append(", 0, 1, 'folder', '")
-                        .append(PageParser.escapeJavaScript(schema.name))
+                        .append(escapeTreeText(schema.name))
                         .append("', null);\n");
                 treeIndex++;
                 treeIndex = addTablesAndViews(schema, false, buff, treeIndex);
@@ -814,18 +826,18 @@ public class WebApp {
                         String increment = rs.getString(3);
                         buff.append("setNode(").append(treeIndex)
                                 .append(", 1, 1, 'sequence', '")
-                                .append(PageParser.escapeJavaScript(name))
+                                .append(escapeTreeText(name))
                                 .append("', null);\n");
                         treeIndex++;
                         buff.append("setNode(").append(treeIndex)
                                 .append(", 2, 2, 'type', '${text.tree.current}: ")
-                                .append(PageParser.escapeJavaScript(currentBase))
+                                .append(escapeTreeText(currentBase))
                                 .append("', null);\n");
                         treeIndex++;
                         if (!"1".equals(increment)) {
                             buff.append("setNode(").append(treeIndex)
                                     .append(", 2, 2, 'type', '${text.tree.increment}: ")
-                                    .append(PageParser.escapeJavaScript(increment))
+                                    .append(escapeTreeText(increment))
                                     .append("', null);\n");
                             treeIndex++;
                         }
@@ -847,7 +859,7 @@ public class WebApp {
                         String admin = rs.getString(2);
                         buff.append("setNode(").append(treeIndex)
                                 .append(", 1, 1, 'user', '")
-                                .append(PageParser.escapeJavaScript(name))
+                                .append(escapeTreeText(name))
                                 .append("', null);\n");
                         treeIndex++;
                         if (admin.equalsIgnoreCase("TRUE")) {
@@ -864,7 +876,7 @@ public class WebApp {
                     meta.getDatabaseProductVersion();
             buff.append("setNode(").append(treeIndex)
                     .append(", 0, 0, 'info', '")
-                    .append(PageParser.escapeJavaScript(version))
+                    .append(escapeTreeText(version))
                     .append("', null);\n")
                     .append("refreshQueryTables();");
             session.put("tree", buff.toString());

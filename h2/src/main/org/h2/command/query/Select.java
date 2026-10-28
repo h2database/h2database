@@ -53,6 +53,7 @@ import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
 import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
+import org.h2.table.DerivedTable;
 import org.h2.table.IndexColumn;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
@@ -898,7 +899,8 @@ public class Select extends Query {
     private void disableLazyForJoinSubqueries(final TableFilter top) {
         if (session.isLazyQueryExecution()) {
             top.visit(f -> {
-                if (f != top && f.getTable().getTableType() == TableType.VIEW) {
+                Table t = f.getTable();
+                if (f != top && (t.getTableType() == TableType.VIEW || t instanceof DerivedTable)) {
                     QueryExpressionIndex idx = (QueryExpressionIndex) f.getIndex();
                     if (idx != null && idx.getQuery() != null) {
                         idx.getQuery().setNeverLazy(true);

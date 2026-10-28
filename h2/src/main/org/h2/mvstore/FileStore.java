@@ -2033,7 +2033,7 @@ public abstract class FileStore<C extends Chunk<C>>
                     throw e;
                 } catch (Exception e) {
                     throw DataUtils.newMVStoreException(DataUtils.ERROR_FILE_CORRUPT,
-                            "Unable to read the page at position 0x{0}, chunk {1}, offset 0x{3}",
+                            "Unable to read the page at position 0x{0}, chunk {1}, offset 0x{2}",
                             Long.toHexString(pos), chunk, Long.toHexString(pageOffset), e);
                 }
                 cachePage(page);
@@ -2041,6 +2041,8 @@ public abstract class FileStore<C extends Chunk<C>>
             return page;
         } catch (MVStoreException e) {
             if (recoveryMode) {
+                // report the page that is skipped
+                mvStore.handleException(e);
                 return map.createEmptyLeaf();
             }
             throw e;

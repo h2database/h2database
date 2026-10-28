@@ -308,3 +308,73 @@ WITH
     Q1(X) AS (VALUES 2)
 TABLE Q1;
 > exception TABLE_OR_VIEW_ALREADY_EXISTS_1
+
+CREATE TABLE TEST(K VARCHAR, N INT);
+> ok
+
+INSERT INTO TEST VALUES ('a', 1), ('b', 7);
+> update count: 2
+
+WITH X AS (SELECT N FROM TEST WHERE K = ?) SELECT (SELECT SUM(N) FROM X) S;
+{
+a
+> S
+> -
+> 1
+> rows: 1
+b
+> S
+> -
+> 7
+> rows: 1
+a
+> S
+> -
+> 1
+> rows: 1
+};
+> update count: 0
+
+WITH X AS (SELECT N FROM TEST WHERE K = ?), Y AS (SELECT T.N FROM TEST T JOIN X ON T.N = X.N)
+SELECT SUM(N) S FROM Y;
+{
+a
+> S
+> -
+> 1
+> rows: 1
+b
+> S
+> -
+> 7
+> rows: 1
+a
+> S
+> -
+> 1
+> rows: 1
+};
+> update count: 0
+
+WITH X AS (SELECT N FROM TEST WHERE K = ?) SELECT (SELECT SUM(N) FROM (SELECT N FROM X UNION ALL SELECT 0) U) S;
+{
+a
+> S
+> -
+> 1
+> rows: 1
+b
+> S
+> -
+> 7
+> rows: 1
+a
+> S
+> -
+> 1
+> rows: 1
+};
+> update count: 0
+
+DROP TABLE TEST;
+> ok

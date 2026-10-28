@@ -67,6 +67,7 @@ public class TestTransactionStore extends TestBase {
         testStoreMultiThreadedReads();
         testCommitAfterMapRemoval();
         testDeadLock();
+        testNoPageLeakOnCommittedRemoval();
     }
 
     private void testHCLFKey() {
@@ -926,6 +927,32 @@ public class TestTransactionStore extends TestBase {
                 map.put(2L, "B");
             }
         }
+    }
+
+    private void testNoPageLeakOnCommittedRemoval() {
+        String fileName = getBaseDir() + "/testNoPageLeakOnCommittedRemoval.h3";
+        FileUtils.delete(fileName);
+        try (MVStore s = new MVStore.Builder().fileName(fileName).autoCommitDisabled().open()) {
+            s.setVersionsToKeep(0);
+            s.setRetentionTime(0);
+            TransactionStore ts = new TransactionStore(s);
+            ts.init();
+            String value = new String(new char[2_000]).replace('\0', 'x');
+            int liveEntries = 100;
+            for (long key = 0; key < 10_000; key++) {
+                Transaction t = ts.begin();
+                TransactionMap<Long, String> map = t.openMap("data", LongDataType.INSTANCE, StringDataType.INSTANCE);
+                map.put(key, value);
+                if (key >= liveEntries) {
+                    map.remove(key - liveEntries);
+                }
+                t.commit();
+                s.commit();
+            }
+            long chunks = s.getLayoutMap().keySet().stream().filter(k -> k.startsWith("chunk.")).count();
+            assertTrue("chunks: " + chunks, chunks < 200);
+        }
+        FileUtils.delete(fileName);
     }
 
     private void testDeadLock() {

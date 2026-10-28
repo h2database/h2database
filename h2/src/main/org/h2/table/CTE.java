@@ -77,6 +77,15 @@ public final class CTE extends QueryExpressionTable {
         return querySQL;
     }
 
+    /**
+     * Returns the parameters used in the query of this CTE.
+     *
+     * @return the parameters
+     */
+    public ArrayList<Parameter> getParameters() {
+        return originalParameters;
+    }
+
     @Override
     public QueryScope getQueryScope() {
         return queryScope;

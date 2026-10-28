@@ -741,9 +741,10 @@ public final class ValueDataType extends BasicDataType<Value> implements Statefu
                 }
                 return ValueRow.get(columnType, list);
             }
-            TypeInfo[] columnTypes = rowFactory.getColumnTypes();
+            // the column types are unknown when the data is read by Recover
+            TypeInfo[] columnTypes = rowFactory == null ? null : rowFactory.getColumnTypes();
             for (int i = 0; i < len; i++) {
-                list[i] = readValue(buff, columnTypes[i]);
+                list[i] = readValue(buff, columnTypes == null ? null : columnTypes[i]);
             }
             return ValueRow.get(list);
         }

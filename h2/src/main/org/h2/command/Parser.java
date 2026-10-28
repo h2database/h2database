@@ -435,6 +435,7 @@ public final class Parser extends ParserBase {
     private boolean parseDomainConstraint;
     private QueryScope queryScope;
     private boolean parsingRecursiveWithList;
+    private Select selectWithoutWindowFunctions;
 
     /**
      * Creates a new instance of parser.
@@ -2818,7 +2819,7 @@ public final class Parser extends ParserBase {
             parseSelectFromPart(command);
         }
         if (readIf(WHERE)) {
-            command.addCondition(readExpressionWithGlobalConditions());
+            command.addCondition(readConditionWithoutWindowFunctions(command));
         }
         // the group by is read for the outer select (or not a select)
         // so that columns that are not grouped can be used
@@ -2861,7 +2862,7 @@ public final class Parser extends ParserBase {
         currentSelect = command;
         if (readIf(HAVING)) {
             command.setGroupQuery();
-            command.setHaving(readExpressionWithGlobalConditions());
+            command.setHaving(readConditionWithoutWindowFunctions(command));
         }
         if (readIf(WINDOW)) {
             do {
@@ -2977,6 +2978,16 @@ public final class Parser extends ParserBase {
             return ValueExpression.DEFAULT;
         }
         return readExpression();
+    }
+
+    private Expression readConditionWithoutWindowFunctions(Select select) {
+        Select old = selectWithoutWindowFunctions;
+        selectWithoutWindowFunctions = select;
+        try {
+            return readExpressionWithGlobalConditions();
+        } finally {
+            selectWithoutWindowFunctions = old;
+        }
     }
 
     private Expression readExpressionWithGlobalConditions() {
@@ -3628,6 +3639,9 @@ public final class Parser extends ParserBase {
     private void readOver(DataAnalysisOperation operation) {
         if (readIf("OVER")) {
             operation.setOverCondition(readWindowNameOrSpecification());
+            if (selectWithoutWindowFunctions != null && currentSelect == selectWithoutWindowFunctions) {
+                throw DbException.get(ErrorCode.INVALID_USE_OF_AGGREGATE_FUNCTION_1, operation.getTraceSQL());
+            }
             currentSelect.setWindowQuery();
         } else if (operation.isAggregate()) {
             currentSelect.setGroupQuery();
@@ -8008,10 +8022,36 @@ public final class Parser extends ParserBase {
         for (QueryScope queryScope = this.queryScope; queryScope != null; queryScope = queryScope.parent) {
             Table tableSubquery = queryScope.tableSubqueries.get(name);
             if (tableSubquery != null) {
+                if (tableSubquery instanceof CTE) {
+                    // a query that reads the CTE depends on its parameters
+                    for (Parameter p : ((CTE) tableSubquery).getParameters()) {
+                        useCteParameter(p);
+                    }
+                }
                 return tableSubquery;
             }
         }
         return null;
+    }
+
+    /**
+     * Marks a parameter of a CTE as used. When a query that reads the CTE is
+     * prepared again from its SQL, the parameter does not appear in this SQL,
+     * so it is added to the parameters of this parser.
+     *
+     * @param p the parameter of the CTE
+     */
+    private void useCteParameter(Parameter p) {
+        int index = p.getIndex();
+        if (index >= parameters.size() || parameters.get(index) == null) {
+            ArrayList<Parameter> list = new ArrayList<>(parameters);
+            while (list.size() <= index) {
+                list.add(null);
+            }
+            list.set(index, p);
+            parameters = list;
+        }
+        usedParameters.set(index);
     }
 
     private DbException getTableOrViewNotFoundDbException(String tableName) {

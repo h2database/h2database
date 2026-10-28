@@ -735,12 +735,13 @@ public final class Database implements DataHandler, CastDataProvider {
         TableView.clearIndexCaches(this);
     }
 
-    private void cleanUpIncompleteAlterTables(){
+    private void cleanUpIncompleteAlterTables() {
         ArrayList<Table> toRemove = new ArrayList<>();
-        for(Schema schema : schemas.values()){
-            for(Table table : schema.getAllTablesAndViews(null)){
+        for (Schema schema : schemas.values()) {
+            for (Table table : schema.getAllTablesAndViews(null)) {
                 String comment = table.getComment();
-                if (comment != null && comment.startsWith(AlterTableAlterColumn.ALTER_IN_PROGRESS_PREFIX)) {
+                if (comment != null && comment.startsWith(AlterTableAlterColumn.ALTER_IN_PROGRESS_PREFIX)
+                        && table.getName().contains("_COPY_")) {
                     toRemove.add(table);
                 }
             }

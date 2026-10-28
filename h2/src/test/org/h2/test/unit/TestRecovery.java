@@ -17,6 +17,7 @@ import java.sql.Statement;
 import java.util.Map;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVStore;
+import org.h2.mvstore.Page;
 import org.h2.mvstore.db.ValueDataType;
 import org.h2.mvstore.tx.TransactionStore;
 import org.h2.store.fs.FileUtils;
@@ -58,7 +59,8 @@ public class TestRecovery extends TestDb {
         testRecoverArray();
         testRecoverRow();
         testRecoverGeneratedColumns();
-        testRecoverUnreadablePage();
+        testRecoverUnreadablePage(true);
+        testRecoverUnreadablePage(false);
         testCompressedAndUncompressed();
         testRunScript();
         testRunScript2();
@@ -285,7 +287,7 @@ public class TestRecovery extends TestDb {
         conn.close();
     }
 
-    private void testRecoverUnreadablePage() throws Exception {
+    private void testRecoverUnreadablePage(boolean rootPage) throws Exception {
         if (config.cipher != null) {
             return;
         }
@@ -295,9 +297,10 @@ public class TestRecovery extends TestDb {
         stat.execute("create table test(id int primary key, name varchar)");
         stat.execute("insert into test select x, 'name ' || x from system_range(1, 1000)");
         conn.close();
-        // overwrite the header of the root page of the table
+        // overwrite the header of the root page of the table or of a leaf page
         String fileName = getBaseDir() + "/recovery.mv.db";
         long position;
+        int lostRows;
         try (MVStore mv = new MVStore.Builder().fileName(fileName).readOnly().open()) {
             TransactionStore store = new TransactionStore(mv, new ValueDataType());
             store.init();
@@ -307,7 +310,16 @@ public class TestRecovery extends TestDb {
                     mapName = name;
                 }
             }
-            long pos = store.begin().openMap(mapName).map.getRootPage().getPos();
+            Page<?, ?> page = store.begin().openMap(mapName).map.getRootPage();
+            if (rootPage) {
+                lostRows = 1000;
+            } else {
+                assertFalse(page.isLeaf());
+                page = page.getChildPage(1);
+                assertTrue(page.isLeaf());
+                lostRows = page.getKeyCount();
+            }
+            long pos = page.getPos();
             int chunkId = DataUtils.getPageChunkId(pos);
             String chunk = mv.getLayoutMap().get("chunk." + Integer.toHexString(chunkId));
             // the last chunk is described only in the store header
@@ -336,7 +348,7 @@ public class TestRecovery extends TestDb {
         stat = conn.createStatement();
         try (ResultSet rs = stat.executeQuery("select count(*) from test")) {
             assertTrue(rs.next());
-            assertEquals(0, rs.getInt(1));
+            assertEquals(1000 - lostRows, rs.getInt(1));
         }
         conn.close();
     }

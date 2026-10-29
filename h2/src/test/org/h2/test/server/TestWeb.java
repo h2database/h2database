@@ -357,6 +357,15 @@ public class TestWeb extends TestDb {
             assertTrue(result.indexOf("</script><h2xsstest>") < 0);
             client.get(url, "query.do?sql=" + StringUtils.urlEncode(
                     "drop table \"</script><h2xsstest>\""));
+            // tree.js writes the node text as HTML, so it must be HTML-escaped
+            // and not only escaped for the JavaScript string
+            result = client.get(url, "query.do?sql=" + StringUtils.urlEncode(
+                    "create table \"<img src=x onload=h2xsstest()>\"(id int)"));
+            result = client.get(url, "tables.do");
+            assertContains(result, "'&lt;img src=x onload=h2xsstest()&gt;'");
+            assertTrue(result.indexOf("'table', '\\u003cimg") < 0);
+            client.get(url, "query.do?sql=" + StringUtils.urlEncode(
+                    "drop table \"<img src=x onload=h2xsstest()>\""));
             result = client.get(url, "query.jsp");
             result = client.get(url, "query.do?sql=select * from test");
             assertContains(result, "Hello");

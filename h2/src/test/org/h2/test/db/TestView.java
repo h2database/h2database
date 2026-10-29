@@ -36,6 +36,7 @@ public class TestView extends TestDb {
     public void test() throws SQLException {
         deleteDb("view");
         testSubSubQuery();
+        testExistsPredicateInDerivedTableCondition();
         testSubQueryViewIndexCache();
         testInnerSelectWithRownum();
         testInnerSelectWithRange();
@@ -63,6 +64,20 @@ public class TestView extends TestDb {
                 "(select * from test) bbb where bbb.a >=1 and bbb.a <= 1) sp " +
                 "where sp.a = 1 and sp.b = 1 and sp.c = 1");
         assertTrue(rs.next());
+        conn.close();
+    }
+
+    private void testExistsPredicateInDerivedTableCondition() throws SQLException {
+        Connection conn = getConnection("view");
+        Statement stat = conn.createStatement();
+        ResultSet rs = stat.executeQuery("SELECT F.ID_1, F.BOOL_VAR FROM (SELECT D.ID_1, D.BOOL_VAR FROM "
+                + "(SELECT L.ID_1, EXISTS (SELECT 1 FROM (SELECT X AS ID_1 FROM SYSTEM_RANGE(1, 4)) R "
+                + "WHERE L.ID_1 = R.ID_1) AS BOOL_VAR FROM (SELECT X AS ID_1 FROM SYSTEM_RANGE(1, 5)) L) D) F "
+                + "WHERE NOT F.BOOL_VAR");
+        assertTrue(rs.next());
+        assertEquals(5, rs.getInt(1));
+        assertFalse(rs.getBoolean(2));
+        assertFalse(rs.next());
         conn.close();
     }
 

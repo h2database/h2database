@@ -5,8 +5,13 @@
  */
 package org.h2.test.unit;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
+import java.io.PrintStream;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
+import java.net.InetAddress;
+import java.net.Socket;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.Date;
@@ -71,6 +76,7 @@ public class TestPgServer extends TestDb {
         testPrepareWithUnspecifiedType();
         testOtherPgClients();
         testArray();
+        testMalformedMessageLength();
     }
 
     private boolean getPgJdbcDriver() {
@@ -907,6 +913,41 @@ public class TestPgServer extends TestDb {
             }
         } finally {
             server.stop();
+        }
+    }
+
+    private void testMalformedMessageLength() throws Exception {
+        PrintStream oldOut = System.out, oldErr = System.err;
+        ByteArrayOutputStream err = new ByteArrayOutputStream();
+        System.setOut(new PrintStream(new ByteArrayOutputStream()));
+        System.setErr(new PrintStream(err, true));
+        try {
+            // -trace makes the server print the stack trace of unexpected errors
+            Server server = createPgServer("-pgPort", "5535", "-pgDaemon", "-trace");
+            try {
+                // the declared length is shorter than the length field itself
+                sendAndExpectClose(server.getPort(), 3, new byte[0]);
+                // the declared length is huge, but only a few bytes follow
+                sendAndExpectClose(server.getPort(), Integer.MAX_VALUE, new byte[] { 0, 3, 0, 0 });
+            } finally {
+                server.stop();
+            }
+        } finally {
+            System.setOut(oldOut);
+            System.setErr(oldErr);
+        }
+        assertEquals("", err.toString());
+    }
+
+    private void sendAndExpectClose(int port, int length, byte[] payload) throws Exception {
+        try (Socket socket = new Socket(InetAddress.getLoopbackAddress(), port)) {
+            socket.setSoTimeout(10_000);
+            DataOutputStream out = new DataOutputStream(socket.getOutputStream());
+            out.writeInt(length);
+            out.write(payload);
+            out.flush();
+            socket.shutdownOutput();
+            assertEquals(-1, socket.getInputStream().read());
         }
     }
 

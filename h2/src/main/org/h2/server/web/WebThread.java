@@ -7,6 +7,7 @@ package org.h2.server.web;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -300,6 +301,9 @@ class WebThread extends WebApp implements Runnable {
             // allocating the full declared Content-Length up front; this also
             // stops the read loop from spinning if the client closes early.
             byte[] bytes = input.readNBytes(dataLength);
+            if (bytes.length != dataLength) {
+                throw new EOFException();
+            }
             String s = new String(bytes, StandardCharsets.UTF_8);
             parseAttributes(s);
         }

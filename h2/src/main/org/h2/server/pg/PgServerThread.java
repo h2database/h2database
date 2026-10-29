@@ -191,8 +191,15 @@ public final class PgServerThread implements Runnable {
         }
         int len = dataInRaw.readInt();
         len -= 4;
-        byte[] data = Utils.newBytes(len);
-        dataInRaw.readFully(data, 0, len);
+        if (len < 0) {
+            throw new EOFException();
+        }
+        // Read only as many bytes as are actually sent; don't allocate the
+        // full declared length up front, before authentication.
+        byte[] data = dataInRaw.readNBytes(len);
+        if (data.length != len) {
+            throw new EOFException();
+        }
         dataIn = new DataInputStream(new ByteArrayInputStream(data, 0, len));
         switch (x) {
         case 0:

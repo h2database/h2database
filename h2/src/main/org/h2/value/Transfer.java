@@ -11,6 +11,7 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.Reader;
 import java.math.BigDecimal;
@@ -397,7 +398,9 @@ public final class Transfer {
         if (len == -1) {
             return null;
         }
-        StringBuilder buff = new StringBuilder(len);
+        // Don't size the builder from the declared length before the
+        // characters have arrived; a huge length would allocate gigabytes.
+        StringBuilder buff = new StringBuilder(Math.min(len, 4096));
         for (int i = 0; i < len; i++) {
             buff.append(in.readChar());
         }
@@ -448,8 +451,12 @@ public final class Transfer {
         if (len == -1) {
             return null;
         }
-        byte[] b = Utils.newBytes(len);
-        in.readFully(b);
+        // Grow the buffer with the bytes actually received instead of
+        // allocating the full declared length up front.
+        byte[] b = in.readNBytes(len);
+        if (b.length != len) {
+            throw new EOFException();
+        }
         return b;
     }
 

@@ -33,7 +33,10 @@ import org.h2.mvstore.type.ObjectDataType;
 import org.h2.mvstore.type.StringDataType;
 import org.h2.store.fs.FilePath;
 import org.h2.store.fs.FileUtils;
+import org.h2.store.fs.Recorder;
+import org.h2.store.fs.rec.FilePathRec;
 import org.h2.test.TestBase;
+import org.h2.util.IOUtils;
 import org.h2.util.Task;
 import org.h2.util.Utils;
 
@@ -76,6 +79,7 @@ public class TestMVStore extends TestBase {
         testNewerWriteVersion();
         testCompactFully();
         testBackgroundExceptionListener();
+        testReopenAfterCrashWithPendingChunkWrite();
         testOldVersion();
         testAtomicOperations();
         testWriteBuffer();
@@ -508,6 +512,81 @@ public class TestMVStore extends TestBase {
         if (fileStore instanceof RandomAccessStore) {
             ((RandomAccessStore) fileStore).compactMoveChunks(100, Long.MAX_VALUE, s);
         }
+    }
+
+    private void testReopenAfterCrashWithPendingChunkWrite() throws Exception {
+        String fileName = getBaseDir() + "/" + getTestName();
+        String crashFileName = fileName + ".crash";
+        FileUtils.delete(fileName);
+        FileUtils.delete(crashFileName);
+        CountDownLatch held = new CountDownLatch(1);
+        CountDownLatch release = new CountDownLatch(1);
+        // -1 until the chunk writes are counted
+        AtomicInteger chunkWrites = new AtomicInteger(-1);
+        FilePathRec.register();
+        // called after each write; chunk writes are behind the two store header blocks of 4 KB
+        FilePathRec.setRecorder((op, name, data, pos) -> {
+            if (op == Recorder.WRITE && pos >= 2 * 4096 && chunkWrites.get() >= 0) {
+                try {
+                    switch (chunkWrites.incrementAndGet()) {
+                    case 1:
+                        // A is written, but its save is not finished
+                        held.countDown();
+                        release.await();
+                        break;
+                    case 3:
+                        // C is written: the file as it is after a crash at this moment
+                        IOUtils.copyFiles(fileName, crashFileName);
+                        break;
+                    default:
+                    }
+                } catch (Exception e) {
+                    throw new IllegalStateException(e);
+                }
+            }
+        });
+        try {
+            MVStore s = new MVStore.Builder().fileName("rec:" + fileName).open();
+            // background save threads, without commits of the background thread
+            s.setAutoCommitDelay(3_600_000);
+            MVMap<Integer, String> data = s.openMap("data");
+            data.put(0, "x");
+            s.commit();
+            String rootKey = DataUtils.LAYOUT_ROOT + Integer.toHexString(data.getId());
+
+            // the save of the next chunk (A) is held while the next two chunks (B, C)
+            // are committed, and the file is copied after C is written
+            chunkWrites.set(0);
+            data.put(1, "a");
+            s.tryCommit();
+            held.await();
+            String rootInA = s.getLayoutMap().get(rootKey);
+            // a new map, the root of the meta map is in B
+            s.openMap("other").put(1, "b");
+            s.tryCommit();
+            data.put(2, "c");
+            s.tryCommit();
+            // C may be serialized before A is written (then it must list B in its
+            // layout) or only after A is written; wait up to 1 s for the first case
+            for (long end = System.nanoTime() + 1_000_000_000L;
+                    rootInA.equals(s.getLayoutMap().get(rootKey)) && System.nanoTime() < end;) {
+                Thread.sleep(1);
+            }
+            Thread.sleep(100);
+            release.countDown();
+            s.close();
+            assertTrue(FileUtils.exists(crashFileName));
+        } finally {
+            FilePathRec.setRecorder(null);
+        }
+        // the copy is the file after a crash right after C was written
+        try (MVStore s = new MVStore.Builder().fileName(crashFileName).open()) {
+            MVMap<Integer, String> data = s.openMap("data");
+            assertEquals(3, data.size());
+            assertEquals("b", s.<Integer, String>openMap("other").get(1));
+        }
+        FileUtils.delete(fileName);
+        FileUtils.delete(crashFileName);
     }
 
     private void testBackgroundExceptionListener() {

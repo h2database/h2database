@@ -44,6 +44,45 @@ public class TestDuplicateKeyUpdate extends TestDb {
         testEnum(conn);
         conn.close();
         deleteDb("duplicateKeyUpdate");
+        testQualifiedNamesCaseSensitivity(false);
+        testQualifiedNamesCaseSensitivity(true);
+    }
+
+    private void testQualifiedNamesCaseSensitivity(boolean caseInsensitive) throws SQLException {
+        try (Connection conn = getConnection("mem:duplicateKeyUpdate;MODE=MySQL;DATABASE_TO_LOWER=TRUE;"
+                + "CASE_INSENSITIVE_IDENTIFIERS=" + caseInsensitive)) {
+            Statement stat = conn.createStatement();
+            stat.execute("CREATE SCHEMA \"Schema\"");
+            stat.execute("CREATE TABLE \"Schema\".\"Test\"(id INT PRIMARY KEY, v INT)");
+            stat.execute("INSERT INTO \"Schema\".\"Test\" VALUES (1, 0)");
+            String insert = "INSERT INTO \"Schema\".\"Test\" VALUES (1, 0) ON DUPLICATE KEY UPDATE ";
+            assertEquals(2, stat.executeUpdate(insert + "\"Test\".v = v + 1"));
+            assertEquals(2, stat.executeUpdate(insert + "\"Schema\".\"Test\".v = v + 1"));
+            for (String table : new String[] { "TEST", "\"tEsT\"" }) {
+                String sql = insert + table + ".v = v + 1";
+                if (caseInsensitive) {
+                    assertEquals(2, stat.executeUpdate(sql));
+                } else {
+                    assertThrows(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, stat).executeUpdate(sql);
+                }
+            }
+            for (String schema : new String[] { "SCHEMA", "\"sChEmA\"" }) {
+                String sql = insert + schema + ".\"Test\".v = v + 1";
+                if (caseInsensitive) {
+                    assertEquals(2, stat.executeUpdate(sql));
+                } else {
+                    assertThrows(ErrorCode.SCHEMA_NAME_MUST_MATCH, stat).executeUpdate(sql);
+                }
+            }
+            assertThrows(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, stat)
+                    .executeUpdate(insert + "other.v = v + 1");
+            assertThrows(ErrorCode.SCHEMA_NAME_MUST_MATCH, stat)
+                    .executeUpdate(insert + "other.\"Test\".v = v + 1");
+            ResultSet rs = stat.executeQuery("SELECT v FROM \"Schema\".\"Test\"");
+            assertTrue(rs.next());
+            assertEquals(caseInsensitive ? 6 : 2, rs.getInt(1));
+            assertFalse(rs.next());
+        }
     }
 
     private void testDuplicateOnPrimary(Connection conn) throws SQLException {

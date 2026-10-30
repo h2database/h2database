@@ -14,7 +14,10 @@ import org.h2.command.QueryScope;
 import org.h2.command.query.AllColumnsForPlan;
 import org.h2.command.query.Query;
 import org.h2.engine.Database;
+import org.h2.engine.Right;
+import org.h2.engine.RightOwner;
 import org.h2.engine.SessionLocal;
+import org.h2.engine.User;
 import org.h2.index.Index;
 import org.h2.index.QueryExpressionIndex;
 import org.h2.index.RegularQueryExpressionIndex;
@@ -125,6 +128,7 @@ public final class TableView extends QueryExpressionTable {
             Query compiledQuery = compileViewQuery(session, querySQL);
             this.querySQL = compiledQuery.getPlanSQL(DEFAULT_SQL_FLAGS);
             tables = new ArrayList<>(compiledQuery.getTables());
+            checkOwnerRights();
             cols = initColumns(session, columnTemplates, compiledQuery, false, false);
             createException = null;
             viewQuery = compiledQuery;
@@ -143,6 +147,28 @@ public final class TableView extends QueryExpressionTable {
         setColumns(cols);
         if (getId() != 0) {
             addDependentViewToTables();
+        }
+    }
+
+    /**
+     * A user granted access to a view can read its underlying tables through
+     * it, so the view's own owner must hold the rights on them. That is checked
+     * when the view is compiled, but a FORCE view can be created without the
+     * rights (the compile error is stored and the view stays invalid). The
+     * stored create SQL is recompiled by the system session every time the
+     * database is opened, which would otherwise clear that error and leave the
+     * view readable. Re-check the owner's rights here, on every compile, so the
+     * view stays invalid until the owner actually holds them.
+     */
+    private void checkOwnerRights() {
+        RightOwner owner = getSchema().getOwner();
+        if (owner instanceof User && ((User) owner).isAdmin()) {
+            return;
+        }
+        for (Table table : tables) {
+            if (table != this && !owner.isTableRightGranted(table, Right.SELECT)) {
+                throw DbException.get(ErrorCode.NOT_ENOUGH_RIGHTS_FOR_1, table.getTraceSQL());
+            }
         }
     }
 

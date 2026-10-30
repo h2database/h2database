@@ -45,6 +45,7 @@ public class TestRights extends TestDb {
         testOpenNonAdminWithMode();
         testLegacyMetaSourceHidden();
         testEstimatedEnvelopeRights();
+        testForceViewOwnerRights();
         testDisallowedTables();
         testDropOwnUser();
         testGetTables();
@@ -351,6 +352,41 @@ public class TestRights extends TestDb {
         assertEquals("POINT (12.5 41.75)", rs.getString(1));
         conn2.close();
         conn.close();
+    }
+
+    private void testForceViewOwnerRights() throws SQLException {
+        deleteDb("rights");
+        try (Connection conn = getConnection("rights")) {
+            stat = conn.createStatement();
+            stat.execute("create table secret(id int primary key, ssn varchar)");
+            stat.execute("insert into secret values (1, '123-45-6789')");
+            stat.execute("create user low password 'low'");
+            stat.execute("create schema lows authorization low");
+            try (Connection connLow = getConnection("rights", "low", getPassword("low"))) {
+                Statement statLow = connLow.createStatement();
+                assertThrows(ErrorCode.NOT_ENOUGH_RIGHTS_FOR_1, statLow, "select * from public.secret");
+                // FORCE stores the create SQL although LOW has no right on the table
+                statLow.execute("create force view lows.v as select * from public.secret");
+                assertThrows(ErrorCode.VIEW_IS_INVALID_2, statLow, "select * from lows.v");
+            }
+        }
+        // reopening recompiles the view with the system session; it must stay
+        // invalid instead of becoming readable to its owner
+        try (Connection connLow = getConnection("rights", "low", getPassword("low"))) {
+            Statement statLow = connLow.createStatement();
+            assertThrows(ErrorCode.NOT_ENOUGH_RIGHTS_FOR_1, statLow, "select * from public.secret");
+            assertThrows(ErrorCode.VIEW_IS_INVALID_2, statLow, "select * from lows.v");
+        }
+        // once the owner is granted the right the view is valid again after a reopen
+        try (Connection conn = getConnection("rights")) {
+            conn.createStatement().execute("grant select on public.secret to low");
+        }
+        try (Connection connLow = getConnection("rights", "low", getPassword("low"))) {
+            ResultSet rs = connLow.createStatement().executeQuery("select ssn from lows.v");
+            assertTrue(rs.next());
+            assertEquals("123-45-6789", rs.getString(1));
+        }
+        deleteDb("rights");
     }
 
     private void testDisallowedTables() throws SQLException {

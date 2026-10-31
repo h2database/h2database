@@ -54,15 +54,18 @@ public class TestRecovery extends TestDb {
     public void test() throws Exception {
         testRecoverClob();
         testRecoverFulltext();
-        testRecoverEnum();
-        testRecoverEnumDomainAndArray();
+        for (boolean direct : new boolean[] { false, true }) {
+            testRecoverEnum(direct);
+            testRecoverEnumDomainAndArray(direct);
+            testRecoverArray(direct);
+            testRecoverRow(direct);
+            testRecoverBinary(direct);
+        }
         testRecoverJson();
-        testRecoverArray();
-        testRecoverRow();
-        testRecoverBinary();
         testRecoverGeneratedColumns();
-        testRecoverUnreadablePage(true);
-        testRecoverUnreadablePage(false);
+        testRecoverUnreadablePage(true, false);
+        testRecoverUnreadablePage(false, false);
+        testRecoverUnreadablePage(false, true);
         testDirectRecoverRepeated();
         testCompressedAndUncompressed();
         testRunScript();
@@ -104,7 +107,7 @@ public class TestRecovery extends TestDb {
         conn.close();
     }
 
-    private void testRecoverEnum() throws Exception {
+    private void testRecoverEnum(boolean direct) throws Exception {
         DeleteDbFiles.execute(getBaseDir(), "recovery", true);
         Connection conn = getConnection("recovery");
         Statement stat = conn.createStatement();
@@ -112,11 +115,9 @@ public class TestRecovery extends TestDb {
                 + "c enum('a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q'))");
         stat.execute("insert into test values (1, null, '2', 'q'), (2, 'y', '1', 'a'), (3, 'x', null, null)");
         conn.close();
-        Recover.main("-dir", getBaseDir(), "-db", "recovery");
+        String script = recover(direct);
         DeleteDbFiles.execute(getBaseDir(), "recovery", true);
-        conn = getConnection(
-                "recovery;init=runscript from '" +
-                        getBaseDir() + "/recovery.h2.sql'");
+        conn = getConnection("recovery;init=runscript from '" + script + "'");
         stat = conn.createStatement();
         try (ResultSet rs = stat.executeQuery("select a, b, c from test order by id")) {
             assertTrue(rs.next());
@@ -136,7 +137,7 @@ public class TestRecovery extends TestDb {
         conn.close();
     }
 
-    private void testRecoverEnumDomainAndArray() throws Exception {
+    private void testRecoverEnumDomainAndArray(boolean direct) throws Exception {
         DeleteDbFiles.execute(getBaseDir(), "recovery", true);
         // the first 1000 rows have no ENUM values, so the column types are
         // only found on a later page; column C is NULL in all rows
@@ -148,11 +149,9 @@ public class TestRecovery extends TestDb {
                 + "case when x > 1000 then case mod(x, 2) when 0 then '1' else '2' end end, "
                 + "case when x > 1000 then array['y', 'x'] end, null from system_range(1, 1010)");
         conn.close();
-        Recover.main("-dir", getBaseDir(), "-db", "recovery");
+        String script = recover(direct);
         DeleteDbFiles.execute(getBaseDir(), "recovery", true);
-        conn = getConnection(
-                "recovery;ZERO_BASED_ENUMS=TRUE;init=runscript from '" +
-                        getBaseDir() + "/recovery.h2.sql'");
+        conn = getConnection("recovery;ZERO_BASED_ENUMS=TRUE;init=runscript from '" + script + "'");
         stat = conn.createStatement();
         try (ResultSet rs = stat.executeQuery("select count(*), "
                 + "count(*) filter (where a is not distinct from "
@@ -191,7 +190,7 @@ public class TestRecovery extends TestDb {
         conn.close();
     }
 
-    private void testRecoverArray() throws Exception {
+    private void testRecoverArray(boolean direct) throws Exception {
         DeleteDbFiles.execute(getBaseDir(), "recovery", true);
         Connection conn = getConnection("recovery");
         Statement stat = conn.createStatement();
@@ -199,11 +198,9 @@ public class TestRecovery extends TestDb {
         stat.execute("insert into test values (1, null, array[array[1.5], array[]]), (2, array[], null), "
                 + "(3, array[1, 2, 3], array[array[12345.125]])");
         conn.close();
-        Recover.main("-dir", getBaseDir(), "-db", "recovery");
+        String script = recover(direct);
         DeleteDbFiles.execute(getBaseDir(), "recovery", true);
-        conn = getConnection(
-                "recovery;init=runscript from '" +
-                        getBaseDir() + "/recovery.h2.sql'");
+        conn = getConnection("recovery;init=runscript from '" + script + "'");
         stat = conn.createStatement();
         try (ResultSet rs = stat.executeQuery("select a, cast(b as varchar) from test order by id")) {
             assertTrue(rs.next());
@@ -220,7 +217,7 @@ public class TestRecovery extends TestDb {
         conn.close();
     }
 
-    private void testRecoverRow() throws Exception {
+    private void testRecoverRow(boolean direct) throws Exception {
         DeleteDbFiles.execute(getBaseDir(), "recovery", true);
         Connection conn = getConnection("recovery");
         Statement stat = conn.createStatement();
@@ -230,11 +227,9 @@ public class TestRecovery extends TestDb {
                 + "(2, row('Berlin', null), array[row(1, 1.5), row(null, 22.25)], null), "
                 + "(3, row('Copenhagen', '1050'), array[], 'z')");
         conn.close();
-        Recover.main("-dir", getBaseDir(), "-db", "recovery");
+        String script = recover(direct);
         DeleteDbFiles.execute(getBaseDir(), "recovery", true);
-        conn = getConnection(
-                "recovery;init=runscript from '" +
-                        getBaseDir() + "/recovery.h2.sql'");
+        conn = getConnection("recovery;init=runscript from '" + script + "'");
         stat = conn.createStatement();
         try (ResultSet rs = stat.executeQuery("select a, b, c, (a).city from test order by id")) {
             assertTrue(rs.next());
@@ -255,7 +250,7 @@ public class TestRecovery extends TestDb {
         conn.close();
     }
     
-    private void testRecoverBinary() throws Exception {
+    private void testRecoverBinary(boolean direct) throws Exception {
         DeleteDbFiles.execute(getBaseDir(), "recovery", true);
         Connection conn = getConnection("recovery");
         Statement stat = conn.createStatement();
@@ -269,9 +264,9 @@ public class TestRecovery extends TestDb {
             blobHash = rs.getBytes(1);
         }
         conn.close();
-        Recover.main("-dir", getBaseDir(), "-db", "recovery");
+        String script = recover(direct);
         DeleteDbFiles.execute(getBaseDir(), "recovery", true);
-        conn = getConnection("recovery;init=runscript from '" + getBaseDir() + "/recovery.h2.sql'");
+        conn = getConnection("recovery;init=runscript from '" + script + "'");
         stat = conn.createStatement();
         try (ResultSet rs = stat.executeQuery("select a, b, c, d, a = hash('SHA-256', 'x'), "
                 + "hash('SHA-256', c) from test order by id")) {
@@ -329,7 +324,23 @@ public class TestRecovery extends TestDb {
         conn.close();
     }
 
-    private void testRecoverUnreadablePage(boolean rootPage) throws Exception {
+    /**
+     * Writes the script of the database "recovery" with Recover or with
+     * DirectRecover.
+     *
+     * @param direct whether to use DirectRecover
+     * @return the name of the script file
+     */
+    private String recover(boolean direct) throws SQLException {
+        if (direct) {
+            DirectRecover.main("-dir", getBaseDir(), "-db", "recovery");
+            return getBaseDir() + "/recovery.sql";
+        }
+        Recover.main("-dir", getBaseDir(), "-db", "recovery");
+        return getBaseDir() + "/recovery.h2.sql";
+    }
+
+    private void testRecoverUnreadablePage(boolean rootPage, boolean direct) throws Exception {
         if (config.cipher != null) {
             return;
         }
@@ -374,19 +385,18 @@ public class TestRecovery extends TestDb {
         try (FileChannel fc = FileUtils.open(fileName, "rw")) {
             fc.write(ByteBuffer.allocate(4), position);
         }
-        Recover rec = new Recover();
+        Recover rec = direct ? new DirectRecover() : new Recover();
         ByteArrayOutputStream buff = new ByteArrayOutputStream();
         rec.setOut(new PrintStream(buff, true, "UTF-8"));
         rec.runTool("-dir", getBaseDir(), "-db", "recovery");
         String error = "org.h2.mvstore.MVStoreException: File corrupted";
         assertContains(buff.toString("UTF-8"), error);
+        String scriptName = getBaseDir() + (direct ? "/recovery.sql" : "/recovery.h2.sql");
         String script = new String(IOUtils.readBytesAndClose(
-                FileUtils.newInputStream(getBaseDir() + "/recovery.h2.sql"), -1), StandardCharsets.UTF_8);
+                FileUtils.newInputStream(scriptName), -1), StandardCharsets.UTF_8);
         assertContains(script, "// error: " + error);
         DeleteDbFiles.execute(getBaseDir(), "recovery", true);
-        conn = getConnection(
-                "recovery;init=runscript from '" +
-                        getBaseDir() + "/recovery.h2.sql'");
+        conn = getConnection("recovery;init=runscript from '" + scriptName + "'");
         stat = conn.createStatement();
         try (ResultSet rs = stat.executeQuery("select count(*) from test")) {
             assertTrue(rs.next());

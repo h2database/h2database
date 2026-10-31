@@ -24,6 +24,7 @@ import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
 import org.h2.tools.DeleteDbFiles;
+import org.h2.tools.DirectRecover;
 import org.h2.tools.Recover;
 import org.h2.util.IOUtils;
 
@@ -61,6 +62,7 @@ public class TestRecovery extends TestDb {
         testRecoverGeneratedColumns();
         testRecoverUnreadablePage(true);
         testRecoverUnreadablePage(false);
+        testDirectRecoverRepeated();
         testCompressedAndUncompressed();
         testRunScript();
         testRunScript2();
@@ -351,6 +353,24 @@ public class TestRecovery extends TestDb {
             assertEquals(1000 - lostRows, rs.getInt(1));
         }
         conn.close();
+    }
+
+    private void testDirectRecoverRepeated() throws Exception {
+        DeleteDbFiles.execute(getBaseDir(), "recovery", true);
+        Connection conn = getConnection("recovery");
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(id int primary key, name varchar)");
+        stat.execute("insert into test select x, 'name ' || x from system_range(1, 100)");
+        conn.close();
+        // the script must not depend on the timing of the parallel dump task
+        for (int i = 0; i < 20; i++) {
+            DirectRecover.main("-dir", getBaseDir(), "-db", "recovery");
+            String script = new String(IOUtils.readBytesAndClose(
+                    FileUtils.newInputStream(getBaseDir() + "/recovery.sql"), -1), StandardCharsets.UTF_8);
+            assertFalse(script, script.contains("// error:"));
+            assertContains(script, "INSERT INTO O_");
+        }
+        FileUtils.delete(getBaseDir() + "/recovery.sql");
     }
 
     private void testCompressedAndUncompressed() throws SQLException {

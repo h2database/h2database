@@ -52,11 +52,28 @@ public final class Engine {
      * @return true if the database is open
      */
     public static boolean isOpen(String name) {
-        DatabaseHolder databaseHolder;
+        name = unwrapAll(name);
         synchronized (DATABASES) {
-            databaseHolder = DATABASES.get(name);
+            for (Map.Entry<String, DatabaseHolder> e : DATABASES.entrySet()) {
+                Database database = e.getValue().database;
+                // a database opened with a file system prefix such as
+                // "nioMapped:" is registered under the name with the prefix
+                if (database != null && database.isPersistent() && unwrapAll(e.getKey()).equals(name)) {
+                    return true;
+                }
+            }
         }
-        return databaseHolder != null && databaseHolder.database != null;
+        return false;
+    }
+
+    private static String unwrapAll(String name) {
+        for (String n = name;;) {
+            String unwrapped = FileUtils.unwrap(n);
+            if (unwrapped.equals(n)) {
+                return n;
+            }
+            n = unwrapped;
+        }
     }
 
     private static SessionLocal openSession(ConnectionInfo ci, boolean ifExists, boolean forbidCreation,

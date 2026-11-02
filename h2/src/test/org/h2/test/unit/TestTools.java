@@ -40,6 +40,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import org.h2.api.DatabaseEventListener;
@@ -120,6 +121,8 @@ public class TestTools extends TestDb {
         testBackupRestore();
         testRestoreZipSlip();
         testRestoreOpenDatabase();
+        testRestoreOpenDatabaseWithPrefix("nioMapped:");
+        testRestoreOpenDatabaseWithPrefix("split:");
         testRecover();
         FileUtils.delete(getBaseDir() + "/b2.sql");
         FileUtils.delete(getBaseDir() + "/b2.sql.txt");
@@ -1100,6 +1103,30 @@ public class TestTools extends TestDb {
         assertEquals(10, getRestoreOpenRowCount(url));
         FileUtils.delete(fileName);
         FileUtils.delete(shortFileName);
+        DeleteDbFiles.main("-dir", dir, "-db", "testRestoreOpen", "-quiet");
+    }
+
+    private void testRestoreOpenDatabaseWithPrefix(String prefix) throws Exception {
+        org.h2.Driver.load();
+        String dir = getBaseDir();
+        String url = "jdbc:h2:" + dir + "/testRestoreOpen";
+        String fileName = dir + "/testRestoreOpen.zip";
+        DeleteDbFiles.main("-dir", dir, "-db", "testRestoreOpen", "-quiet");
+        try (Connection conn = getConnection(url, "sa", "")) {
+            conn.createStatement().execute("CREATE TABLE TEST(ID INT PRIMARY KEY)");
+        }
+        Backup.execute(fileName, dir, "testRestoreOpen", true);
+        try (Connection conn = getConnection("jdbc:h2:" + prefix + dir + "/testRestoreOpen", "sa", "")) {
+            assertThrows(ErrorCode.CANNOT_CHANGE_SETTING_WHEN_OPEN_1,
+                    () -> Restore.execute(fileName, dir, "testRestoreOpen"));
+            // the refused restore must keep the file lock of the open database
+            Process p = new ProcessBuilder(getJVM(), "-cp", getClassPath(), "org.h2.tools.Shell",
+                    "-url", url, "-user", "sa", "-sql", "SELECT 1").redirectErrorStream(true).start();
+            String output = new String(IOUtils.readBytesAndClose(p.getInputStream(), -1), StandardCharsets.UTF_8);
+            assertTrue(p.waitFor(1, TimeUnit.MINUTES));
+            assertContains(output, "90020");
+        }
+        FileUtils.delete(fileName);
         DeleteDbFiles.main("-dir", dir, "-db", "testRestoreOpen", "-quiet");
     }
 

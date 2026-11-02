@@ -32,6 +32,7 @@ public class TestMaterializedView extends TestDb {
     public void test() throws SQLException {
         deleteDb("materializedview");
         test1();
+        testRefreshChecksSelectRight();
         deleteDb("materializedview");
     }
 
@@ -62,6 +63,51 @@ public class TestMaterializedView extends TestDb {
         });
         stat.execute("drop materialized view test_view");
         stat.execute("drop table test");
+        conn.close();
+    }
+
+    private void testRefreshChecksSelectRight() throws SQLException {
+        Connection conn = getConnection("materializedview");
+        Statement stat = conn.createStatement();
+        stat.execute("create user bob password 'bob'");
+        stat.execute("create table secret(id int, data varchar)");
+        stat.execute("insert into secret values(1, 'old')");
+        stat.execute("grant select on secret to bob");
+        stat.execute("create schema bobs authorization bob");
+
+        Connection bobConn = getConnection("materializedview", "bob", "bob");
+        Statement bob = bobConn.createStatement();
+        bob.execute("create materialized view bobs.mv as select data from secret");
+
+        // admin revokes bob's access and changes the underlying data
+        stat.execute("revoke select on secret from bob");
+        stat.execute("update secret set data = 'new' where id = 1");
+
+        // refresh must not re-read a table bob can no longer select
+        assertThrows(ErrorCode.NOT_ENOUGH_RIGHTS_FOR_1, () -> {
+            bob.execute("refresh materialized view bobs.mv");
+        });
+        // the stale snapshot is kept, the forbidden current value is not exposed
+        ResultSet rs = bob.executeQuery("select data from bobs.mv");
+        assertTrue(rs.next());
+        assertEquals("old", rs.getString(1));
+
+        // granting the right back lets bob refresh again
+        stat.execute("grant select on secret to bob");
+        bob.execute("refresh materialized view bobs.mv");
+        rs = bob.executeQuery("select data from bobs.mv");
+        assertTrue(rs.next());
+        assertEquals("new", rs.getString(1));
+
+        // an admin may always refresh
+        stat.execute("update secret set data = 'newest' where id = 1");
+        stat.execute("refresh materialized view bobs.mv");
+
+        bobConn.close();
+        stat.execute("drop materialized view bobs.mv");
+        stat.execute("drop schema bobs");
+        stat.execute("drop table secret");
+        stat.execute("drop user bob");
         conn.close();
     }
 

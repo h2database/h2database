@@ -355,6 +355,10 @@ public class TestRights extends TestDb {
     }
 
     private void testForceViewOwnerRights() throws SQLException {
+        if (config.memory) {
+            // the view is recompiled when the database is reopened
+            return;
+        }
         deleteDb("rights");
         try (Connection conn = getConnection("rights")) {
             stat = conn.createStatement();

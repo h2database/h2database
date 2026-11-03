@@ -119,6 +119,7 @@ public class TestPreparedStatement extends TestDb {
         testMultipleStatements(conn);
         testParameterInSubquery(conn);
         testAfterRollback(conn);
+        testIndexConditionParameterType(conn);
         testUnnestWithArrayParameter(conn);
         testDateTimeWithParameter(conn);
         testFetchSize(conn);
@@ -1795,6 +1796,46 @@ public class TestPreparedStatement extends TestDb {
                 stat.execute("DROP TABLE IF EXISTS TEST");
                 conn.setAutoCommit(true);
             }
+        }
+    }
+
+    private void testIndexConditionParameterType(Connection conn) throws SQLException {
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, V VARCHAR(10), W VARCHAR(10))");
+        stat.execute("INSERT INTO TEST SELECT X, X, X FROM SYSTEM_RANGE(1, 100)");
+        stat.execute("INSERT INTO TEST VALUES (101, '007', '007')");
+        stat.execute("CREATE INDEX TEST_V_IDX ON TEST(V)");
+        stat.execute("CREATE INDEX TEST_W_V_IDX ON TEST(W, V)");
+        // INTEGER values are compared with VARCHAR values as numbers, '007' = 7
+        String[] queries = { "SELECT COUNT(*) FROM TEST WHERE V = ?", "SELECT COUNT(*) FROM TEST WHERE V IN (?)",
+                "SELECT COUNT(*) FROM TEST WHERE V = ANY(?)", "SELECT COUNT(*) FROM TEST WHERE V >= ? AND V <= ?",
+                "SELECT COUNT(*) FROM TEST WHERE (W, V) IN ((?, ?))" };
+        for (String sql : queries) {
+            try (PreparedStatement prep = conn.prepareStatement(sql)) {
+                int parameterCount = prep.getParameterMetaData().getParameterCount();
+                for (int i = 1; i <= 100; i++) {
+                    for (int p = 1; p <= parameterCount; p++) {
+                        prep.setInt(p, i);
+                    }
+                    assertEquals(sql + " with " + i, i == 7 ? 2 : 1, getSingleInt(prep));
+                    if (parameterCount == 1) {
+                        if (sql.contains("ANY")) {
+                            prep.setObject(1, new Integer[] { i });
+                            assertEquals(sql + " with ARRAY[" + i + ']', i == 7 ? 2 : 1, getSingleInt(prep));
+                        }
+                        prep.setString(1, Integer.toString(i));
+                        assertEquals(sql + " with '" + i + '\'', 1, getSingleInt(prep));
+                    }
+                }
+            }
+        }
+        stat.execute("DROP TABLE TEST");
+    }
+
+    private static int getSingleInt(PreparedStatement prep) throws SQLException {
+        try (ResultSet rs = prep.executeQuery()) {
+            rs.next();
+            return rs.getInt(1);
         }
     }
 

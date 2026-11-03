@@ -362,6 +362,14 @@ public class Set extends Prepared {
             session.setQueryTimeout(value);
             break;
         }
+        case SetTypes.MAX_RECURSION: {
+            int value = getIntValue();
+            if (value < 0) {
+                throw DbException.getInvalidValueException("MAX_RECURSION", value);
+            }
+            session.setMaxRecursion(value);
+            break;
+        }
         case SetTypes.REDO_LOG_BINARY: {
             throw DbException.getUnsupportedException("MV_STORE + SET REDO_LOG_BINARY");
         }

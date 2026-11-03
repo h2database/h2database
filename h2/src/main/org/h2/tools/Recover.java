@@ -57,11 +57,14 @@ import org.h2.util.Tool;
 import org.h2.value.CompareMode;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
+import org.h2.value.ValueBinary;
 import org.h2.value.ValueCollectionBase;
 import org.h2.value.ValueInteger;
+import org.h2.value.ValueJavaObject;
 import org.h2.value.ValueLob;
 import org.h2.value.ValueJson;
 import org.h2.value.ValueNull;
+import org.h2.value.ValueVarbinary;
 import org.h2.value.lob.LobData;
 import org.h2.value.lob.LobDataDatabase;
 
@@ -301,6 +304,14 @@ public class Recover extends Tool implements DataHandler {
                 builder.append('(').append(id).append(", ").append(precision).append(')');
                 return;
             }
+            if (v.getValueType() == Value.BLOB) {
+                columnTypeMap.put(column, "BLOB");
+            }
+        } else if (v instanceof ValueVarbinary || v instanceof ValueBinary) {
+            // a VARCHAR column would convert the bytes to text and back
+            columnTypeMap.put(column, "VARBINARY");
+        } else if (v instanceof ValueJavaObject) {
+            columnTypeMap.put(column, "JAVA_OBJECT");
         } else if (v instanceof ValueJson) {
             columnTypeMap.put(column, "JSON");
         } else if (v instanceof ValueInteger) {

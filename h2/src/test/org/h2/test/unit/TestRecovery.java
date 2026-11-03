@@ -58,6 +58,7 @@ public class TestRecovery extends TestDb {
         testRecoverJson();
         testRecoverArray();
         testRecoverRow();
+        testRecoverBinary();
         testRecoverGeneratedColumns();
         testRecoverUnreadablePage(true);
         testRecoverUnreadablePage(false);
@@ -252,6 +253,45 @@ public class TestRecovery extends TestDb {
         conn.close();
     }
     
+    private void testRecoverBinary() throws Exception {
+        DeleteDbFiles.execute(getBaseDir(), "recovery", true);
+        Connection conn = getConnection("recovery");
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(id int primary key, a varbinary, b binary(4), c blob, d java_object)");
+        stat.execute("insert into test values (1, null, null, null, null), "
+                + "(2, X'ff00', X'fffe0001', X'c0', X'aced0005'), "
+                + "(3, hash('SHA-256', 'x'), X'00000000', secure_rand(100000), null)");
+        byte[] blobHash;
+        try (ResultSet rs = stat.executeQuery("select hash('SHA-256', c) from test where id = 3")) {
+            rs.next();
+            blobHash = rs.getBytes(1);
+        }
+        conn.close();
+        Recover.main("-dir", getBaseDir(), "-db", "recovery");
+        DeleteDbFiles.execute(getBaseDir(), "recovery", true);
+        conn = getConnection("recovery;init=runscript from '" + getBaseDir() + "/recovery.h2.sql'");
+        stat = conn.createStatement();
+        try (ResultSet rs = stat.executeQuery("select a, b, c, d, a = hash('SHA-256', 'x'), "
+                + "hash('SHA-256', c) from test order by id")) {
+            assertTrue(rs.next());
+            assertNull(rs.getBytes(1));
+            assertNull(rs.getBytes(2));
+            assertNull(rs.getBytes(3));
+            assertNull(rs.getBytes(4));
+            assertTrue(rs.next());
+            assertEquals(new byte[] { (byte) 0xff, 0 }, rs.getBytes(1));
+            assertEquals(new byte[] { (byte) 0xff, (byte) 0xfe, 0, 1 }, rs.getBytes(2));
+            assertEquals(new byte[] { (byte) 0xc0 }, rs.getBytes(3));
+            assertEquals(new byte[] { (byte) 0xac, (byte) 0xed, 0, 5 }, rs.getBytes(4));
+            assertTrue(rs.next());
+            assertTrue(rs.getBoolean(5));
+            assertEquals(new byte[4], rs.getBytes(2));
+            assertEquals(blobHash, rs.getBytes(6));
+            assertFalse(rs.next());
+        }
+        conn.close();
+    }
+
     private void testRecoverGeneratedColumns() throws Exception {
         DeleteDbFiles.execute(getBaseDir(), "recovery", true);
         Connection conn = getConnection("recovery");

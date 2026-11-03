@@ -1602,7 +1602,7 @@ public final class Parser extends ParserBase {
                         String schemaOrTableName = columnName;
                         String tableOrColumnName = readIdentifier();
                         if (readIf(DOT)) {
-                            if (!table.getSchema().getName().equals(schemaOrTableName)) {
+                            if (!database.equalsIdentifiers(table.getSchema().getName(), schemaOrTableName)) {
                                 throw DbException.get(ErrorCode.SCHEMA_NAME_MUST_MATCH);
                             }
                             columnName = readIdentifier();
@@ -1610,7 +1610,7 @@ public final class Parser extends ParserBase {
                             columnName = tableOrColumnName;
                             tableOrColumnName = schemaOrTableName;
                         }
-                        if (!table.getName().equals(tableOrColumnName)) {
+                        if (!database.equalsIdentifiers(table.getName(), tableOrColumnName)) {
                             throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, tableOrColumnName);
                         }
                     }

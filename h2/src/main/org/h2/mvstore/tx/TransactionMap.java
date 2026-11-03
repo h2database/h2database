@@ -356,8 +356,11 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
         Transaction blockingTransaction;
         VersionedValue<V> result;
         String mapName = null;
+        long rollbackCount;
         do {
             assert transaction.getBlockerId() == 0;
+            // must be read before the entry
+            rollbackCount = transaction.store.rollbackCounter.get();
             @SuppressWarnings("unchecked")
             K k = (K) key;
             // second parameter (value) is not really used,
@@ -380,7 +383,8 @@ public final class TransactionMap<K, V> extends AbstractMap<K,V> {
             if (mapName == null) {
                 mapName = map.getName();
             }
-        } while (timeoutMillis != 0 && transaction.waitFor(blockingTransaction, mapName, key, timeoutMillis));
+        } while (timeoutMillis != 0
+                && transaction.waitFor(blockingTransaction, mapName, key, timeoutMillis, rollbackCount));
 
         throw DataUtils.newMVStoreException(DataUtils.ERROR_TRANSACTION_LOCKED,
                 "Map entry <{0}> with key <{1}> and value {2} is locked by tx {3} and can not be updated by tx {4}"

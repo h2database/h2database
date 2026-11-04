@@ -56,7 +56,32 @@ public class TestOpenClose extends TestDb {
         testCase();
         testReconnectFast();
         test1_1();
+        testShutdownCompactFailure();
         deleteDb("openClose");
+    }
+
+    private void testShutdownCompactFailure() throws Exception {
+        if (config.memory) {
+            return;
+        }
+        deleteDb("openClose");
+        String tempFile = getBaseDir() + "/openClose" + Constants.SUFFIX_MV_FILE
+                + Constants.SUFFIX_MV_STORE_TEMP_FILE;
+        try (Connection conn = getConnection("openClose")) {
+            Statement stat = conn.createStatement();
+            stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY) AS SELECT X FROM SYSTEM_RANGE(1, 1000)");
+            // the compaction cannot replace a non-empty directory with its temporary file
+            Files.createDirectories(Paths.get(tempFile));
+            Files.createFile(Paths.get(tempFile, "x"));
+            assertThrows(ErrorCode.FILE_DELETE_FAILED_1, stat).execute("SHUTDOWN COMPACT");
+        } finally {
+            FileUtils.deleteRecursive(tempFile, false);
+        }
+        try (Connection conn = getConnection("openClose")) {
+            ResultSet rs = conn.createStatement().executeQuery("SELECT COUNT(*) FROM TEST");
+            rs.next();
+            assertEquals(1000, rs.getInt(1));
+        }
     }
 
     private void testErrorMessageLocked() throws Exception {

@@ -326,9 +326,7 @@ public class DirectRecover extends Recover {
                             try (PrintWriter writer = new PrintWriter(finalPipeWriter)) {
                                 debug("DUMP TASK: Created writer, starting MVStoreTool.dump");
                                 MVStoreTool.dump(fileName, writer, true);
-                                debug("DUMP TASK: MVStoreTool.dump completed, starting info");
-                                MVStoreTool.info(fileName, writer);
-                                debug("DUMP TASK: MVStoreTool.info completed, flushing");
+                                debug("DUMP TASK: MVStoreTool.dump completed, flushing");
                                 writer.flush();
                                 debug("DUMP TASK: Flush completed, dump task finishing");
                             } catch (Exception e) {

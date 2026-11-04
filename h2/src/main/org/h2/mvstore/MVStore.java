@@ -396,6 +396,9 @@ public final class MVStore implements AutoCloseable {
         target.adjustLastMapId(source.getLastMapId());
         int autoCommitDelay = target.getAutoCommitDelay();
         boolean reuseSpace = target.isSpaceReused();
+        int poolSize = Integer.getInteger("h2.compactThreads",
+                Math.max(1, Runtime.getRuntime().availableProcessors() / 4));
+        ExecutorService pool = Executors.newFixedThreadPool(poolSize);
         try {
             target.setReuseSpace(false);  // disable unused chunks collection
             target.setAutoCommitDelay(0); // disable autocommit
@@ -412,9 +415,6 @@ public final class MVStore implements AutoCloseable {
                 }
             }
 
-            int poolSize = Integer.getInteger("h2.compactThreads",
-                    Math.max(1, Runtime.getRuntime().availableProcessors() / 4));
-            ExecutorService pool = Executors.newFixedThreadPool(poolSize);
             CompletableFuture.allOf(
                 // We are going to cheat a little bit in the copyFrom() by employing "incomplete" pages,
                 // which would be spared of saving, but save completed pages underneath,
@@ -433,11 +433,11 @@ public final class MVStore implements AutoCloseable {
                     }, pool)
                 ).toArray(CompletableFuture[]::new)
             ).join();
-            pool.shutdownNow();
             // this will end hacky mode of operation with incomplete pages
             // end ensure that all pages are saved
             target.commit();
         } finally {
+            pool.shutdownNow();
             target.setAutoCommitDelay(autoCommitDelay);
             target.setReuseSpace(reuseSpace);
         }

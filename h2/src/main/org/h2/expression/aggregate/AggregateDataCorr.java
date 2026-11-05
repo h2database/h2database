@@ -21,6 +21,12 @@ final class AggregateDataCorr extends AggregateDataBinarySet {
 
     private long count;
 
+    /**
+     * The first values; the sums are taken over the differences from them, so
+     * a large common offset of the values does not cancel the precision out.
+     */
+    private double shiftY, shiftX;
+
     private double sumY, sumX, sumYX;
 
     private double m2y, meanY;
@@ -34,9 +40,14 @@ final class AggregateDataCorr extends AggregateDataBinarySet {
     @Override
     void add(SessionLocal session, Value yValue, Value xValue) {
         double y = yValue.getDouble(), x = xValue.getDouble();
-        sumY += y;
-        sumX += x;
-        sumYX += y * x;
+        if (count == 0) {
+            shiftY = y;
+            shiftX = x;
+        }
+        double dy = y - shiftY, dx = x - shiftX;
+        sumY += dy;
+        sumX += dx;
+        sumYX += dy * dx;
         if (++count == 1) {
             meanY = y;
             meanX = x;
@@ -56,25 +67,25 @@ final class AggregateDataCorr extends AggregateDataBinarySet {
         if (count < 1) {
             return ValueNull.INSTANCE;
         }
-        double v;
+        double v, sxy = (count * sumYX - sumX * sumY) / count;
         switch (aggregateType) {
         case CORR:
             if (m2y == 0 || m2x == 0) {
                 return ValueNull.INSTANCE;
             }
-            v = (sumYX - sumX * sumY / count) / Math.sqrt(m2y * m2x);
+            v = sxy / Math.sqrt(m2y * m2x);
             break;
         case REGR_SLOPE:
             if (m2x == 0) {
                 return ValueNull.INSTANCE;
             }
-            v = (sumYX - sumX * sumY / count) / m2x;
+            v = sxy / m2x;
             break;
         case REGR_INTERCEPT:
             if (m2x == 0) {
                 return ValueNull.INSTANCE;
             }
-            v = meanY - (sumYX - sumX * sumY / count) / m2x * meanX;
+            v = meanY - sxy / m2x * meanX;
             break;
         case REGR_R2: {
             if (m2x == 0) {
@@ -83,8 +94,7 @@ final class AggregateDataCorr extends AggregateDataBinarySet {
             if (m2y == 0) {
                 return ValueDouble.ONE;
             }
-            v = sumYX - sumX * sumY / count;
-            v = v * v / (m2y * m2x);
+            v = sxy * sxy / (m2y * m2x);
             break;
         }
         default:

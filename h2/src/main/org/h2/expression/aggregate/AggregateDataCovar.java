@@ -20,6 +20,12 @@ final class AggregateDataCovar extends AggregateDataBinarySet {
 
     private long count;
 
+    /**
+     * The first values; the sums are taken over the differences from them, so
+     * a large common offset of the values does not cancel the precision out.
+     */
+    private double shiftY, shiftX;
+
     private double sumY, sumX, sumYX;
 
     /**
@@ -33,9 +39,14 @@ final class AggregateDataCovar extends AggregateDataBinarySet {
     @Override
     void add(SessionLocal session, Value yValue, Value xValue) {
         double y = yValue.getDouble(), x = xValue.getDouble();
-        sumY += y;
-        sumX += x;
-        sumYX += y * x;
+        if (count == 0) {
+            shiftY = y;
+            shiftX = x;
+        }
+        double dy = y - shiftY, dx = x - shiftX;
+        sumY += dy;
+        sumX += dx;
+        sumYX += dy * dx;
         count++;
     }
 
@@ -47,19 +58,19 @@ final class AggregateDataCovar extends AggregateDataBinarySet {
             if (count < 1) {
                 return ValueNull.INSTANCE;
             }
-            v = (sumYX - sumX * sumY / count) / count;
+            v = (count * sumYX - sumX * sumY) / ((double) count * count);
             break;
         case COVAR_SAMP:
             if (count < 2) {
                 return ValueNull.INSTANCE;
             }
-            v = (sumYX - sumX * sumY / count) / (count - 1);
+            v = (count * sumYX - sumX * sumY) / ((double) count * (count - 1));
             break;
         case REGR_SXY:
             if (count < 1) {
                 return ValueNull.INSTANCE;
             }
-            v = sumYX - sumX * sumY / count;
+            v = (count * sumYX - sumX * sumY) / count;
             break;
         default:
             throw DbException.getInternalError("type=" + aggregateType);

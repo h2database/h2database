@@ -112,6 +112,7 @@ public class TestMVStore extends TestBase {
         testCompact();
         testCompactMapNotOpen();
         testReuseSpace();
+        testDeadChunkKeptForRetentionTime();
         testRandom();
         testKeyValueClasses();
         testIterate();
@@ -1934,6 +1935,43 @@ public class TestMVStore extends TestBase {
                 assertTrue("len: " + len + " initial: " + initialLength + " j: " + j,
                         len <= initialLength * 3);
             }
+        }
+    }
+
+    private void testDeadChunkKeptForRetentionTime() {
+        String fileName = getBaseDir() + "/" + getTestName();
+        FileUtils.delete(fileName);
+        try (MVStore s = new MVStore.Builder().fileName(fileName).autoCommitDisabled().open()) {
+            s.setVersionsToKeep(0);
+            s.setRetentionTime(500);
+            MVMap<Integer, String> map = s.openMap("data");
+            for (int i = 0; i < 100; i++) {
+                map.put(i, "old" + i);
+            }
+            s.commit();
+            // chunk 1 is older than the retention time
+            sleep(600);
+            long unused = System.nanoTime();
+            for (int i = 0; i < 100; i++) {
+                map.put(i, "new" + i);
+            }
+            s.openMap("other").put(1, "x");
+            // chunk 2 replaces all pages of chunk 1
+            s.commit();
+            String chunk1 = DataUtils.LAYOUT_CHUNK + "1";
+            assertTrue(s.getLayoutMap().containsKey(chunk1));
+            map.put(0, "newer");
+            s.commit();
+            map.put(0, "newest");
+            s.commit();
+            // chunk 2 may not be on disk yet, so the space of chunk 1 must not be reused
+            if (System.nanoTime() - unused < 500_000_000L) {
+                assertTrue(s.getLayoutMap().containsKey(chunk1));
+            }
+            sleep(600);
+            map.put(0, "last");
+            s.commit();
+            assertFalse(s.getLayoutMap().containsKey(chunk1));
         }
     }
 

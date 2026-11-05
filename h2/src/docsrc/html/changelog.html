@@ -21,6 +21,7 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul>
+    <li>Issue #4549: Deadlock between two transactions: the one that should continue sometimes fails too, with "Transaction was illegally transitioned from CLOSED to ROLLING_BACK"</li>
     <li>Issue #4546: Values of ROW fields are converted to the data type of an earlier field and stored wrong without an error</li>
     <li>Issue #4251: Next sequence value incorrect when grouping in select</li>
     <li>Issue #4325: JSON array constructor by query cannot handle set operations in argument queries</li>

@@ -22,6 +22,9 @@ Change Log
 <h2>Next Version (unreleased)</h2>
 <ul>
     <li>Issue #4546: Values of ROW fields are converted to the data type of an earlier field and stored wrong without an error</li>
+    <li>Issue #4251: Next sequence value incorrect when grouping in select</li>
+    <li>Issue #4325: JSON array constructor by query cannot handle set operations in argument queries</li>
+    <li>Issue #4528: DirectRecover script still fails for ARRAY, ROW and ENUM columns and loses the rows of unreadable pages without a message</li>
     <li>Issue #4541: SHUTDOWN COMPACT reports success when the compaction failed</li>
     <li>Issue #4526: DirectRecover sometimes writes a script without any data: The file is locked</li>
     <li>Issue #4539: SHUTDOWN COMPACT that fails leaves its copy threads running, so the JVM does not exit</li>

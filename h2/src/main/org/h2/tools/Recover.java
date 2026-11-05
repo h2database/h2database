@@ -333,6 +333,17 @@ public class Recover extends Tool implements DataHandler {
         resetSchema();
         setDatabaseName(fileName.substring(0, fileName.length() -
                 Constants.SUFFIX_MV_FILE.length()));
+        dumpMVStore(writer, fileName);
+    }
+
+    /**
+     * Writes the LOB maps, the layout, the meta data, the types and the
+     * tables of the MVStore file, after the header written by the caller.
+     *
+     * @param writer the script writer
+     * @param fileName the name of the MVStore file
+     */
+    void dumpMVStore(PrintWriter writer, String fileName) {
         try (MVStore mv = new MVStore.Builder().
                 fileName(fileName).recoveryMode().readOnly().
                 backgroundExceptionHandler((t, e) -> writeError(writer, e)).open()) {

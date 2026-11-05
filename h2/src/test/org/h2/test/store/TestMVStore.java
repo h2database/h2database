@@ -517,10 +517,12 @@ public class TestMVStore extends TestBase {
         MVStore s = new MVStore.Builder().
                 fileName(fileName).
                 backgroundExceptionHandler((t, e) -> exRef.set(e)).
+                autoCommitDisabled().
                 open();
-        s.setAutoCommitDelay(10);
         MVMap<Integer, String> m = s.openMap("data");
         s.getFileStore().close();
+        // start the auto-commit only now, a chunk stored before the close gives another error
+        s.setAutoCommitDelay(10);
         try {
             m.put(1, "Hello");
             for (int i = 0; i < 200; i++) {

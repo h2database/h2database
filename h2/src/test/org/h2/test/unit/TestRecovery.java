@@ -14,6 +14,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.HashMap;
 import java.util.Map;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVStore;
@@ -374,11 +375,18 @@ public class TestRecovery extends TestDb {
             }
             long pos = page.getPos();
             int chunkId = DataUtils.getPageChunkId(pos);
-            String chunk = mv.getLayoutMap().get("chunk." + Integer.toHexString(chunkId));
-            // the last chunk is described only in the store header
-            Map<String, ?> chunkData = chunk != null ? DataUtils.parseMap(chunk)
-                    : mv.getFileStore().getStoreHeader();
-            assertEquals(chunkId, DataUtils.readHexLong(chunkData, "chunk", -1));
+            // position of the last chunk is described only in the store header
+            Map<String, ?> chunkData = mv.getFileStore().getStoreHeader();
+            if (DataUtils.readHexLong(chunkData, "chunk", -1) != chunkId) {
+                // for all other chunks, the metadata is stored in the layout map, so we can read it from there
+                String chunk = mv.getLayoutMap().get("chunk." + Integer.toHexString(chunkId));
+                if (chunk != null) {
+                    HashMap<String, String> chunkDataTemp = DataUtils.parseMap(chunk);
+                    if (!chunkDataTemp.getOrDefault("block", "0").equals("0")) {
+                        chunkData = chunkDataTemp;
+                    }
+                }
+            }
             // the block size is 4 KB
             position = DataUtils.readHexLong(chunkData, "block", 0) * 4096 + DataUtils.getPageOffset(pos);
         }

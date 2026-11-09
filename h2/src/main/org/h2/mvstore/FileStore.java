@@ -184,7 +184,7 @@ public abstract class FileStore<C extends Chunk<C>>
 
     /**
      * Identifier of the last created chunk.
-     * It is different from {@link #lastChunk.id}, because process is pipelined -
+     * It is different from {@link #lastChunk}.id, because process is pipelined -
      * chunk creation / serialization and space allocation / save are handled
      * by two dedicated threads, therefore more than one chunk might be in that pipeline.
      */
@@ -860,16 +860,12 @@ public abstract class FileStore<C extends Chunk<C>>
      * Updates chunk's serialized metadata within corresponding entry in a layout map.
      * Key for this entry would be "chunk.&lt;id&gt;"
      *
-     * @param chunk to save
+     * @param chunk to save metadata for
      */
     protected final void saveChunkMetadataChanges(C chunk) {
         assert serializationLock.isHeldByCurrentThread();
-
-        // chunk's location need to be determined before it's metadata can be is serialized
-        if (chunk.isAllocated()) {
-            int chunkId = chunk.id;
-            layout.operate(Chunk.getMetaKey(chunkId), chunk.asString(), new LayoutDecisionMaker(chunkId));
-        }
+        int chunkId = chunk.id;
+        layout.operate(Chunk.getMetaKey(chunkId), chunk.asString(), new LayoutDecisionMaker(chunkId));
     }
 
     /**
@@ -1071,6 +1067,12 @@ public abstract class FileStore<C extends Chunk<C>>
                             // used here as is, re-point our chunk to original
                             // location instead.
                             c.block = test.block;
+                            // another case might be that chunk metadata saved in the layout map is incomplete,
+                            // if it was saved before the chunk space was allocated and chunk was fully written,
+                            // so we need to copy missing static metadata from the original chunk header
+                            c.len = test.len;
+                            c.mapId = test.mapId;
+                            c.layoutRootPos = test.layoutRootPos;
                         } else if (c.isLive() && (afterFullScan || readChunkHeaderAndFooter(c.block, c.id) == null)) {
                             // chunk reference is invalid
                             // this "last chunk" candidate is not suitable
@@ -1139,8 +1141,8 @@ public abstract class FileStore<C extends Chunk<C>>
 
     private Iterable<C> getChunksFromLayoutMap(MVMap<String, String> layoutMap) {
         // It is "chicken and egg" problem on store opening - in order to figure out existing chunks
-        // we need to read layout map and for that we need metadata about chunks map's pages resides in,
-        // so StackOverflowException is always looming here, and good solution is due.
+        // we need to read layout map and for that we need metadata about chunks map's pages resides in.
+        // StackOverflowException is always looming here, and good solution is due.
         // For now, we just reverse iterator so latest chunks will come first (mostly).
         return () -> new Iterator<>() {
             private final Cursor<String, String> cursor =
@@ -1526,11 +1528,17 @@ public abstract class FileStore<C extends Chunk<C>>
 
         acceptChunkOccupancyChanges(c.time, version);
 
-        // metadata of some recent chunks has not been saved in the layout map yet,
-        // just was embedded into the chunk itself, and this need to be done now
-        // (it's better not to update right after storing,
-        // because that would modify the layout map again)
+        // Complete metadata of some recent chunks has not been saved in the layout map yet,
+        // but was just embedded into the chunk itself.
+        // This need to be done now, while the serialization lock is held.
         saveRecentChunksInLayout(version);
+
+        // even though we do not have a complete set of metadata for this chunk yet,
+        // we save it in the layout map, just to signify this chunk existence
+        // for the recovery procedure, in case of a failure soon after this point
+        saveChunkMetadataChanges(c);
+        // missing metadata pieces will be populated in layout map after the chunk is fully written to the store
+        // and then persisted later, within the next written chunk
 
         RootReference<String,String> layoutRootReference = layout.setWriteVersion(version);
         assert layoutRootReference != null;
@@ -1811,7 +1819,7 @@ public abstract class FileStore<C extends Chunk<C>>
     @SuppressWarnings("ThreadJoinLoop")
     private void stopBackgroundThread(boolean waitForIt) {
         // Loop here is not strictly necessary, except for case of a spurious failure,
-        // which should not happen with non-weak flavour of CAS operation,
+        // which should not happen with non-weak flavor of CAS operation,
         // but I've seen it, so just to be safe...
         BackgroundWriterThread t;
         while ((t = backgroundWriterThread.get()) != null) {

@@ -334,7 +334,7 @@ public class TestRecovery extends TestDb {
      */
     private String recover(boolean direct) throws SQLException {
         if (direct) {
-            DirectRecover.main("-dir", getBaseDir(), "-db", "recovery");
+            new DirectRecover(false).runTool("-dir", getBaseDir(), "-db", "recovery");
             return getBaseDir() + "/recovery.sql";
         }
         Recover.main("-dir", getBaseDir(), "-db", "recovery");
@@ -393,12 +393,12 @@ public class TestRecovery extends TestDb {
         try (FileChannel fc = FileUtils.open(fileName, "rw")) {
             fc.write(ByteBuffer.allocate(4), position);
         }
-        Recover rec = direct ? new DirectRecover() : new Recover();
+        Recover rec = direct ? new DirectRecover(false) : new Recover();
         ByteArrayOutputStream buff = new ByteArrayOutputStream();
-        rec.setOut(new PrintStream(buff, true, "UTF-8"));
+        rec.setOut(new PrintStream(buff, true, StandardCharsets.UTF_8));
         rec.runTool("-dir", getBaseDir(), "-db", "recovery");
         String error = "org.h2.mvstore.MVStoreException: File corrupted";
-        assertContains(buff.toString("UTF-8"), error);
+        assertContains(buff.toString(StandardCharsets.UTF_8), error);
         String scriptName = getBaseDir() + (direct ? "/recovery.sql" : "/recovery.h2.sql");
         String script = new String(IOUtils.readBytesAndClose(
                 FileUtils.newInputStream(scriptName), -1), StandardCharsets.UTF_8);
@@ -422,7 +422,7 @@ public class TestRecovery extends TestDb {
         conn.close();
         // the script must not depend on the timing of the parallel dump task
         for (int i = 0; i < 20; i++) {
-            DirectRecover.main("-dir", getBaseDir(), "-db", "recovery");
+            new DirectRecover(false).runTool("-dir", getBaseDir(), "-db", "recovery");
             String script = new String(IOUtils.readBytesAndClose(
                     FileUtils.newInputStream(getBaseDir() + "/recovery.sql"), -1), StandardCharsets.UTF_8);
             assertFalse(script, script.contains("// error:"));

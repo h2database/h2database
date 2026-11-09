@@ -205,6 +205,10 @@ public class DirectRecover extends Recover {
      */
     public DirectRecover() {}
 
+    public DirectRecover(boolean showProgress) {
+        this.showProgress = showProgress;
+    }
+
     /**
      * Enhanced runTool method with compression support.
      */

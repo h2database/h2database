@@ -451,10 +451,12 @@ public abstract class Chunk<C extends Chunk<C>> {
                             "Negative position {0}; p={1}, c={2}", filePos, pos, toString());
                 }
 
+                ByteBuffer buff = buffer;
                 int length = DataUtils.getPageMaxLength(pos);
                 if (length == DataUtils.PAGE_LARGE) {
-                    // read the first bytes to figure out actual length
-                    length = readFully(fileStore, filePos, 128).getInt();
+                    // A pending page has not necessarily been written to the file yet.
+                    length = buff == null ? readFully(fileStore, filePos, 128).getInt()
+                            : buff.getInt(offset);
                     // pageNo is deliberately not included into length to preserve compatibility
                     // TODO: remove this adjustment when page on disk format is re-organized
                     length += 4;
@@ -465,7 +467,6 @@ public abstract class Chunk<C extends Chunk<C>> {
                             "Illegal page length {0} reading at {1}; max pos {2} ", length, filePos, maxPos);
                 }
 
-                ByteBuffer buff = buffer;
                 if (buff == null) {
                     buff = readFully(fileStore, filePos, length);
                 } else {

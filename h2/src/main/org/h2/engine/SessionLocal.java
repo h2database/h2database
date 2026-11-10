@@ -739,8 +739,15 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
             HashSet<Table> tablesToAnalyzeLocal = tablesToAnalyze;
             tablesToAnalyze = null;
             int rowCount = getDatabase().getSettings().analyzeSample / 10;
-            for (Table table : tablesToAnalyzeLocal) {
-                Analyze.analyzeTable(this, table, rowCount, false);
+            Transaction analysisTransaction = getTransaction();
+            analysisTransaction.markStatementStart(null);
+            // The original transaction has ended; protect the pages read by this scan.
+            try {
+                for (Table table : tablesToAnalyzeLocal) {
+                    Analyze.analyzeTable(this, table, rowCount, false);
+                }
+            } finally {
+                analysisTransaction.markStatementEnd();
             }
             // analyze can lock the meta
             getDatabase().unlockMeta(this);

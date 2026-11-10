@@ -10,6 +10,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
 import org.h2.test.TestDb;
 
@@ -35,10 +36,45 @@ public class TestCompatibilitySQLServer extends TestDb {
         final Connection conn = getConnection("sqlserver;MODE=MSSQLServer");
         try {
             testDiscardTableHints(conn);
+            testDiscardDmlTableHints(conn);
             testPrimaryKeyIdentity(conn);
         } finally {
             conn.close();
             deleteDb("sqlserver");
+        }
+    }
+
+    private void testDiscardDmlTableHints(Connection conn) throws SQLException {
+        try (Statement stat = conn.createStatement()) {
+            stat.execute("create table target(id int primary key, val int)");
+            stat.execute("create table source(id int primary key, val int)");
+            stat.execute("insert into target values (1, 10), (2, 20)");
+            stat.execute("insert into source values (1, 30), (3, 40)");
+
+            assertEquals(1, stat.executeUpdate("delete from target with (rowlock) where id = 2"));
+            assertSingleValue(stat, "select count(*) from target", 1);
+
+            assertEquals(2, stat.executeUpdate("merge into target with (holdlock) as t "
+                    + "using source as s on t.id = s.id "
+                    + "when matched then update set val = s.val "
+                    + "when not matched then insert (id, val) values (s.id, s.val)"));
+            assertSingleValue(stat, "select val from target where id = 1", 30);
+            assertSingleValue(stat, "select val from target where id = 3", 40);
+
+            assertEquals(1, stat.executeUpdate("merge into target with (holdlock, index = id) "
+                    + "using (values (1, 31)) as s(id, val) on target.id = s.id "
+                    + "when matched then update set val = s.val"));
+            assertSingleValue(stat, "select val from target where id = 1", 31);
+
+            assertEquals(1, stat.executeUpdate("merge into target "
+                    + "with s(id, val) as (values (4, 50)) select id, val from s"));
+            assertSingleValue(stat, "select val from target where id = 4", 50);
+
+            stat.execute("set mode regular");
+            assertThrows(ErrorCode.SYNTAX_ERROR_1, stat).executeUpdate("delete from target with (rowlock) where id = 1");
+            assertThrows(ErrorCode.SYNTAX_ERROR_2, stat).executeUpdate("merge into target with (holdlock) as t "
+                    + "using source as s on t.id = s.id when matched then update set val = s.val");
+            stat.execute("set mode MSSQLServer");
         }
     }
 

@@ -622,3 +622,55 @@ DROP TABLE TEST, TEST2;
 
 DROP SEQUENCE SEQ;
 > ok
+
+-- NEXT VALUE FOR and ROWNUM() in a query with window functions
+
+CREATE SEQUENCE SEQ START WITH 10;
+> ok
+
+CREATE TABLE TEST(ID INT PRIMARY KEY) AS VALUES 1, 2, 3;
+> ok
+
+SELECT ID, NEXT VALUE FOR SEQ V, ROW_NUMBER() OVER (ORDER BY ID DESC) R FROM TEST ORDER BY ID;
+> ID V  R
+> -- -- -
+> 1  10 3
+> 2  11 2
+> 3  12 1
+> rows (ordered): 3
+
+SELECT ID, NEXT VALUE FOR SEQ V FROM TEST QUALIFY ROW_NUMBER() OVER (ORDER BY ID) > 0 ORDER BY ID;
+> ID V
+> -- --
+> 1  13
+> 2  14
+> 3  15
+> rows (ordered): 3
+
+SELECT ID, ROWNUM() N, COUNT(*) OVER () C FROM TEST ORDER BY ID;
+> ID N C
+> -- - -
+> 1  1 3
+> 2  2 3
+> 3  3 3
+> rows (ordered): 3
+
+CREATE TABLE TEST2(ID BIGINT PRIMARY KEY, SRC INT, R BIGINT);
+> ok
+
+INSERT INTO TEST2 SELECT NEXT VALUE FOR SEQ, ID, RANK() OVER (ORDER BY ID) FROM TEST;
+> update count: 3
+
+SELECT * FROM TEST2 ORDER BY ID;
+> ID SRC R
+> -- --- -
+> 16 1   1
+> 17 2   2
+> 18 3   3
+> rows (ordered): 3
+
+DROP TABLE TEST, TEST2;
+> ok
+
+DROP SEQUENCE SEQ;
+> ok

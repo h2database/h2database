@@ -17,7 +17,7 @@ import org.h2.util.StringUtils;
  * A chunk of data, containing one or multiple pages.
  * <p>
  * Minimum chunk size is usually 4096 bytes, and it grows in those fixed increments (blocks).
- * Chunk's length and it's position in the underlying filestore
+ * Chunk length and its position in the underlying filestore
  * are multiples of that increment (block size),
  * therefore they both are measured in blocks, instead of bytes.
  * There are at most 67 million (2^26) chunks,
@@ -422,10 +422,10 @@ public abstract class Chunk<C extends Chunk<C>> {
         return isSaved()
                 && isLive()
                 && pageCountLive < pageCount    // not fully occupied
-                && isEvacuatable();
+                && isEvacuable();
     }
 
-    private boolean isEvacuatable() {
+    private boolean isEvacuable() {
         return pinCount == 0;
     }
 

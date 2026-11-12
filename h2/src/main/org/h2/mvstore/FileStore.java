@@ -1436,8 +1436,13 @@ public abstract class FileStore<C extends Chunk<C>>
     final void storeIt(ArrayList<Page<?,?>> changed, long version, boolean syncWrite) throws ExecutionException {
         lastCommitTime = getTimeSinceCreation();
         mvStore.onVersionChange(version);
+        // register version usage to prevent store from letting this version go until we finish serializing the chunk.
+        // Otherwise, some already closed map, might be removed prematurely.
+        // If this map is still referenced by some undo log, and undo log contains a page to be saved within
+        // this newly created chunk, map existence is vital for serialization to succeed.
+        MVStore.TxCounter txCounter = mvStore.registerVersionUsage();
         submitOrRun(serializationExecutor,
-                () -> serializeAndStore(syncWrite, changed, lastCommitTime, version),
+                () -> serializeAndStore(syncWrite, changed, lastCommitTime, txCounter),
                 syncWrite, PIPE_LENGTH);
     }
 
@@ -1460,7 +1465,7 @@ public abstract class FileStore<C extends Chunk<C>>
     }
 
 
-    private void serializeAndStore(boolean syncRun, ArrayList<Page<?,?>> changed, long time, long version) {
+    private void serializeAndStore(boolean syncRun, ArrayList<Page<?,?>> changed, long time, MVStore.TxCounter txCounter) {
         serializationLock.lock();
         try {
             int chunkId = lastChunkId;
@@ -1474,10 +1479,12 @@ public abstract class FileStore<C extends Chunk<C>>
             C c;
             WriteBuffer buff;
             try {
-                c = createChunk(time, version);
+                c = createChunk(time, txCounter.version);
                 chunks.put(c.id, c);
                 buff = getWriteBuffer();
                 serializeToBuffer(buff, changed, c);
+                // now we can let this version go, since chunk serialization is done
+                mvStore.deregisterVersionUsage(txCounter);
             } catch (Throwable t) {
                 lastChunkId = chunkId;
                 throw t;

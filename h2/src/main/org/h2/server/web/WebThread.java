@@ -332,24 +332,26 @@ class WebThread extends WebApp implements Runnable {
         for (String line; (line = readHeaderLine()) != null;) {
             trace(" " + line);
             String lower = StringUtils.toLowerEnglish(line);
-            if (lower.startsWith("host")) {
+            int colon = lower.indexOf(':');
+            String name = colon >= 0 ? lower.substring(0, colon) : "";
+            if (name.equals("host")) {
                 host = getHeaderLineValue(line);
-            } else if (lower.startsWith("if-modified-since")) {
+            } else if (name.equals("if-modified-since")) {
                 ifModifiedSince = getHeaderLineValue(line);
-            } else if (lower.startsWith("connection")) {
+            } else if (name.equals("connection")) {
                 String conn = getHeaderLineValue(line);
                 if ("keep-alive".equals(conn)) {
                     keepAlive = true;
                 }
-            } else if (lower.startsWith("content-type")) {
+            } else if (name.equals("content-type")) {
                 String type = getHeaderLineValue(line);
                 if (type.startsWith("multipart/form-data")) {
                     multipart = true;
                 }
-            } else if (lower.startsWith("content-length")) {
+            } else if (name.equals("content-length")) {
                 len = Integer.parseInt(getHeaderLineValue(line));
                 trace("len=" + len);
-            } else if (lower.startsWith("user-agent")) {
+            } else if (name.equals("user-agent")) {
                 boolean isWebKit = lower.contains("webkit/");
                 if (isWebKit && session != null) {
                     // workaround for what seems to be a WebKit bug:
@@ -357,7 +359,7 @@ class WebThread extends WebApp implements Runnable {
                     session.put("frame-border", "1");
                     session.put("frameset-border", "2");
                 }
-            } else if (lower.startsWith("accept-language")) {
+            } else if (name.equals("accept-language")) {
                 Locale locale = session == null ? null : session.locale;
                 if (locale == null) {
                     String languages = getHeaderLineValue(line);

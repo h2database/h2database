@@ -399,8 +399,9 @@ public abstract class FileStore<C extends Chunk<C>>
     }
 
     /**
-     * How long to retain old, persisted chunks, in milliseconds. Chunks that
-     * are older may be overwritten once they contain no live data.
+     * How long to retain old, persisted chunks, in milliseconds. A chunk that
+     * contains no live data may be overwritten once it has been unused for
+     * this time.
      * <p>
      * The default value is 45000 (45 seconds) when using the default file
      * store. It is assumed that a file system and hard disk will flush all
@@ -690,7 +691,7 @@ public abstract class FileStore<C extends Chunk<C>>
                     // if chunk is not allocated yet, let's postpone the whole reclamation process,
                     // until it is allocated and can be safely dropped
                     (chunk.isAllocated() &&
-                    isSeasonedChunk(chunk, time) &&
+                    isUnusedForRetentionTime(chunk, time) &&
                     canOverwriteChunk(chunk, oldestVersionToKeep) ||
                             // if chunk is not ready yet, put it back and exit
                             // since this deque is unbounded, offerFirst() always return true
@@ -730,6 +731,15 @@ public abstract class FileStore<C extends Chunk<C>>
     private boolean isSeasonedChunk(C chunk, long time) {
         int retentionTime = getRetentionTime();
         return retentionTime < 0 || chunk.time + retentionTime <= time;
+    }
+
+    /**
+     * The chunks written since this chunk became unused have to be on disk
+     * before its space is overwritten, so the retention time counts from that moment.
+     */
+    private boolean isUnusedForRetentionTime(C chunk, long time) {
+        int retentionTime = getRetentionTime();
+        return retentionTime < 0 || chunk.unused + retentionTime <= time;
     }
 
     private boolean isRewritable(C chunk, long time) {

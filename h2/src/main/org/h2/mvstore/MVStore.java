@@ -1253,8 +1253,9 @@ public final class MVStore implements AutoCloseable {
     }
 
     /**
-     * How long to retain old, persisted chunks, in milliseconds. Chunks that
-     * are older may be overwritten once they contain no live data.
+     * How long to retain old, persisted chunks, in milliseconds. A chunk that
+     * contains no live data may be overwritten once it has been unused for
+     * this time.
      * <p>
      * The default value is 45000 (45 seconds) when using the default file
      * store. It is assumed that a file system and hard disk will flush all

@@ -444,7 +444,7 @@ public class Select extends Query {
         initGroupData(columnCount);
         try {
             gatherGroup(columnCount, DataAnalysisOperation.STAGE_WINDOW);
-            processGroupResult(columnCount, result, offset, quickOffset, false);
+            processGroupResult(columnCount, result, offset, quickOffset, false, true);
         } finally {
             groupData.reset();
         }
@@ -464,7 +464,8 @@ public class Select extends Query {
                     }
                 }
                 groupData.done();
-                processGroupResult(columnCount, result, offset, quickOffset, /* Having was performed earlier */ false);
+                processGroupResult(columnCount, result, offset, quickOffset, /* Having was performed earlier */ false,
+                        false);
             } finally {
                 isGroupWindowStage2 = false;
             }
@@ -477,7 +478,7 @@ public class Select extends Query {
         initGroupData(columnCount);
         try {
             gatherGroup(columnCount, DataAnalysisOperation.STAGE_GROUP);
-            processGroupResult(columnCount, result, offset, quickOffset, true);
+            processGroupResult(columnCount, result, offset, quickOffset, true, false);
         } finally {
             groupData.reset();
         }
@@ -533,8 +534,13 @@ public class Select extends Query {
     }
 
     private void processGroupResult(int columnCount, LocalResult result, long offset, boolean quickOffset,
-            boolean withHaving) {
+            boolean withHaving, boolean sourceRows) {
+        long rowNumber = 0;
         for (ValueRow currentGroupsKey; (currentGroupsKey = groupData.next()) != null;) {
+            if (sourceRows) {
+                // rows are evaluated after the scan; restore the row number for NEXT VALUE FOR and ROWNUM()
+                setCurrentRowNumber(++rowNumber);
+            }
             Value[] row = constructGroupResultRow(currentGroupsKey.getList(), columnCount);
             if (withHaving && isHavingNullOrFalse(row)) {
                 continue;

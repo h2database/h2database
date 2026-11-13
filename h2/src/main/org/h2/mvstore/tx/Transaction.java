@@ -161,6 +161,12 @@ public final class Transaction {
     private volatile boolean notificationRequested;
 
     /**
+     * Value of {@link TransactionStore#rollbackCounter} after the last
+     * rollback (to a savepoint) of this transaction, or 0.
+     */
+    volatile long lastRollback;
+
+    /**
      * RootReferences for undo log snapshots
      */
     private RootReference<Long,Record<?,?>>[] undoLogRootReferences;
@@ -667,13 +673,33 @@ public final class Transaction {
      * @return true if other transaction was committed or rolled back, and this one can proceed, false if timed out
      */
     public boolean waitFor(Transaction toWaitFor, String mapName, Object key, int timeoutMillis) {
+        return waitFor(toWaitFor, mapName, key, timeoutMillis, store.rollbackCounter.get());
+    }
+
+    /**
+     * Make this transaction to wait for the specified transaction to be closed,
+     * or to roll back to a savepoint, because both of them try to modify the
+     * same map entry.
+     *
+     * @param toWaitFor transaction to wait for
+     * @param mapName name of the map containing blocking entry
+     * @param key of the blocking entry
+     * @param timeoutMillis timeout in milliseconds, {@code -1} for default
+     * @param rollbackCount value of {@link TransactionStore#rollbackCounter}
+     *            read before the blocking entry was read
+     * @return true if other transaction was committed or rolled back
+     *         (possibly to a savepoint), and this one should retry, false if
+     *         timed out
+     */
+    boolean waitFor(Transaction toWaitFor, String mapName, Object key, int timeoutMillis, long rollbackCount) {
         blockingTransaction = toWaitFor;
         blockingMapName = mapName;
         blockingKey = key;
         if (isDeadlocked(toWaitFor)) {
             tryThrowDeadLockException(false);
         }
-        boolean result = toWaitFor.waitForThisToEnd(timeoutMillis == -1 ? this.timeoutMillis : timeoutMillis, this);
+        boolean result = toWaitFor.waitForThisToEnd(timeoutMillis == -1 ? this.timeoutMillis : timeoutMillis, this,
+                rollbackCount);
         blockingMapName = null;
         blockingKey = null;
         blockingTransaction = null;
@@ -746,11 +772,12 @@ public final class Transaction {
         }
     }
 
-    private synchronized boolean waitForThisToEnd(int millis, Transaction waiter) {
+    private synchronized boolean waitForThisToEnd(int millis, Transaction waiter, long rollbackCount) {
         long time = System.nanoTime();
         notificationRequested = true;
-        long state;
-        while (isActive(getStatus(state = statusAndLogId.get())) && !hasRollback(state)) {
+        // A rollback flag in the state cannot be used here: it stays set after
+        // the first rollback to savepoint and the waiter would never wait.
+        while (isActive(getStatus()) && lastRollback <= rollbackCount) {
             if (waiter.getStatus() != STATUS_OPEN) {
                 waiter.tryThrowDeadLockException(true);
             }

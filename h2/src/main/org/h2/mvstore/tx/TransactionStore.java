@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.atomic.AtomicReferenceArray;
 import org.h2.engine.IsolationLevel;
@@ -96,6 +97,13 @@ public class TransactionStore implements AutoCloseable
     final AtomicReference<VersionedBitSet> committingTransactions = new AtomicReference<>(new VersionedBitSet());
 
     private final AtomicInteger state = new AtomicInteger(OPEN);
+
+    /**
+     * Counter of rollbacks, incremented after the undo of each rollback.
+     * Used by waiting transactions to detect rollbacks of the blocking
+     * transaction made after they have read the blocked entry.
+     */
+    final AtomicLong rollbackCounter = new AtomicLong();
 
     /**
      * Soft limit on the number of concurrently opened transactions.
@@ -830,6 +838,7 @@ public class TransactionStore implements AutoCloseable
             undoLog.operate(undoKey, null, decisionMaker);
             decisionMaker.reset();
         }
+        t.lastRollback = rollbackCounter.incrementAndGet();
         t.notifyAllWaitingTransactions();
     }
 

@@ -21,6 +21,8 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul>
+    <li>Issue #4535: Lock wait never times out and uses a full CPU core when the lock owner has rolled back to a savepoint
+    earlier in its transaction (for example, after a failed statement or INSERT ... ON DUPLICATE KEY UPDATE)</li>
     <li>Issue #1755: TestQueryCache is not reliable on Travis</li>
     <li>Issue #4558: Preserve version until corresponding chunk is serialized</li>
     <li>Issue #4551: COVAR_POP, COVAR_SAMP, CORR and REGR_* return wrong results for values with a large common offset</li>

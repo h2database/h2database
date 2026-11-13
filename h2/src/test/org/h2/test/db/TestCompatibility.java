@@ -827,6 +827,14 @@ public class TestCompatibility extends TestDb {
             ResultSet rs = stat.executeQuery("TABLE INFORMATION_SCHEMA.TABLE_TYPES");
             rs.next();
             assertEquals("TABLE", rs.getString(1));
+            // Lookups by TABLE_NAME in COLUMNS find the table directly
+            stat.execute("CREATE TABLE C(ID INT PRIMARY KEY, V INT)");
+            rs = stat.executeQuery("EXPLAIN SELECT C2.TABLE_NAME FROM INFORMATION_SCHEMA.COLUMNS C1 "
+                    + "JOIN INFORMATION_SCHEMA.COLUMNS C2 ON C2.COLUMN_NAME = C1.COLUMN_NAME "
+                    + "JOIN INFORMATION_SCHEMA.TABLE_PRIVILEGES TP ON TP.TABLE_NAME = C1.TABLE_NAME "
+                    + "WHERE TP.TABLE_NAME = 'C'");
+            rs.next();
+            assertContains(rs.getString(1).replaceAll("\\s+", " "), "\"C1\" /* meta: TABLE_NAME = TP.TABLE_NAME */");
         } finally {
             deleteDb("compatibility");
         }

@@ -136,6 +136,8 @@ public final class InformationSchemaTableLegacy extends MetaTable {
         super(schema, id, type);
         Column[] cols;
         String indexColumnName = null;
+        // the generator uses the value of the index column to find the objects instead of walking all of them
+        boolean indexLookup = false;
         switch (type) {
         case TABLES:
             setMetaTableName("TABLES");
@@ -155,6 +157,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                     column("ROW_COUNT_ESTIMATE", TypeInfo.TYPE_BIGINT), //
             };
             indexColumnName = "TABLE_NAME";
+            indexLookup = true;
             break;
         case COLUMNS:
             setMetaTableName("COLUMNS");
@@ -197,6 +200,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                     column("CHECK_CONSTRAINT"), //
             };
             indexColumnName = "TABLE_NAME";
+            indexLookup = true;
             break;
         case INDEXES:
             setMetaTableName("INDEXES");
@@ -224,6 +228,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                     column("INDEX_CLASS"), //
             };
             indexColumnName = "TABLE_NAME";
+            indexLookup = true;
             break;
         case TABLE_TYPES:
             setMetaTableName("TABLE_TYPES");
@@ -432,6 +437,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
                     column("ID", TypeInfo.TYPE_INTEGER), //
             };
             indexColumnName = "TABLE_NAME";
+            indexLookup = true;
             break;
         case IN_DOUBT:
             setMetaTableName("IN_DOUBT");
@@ -712,7 +718,7 @@ public final class InformationSchemaTableLegacy extends MetaTable {
             indexColumn = getColumn(database.sysIdentifier(indexColumnName)).getColumnId();
             IndexColumn[] indexCols = IndexColumn.wrap(
                     new Column[] { cols[indexColumn] });
-            metaIndex = new MetaIndex(this, indexCols, false);
+            metaIndex = new MetaIndex(this, indexCols, false, indexLookup);
         }
         setIndexes();
     }

@@ -2576,7 +2576,8 @@ public abstract class Value extends VersionedValue<Value> implements HasSQL, Typ
                     System.arraycopy(values, 0, newValues, 0, i);
                     newValues[i] = v2;
                     while (++i < length) {
-                        newValues[i] = values[i].convertTo(componentType, provider, conversionMode, column);
+                        newValues[i] = values[i].convertTo(iter.next().getValue(), provider, conversionMode,
+                                column);
                     }
                     v = ValueRow.get(targetType, newValues);
                     break loop;

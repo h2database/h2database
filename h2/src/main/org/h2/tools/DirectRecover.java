@@ -16,7 +16,6 @@ import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -26,16 +25,9 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import org.h2.engine.Constants;
 import org.h2.message.DbException;
-import org.h2.mvstore.MVStore;
 import org.h2.mvstore.MVStoreTool;
-import org.h2.mvstore.db.ValueDataType;
-import org.h2.mvstore.tx.TransactionMap;
-import org.h2.mvstore.tx.TransactionStore;
-import org.h2.result.Row;
 import org.h2.store.FileLister;
 import org.h2.store.fs.FileUtils;
-import org.h2.value.Value;
-import org.h2.value.ValueCollectionBase;
 
 /**
  * Enhanced database recovery tool with streaming and compression support.
@@ -326,9 +318,7 @@ public class DirectRecover extends Recover {
                             try (PrintWriter writer = new PrintWriter(finalPipeWriter)) {
                                 debug("DUMP TASK: Created writer, starting MVStoreTool.dump");
                                 MVStoreTool.dump(fileName, writer, true);
-                                debug("DUMP TASK: MVStoreTool.dump completed, starting info");
-                                MVStoreTool.info(fileName, writer);
-                                debug("DUMP TASK: MVStoreTool.info completed, flushing");
+                                debug("DUMP TASK: MVStoreTool.dump completed, flushing");
                                 writer.flush();
                                 debug("DUMP TASK: Flush completed, dump task finishing");
                             } catch (Exception e) {
@@ -686,120 +676,8 @@ public class DirectRecover extends Recover {
      */
     private void generateSQLFromMVStore(PrintWriter sqlWriter, String fileName) {
         debug("GENERATE: Starting generateSQLFromMVStore for " + fileName);
-        try (MVStore mv = new MVStore.Builder().
-                fileName(fileName).recoveryMode().readOnly().open()) {
-
-            debug("GENERATE: MVStore opened, dumping LOB maps");
-            dumpLobMaps(sqlWriter, mv);
-            sqlWriter.println("-- Layout");
-            debug("GENERATE: Dumping layout");
-            dumpLayout(sqlWriter, mv);
-            sqlWriter.println("-- Meta");
-            debug("GENERATE: Dumping meta");
-            dumpMeta(sqlWriter, mv);
-            sqlWriter.println("-- Types");
-            debug("GENERATE: Dumping types");
-            dumpTypes(sqlWriter, mv);
-            sqlWriter.println("-- Tables");
-
-            debug("GENERATE: Creating transaction store");
-            TransactionStore store = new TransactionStore(mv, new ValueDataType());
-            try {
-                store.init();
-                debug("GENERATE: Transaction store initialized");
-            } catch (Throwable e) {
-                debug("GENERATE: Error initializing transaction store: " + e.getMessage());
-                writeError(sqlWriter, e);
-            }
-
-            debug("GENERATE: Extracting metadata");
-            // Extract metadata
-            for (String mapName : mv.getMapNames()) {
-                if (!mapName.startsWith("table.")) {
-                    continue;
-                }
-                String tableId = mapName.substring("table.".length());
-                if (Integer.parseInt(tableId) == 0) {
-                    TransactionMap<Long, Row> dataMap = store.begin().openMap(mapName);
-                    Iterator<Long> dataIt = dataMap.keyIterator(null);
-                    while (dataIt.hasNext()) {
-                        Long rowId = dataIt.next();
-                        Row row = dataMap.get(rowId);
-                        try {
-                            writeMetaRow(row);
-                        } catch (Throwable t) {
-                            writeError(sqlWriter, t);
-                        }
-                    }
-                }
-            }
-
-            debug("GENERATE: Writing schema SET");
-            writeSchemaSET(sqlWriter);
-            sqlWriter.println("---- Table Data ----");
-
-            debug("GENERATE: Processing table data");
-            // Process table data
-            for (String mapName : mv.getMapNames()) {
-                if (!mapName.startsWith("table.")) {
-                    continue;
-                }
-                String tableId = mapName.substring("table.".length());
-                if (Integer.parseInt(tableId) == 0) {
-                    continue;
-                }
-                TransactionMap<?,?> dataMap = store.begin().openMap(mapName);
-                Iterator<?> dataIt = dataMap.keyIterator(null);
-                boolean init = false;
-                while (dataIt.hasNext()) {
-                    Object rowId = dataIt.next();
-                    Object value = dataMap.get(rowId);
-                    Value[] values;
-                    if (value instanceof Row) {
-                        values = ((Row) value).getValueList();
-                        super.recordLength = values.length;
-                    } else {
-                        values = ((ValueCollectionBase) value).getList();
-                        super.recordLength = values.length - 1;
-                    }
-                    if (!init) {
-                        setStorage(Integer.parseInt(tableId));
-                        // init the column types
-                        StringBuilder builder = new StringBuilder();
-                        for (int valueId = 0; valueId < super.recordLength; valueId++) {
-                            String columnName = super.storageName + "." + valueId;
-                            builder.setLength(0);
-                            getSQL(builder, columnName, values[valueId]);
-                        }
-                        createTemporaryTable(sqlWriter);
-                        init = true;
-                    }
-                    StringBuilder buff = new StringBuilder();
-                    buff.append("INSERT INTO O_").append(tableId)
-                            .append(" VALUES(");
-                    for (int valueId = 0; valueId < super.recordLength; valueId++) {
-                        if (valueId > 0) {
-                            buff.append(", ");
-                        }
-                        String columnName = super.storageName + "." + valueId;
-                        getSQL(buff, columnName, values[valueId]);
-                    }
-                    buff.append(");");
-                    sqlWriter.println(buff);
-                }
-            }
-
-            debug("GENERATE: Writing schema");
-            writeSchema(sqlWriter);
-            sqlWriter.println("DROP ALIAS READ_BLOB_MAP;");
-            sqlWriter.println("DROP ALIAS READ_CLOB_MAP;");
-            sqlWriter.println("DROP TABLE IF EXISTS INFORMATION_SCHEMA.LOB_BLOCKS;");
-            debug("GENERATE: generateSQLFromMVStore completed successfully");
-
-        } catch (Throwable e) {
-            debug("GENERATE: Error in generateSQLFromMVStore: " + e.getMessage());
-            writeError(sqlWriter, e);
-        }
+        dumpMVStore(sqlWriter, fileName);
+        debug("GENERATE: generateSQLFromMVStore completed");
     }
 
     /**

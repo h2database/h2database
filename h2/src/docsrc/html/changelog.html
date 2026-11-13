@@ -23,6 +23,19 @@ Change Log
 <ul>
     <li>Issue #4535: Lock wait never times out and uses a full CPU core when the lock owner has rolled back to a savepoint
     earlier in its transaction (for example, after a failed statement or INSERT ... ON DUPLICATE KEY UPDATE)</li>
+    <li>Issue #1755: TestQueryCache is not reliable on Travis</li>
+    <li>Issue #4558: Preserve version until corresponding chunk is serialized</li>
+    <li>Issue #4551: COVAR_POP, COVAR_SAMP, CORR and REGR_* return wrong results for values with a large common offset</li>
+    <li>Issue #4549: Deadlock between two transactions: the one that should continue sometimes fails too, with "Transaction was illegally transitioned from CLOSED to ROLLING_BACK"</li>
+    <li>Issue #4546: Values of ROW fields are converted to the data type of an earlier field and stored wrong without an error</li>
+    <li>Issue #4251: Next sequence value incorrect when grouping in select</li>
+    <li>Issue #4325: JSON array constructor by query cannot handle set operations in argument queries</li>
+    <li>Issue #4528: DirectRecover script still fails for ARRAY, ROW and ENUM columns and loses the rows of unreadable pages without a message</li>
+    <li>Issue #4541: SHUTDOWN COMPACT reports success when the compaction failed</li>
+    <li>Issue #4526: DirectRecover sometimes writes a script without any data: The file is locked</li>
+    <li>Issue #4539: SHUTDOWN COMPACT that fails leaves its copy threads running, so the JVM does not exit</li>
+    <li>Issue #4523: 2.5.252: joins over INFORMATION_SCHEMA constraint tables are ~70x slower since meta indexes are visible to the planner</li>
+    <li>Issue #4238: Respect case-insensitive identifiers in ON DUPLICATE KEY UPDATE</li>
     <li>Issue #4531: Recover changes binary values: BINARY VARYING, BINARY, BLOB and JAVA_OBJECT columns are restored wrong or not at all</li>
     <li>Issue #4529: Refused Restore or Backup releases the file lock of a database opened with nioMapped:, async:, retry: or split:</li>
     <li>Issue #4491: Restore over an open database loses committed rows without an error</li>

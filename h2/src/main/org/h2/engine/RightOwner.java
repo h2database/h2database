@@ -13,7 +13,11 @@ import java.util.Map.Entry;
 import org.h2.api.ErrorCode;
 import org.h2.message.DbException;
 import org.h2.schema.Schema;
+import org.h2.table.DualTable;
+import org.h2.table.MetaTable;
+import org.h2.table.RangeTable;
 import org.h2.table.Table;
+import org.h2.table.TableType;
 import org.h2.util.StringUtils;
 
 /**
@@ -102,6 +106,37 @@ public abstract class RightOwner extends DbObject {
             }
         }
         return false;
+    }
+
+    /**
+     * See if this right owner has the given right for the specified table,
+     * considering the PUBLIC role, the kind of table, and the rights and roles
+     * granted to this owner. Administrative status is not considered here.
+     *
+     * @param table
+     *            the table
+     * @param rightMask
+     *            the rights required
+     * @return true if the right is granted
+     */
+    public final boolean isTableRightGranted(Table table, int rightMask) {
+        if (database.getPublicRole().isTableRightGrantedRecursive(table, rightMask)) {
+            return true;
+        }
+        if (table instanceof MetaTable || table instanceof DualTable || table instanceof RangeTable) {
+            // everybody has access to the metadata information
+            return true;
+        }
+        TableType tableType = table.getTableType();
+        if (tableType == null) {
+            // derived or function table
+            return true;
+        }
+        if (table.isTemporary() && !table.isGlobalTemporary()) {
+            // the owner has all rights on local temporary tables
+            return true;
+        }
+        return isTableRightGrantedRecursive(table, rightMask);
     }
 
     /**

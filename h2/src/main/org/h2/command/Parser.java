@@ -1089,6 +1089,9 @@ public final class Parser extends ParserBase {
             read(FROM);
         }
         command.setTableFilter(readSimpleTableFilter());
+        if (database.getMode().discardWithTableHints) {
+            discardWithTableHints();
+        }
         if (readIf(WHERE)) {
             command.setCondition(readExpression());
         }
@@ -1419,7 +1422,12 @@ public final class Parser extends ParserBase {
 
     private Prepared parseMerge(int start) {
         read("INTO");
-        TableFilter targetTableFilter = readSimpleTableFilter();
+        Table table = readTableOrView();
+        if (database.getMode().discardWithTableHints) {
+            discardWithTableHints();
+        }
+        TableFilter targetTableFilter =
+                new TableFilter(session, table, readFromAlias(null), rightsChecked, currentSelect, 0, null);
         if (readIf(USING)) {
             return parseMergeUsing(targetTableFilter, start);
         }
@@ -1602,7 +1610,7 @@ public final class Parser extends ParserBase {
                         String schemaOrTableName = columnName;
                         String tableOrColumnName = readIdentifier();
                         if (readIf(DOT)) {
-                            if (!table.getSchema().getName().equals(schemaOrTableName)) {
+                            if (!database.equalsIdentifiers(table.getSchema().getName(), schemaOrTableName)) {
                                 throw DbException.get(ErrorCode.SCHEMA_NAME_MUST_MATCH);
                             }
                             columnName = readIdentifier();
@@ -1610,7 +1618,7 @@ public final class Parser extends ParserBase {
                             columnName = tableOrColumnName;
                             tableOrColumnName = schemaOrTableName;
                         }
-                        if (!table.getName().equals(tableOrColumnName)) {
+                        if (!database.equalsIdentifiers(table.getName(), tableOrColumnName)) {
                             throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, tableOrColumnName);
                         }
                     }

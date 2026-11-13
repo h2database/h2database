@@ -725,13 +725,32 @@ public final class Transaction {
                 }
                 Transaction btx = youngest.blockingTransaction;
                 if (btx != null) {
-                    youngest.setStatus(STATUS_ROLLING_BACK);
-                    btx.notifyAllWaitingTransactions();
+                    if (youngest.markAsDeadlockVictim()) {
+                        btx.notifyAllWaitingTransactions();
+                    }
                     return false;
                 }
             }
         }
         return false;
+    }
+
+    /**
+     * Changes the status of this transaction to rolling back, if it is still open.
+     * It may have ended in the meantime, for example as the victim of its own deadlock detection.
+     *
+     * @return true if the status was changed
+     */
+    private boolean markAsDeadlockVictim() {
+        long currentState;
+        do {
+            currentState = statusAndLogId.get();
+            if (getStatus(currentState) != STATUS_OPEN) {
+                return false;
+            }
+        } while (!statusAndLogId.compareAndSet(currentState,
+                composeState(STATUS_ROLLING_BACK, getLogId(currentState), hasRollback(currentState))));
+        return true;
     }
 
     private void tryThrowDeadLockException(boolean throwIt) {

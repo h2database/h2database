@@ -6,9 +6,14 @@
 package org.h2.test.store;
 
 import java.io.StringWriter;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+import java.util.HashSet;
 import java.util.Map.Entry;
 import java.util.Random;
+import java.util.Set;
 
+import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
 import org.h2.mvstore.MVStoreTool;
@@ -42,6 +47,7 @@ public class TestMVStoreTool extends TestBase {
     @Override
     public void test() throws Exception {
         testCompact();
+        testCompactFailureStopsThreads();
         testDump();
         testRollback();
     }
@@ -133,6 +139,49 @@ public class TestMVStoreTool extends TestBase {
         s2.close();
         s3.close();
         trace("Verified in " + (System.currentTimeMillis() - start) + " ms.");
+    }
+
+    private void testCompactFailureStopsThreads() throws Exception {
+        String fileName = getBaseDir() + "/testCompactFailure.h3";
+        String fileNameNew = fileName + ".new";
+        FileUtils.createDirectories(getBaseDir());
+        FileUtils.delete(fileName);
+        FileUtils.delete(fileNameNew);
+        try (MVStore s = new MVStore.Builder().fileName(fileName).open()) {
+            MVMap<Integer, String> map = s.openMap("data");
+            for (int i = 0; i < 1000; i++) {
+                map.put(i, "Hello World " + i);
+            }
+            s.commit();
+            // a later chunk, so that the layout map lists the chunk of "data"
+            s.openMap("other").put(1, "Hello World");
+        }
+        long position;
+        try (MVStore s = new MVStore.Builder().fileName(fileName).readOnly().open()) {
+            long pos = s.openMap("data").getRootPage().getPos();
+            String chunk = s.getLayoutMap().get(DataUtils.LAYOUT_CHUNK
+                    + Integer.toHexString(DataUtils.getPageChunkId(pos)));
+            position = DataUtils.readHexLong(DataUtils.parseMap(chunk), "block", 0) * 4096
+                    + DataUtils.getPageOffset(pos);
+        }
+        // damage the root page of the map, so that copying the map fails
+        try (FileChannel fc = FileUtils.open(fileName, "rw")) {
+            fc.write(ByteBuffer.allocate(4), position);
+        }
+        Set<Thread> before = new HashSet<>(Thread.getAllStackTraces().keySet());
+        try {
+            MVStore.compact(fileName, fileNameNew, false, null);
+            fail();
+        } catch (RuntimeException e) {
+            // expected
+        }
+        long deadline = System.nanoTime() + 10_000_000_000L;
+        for (Thread t : Thread.getAllStackTraces().keySet()) {
+            if (!before.contains(t) && !t.isDaemon()) {
+                t.join(Math.max(1, (deadline - System.nanoTime()) / 1_000_000));
+                assertFalse(t.getName(), t.isAlive());
+            }
+        }
     }
 
     private void assertEquals(MVStore a, MVStore b) {

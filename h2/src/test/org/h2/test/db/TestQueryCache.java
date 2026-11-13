@@ -8,7 +8,9 @@ package org.h2.test.db;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
@@ -18,6 +20,9 @@ import org.h2.test.TestDb;
  * Tests the query cache.
  */
 public class TestQueryCache extends TestDb {
+
+    /** Calls of {@link #countPrepare()}. */
+    private static final AtomicInteger PREPARED = new AtomicInteger();
 
     /**
      * Run just this test.
@@ -31,67 +36,63 @@ public class TestQueryCache extends TestDb {
     @Override
     public void test() throws Exception {
         deleteDb("queryCache");
-        test1();
+        testCacheReuse();
         testClearingCacheWithTableStructureChanges();
         deleteDb("queryCache");
     }
 
-    private void test1() throws Exception {
+    private void testCacheReuse() throws Exception {
         try (Connection conn = getConnection("queryCache;QUERY_CACHE_SIZE=10")) {
             Statement stat = conn.createStatement();
             stat.execute("create table test(id int, name varchar)");
-            PreparedStatement prep;
-            // query execution may be fast here but the parsing must be slow
-            StringBuilder queryBuilder = new StringBuilder("select count(*) from test t1 where \n");
-            for (int i = 0; i < 1000; i++) {
-                if (i != 0) {
-                    queryBuilder.append(" and ");
-                }
-                queryBuilder.append(" TIMESTAMP '2005-12-31 23:59:59' = TIMESTAMP '2005-12-31 23:59:59' ");
-            }
-            String query = queryBuilder.toString();
-            conn.prepareStatement(query);
-            int firstGreater = 0;
-            int firstSmaller = 0;
-            long time;
-            ResultSet rs;
-            long first = 0;
-            // 1000 iterations to warm up and avoid JIT effects
-            for (int i = 0; i < 1005; i++) {
-                // this should both ensure results are not re-used
-                // stat.execute("set mode regular");
-                // stat.execute("create table x()");
-                // stat.execute("drop table x");
-                time = System.nanoTime();
-                prep = conn.prepareStatement(query);
-                execute(prep);
-                prep.close();
-                rs = stat.executeQuery(query);
-                rs.next();
-                int c = rs.getInt(1);
-                rs.close();
-                assertEquals(0, c);
-                time = System.nanoTime() - time;
-                if (i == 1000) {
-                    // take from cache and do not close,
-                    // so that next iteration will have a cache miss
-                    prep = conn.prepareStatement(query);
-                } else if (i == 1001) {
-                    first = time;
-                } else if (i > 1001) {
-                    if (first > time) {
-                        firstGreater++;
-                    } else {
-                        firstSmaller++;
-                    }
-                }
-            }
-            // first prepare time must be always greater because of query cache,
-            // but JVM is too unpredictable to assert that, so just check that
-            // usually this is true
-            assertSmaller(firstSmaller, firstGreater);
-            stat.execute("drop table test");
+            // a deterministic function without arguments is evaluated when
+            // the statement is prepared, so its calls count the parsed commands
+            stat.execute("create alias count_prepare deterministic for '"
+                    + getClass().getName() + ".countPrepare'");
+            String query = "select count(*) from test where count_prepare() = 1";
+            int prepared = PREPARED.get();
+            PreparedStatement prep1 = conn.prepareStatement(query);
+            assertQueryResult(prep1.executeQuery());
+            assertTrue(PREPARED.get() > prepared);
+            // the cached command is still in use by prep1: a new one is parsed
+            prepared = PREPARED.get();
+            PreparedStatement prep2 = conn.prepareStatement(query);
+            assertQueryResult(prep2.executeQuery());
+            assertTrue(PREPARED.get() > prepared);
+            prep2.close();
+            // closed commands are taken from the cache
+            prepared = PREPARED.get();
+            PreparedStatement prep3 = conn.prepareStatement(query);
+            assertQueryResult(prep3.executeQuery());
+            prep3.close();
+            assertQueryResult(stat.executeQuery(query));
+            assertEquals(prepared, PREPARED.get());
+            prep1.close();
+            // a change of the schema clears the cache
+            stat.execute("create table test2(id int)");
+            prepared = PREPARED.get();
+            assertQueryResult(stat.executeQuery(query));
+            assertTrue(PREPARED.get() > prepared);
+            stat.execute("drop table test, test2");
+            stat.execute("drop alias count_prepare");
         }
+    }
+
+    private void assertQueryResult(ResultSet rs) throws SQLException {
+        assertTrue(rs.next());
+        assertEquals(0, rs.getInt(1));
+        assertFalse(rs.next());
+        rs.close();
+    }
+
+    /**
+     * This method is called via reflection from the database.
+     *
+     * @return 1
+     */
+    public static int countPrepare() {
+        PREPARED.incrementAndGet();
+        return 1;
     }
 
     private void testClearingCacheWithTableStructureChanges() throws Exception {

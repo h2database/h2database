@@ -818,8 +818,9 @@ public final class MVStore implements AutoCloseable {
                                     fileStore.deregisterMapRoot(map.getId());
                                 }
                             }
-                            commit();
+                            // after restart all chunks held by RETENTION_TIME will be dead anyway
                             setRetentionTime(0);
+                            commit();
                             fileStore.stop(compactFully ? 0 : allowedCompactionTime);
                         }
 
@@ -1686,7 +1687,7 @@ public final class MVStore implements AutoCloseable {
         }
     }
 
-    boolean handleException(Throwable ex) {
+    void handleException(Throwable ex) {
         if (backgroundExceptionHandler != null) {
             try {
                 backgroundExceptionHandler.uncaughtException(Thread.currentThread(), ex);
@@ -1695,9 +1696,7 @@ public final class MVStore implements AutoCloseable {
                     ex.addSuppressed(e);
                 }
             }
-            return true;
         }
-        return false;
     }
 
     boolean isOpen() {

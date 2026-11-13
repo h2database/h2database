@@ -292,7 +292,7 @@ public final class Store {
      * Prepare a transaction.
      *
      * @param session the session
-     * @param transactionName the transaction name (may be null)
+     * @param transactionName the transaction name (can be null)
      */
     public void prepareCommit(SessionLocal session, String transactionName) {
         Transaction t = session.getTransaction();

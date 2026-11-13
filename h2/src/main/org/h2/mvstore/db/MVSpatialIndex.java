@@ -230,7 +230,6 @@ public final class MVSpatialIndex extends MVIndex<Spatial, Value> implements Spa
 
     /**
      * Returns the estimated minimum bounding box that encloses all keys.
-     *
      * The returned value may be incorrect.
      *
      * @param session the session

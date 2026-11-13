@@ -52,7 +52,7 @@ class MVPlainTempResult extends MVTempResult {
 
     /**
      * Creates a new plain temporary result. This result does not sort its rows,
-     * but it can be used in index-sorted queries and it can preserve additional
+     * but it can be used in index-sorted queries, and it can preserve additional
      * columns for WITH TIES processing.
      *
      * @param database

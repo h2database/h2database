@@ -78,7 +78,7 @@ public class SpatialKey extends Value implements Spatial {
 
     @Override
     public int hashCode() {
-        return (int) ((id >>> 32) ^ id);
+        return Long.hashCode(id);
     }
 
     @Override
@@ -98,7 +98,6 @@ public class SpatialKey extends Value implements Spatial {
     @Override
     public int compareTypeSafe(Value v, CompareMode mode, CastDataProvider provider) {
         throw new UnsupportedOperationException();
-//        return 0;
     }
 
     /**

@@ -14,6 +14,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.HashMap;
 import java.util.Map;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVStore;
@@ -333,7 +334,7 @@ public class TestRecovery extends TestDb {
      */
     private String recover(boolean direct) throws SQLException {
         if (direct) {
-            DirectRecover.main("-dir", getBaseDir(), "-db", "recovery");
+            new DirectRecover(false).runTool("-dir", getBaseDir(), "-db", "recovery");
             return getBaseDir() + "/recovery.sql";
         }
         Recover.main("-dir", getBaseDir(), "-db", "recovery");
@@ -374,23 +375,30 @@ public class TestRecovery extends TestDb {
             }
             long pos = page.getPos();
             int chunkId = DataUtils.getPageChunkId(pos);
-            String chunk = mv.getLayoutMap().get("chunk." + Integer.toHexString(chunkId));
-            // the last chunk is described only in the store header
-            Map<String, ?> chunkData = chunk != null ? DataUtils.parseMap(chunk)
-                    : mv.getFileStore().getStoreHeader();
-            assertEquals(chunkId, DataUtils.readHexLong(chunkData, "chunk", -1));
+            // position of the last chunk is described only in the store header
+            Map<String, ?> chunkData = mv.getFileStore().getStoreHeader();
+            if (DataUtils.readHexLong(chunkData, "chunk", -1) != chunkId) {
+                // for all other chunks, the metadata is stored in the layout map, so we can read it from there
+                String chunk = mv.getLayoutMap().get("chunk." + Integer.toHexString(chunkId));
+                if (chunk != null) {
+                    HashMap<String, String> chunkDataTemp = DataUtils.parseMap(chunk);
+                    if (!chunkDataTemp.getOrDefault("block", "0").equals("0")) {
+                        chunkData = chunkDataTemp;
+                    }
+                }
+            }
             // the block size is 4 KB
             position = DataUtils.readHexLong(chunkData, "block", 0) * 4096 + DataUtils.getPageOffset(pos);
         }
         try (FileChannel fc = FileUtils.open(fileName, "rw")) {
             fc.write(ByteBuffer.allocate(4), position);
         }
-        Recover rec = direct ? new DirectRecover() : new Recover();
+        Recover rec = direct ? new DirectRecover(false) : new Recover();
         ByteArrayOutputStream buff = new ByteArrayOutputStream();
-        rec.setOut(new PrintStream(buff, true, "UTF-8"));
+        rec.setOut(new PrintStream(buff, true, StandardCharsets.UTF_8));
         rec.runTool("-dir", getBaseDir(), "-db", "recovery");
         String error = "org.h2.mvstore.MVStoreException: File corrupted";
-        assertContains(buff.toString("UTF-8"), error);
+        assertContains(buff.toString(StandardCharsets.UTF_8), error);
         String scriptName = getBaseDir() + (direct ? "/recovery.sql" : "/recovery.h2.sql");
         String script = new String(IOUtils.readBytesAndClose(
                 FileUtils.newInputStream(scriptName), -1), StandardCharsets.UTF_8);
@@ -414,7 +422,7 @@ public class TestRecovery extends TestDb {
         conn.close();
         // the script must not depend on the timing of the parallel dump task
         for (int i = 0; i < 20; i++) {
-            DirectRecover.main("-dir", getBaseDir(), "-db", "recovery");
+            new DirectRecover(false).runTool("-dir", getBaseDir(), "-db", "recovery");
             String script = new String(IOUtils.readBytesAndClose(
                     FileUtils.newInputStream(getBaseDir() + "/recovery.sql"), -1), StandardCharsets.UTF_8);
             assertFalse(script, script.contains("// error:"));

@@ -1591,8 +1591,8 @@ public final class MVStore implements AutoCloseable {
     /**
      * Prepare map removal from the store. This includes removal of its references by name and by id from meta map.
      * It's still held in maps, so actual removal is delayed until all of its usages (iterators etc.) are completed.
-     * This is controlled by store versions, and actual removal is done by MVStore.setWriteVersion() and
-     * MVMap,setWriteVersion() when removal from maps and from layout is done.
+     * This is controlled by store versions, and actual removal is done by {@link MVStore#setWriteVersion(long)} and
+     * {@link MVMap#setWriteVersion(long)} when removal from maps and from layout is done.
      *
      * @param map the map to remove
      */

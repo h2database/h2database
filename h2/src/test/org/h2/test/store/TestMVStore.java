@@ -5,15 +5,19 @@
  */
 package org.h2.test.store;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
 import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.NoSuchElementException;
 import java.util.Random;
 import java.util.TreeMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -31,7 +35,9 @@ import org.h2.mvstore.type.DataType;
 import org.h2.mvstore.type.MetaType;
 import org.h2.mvstore.type.ObjectDataType;
 import org.h2.mvstore.type.StringDataType;
+import org.h2.store.fs.FileBase;
 import org.h2.store.fs.FilePath;
+import org.h2.store.fs.FilePathWrapper;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.util.Task;
@@ -113,6 +119,7 @@ public class TestMVStore extends TestBase {
         testCompactMapNotOpen();
         testReuseSpace();
         testDeadChunkKeptForRetentionTime();
+        testDeadChunkNotReusedBeforeSyncOnClose();
         testRandom();
         testKeyValueClasses();
         testIterate();
@@ -1973,6 +1980,130 @@ public class TestMVStore extends TestBase {
             map.put(0, "last");
             s.commit();
             assertFalse(s.getLayoutMap().containsKey(chunk1));
+        }
+    }
+
+    private void testDeadChunkNotReusedBeforeSyncOnClose() throws IOException {
+        FilePathWriteLog fs = new FilePathWriteLog();
+        FilePath.register(fs);
+        try {
+            String fileName = getBaseDir() + "/" + getTestName();
+            FileUtils.delete(fileName);
+            MVStore s = new MVStore.Builder().fileName(fs.getScheme() + ":" + fileName).autoCommitDisabled().open();
+            s.setVersionsToKeep(0);
+            MVMap<Integer, String> map = s.openMap("data");
+            for (int i = 0; i < 100; i++) {
+                map.put(i, "old" + i);
+            }
+            s.commit();
+            for (int i = 0; i < 100; i++) {
+                map.put(i, "new" + i);
+            }
+            s.openMap("other").put(1, "x");
+            // chunk 2 replaces all pages of chunk 1
+            s.commit();
+            String chunk1 = DataUtils.LAYOUT_CHUNK + "1";
+            Map<String, String> c = DataUtils.parseMap(s.getLayoutMap().get(chunk1));
+            // the block size is 4 KB
+            long start = DataUtils.readHexLong(c, "block", 0) * 4096;
+            long end = start + DataUtils.readHexLong(c, "len", 0) * 4096;
+            assertTrue(start > 0 && end > start);
+            FilePathWriteLog.LOG.clear();
+            map.put(0, "newer");
+            s.close();
+            // chunk 2 may not be on disk until the next sync, so the space of chunk 1 must not be reused before
+            for (long[] op : FilePathWriteLog.LOG) {
+                if (op[1] < 0) {
+                    break;
+                }
+                assertFalse(op[0] < end && op[0] + op[1] > start);
+            }
+            try (MVStore s2 = new MVStore.Builder().fileName(fileName).open()) {
+                assertEquals("newer", s2.<Integer, String>openMap("data").get(0));
+                assertFalse(s2.getLayoutMap().containsKey(chunk1));
+            }
+        } finally {
+            FilePath.unregister(fs);
+        }
+    }
+
+    /**
+     * A file system that records the position and length of each write,
+     * and a length of -1 for each sync.
+     */
+    public static final class FilePathWriteLog extends FilePathWrapper {
+
+        static final List<long[]> LOG = new CopyOnWriteArrayList<>();
+
+        @Override
+        public String getScheme() {
+            return "writeLog";
+        }
+
+        @Override
+        public FileChannel open(String mode) throws IOException {
+            FileChannel channel = super.open(mode);
+            return new FileBase() {
+
+                @Override
+                public int read(ByteBuffer dst, long position) throws IOException {
+                    return channel.read(dst, position);
+                }
+
+                @Override
+                public int read(ByteBuffer dst) throws IOException {
+                    return channel.read(dst);
+                }
+
+                @Override
+                public int write(ByteBuffer src, long position) throws IOException {
+                    LOG.add(new long[] { position, src.remaining() });
+                    return channel.write(src, position);
+                }
+
+                @Override
+                public int write(ByteBuffer src) throws IOException {
+                    throw new IOException("relative write");
+                }
+
+                @Override
+                public void force(boolean metaData) throws IOException {
+                    LOG.add(new long[] { 0, -1 });
+                    channel.force(metaData);
+                }
+
+                @Override
+                public long position() throws IOException {
+                    return channel.position();
+                }
+
+                @Override
+                public FileChannel position(long newPosition) throws IOException {
+                    channel.position(newPosition);
+                    return this;
+                }
+
+                @Override
+                public long size() throws IOException {
+                    return channel.size();
+                }
+
+                @Override
+                public FileChannel truncate(long size) throws IOException {
+                    channel.truncate(size);
+                    return this;
+                }
+
+                @Override
+                public FileLock tryLock(long position, long size, boolean shared) throws IOException {
+                    return channel.tryLock(position, size, shared);
+                }
+
+                @Override
+                protected void implCloseChannel() throws IOException {
+                    channel.close();
+                }
+            };
         }
     }
 

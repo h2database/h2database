@@ -425,6 +425,18 @@ public abstract class FileStore<C extends Chunk<C>>
     }
 
     /**
+     * Stop retaining unused chunks and drop them. The chunks written since
+     * they became unused are synced first, as their space can be reused now.
+     */
+    final void stopRetainingUnusedChunks() {
+        setRetentionTime(0);
+        if (!deadChunks.isEmpty()) {
+            sync();
+            dropUnusedChunks();
+        }
+    }
+
+    /**
      * Decision about autocommit is delegated to store
      * @param unsavedMemory amount of unsaved memory, so far
      * @param autoCommitMemory configured limit on amount of unsaved memory

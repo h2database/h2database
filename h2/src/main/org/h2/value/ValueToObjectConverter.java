@@ -316,7 +316,7 @@ public final class ValueToObjectConverter extends TraceObject {
                 value = value.convertTo(TypeInfo.TYPE_INTERVAL_DAY_TO_SECOND);
             }
             ValueInterval v = (ValueInterval) value;
-            return (T) new Interval(v.getQualifier(), false, v.getLeading(), v.getRemaining());
+            return (T) new Interval(v.getQualifier(), v.isNegative(), v.getLeading(), v.getRemaining());
         } else if (type == LocalDate.class) {
             return (T) JSR310Utils.valueToLocalDate(value, conn);
         } else if (type == LocalTime.class) {

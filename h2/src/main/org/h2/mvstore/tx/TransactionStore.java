@@ -259,8 +259,9 @@ public class TransactionStore implements AutoCloseable
                                         assert lastUndoKey == null || getTransactionId(lastUndoKey) == transactionId;
                                         logId = lastUndoKey == null ? 0 : getLogId(lastUndoKey) + 1;
                                     }
-                                    Transaction transaction = new Transaction(null, transactionId, commitOrder,
-                                                                                status, name, logId, 1, 0, null, null);
+                                    Transaction transaction =
+                                                    new Transaction(null, transactionId, commitOrder,
+                                                                    status, name, logId, 1, 0, null, null, null);
                                     leftoverTransactions.add(transaction);
                                     continue;
                                 } catch (Throwable ignore) {
@@ -512,8 +513,8 @@ public class TransactionStore implements AutoCloseable
         assert !committingTransactions.get().get(transactionId);
 
         Transaction transaction = new Transaction(this, transactionId, sequenceNo, status, name, logId,
-                timeoutMillis, ownerId, isolationLevel, listener);
-
+                                                    timeoutMillis, ownerId, isolationLevel, listener,
+                                                    store.isVersioningRequired() ? store.registerVersionUsage() : null);
         assert transactions.get(transactionId) == null;
         transactions.set(transactionId, transaction);
 

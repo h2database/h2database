@@ -720,6 +720,12 @@ public class ConnectionInfo implements Cloneable {
         for (Object k : prop.keySet()) {
             String key = k.toString();
             if (!isKnownSetting(key) && defaultSettings.containsKey(key)) {
+                if (networkConnectionInfo != null && key.equals("DEFAULT_TABLE_ENGINE")) {
+                    // The default table engine is instantiated when stored
+                    // tables are re-created while the database is opened,
+                    // before a remote client is authenticated
+                    continue;
+                }
                 s.put(key, prop.getProperty(key));
             }
         }

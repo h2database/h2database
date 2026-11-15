@@ -183,8 +183,8 @@ public final class Transaction {
 
 
     Transaction(TransactionStore store, int transactionId, long sequenceNum, int status,
-                String name, long logId, int timeoutMillis, int ownerId,
-                IsolationLevel isolationLevel, TransactionStore.RollbackListener listener) {
+                String name, long logId, int timeoutMillis, int ownerId, IsolationLevel isolationLevel,
+                TransactionStore.RollbackListener listener, MVStore.TxCounter txCounter) {
         this.store = store;
         this.transactionId = transactionId;
         this.sequenceNum = sequenceNum;
@@ -194,6 +194,7 @@ public final class Transaction {
         this.ownerId = ownerId;
         this.isolationLevel = isolationLevel;
         this.listener = listener;
+        this.txCounter = txCounter;
     }
 
     public int getId() {
@@ -647,7 +648,8 @@ public final class Transaction {
      * Transition this transaction into a closed state.
      */
     void closeIt() {
-        transactionMaps.clear();
+        // ensure this cleanup if transaction was not used with markStatement/TransactionEnd
+        releaseSnapshot();
         long lastState = setStatus(STATUS_CLOSED);
         if (getStatus(lastState) != STATUS_CLOSED) {
             store.store.deregisterVersionUsage(txCounter);

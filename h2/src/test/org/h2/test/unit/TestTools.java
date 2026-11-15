@@ -1282,6 +1282,17 @@ public class TestTools extends TestDb {
                             + ";DATABASE_EVENT_LISTENER='" + RemoteListener.class.getName() + "'",
                             "sa", "wrong"));
             assertFalse(RemoteListener.created);
+            // the same for DEFAULT_TABLE_ENGINE, which is instantiated when
+            // the stored tables are re-created during database open
+            conn = getConnection("jdbc:h2:" + dir + "/testListener", "sa", "");
+            conn.createStatement().execute("CREATE TABLE TEST(ID INT)");
+            conn.close();
+            RemoteTableEngine.created = false;
+            assertThrows(ErrorCode.WRONG_USER_OR_PASSWORD,
+                    () -> getConnection("jdbc:h2:tcp://localhost:" + pl + "/testListener"
+                            + ";DEFAULT_TABLE_ENGINE=" + RemoteTableEngine.class.getName(),
+                            "sa", "wrong"));
+            assertFalse(RemoteTableEngine.created);
             server.stop();
             deleteDb("testListener");
         } finally {
@@ -1297,6 +1308,19 @@ public class TestTools extends TestDb {
         static volatile boolean created;
 
         public RemoteListener() {
+            created = true;
+        }
+
+    }
+
+    /**
+     * A class that records whether it was instantiated.
+     */
+    public static class RemoteTableEngine {
+
+        static volatile boolean created;
+
+        public RemoteTableEngine() {
             created = true;
         }
 

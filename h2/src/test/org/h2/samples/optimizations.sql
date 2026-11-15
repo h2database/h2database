@@ -96,7 +96,7 @@ EXPLAIN SELECT MIN("VALUE"), MAX("VALUE") FROM TEST;
 -->        MIN("VALUE"),
 -->        MAX("VALUE")
 -->    FROM "PUBLIC"."TEST"
--->        /* PUBLIC.IDX_TEST_VALUE */
+-->        /* PUBLIC.TEST.tableScan */
 -->    /* direct lookup */
 ;
 

@@ -106,7 +106,7 @@ public class TestCompoundIndexSearch extends TestDb {
         ResultSet rs = stat.executeQuery("EXPLAIN ANALYZE SELECT b, c FROM test WHERE c IN ('1', '2')");
         rs.next();
         assertEquals(rs.getString(1).replaceAll("[\\r\\n\\s]+", " "),
-                "SELECT \"B\", \"C\" FROM \"PUBLIC\".\"TEST\" /* PUBLIC.IDX_B_C */ " +
+                "SELECT \"B\", \"C\" FROM \"PUBLIC\".\"TEST\" /* PUBLIC.TEST.tableScan */ " +
                         "/* scanCount: 11 */ WHERE \"C\" IN('1', '2')");
         stat.close();
     }

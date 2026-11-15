@@ -46,6 +46,7 @@ public class TestIndex extends TestDb {
     @Override
     public void test() throws SQLException {
         deleteDb("index");
+        testUpdatedIndexValues();
         testOrderIndex();
         testIndexTypes();
         testHashIndexOnMemoryTable();
@@ -110,6 +111,118 @@ public class TestIndex extends TestDb {
 
         // This test uses own connection
         testEnumIndex();
+    }
+
+    private void testUpdatedIndexValues() throws SQLException {
+        testUpdatedCharIndexValue();
+        String[][] cases = {
+                { "VARCHAR_IGNORECASE", "'john smith'", "'John Smith'" },
+                { "TIMESTAMP WITH TIME ZONE", "'2026-01-01 10:00:00+00'", "'2026-01-01 11:00:00+01'" },
+                { "TIME WITH TIME ZONE", "'10:00:00+00'", "'11:00:00+01'" },
+                { "VARCHAR_IGNORECASE ARRAY", "ARRAY['john smith']", "ARRAY['John Smith']" },
+                { "ROW(NAME VARCHAR_IGNORECASE)", "ROW('john smith')", "ROW('John Smith')" },
+                { "VARCHAR", "'john smith'", "'John Smith'" }
+        };
+        for (boolean unique : new boolean[] { false, true }) {
+            for (String[] c : cases) {
+                testUpdatedIndexValue(c[0], c[1], c[2], unique, null);
+            }
+            testUpdatedIndexValue("VARCHAR", "'john smith'", "'John Smith'", unique,
+                    "SET COLLATION ENGLISH STRENGTH PRIMARY");
+            testUpdatedIndexValue("NUMERIC(10, 2)", "1.0", "1.00", unique, "SET MODE Oracle");
+        }
+    }
+
+    private void testUpdatedCharIndexValue() throws SQLException {
+        deleteDb("index");
+        try (Connection conn = getConnection("index")) {
+            Statement stat = conn.createStatement();
+            stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, V CHAR(4))");
+            stat.execute("CREATE INDEX IDX_V ON TEST(V)");
+            stat.execute("INSERT INTO TEST VALUES (1, 'a')");
+            stat.execute("SET MODE MySQL");
+            stat.execute("ALTER TABLE TEST ALTER COLUMN V SELECTIVITY 1");
+            stat.execute("UPDATE TEST SET V = 'a' WHERE ID = 1");
+            assertIndexValue(stat, "a");
+        }
+        deleteDb("index");
+    }
+
+    private void testUpdatedIndexValue(String type, String original, String updated, boolean unique, String settings)
+            throws SQLException {
+        deleteDb("index");
+        String oldValue;
+        String newValue;
+        try (Connection conn = getConnection("index")) {
+            Statement stat = conn.createStatement();
+            if (settings != null) {
+                stat.execute(settings);
+            }
+            stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, V " + type + ')');
+            stat.execute("CREATE " + (unique ? "UNIQUE " : "") + "INDEX IDX_V ON TEST(V)");
+            stat.execute("INSERT INTO TEST VALUES (1, " + original + ')');
+            stat.execute("ALTER TABLE TEST ALTER COLUMN V SELECTIVITY 1");
+            oldValue = getStringValue(stat, "SELECT V FROM TEST");
+            newValue = getStringValue(stat, "SELECT CAST(" + updated + " AS " + type + ')');
+            assertContains(getStringValue(stat, "EXPLAIN SELECT V FROM TEST USE INDEX(IDX_V) ORDER BY V"), "IDX_V");
+            conn.setAutoCommit(false);
+            try (Connection reader = getConnection("index")) {
+                reader.setTransactionIsolation(Connection.TRANSACTION_REPEATABLE_READ);
+                reader.setAutoCommit(false);
+                Statement readerStat = reader.createStatement();
+                assertIndexValue(readerStat, oldValue);
+                stat.execute("UPDATE TEST SET V = " + updated + " WHERE ID = 1");
+                assertIndexValue(stat, newValue);
+                assertIndexValue(readerStat, oldValue);
+                conn.rollback();
+                assertIndexValue(stat, oldValue);
+                stat.execute("SAVEPOINT S");
+                stat.execute("UPDATE TEST SET V = " + updated + " WHERE ID = 1");
+                stat.execute("ROLLBACK TO SAVEPOINT S");
+                assertIndexValue(stat, oldValue);
+                stat.execute("UPDATE TEST SET V = " + updated + " WHERE ID = 1");
+                conn.commit();
+                assertIndexValue(stat, newValue);
+                assertIndexValue(readerStat, oldValue);
+                reader.commit();
+                assertIndexValue(readerStat, newValue);
+            }
+            conn.setAutoCommit(true);
+            if (unique) {
+                assertThrows(ErrorCode.DUPLICATE_KEY_1, stat).execute("INSERT INTO TEST VALUES (2, " + updated + ')');
+            } else {
+                stat.execute("INSERT INTO TEST VALUES (2, " + original + ')');
+                assertEquals(oldValue, getStringValue(stat, "SELECT V FROM TEST USE INDEX(IDX_V) WHERE ID = 2"));
+                stat.execute("DELETE FROM TEST WHERE ID = 2");
+            }
+            stat.execute("CREATE TABLE COPIED AS SELECT V FROM TEST USE INDEX(IDX_V) ORDER BY V");
+            assertEquals(newValue, getStringValue(stat, "SELECT V FROM COPIED"));
+        }
+        if (!config.memory) {
+            try (Connection conn = getConnection("index")) {
+                Statement stat = conn.createStatement();
+                assertIndexValue(stat, newValue);
+                assertEquals(newValue, getStringValue(stat, "SELECT V FROM COPIED"));
+            }
+        }
+        deleteDb("index");
+    }
+
+    private void assertIndexValue(Statement stat, String expected) throws SQLException {
+        assertEquals(expected, getStringValue(stat, "SELECT V FROM TEST USE INDEX(IDX_V) ORDER BY V"));
+        assertEquals(expected, getStringValue(stat, "SELECT DISTINCT V FROM TEST"));
+        assertEquals(expected, getStringValue(stat,
+                "SELECT PERCENTILE_DISC(0.5) WITHIN GROUP(ORDER BY V) FROM TEST"));
+        assertEquals(expected, getStringValue(stat, "SELECT V FROM TEST USE INDEX()"));
+    }
+
+    private String getStringValue(Statement stat, String sql) throws SQLException {
+        try (ResultSet rs = stat.executeQuery(sql)) {
+            assertTrue(rs.next());
+            String value = rs.getString(1);
+            assertFalse(rs.next());
+            return value;
+        }
     }
 
     private void testOrderIndex() throws SQLException {

@@ -28,8 +28,10 @@ import org.h2.result.Row;
 import org.h2.result.RowFactory;
 import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
+import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.TableFilter;
+import org.h2.value.CompareMode;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
 import org.h2.value.VersionedValue;
@@ -45,10 +47,26 @@ public final class MVSecondaryIndex extends MVIndex<SearchRow, Value> {
     private final MVTable                         mvTable;
     private final TransactionMap<SearchRow,Value> dataMap;
 
+    /**
+     * Whether index keys may contain representations from an earlier row version.
+     */
+    private final boolean readRowValues;
+
     public MVSecondaryIndex(Database db, MVTable table, int id, String indexName,
                 IndexColumn[] columns, int uniqueColumnCount, IndexType indexType) {
         super(table, id, indexName, columns, uniqueColumnCount, indexType);
         this.mvTable = table;
+        boolean readRowValues = false;
+        for (Column column : this.columns) {
+            int type = column.getType().getValueType();
+            if (!org.h2.value.DataType.hasTotalOrdering(type)
+                    && !(type == Value.VARCHAR
+                            && CompareMode.OFF.equals(database.getCompareMode().getName()))) {
+                readRowValues = true;
+                break;
+            }
+        }
+        this.readRowValues = readRowValues;
         if (!database.isStarting()) {
             checkIndexColumnTypes(columns);
         }
@@ -256,7 +274,7 @@ public final class MVSecondaryIndex extends MVIndex<SearchRow, Value> {
     private Cursor find(SessionLocal session, SearchRow first, boolean bigger, SearchRow last, boolean reverse) {
         SearchRow min = convertToKey(first, bigger ^ reverse);
         SearchRow max = convertToKey(last, !reverse);
-        return new MVStoreCursor(session, getMap(session).keyIterator(min, max, reverse), mvTable);
+        return new MVStoreCursor(session, getMap(session).keyIterator(min, max, reverse), this);
     }
 
     private SearchRow convertToKey(SearchRow r, Boolean minMax) {
@@ -275,6 +293,13 @@ public final class MVSecondaryIndex extends MVIndex<SearchRow, Value> {
     @Override
     public MVTable getTable() {
         return mvTable;
+    }
+
+    @Override
+    public boolean canGetColumnValue(Column column) {
+        // Keys are not versioned. An equivalent key may retain a representation
+        // from an earlier row version, so read these values from the primary index.
+        return !readRowValues;
     }
 
     @Override
@@ -381,19 +406,21 @@ public final class MVSecondaryIndex extends MVIndex<SearchRow, Value> {
         private final SessionLocal             session;
         private final TMIterator<SearchRow, Value, SearchRow> it;
         private final MVTable             mvTable;
+        private final boolean             readRowValues;
         private       SearchRow           current;
         private       Row                 row;
 
-        MVStoreCursor(SessionLocal session, TMIterator<SearchRow, Value, SearchRow> it, MVTable mvTable) {
+        MVStoreCursor(SessionLocal session, TMIterator<SearchRow, Value, SearchRow> it, MVSecondaryIndex index) {
             this.session = session;
             this.it = it;
-            this.mvTable = mvTable;
+            this.mvTable = index.mvTable;
+            this.readRowValues = index.readRowValues;
         }
 
         @Override
         public Row get() {
             if (row == null) {
-                SearchRow r = getSearchRow();
+                SearchRow r = current;
                 if (r != null) {
                     row = mvTable.getRow(session, r.getKey());
                 }
@@ -403,7 +430,7 @@ public final class MVSecondaryIndex extends MVIndex<SearchRow, Value> {
 
         @Override
         public SearchRow getSearchRow() {
-            return current;
+            return readRowValues ? get() : current;
         }
 
         @Override

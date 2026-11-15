@@ -16,6 +16,7 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
+import java.util.Comparator;
 
 import org.h2.message.TraceSystem;
 import org.h2.store.FileLister;
@@ -47,6 +48,7 @@ public class TestBigResult extends TestDb {
 
     @Override
     public void test() throws SQLException {
+        testSortPreservesValues();
         testLargeSubquery();
         testSortingAndDistinct();
         testLOB();
@@ -55,6 +57,60 @@ public class TestBigResult extends TestDb {
         testOrderGroup();
         testLimitBufferedResult();
         deleteDb("bigResult");
+    }
+
+    private void testSortPreservesValues() throws SQLException {
+        String[][] cases = {
+                { "VARCHAR_IGNORECASE", "('abc'), ('ABC'), ('Abc'), ('abc'), ('z'), (NULL)" },
+                { "TIMESTAMP WITH TIME ZONE", "('2020-01-01 00:00:00+00'), ('2020-01-01 01:00:00+01'),"
+                        + " ('2019-12-31 23:00:00-01'), ('2020-01-01 00:00:00+00'),"
+                        + " ('2021-01-01 00:00:00+00'), (NULL)" },
+                { "VARCHAR_IGNORECASE ARRAY", "(ARRAY['abc']), (ARRAY['ABC']), (ARRAY['Abc']),"
+                        + " (ARRAY['abc']), (ARRAY['z']), (NULL)" },
+                { "VARCHAR", "('abc'), ('ABC'), ('Abc'), ('abc'), ('z'), (NULL)" }
+        };
+        deleteDb("bigResult");
+        try (Connection conn = getConnection("bigResult")) {
+            Statement stat = conn.createStatement();
+            for (String[] c : cases) {
+                stat.execute("CREATE TABLE TEST(V " + c[0] + ')');
+                stat.execute("INSERT INTO TEST VALUES " + c[1]);
+                ArrayList<String> expected = sortedValues(stat, "SELECT V FROM TEST", 1);
+                stat.execute("SET MAX_MEMORY_ROWS 1000");
+                int distinctCount = sortedValues(stat, "SELECT DISTINCT V FROM TEST ORDER BY V", 1).size();
+                for (int maxRows : new int[] { 1000, 2 }) {
+                    stat.execute("SET MAX_MEMORY_ROWS " + maxRows);
+                    assertEquals(expected.toString(),
+                            sortedValues(stat, "SELECT V FROM TEST ORDER BY V", 1).toString());
+                    assertEquals(expected.toString(),
+                            sortedValues(stat, "SELECT V FROM TEST ORDER BY V DESC NULLS LAST", 1).toString());
+                    assertEquals(expected.toString(),
+                            sortedValues(stat, "SELECT 1, V FROM TEST ORDER BY V", 2).toString());
+                    assertEquals(expected.toString(),
+                            sortedValues(stat, "SELECT V FROM TEST ORDER BY COALESCE(V, V)", 1).toString());
+                    stat.execute("CREATE TABLE COPIED AS SELECT V FROM TEST ORDER BY V");
+                    assertEquals(expected.toString(), sortedValues(stat, "SELECT V FROM COPIED", 1).toString());
+                    assertEquals(distinctCount,
+                            sortedValues(stat, "SELECT DISTINCT V FROM TEST ORDER BY V", 1).size());
+                    assertEquals(distinctCount,
+                            sortedValues(stat, "SELECT DISTINCT ON(V) V FROM TEST ORDER BY V", 1).size());
+                    stat.execute("DROP TABLE COPIED");
+                }
+                stat.execute("DROP TABLE TEST");
+            }
+        }
+        deleteDb("bigResult");
+    }
+
+    private static ArrayList<String> sortedValues(Statement stat, String sql, int column) throws SQLException {
+        ArrayList<String> values = new ArrayList<>();
+        try (ResultSet rs = stat.executeQuery(sql)) {
+            while (rs.next()) {
+                values.add(rs.getString(column));
+            }
+        }
+        values.sort(Comparator.nullsFirst(Comparator.naturalOrder()));
+        return values;
     }
 
     private void testLargeSubquery() throws SQLException {

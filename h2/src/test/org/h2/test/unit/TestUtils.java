@@ -10,13 +10,19 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.io.StringReader;
+import java.lang.reflect.Method;
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Random;
 
 import org.h2.test.TestBase;
 import org.h2.util.IOUtils;
+import org.h2.util.SourceCompiler;
 import org.h2.util.Utils;
 
 /**
@@ -48,6 +54,7 @@ public class TestUtils extends TestBase {
         testGetNonPrimitiveClass();
         testReflectionUtils();
         testParseBoolean();
+        testSourceCompilerTempDir();
     }
 
     private void testIOUtils() throws IOException {
@@ -214,6 +221,26 @@ public class TestUtils extends TestBase {
         assertTrue(Utils.parseBoolean("BAD", true, false));
         assertThrows(IllegalArgumentException.class, () -> Utils.parseBoolean("BAD", false, true));
         assertThrows(IllegalArgumentException.class, () -> Utils.parseBoolean("BAD", true, true));
+    }
+
+    private void testSourceCompilerTempDir() throws Exception {
+        String className = "TestUtilsTempDir";
+        Path dir = Paths.get(System.getProperty("java.io.tmpdir"), "org", "h2", "dynamic");
+        Path javaFile = dir.resolve(className + ".java");
+        Files.createDirectories(dir);
+        Files.write(javaFile, "original".getBytes(StandardCharsets.UTF_8));
+        try {
+            SourceCompiler compiler = new SourceCompiler();
+            compiler.setJavaSystemCompiler(false);
+            compiler.setSource("org.h2.dynamic." + className, "int test() { return 42; }");
+            Method m = compiler.getMethod("org.h2.dynamic." + className);
+            assertEquals(42, ((Integer) m.invoke(null)).intValue());
+            // the shared temporary directory must not be used for compilation
+            assertTrue(Files.exists(javaFile));
+            assertEquals("original", new String(Files.readAllBytes(javaFile), StandardCharsets.UTF_8));
+        } finally {
+            Files.deleteIfExists(javaFile);
+        }
     }
 
 }

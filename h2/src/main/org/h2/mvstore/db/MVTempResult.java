@@ -50,7 +50,7 @@ public abstract class MVTempResult implements ResultExternal {
         }
 
         @Override
-        public void close() throws Exception {
+        public void close() {
             store.closeImmediately();
             FileUtils.tryDelete(fileName);
         }

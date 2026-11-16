@@ -130,7 +130,7 @@ class MVSortedTempResult extends MVTempResult {
         if (sort != null) {
             /*
              * If sorting is specified we need to reorder columns in requested order and set
-             * sort types (ASC, DESC etc) for them properly.
+             * sort types (ASC, DESC etc.) for them properly.
              */
             indexes = new int[resultColumnCount];
             int[] colIndex = sort.getQueryColumnIndexes();
@@ -267,7 +267,7 @@ class MVSortedTempResult extends MVTempResult {
             // Try to set counter to 1 first if such row does not exist yet
             Long old = map.putIfAbsent(key, 1L);
             if (old != null) {
-                // This rows is already in the map, increment its own counter
+                // This row is already in the map, increment its own counter
                 map.put(key, old + 1);
             }
             rowCount++;

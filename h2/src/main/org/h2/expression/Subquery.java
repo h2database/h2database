@@ -36,8 +36,19 @@ public final class Subquery extends Expression {
 
     private HashSet<ColumnResolver> outerResolvers = new HashSet<>();
 
+    private boolean allRows;
+
     public Subquery(Query query) {
         this.query = query;
+    }
+
+    /**
+     * Marks this subquery as one whose rows are all read with
+     * {@link #getAllRows(SessionLocal)}, so a constant query is not replaced
+     * with its only value.
+     */
+    public void setAllRows() {
+        allRows = true;
     }
 
     @Override
@@ -98,7 +109,7 @@ public final class Subquery extends Expression {
     @Override
     public Expression optimize(SessionLocal session) {
         query.prepare();
-        if (query.isConstantQuery()) {
+        if (!allRows && query.isConstantQuery()) {
             setType();
             return ValueExpression.get(getValue(session));
         }
@@ -175,7 +186,7 @@ public final class Subquery extends Expression {
 
     @Override
     public boolean isConstant() {
-        return query.isConstantQuery();
+        return !allRows && query.isConstantQuery();
     }
 
 }

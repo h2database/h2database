@@ -26,10 +26,26 @@ public class MetaIndex extends Index {
     private final MetaTable meta;
     private final boolean scan;
 
+    private final boolean lookup;
+
     public MetaIndex(MetaTable meta, IndexColumn[] columns, boolean scan) {
+        this(meta, columns, scan, false);
+    }
+
+    /**
+     * Create a meta index.
+     *
+     * @param meta the meta table
+     * @param columns the index columns
+     * @param scan whether this is the scan index
+     * @param lookup whether the table generates the rows for a value of the
+     *            index column without walking all objects
+     */
+    public MetaIndex(MetaTable meta, IndexColumn[] columns, boolean scan, boolean lookup) {
         super(meta, 0, null, columns, 0, IndexType.createNonUnique(true));
         this.meta = meta;
         this.scan = scan;
+        this.lookup = lookup;
     }
 
     @Override
@@ -60,6 +76,11 @@ public class MetaIndex extends Index {
             AllColumnsForPlan allColumnsSet, boolean isSelectCommand) {
         if (scan) {
             return 10 * MetaTable.ROW_COUNT_APPROXIMATION;
+        }
+        if (!lookup) {
+            // The generator walks all objects and only skips the rows of other
+            // values, a lookup costs nearly as much as a scan
+            return 10 * MetaTable.ROW_COUNT_APPROXIMATION - 1;
         }
         return getCostRangeIndex(masks, MetaTable.ROW_COUNT_APPROXIMATION,
                 filters, filter, sortOrder, false, allColumnsSet, isSelectCommand);

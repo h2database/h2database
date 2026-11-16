@@ -109,6 +109,28 @@ SELECT CAST((1, 2.1) AS ROW(A INT, B INT));
 SELECT CAST((1, 2.1) AS ROW(A INT, B INT, C INT));
 > exception DATA_CONVERSION_ERROR_1
 
+SELECT CAST(('1', 2.75) AS ROW(A INT, B NUMERIC(5, 2)));
+>> ROW (1, 2.75)
+
+SELECT CAST(('1', 2.75, 'a') AS ROW(A INT, B NUMERIC(5, 2), C VARCHAR));
+>> ROW (1, 2.75, a)
+
+CREATE TABLE TEST(ID INT, POS ROW(QTY INT, PRICE NUMERIC(10, 2)), R ROW(E ENUM('x', 'y'), N INT));
+> ok
+
+INSERT INTO TEST VALUES (1, ROW(CAST(3 AS BIGINT), 19.99), ROW('y', 1)), (2, ROW('4', 0.5), ROW('x', 7));
+> update count: 2
+
+TABLE TEST;
+> ID POS            R
+> -- -------------- ----------
+> 1  ROW (3, 19.99) ROW (y, 1)
+> 2  ROW (4, 0.50)  ROW (x, 7)
+> rows: 2
+
+DROP TABLE TEST;
+> ok
+
 SELECT CAST(1 AS ROW(V INT));
 >> ROW (1)
 

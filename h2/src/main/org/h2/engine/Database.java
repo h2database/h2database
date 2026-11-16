@@ -1236,6 +1236,7 @@ public final class Database implements DataHandler, CastDataProvider {
                 }
             }
         }
+        DbException failure = null;
         try {
             try {
                 if (systemSession != null) {
@@ -1279,6 +1280,11 @@ public final class Database implements DataHandler, CastDataProvider {
                 closeOpenFilesAndUnlock();
             } catch (DbException | MVStoreException e) {
                 trace.error(e, "close");
+                if (compactMode == CommandInterface.SHUTDOWN_COMPACT
+                        || compactMode == CommandInterface.SHUTDOWN_DEFRAG) {
+                    // the requested compaction may have failed, report it after closing
+                    failure = DbException.convert(e);
+                }
             }
             trace.info("closed");
             traceSystem.close();
@@ -1295,6 +1301,9 @@ public final class Database implements DataHandler, CastDataProvider {
             }
         } finally {
             Engine.close(databaseName);
+        }
+        if (failure != null) {
+            throw failure;
         }
     }
 

@@ -3756,6 +3756,8 @@ When the next value is requested the sequence is incremented and the current val
 and the last identity in the current session are updated with the generated value.
 The next value of the sequence is generated only once for each processed row.
 If this expression is used multiple times with the same sequence it returns the same value within a processed row.
+The next value may not be requested in a grouped query, except in compatibility modes where it returns
+different values for each invocation.
 Used values are never re-used, even when the transaction is rolled back.
 
 Current value may only be requested after generation of the sequence value in the current session.

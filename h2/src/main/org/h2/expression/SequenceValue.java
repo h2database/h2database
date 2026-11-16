@@ -6,7 +6,9 @@
 package org.h2.expression;
 
 import org.h2.command.Prepared;
+import org.h2.command.query.Select;
 import org.h2.engine.SessionLocal;
+import org.h2.message.DbException;
 import org.h2.schema.Sequence;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
@@ -46,6 +48,15 @@ public final class SequenceValue extends Operation0 {
         this.sequence = sequence;
         current = true;
         prepared = null;
+    }
+
+    @Override
+    public Expression optimize(SessionLocal session) {
+        if (prepared instanceof Select && ((Select) prepared).isGroupQuery()
+                && !session.getMode().nextValueReturnsDifferentValues) {
+            throw DbException.getUnsupportedException("NEXT VALUE FOR in a grouped query");
+        }
+        return this;
     }
 
     @Override

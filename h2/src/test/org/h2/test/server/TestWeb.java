@@ -8,10 +8,13 @@ package org.h2.test.server;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.ConnectException;
+import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.security.Principal;
 import java.sql.Connection;
@@ -77,6 +80,7 @@ public class TestWeb extends TestDb {
         testAlreadyRunning();
         testStartWebServerWithConnection();
         testServer();
+        testHostHeader();
         testWebApp();
         testAdminSessionsEscaped();
         testIfExists();
@@ -273,6 +277,32 @@ public class TestWeb extends TestDb {
         server = Server.createTcpServer("-tcpPort", "9101");
         server.start();
         server.stop();
+    }
+
+    private void testHostHeader() throws Exception {
+        Server server = Server.createWebServer("-webPort", "8182", "-properties", "null");
+        server.start();
+        try {
+            assertEquals("HTTP/1.1 200 OK", getStatusLine("localhost:8182", null));
+            // DNS rebinding: foreign Host header
+            assertEquals("HTTP/1.1 404 Not Found", getStatusLine("attacker.example:8182", null));
+            // a header whose name only starts with "host" must not replace it
+            assertEquals("HTTP/1.1 404 Not Found", getStatusLine("attacker.example:8182", "Hostname: localhost"));
+        } finally {
+            server.stop();
+        }
+    }
+
+    private static String getStatusLine(String host, String extraHeader) throws IOException {
+        try (Socket socket = new Socket("localhost", 8182)) {
+            OutputStream out = socket.getOutputStream();
+            out.write(("GET /index.html HTTP/1.1\r\nHost: " + host + "\r\n"
+                    + (extraHeader != null ? extraHeader + "\r\n" : "") + "\r\n")
+                    .getBytes(StandardCharsets.ISO_8859_1));
+            out.flush();
+            return new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.ISO_8859_1))
+                    .readLine();
+        }
     }
 
     private void testIfExists() throws Exception {

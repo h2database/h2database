@@ -184,7 +184,7 @@ public abstract class FileStore<C extends Chunk<C>>
 
     /**
      * Identifier of the last created chunk.
-     * It is different from {@link #lastChunk.id}, because process is pipelined -
+     * It is different from {@link #lastChunk}.id, because process is pipelined -
      * chunk creation / serialization and space allocation / save are handled
      * by two dedicated threads, therefore more than one chunk might be in that pipeline.
      */
@@ -399,8 +399,9 @@ public abstract class FileStore<C extends Chunk<C>>
     }
 
     /**
-     * How long to retain old, persisted chunks, in milliseconds. Chunks that
-     * are older may be overwritten once they contain no live data.
+     * How long to retain old, persisted chunks, in milliseconds. A chunk that
+     * contains no live data may be overwritten once it has been unused for
+     * this time.
      * <p>
      * The default value is 45000 (45 seconds) when using the default file
      * store. It is assumed that a file system and hard disk will flush all
@@ -690,7 +691,7 @@ public abstract class FileStore<C extends Chunk<C>>
                     // if chunk is not allocated yet, let's postpone the whole reclamation process,
                     // until it is allocated and can be safely dropped
                     (chunk.isAllocated() &&
-                    isSeasonedChunk(chunk, time) &&
+                    isUnusedForRetentionTime(chunk, time) &&
                     canOverwriteChunk(chunk, oldestVersionToKeep) ||
                             // if chunk is not ready yet, put it back and exit
                             // since this deque is unbounded, offerFirst() always return true
@@ -730,6 +731,15 @@ public abstract class FileStore<C extends Chunk<C>>
     private boolean isSeasonedChunk(C chunk, long time) {
         int retentionTime = getRetentionTime();
         return retentionTime < 0 || chunk.time + retentionTime <= time;
+    }
+
+    /**
+     * The chunks written since this chunk became unused have to be on disk
+     * before its space is overwritten, so the retention time counts from that moment.
+     */
+    private boolean isUnusedForRetentionTime(C chunk, long time) {
+        int retentionTime = getRetentionTime();
+        return retentionTime < 0 || chunk.unused + retentionTime <= time;
     }
 
     private boolean isRewritable(C chunk, long time) {
@@ -860,16 +870,12 @@ public abstract class FileStore<C extends Chunk<C>>
      * Updates chunk's serialized metadata within corresponding entry in a layout map.
      * Key for this entry would be "chunk.&lt;id&gt;"
      *
-     * @param chunk to save
+     * @param chunk to save metadata for
      */
     protected final void saveChunkMetadataChanges(C chunk) {
         assert serializationLock.isHeldByCurrentThread();
-
-        // chunk's location need to be determined before it's metadata can be is serialized
-        if (chunk.isAllocated()) {
-            int chunkId = chunk.id;
-            layout.operate(Chunk.getMetaKey(chunkId), chunk.asString(), new LayoutDecisionMaker(chunkId));
-        }
+        int chunkId = chunk.id;
+        layout.operate(Chunk.getMetaKey(chunkId), chunk.asString(), new LayoutDecisionMaker(chunkId));
     }
 
     /**
@@ -1071,6 +1077,12 @@ public abstract class FileStore<C extends Chunk<C>>
                             // used here as is, re-point our chunk to original
                             // location instead.
                             c.block = test.block;
+                            // another case might be that chunk metadata saved in the layout map is incomplete,
+                            // if it was saved before the chunk space was allocated and chunk was fully written,
+                            // so we need to copy missing static metadata from the original chunk header
+                            c.len = test.len;
+                            c.mapId = test.mapId;
+                            c.layoutRootPos = test.layoutRootPos;
                         } else if (c.isLive() && (afterFullScan || readChunkHeaderAndFooter(c.block, c.id) == null)) {
                             // chunk reference is invalid
                             // this "last chunk" candidate is not suitable
@@ -1139,8 +1151,8 @@ public abstract class FileStore<C extends Chunk<C>>
 
     private Iterable<C> getChunksFromLayoutMap(MVMap<String, String> layoutMap) {
         // It is "chicken and egg" problem on store opening - in order to figure out existing chunks
-        // we need to read layout map and for that we need metadata about chunks map's pages resides in,
-        // so StackOverflowException is always looming here, and good solution is due.
+        // we need to read layout map and for that we need metadata about chunks map's pages resides in.
+        // StackOverflowException is always looming here, and good solution is due.
         // For now, we just reverse iterator so latest chunks will come first (mostly).
         return () -> new Iterator<>() {
             private final Cursor<String, String> cursor =
@@ -1434,8 +1446,13 @@ public abstract class FileStore<C extends Chunk<C>>
     final void storeIt(ArrayList<Page<?,?>> changed, long version, boolean syncWrite) throws ExecutionException {
         lastCommitTime = getTimeSinceCreation();
         mvStore.onVersionChange(version);
+        // register version usage to prevent store from letting this version go until we finish serializing the chunk.
+        // Otherwise, some already closed map, might be removed prematurely.
+        // If this map is still referenced by some undo log, and undo log contains a page to be saved within
+        // this newly created chunk, map existence is vital for serialization to succeed.
+        MVStore.TxCounter txCounter = mvStore.registerVersionUsage();
         submitOrRun(serializationExecutor,
-                () -> serializeAndStore(syncWrite, changed, lastCommitTime, version),
+                () -> serializeAndStore(syncWrite, changed, lastCommitTime, txCounter),
                 syncWrite, PIPE_LENGTH);
     }
 
@@ -1458,7 +1475,7 @@ public abstract class FileStore<C extends Chunk<C>>
     }
 
 
-    private void serializeAndStore(boolean syncRun, ArrayList<Page<?,?>> changed, long time, long version) {
+    private void serializeAndStore(boolean syncRun, ArrayList<Page<?,?>> changed, long time, MVStore.TxCounter txCounter) {
         serializationLock.lock();
         try {
             int chunkId = lastChunkId;
@@ -1472,10 +1489,12 @@ public abstract class FileStore<C extends Chunk<C>>
             C c;
             WriteBuffer buff;
             try {
-                c = createChunk(time, version);
+                c = createChunk(time, txCounter.version);
                 chunks.put(c.id, c);
                 buff = getWriteBuffer();
                 serializeToBuffer(buff, changed, c);
+                // now we can let this version go, since chunk serialization is done
+                mvStore.deregisterVersionUsage(txCounter);
             } catch (Throwable t) {
                 lastChunkId = chunkId;
                 throw t;
@@ -1526,11 +1545,17 @@ public abstract class FileStore<C extends Chunk<C>>
 
         acceptChunkOccupancyChanges(c.time, version);
 
-        // metadata of some recent chunks has not been saved in the layout map yet,
-        // just was embedded into the chunk itself, and this need to be done now
-        // (it's better not to update right after storing,
-        // because that would modify the layout map again)
+        // Complete metadata of some recent chunks has not been saved in the layout map yet,
+        // but was just embedded into the chunk itself.
+        // This need to be done now, while the serialization lock is held.
         saveRecentChunksInLayout(version);
+
+        // even though we do not have a complete set of metadata for this chunk yet,
+        // we save it in the layout map, just to signify this chunk existence
+        // for the recovery procedure, in case of a failure soon after this point
+        saveChunkMetadataChanges(c);
+        // missing metadata pieces will be populated in layout map after the chunk is fully written to the store
+        // and then persisted later, within the next written chunk
 
         RootReference<String,String> layoutRootReference = layout.setWriteVersion(version);
         assert layoutRootReference != null;
@@ -1811,7 +1836,7 @@ public abstract class FileStore<C extends Chunk<C>>
     @SuppressWarnings("ThreadJoinLoop")
     private void stopBackgroundThread(boolean waitForIt) {
         // Loop here is not strictly necessary, except for case of a spurious failure,
-        // which should not happen with non-weak flavour of CAS operation,
+        // which should not happen with non-weak flavor of CAS operation,
         // but I've seen it, so just to be safe...
         BackgroundWriterThread t;
         while ((t = backgroundWriterThread.get()) != null) {

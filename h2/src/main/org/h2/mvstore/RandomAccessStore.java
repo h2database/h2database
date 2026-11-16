@@ -288,7 +288,7 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
                         validChunksByLocation.put(test.block, test);
                     }
                 }
-            } catch(IllegalStateException ignored) {
+            } catch (IllegalStateException | AssertionError ignored) {
                 assumeCleanShutdown = false;
             }
         } else {

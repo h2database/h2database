@@ -20,7 +20,6 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.security.SecureClassLoader;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -47,6 +46,7 @@ import javax.tools.ToolProvider;
 import org.h2.api.ErrorCode;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
+import org.h2.store.fs.FileUtils;
 
 /**
  * This class allows to convert source code to a class. It uses one class loader
@@ -60,9 +60,6 @@ public class SourceCompiler {
     static final JavaCompiler JAVA_COMPILER;
 
     private static final Class<?> JAVAC_SUN;
-
-    private static final String COMPILE_DIR =
-            Utils.getProperty("java.io.tmpdir", ".");
 
     /**
      * The class name to source code map.
@@ -266,35 +263,33 @@ public class SourceCompiler {
      * @return the class file
      */
     byte[] javacCompile(String packageName, String className, String source) {
-        Path dir = Paths.get(COMPILE_DIR);
-        if (packageName != null) {
-            dir = dir.resolve(packageName.replace('.', '/'));
-            try {
-                Files.createDirectories(dir);
-            } catch (Exception e) {
-                throw DbException.convert(e);
-            }
-        }
-        Path javaFile = dir.resolve(className + ".java");
-        Path classFile = dir.resolve(className + ".class");
+        // a private directory, other users must not be able to
+        // replace the source or class file during compilation
+        Path compileDir;
         try {
+            compileDir = Files.createTempDirectory("h2javac");
+        } catch (IOException e) {
+            throw DbException.convert(e);
+        }
+        try {
+            Path dir = compileDir;
+            if (packageName != null) {
+                dir = dir.resolve(packageName.replace('.', '/'));
+                Files.createDirectories(dir);
+            }
+            Path javaFile = dir.resolve(className + ".java");
+            Path classFile = dir.resolve(className + ".class");
             Files.write(javaFile, source.getBytes(StandardCharsets.UTF_8));
-            Files.deleteIfExists(classFile);
             if (JAVAC_SUN != null) {
-                javacSun(javaFile);
+                javacSun(compileDir, javaFile);
             } else {
-                javacProcess(javaFile);
+                javacProcess(compileDir, javaFile);
             }
             return Files.readAllBytes(classFile);
         } catch (Exception e) {
             throw DbException.convert(e);
         } finally {
-            try {
-                Files.deleteIfExists(javaFile);
-            } catch (IOException e) {/**/}
-            try {
-                Files.deleteIfExists(classFile);
-            } catch (IOException e) {/**/}
+            FileUtils.deleteRecursive(compileDir.toString(), true);
         }
     }
 
@@ -356,22 +351,23 @@ public class SourceCompiler {
                         null, compilationUnits).call();
             }
             String output = writer.toString();
-            handleSyntaxError(output, (ok? 0: 1));
+            handleSyntaxError(output, (ok? 0: 1), null);
             return fileManager.getClassLoader(null).loadClass(fullClassName);
         } catch (ClassNotFoundException | IOException e) {
             throw DbException.convert(e);
         }
     }
 
-    private static void javacProcess(Path javaFile) {
-        exec("javac",
-                "-sourcepath", COMPILE_DIR,
-                "-d", COMPILE_DIR,
+    private static void javacProcess(Path compileDir, Path javaFile) {
+        String dir = compileDir.toString();
+        exec(compileDir, "javac",
+                "-sourcepath", dir,
+                "-d", dir,
                 "-encoding", "UTF-8",
                 javaFile.toAbsolutePath().toString());
     }
 
-    private static int exec(String... args) {
+    private static int exec(Path compileDir, String... args) {
         ByteArrayOutputStream buff = new ByteArrayOutputStream();
         try {
             ProcessBuilder builder = new ProcessBuilder();
@@ -387,7 +383,7 @@ public class SourceCompiler {
             copyInThread(p.getErrorStream(), buff);
             p.waitFor();
             String output = buff.toString(StandardCharsets.UTF_8);
-            handleSyntaxError(output, p.exitValue());
+            handleSyntaxError(output, p.exitValue(), compileDir);
             return p.exitValue();
         } catch (Exception e) {
             throw DbException.convert(e);
@@ -403,7 +399,7 @@ public class SourceCompiler {
         }.execute();
     }
 
-    private static synchronized void javacSun(Path javaFile) {
+    private static synchronized void javacSun(Path compileDir, Path javaFile) {
         PrintStream old = System.err;
         ByteArrayOutputStream buff = new ByteArrayOutputStream();
         try {
@@ -414,14 +410,15 @@ public class SourceCompiler {
             // Bugfix: Here we should check exit status value instead of parsing javac output text.
             // Because of the output text is different in different locale environment.
             // @since 2018-07-20 little-pan
+            String dir = compileDir.toString();
             final Integer status = (Integer)compile.invoke(javac, (Object) new String[] {
-                    "-sourcepath", COMPILE_DIR,
+                    "-sourcepath", dir,
                     // "-Xlint:unchecked",
-                    "-d", COMPILE_DIR,
+                    "-d", dir,
                     "-encoding", "UTF-8",
                     javaFile.toAbsolutePath().toString() });
             String output = buff.toString(StandardCharsets.UTF_8);
-            handleSyntaxError(output, status);
+            handleSyntaxError(output, status, compileDir);
         } catch (Exception e) {
             throw DbException.convert(e);
         } finally {
@@ -429,7 +426,7 @@ public class SourceCompiler {
         }
     }
 
-    private static void handleSyntaxError(String output, int exitStatus) {
+    private static void handleSyntaxError(String output, int exitStatus, Path compileDir) {
         if(0 == exitStatus){
             return;
         }
@@ -452,7 +449,9 @@ public class SourceCompiler {
         }
 
         if (syntaxError) {
-            output = StringUtils.replaceAll(output, COMPILE_DIR, "");
+            if (compileDir != null) {
+                output = StringUtils.replaceAll(output, compileDir.toString(), "");
+            }
             throw DbException.get(ErrorCode.SYNTAX_ERROR_1, output);
         }
     }

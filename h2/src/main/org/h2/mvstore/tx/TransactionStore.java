@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.atomic.AtomicReferenceArray;
 import org.h2.engine.IsolationLevel;
@@ -96,6 +97,13 @@ public class TransactionStore implements AutoCloseable
     final AtomicReference<VersionedBitSet> committingTransactions = new AtomicReference<>(new VersionedBitSet());
 
     private final AtomicInteger state = new AtomicInteger(OPEN);
+
+    /**
+     * Counter of rollbacks, incremented after the undo of each rollback.
+     * Used by waiting transactions to detect rollbacks of the blocking
+     * transaction made after they have read the blocked entry.
+     */
+    final AtomicLong rollbackCounter = new AtomicLong();
 
     /**
      * Soft limit on the number of concurrently opened transactions.
@@ -251,8 +259,9 @@ public class TransactionStore implements AutoCloseable
                                         assert lastUndoKey == null || getTransactionId(lastUndoKey) == transactionId;
                                         logId = lastUndoKey == null ? 0 : getLogId(lastUndoKey) + 1;
                                     }
-                                    Transaction transaction = new Transaction(null, transactionId, commitOrder,
-                                                                                status, name, logId, 1, 0, null, null);
+                                    Transaction transaction =
+                                                    new Transaction(null, transactionId, commitOrder,
+                                                                    status, name, logId, 1, 0, null, null, null);
                                     leftoverTransactions.add(transaction);
                                     continue;
                                 } catch (Throwable ignore) {
@@ -504,8 +513,8 @@ public class TransactionStore implements AutoCloseable
         assert !committingTransactions.get().get(transactionId);
 
         Transaction transaction = new Transaction(this, transactionId, sequenceNo, status, name, logId,
-                timeoutMillis, ownerId, isolationLevel, listener);
-
+                                                    timeoutMillis, ownerId, isolationLevel, listener,
+                                                    store.isVersioningRequired() ? store.registerVersionUsage() : null);
         assert transactions.get(transactionId) == null;
         transactions.set(transactionId, transaction);
 
@@ -830,6 +839,7 @@ public class TransactionStore implements AutoCloseable
             undoLog.operate(undoKey, null, decisionMaker);
             decisionMaker.reset();
         }
+        t.lastRollback = rollbackCounter.incrementAndGet();
         t.notifyAllWaitingTransactions();
     }
 

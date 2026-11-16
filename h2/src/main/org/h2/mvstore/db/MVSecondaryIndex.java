@@ -7,7 +7,6 @@ package org.h2.mvstore.db;
 
 import java.util.Iterator;
 import java.util.List;
-import java.util.Objects;
 import java.util.PriorityQueue;
 import java.util.Queue;
 import org.h2.api.ErrorCode;

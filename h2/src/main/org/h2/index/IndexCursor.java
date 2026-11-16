@@ -132,6 +132,10 @@ public class IndexCursor implements Cursor {
             }
             default:
                 Value v = condition.getCurrentValue(s);
+                if (!IndexCondition.isSafeValue(column, v)) {
+                    // Not usable for this lookup, the condition is still checked for each row
+                    break;
+                }
                 boolean isStart = condition.isStart();
                 boolean isEnd = condition.isEnd();
                 boolean isIntersects = condition.isSpatialIntersects();
@@ -166,10 +170,13 @@ public class IndexCursor implements Cursor {
             // A compound IN(..) condition covers all index columns, it is only used alone.
             if (start == null && end == null) {
                 Column[] columns = compoundInCondition.getColumns();
-                inColumn = columns;
-                inList = compoundInCondition.getCurrentValueList(s, buildSortTypes(columns));
-                inListIndex = 0;
-                start = table.getTemplateRow();
+                Value[] list = compoundInCondition.getCurrentValueList(s, buildSortTypes(columns));
+                if (list != null) {
+                    inColumn = columns;
+                    inList = list;
+                    inListIndex = 0;
+                    start = table.getTemplateRow();
+                }
             }
         } else if (inCondition != null) {
             prepareIn(s, inCondition, inColumnPosition, indexConditions);
@@ -192,14 +199,18 @@ public class IndexCursor implements Cursor {
             // An X=? condition will produce less rows than an X IN(..) condition.
             return;
         }
-        inColumn = column;
         int[] sortTypes = buildSortTypes(position);
         if (condition.getCompareType() == Comparison.IN_QUERY) {
             inResult = condition.getCurrentResult(s, sortTypes);
         } else {
-            inList = condition.getCurrentValueList(s, sortTypes);
+            Value[] list = condition.getCurrentValueList(s, sortTypes);
+            if (list == null) {
+                return;
+            }
+            inList = list;
             inListIndex = 0;
         }
+        inColumn = column;
         if (start == null) {
             start = table.getTemplateRow();
         }

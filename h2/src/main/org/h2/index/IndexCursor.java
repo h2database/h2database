@@ -276,6 +276,7 @@ public class IndexCursor implements Cursor {
      * @param indexConditions the index conditions
      */
     public void find(SessionLocal s, ArrayList<IndexCondition> indexConditions) {
+        cursor = null;
         prepare(s, indexConditions);
         if (inColumn != null) {
             return;

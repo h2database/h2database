@@ -739,14 +739,21 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
             HashSet<Table> tablesToAnalyzeLocal = tablesToAnalyze;
             tablesToAnalyze = null;
             int rowCount = getDatabase().getSettings().analyzeSample / 10;
-            for (Table table : tablesToAnalyzeLocal) {
-                Analyze.analyzeTable(this, table, rowCount, false);
+            try {
+                for (Table table : tablesToAnalyzeLocal) {
+                    Analyze.analyzeTable(this, table, rowCount, false);
+                }
+                // table analysis opens a new transaction(s),
+                // so we need to commit afterward whatever leftovers might be
+                commit(true);
+            } catch (Throwable t) {
+                // failure is ignored, since it is an optional operation
+                getTrace().error(t, "Error analyzing tables");
+                rollback();
+            } finally {
+                // analyze can lock the meta
+                getDatabase().unlockMeta(this);
             }
-            // analyze can lock the meta
-            getDatabase().unlockMeta(this);
-            // table analysis opens a new transaction(s),
-            // so we need to commit afterward whatever leftovers might be
-            commit(true);
         }
     }
 

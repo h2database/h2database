@@ -1658,6 +1658,20 @@ public class TestResultSet extends TestDb {
         assertEquals("INTERVAL '-3.1' SECOND", rs.getString(1));
         assertEquals(Duration.ofSeconds(-4, 900_000_000), rs.getObject(1, Duration.class));
         assertThrows(ErrorCode.DATA_CONVERSION_ERROR_1, rs).getObject(1, Period.class);
+
+        rs = stat.executeQuery("CALL INTERVAL '-2:30' HOUR TO MINUTE");
+        rs.next();
+        assertEquals("INTERVAL '-2:30' HOUR TO MINUTE", rs.getString(1));
+        Interval negative = (Interval) rs.getObject(1);
+        assertTrue(negative.isNegative());
+        assertEquals(negative, rs.getObject(1, Interval.class));
+
+        rs = stat.executeQuery("CALL INTERVAL '-1 00:00:00.5' DAY TO SECOND");
+        rs.next();
+        assertEquals("INTERVAL '-1 00:00:00.5' DAY TO SECOND", rs.getString(1));
+        negative = (Interval) rs.getObject(1);
+        assertTrue(negative.isNegative());
+        assertEquals(negative, rs.getObject(1, Interval.class));
     }
 
     private void testBlob() throws SQLException {

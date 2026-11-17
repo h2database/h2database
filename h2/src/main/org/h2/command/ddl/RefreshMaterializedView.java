@@ -6,9 +6,11 @@
 package org.h2.command.ddl;
 
 import org.h2.command.CommandInterface;
+import org.h2.engine.Right;
 import org.h2.engine.SessionLocal;
 import org.h2.schema.Schema;
 import org.h2.table.MaterializedView;
+import org.h2.table.Table;
 
 /**
  * This class represents the statement REFRESH MATERIALIZED VIEW
@@ -27,6 +29,11 @@ public class RefreshMaterializedView extends SchemaOwnerCommand {
 
     @Override
     long update(Schema schema) {
+        // Owning the view's schema does not grant any right on the base tables,
+        // so re-check SELECT on each of them as CREATE MATERIALIZED VIEW did.
+        for (Table t : view.getSelect().getTables()) {
+            session.getUser().checkTableRight(t, Right.SELECT);
+        }
         // Re-use logic from the existing code for TRUNCATE and CREATE TABLE
 
         TruncateTable truncate = new TruncateTable(session);

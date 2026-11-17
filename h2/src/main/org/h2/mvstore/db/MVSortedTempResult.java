@@ -21,6 +21,7 @@ import org.h2.result.RowFactory.DefaultRowFactory;
 import org.h2.result.SortOrder;
 import org.h2.value.TypeInfo;
 import org.h2.value.Value;
+import org.h2.value.ValueInteger;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueRow;
 
@@ -48,6 +49,12 @@ class MVSortedTempResult extends MVTempResult {
      * if columns are not reordered.
      */
     private final int[] indexes;
+
+    /**
+     * Whether rows need a sequence number to preserve comparison-equivalent
+     * values with different representations.
+     */
+    private final boolean preserveRowValues;
 
     /**
      * Map with rows as keys and counts of duplicate rows as values. If this map is
@@ -96,6 +103,7 @@ class MVSortedTempResult extends MVTempResult {
         this.distinct = parent.distinct;
         this.distinctIndexes = parent.distinctIndexes;
         this.indexes = parent.indexes;
+        this.preserveRowValues = parent.preserveRowValues;
         this.map = parent.map;
         this.rowCount = parent.rowCount;
     }
@@ -125,7 +133,18 @@ class MVSortedTempResult extends MVTempResult {
         super(database, expressions, visibleColumnCount, resultColumnCount);
         this.distinct = distinct;
         this.distinctIndexes = distinctIndexes;
-        int[] sortTypes = new int[resultColumnCount];
+        boolean preserveRowValues = false;
+        if (!distinct && distinctIndexes == null) {
+            for (Expression expression : expressions) {
+                if (!org.h2.value.DataType.hasTotalOrdering(expression.getType().getValueType())) {
+                    preserveRowValues = true;
+                    break;
+                }
+            }
+        }
+        this.preserveRowValues = preserveRowValues;
+        int keyColumnCount = resultColumnCount + (preserveRowValues ? 1 : 0);
+        int[] sortTypes = new int[keyColumnCount];
         int[] indexes;
         if (sort != null) {
             /*
@@ -179,40 +198,37 @@ class MVSortedTempResult extends MVTempResult {
         }
         this.indexes = indexes;
         ValueDataType keyType = new ValueDataType(database, SortOrder.addNullOrdering(database, sortTypes));
-        if (indexes != null) {
-            int l = indexes.length;
-            TypeInfo[] types = new TypeInfo[l];
-            for (int i = 0; i < l; i++) {
-                types[i] = expressions[indexes[i]].getType();
-            }
-            keyType.setRowFactory(DefaultRowFactory.INSTANCE.createRowFactory(database, database.getCompareMode(),
-                    database, types, null, false));
-        } else {
-            keyType.setRowFactory(DefaultRowFactory.INSTANCE.createRowFactory(database, database.getCompareMode(),
-                    database, expressions, null, false));
+        TypeInfo[] types = new TypeInfo[keyColumnCount];
+        for (int i = 0; i < resultColumnCount; i++) {
+            types[i] = expressions[indexes != null ? indexes[i] : i].getType();
         }
+        if (preserveRowValues) {
+            types[resultColumnCount] = TypeInfo.TYPE_INTEGER;
+        }
+        keyType.setRowFactory(DefaultRowFactory.INSTANCE.createRowFactory(database, database.getCompareMode(),
+                database, types, null, false));
         Builder<ValueRow, Long> builder = new MVMap.Builder<ValueRow, Long>().keyType(keyType)
                 .valueType(LongDataType.INSTANCE);
         map = store.openMap("tmp", builder);
         if (distinct && resultColumnCount != visibleColumnCount || distinctIndexes != null) {
             int count;
-            TypeInfo[] types;
+            TypeInfo[] distinctTypes;
             if (distinctIndexes != null) {
                 count = distinctIndexes.length;
-                types = new TypeInfo[count];
+                distinctTypes = new TypeInfo[count];
                 for (int i = 0; i < count; i++) {
-                    types[i] = expressions[distinctIndexes[i]].getType();
+                    distinctTypes[i] = expressions[distinctIndexes[i]].getType();
                 }
             } else {
                 count = visibleColumnCount;
-                types = new TypeInfo[count];
+                distinctTypes = new TypeInfo[count];
                 for (int i = 0; i < count; i++) {
-                    types[i] = expressions[i].getType();
+                    distinctTypes[i] = expressions[i].getType();
                 }
             }
             ValueDataType distinctType = new ValueDataType(database, new int[count]);
             distinctType.setRowFactory(DefaultRowFactory.INSTANCE.createRowFactory(database, database.getCompareMode(),
-                    database, types, null, false));
+                    database, distinctTypes, null, false));
             DataType<Value> distinctValueType;
             if (distinctIndexes != null && sort != null) {
                 distinctValueType = orderedDistinctOnType = keyType;
@@ -315,6 +331,10 @@ class MVSortedTempResult extends MVTempResult {
             }
             values = r;
         }
+        if (preserveRowValues) {
+            values = Arrays.copyOf(values, resultColumnCount + 1);
+            values[resultColumnCount] = ValueInteger.get(rowCount);
+        }
         return ValueRow.get(values);
     }
 
@@ -332,6 +352,8 @@ class MVSortedTempResult extends MVTempResult {
                 r[indexes[i]] = key[i];
             }
             key = r;
+        } else if (preserveRowValues) {
+            key = Arrays.copyOf(key, resultColumnCount);
         }
         return key;
     }

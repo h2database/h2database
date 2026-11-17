@@ -75,7 +75,7 @@ public class TestMaterializedView extends TestDb {
         stat.execute("grant select on secret to bob");
         stat.execute("create schema bobs authorization bob");
 
-        Connection bobConn = getConnection("materializedview", "bob", "bob");
+        Connection bobConn = getConnection("materializedview", "bob", getPassword("bob"));
         Statement bob = bobConn.createStatement();
         bob.execute("create materialized view bobs.mv as select data from secret");
 

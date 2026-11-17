@@ -1778,7 +1778,11 @@ public final class Parser extends ParserBase {
                     table = new FunctionTable(mainSchema, session, readTableFunction(tableName, schema));
                 }
             } else {
+                boolean isSynonym = isTableSynonym(tableName, schema);
                 table = readTableOrView(tableName, /*resolveMaterializedView*/true);
+                if (isSynonym) {
+                    alias = tableName;
+                }
             }
         }
         ArrayList<String> derivedColumnNames = null;
@@ -8024,6 +8028,40 @@ public final class Parser extends ParserBase {
         }
 
         throw getTableOrViewNotFoundDbException(tableName);
+    }
+
+
+    private boolean isTableSynonym(String tableName, Schema schema) {
+        if (schema != null) {
+            return schema.findTableOrView(session, tableName) == null
+                    && schema.getSynonym(tableName) != null;
+        }
+
+        Schema currentSchema = database.getSchema(session.getCurrentSchemaName());
+        if (currentSchema.findTableOrView(session, tableName) != null) {
+            return false;
+        }
+        if (currentSchema.getSynonym(tableName) != null) {
+            return true;
+        }
+
+        if (getWithSubquery(tableName) != null) {
+            return false;
+        }
+
+        String[] schemaNames = session.getSchemaSearchPath();
+        if (schemaNames != null) {
+            for (String name : schemaNames) {
+                Schema s = database.getSchema(name);
+                if (s.findTableOrView(session, tableName) != null) {
+                    return false;
+                }
+                if (s.getSynonym(tableName) != null) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private Table getWithSubquery(String name) {

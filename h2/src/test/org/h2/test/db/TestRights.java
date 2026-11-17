@@ -46,6 +46,7 @@ public class TestRights extends TestDb {
         testLegacyMetaSourceHidden();
         testEstimatedEnvelopeRights();
         testForceViewOwnerRights();
+        testRevokeViewOwnerRights();
         testDisallowedTables();
         testDropOwnUser();
         testGetTables();
@@ -352,6 +353,48 @@ public class TestRights extends TestDb {
         assertEquals("POINT (12.5 41.75)", rs.getString(1));
         conn2.close();
         conn.close();
+    }
+
+    private void testRevokeViewOwnerRights() throws SQLException {
+        deleteDb("rights");
+        try (Connection conn = getConnection("rights")) {
+            stat = conn.createStatement();
+            stat.execute("create table secret(id int primary key, ssn varchar)");
+            stat.execute("insert into secret values (1, '123-45-6789')");
+            stat.execute("create user low password 'low'");
+            stat.execute("create schema lows authorization low");
+            stat.execute("create role reader");
+            stat.execute("grant select on secret to low");
+            try (Connection connLow = getConnection("rights", "low", getPassword("low"))) {
+                Statement statLow = connLow.createStatement();
+                statLow.execute("create view lows.v as select id from public.secret");
+                assertSingleValue(statLow, "select id from lows.v", 1);
+                // the view must not keep exposing the table after the owner
+                // loses the right on it
+                stat.execute("revoke select on secret from low");
+                assertThrows(ErrorCode.NOT_ENOUGH_RIGHTS_FOR_1, statLow, "select * from public.secret");
+                assertThrows(ErrorCode.VIEW_IS_INVALID_2, statLow, "select * from lows.v");
+                // the same for a right held through a role
+                stat.execute("grant select on secret to reader");
+                stat.execute("grant reader to low");
+                statLow.execute("alter view lows.v recompile");
+                assertSingleValue(statLow, "select id from lows.v", 1);
+                stat.execute("revoke reader from low");
+                assertThrows(ErrorCode.VIEW_IS_INVALID_2, statLow, "select * from lows.v");
+                stat.execute("grant reader to low");
+                statLow.execute("alter view lows.v recompile");
+                assertSingleValue(statLow, "select id from lows.v", 1);
+                stat.execute("drop role reader");
+                assertThrows(ErrorCode.VIEW_IS_INVALID_2, statLow, "select * from lows.v");
+                // and for an owner that is no longer an admin
+                stat.execute("alter user low admin true");
+                statLow.execute("alter view lows.v recompile");
+                assertSingleValue(statLow, "select id from lows.v", 1);
+                stat.execute("alter user low admin false");
+                assertThrows(ErrorCode.VIEW_IS_INVALID_2, statLow, "select * from lows.v");
+            }
+        }
+        deleteDb("rights");
     }
 
     private void testForceViewOwnerRights() throws SQLException {

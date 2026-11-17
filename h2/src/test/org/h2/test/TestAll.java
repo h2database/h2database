@@ -147,6 +147,7 @@ import org.h2.test.store.TestDataUtils;
 import org.h2.test.store.TestDefrag;
 import org.h2.test.store.TestFreeSpace;
 import org.h2.test.store.TestKillProcessWhileWriting;
+import org.h2.test.store.TestLargePageBuffer;
 import org.h2.test.store.TestMVRTree;
 import org.h2.test.store.TestMVStore;
 import org.h2.test.store.TestMVStoreBenchmark;
@@ -996,6 +997,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestDataUtils());
         addTest(new TestFreeSpace());
         addTest(new TestKillProcessWhileWriting());
+        addTest(new TestLargePageBuffer());
         addTest(new TestMVRTree());
         addTest(new TestMVStore());
         addTest(new TestMVStoreBenchmark());

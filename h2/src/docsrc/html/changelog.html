@@ -22,6 +22,9 @@ Change Log
 <h2>Next Version (unreleased)</h2>
 <ul>
     <li>Issue #4561: Preserve comparison-equivalent row values when sorted results are stored on disk</li>
+    <li>Read large pending pages from a consistent buffer source.</li>
+    <li>Issue #4456: Index type different than query could lead to missing row</li>
+    <li>Issue #4580: Re-executed query with IN condition on an index column returns deleted rows (stale IndexCursor)</li>
     <li>PR #4573: Avoid possible &quot;chunk not found&quot; during automatic table analisys</li>
     <li>Issue #4518: write chunk metadata (incomplete) right after chunk creation</li>
     <li>Issue #4553: A power failure shortly after an update can leave an MVStore file that cannot be opened</li>

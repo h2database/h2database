@@ -372,7 +372,7 @@ public class DbContextRule implements Rule {
                 || ParserUtil.isKeyword(up.substring(0, i), false)) {
             // no identifier, or the identifier extends to the end of the
             // query and may still be typed: let other rules suggest
-            // their completions
+            // the following tokens
             return s;
         }
         int j = i;

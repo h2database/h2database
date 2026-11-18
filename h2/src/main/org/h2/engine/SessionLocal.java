@@ -974,7 +974,9 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
 
     /**
      * Checks if table was updated within current transaction.
+     *
      * @param table to check
+     * @return whether the table was updated within current transaction
      */
     public boolean isUpdatedInCurrentTransaction(Table table) {
         return updates.contains(table);

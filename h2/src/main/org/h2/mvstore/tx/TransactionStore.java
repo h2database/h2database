@@ -514,7 +514,8 @@ public class TransactionStore implements AutoCloseable
 
         Transaction transaction = new Transaction(this, transactionId, sequenceNo, status, name, logId,
                                                     timeoutMillis, ownerId, isolationLevel, listener,
-                                                    store.isVersioningRequired() ? store.registerVersionUsage() : null);
+                                                    store.isVersioningRequired() ? store.registerVersionUsage()
+                                                            : null);
         assert transactions.get(transactionId) == null;
         transactions.set(transactionId, transaction);
 

@@ -219,16 +219,29 @@ public class Build extends BuildBase {
     }
 
     private void compileTools() {
+        download();
         mkdir("temp");
         FileList files = files("src/tools").keep("src/tools/org/h2/build/*");
         StringList args = args("-d", "temp", "-sourcepath", "src/tools" +
                 File.pathSeparator + "src/test" +
-                File.pathSeparator + "src/main");
+                File.pathSeparator + "src/main",
+                "-classpath",
+                "ext/lucene-core-" + LUCENE_VERSION + ".jar" +
+                File.pathSeparator + "ext/lucene-analysis-common-" + LUCENE_VERSION + ".jar" +
+                File.pathSeparator + "ext/lucene-queryparser-" + LUCENE_VERSION + ".jar" +
+                File.pathSeparator + "ext/org.osgi.core-" + OSGI_VERSION + ".jar" +
+                File.pathSeparator + "ext/org.osgi.service.jdbc-" + OSGI_JDBC_VERSION + ".jar" +
+                File.pathSeparator + "ext/jts-core-" + JTS_VERSION + ".jar");
         String version = getTargetJavaVersion();
         if (version != null) {
             args = args.plus("-target", version, "-source", version);
         }
         javac(args, files);
+        // tools such as GenerateDoc and WebSite load the grammar and other
+        // resources of the database and the samples via the classpath
+        copy("temp", files("src/main/org/h2/res").exclude("*.DS_Store"), "src/main");
+        copy("temp", files("src/test").exclude("*.java").exclude("*/package.html")
+                .exclude("*.DS_Store"), "src/test");
     }
 
     /**

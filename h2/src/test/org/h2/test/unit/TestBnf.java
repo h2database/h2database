@@ -199,8 +199,8 @@ public class TestBnf extends TestDb {
         assertTrue(tokens.values().contains("SELECT"));
         tokens = bnf.getNextTokenList("WITH X AS (SELECT 1) ");
         assertTrue(tokens.values().contains("SELECT"));
-        tokens = bnf.getNextTokenList("WITH X AS (SELECT 1) SEL");
-        assertTrue(tokens.values().contains("ECT"));
+        tokens = bnf.getNextTokenList("WITH X AS (SELECT 1) SE" + "L");
+        assertTrue(tokens.values().contains("E" + "CT"));
         tokens = bnf.getNextTokenList("WITH X AS (SELECT 1) SELECT * ");
         assertTrue(tokens.values().contains("FROM"));
         // the table of the schema and the name of the

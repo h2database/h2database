@@ -19,6 +19,7 @@ import org.h2.engine.User;
 import org.h2.message.DbException;
 import org.h2.schema.Schema;
 import org.h2.table.Table;
+import org.h2.table.TableView;
 import org.h2.util.Utils;
 
 /**
@@ -111,6 +112,9 @@ public class GrantRevoke extends DefineCommand {
             } else {
                 throw DbException.getInternalError("type=" + operationType);
             }
+        }
+        if (operationType == CommandInterface.REVOKE) {
+            TableView.recheckOwnerRights(session);
         }
         return 0;
     }

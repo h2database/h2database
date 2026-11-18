@@ -173,6 +173,32 @@ public final class TableView extends QueryExpressionTable {
     }
 
     /**
+     * Recompile the valid views of non-admin owners, so that the owner rights
+     * are checked again after a right was taken away (REVOKE, DROP ROLE,
+     * ALTER USER ... ADMIN FALSE). Without this a view whose owner can no
+     * longer read its tables stays readable until the database is opened again.
+     *
+     * @param session the session
+     */
+    public static void recheckOwnerRights(SessionLocal session) {
+        Database database = session.getDatabase();
+        boolean recompiled = false;
+        for (Table table : database.getAllTablesAndViews()) {
+            if (table instanceof TableView) {
+                TableView view = (TableView) table;
+                RightOwner owner = view.getSchema().getOwner();
+                if (!view.isInvalid() && !(owner instanceof User && ((User) owner).isAdmin())) {
+                    view.recompile(session, true, false);
+                    recompiled = true;
+                }
+            }
+        }
+        if (recompiled) {
+            clearIndexCaches(database);
+        }
+    }
+
+    /**
      * Check if this view is currently invalid.
      *
      * @return true if it is

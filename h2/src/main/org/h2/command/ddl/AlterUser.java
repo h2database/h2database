@@ -12,6 +12,7 @@ import org.h2.engine.SessionLocal;
 import org.h2.engine.User;
 import org.h2.expression.Expression;
 import org.h2.message.DbException;
+import org.h2.table.TableView;
 
 /**
  * This class represents the statements
@@ -85,6 +86,9 @@ public class AlterUser extends DefineCommand {
         case CommandInterface.ALTER_USER_ADMIN:
             session.getUser().checkAdmin();
             user.setAdmin(admin);
+            if (!admin) {
+                TableView.recheckOwnerRights(session);
+            }
             break;
         default:
             throw DbException.getInternalError("type=" + type);

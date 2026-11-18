@@ -988,6 +988,54 @@ SELECT * FROM T1 NATURAL FULL JOIN T2;
 DROP TABLE T1, T2;
 > ok
 
+-- USING columns must be resolved against the whole left join chain
+
+CREATE TABLE TA(A INT) AS VALUES 1, 3;
+> ok
+
+CREATE TABLE TB(B INT) AS VALUES 2, 4;
+> ok
+
+CREATE TABLE TC(A INT, B INT) AS VALUES (1, 2), (3, 4), (5, 6);
+> ok
+
+CREATE TABLE TD(A INT, C INT) AS VALUES (1, 7);
+> ok
+
+SELECT A, B FROM TA JOIN TC USING (A) JOIN TB USING (B) ORDER BY A;
+> A B
+> - -
+> 1 2
+> 3 4
+> rows (ordered): 2
+
+SELECT * FROM TA JOIN TC USING (A) JOIN TB USING (B) ORDER BY A;
+> A B
+> - -
+> 1 2
+> 3 4
+> rows (ordered): 2
+
+SELECT C FROM (TA JOIN TC USING (A)) JOIN TD USING (A);
+>> 7
+
+-- A is merged by the first USING and stays visible for the second one
+SELECT A, C FROM TA JOIN TC USING (A) JOIN TD USING (A);
+> A C
+> - -
+> 1 7
+> rows: 1
+
+-- A exists unmerged in both TA and TD
+SELECT * FROM TA CROSS JOIN TD JOIN TC USING (A);
+> exception AMBIGUOUS_COLUMN_NAME_1
+
+SELECT * FROM TA JOIN TB USING (Z);
+> exception COLUMN_NOT_FOUND_1
+
+DROP TABLE TA, TB, TC, TD;
+> ok
+
 SELECT *
     FROM (VALUES(1, 'A'), (2, 'B')) T1(A, B)
     JOIN (VALUES(2, 'C'), (3, 'D')) T2(A, C) USING (A);

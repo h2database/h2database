@@ -2361,11 +2361,44 @@ public final class Parser extends ParserBase {
         } else if (readIf(USING, OPEN_PAREN)) {
             do {
                 String columnName = readIdentifier();
-                on = addJoinColumn(on, filter1, filter2, filter1.getColumn(columnName, false),
+                TableFilter leftFilter = findTableFilterWithColumn(filter1, columnName, null);
+                if (leftFilter == null) {
+                    throw DbException.get(ErrorCode.COLUMN_NOT_FOUND_1, columnName);
+                }
+                on = addJoinColumn(on, leftFilter, filter2, leftFilter.getColumn(columnName, false),
                         filter2.getColumn(columnName, false), rightJoin);
             } while (readIfMore());
         }
         return on;
+    }
+
+    /**
+     * Find the table filter of a join chain that contains the specified
+     * column. The column must exist in exactly one filter of the chain;
+     * columns that were already merged into a common column by a previous
+     * NATURAL JOIN or JOIN ... USING are not visible.
+     *
+     * @param filter the left (outer) end of the join chain
+     * @param columnName the name of the column
+     * @param found the filter found so far, or {@code null}
+     * @return the table filter, or {@code null} if none of the filters has
+     *         the column
+     */
+    private TableFilter findTableFilterWithColumn(TableFilter filter, String columnName, TableFilter found) {
+        for (TableFilter f = filter; f != null; f = f.getJoin()) {
+            TableFilter n = f.getNestedJoin();
+            if (n != null) {
+                found = findTableFilterWithColumn(n, columnName, found);
+            }
+            Column c = f.getColumn(columnName, true);
+            if (c != null && !f.isCommonJoinColumnToExclude(c)) {
+                if (found != null) {
+                    throw DbException.get(ErrorCode.AMBIGUOUS_COLUMN_NAME_1, columnName);
+                }
+                found = f;
+            }
+        }
+        return found;
     }
 
     private Expression addJoinColumn(Expression on, TableFilter filter1, TableFilter filter2, Column column1,

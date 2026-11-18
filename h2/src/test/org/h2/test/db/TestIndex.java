@@ -47,6 +47,7 @@ public class TestIndex extends TestDb {
     public void test() throws SQLException {
         deleteDb("index");
         testUpdatedIndexValues();
+        testUpdatedIndexMinMaxPlan();
         testOrderIndex();
         testIndexTypes();
         testHashIndexOnMemoryTable();
@@ -210,10 +211,36 @@ public class TestIndex extends TestDb {
 
     private void assertIndexValue(Statement stat, String expected) throws SQLException {
         assertEquals(expected, getStringValue(stat, "SELECT V FROM TEST USE INDEX(IDX_V) ORDER BY V"));
+        assertEquals(expected, getStringValue(stat, "SELECT MIN(V) FROM TEST"));
+        assertEquals(expected, getStringValue(stat, "SELECT MAX(V) FROM TEST"));
         assertEquals(expected, getStringValue(stat, "SELECT DISTINCT V FROM TEST"));
         assertEquals(expected, getStringValue(stat,
                 "SELECT PERCENTILE_DISC(0.5) WITHIN GROUP(ORDER BY V) FROM TEST"));
         assertEquals(expected, getStringValue(stat, "SELECT V FROM TEST USE INDEX()"));
+    }
+
+    private void testUpdatedIndexMinMaxPlan() throws SQLException {
+        deleteDb("index");
+        try (Connection conn = getConnection("index")) {
+            Statement stat = conn.createStatement();
+            stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, V DECIMAL(100, 2))");
+            stat.execute("INSERT INTO TEST SELECT X, X FROM SYSTEM_RANGE(1, 1000)");
+            String query = "SELECT MIN(V), MAX(V) FROM TEST";
+            String plan = getStringValue(stat, "EXPLAIN ANALYZE " + query);
+            assertContains(plan, "scanCount: 1001");
+            assertFalse(plan.contains("/* direct lookup */"));
+            stat.execute("CREATE INDEX IDX_V ON TEST(V)");
+            plan = getStringValue(stat, "EXPLAIN ANALYZE " + query);
+            assertContains(plan, "/* direct lookup */");
+            assertFalse(plan.contains("scanCount:"));
+            try (ResultSet rs = stat.executeQuery(query)) {
+                assertTrue(rs.next());
+                assertEquals("1.00", rs.getString(1));
+                assertEquals("1000.00", rs.getString(2));
+                assertFalse(rs.next());
+            }
+        }
+        deleteDb("index");
     }
 
     private String getStringValue(Statement stat, String sql) throws SQLException {

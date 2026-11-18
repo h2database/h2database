@@ -91,6 +91,8 @@ SELECT MIN("VALUE"), MAX("VALUE") FROM TEST;
 ;
 
 -- Display the query plan - 'direct lookup' means it's optimized
+-- MIN and MAX read the endpoints of IDX_TEST_VALUE directly, independently of
+-- the table filter's index shown in the plan.
 EXPLAIN SELECT MIN("VALUE"), MAX("VALUE") FROM TEST;
 --> SELECT
 -->        MIN("VALUE"),

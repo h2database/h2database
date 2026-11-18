@@ -250,7 +250,7 @@ public class TestRecovery extends TestDb {
         }
         conn.close();
     }
-    
+
     private void testRecoverBinary(boolean direct) throws Exception {
         DeleteDbFiles.execute(getBaseDir(), "recovery", true);
         Connection conn = getConnection("recovery");

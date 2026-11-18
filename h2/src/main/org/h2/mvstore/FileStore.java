@@ -1475,7 +1475,8 @@ public abstract class FileStore<C extends Chunk<C>>
     }
 
 
-    private void serializeAndStore(boolean syncRun, ArrayList<Page<?,?>> changed, long time, MVStore.TxCounter txCounter) {
+    private void serializeAndStore(boolean syncRun, ArrayList<Page<?,?>> changed, long time,
+            MVStore.TxCounter txCounter) {
         serializationLock.lock();
         try {
             int chunkId = lastChunkId;
@@ -1554,7 +1555,8 @@ public abstract class FileStore<C extends Chunk<C>>
         // we save it in the layout map, just to signify this chunk existence
         // for the recovery procedure, in case of a failure soon after this point
         saveChunkMetadataChanges(c);
-        // missing metadata pieces will be populated in layout map after the chunk is fully written to the store
+        // missing metadata pieces will be populated in layout map after the chunk
+        // is fully written to the store
         // and then persisted later, within the next written chunk
 
         RootReference<String,String> layoutRootReference = layout.setWriteVersion(version);

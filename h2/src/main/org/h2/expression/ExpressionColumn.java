@@ -5,6 +5,8 @@
  */
 package org.h2.expression;
 
+import java.util.LinkedHashMap;
+
 import org.h2.api.ErrorCode;
 import org.h2.command.query.Select;
 import org.h2.command.query.SelectGroups;
@@ -136,6 +138,18 @@ public final class ExpressionColumn extends Expression {
         }
         if (tableAlias != null) {
             ParserUtil.quoteIdentifier(builder, tableAlias, sqlFlags).append('.');
+        } else if (column != null && isCommonJoinColumn()) {
+            /*
+             * An unqualified reference to a common column of NATURAL JOIN or
+             * JOIN ... USING. The regenerated SQL may not preserve the common
+             * column information (the join specification can be rewritten into
+             * a plain condition), so the reference must be qualified to stay
+             * unambiguous when it is parsed again.
+             */
+            String alias = columnResolver.getTableAlias();
+            if (alias != null) {
+                ParserUtil.quoteIdentifier(builder, alias, sqlFlags).append('.');
+            }
         }
         if (column != null) {
             if (columnResolver != null && columnResolver.hasDerivedColumnList()) {
@@ -155,6 +169,26 @@ public final class ExpressionColumn extends Expression {
         return columnResolver == null ? null : columnResolver.getTableFilter();
     }
 
+    /**
+     * Check whether this expression was resolved as a common column of a
+     * NATURAL JOIN or JOIN ... USING.
+     *
+     * @return whether this is a common join column
+     */
+    private boolean isCommonJoinColumn() {
+        if (columnResolver != null) {
+            TableFilter tableFilter = columnResolver.getTableFilter();
+            if (tableFilter != null) {
+                if (tableFilter.isCommonJoinColumnToExclude(column)) {
+                    return true;
+                }
+                LinkedHashMap<Column, Column> commonJoinColumns = tableFilter.getCommonJoinColumns();
+                return commonJoinColumns != null && commonJoinColumns.containsKey(column);
+            }
+        }
+        return false;
+    }
+
     @Override
     public void mapColumns(ColumnResolver resolver, int level, int state) {
         if (tableAlias != null && !database.equalsIdentifiers(tableAlias, resolver.getTableAlias())) {
@@ -172,6 +206,34 @@ public final class ExpressionColumn extends Expression {
         }
         Column col = resolver.findColumn(columnName);
         if (col != null) {
+            if (tableAlias == null) {
+                TableFilter tableFilter = resolver.getTableFilter();
+                if (tableFilter != null) {
+                    if (tableFilter.isCommonJoinColumnToExclude(col)) {
+                        /*
+                         * A right-side operand column of NATURAL JOIN or JOIN
+                         * ... USING. An unqualified name references the common
+                         * column, which is resolved via the left-side filter,
+                         * so this column must not participate in resolution to
+                         * avoid a false ambiguity.
+                         */
+                        return;
+                    }
+                    LinkedHashMap<Column, Column> commonJoinColumns = tableFilter.getCommonJoinColumns();
+                    if (commonJoinColumns != null) {
+                        Column replacement = commonJoinColumns.get(col);
+                        if (replacement != null && replacement != col) {
+                            /*
+                             * A common column of a converted RIGHT JOIN. The
+                             * value of the common column comes from the
+                             * replacement (right-side) filter.
+                             */
+                            mapColumn(tableFilter.getCommonJoinColumnsFilter(), replacement, level);
+                            return;
+                        }
+                    }
+                }
+            }
             mapColumn(resolver, col, level);
             return;
         }

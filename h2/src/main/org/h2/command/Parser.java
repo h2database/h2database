@@ -2262,7 +2262,7 @@ public final class Parser extends ParserBase {
     }
 
     private TableFilter readTableReference() {
-        for (TableFilter top, last = top = readTablePrimary(), join;; last = join) {
+        for (TableFilter top = readTablePrimary(), join;;) {
             switch (currentTokenType) {
             case RIGHT: {
                 read();
@@ -2311,16 +2311,26 @@ public final class Parser extends ParserBase {
             }
             case NATURAL: {
                 read();
-                read(JOIN);
-                join = readTablePrimary();
-                Expression on = null;
-                for (Column column1 : last.getTable().getColumns()) {
-                    Column column2 = join.getColumn(last.getColumnName(column1), true);
-                    if (column2 != null) {
-                        on = addJoinColumn(on, last, join, column1, column2, false);
-                    }
+                if (readIf(LEFT)) {
+                    readIf("OUTER");
+                    read(JOIN);
+                    join = readTablePrimary();
+                    addJoin(top, join, true, readNaturalJoinColumns(top, join, false));
+                } else if (readIf(RIGHT)) {
+                    readIf("OUTER");
+                    read(JOIN);
+                    join = readTablePrimary();
+                    Expression on = readNaturalJoinColumns(top, join, true);
+                    addJoin(join, top, true, on);
+                    top = join;
+                } else if (readIf(FULL)) {
+                    throw getSyntaxError();
+                } else {
+                    readIf(INNER);
+                    read(JOIN);
+                    join = readTablePrimary();
+                    addJoin(top, join, false, readNaturalJoinColumns(top, join, false));
                 }
-                addJoin(top, join, false, on);
                 break;
             }
             default:
@@ -2333,6 +2343,50 @@ public final class Parser extends ParserBase {
         }
     }
 
+    private Expression readNaturalJoinColumns(TableFilter chain, TableFilter join, boolean rightJoin) {
+        return readNaturalJoinColumns(chain, join, rightJoin, null, new HashSet<>());
+    }
+
+    /**
+     * Build the join condition of a NATURAL JOIN. Per the SQL Standard the
+     * common columns are the columns of the whole left joined table (the chain
+     * of already joined filters) that have a matching column in the right
+     * table. Columns that were already merged into a common column by a
+     * previous NATURAL JOIN or JOIN ... USING are not visible. A column of the
+     * right table that matches more than one visible column of the chain is
+     * ambiguous.
+     *
+     * @param chain the left (outer) end of the join chain
+     * @param join the joined table filter
+     * @param rightJoin whether this is a converted right outer join
+     * @param on the join condition built so far, or {@code null}
+     * @param matched right columns already matched by a chain filter
+     * @return the join condition, or {@code null} if there are no common
+     *         columns
+     */
+    private Expression readNaturalJoinColumns(TableFilter chain, TableFilter join, boolean rightJoin, Expression on,
+            HashSet<Column> matched) {
+        for (TableFilter f = chain; f != null; f = f.getJoin()) {
+            TableFilter n = f.getNestedJoin();
+            if (n != null) {
+                on = readNaturalJoinColumns(n, join, rightJoin, on, matched);
+            }
+            for (Column column1 : f.getTable().getColumns()) {
+                if (f.isCommonJoinColumnToExclude(column1)) {
+                    continue;
+                }
+                Column column2 = join.getColumn(f.getColumnName(column1), true);
+                if (column2 != null) {
+                    if (!matched.add(column2)) {
+                        throw DbException.get(ErrorCode.AMBIGUOUS_COLUMN_NAME_1, column2.getName());
+                    }
+                    on = addJoinColumn(on, f, join, column1, column2, rightJoin);
+                }
+            }
+        }
+        return on;
+    }
+
     private Expression readJoinSpecification(TableFilter filter1, TableFilter filter2, boolean rightJoin) {
         Expression on = null;
         if (readIf(ON)) {
@@ -2340,11 +2394,44 @@ public final class Parser extends ParserBase {
         } else if (readIf(USING, OPEN_PAREN)) {
             do {
                 String columnName = readIdentifier();
-                on = addJoinColumn(on, filter1, filter2, filter1.getColumn(columnName, false),
+                TableFilter leftFilter = findTableFilterWithColumn(filter1, columnName, null);
+                if (leftFilter == null) {
+                    throw DbException.get(ErrorCode.COLUMN_NOT_FOUND_1, columnName);
+                }
+                on = addJoinColumn(on, leftFilter, filter2, leftFilter.getColumn(columnName, false),
                         filter2.getColumn(columnName, false), rightJoin);
             } while (readIfMore());
         }
         return on;
+    }
+
+    /**
+     * Find the table filter of a join chain that contains the specified
+     * column. The column must exist in exactly one filter of the chain;
+     * columns that were already merged into a common column by a previous
+     * NATURAL JOIN or JOIN ... USING are not visible.
+     *
+     * @param filter the left (outer) end of the join chain
+     * @param columnName the name of the column
+     * @param found the filter found so far, or {@code null}
+     * @return the table filter, or {@code null} if none of the filters has
+     *         the column
+     */
+    private TableFilter findTableFilterWithColumn(TableFilter filter, String columnName, TableFilter found) {
+        for (TableFilter f = filter; f != null; f = f.getJoin()) {
+            TableFilter n = f.getNestedJoin();
+            if (n != null) {
+                found = findTableFilterWithColumn(n, columnName, found);
+            }
+            Column c = f.getColumn(columnName, true);
+            if (c != null && !f.isCommonJoinColumnToExclude(c)) {
+                if (found != null) {
+                    throw DbException.get(ErrorCode.AMBIGUOUS_COLUMN_NAME_1, columnName);
+                }
+                found = f;
+            }
+        }
+        return found;
     }
 
     private Expression addJoinColumn(Expression on, TableFilter filter1, TableFilter filter2, Column column1,

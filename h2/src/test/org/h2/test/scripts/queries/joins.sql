@@ -601,7 +601,7 @@ select * from customer c natural join invoice i natural join INVOICE_LINE l;
 > rows: 2
 
 explain select * from customer c natural join invoice i natural join INVOICE_LINE l;
->> SELECT "C"."CUSTOMERID", "C"."CUSTOMER_NAME", "I"."INVOICEID", "I"."INVOICE_TEXT", "L"."LINE_ID", "L"."LINE_TEXT" FROM "PUBLIC"."INVOICE" "I" /* PUBLIC.INVOICE.tableScan */ INNER JOIN "PUBLIC"."INVOICE_LINE" "L" /* PUBLIC.INVOICE_LINE.tableScan */ ON 1=1 /* WHERE (I.CUSTOMERID = L.CUSTOMERID) AND (I.INVOICEID = L.INVOICEID) */ INNER JOIN "PUBLIC"."CUSTOMER" "C" /* PUBLIC.CUSTOMER.tableScan */ ON 1=1 WHERE ("C"."CUSTOMERID" = "I"."CUSTOMERID") AND ("I"."CUSTOMERID" = "L"."CUSTOMERID") AND ("I"."INVOICEID" = "L"."INVOICEID")
+>> SELECT "C"."CUSTOMERID", "C"."CUSTOMER_NAME", "I"."INVOICEID", "I"."INVOICE_TEXT", "L"."LINE_ID", "L"."LINE_TEXT" FROM "PUBLIC"."INVOICE" "I" /* PUBLIC.INVOICE.tableScan */ INNER JOIN "PUBLIC"."INVOICE_LINE" "L" /* PUBLIC.INVOICE_LINE.tableScan */ ON 1=1 /* WHERE I.INVOICEID = L.INVOICEID */ INNER JOIN "PUBLIC"."CUSTOMER" "C" /* PUBLIC.CUSTOMER.tableScan */ ON 1=1 WHERE ("C"."CUSTOMERID" = "I"."CUSTOMERID") AND ("C"."CUSTOMERID" = "L"."CUSTOMERID") AND ("I"."INVOICEID" = "L"."INVOICEID")
 
 select c.*, i.*, l.* from customer c natural join invoice i natural join INVOICE_LINE l;
 > CUSTOMERID CUSTOMER_NAME CUSTOMERID INVOICEID INVOICE_TEXT LINE_ID INVOICEID CUSTOMERID LINE_TEXT
@@ -611,7 +611,7 @@ select c.*, i.*, l.* from customer c natural join invoice i natural join INVOICE
 > rows: 2
 
 explain select c.*, i.*, l.* from customer c natural join invoice i natural join INVOICE_LINE l;
->> SELECT "C"."CUSTOMERID", "C"."CUSTOMER_NAME", "I"."CUSTOMERID", "I"."INVOICEID", "I"."INVOICE_TEXT", "L"."LINE_ID", "L"."INVOICEID", "L"."CUSTOMERID", "L"."LINE_TEXT" FROM "PUBLIC"."INVOICE" "I" /* PUBLIC.INVOICE.tableScan */ INNER JOIN "PUBLIC"."INVOICE_LINE" "L" /* PUBLIC.INVOICE_LINE.tableScan */ ON 1=1 /* WHERE (I.CUSTOMERID = L.CUSTOMERID) AND (I.INVOICEID = L.INVOICEID) */ INNER JOIN "PUBLIC"."CUSTOMER" "C" /* PUBLIC.CUSTOMER.tableScan */ ON 1=1 WHERE ("C"."CUSTOMERID" = "I"."CUSTOMERID") AND ("I"."CUSTOMERID" = "L"."CUSTOMERID") AND ("I"."INVOICEID" = "L"."INVOICEID")
+>> SELECT "C"."CUSTOMERID", "C"."CUSTOMER_NAME", "I"."CUSTOMERID", "I"."INVOICEID", "I"."INVOICE_TEXT", "L"."LINE_ID", "L"."INVOICEID", "L"."CUSTOMERID", "L"."LINE_TEXT" FROM "PUBLIC"."INVOICE" "I" /* PUBLIC.INVOICE.tableScan */ INNER JOIN "PUBLIC"."INVOICE_LINE" "L" /* PUBLIC.INVOICE_LINE.tableScan */ ON 1=1 /* WHERE I.INVOICEID = L.INVOICEID */ INNER JOIN "PUBLIC"."CUSTOMER" "C" /* PUBLIC.CUSTOMER.tableScan */ ON 1=1 WHERE ("C"."CUSTOMERID" = "I"."CUSTOMERID") AND ("C"."CUSTOMERID" = "L"."CUSTOMERID") AND ("I"."INVOICEID" = "L"."INVOICEID")
 
 drop table customer;
 > ok
@@ -1032,6 +1032,27 @@ SELECT * FROM TA CROSS JOIN TD JOIN TC USING (A);
 
 SELECT * FROM TA JOIN TB USING (Z);
 > exception COLUMN_NOT_FOUND_1
+
+-- NATURAL JOIN matches common columns of the whole left join chain:
+-- TC shares A with TA and B with TB
+
+SELECT A, B FROM TA NATURAL JOIN TB NATURAL JOIN TC ORDER BY A;
+> A B
+> - -
+> 1 2
+> 3 4
+> rows (ordered): 2
+
+-- A is merged by the first NATURAL JOIN and stays visible for the second one
+SELECT A, C FROM TA NATURAL JOIN TC NATURAL JOIN TD;
+> A C
+> - -
+> 1 7
+> rows: 1
+
+-- A exists unmerged in both TA and TD
+SELECT * FROM TA CROSS JOIN TD NATURAL JOIN TC;
+> exception AMBIGUOUS_COLUMN_NAME_1
 
 DROP TABLE TA, TB, TC, TD;
 > ok

@@ -173,5 +173,54 @@ public class TestBnf extends TestDb {
         // Test parameters with close bracket
         tokens = bnf.getNextTokenList("SELECT CUSTOM_PRINT ( STRING_FIELD");
         assertTrue(tokens.values().contains(")"));
+
+        testWithClause(dbContents);
+    }
+
+    private void testWithClause(DbContents dbContents) throws Exception {
+        // Mirror the rules of WebSession.loadBnf()
+        Bnf bnf = Bnf.getInstance(null);
+        bnf.updateTopic("procedure", new DbContextRule(dbContents, DbContextRule.PROCEDURE));
+        bnf.updateTopic("column_name", new DbContextRule(dbContents, DbContextRule.COLUMN));
+        bnf.updateTopic("new_table_alias", new DbContextRule(dbContents, DbContextRule.NEW_TABLE_ALIAS));
+        bnf.updateTopic("table_alias", new DbContextRule(dbContents, DbContextRule.TABLE_ALIAS));
+        bnf.updateTopic("column_alias", new DbContextRule(dbContents, DbContextRule.COLUMN_ALIAS));
+        bnf.updateTopic("table_name", new DbContextRule(dbContents, DbContextRule.TABLE));
+        bnf.updateTopic("query_name", new DbContextRule(dbContents, DbContextRule.QUERY_NAME));
+        bnf.updateTopic("schema_name", new DbContextRule(dbContents, DbContextRule.SCHEMA));
+        bnf.linkStatements();
+
+        Map<String, String> tokens;
+        tokens = bnf.getNextTokenList("WITH ");
+        assertTrue(tokens.values().contains("RECURSIVE"));
+        tokens = bnf.getNextTokenList("WITH X AS ");
+        assertTrue(tokens.values().contains("("));
+        tokens = bnf.getNextTokenList("WITH X AS (");
+        assertTrue(tokens.values().contains("SELECT"));
+        tokens = bnf.getNextTokenList("WITH X AS (SELECT 1) ");
+        assertTrue(tokens.values().contains("SELECT"));
+        tokens = bnf.getNextTokenList("WITH X AS (SELECT 1) SEL");
+        assertTrue(tokens.values().contains("ECT"));
+        tokens = bnf.getNextTokenList("WITH X AS (SELECT 1) SELECT * ");
+        assertTrue(tokens.values().contains("FROM"));
+        // the table of the schema and the name of the
+        // common table expression are completed
+        tokens = bnf.getNextTokenList("WITH X AS (SELECT 1) SELECT * FROM ");
+        assertTrue(tokens.values().contains("TABLE_WITH_STRING_FIELD"));
+        assertTrue(tokens.values().contains("X"));
+        // multiple common table expressions
+        tokens = bnf.getNextTokenList("WITH X AS (SELECT 1), Y AS (");
+        assertTrue(tokens.values().contains("SELECT"));
+        tokens = bnf.getNextTokenList(
+                "WITH X AS (SELECT 1), Y AS (SELECT 2) SELECT * FR");
+        assertTrue(tokens.values().contains("OM"));
+        // recursive query referencing its own name
+        tokens = bnf.getNextTokenList("WITH RECURSIVE CTE(N) AS (" +
+                "SELECT 1 UNION ALL SELECT N+1 FROM CTE WHERE N<9) SELECT * FROM ");
+        assertTrue(tokens.values().contains("CTE"));
+        // WITH clause in a subquery
+        tokens = bnf.getNextTokenList("SELECT * FROM TABLE_WITH_STRING_FIELD " +
+                "WHERE STRING_FIELD IN (WITH C AS (SELECT 'A') SELECT * FROM C) ");
+        assertTrue(tokens.values().contains("ORDER"));
     }
 }

@@ -101,10 +101,12 @@ public class Bnf {
             tokens = tokenize();
             index = 0;
             Rule rule = parseRule();
-            if (section.startsWith("Command")) {
-                rule = new RuleList(rule, new RuleElement(";\n\n", currentTopic), false);
-            }
-            RuleHead head = addRule(topic, section, rule);
+            // Other rules, such as "query", may reference rules of commands.
+            // The statement terminator may only be appended to the statement
+            // rules that are used as entry points of auto-completion,
+            // otherwise a referenced command can never match a complete
+            // nested statement, such as a query between parentheses.
+            addRule(topic, section, rule);
             if (section.startsWith("Function")) {
                 if (functions == null) {
                     functions = rule;
@@ -112,7 +114,8 @@ public class Bnf {
                     functions = new RuleList(rule, functions, true);
                 }
             } else if (section.startsWith("Commands")) {
-                statements.add(head);
+                statements.add(new RuleHead(section, topic,
+                        new RuleList(rule, new RuleElement(";\n\n", currentTopic), false)));
             }
         }
         addRule("@func@", "Function", functions);

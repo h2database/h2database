@@ -139,6 +139,7 @@ class WebSession {
             newBnf.updateTopic("table_alias", aliasRule);
             newBnf.updateTopic("column_alias", columnAliasRule);
             newBnf.updateTopic("table_name", tableRule);
+            newBnf.updateTopic("query_name", new DbContextRule(contents, DbContextRule.QUERY_NAME));
             newBnf.updateTopic("schema_name", schemaRule);
             newBnf.linkStatements();
             bnf = newBnf;

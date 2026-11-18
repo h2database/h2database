@@ -28,6 +28,7 @@ public class DbContextRule implements Rule {
     public static final int COLUMN = 0, TABLE = 1, TABLE_ALIAS = 2;
     public static final int NEW_TABLE_ALIAS = 3;
     public static final int COLUMN_ALIAS = 4, SCHEMA = 5, PROCEDURE = 6;
+    public static final int QUERY_NAME = 7;
 
     private final DbContents contents;
     private final int type;
@@ -132,10 +133,47 @@ public class DbContextRule implements Rule {
                     }
                 }
             }
+            HashSet<String> queryNames = sentence.getQueryNames();
+            if (queryNames != null) {
+                for (String name : queryNames) {
+                    if (StringUtils.startsWithIgnoringCase(query, name)) {
+                        if (best == null || name.length() > best.length()) {
+                            best = name;
+                            bestTable = null;
+                        }
+                    } else if (s.isEmpty() || StringUtils.startsWithIgnoringCase(name, query)) {
+                        if (s.length() < name.length()) {
+                            sentence.add(name, name.substring(s.length()), Sentence.CONTEXT);
+                        }
+                    }
+                }
+            }
             if (best != null) {
                 sentence.setLastMatchedTable(bestTable);
-                sentence.addTable(bestTable);
+                if (bestTable != null) {
+                    sentence.addTable(bestTable);
+                }
                 s = s.substring(best.length());
+            } else {
+                // The table is not known: a common table expression without
+                // context information, or a table that will be created by
+                // this statement. Accept a plain identifier, otherwise
+                // auto-completion of the following part of the statement
+                // is not possible at all.
+                s = matchIdentifier(sentence);
+            }
+            break;
+        }
+        case QUERY_NAME: {
+            String up = sentence.getQueryUpper();
+            int i = identifierLength(up);
+            if (i > 0) {
+                String name = up.substring(0, i);
+                if (!ParserUtil.isKeyword(name, false)) {
+                    sentence.addQueryName(name);
+                    sentence.setLastMatchedTable(null);
+                    s = s.substring(i);
+                }
             }
             break;
         }
@@ -219,6 +257,12 @@ public class DbContextRule implements Rule {
             }
             if (best != null) {
                 s = best;
+            } else if (columnType == null) {
+                // The column is not known, for example a column of a common
+                // table expression. Accept a plain identifier, otherwise
+                // auto-completion of the following part of the statement is
+                // not possible at all.
+                s = matchIdentifier(sentence);
             }
             break;
         }
@@ -299,6 +343,48 @@ public class DbContextRule implements Rule {
                 rl.autoComplete(sentence);
             }
         }
+    }
+
+    private static int identifierLength(String up) {
+        int i = 0;
+        for (int l = up.length(); i < l; i++) {
+            char ch = up.charAt(i);
+            if (ch != '_' && !Character.isLetterOrDigit(ch)) {
+                break;
+            }
+        }
+        return i;
+    }
+
+    private static String matchIdentifier(Sentence sentence) {
+        String s = sentence.getQuery();
+        String up = sentence.getQueryUpper();
+        if (!s.isEmpty() && s.charAt(0) == '"') {
+            // quoted identifier
+            int end = s.indexOf('"', 1);
+            if (end > 1) {
+                return s.substring(end + 1);
+            }
+            return s;
+        }
+        int i = identifierLength(up);
+        if (i == 0 || i == up.length()
+                || ParserUtil.isKeyword(up.substring(0, i), false)) {
+            // no identifier, or the identifier extends to the end of the
+            // query and may still be typed: let other rules suggest
+            // their completions
+            return s;
+        }
+        int j = i;
+        while (j < up.length() && Character.isWhitespace(up.charAt(j))) {
+            j++;
+        }
+        if (j < up.length() && up.charAt(j) == '(') {
+            // looks like a function or procedure call:
+            // let the function rules match it
+            return s;
+        }
+        return s.substring(i);
     }
 
     private static String autoCompleteTableAlias(Sentence sentence,

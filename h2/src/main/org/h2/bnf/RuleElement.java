@@ -61,7 +61,17 @@ public class RuleElement implements Rule {
             String q = query.trim();
             String up = sentence.getQueryUpper().trim();
             if (up.startsWith(name)) {
-                query = query.substring(name.length());
+                // Skip the whitespace that a preceding rule may have left in
+                // front of this keyword: single-character rules such as
+                // @az_@ or @digit@ do not remove trailing spaces.
+                int offset = 0;
+                if (!"_".equals(name)) {
+                    for (int l = query.length(); offset < l
+                            && Character.isWhitespace(query.charAt(offset)); offset++) {
+                        // just count
+                    }
+                }
+                query = query.substring(offset + name.length());
                 while (!"_".equals(name) && Bnf.startWithSpace(query)) {
                     query = query.substring(1);
                 }
@@ -74,7 +84,17 @@ public class RuleElement implements Rule {
             }
             return false;
         }
-        return link.autoComplete(sentence);
+        int previous = sentence.enterRule(this);
+        if (previous == Sentence.BLOCKED) {
+            // left recursion without consuming any character:
+            // this rule is already being tested at the same position
+            return false;
+        }
+        try {
+            return link.autoComplete(sentence);
+        } finally {
+            sentence.exitRule(this, previous);
+        }
     }
 
     @Override

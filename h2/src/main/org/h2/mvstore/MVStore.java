@@ -818,9 +818,9 @@ public final class MVStore implements AutoCloseable {
                                     fileStore.deregisterMapRoot(map.getId());
                                 }
                             }
-                            // after restart all chunks held by RETENTION_TIME will be dead anyway
-                            setRetentionTime(0);
                             commit();
+                            // after restart all chunks held by RETENTION_TIME will be dead anyway
+                            fileStore.stopRetainingUnusedChunks();
                             fileStore.stop(compactFully ? 0 : allowedCompactionTime);
                         }
 

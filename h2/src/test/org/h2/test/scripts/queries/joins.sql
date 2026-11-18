@@ -878,6 +878,62 @@ SELECT * FROM T1 INNER JOIN T2 USING (B, A);
 > 6 6
 > rows: 1
 
+-- Unqualified references to common columns of JOIN ... USING and NATURAL JOIN
+
+SELECT A, T1.B, T2.B FROM T1 INNER JOIN T2 USING (A);
+> A B  B
+> - -- ---
+> 1 10 100
+> 2 20 200
+> 6 6  6
+> rows: 3
+
+SELECT A FROM T1 LEFT JOIN T2 USING (A) ORDER BY A;
+> A
+> -
+> 1
+> 2
+> 4
+> 6
+> 7
+> rows (ordered): 5
+
+SELECT A, T2.B FROM T1 RIGHT JOIN T2 USING (A) ORDER BY A;
+> A B
+> - ---
+> 1 100
+> 2 200
+> 5 500
+> 6 6
+> 8 7
+> rows (ordered): 5
+
+SELECT A, T1.B FROM T1 JOIN T2 USING (A) WHERE A > 1 ORDER BY A;
+> A B
+> - --
+> 2 20
+> 6 6
+> rows (ordered): 2
+
+SELECT A, B FROM T1 NATURAL JOIN T2;
+> A B
+> - -
+> 6 6
+> rows: 1
+
+-- Common column in a derived table must stay unambiguous when the derived
+-- table is parsed again during optimization
+
+SELECT T3.A, D.B FROM T1 T3 LEFT JOIN (SELECT A, T1.B FROM T1 JOIN T2 USING (A)) D ON T3.A = D.A ORDER BY T3.A;
+> A B
+> - ----
+> 1 10
+> 2 20
+> 4 null
+> 6 6
+> 7 null
+> rows (ordered): 5
+
 DROP TABLE T1, T2;
 > ok
 

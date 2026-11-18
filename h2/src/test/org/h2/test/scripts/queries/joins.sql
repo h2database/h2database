@@ -934,6 +934,57 @@ SELECT T3.A, D.B FROM T1 T3 LEFT JOIN (SELECT A, T1.B FROM T1 JOIN T2 USING (A))
 > 7 null
 > rows (ordered): 5
 
+-- NATURAL INNER, LEFT and RIGHT joins (common columns are A and B)
+
+SELECT A, B FROM T1 NATURAL INNER JOIN T2;
+> A B
+> - -
+> 6 6
+> rows: 1
+
+SELECT A, B FROM T1 NATURAL LEFT JOIN T2 ORDER BY A;
+> A B
+> - --
+> 1 10
+> 2 20
+> 4 40
+> 6 6
+> 7 7
+> rows (ordered): 5
+
+SELECT * FROM T1 NATURAL LEFT OUTER JOIN T2 ORDER BY A;
+> A B
+> - --
+> 1 10
+> 2 20
+> 4 40
+> 6 6
+> 7 7
+> rows (ordered): 5
+
+SELECT A, B FROM T1 NATURAL RIGHT JOIN T2 ORDER BY A;
+> A B
+> - ---
+> 1 100
+> 2 200
+> 5 500
+> 6 6
+> 8 7
+> rows (ordered): 5
+
+SELECT * FROM T1 NATURAL RIGHT OUTER JOIN T2 ORDER BY A;
+> A B
+> - ---
+> 1 100
+> 2 200
+> 5 500
+> 6 6
+> 8 7
+> rows (ordered): 5
+
+SELECT * FROM T1 NATURAL FULL JOIN T2;
+> exception SYNTAX_ERROR_1
+
 DROP TABLE T1, T2;
 > ok
 

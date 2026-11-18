@@ -2311,16 +2311,26 @@ public final class Parser extends ParserBase {
             }
             case NATURAL: {
                 read();
-                read(JOIN);
-                join = readTablePrimary();
-                Expression on = null;
-                for (Column column1 : last.getTable().getColumns()) {
-                    Column column2 = join.getColumn(last.getColumnName(column1), true);
-                    if (column2 != null) {
-                        on = addJoinColumn(on, last, join, column1, column2, false);
-                    }
+                if (readIf(LEFT)) {
+                    readIf("OUTER");
+                    read(JOIN);
+                    join = readTablePrimary();
+                    addJoin(top, join, true, readNaturalJoinColumns(last, join, false));
+                } else if (readIf(RIGHT)) {
+                    readIf("OUTER");
+                    read(JOIN);
+                    join = readTablePrimary();
+                    Expression on = readNaturalJoinColumns(last, join, true);
+                    addJoin(join, top, true, on);
+                    top = join;
+                } else if (readIf(FULL)) {
+                    throw getSyntaxError();
+                } else {
+                    readIf(INNER);
+                    read(JOIN);
+                    join = readTablePrimary();
+                    addJoin(top, join, false, readNaturalJoinColumns(last, join, false));
                 }
-                addJoin(top, join, false, on);
                 break;
             }
             default:
@@ -2331,6 +2341,17 @@ public final class Parser extends ParserBase {
                 return top;
             }
         }
+    }
+
+    private Expression readNaturalJoinColumns(TableFilter last, TableFilter join, boolean rightJoin) {
+        Expression on = null;
+        for (Column column1 : last.getTable().getColumns()) {
+            Column column2 = join.getColumn(last.getColumnName(column1), true);
+            if (column2 != null) {
+                on = addJoinColumn(on, last, join, column1, column2, rightJoin);
+            }
+        }
+        return on;
     }
 
     private Expression readJoinSpecification(TableFilter filter1, TableFilter filter2, boolean rightJoin) {

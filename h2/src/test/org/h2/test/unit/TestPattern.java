@@ -28,6 +28,7 @@ public class TestPattern extends TestBase {
     public void test() {
         testCompareModeReuse();
         testPattern();
+        testManyAny();
     }
 
     private void testCompareModeReuse() {
@@ -55,6 +56,25 @@ public class TestPattern extends TestBase {
             String value = getRandomValue();
             test(comp, value, pattern);
         }
+    }
+
+    private void testManyAny() {
+        CompareMode mode = CompareMode.getInstance(null, 0);
+        CompareLike comp = new CompareLike(mode, "\\", null, false, false, null, null, CompareLike.LikeType.LIKE);
+        StringBuilder buff = new StringBuilder();
+        for (int i = 0; i < 1000; i++) {
+            buff.append('A');
+        }
+        String value = buff.toString();
+        buff.setLength(0);
+        for (int i = 0; i < 10; i++) {
+            buff.append("%A");
+        }
+        String pattern = buff.toString();
+        assertTrue(comp.test(pattern, value, '\\'));
+        // used to take time exponential in the number of % before failing
+        assertFalse(comp.test(pattern + "%B", value, '\\'));
+        assertTrue(comp.test(pattern + "%B", value + 'B', '\\'));
     }
 
     private void test(CompareLike comp, String value, String pattern) {

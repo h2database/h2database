@@ -190,6 +190,7 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
     private SmallLRUCache<String, Command> queryCache;
     private long modificationMetaID = -1;
     private int createViewLevel;
+    private int nonAdminViewLevel;
     private volatile SmallLRUCache<Object, QueryExpressionIndex> viewIndexCache;
     private HashMap<Object, QueryExpressionIndex> derivedTableIndexCache;
     private boolean lazyQueryExecution;
@@ -298,6 +299,34 @@ public final class SessionLocal extends Session implements TransactionStore.Roll
 
     public boolean isParsingCreateView() {
         return createViewLevel != 0;
+    }
+
+    /**
+     * This method is called before and after compiling the query of a view
+     * whose owner is not an admin and may be called recursively.
+     *
+     * @param compiling
+     *            {@code true} before compiling the query, {@code false} after
+     *            it
+     */
+    public void setCompilingNonAdminView(boolean compiling) {
+        nonAdminViewLevel += compiling ? 1 : -1;
+    }
+
+    /**
+     * Check that a function reserved for admins may be used in the statement
+     * being prepared. The user must be an admin, and the statement must not be
+     * the query of a view owned by a non-admin, because such a query is also
+     * compiled by the system session when the database is opened and runs with
+     * the rights of whoever reads the view.
+     *
+     * @throws DbException if the function may not be used
+     */
+    public void checkAdminFunction() {
+        user.checkAdmin();
+        if (nonAdminViewLevel != 0) {
+            throw DbException.get(ErrorCode.ADMIN_RIGHTS_REQUIRED);
+        }
     }
 
     @Override

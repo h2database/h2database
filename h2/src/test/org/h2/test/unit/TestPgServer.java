@@ -25,6 +25,7 @@ import java.sql.Statement;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
+import java.time.LocalDate;
 import java.util.Properties;
 import java.util.Set;
 import java.util.TimeZone;
@@ -73,6 +74,7 @@ public class TestPgServer extends TestDb {
         testTextualAndBinaryTypes();
         testBinaryNumeric();
         testDateTime();
+        testDateBeforeYearOne();
         testPrepareWithUnspecifiedType();
         testOtherPgClients();
         testArray();
@@ -652,6 +654,43 @@ public class TestPgServer extends TestDb {
         } finally {
             TimeZone.setDefault(old);
             DateTimeUtils.resetCalendar();
+        }
+    }
+
+    private void testDateBeforeYearOne() throws SQLException {
+        if (!getPgJdbcDriver()) {
+            return;
+        }
+        Server server = createPgServer(
+                "-ifNotExists", "-pgPort", "5535", "-pgDaemon", "-key", "pgserver", "mem:pgserver");
+        try {
+            Properties props = new Properties();
+            props.setProperty("user", "sa");
+            props.setProperty("password", "sa");
+            try (Connection conn = DriverManager.getConnection("jdbc:postgresql://localhost:5535/pgserver", props)) {
+                Statement stat = conn.createStatement();
+                stat.execute("create table test(id int primary key, d date)");
+                // pgjdbc sends these as text with a BC suffix: 0044-03-15 BC,
+                // 0001-01-01 BC
+                LocalDate[] dates = { LocalDate.of(-43, 3, 15), LocalDate.of(0, 1, 1), LocalDate.of(1, 1, 1) };
+                PreparedStatement ps = conn.prepareStatement("insert into test values (?, ?)");
+                for (int i = 0; i < dates.length; i++) {
+                    ps.setInt(1, i);
+                    ps.setObject(2, dates[i]);
+                    ps.execute();
+                }
+                ResultSet rs = stat.executeQuery("select cast(d as varchar) from test order by id");
+                assertTrue(rs.next());
+                assertEquals("-0043-03-15", rs.getString(1));
+                assertTrue(rs.next());
+                assertEquals("0000-01-01", rs.getString(1));
+                assertTrue(rs.next());
+                assertEquals("0001-01-01", rs.getString(1));
+                assertFalse(rs.next());
+                stat.execute("drop table test");
+            }
+        } finally {
+            server.stop();
         }
     }
 

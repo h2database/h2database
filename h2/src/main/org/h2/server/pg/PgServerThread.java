@@ -868,7 +868,16 @@ public final class PgServerThread implements Runnable {
                 // Strip timezone offset
                 int idx = str.indexOf(' ');
                 if (idx > 0) {
-                    str = str.substring(0, idx);
+                    if (str.endsWith(" BC")) {
+                        // PostgreSQL marks years before 1 with BC, H2 uses
+                        // proleptic years: 1 BC is year 0, 2 BC is year -1
+                        int yEnd = str.indexOf('-');
+                        if (yEnd > 0 && yEnd < idx && StringUtils.isNumber(str.substring(0, yEnd))) {
+                            str = (1 - Integer.parseInt(str.substring(0, yEnd))) + str.substring(yEnd, idx);
+                        }
+                    } else {
+                        str = str.substring(0, idx);
+                    }
                 }
                 break;
             }

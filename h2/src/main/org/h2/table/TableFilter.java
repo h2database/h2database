@@ -126,7 +126,10 @@ public class TableFilter implements ColumnResolver {
      */
     private LinkedHashMap<Column, Column> commonJoinColumns;
 
-    private TableFilter commonJoinColumnsFilter;
+    /**
+     * Table filters of replacement columns of common join columns.
+     */
+    private HashMap<Column, TableFilter> commonJoinColumnsFilters;
     private ArrayList<Column> commonJoinColumnsToExclude;
     private boolean foundOne;
     private Expression fullCondition;
@@ -1179,11 +1182,10 @@ public class TableFilter implements ColumnResolver {
     public void addCommonJoinColumns(Column leftColumn, Column replacementColumn, TableFilter replacementFilter) {
         if (commonJoinColumns == null) {
             commonJoinColumns = new LinkedHashMap<>();
-            commonJoinColumnsFilter = replacementFilter;
-        } else {
-            assert commonJoinColumnsFilter == replacementFilter;
+            commonJoinColumnsFilters = new HashMap<>();
         }
         commonJoinColumns.put(leftColumn, replacementColumn);
+        commonJoinColumnsFilters.put(leftColumn, replacementFilter);
     }
 
     /**
@@ -1209,12 +1211,15 @@ public class TableFilter implements ColumnResolver {
     }
 
     /**
-     * Returns common join columns table filter.
+     * Returns the table filter of the replacement column of the specified
+     * common join column.
      *
-     * @return common join columns table filter, or {@code null}
+     * @param leftColumn
+     *            the column on the left side
+     * @return the table filter of the replacement column
      */
-    public TableFilter getCommonJoinColumnsFilter() {
-        return commonJoinColumnsFilter;
+    public TableFilter getCommonJoinColumnsFilter(Column leftColumn) {
+        return commonJoinColumnsFilters.get(leftColumn);
     }
 
     /**

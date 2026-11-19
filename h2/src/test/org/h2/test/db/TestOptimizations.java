@@ -82,6 +82,7 @@ public class TestOptimizations extends TestDb {
         }
         testQueryCache(true);
         testQueryCache(false);
+        testNestedViewQueryCache();
         testIn();
         testMinMaxCountOptimization(true);
         testMinMaxCountOptimization(false);
@@ -892,6 +893,48 @@ public class TestOptimizations extends TestDb {
         assertEquals(2, rs2.getInt(1));
 
         conn.close();
+    }
+
+    private void testNestedViewQueryCache() throws SQLException {
+        deleteDb("optimizations");
+        try (Connection conn = getConnection("optimizations");
+                Statement stat = conn.createStatement()) {
+            stat.execute("SET OPTIMIZE_REUSE_RESULTS 1");
+            stat.execute("CREATE TABLE BASE_TABLE (ID INT)");
+            stat.execute("CREATE VIEW INNER_VIEW AS "
+                    + "SELECT ID, COUNT(*) AS CNT FROM BASE_TABLE GROUP BY ID");
+            stat.execute("CREATE VIEW OUTER_VIEW AS SELECT ID, CNT FROM INNER_VIEW");
+            stat.execute("CREATE VIEW DERIVED_VIEW AS SELECT CNT FROM (SELECT CNT FROM OUTER_VIEW) D");
+            stat.execute("INSERT INTO BASE_TABLE VALUES (1)");
+            conn.setAutoCommit(false);
+            try (PreparedStatement prep = conn.prepareStatement(
+                    "SELECT CNT FROM OUTER_VIEW WHERE ID = 1");
+                    PreparedStatement exists = conn.prepareStatement(
+                        "SELECT EXISTS(SELECT 1 FROM DERIVED_VIEW WHERE CNT > 1)")) {
+                try (ResultSet rs = prep.executeQuery()) {
+                    assertTrue(rs.next());
+                    assertEquals(1, rs.getInt(1));
+                }
+                try (ResultSet rs = exists.executeQuery()) {
+                    assertTrue(rs.next());
+                    assertFalse(rs.getBoolean(1));
+                }
+                stat.execute("INSERT INTO BASE_TABLE VALUES (1)");
+                try (ResultSet rs = prep.executeQuery()) {
+                    assertTrue(rs.next());
+                    assertEquals(2, rs.getInt(1));
+                }
+                try (ResultSet rs = exists.executeQuery()) {
+                    assertTrue(rs.next());
+                    assertTrue(rs.getBoolean(1));
+                }
+                conn.rollback();
+                try (ResultSet rs = prep.executeQuery()) {
+                    assertTrue(rs.next());
+                    assertEquals(1, rs.getInt(1));
+                }
+            }
+        }
     }
 
     private void testMinMaxCountOptimization(boolean memory)

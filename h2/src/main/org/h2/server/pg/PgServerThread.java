@@ -77,7 +77,13 @@ public final class PgServerThread implements Runnable {
 
     private static final boolean INTEGER_DATE_TYPES = false;
 
-    private static final Pattern SHOULD_QUOTE = Pattern.compile(".*[\",\\\\{}].*");
+    /**
+     * Array elements that PostgreSQL writes in double quotes: an empty string,
+     * NULL in any case, and strings with white space or with one of the
+     * characters " \ , { }.
+     */
+    private static final Pattern SHOULD_QUOTE = Pattern.compile("|(?i:null)|.*[\",\\\\{}\\s].*",
+            Pattern.DOTALL);
 
     private static String pgTimeZone(String value) {
         if (value.startsWith("GMT+")) {
@@ -657,13 +663,15 @@ public final class PgServerThread implements Runnable {
                     if (i > 0) {
                         baos.write(',');
                     }
-                    String s = values[i].getString();
-                    if (SHOULD_QUOTE.matcher(s).matches()) {
-                        List<String> ss = new ArrayList<>();
-                        for (String s0 : s.split("\\\\")) {
-                            ss.add(s0.replace("\"", "\\\""));
+                    Value value = values[i];
+                    String s;
+                    if (value == ValueNull.INSTANCE) {
+                        s = "NULL";
+                    } else {
+                        s = value.getString();
+                        if (SHOULD_QUOTE.matcher(s).matches()) {
+                            s = '"' + s.replace("\\", "\\\\").replace("\"", "\\\"") + '"';
                         }
-                        s = "\"" + String.join("\\\\", ss) + "\"";
                     }
                     baos.write(s.getBytes(encoding));
                 }

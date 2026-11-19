@@ -899,6 +899,22 @@ public class TestPgServer extends TestDb {
                 assertEquals("d\\\"e", arr[1]);
                 assertEquals("{,}", arr[2]);
             }
+            stat.execute("INSERT INTO test (id, x1) VALUES "
+                    + "(2, ARRAY['NULL', 'null', 'C:' || CHAR(92) || 'temp' || CHAR(92), "
+                    + "CHAR(92) || CHAR(92), '', ' a b ', NULL])");
+            try (ResultSet rs = stat.executeQuery(
+                    "SELECT x1 FROM test WHERE id = 2")) {
+                assertTrue(rs.next());
+                Object[] arr = (Object[]) rs.getArray(1).getArray();
+                assertEquals(7, arr.length);
+                assertEquals("NULL", arr[0]);
+                assertEquals("null", arr[1]);
+                assertEquals("C:\\temp\\", arr[2]);
+                assertEquals("\\\\", arr[3]);
+                assertEquals("", arr[4]);
+                assertEquals(" a b ", arr[5]);
+                assertNull(arr[6]);
+            }
             try (ResultSet rs = stat.executeQuery(
                     "SELECT data_type FROM information_schema.columns WHERE table_schema = 'pg_catalog' " +
                     "AND table_name = 'pg_database' AND column_name = 'datacl'")) {

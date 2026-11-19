@@ -107,6 +107,7 @@ public final class LinkSchemaFunction extends TableFunction {
 
     @Override
     public ResultInterface getValueTemplate(SessionLocal session) {
+        session.checkAdminFunction();
         SimpleResult result = new SimpleResult();
         result.addColumn("TABLE_NAME", TypeInfo.TYPE_VARCHAR);
         return result;

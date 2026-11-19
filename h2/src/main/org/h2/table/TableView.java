@@ -76,13 +76,21 @@ public final class TableView extends QueryExpressionTable {
         initColumnsAndTables(session);
     }
 
-    private static Query compileViewQuery(SessionLocal session, String sql) {
+    private Query compileViewQuery(SessionLocal session, String sql) {
         Prepared p;
+        RightOwner owner = getSchema().getOwner();
+        boolean nonAdminOwner = !(owner instanceof User && ((User) owner).isAdmin());
         session.setParsingCreateView(true);
+        if (nonAdminOwner) {
+            session.setCompilingNonAdminView(true);
+        }
         try {
             p = session.prepare(sql, false, false, null);
         } finally {
             session.setParsingCreateView(false);
+            if (nonAdminOwner) {
+                session.setCompilingNonAdminView(false);
+            }
         }
         if (!(p instanceof Query)) {
             throw DbException.getSyntaxError(sql, 0);

@@ -47,6 +47,7 @@ public class TestRights extends TestDb {
         testEstimatedEnvelopeRights();
         testForceViewOwnerRights();
         testRevokeViewOwnerRights();
+        testAdminFunctionsInSchemaObjects();
         testDisallowedTables();
         testDropOwnUser();
         testGetTables();
@@ -394,6 +395,52 @@ public class TestRights extends TestDb {
                 assertThrows(ErrorCode.VIEW_IS_INVALID_2, statLow, "select * from lows.v");
             }
         }
+        deleteDb("rights");
+    }
+
+    private void testAdminFunctionsInSchemaObjects() throws SQLException {
+        deleteDb("rights");
+        String fileName = getBaseDir() + "/rights_file_write.txt";
+        FileUtils.delete(fileName);
+        String fileWrite = "file_write(X'41', '" + fileName + "')";
+        try (Connection conn = getConnection("rights")) {
+            stat = conn.createStatement();
+            stat.execute("create user low password 'low'");
+            stat.execute("create schema lows authorization low");
+            try (Connection connLow = getConnection("rights", "low", getPassword("low"))) {
+                Statement statLow = connLow.createStatement();
+                // these objects are evaluated in the session of whoever reads
+                // or writes them, so an admin would run the function
+                assertThrows(ErrorCode.ADMIN_RIGHTS_REQUIRED, statLow,
+                        "create view lows.v as select " + fileWrite + " w");
+                assertThrows(ErrorCode.ADMIN_RIGHTS_REQUIRED, statLow,
+                        "create table lows.t(id int, w bigint default " + fileWrite + ')');
+                assertThrows(ErrorCode.ADMIN_RIGHTS_REQUIRED, statLow,
+                        "create table lows.t(id int check (" + fileWrite + " > 0))");
+                assertThrows(ErrorCode.ADMIN_RIGHTS_REQUIRED, statLow,
+                        "create table lows.t(id int, w bigint generated always as (" + fileWrite + "))");
+                assertThrows(ErrorCode.ADMIN_RIGHTS_REQUIRED, statLow,
+                        "create view lows.v as select csvwrite('" + fileName + "', 'select 1') w");
+                assertThrows(ErrorCode.ADMIN_RIGHTS_REQUIRED, statLow,
+                        "create view lows.v as select * from link_schema('X', '', 'jdbc:h2:mem:', 'sa', 'sa', 'PUBLIC')");
+                assertThrows(ErrorCode.ADMIN_RIGHTS_REQUIRED, statLow,
+                        "create table lows.t(id int, s varchar default db_object_sql('USER', 'SA'))");
+                assertThrows(ErrorCode.ADMIN_RIGHTS_REQUIRED, statLow,
+                        "create view lows.v as select abort_session(0) a");
+                statLow.execute("create force view lows.f as select " + fileWrite + " w");
+                assertThrows(ErrorCode.VIEW_IS_INVALID_2, stat, "select * from lows.f");
+            }
+            assertSingleValue(stat, "select " + fileWrite, 1);
+            assertTrue(FileUtils.exists(fileName));
+            FileUtils.delete(fileName);
+        }
+        if (!config.memory) {
+            // reopening compiles the force view with the system session
+            try (Connection conn = getConnection("rights")) {
+                assertThrows(ErrorCode.VIEW_IS_INVALID_2, conn.createStatement(), "select * from lows.f");
+            }
+        }
+        assertFalse(FileUtils.exists(fileName));
         deleteDb("rights");
     }
 

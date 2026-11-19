@@ -165,6 +165,7 @@ public final class DBObjectFunction extends FunctionN {
 
     @Override
     public Expression optimize(SessionLocal session) {
+        session.checkAdminFunction();
         optimizeArguments(session, false);
         switch (function) {
         case DB_OBJECT_ID:

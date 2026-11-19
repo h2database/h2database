@@ -75,6 +75,7 @@ public final class SessionControlFunction extends Function1 {
 
     @Override
     public Expression optimize(SessionLocal session) {
+        session.checkAdminFunction();
         arg = arg.optimize(session);
         type = TypeInfo.TYPE_BOOLEAN;
         return this;

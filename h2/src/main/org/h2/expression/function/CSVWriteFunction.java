@@ -94,6 +94,7 @@ public final class CSVWriteFunction extends FunctionN {
 
     @Override
     public Expression optimize(SessionLocal session) {
+        session.checkAdminFunction();
         optimizeArguments(session, false);
         int len = args.length;
         if (len < 2 || len > 8) {

@@ -105,6 +105,7 @@ public final class FileFunction extends Function1_2 {
 
     @Override
     public Expression optimize(SessionLocal session) {
+        session.checkAdminFunction();
         left = left.optimize(session);
         if (right != null) {
             right = right.optimize(session);

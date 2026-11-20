@@ -452,6 +452,16 @@ public abstract class Index extends SchemaObject {
     }
 
     /**
+     * Whether the value of a column can be read from its indexed representation.
+     *
+     * @param column the column
+     * @return whether an available index value can be used without reading the row
+     */
+    public boolean canGetColumnValue(Column column) {
+        return true;
+    }
+
+    /**
      * Checks if the given column is the first for this index. For scan indexes
      * of tables with row identifiers their {@code _ROWID_} column is considered
      * as the first column (although it isn't included into list), because such
@@ -755,7 +765,7 @@ public abstract class Index extends SchemaObject {
                         continue;
                     }
                     for (Column c2 : columns) {
-                        if (c == c2) {
+                        if (c == c2 && canGetColumnValue(c)) {
                             continue loop;
                         }
                     }

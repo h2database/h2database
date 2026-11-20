@@ -33,6 +33,7 @@ public class TestRecursiveQueries extends TestDb {
         testSimpleUnionAll();
         testSimpleUnion();
         testParameters();
+        testMaxRecursion();
     }
 
     private void testWrongLinkLargeResult() throws Exception {
@@ -215,6 +216,25 @@ public class TestRecursiveQueries extends TestDb {
             assertEquals(b.toString(), rs.getString(4));
         }
         assertFalse(rs.next());
+        conn.close();
+        deleteDb("recursiveQueries");
+    }
+
+    private void testMaxRecursion() throws Exception {
+        deleteDb("recursiveQueries");
+        Connection conn = getConnection("recursiveQueries");
+        Statement stat = conn.createStatement();
+        // unbounded by default
+        stat.execute("with recursive t(n) as (select 1 union all select n + 1 from t where n < 3) select * from t");
+        // a limit is enforced
+        stat.execute("set max_recursion 2");
+        assertThrows(org.h2.jdbc.JdbcSQLStatementCancelledException.class, stat).execute(
+                "with recursive t(n) as (select 1 union all select n + 1 from t where n < 10) select * from t");
+        // queries within the limit still work
+        stat.execute("with recursive t(n) as (select 1 union all select n + 1 from t where n < 2) select * from t");
+        // 0 disables the limit again
+        stat.execute("set max_recursion 0");
+        stat.execute("with recursive t(n) as (select 1 union all select n + 1 from t where n < 3) select * from t");
         conn.close();
         deleteDb("recursiveQueries");
     }

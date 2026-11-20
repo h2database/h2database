@@ -242,7 +242,12 @@ public class SetTypes {
      */
     public static final int TRUNCATE_LARGE_LENGTH = DEFAULT_NULL_ORDERING + 1;
 
-    private static final int COUNT = TRUNCATE_LARGE_LENGTH + 1;
+    /**
+     * The type of a SET MAX_RECURSION statement.
+     */
+    public static final int MAX_RECURSION = TRUNCATE_LARGE_LENGTH + 1;
+
+    private static final int COUNT = MAX_RECURSION + 1;
 
     private static final List<String> TYPES;
 
@@ -297,7 +302,8 @@ public class SetTypes {
                 "TIME ZONE", //
                 "VARIABLE_BINARY", //
                 "DEFAULT_NULL_ORDERING", //
-                "TRUNCATE_LARGE_LENGTH");
+                "TRUNCATE_LARGE_LENGTH", //
+                "MAX_RECURSION");
         assert TYPES.size() == COUNT;
     }
 

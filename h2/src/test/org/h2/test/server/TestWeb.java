@@ -81,6 +81,7 @@ public class TestWeb extends TestDb {
         testStartWebServerWithConnection();
         testServer();
         testHostHeader();
+        testManyParameters();
         testWebApp();
         testAdminSessionsEscaped();
         testIfExists();
@@ -288,6 +289,30 @@ public class TestWeb extends TestDb {
             assertEquals("HTTP/1.1 404 Not Found", getStatusLine("attacker.example:8182", null));
             // a header whose name only starts with "host" must not replace it
             assertEquals("HTTP/1.1 404 Not Found", getStatusLine("attacker.example:8182", "Hostname: localhost"));
+        } finally {
+            server.stop();
+        }
+    }
+
+    private void testManyParameters() throws Exception {
+        Server server = Server.createWebServer("-webPort", "8182", "-properties", "null");
+        server.start();
+        try (Socket socket = new Socket("localhost", 8182)) {
+            StringBuilder builder = new StringBuilder();
+            for (int i = 0; i < 1 << 19; i++) {
+                builder.append("a=b&");
+            }
+            byte[] body = builder.toString().getBytes(StandardCharsets.ISO_8859_1);
+            // took minutes when each parameter copied the rest of the body
+            socket.setSoTimeout(30_000);
+            OutputStream out = socket.getOutputStream();
+            out.write(("POST /index.do HTTP/1.1\r\nHost: localhost:8182\r\nContent-Length: " + body.length
+                    + "\r\n\r\n").getBytes(StandardCharsets.ISO_8859_1));
+            out.write(body);
+            out.flush();
+            assertEquals("HTTP/1.1 200 OK",
+                    new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.ISO_8859_1))
+                    .readLine());
         } finally {
             server.stop();
         }

@@ -300,18 +300,20 @@ class WebThread extends WebApp implements Runnable {
 
     private void parseAttributes(String s) {
         trace("data=" + s);
-        while (s != null) {
-            int idx = s.indexOf('=');
+        // copy only the names and values; copying the rest of the string
+        // for each pair is quadratic in its length
+        for (int start = 0;;) {
+            int idx = s.indexOf('=', start);
             if (idx >= 0) {
-                String property = s.substring(0, idx);
-                s = s.substring(idx + 1);
-                idx = s.indexOf('&');
+                String property = s.substring(start, idx);
+                start = idx + 1;
+                idx = s.indexOf('&', start);
                 String value;
                 if (idx >= 0) {
-                    value = s.substring(0, idx);
-                    s = s.substring(idx + 1);
+                    value = s.substring(start, idx);
+                    start = idx + 1;
                 } else {
-                    value = s;
+                    value = s.substring(start);
                 }
                 String attr = StringUtils.urlDecode(value);
                 attributes.put(property, attr);

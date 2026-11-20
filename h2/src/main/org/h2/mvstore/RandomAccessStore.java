@@ -267,7 +267,8 @@ public abstract class RandomAccessStore extends FileStore<SFChunk>
         Map<Long,SFChunk> validChunksByLocation = new HashMap<>();
         if (assumeCleanShutdown) {
             // quickly check latest 20 chunks referenced in meta table
-            Queue<SFChunk> chunksToVerify = new PriorityQueue<>(HEADER_FLUSH_INTERVAL, Collections.reverseOrder(chunkComparator));
+            Queue<SFChunk> chunksToVerify = new PriorityQueue<>(HEADER_FLUSH_INTERVAL,
+                    Collections.reverseOrder(chunkComparator));
             try {
                 setLastChunk(newest);
                 // load the chunk metadata: although root page of layout map resides in the lastChunk,

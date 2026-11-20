@@ -59,6 +59,7 @@ public final class MVSecondaryIndex extends MVIndex<SearchRow, Value> {
         boolean readRowValues = false;
         for (Column column : this.columns) {
             int type = column.getType().getValueType();
+            // CHAR padding can change with SET MODE after the index was created.
             if (!org.h2.value.DataType.hasTotalOrdering(type)
                     && !(type == Value.VARCHAR
                             && CompareMode.OFF.equals(database.getCompareMode().getName()))) {

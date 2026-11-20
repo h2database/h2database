@@ -7,6 +7,7 @@ package org.h2.tools;
 
 import static org.h2.util.Bits.INT_VH_BE;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Constructor;
@@ -115,11 +116,18 @@ public class CompressTool {
             configMap.put("blockSize", 32 * 1024 * 1024); // 32MB blocks
             configMap.put("checksum", 64); // Enable checksums
 
-            configMap.put("pool", executor); // Multi-threaded
-            if (Runtime.getRuntime().freeMemory() < 8L * 1024 * 1024 * 1024) {
-                configMap.put("jobs", 4);
+            if (executor != null) {
+                configMap.put("pool", executor); // Multi-threaded
+                if (Runtime.getRuntime().freeMemory() < 8L * 1024 * 1024 * 1024) {
+                    configMap.put("jobs", 4);
+                } else {
+                    // availableProcessors() == 1 would yield 0 jobs, which
+                    // Kanzi rejects
+                    configMap.put("jobs", Math.max(1, Runtime.getRuntime().availableProcessors() / 2));
+                }
             } else {
-                configMap.put("jobs", Runtime.getRuntime().availableProcessors() / 2);
+                // Kanzi rejects jobs > 1 without a thread pool
+                configMap.put("jobs", 1);
             }
 
             Constructor<?> constructor = clazz.getConstructor(OutputStream.class, java.util.Map.class);
@@ -131,7 +139,8 @@ public class CompressTool {
                             + "Add kanzi.jar to your classpath. Download from: https://github.com/flanglet/kanzi-java",
                     e);
         } catch (Exception e) {
-            throw new RuntimeException("Failed to initialize Kanzi compression: " + e.getMessage(), e);
+            Throwable cause = e instanceof InvocationTargetException && e.getCause() != null ? e.getCause() : e;
+            throw new RuntimeException("Failed to initialize Kanzi compression: " + cause.getMessage(), cause);
         }
     }
 
@@ -150,8 +159,13 @@ public class CompressTool {
             java.util.Map<String, Object> configMap = new java.util.HashMap<>();
 
             // Basic compression settings
-            configMap.put("pool", executor); // Multi-threaded
-            configMap.put("jobs", Runtime.getRuntime().availableProcessors());
+            if (executor != null) {
+                configMap.put("pool", executor); // Multi-threaded
+                configMap.put("jobs", Runtime.getRuntime().availableProcessors());
+            } else {
+                // Kanzi rejects jobs > 1 without a thread pool
+                configMap.put("jobs", 1);
+            }
 
             Constructor<?> constructor = clazz.getConstructor(InputStream.class, java.util.Map.class);
             // workaround Zero byte EOF issue
@@ -165,7 +179,8 @@ public class CompressTool {
                             + "Add kanzi.jar to your classpath. Download from: https://github.com/flanglet/kanzi-java",
                     e);
         } catch (Exception e) {
-            throw new RuntimeException("Failed to initialize Kanzi compression: " + e.getMessage(), e);
+            Throwable cause = e instanceof InvocationTargetException && e.getCause() != null ? e.getCause() : e;
+            throw new RuntimeException("Failed to initialize Kanzi compression: " + cause.getMessage(), cause);
         }
     }
 
@@ -437,8 +452,14 @@ public class CompressTool {
      */
     public static OutputStream wrapOutputStream(OutputStream out, String compressionAlgorithm, String entryName,
             ExecutorService executor) {
+        CompressionType compressionType;
         try {
-            CompressionType compressionType = CompressionType.from(compressionAlgorithm);
+            compressionType = CompressionType.from(compressionAlgorithm);
+        } catch (IllegalArgumentException e) {
+            // the algorithm name really is unknown
+            throw DbException.get(ErrorCode.UNSUPPORTED_COMPRESSION_ALGORITHM_1, e, compressionAlgorithm);
+        }
+        try {
             switch (compressionType) {
             case GZIP:
                 return new GZIPOutputStream(out);
@@ -457,9 +478,13 @@ public class CompressTool {
             default:
                 return out;
             }
-        } catch (Exception e) {
-            throw DbException.get(ErrorCode.UNSUPPORTED_COMPRESSION_ALGORITHM_1, compressionAlgorithm);
+        } catch (IOException e) {
+            throw DbException.convertIOException(e, entryName);
         }
+        // RuntimeExceptions from createBZip2OutputStream() /
+        // createKanziOutputStream() (missing library, bad configuration)
+        // intentionally propagate with their real message and cause instead
+        // of being masked as UNSUPPORTED_COMPRESSION_ALGORITHM_1
     }
 
     /**
@@ -492,8 +517,14 @@ public class CompressTool {
      */
     public static InputStream wrapInputStream(InputStream in, String compressionAlgorithm, String entryName,
             ExecutorService executor) {
+        CompressionType compressionType;
         try {
-            CompressionType compressionType = CompressionType.from(compressionAlgorithm);
+            compressionType = CompressionType.from(compressionAlgorithm);
+        } catch (IllegalArgumentException e) {
+            // the algorithm name really is unknown
+            throw DbException.get(ErrorCode.UNSUPPORTED_COMPRESSION_ALGORITHM_1, e, compressionAlgorithm);
+        }
+        try {
             switch (compressionType) {
             case GZIP:
                 return new GZIPInputStream(in);
@@ -514,15 +545,19 @@ public class CompressTool {
             case KANZI:
                 return createKanziInputStream(in, executor);
             case DEFLATE:
-                return in = new InflaterInputStream(in);
+                return new InflaterInputStream(in);
             case LZF:
                 return new LZFInputStream(in);
             default:
                 return in;
             }
-        } catch (Exception e) {
-            throw DbException.get(ErrorCode.UNSUPPORTED_COMPRESSION_ALGORITHM_1, compressionAlgorithm);
+        } catch (IOException e) {
+            throw DbException.convertIOException(e, entryName);
         }
+        // RuntimeExceptions from createBZip2InputStream() /
+        // createKanziInputStream() (missing library, bad configuration)
+        // intentionally propagate with their real message and cause instead
+        // of being masked as UNSUPPORTED_COMPRESSION_ALGORITHM_1
     }
 
 }

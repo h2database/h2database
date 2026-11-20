@@ -33,8 +33,17 @@ public class RuleRepeat implements Rule {
     @Override
     public boolean autoComplete(Sentence sentence) {
         sentence.stopIfRequired();
-        while (rule.autoComplete(sentence)) {
-            // nothing to do
+        for (int last = sentence.getQuery().length();;) {
+            if (!rule.autoComplete(sentence)) {
+                break;
+            }
+            int length = sentence.getQuery().length();
+            if (length >= last) {
+                // a nullable inner rule matched without consuming any
+                // character, repeating it again cannot make progress
+                break;
+            }
+            last = length;
         }
         String s = sentence.getQuery();
         while (Bnf.startWithSpace(s)) {

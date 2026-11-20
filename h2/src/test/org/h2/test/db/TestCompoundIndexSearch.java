@@ -99,7 +99,8 @@ public class TestCompoundIndexSearch extends TestDb {
 
     /**
      * Executes a query with a simple IN condition against a compound index. The lookup column is the second component
-     * of the index, so a full table scan happens.
+     * of the index. CHAR values may have different padding after SQL mode changes, so the index isn't covering
+     * and a full table scan is cheaper for this data set.
      */
     private void simpleInAgainstSecondCompoundIndex(Connection conn) throws Exception {
         Statement stat = conn.createStatement();

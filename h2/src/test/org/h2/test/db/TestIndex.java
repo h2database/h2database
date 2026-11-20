@@ -135,16 +135,46 @@ public class TestIndex extends TestDb {
     }
 
     private void testUpdatedCharIndexValue() throws SQLException {
-        deleteDb("index");
-        try (Connection conn = getConnection("index")) {
-            Statement stat = conn.createStatement();
-            stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, V CHAR(4))");
-            stat.execute("CREATE INDEX IDX_V ON TEST(V)");
-            stat.execute("INSERT INTO TEST VALUES (1, 'a')");
-            stat.execute("SET MODE MySQL");
-            stat.execute("ALTER TABLE TEST ALTER COLUMN V SELECTIVITY 1");
-            stat.execute("UPDATE TEST SET V = 'a' WHERE ID = 1");
-            assertIndexValue(stat, "a");
+        for (boolean unique : new boolean[] { false, true }) {
+            deleteDb("index");
+            try (Connection conn = getConnection("index")) {
+                Statement stat = conn.createStatement();
+                stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, V CHAR(4))");
+                stat.execute("CREATE " + (unique ? "UNIQUE " : "") + "INDEX IDX_V ON TEST(V)");
+                stat.execute("INSERT INTO TEST VALUES (1, 'a')");
+                stat.execute("SET MODE MySQL");
+                stat.execute("ALTER TABLE TEST ALTER COLUMN V SELECTIVITY 1");
+                conn.setAutoCommit(false);
+                try (Connection reader = getConnection("index")) {
+                    reader.setTransactionIsolation(Connection.TRANSACTION_REPEATABLE_READ);
+                    reader.setAutoCommit(false);
+                    Statement readerStat = reader.createStatement();
+                    assertIndexValue(readerStat, "a   ");
+                    stat.execute("UPDATE TEST SET V = 'a' WHERE ID = 1");
+                    assertIndexValue(stat, "a");
+                    assertIndexValue(readerStat, "a   ");
+                    conn.rollback();
+                    assertIndexValue(stat, "a   ");
+                    stat.execute("UPDATE TEST SET V = 'a' WHERE ID = 1");
+                    conn.commit();
+                    assertIndexValue(stat, "a");
+                    assertIndexValue(readerStat, "a   ");
+                    reader.commit();
+                    assertIndexValue(readerStat, "a");
+                }
+            }
+            if (!config.memory) {
+                try (Connection conn = getConnection("index")) {
+                    Statement stat = conn.createStatement();
+                    assertIndexValue(stat, "a");
+                    stat.execute("SET MODE REGULAR");
+                    stat.execute("UPDATE TEST SET V = 'a' WHERE ID = 1");
+                    assertIndexValue(stat, "a   ");
+                }
+                try (Connection conn = getConnection("index")) {
+                    assertIndexValue(conn.createStatement(), "a   ");
+                }
+            }
         }
         deleteDb("index");
     }

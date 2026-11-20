@@ -11,6 +11,7 @@ import org.h2.engine.Database;
 import org.h2.engine.Role;
 import org.h2.engine.SessionLocal;
 import org.h2.message.DbException;
+import org.h2.table.TableView;
 
 /**
  * This class represents the statement
@@ -44,6 +45,7 @@ public class DropRole extends DefineCommand {
             }
             role.checkOwnsNoSchemas();
             db.removeDatabaseObject(session, role);
+            TableView.recheckOwnerRights(session);
         }
         return 0;
     }

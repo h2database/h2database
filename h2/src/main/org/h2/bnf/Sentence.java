@@ -54,17 +54,24 @@ public class Sentence {
     private String queryUpper;
 
     private long stopAtNs;
+    private HashMap<Rule, Integer> activeRules;
     private DbSchema lastMatchedSchema;
     private DbTableOrView lastMatchedTable;
     private DbTableOrView lastTable;
     private HashSet<DbTableOrView> tables;
     private HashMap<String, DbTableOrView> aliases;
+    private HashSet<String> queryNames;
 
     /**
      * Start the timer to make sure processing doesn't take too long.
      */
     public void start() {
         stopAtNs = System.nanoTime() + MAX_PROCESSING_TIME * 1_000_000L;
+        if (activeRules != null) {
+            // processing of the previous statement rule may have been
+            // aborted by the timeout, leaving stale entries behind
+            activeRules.clear();
+        }
     }
 
     /**
@@ -75,6 +82,55 @@ public class Sentence {
     public void stopIfRequired() {
         if (System.nanoTime() - stopAtNs > 0L) {
             throw new IllegalStateException();
+        }
+    }
+
+    /**
+     * Result of {@link #enterRule(Rule)} indicating that the rule is already
+     * being processed at the same position in the query: a recursive grammar
+     * rule did not consume any character (left recursion), so testing it
+     * again cannot make progress.
+     */
+    public static final int BLOCKED = -2;
+
+    /**
+     * Enter a non-terminal rule during auto-completion. If the returned value
+     * is not {@link #BLOCKED}, it must be passed back to
+     * {@link #exitRule(Rule, int)} after the rule was processed.
+     *
+     * @param rule the rule
+     * @return {@link #BLOCKED} if this rule is already active at the current
+     *         position, otherwise the value to pass to
+     *         {@link #exitRule(Rule, int)}
+     */
+    public int enterRule(Rule rule) {
+        if (activeRules == null) {
+            activeRules = new HashMap<>();
+        }
+        int position = query.length();
+        Integer old = activeRules.put(rule, position);
+        if (old == null) {
+            return -1;
+        }
+        if (old == position) {
+            // no restore needed, the stored value did not change
+            return BLOCKED;
+        }
+        // the same rule is active at an outer position (e.g. in a subquery)
+        return old;
+    }
+
+    /**
+     * Exit a non-terminal rule entered with {@link #enterRule(Rule)}.
+     *
+     * @param rule the rule
+     * @param previous the value returned by {@link #enterRule(Rule)}
+     */
+    public void exitRule(Rule rule, int previous) {
+        if (previous < 0) {
+            activeRules.remove(rule);
+        } else {
+            activeRules.put(rule, previous);
         }
     }
 
@@ -122,6 +178,27 @@ public class Sentence {
      */
     public HashSet<DbTableOrView> getTables() {
         return tables;
+    }
+
+    /**
+     * Add the name of a common table expression (WITH clause).
+     *
+     * @param name the query name
+     */
+    public void addQueryName(String name) {
+        if (queryNames == null) {
+            queryNames = new HashSet<>();
+        }
+        queryNames.add(StringUtils.toUpperEnglish(name));
+    }
+
+    /**
+     * Get the names of common table expressions (WITH clauses), in uppercase.
+     *
+     * @return the set of query names, or null
+     */
+    public HashSet<String> getQueryNames() {
+        return queryNames;
     }
 
     /**

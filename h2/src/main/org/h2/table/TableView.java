@@ -76,13 +76,21 @@ public final class TableView extends QueryExpressionTable {
         initColumnsAndTables(session);
     }
 
-    private static Query compileViewQuery(SessionLocal session, String sql) {
+    private Query compileViewQuery(SessionLocal session, String sql) {
         Prepared p;
+        RightOwner owner = getSchema().getOwner();
+        boolean nonAdminOwner = !(owner instanceof User && ((User) owner).isAdmin());
         session.setParsingCreateView(true);
+        if (nonAdminOwner) {
+            session.setCompilingNonAdminView(true);
+        }
         try {
             p = session.prepare(sql, false, false, null);
         } finally {
             session.setParsingCreateView(false);
+            if (nonAdminOwner) {
+                session.setCompilingNonAdminView(false);
+            }
         }
         if (!(p instanceof Query)) {
             throw DbException.getSyntaxError(sql, 0);
@@ -169,6 +177,32 @@ public final class TableView extends QueryExpressionTable {
             if (table != this && !owner.isTableRightGranted(table, Right.SELECT)) {
                 throw DbException.get(ErrorCode.NOT_ENOUGH_RIGHTS_FOR_1, table.getTraceSQL());
             }
+        }
+    }
+
+    /**
+     * Recompile the valid views of non-admin owners, so that the owner rights
+     * are checked again after a right was taken away (REVOKE, DROP ROLE,
+     * ALTER USER ... ADMIN FALSE). Without this a view whose owner can no
+     * longer read its tables stays readable until the database is opened again.
+     *
+     * @param session the session
+     */
+    public static void recheckOwnerRights(SessionLocal session) {
+        Database database = session.getDatabase();
+        boolean recompiled = false;
+        for (Table table : database.getAllTablesAndViews()) {
+            if (table instanceof TableView) {
+                TableView view = (TableView) table;
+                RightOwner owner = view.getSchema().getOwner();
+                if (!view.isInvalid() && !(owner instanceof User && ((User) owner).isAdmin())) {
+                    view.recompile(session, true, false);
+                    recompiled = true;
+                }
+            }
+        }
+        if (recompiled) {
+            clearIndexCaches(database);
         }
     }
 

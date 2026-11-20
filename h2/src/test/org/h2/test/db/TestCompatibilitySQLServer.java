@@ -71,7 +71,8 @@ public class TestCompatibilitySQLServer extends TestDb {
             assertSingleValue(stat, "select val from target where id = 4", 50);
 
             stat.execute("set mode regular");
-            assertThrows(ErrorCode.SYNTAX_ERROR_1, stat).executeUpdate("delete from target with (rowlock) where id = 1");
+            assertThrows(ErrorCode.SYNTAX_ERROR_1, stat)
+                    .executeUpdate("delete from target with (rowlock) where id = 1");
             assertThrows(ErrorCode.SYNTAX_ERROR_2, stat).executeUpdate("merge into target with (holdlock) as t "
                     + "using source as s on t.id = s.id when matched then update set val = s.val");
             stat.execute("set mode MSSQLServer");

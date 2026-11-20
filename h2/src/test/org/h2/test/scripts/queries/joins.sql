@@ -601,7 +601,7 @@ select * from customer c natural join invoice i natural join INVOICE_LINE l;
 > rows: 2
 
 explain select * from customer c natural join invoice i natural join INVOICE_LINE l;
->> SELECT "C"."CUSTOMERID", "C"."CUSTOMER_NAME", "I"."INVOICEID", "I"."INVOICE_TEXT", "L"."LINE_ID", "L"."LINE_TEXT" FROM "PUBLIC"."INVOICE" "I" /* PUBLIC.INVOICE.tableScan */ INNER JOIN "PUBLIC"."INVOICE_LINE" "L" /* PUBLIC.INVOICE_LINE.tableScan */ ON 1=1 /* WHERE (I.CUSTOMERID = L.CUSTOMERID) AND (I.INVOICEID = L.INVOICEID) */ INNER JOIN "PUBLIC"."CUSTOMER" "C" /* PUBLIC.CUSTOMER.tableScan */ ON 1=1 WHERE ("C"."CUSTOMERID" = "I"."CUSTOMERID") AND ("I"."CUSTOMERID" = "L"."CUSTOMERID") AND ("I"."INVOICEID" = "L"."INVOICEID")
+>> SELECT "C"."CUSTOMERID", "C"."CUSTOMER_NAME", "I"."INVOICEID", "I"."INVOICE_TEXT", "L"."LINE_ID", "L"."LINE_TEXT" FROM "PUBLIC"."INVOICE" "I" /* PUBLIC.INVOICE.tableScan */ INNER JOIN "PUBLIC"."INVOICE_LINE" "L" /* PUBLIC.INVOICE_LINE.tableScan */ ON 1=1 /* WHERE I.INVOICEID = L.INVOICEID */ INNER JOIN "PUBLIC"."CUSTOMER" "C" /* PUBLIC.CUSTOMER.tableScan */ ON 1=1 WHERE ("C"."CUSTOMERID" = "I"."CUSTOMERID") AND ("C"."CUSTOMERID" = "L"."CUSTOMERID") AND ("I"."INVOICEID" = "L"."INVOICEID")
 
 select c.*, i.*, l.* from customer c natural join invoice i natural join INVOICE_LINE l;
 > CUSTOMERID CUSTOMER_NAME CUSTOMERID INVOICEID INVOICE_TEXT LINE_ID INVOICEID CUSTOMERID LINE_TEXT
@@ -611,7 +611,7 @@ select c.*, i.*, l.* from customer c natural join invoice i natural join INVOICE
 > rows: 2
 
 explain select c.*, i.*, l.* from customer c natural join invoice i natural join INVOICE_LINE l;
->> SELECT "C"."CUSTOMERID", "C"."CUSTOMER_NAME", "I"."CUSTOMERID", "I"."INVOICEID", "I"."INVOICE_TEXT", "L"."LINE_ID", "L"."INVOICEID", "L"."CUSTOMERID", "L"."LINE_TEXT" FROM "PUBLIC"."INVOICE" "I" /* PUBLIC.INVOICE.tableScan */ INNER JOIN "PUBLIC"."INVOICE_LINE" "L" /* PUBLIC.INVOICE_LINE.tableScan */ ON 1=1 /* WHERE (I.CUSTOMERID = L.CUSTOMERID) AND (I.INVOICEID = L.INVOICEID) */ INNER JOIN "PUBLIC"."CUSTOMER" "C" /* PUBLIC.CUSTOMER.tableScan */ ON 1=1 WHERE ("C"."CUSTOMERID" = "I"."CUSTOMERID") AND ("I"."CUSTOMERID" = "L"."CUSTOMERID") AND ("I"."INVOICEID" = "L"."INVOICEID")
+>> SELECT "C"."CUSTOMERID", "C"."CUSTOMER_NAME", "I"."CUSTOMERID", "I"."INVOICEID", "I"."INVOICE_TEXT", "L"."LINE_ID", "L"."INVOICEID", "L"."CUSTOMERID", "L"."LINE_TEXT" FROM "PUBLIC"."INVOICE" "I" /* PUBLIC.INVOICE.tableScan */ INNER JOIN "PUBLIC"."INVOICE_LINE" "L" /* PUBLIC.INVOICE_LINE.tableScan */ ON 1=1 /* WHERE I.INVOICEID = L.INVOICEID */ INNER JOIN "PUBLIC"."CUSTOMER" "C" /* PUBLIC.CUSTOMER.tableScan */ ON 1=1 WHERE ("C"."CUSTOMERID" = "I"."CUSTOMERID") AND ("C"."CUSTOMERID" = "L"."CUSTOMERID") AND ("I"."INVOICEID" = "L"."INVOICEID")
 
 drop table customer;
 > ok
@@ -878,7 +878,183 @@ SELECT * FROM T1 INNER JOIN T2 USING (B, A);
 > 6 6
 > rows: 1
 
+-- Unqualified references to common columns of JOIN ... USING and NATURAL JOIN
+
+SELECT A, T1.B, T2.B FROM T1 INNER JOIN T2 USING (A);
+> A B  B
+> - -- ---
+> 1 10 100
+> 2 20 200
+> 6 6  6
+> rows: 3
+
+SELECT A FROM T1 LEFT JOIN T2 USING (A) ORDER BY A;
+> A
+> -
+> 1
+> 2
+> 4
+> 6
+> 7
+> rows (ordered): 5
+
+SELECT A, T2.B FROM T1 RIGHT JOIN T2 USING (A) ORDER BY A;
+> A B
+> - ---
+> 1 100
+> 2 200
+> 5 500
+> 6 6
+> 8 7
+> rows (ordered): 5
+
+SELECT A, T1.B FROM T1 JOIN T2 USING (A) WHERE A > 1 ORDER BY A;
+> A B
+> - --
+> 2 20
+> 6 6
+> rows (ordered): 2
+
+SELECT A, B FROM T1 NATURAL JOIN T2;
+> A B
+> - -
+> 6 6
+> rows: 1
+
+-- Common column in a derived table must stay unambiguous when the derived
+-- table is parsed again during optimization
+
+SELECT T3.A, D.B FROM T1 T3 LEFT JOIN (SELECT A, T1.B FROM T1 JOIN T2 USING (A)) D ON T3.A = D.A ORDER BY T3.A;
+> A B
+> - ----
+> 1 10
+> 2 20
+> 4 null
+> 6 6
+> 7 null
+> rows (ordered): 5
+
+-- NATURAL INNER, LEFT and RIGHT joins (common columns are A and B)
+
+SELECT A, B FROM T1 NATURAL INNER JOIN T2;
+> A B
+> - -
+> 6 6
+> rows: 1
+
+SELECT A, B FROM T1 NATURAL LEFT JOIN T2 ORDER BY A;
+> A B
+> - --
+> 1 10
+> 2 20
+> 4 40
+> 6 6
+> 7 7
+> rows (ordered): 5
+
+SELECT * FROM T1 NATURAL LEFT OUTER JOIN T2 ORDER BY A;
+> A B
+> - --
+> 1 10
+> 2 20
+> 4 40
+> 6 6
+> 7 7
+> rows (ordered): 5
+
+SELECT A, B FROM T1 NATURAL RIGHT JOIN T2 ORDER BY A;
+> A B
+> - ---
+> 1 100
+> 2 200
+> 5 500
+> 6 6
+> 8 7
+> rows (ordered): 5
+
+SELECT * FROM T1 NATURAL RIGHT OUTER JOIN T2 ORDER BY A;
+> A B
+> - ---
+> 1 100
+> 2 200
+> 5 500
+> 6 6
+> 8 7
+> rows (ordered): 5
+
+SELECT * FROM T1 NATURAL FULL JOIN T2;
+> exception SYNTAX_ERROR_1
+
 DROP TABLE T1, T2;
+> ok
+
+-- USING columns must be resolved against the whole left join chain
+
+CREATE TABLE TA(A INT) AS VALUES 1, 3;
+> ok
+
+CREATE TABLE TB(B INT) AS VALUES 2, 4;
+> ok
+
+CREATE TABLE TC(A INT, B INT) AS VALUES (1, 2), (3, 4), (5, 6);
+> ok
+
+CREATE TABLE TD(A INT, C INT) AS VALUES (1, 7);
+> ok
+
+SELECT A, B FROM TA JOIN TC USING (A) JOIN TB USING (B) ORDER BY A;
+> A B
+> - -
+> 1 2
+> 3 4
+> rows (ordered): 2
+
+SELECT * FROM TA JOIN TC USING (A) JOIN TB USING (B) ORDER BY A;
+> A B
+> - -
+> 1 2
+> 3 4
+> rows (ordered): 2
+
+SELECT C FROM (TA JOIN TC USING (A)) JOIN TD USING (A);
+>> 7
+
+-- A is merged by the first USING and stays visible for the second one
+SELECT A, C FROM TA JOIN TC USING (A) JOIN TD USING (A);
+> A C
+> - -
+> 1 7
+> rows: 1
+
+-- A exists unmerged in both TA and TD
+SELECT * FROM TA CROSS JOIN TD JOIN TC USING (A);
+> exception AMBIGUOUS_COLUMN_NAME_1
+
+SELECT * FROM TA JOIN TB USING (Z);
+> exception COLUMN_NOT_FOUND_1
+
+-- NATURAL JOIN matches common columns of the whole left join chain:
+-- TC shares A with TA and B with TB
+
+SELECT A, B FROM TA NATURAL JOIN TB NATURAL JOIN TC ORDER BY A;
+> A B
+> - -
+> 1 2
+> 3 4
+> rows (ordered): 2
+
+-- A is merged by the first NATURAL JOIN and stays visible for the second one
+SELECT A, C FROM TA NATURAL JOIN TC NATURAL JOIN TD;
+> A C
+> - -
+> 1 7
+> rows: 1
+
+-- A exists unmerged in both TA and TD
+SELECT * FROM TA CROSS JOIN TD NATURAL JOIN TC;
+> exception AMBIGUOUS_COLUMN_NAME_1
+
+DROP TABLE TA, TB, TC, TD;
 > ok
 
 SELECT *

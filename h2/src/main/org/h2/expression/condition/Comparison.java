@@ -592,7 +592,7 @@ public final class Comparison extends Condition {
      * @return null if no match, the other expression if there is a match
      */
     Expression getIfEquals(Expression match) {
-        if (compareType == EQUAL) {
+        if (compareType == EQUAL && TypeInfo.areComparable(left.getType(), right.getType())) {
             String sql = match.getSQL(DEFAULT_SQL_FLAGS);
             if (left.getSQL(DEFAULT_SQL_FLAGS).equals(sql)) {
                 return right;
@@ -645,7 +645,9 @@ public final class Comparison extends Condition {
      * @return null or the joined IN condition
      */
     Expression optimizeOr(SessionLocal session, Comparison other) {
-        if (compareType == EQUAL && other.compareType == EQUAL) {
+        if (compareType == EQUAL && other.compareType == EQUAL
+                && TypeInfo.areComparable(left.getType(), right.getType())
+                && TypeInfo.areComparable(other.left.getType(), other.right.getType())) {
             Expression left2 = other.left;
             Expression right2 = other.right;
             String l2 = left2.getSQL(DEFAULT_SQL_FLAGS);

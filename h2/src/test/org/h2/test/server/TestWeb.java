@@ -18,6 +18,7 @@ import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.security.Principal;
 import java.sql.Connection;
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Locale;
@@ -81,6 +82,7 @@ public class TestWeb extends TestDb {
         testStartWebServerWithConnection();
         testServer();
         testHostHeader();
+        testRequestFraming();
         testWebApp();
         testAdminSessionsEscaped();
         testIfExists();
@@ -291,6 +293,44 @@ public class TestWeb extends TestDb {
         } finally {
             server.stop();
         }
+    }
+
+    private void testRequestFraming() throws Exception {
+        Server server = Server.createWebServer("-webPort", "8182", "-properties", "null");
+        server.start();
+        try {
+            String smuggled = "GET /favicon.ico HTTP/1.1\r\nHost: localhost:8182\r\n\r\n";
+            // only Content-Length bytes of the body are read, so a request
+            // whose framing is ambiguous must be refused instead of leaving
+            // the rest of it to be read as the next request
+            assertRequestRefused("Transfer-Encoding: chunked\r\n", smuggled);
+            assertRequestRefused("Content-Length: " + smuggled.length() + "\r\nContent-Length: 0\r\n",
+                    smuggled);
+            assertRequestRefused("Content-Length: -" + smuggled.length() + "\r\n", smuggled);
+        } finally {
+            server.stop();
+        }
+    }
+
+    private void assertRequestRefused(String framingHeader, String body) throws IOException {
+        ArrayList<String> statusLines = new ArrayList<>();
+        try (Socket socket = new Socket("localhost", 8182)) {
+            socket.setSoTimeout(30_000);
+            OutputStream out = socket.getOutputStream();
+            out.write(("POST /index.html HTTP/1.1\r\nHost: localhost:8182\r\n"
+                    + "Connection: keep-alive\r\n" + framingHeader + "\r\n" + body)
+                    .getBytes(StandardCharsets.ISO_8859_1));
+            out.flush();
+            BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(socket.getInputStream(), StandardCharsets.ISO_8859_1));
+            for (String line; (line = reader.readLine()) != null;) {
+                if (line.startsWith("HTTP/1.1 ")) {
+                    statusLines.add(line);
+                }
+            }
+        }
+        assertEquals(1, statusLines.size());
+        assertEquals("HTTP/1.1 400 Bad Request", statusLines.get(0));
     }
 
     private static String getStatusLine(String host, String extraHeader) throws IOException {

@@ -776,7 +776,7 @@ public class TypeInfo extends ExtTypeInfo implements Typed {
      *            second data type
      * @return whether types are comparable
      */
-    private static boolean areComparable(TypeInfo t1, TypeInfo t2) {
+    public static boolean areComparable(TypeInfo t1, TypeInfo t2) {
         int vt1 = (t1 = t1.unwrapRow()).getValueType(), vt2 = (t2 = t2.unwrapRow()).getValueType();
         if (vt1 > vt2) {
             int vt = vt1;

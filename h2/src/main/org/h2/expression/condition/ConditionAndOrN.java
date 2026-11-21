@@ -159,6 +159,19 @@ public class ConditionAndOrN extends Condition {
 
     };
 
+    /**
+     * Stable ordering that evaluates array element access last under AND so a
+     * cheaper cardinality / bounds guard can short-circuit first.
+     */
+    private static final Comparator<Expression> COMPARE_ARRAY_ELEMENT_ERROR_LAST = new Comparator<>() {
+        @Override
+        public int compare(Expression lhs, Expression rhs) {
+            boolean l = ConditionAndOr.mayRaiseArrayElementError(lhs);
+            boolean r = ConditionAndOr.mayRaiseArrayElementError(rhs);
+            return Boolean.compare(l, r);
+        }
+    };
+
     @Override
     public Expression optimize(SessionLocal session) {
         // NULL handling: see wikipedia,
@@ -170,6 +183,10 @@ public class ConditionAndOrN extends Condition {
         }
 
         Collections.sort(expressions, COMPARE_BY_COST);
+        if (andOrType == ConditionAndOr.AND) {
+            // Prefer non-throwing array-index guards before array element access (#4364)
+            expressions.sort(COMPARE_ARRAY_ELEMENT_ERROR_LAST);
+        }
 
         // TODO we're only matching pairs so that are next to each other, so in complex expressions
         //   we will miss opportunities
@@ -247,6 +264,9 @@ public class ConditionAndOrN extends Condition {
         }
 
         Collections.sort(expressions, COMPARE_BY_COST);
+        if (andOrType == ConditionAndOr.AND) {
+            expressions.sort(COMPARE_ARRAY_ELEMENT_ERROR_LAST);
+        }
 
         if (expressions.size() == 1) {
             return Condition.castToBoolean(session, expressions.get(0));

@@ -1,0 +1,70 @@
+config autoCommit=false keysPerPage=5 autoCommitBufferKb=4 versionsToKeep=5 retentionTime=45000
+commit
+clear
+commit
+compact targetFillRate=67 write=512
+rollback
+compactFile
+commit
+commit
+put k=129 len=4057
+compactFile
+clear
+commit
+clear
+auxChurn writes=95 deletes=92 len=517 remove=false
+remove k=574
+commit
+commit
+compact targetFillRate=29 write=524288
+commit
+compactFile
+compactFile
+compact targetFillRate=50 write=32
+remove k=866
+auxChurn writes=76 deletes=69 len=832 remove=true
+compactFile
+rollback
+compactFile
+compactFile
+put k=2867 len=9060
+auxChurn writes=34 deletes=34 len=83 remove=false
+compact targetFillRate=33 write=131072
+rollback
+auxChurn writes=71 deletes=48 len=858 remove=true
+put k=1946 len=6858
+auxChurn writes=71 deletes=20 len=407 remove=true
+compact targetFillRate=37 write=32
+remove k=2046
+auxChurn writes=65 deletes=42 len=6 remove=false
+auxChurn writes=64 deletes=74 len=89 remove=false
+auxChurn writes=69 deletes=18 len=949 remove=false
+auxChurn writes=5 deletes=22 len=697 remove=false
+rollback
+rollback
+commit
+clear
+remove k=684
+put k=382 len=18
+compactFile
+auxChurn writes=64 deletes=31 len=601 remove=false
+compact targetFillRate=81 write=16384
+put k=2043 len=5764
+auxChurn writes=38 deletes=14 len=399 remove=true
+compact targetFillRate=84 write=8192
+clear
+compactFile
+compactFile
+compactFile
+commit
+compactFile
+rollback
+clear
+put k=1337 len=32
+clear
+remove k=2767
+compactFile
+remove k=1273
+auxChurn writes=53 deletes=47 len=645 remove=true
+put k=1144 len=45
+rollback

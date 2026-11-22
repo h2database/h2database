@@ -46,6 +46,8 @@ public class TestGeneralCommonTableQueries extends AbstractBaseForCommonTableExp
         testSimple2By4RowRecursiveQuery();
         testSimple3RowRecursiveQueryWithLazyEval();
         testSimple3RowRecursiveQueryDropAllObjects();
+        testNestedCteReevaluatesParametersOnReexecution();
+        testInsertSelectWithNewPreparedStatement();
     }
 
     private void testSimpleSelect() throws Exception {
@@ -582,5 +584,65 @@ public class TestGeneralCommonTableQueries extends AbstractBaseForCommonTableExp
 
         testRepeatedQueryWithSetup(maxRetries, expectedRowData, expectedColumnNames, expectedNumberOfRows, setupSQL,
                 withQuery, maxRetries - 1, expectedColumnTypes, false);
+    }
+    
+    private void testNestedCteReevaluatesParametersOnReexecution() throws Exception {
+        deleteDb("commonTableExpressionQueries");
+        Connection conn = getConnection("commonTableExpressionQueries");
+        PreparedStatement prep;
+        ResultSet rs;
+
+        conn.setAutoCommit(false);
+
+        prep = conn.prepareStatement(
+            "WITH A AS (SELECT X AS ID FROM SYSTEM_RANGE(1,3) WHERE X = ?),"
+            + "B AS (SELECT * FROM A)"
+            + " SELECT ID FROM B");
+
+        for (int input = 1; input <= 3; input++) {
+          prep.setInt(1, input);
+          rs = prep.executeQuery();
+          
+          assertTrue(rs.next());
+          assertEquals(input, rs.getInt(1));
+          assertFalse(rs.next());
+        }
+
+        conn.close();
+        deleteDb("commonTableExpressionQueries");
+    }
+    
+    private void testInsertSelectWithNewPreparedStatement() throws Exception {
+      deleteDb("commonTableExpressionQueries");
+      Connection conn = getConnection("commonTableExpressionQueries");
+      PreparedStatement prep;
+      ResultSet rs;
+
+      conn.setAutoCommit(false);
+
+      PreparedStatement setup = conn.prepareStatement("CREATE TABLE TARGET (ID INT)");
+      setup.execute();
+
+      for (int input = 1; input <= 3; input++) {
+          prep = conn.prepareStatement(
+                "INSERT INTO TARGET (ID) "
+                + "WITH A AS (SELECT X AS ID FROM SYSTEM_RANGE(1, 3) WHERE X = ?), "
+                + "B AS (SELECT * FROM A) "
+                + "SELECT ID FROM B");
+          
+          prep.setInt(1, input);
+          assertEquals(1, prep.executeUpdate());
+      }
+      
+      PreparedStatement query = conn.prepareStatement("SELECT ID FROM TARGET ORDER BY ID");
+      rs = query.executeQuery();
+      for (int expected = 1; expected <= 3; expected++) {
+        assertTrue(rs.next());
+        assertEquals(expected, rs.getInt(1));
+      }
+      assertFalse(rs.next());
+
+      conn.close();
+      deleteDb("commonTableExpressionQueries");
     }
 }

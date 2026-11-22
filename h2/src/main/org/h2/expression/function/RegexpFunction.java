@@ -48,6 +48,14 @@ public final class RegexpFunction extends FunctionN {
 
     private final int function;
 
+    /**
+     * The most recently compiled pattern, cached so that a constant regular expression (the common
+     * case, e.g. {@code WHERE REGEXP_LIKE(col, 'literal')}) is compiled once instead of once per row.
+     * Held in a single immutable holder published through a volatile field: a race can only cause an
+     * occasional harmless recompile, never an incorrect match.
+     */
+    private volatile CompiledPattern compiledPattern;
+
     public RegexpFunction(int function) {
         super(new Expression[function == REGEXP_LIKE ? 3 : 6]);
         this.function = function;
@@ -68,7 +76,7 @@ public final class RegexpFunction extends FunctionN {
             String regexpMode = v3 != null ? v3.getString() : null;
             int flags = makeRegexpFlags(regexpMode, false);
             try {
-                v1 = ValueBoolean.get(Pattern.compile(regexp, flags).matcher(v1.getString()).find());
+                v1 = ValueBoolean.get(getPattern(regexp, flags).matcher(v1.getString()).find());
             } catch (PatternSyntaxException e) {
                 throw DbException.get(ErrorCode.LIKE_ESCAPE_ERROR_1, e, regexp);
             }
@@ -118,7 +126,7 @@ public final class RegexpFunction extends FunctionN {
         return v1;
     }
 
-    private static Value regexpReplace(SessionLocal session, String input, String regexp, String replacement,
+    private Value regexpReplace(SessionLocal session, String input, String regexp, String replacement,
             int position, int occurrence, String regexpMode) {
         Mode mode = session.getMode();
         if (mode.regexpReplaceBackslashReferences) {
@@ -143,7 +151,7 @@ public final class RegexpFunction extends FunctionN {
             occurrence = 1;
         }
         try {
-            Matcher matcher = Pattern.compile(regexp, flags).matcher(input).region(position - 1, input.length());
+            Matcher matcher = getPattern(regexp, flags).matcher(input).region(position - 1, input.length());
             if (occurrence == 0) {
                 return ValueVarchar.get(matcher.replaceAll(replacement), session);
             } else {
@@ -166,7 +174,7 @@ public final class RegexpFunction extends FunctionN {
         }
     }
 
-    private static Value regexpSubstr(Value inputString, Value regexpArg, Value positionArg, Value occurrenceArg,
+    private Value regexpSubstr(Value inputString, Value regexpArg, Value positionArg, Value occurrenceArg,
             Value regexpModeArg, Value subexpressionArg, SessionLocal session) {
         if (inputString == ValueNull.INSTANCE || regexpArg == ValueNull.INSTANCE || positionArg == ValueNull.INSTANCE
                 || occurrenceArg == ValueNull.INSTANCE || subexpressionArg == ValueNull.INSTANCE) {
@@ -180,7 +188,7 @@ public final class RegexpFunction extends FunctionN {
         int subexpression = subexpressionArg != null ? subexpressionArg.getInt() : 0;
         int flags = makeRegexpFlags(regexpMode, false);
         try {
-            Matcher m = Pattern.compile(regexp, flags).matcher(inputString.getString());
+            Matcher m = getPattern(regexp, flags).matcher(inputString.getString());
 
             boolean found = m.find(position);
             for (int occurrence = 1; occurrence < requestedOccurrence && found; occurrence++) {
@@ -196,6 +204,39 @@ public final class RegexpFunction extends FunctionN {
             throw DbException.get(ErrorCode.LIKE_ESCAPE_ERROR_1, e, regexp);
         } catch (IndexOutOfBoundsException e) {
             return ValueNull.INSTANCE;
+        }
+    }
+
+    /**
+     * Compiles the regular expression, reusing the most recently compiled pattern when the expression and
+     * flags are unchanged. This avoids recompiling a constant pattern on every row.
+     *
+     * @param regexp the regular expression
+     * @param flags the flags, see {@link #makeRegexpFlags(String, boolean)}
+     * @return the compiled pattern
+     */
+    private Pattern getPattern(String regexp, int flags) {
+        CompiledPattern cached = compiledPattern;
+        if (cached != null && cached.flags == flags && cached.regexp.equals(regexp)) {
+            return cached.pattern;
+        }
+        Pattern pattern = Pattern.compile(regexp, flags);
+        compiledPattern = new CompiledPattern(regexp, flags, pattern);
+        return pattern;
+    }
+
+    private static final class CompiledPattern {
+
+        final String regexp;
+
+        final int flags;
+
+        final Pattern pattern;
+
+        CompiledPattern(String regexp, int flags, Pattern pattern) {
+            this.regexp = regexp;
+            this.flags = flags;
+            this.pattern = pattern;
         }
     }
 

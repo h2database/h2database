@@ -1057,6 +1057,51 @@ SELECT * FROM TA CROSS JOIN TD NATURAL JOIN TC;
 DROP TABLE TA, TB, TC, TD;
 > ok
 
+-- RIGHT JOIN common columns of a table that already has common columns of a previous join
+
+CREATE TABLE TA(ID INT, K INT, X INT) AS VALUES (1, 5, 10), (2, 6, 20);
+> ok
+
+CREATE TABLE TB(K INT, Y INT) AS VALUES (5, 500);
+> ok
+
+CREATE TABLE TC(Z VARCHAR, ID INT) AS VALUES ('c1', 1), ('c3', 3);
+> ok
+
+CREATE TABLE TD(K INT, W INT) AS VALUES (6, 600), (7, 700);
+> ok
+
+SELECT ID, K, Z FROM TA LEFT JOIN TB USING (K) RIGHT JOIN TC USING (ID) ORDER BY Z;
+> ID K    Z
+> -- ---- --
+> 1  5    c1
+> 3  null c3
+> rows (ordered): 2
+
+SELECT * FROM TA LEFT JOIN TB USING (K) RIGHT JOIN TC USING (ID) ORDER BY Z;
+> K    ID X    Y    Z
+> ---- -- ---- ---- --
+> 5    1  10   500  c1
+> null 3  null null c3
+> rows (ordered): 2
+
+SELECT ID, K, Z FROM TA NATURAL LEFT JOIN TB NATURAL RIGHT JOIN TC ORDER BY Z;
+> ID K    Z
+> -- ---- --
+> 1  5    c1
+> 3  null c3
+> rows (ordered): 2
+
+SELECT ID, K, Z, W FROM TA RIGHT JOIN TC USING (ID) RIGHT JOIN TD USING (K) ORDER BY W;
+> ID   K Z    W
+> ---- - ---- ---
+> null 6 null 600
+> null 7 null 700
+> rows (ordered): 2
+
+DROP TABLE TA, TB, TC, TD;
+> ok
+
 SELECT *
     FROM (VALUES(1, 'A'), (2, 'B')) T1(A, B)
     JOIN (VALUES(2, 'C'), (3, 'D')) T2(A, C) USING (A);

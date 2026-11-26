@@ -133,6 +133,10 @@ class WebThread extends WebApp implements Runnable {
         }
         attributes = new Properties();
         boolean keepAlive = parseHeader();
+        if (dataLength < 0) {
+            writeSimple("HTTP/1.1 400 Bad Request", "Bad request");
+            return false;
+        }
         if (!checkHost(host)) {
             return false;
         }
@@ -327,10 +331,11 @@ class WebThread extends WebApp implements Runnable {
     private boolean parseHeader() throws IOException {
         boolean keepAlive = false;
         trace("parseHeader");
-        int len = 0;
+        int len = -1;
         host = null;
         ifModifiedSince = null;
         boolean multipart = false;
+        boolean badFraming = false;
         for (String line; (line = readHeaderLine()) != null;) {
             trace(" " + line);
             String lower = StringUtils.toLowerEnglish(line);
@@ -351,8 +356,25 @@ class WebThread extends WebApp implements Runnable {
                     multipart = true;
                 }
             } else if (name.equals("content-length")) {
-                len = Integer.parseInt(getHeaderLineValue(line));
-                trace("len=" + len);
+                String value = getHeaderLineValue(line);
+                if (len >= 0 || !StringUtils.isNumber(value)) {
+                    // a second Content-Length, or one that is not a plain
+                    // non-negative number, leaves the body length ambiguous
+                    badFraming = true;
+                } else {
+                    try {
+                        len = Integer.parseInt(value);
+                        trace("len=" + len);
+                    } catch (NumberFormatException e) {
+                        // more digits than an int can hold
+                        badFraming = true;
+                    }
+                }
+            } else if (name.equals("transfer-encoding")) {
+                // the body is read as Content-Length bytes only, so a transfer
+                // coding would leave the rest of it in the stream and the next
+                // request would be read from the middle of this one
+                badFraming = true;
             } else if (name.equals("user-agent")) {
                 boolean isWebKit = lower.contains("webkit/");
                 if (isWebKit && session != null) {
@@ -392,6 +414,10 @@ class WebThread extends WebApp implements Runnable {
             } else if (StringUtils.isWhitespaceOrEmpty(line)) {
                 break;
             }
+        }
+        if (badFraming) {
+            dataLength = -1;
+            return false;
         }
         dataLength = 0;
         if (multipart) {

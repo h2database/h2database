@@ -6,6 +6,8 @@
 package org.h2.test.unit;
 
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -13,6 +15,8 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.Properties;
 import java.util.Random;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import org.h2.engine.Constants;
 import org.h2.store.fs.FilePath;
@@ -42,6 +46,31 @@ public class TestUpgrade extends TestBase {
         testUpgrade(1, 4, 200);
         testUpgrade(2, 2, 224);
         testUpgrade(2, 5, 252);
+        testVersionWithoutChecksum();
+    }
+
+    private void testVersionWithoutChecksum() throws Exception {
+        // 2.2.228 was never released, so no checksum is recorded for it
+        Path dir = Files.createTempDirectory("testUpgrade");
+        try {
+            Path jar = dir.resolve(".m2/repository/com/h2database/h2/2.2.228/h2-2.2.228.jar");
+            Files.createDirectories(jar.getParent());
+            try (ZipOutputStream zip = new ZipOutputStream(Files.newOutputStream(jar))) {
+                zip.putNextEntry(new ZipEntry("unused"));
+            }
+            String userHome = System.getProperty("user.home");
+            System.setProperty("user.home", dir.toString());
+            try {
+                Upgrade.loadH2(228);
+                fail();
+            } catch (RuntimeException e) {
+                assertContains(e.getMessage(), "SHA-256");
+            } finally {
+                System.setProperty("user.home", userHome);
+            }
+        } finally {
+            FileUtils.deleteRecursive(dir.toString(), false);
+        }
     }
 
     private void testUpgrade(int major, int minor, int build) throws Exception {

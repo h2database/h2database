@@ -387,17 +387,18 @@ public final class Upgrade {
 
     private static byte[] check(byte[] data, String sha256Checksum, String checksummedFile) {
         String got = getSHA256(data);
-        if (sha256Checksum == null) {
-            System.out.println('"' + got + '"');
-        } else {
-            if (!got.equals(sha256Checksum)) {
-                StringBuilder builder = new StringBuilder().append("SHA-256 checksum mismatch; got: ").append(got)
-                        .append(" expected: ").append(sha256Checksum);
-                if (checksummedFile != null) {
-                    builder.append(" for file ").append(checksummedFile);
-                }
-                throw new RuntimeException(builder.toString());
+        if (!got.equals(sha256Checksum)) {
+            StringBuilder builder = new StringBuilder();
+            if (sha256Checksum == null) {
+                builder.append("No SHA-256 checksum is recorded for this version; got: \"").append(got).append('"');
+            } else {
+                builder.append("SHA-256 checksum mismatch; got: ").append(got).append(" expected: ")
+                        .append(sha256Checksum);
             }
+            if (checksummedFile != null) {
+                builder.append(" for file ").append(checksummedFile);
+            }
+            throw new RuntimeException(builder.toString());
         }
         return data;
     }

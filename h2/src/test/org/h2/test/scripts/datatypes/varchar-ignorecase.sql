@@ -51,7 +51,7 @@ SELECT N FROM TEST WHERE N IN ('a', 'A', 'B');
 > rows: 2
 
 EXPLAIN SELECT N FROM TEST WHERE N IN (SELECT DISTINCT ON(B) A FROM VALUES ('a', 1), ('A', 2), ('B', 3) T(A, B));
->> SELECT "N" FROM "PUBLIC"."TEST" /* PUBLIC.TEST_IDX */ WHERE "N" IN( SELECT DISTINCT ON("B") "A" FROM (VALUES ('a', 1), ('A', 2), ('B', 3)) "T"("A", "B") /* table scan */)
+>> SELECT "N" FROM "PUBLIC"."TEST" /* PUBLIC.TEST.tableScan */ WHERE "N" IN( SELECT DISTINCT ON("B") "A" FROM (VALUES ('a', 1), ('A', 2), ('B', 3)) "T"("A", "B") /* table scan */)
 
 SELECT N FROM TEST WHERE N IN (SELECT DISTINCT ON(B) A FROM VALUES ('a', 1), ('A', 2), ('B', 3) T(A, B));
 > N

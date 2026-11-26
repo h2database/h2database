@@ -243,3 +243,84 @@ SELECT CUME_DIST() OVER (ORDER BY 'a') FROM TEST;
 
 DROP TABLE TEST;
 > ok
+
+-- Issue #4366: QUALIFY must be preserved when a derived table / CTE / view is
+-- queried with an outer WHERE (global condition pushdown).
+CREATE TABLE QUALIFY_TEST (
+    ID INT,
+    RAIL INT,
+    ATTRIBUTE DECIMAL(4, 2)
+);
+> ok
+
+INSERT INTO QUALIFY_TEST(ID, RAIL, ATTRIBUTE) VALUES
+    (1, 1, 1.11),
+    (1, 2, 2.22),
+    (1, 3, 3.33),
+    (2, 1, 4.44),
+    (2, 2, 5.55);
+> update count: 5
+
+SELECT * FROM QUALIFY_TEST
+    QUALIFY 1 = ROW_NUMBER() OVER (PARTITION BY ID ORDER BY RAIL DESC)
+    ORDER BY ID;
+> ID RAIL ATTRIBUTE
+> -- ---- ---------
+> 1  3    3.33
+> 2  2    5.55
+> rows (ordered): 2
+
+-- Derived table with outer WHERE (global condition pushdown)
+SELECT * FROM (
+    SELECT * FROM QUALIFY_TEST
+        QUALIFY 1 = ROW_NUMBER() OVER (PARTITION BY ID ORDER BY RAIL DESC)
+) T WHERE T.ID = 1;
+> ID RAIL ATTRIBUTE
+> -- ---- ---------
+> 1  3    3.33
+> rows: 1
+
+-- CTE with outer WHERE
+WITH TEMP AS (
+    SELECT * FROM QUALIFY_TEST
+        QUALIFY 1 = ROW_NUMBER() OVER (PARTITION BY ID ORDER BY RAIL DESC)
+)
+SELECT * FROM TEMP WHERE TEMP.ID = 1;
+> ID RAIL ATTRIBUTE
+> -- ---- ---------
+> 1  3    3.33
+> rows: 1
+
+-- VIEW with outer WHERE
+CREATE VIEW QUALIFY_VIEW AS
+    SELECT * FROM QUALIFY_TEST
+        QUALIFY 1 = ROW_NUMBER() OVER (PARTITION BY ID ORDER BY RAIL DESC);
+> ok
+
+SELECT * FROM QUALIFY_VIEW WHERE ID = 1;
+> ID RAIL ATTRIBUTE
+> -- ---- ---------
+> 1  3    3.33
+> rows: 1
+
+SELECT * FROM QUALIFY_VIEW WHERE ID = 2;
+> ID RAIL ATTRIBUTE
+> -- ---- ---------
+> 2  2    5.55
+> rows: 1
+
+-- Range condition pushdown (multiple global conditions)
+SELECT * FROM (
+    SELECT * FROM QUALIFY_TEST
+        QUALIFY 1 = ROW_NUMBER() OVER (PARTITION BY ID ORDER BY RAIL DESC)
+) T WHERE T.ID >= 1 AND T.ID <= 1;
+> ID RAIL ATTRIBUTE
+> -- ---- ---------
+> 1  3    3.33
+> rows: 1
+
+DROP VIEW QUALIFY_VIEW;
+> ok
+
+DROP TABLE QUALIFY_TEST;
+> ok

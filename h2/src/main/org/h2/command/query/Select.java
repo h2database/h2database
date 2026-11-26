@@ -978,14 +978,14 @@ public class Select extends Query {
         } else {
             LinkedHashMap<Column, Column> commonJoinColumns = filter.getCommonJoinColumns();
             if (commonJoinColumns != null) {
-                TableFilter replacementFilter = filter.getCommonJoinColumnsFilter();
-                String replacementSchema = replacementFilter.getSchemaName();
-                String replacementAlias = replacementFilter.getTableAlias();
                 for (Entry<Column, Column> entry : commonJoinColumns.entrySet()) {
                     Column left = entry.getKey(), right = entry.getValue();
                     if (!filter.isCommonJoinColumnToExclude(right)
                             && (except == null || except.remove(left) == null && except.remove(right) == null)) {
                         Database database = getDatabase();
+                        TableFilter replacementFilter = filter.getCommonJoinColumnsFilter(left);
+                        String replacementSchema = replacementFilter.getSchemaName();
+                        String replacementAlias = replacementFilter.getTableAlias();
                         Expression e;
                         if (left == right
                                 || DataType.hasTotalOrdering(left.getType().getValueType())

@@ -11,9 +11,12 @@ import static org.h2.util.HasSQL.DEFAULT_SQL_FLAGS;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.Set;
 
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
@@ -38,6 +41,7 @@ import org.h2.table.CTE;
 import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
 import org.h2.table.DerivedTable;
+import org.h2.table.QueryExpressionTable;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.util.StringUtils;
@@ -604,9 +608,7 @@ public abstract class Query extends Prepared {
     }
 
     private boolean isUpdatedInCurrentTransaction() {
-        HashSet<DbObject> dependencies = new HashSet<>();
-        collectDependencies(dependencies);
-        for (DbObject dependency : dependencies) {
+        for (DbObject dependency : getResultDependencies()) {
             if (dependency instanceof Table) {
                 Table table = (Table) dependency;
                 if (session.isUpdatedInCurrentTransaction(table)) {
@@ -1155,6 +1157,40 @@ public abstract class Query extends Prepared {
         isEverything(visitor);
     }
 
+    private HashSet<DbObject> getResultDependencies() {
+        HashSet<DbObject> dependencies = new HashSet<>();
+        collectDependencies(dependencies);
+        ArrayList<QueryExpressionTable> pending = new ArrayList<>();
+        for (DbObject dependency : dependencies) {
+            if (dependency instanceof QueryExpressionTable) {
+                pending.add((QueryExpressionTable) dependency);
+            }
+        }
+        if (!pending.isEmpty()) {
+            // Schema dependencies omit nested views, but their tables affect cached results.
+            HashSet<DbObject> nestedDependencies = new HashSet<>();
+            // Different transient query tables can share the same object ID.
+            Set<QueryExpressionTable> visited = Collections.newSetFromMap(new IdentityHashMap<>());
+            visited.addAll(pending);
+            for (int i = 0; i < pending.size(); i++) {
+                Query query = pending.get(i).getQuery();
+                if (query == null) {
+                    continue;
+                }
+                query.collectDependencies(nestedDependencies);
+                for (DbObject dependency : nestedDependencies) {
+                    dependencies.add(dependency);
+                    if (dependency instanceof QueryExpressionTable
+                            && visited.add((QueryExpressionTable) dependency)) {
+                        pending.add((QueryExpressionTable) dependency);
+                    }
+                }
+                nestedDependencies.clear();
+            }
+        }
+        return dependencies;
+    }
+
     /**
      * Check if this query will always return the same value and has no side
      * effects.
@@ -1184,9 +1220,7 @@ public abstract class Query extends Prepared {
     }
 
     public void invalidateCachedResult(Table reason) {
-        HashSet<DbObject> dependencies = new HashSet<>();
-        collectDependencies(dependencies);
-        if (dependencies.contains(reason)) {
+        if (getResultDependencies().contains(reason)) {
             resetLastResult();
         }
     }

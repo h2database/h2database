@@ -426,6 +426,7 @@ import org.h2.value.ValueVarchar;
 public final class Parser extends ParserBase {
 
     private CreateView createView;
+    private boolean parsingDefinition;
     private Prepared currentPrepared;
     private Select currentSelect;
     private String schemaName;
@@ -579,6 +580,7 @@ public final class Parser extends ParserBase {
         currentSelect = null;
         currentPrepared = null;
         createView = null;
+        parsingDefinition = false;
         recompileAlways = false;
         usedParameters.clear();
         read();
@@ -1907,6 +1909,11 @@ public final class Parser extends ParserBase {
             addExpected("NEW TABLE");
             addExpected("FINAL TABLE");
             throw getSyntaxError();
+        }
+        if (parsingDefinition || session.isParsingCreateView()) {
+            // Definitions of views, columns and domains are compiled again and
+            // executed later in other sessions, including the system session
+            throw DbException.getUnsupportedException(resultOptionName + " TABLE in a definition");
         }
         read(CLOSE_PAREN);
         if (currentSelect != null) {
@@ -6538,6 +6545,7 @@ public final class Parser extends ParserBase {
     }
 
     private Prepared parseCreate() {
+        parsingDefinition = true;
         boolean orReplace = false;
         if (readIf(OR, "REPLACE")) {
             orReplace = true;
@@ -7277,6 +7285,7 @@ public final class Parser extends ParserBase {
     }
 
     private Prepared parseAlter() {
+        parsingDefinition = true;
         if (readIf(TABLE)) {
             return parseAlterTable();
         } else if (readIf(USER)) {

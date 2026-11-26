@@ -332,6 +332,9 @@ public class ParserBase {
             tokenIndex = index;
             currentTokenType = token.tokenType();
             currentToken = token.asIdentifier();
+            if (currentTokenType == LITERAL) {
+                checkLiterals();
+            }
         }
     }
 

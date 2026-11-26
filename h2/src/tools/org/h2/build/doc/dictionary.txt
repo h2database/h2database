@@ -260,7 +260,7 @@ forever forge forget forgetting forgot forgotten fork form formal format
 formatdatetime formats formatted formatter formatting formed forms formula forth
 fortin forward forwarding found foundation four fourth fox fqn frac fraction
 fractional fragment fragments frame frameborder frames frameset framespacing
-framework frameworks fran france frank frasl fred frederico free freed freeing
+framework frameworks framing fran france frank frasl fred frederico free freed freeing
 freely frees freezes frem french freq frequencies frequency frequent frequently
 fresh freshmeat freturn friday fried friend friendly from front frontbase
 frontend frontends frost fstore fsub fsutil fsync ftl ftp ftps fulfill fulfilled

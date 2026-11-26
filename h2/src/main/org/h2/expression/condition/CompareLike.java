@@ -373,35 +373,44 @@ public final class CompareLike extends Condition {
 
     private boolean compareAt(String s, int pi, int si, int sLen,
             char[] pattern, int[] types) {
-        for (; pi < patternLength; pi++) {
-            switch (types[pi]) {
-            case MATCH:
-                if ((si >= sLen) || !compare(pattern, s, pi, si++)) {
-                    return false;
-                }
-                break;
-            case ONE:
-                if (si++ >= sLen) {
-                    return false;
-                }
-                break;
-            case ANY:
-                if (++pi >= patternLength) {
-                    return true;
-                }
-                while (si < sLen) {
-                    if (compare(pattern, s, pi, si) &&
-                            compareAt(s, pi, si, sLen, pattern, types)) {
+        // Only the last ANY needs to be retried on a mismatch, so the time is
+        // bounded by the pattern length times the value length
+        int anyPi = -1, anySi = -1;
+        while (si < sLen) {
+            if (pi < patternLength) {
+                switch (types[pi]) {
+                case MATCH:
+                    if (compare(pattern, s, pi, si)) {
+                        pi++;
+                        si++;
+                        continue;
+                    }
+                    break;
+                case ONE:
+                    pi++;
+                    si++;
+                    continue;
+                case ANY:
+                    if (++pi >= patternLength) {
                         return true;
                     }
-                    si++;
+                    anyPi = pi;
+                    anySi = si;
+                    continue;
+                default:
+                    throw DbException.getInternalError(Integer.toString(types[pi]));
                 }
-                return false;
-            default:
-                throw DbException.getInternalError(Integer.toString(types[pi]));
             }
+            if (anyPi < 0) {
+                return false;
+            }
+            pi = anyPi;
+            si = ++anySi;
         }
-        return si == sLen;
+        while (pi < patternLength && types[pi] == ANY) {
+            pi++;
+        }
+        return pi == patternLength;
     }
 
     private boolean compare(char[] pattern, String s, int pi, int si) {

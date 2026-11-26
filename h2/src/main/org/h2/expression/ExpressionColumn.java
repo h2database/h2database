@@ -228,7 +228,7 @@ public final class ExpressionColumn extends Expression {
                              * value of the common column comes from the
                              * replacement (right-side) filter.
                              */
-                            mapColumn(tableFilter.getCommonJoinColumnsFilter(), replacement, level);
+                            mapColumn(tableFilter.getCommonJoinColumnsFilter(col), replacement, level);
                             return;
                         }
                     }

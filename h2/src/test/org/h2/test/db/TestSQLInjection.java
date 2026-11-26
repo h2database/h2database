@@ -65,7 +65,25 @@ public class TestSQLInjection extends TestDb {
                 execute("CALL 'Hello'");
         assertThrows(ErrorCode.LITERALS_ARE_NOT_ALLOWED, stat).
                 execute("CALL $$Hello World$$");
+        // literals right after a multi-word construct
+        assertThrows(ErrorCode.LITERALS_ARE_NOT_ALLOWED, stat).
+                execute("SELECT NAME FROM USERS ORDER BY '123456' = PASSWORD DESC");
+        assertThrows(ErrorCode.LITERALS_ARE_NOT_ALLOWED, stat).
+                execute("SELECT COUNT(*) FROM USERS GROUP BY 'x'");
+        assertThrows(ErrorCode.LITERALS_ARE_NOT_ALLOWED, stat).
+                execute("SELECT COUNT(*) FILTER (WHERE '123456' = PASSWORD) FROM USERS");
+        assertThrows(ErrorCode.LITERALS_ARE_NOT_ALLOWED, stat).
+                execute("SELECT RANK() OVER (PARTITION BY 'x' ORDER BY NAME) FROM USERS");
+        assertThrows(ErrorCode.LITERALS_ARE_NOT_ALLOWED, stat).
+                execute("SELECT ROW('x', NAME) FROM USERS");
+        assertThrows(ErrorCode.LITERALS_ARE_NOT_ALLOWED, stat).
+                execute("SELECT CURRENT_TIMESTAMP AT TIME ZONE 'UTC'");
+        assertThrows(ErrorCode.LITERALS_ARE_NOT_ALLOWED, stat).
+                execute("SELECT TIMESTAMP WITH TIME ZONE '2000-01-01 00:00:00+00'");
+        stat.execute("SELECT NAME FROM USERS ORDER BY 1");
         stat.execute("SET ALLOW_LITERALS NONE");
+        assertThrows(ErrorCode.LITERALS_ARE_NOT_ALLOWED, stat).
+                execute("SELECT NAME FROM USERS ORDER BY 1");
         try {
             checkPasswordInsecure("123456");
             fail();

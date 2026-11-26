@@ -39,6 +39,7 @@ public class TestCompatibilityOracle extends TestDb {
     public void test() throws Exception {
         testNotNullSyntax();
         testTreatEmptyStringsAsNull();
+        testLikeEscapeEmpty();
         testDecimalScale();
         testPoundSymbolInColumnName();
         testToDate();
@@ -47,6 +48,45 @@ public class TestCompatibilityOracle extends TestDb {
         testSequenceNextval();
         testVarchar();
         deleteDb("oracle");
+    }
+
+    /**
+     * ESCAPE '' means no escape character (H2 extension used by Hibernate).
+     * Under MODE=Oracle empty strings become NULL; LIKE must still match.
+     */
+    private void testLikeEscapeEmpty() throws SQLException {
+        deleteDb("oracle");
+        Connection conn = getConnection("oracle;MODE=Oracle");
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE TABLE T (NAME VARCHAR(255) NOT NULL)");
+        stat.execute("INSERT INTO T VALUES ('hello')");
+        stat.execute("INSERT INTO T VALUES ('hello%world')");
+
+        assertResult("1", stat, "SELECT COUNT(*) FROM T WHERE NAME = 'hello'");
+        assertResult("1", stat, "SELECT COUNT(*) FROM T WHERE NAME LIKE 'hello'");
+        // Hibernate emits LIKE ... ESCAPE '' when no escape is specified
+        assertResult("1", stat, "SELECT COUNT(*) FROM T WHERE NAME LIKE 'hello' ESCAPE ''");
+        assertResult("2", stat, "SELECT COUNT(*) FROM T WHERE NAME LIKE 'hel%' ESCAPE ''");
+        assertResult("2", stat, "SELECT COUNT(*) FROM T WHERE NAME LIKE 'hello%' ESCAPE ''");
+        // backslash is not special when escape is empty (default \ would escape %)
+        assertResult("0", stat, "SELECT COUNT(*) FROM T WHERE NAME LIKE 'hello\\%' ESCAPE ''");
+
+        PreparedStatement ps = conn.prepareStatement(
+                "SELECT COUNT(*) FROM T WHERE NAME LIKE ? ESCAPE ''");
+        ps.setString(1, "hello");
+        ResultSet rs = ps.executeQuery();
+        rs.next();
+        assertEquals(1, rs.getInt(1));
+        rs.close();
+        ps.setString(1, "hel%");
+        rs = ps.executeQuery();
+        rs.next();
+        assertEquals(2, rs.getInt(1));
+        rs.close();
+        ps.close();
+
+        stat.execute("DROP TABLE T");
+        conn.close();
     }
 
     private void testNotNullSyntax() throws SQLException {

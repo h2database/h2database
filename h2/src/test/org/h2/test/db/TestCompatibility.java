@@ -51,6 +51,7 @@ public class TestCompatibility extends TestDb {
         testPostgreSQL();
         testHsqlDb();
         testMySQL();
+        testNumericWithBooleanComparison();
         testConcurrentAutoIncrement();
         testDB2();
         testDerby();
@@ -66,6 +67,44 @@ public class TestCompatibility extends TestDb {
         deleteDb("compatibility");
 
         testUnknownURL();
+    }
+
+    private void testNumericWithBooleanComparison() throws SQLException {
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE TABLE TEST_BOOLEAN(ID INT, A BOOLEAN, B BOOLEAN, C BOOLEAN, N INT)");
+        stat.execute("INSERT INTO TEST_BOOLEAN VALUES "
+                + "(1, TRUE, FALSE, FALSE, 1), (2, FALSE, TRUE, FALSE, 0), "
+                + "(3, FALSE, FALSE, TRUE, 2), (4, FALSE, FALSE, FALSE, 3), "
+                + "(5, NULL, TRUE, FALSE, NULL), (6, NULL, NULL, NULL, NULL)");
+        for (String mode : new String[] { "LEGACY", "DB2", "HSQLDB", "MSSQLServer", "MariaDB", "MySQL" }) {
+            stat.execute("SET MODE " + mode);
+            assertResult("3", stat, "SELECT COUNT(*) FROM TEST_BOOLEAN WHERE A = 1 OR B = 1");
+            assertResult("3", stat, "SELECT COUNT(*) FROM TEST_BOOLEAN WHERE 1 = A OR 1 = B");
+            assertResult("4", stat, "SELECT COUNT(*) FROM TEST_BOOLEAN WHERE A = 1 OR B = 1 OR C = 1");
+            assertResult("1", stat, "SELECT COUNT(*) FROM TEST_BOOLEAN WHERE A = 1 OR A = 2");
+            assertResult("0", stat, "SELECT COUNT(*) FROM TEST_BOOLEAN WHERE A = 2 OR B = 2");
+            assertResult("4", stat, "SELECT COUNT(*) FROM TEST_BOOLEAN WHERE A IN(B, C) OR A = 1");
+            assertResult("4", stat, "SELECT COUNT(*) FROM TEST_BOOLEAN WHERE A IN(TRUE, FALSE) OR A = 2");
+            assertResult("3", stat, "SELECT COUNT(*) FROM TEST_BOOLEAN WHERE N IN(0, 2) OR N = TRUE");
+            try (PreparedStatement prep = conn.prepareStatement("SELECT COUNT(*) FROM TEST_BOOLEAN "
+                    + "WHERE A = CAST(? AS INTEGER) OR A = CAST(? AS INTEGER)")) {
+                prep.setInt(1, 1);
+                prep.setInt(2, 2);
+                ResultSet rs = prep.executeQuery();
+                assertTrue(rs.next());
+                assertEquals(1, rs.getInt(1));
+                assertFalse(rs.next());
+            }
+            assertThrows(ErrorCode.TYPES_ARE_NOT_COMPARABLE_2, stat)
+                    .executeQuery("SELECT * FROM TEST_BOOLEAN WHERE A IN(0, 1)");
+        }
+        stat.execute("SET MODE REGULAR");
+        assertThrows(ErrorCode.TYPES_ARE_NOT_COMPARABLE_2, stat)
+                .executeQuery("SELECT * FROM TEST_BOOLEAN WHERE A = 1 OR B = 1");
+        assertResult("3", stat, "SELECT COUNT(*) FROM TEST_BOOLEAN WHERE A = TRUE OR B = TRUE");
+        assertResult("2", stat, "SELECT COUNT(*) FROM TEST_BOOLEAN WHERE N = 1 OR N = 2");
+        stat.execute("DROP TABLE TEST_BOOLEAN");
+        stat.close();
     }
 
     private void testCaseSensitiveIdentifiers() throws SQLException {
